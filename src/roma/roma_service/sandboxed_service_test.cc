@@ -20,23 +20,32 @@
 #include <chrono>
 #include <functional>
 #include <memory>
+#include <regex>
 #include <string>
 #include <thread>
 #include <tuple>
 #include <utility>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include "absl/base/thread_annotations.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
+#include "absl/strings/str_split.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
+#include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/native_function_grpc_server/test_request_handlers.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
+#include "src/util/status_macro/status_util.h"
 
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;
@@ -91,6 +100,206 @@ TEST(SandboxedServiceTest, StopGracefullyWithPendingLoads) {
                     .ok());
   }
   EXPECT_TRUE(roma_service.Stop().ok());
+}
+
+// Functions from Roma Integrators
+// -------------------------------------------------------------------------
+template <typename TMetadata>
+std::pair<privacy_sandbox::server_common::TestMethodResponse, absl::Status>
+HandleTestMethod(
+    const TMetadata& metadata,
+    const privacy_sandbox::server_common::TestMethodRequest& request) {
+  privacy_sandbox::server_common::TestMethodResponse response;
+  LOG(INFO) << "TestMethod gRPC called.";
+  response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
+  return std::make_pair(response, absl::OkStatus());
+}
+
+template <typename TMetadata>
+std::pair<privacy_sandbox::server_common::TestMethod1Response, absl::Status>
+HandleTestMethod1(
+    const TMetadata& metadata,
+    const privacy_sandbox::server_common::TestMethod1Request& request) {
+  privacy_sandbox::server_common::TestMethod1Response response;
+  LOG(INFO) << "TestMethod1 gRPC called.";
+  response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
+  return std::make_pair(response, absl::OkStatus());
+}
+
+template <typename TMetadata>
+std::pair<privacy_sandbox::server_common::TestMethod2Response, absl::Status>
+HandleTestMethod2(
+    const TMetadata& metadata,
+    const privacy_sandbox::server_common::TestMethod2Request& request) {
+  privacy_sandbox::server_common::TestMethod2Response response;
+  LOG(INFO) << "TestMethod2 gRPC called.";
+  response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
+  return std::make_pair(response, absl::OkStatus());
+}
+// -------------------------------------------------------------------------
+
+// Resultant generated code
+template <typename TMetadata>
+std::pair<std::string, grpc::Status> HandleNativeRequest(
+    std::string_view request_payload, const TMetadata& metadata,
+    std::string_view function_name) {
+  if (function_name == "TestHostServer.TestMethod") {
+    privacy_sandbox::server_common::TestMethodRequest request;
+    request.ParseFromString(request_payload);
+    auto [response_payload, status] = HandleTestMethod(metadata, request);
+    return std::make_pair(
+        response_payload.SerializeAsString(),
+        privacy_sandbox::server_common::FromAbslStatus(status));
+  }
+  if (function_name == "TestHostServer.TestMethod1") {
+    privacy_sandbox::server_common::TestMethod1Request request;
+    request.ParseFromString(request_payload);
+    auto [response_payload, status] = HandleTestMethod1(metadata, request);
+    return std::make_pair(
+        response_payload.SerializeAsString(),
+        privacy_sandbox::server_common::FromAbslStatus(status));
+  }
+  if (function_name == "TestHostServer.TestMethod2") {
+    privacy_sandbox::server_common::TestMethod2Request request;
+    request.ParseFromString(request_payload);
+    auto [response_payload, status] = HandleTestMethod2(metadata, request);
+    return std::make_pair(
+        response_payload.SerializeAsString(),
+        privacy_sandbox::server_common::FromAbslStatus(status));
+  }
+
+  grpc::Status status(grpc::StatusCode::NOT_FOUND, "Invalid function name");
+  return std::make_pair("", status);
+}
+
+template <typename TMetadata>
+class InvokeCallbackHandler
+    : public google::scp::roma::grpc_server::RequestHandlerBase<
+          privacy_sandbox::server_common::InvokeCallbackRequest,
+          privacy_sandbox::server_common::InvokeCallbackResponse,
+          privacy_sandbox::server_common::JSCallbackService::AsyncService> {
+ public:
+  void Request(TService* service, grpc::ServerContext* ctx,
+               grpc::ServerAsyncResponseWriter<TResponse>* responder,
+               grpc::ServerCompletionQueue* cq, void* tag) {
+    service->RequestInvokeCallback(ctx, &request_, responder, cq, cq, tag);
+  }
+
+  std::pair<TResponse*, grpc::Status> ProcessRequest(
+      const TMetadata& metadata) {
+    LOG(INFO) << "InvokeCallback gRPC called.";
+    auto [response_bytes, status] = HandleNativeRequest(
+        request_.request_payload(), metadata, request_.function_name());
+    *response_.mutable_response_payload() = std::move(response_bytes);
+    return std::make_pair(&response_, status);
+  }
+
+ private:
+  TRequest request_;
+  TResponse response_;
+};
+
+template <typename T>
+std::string ProtoToBytesStr(const T& request) {
+  std::string str = request.SerializeAsString();
+  const uint8_t* byte_array = reinterpret_cast<const uint8_t*>(str.c_str());
+
+  return absl::StrCat(
+      "\"", absl::StrJoin(byte_array, byte_array + str.size(), " "), "\"");
+}
+
+TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
+  Config<std::string> config;
+  config.number_of_workers = 2;
+  config.enable_native_function_grpc_server = true;
+  config.RegisterService(
+      std::make_unique<
+          privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
+      InvokeCallbackHandler<std::string>());
+
+  auto roma_service =
+      std::make_unique<RomaService<std::string>>(std::move(config));
+  auto status = roma_service->Init();
+  ASSERT_TRUE(status.ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+        function ArrayStrToString(arrayStr) {
+            const arr = arrayStr.split(" ");
+            let string = "";
+            for (let i = 0; i < arr.length; i++) {
+                string += String.fromCharCode(parseInt(arr[i], 10));
+            }
+            return string;
+        }
+
+        function Handler(input) {
+          TestHostServer.TestMethod1(ArrayStrToString(input));
+          TestHostServer.TestMethod2(ArrayStrToString(input));
+          return TestHostServer.TestMethod(ArrayStrToString(input));
+        }
+      )JS_CODE",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    // Convert proto to string representation of byte array and send to UDF.
+    // Stand-in from UDF sending proto encoded as Uint8Array of bytes.
+    privacy_sandbox::server_common::TestMethodRequest request;
+    request.set_input("Hello ");
+    std::string request_bytes = ProtoToBytesStr(request);
+
+    auto execution_obj = std::make_unique<InvocationStrRequest<std::string>>(
+        InvocationStrRequest<std::string>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {request_bytes},
+        });
+
+    status = roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     EXPECT_TRUE(resp.ok());
+                                     if (resp.ok()) {
+                                       result = std::move(resp->resp);
+                                     }
+                                     execute_finished.Notify();
+                                   });
+    EXPECT_TRUE(status.ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
+  // result is a JSON representation of a string-serialized proto. Construct a
+  // tempory JSON object to remove JSON-escaped characters. Necessary because
+  // nlohmann can only parse JSON objects.
+  std::string jsonStr = R"({"result": )" + result + "}";
+  nlohmann::json j = nlohmann::json::parse(jsonStr);
+  // Extract the string value from the JSON
+  result = j["result"];
+
+  privacy_sandbox::server_common::TestMethodResponse response;
+  response.ParseFromString(result);
+
+  EXPECT_THAT(response.output(), StrEq("Hello World. From SERVER"));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
 }
 
 TEST(SandboxedServiceTest, ExecuteCode) {

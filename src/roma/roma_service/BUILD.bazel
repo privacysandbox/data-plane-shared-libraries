@@ -110,10 +110,16 @@ cc_test(
         "//src/core/test/utils",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server:test_request_handlers",
+        "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "//src/util:duration",
+        "//src/util/status_macro:status_util",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
+        "@nlohmann_json//:lib",
     ],
 )
 

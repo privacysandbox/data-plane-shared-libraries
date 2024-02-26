@@ -26,6 +26,7 @@
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
+#include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
@@ -41,6 +42,10 @@ constexpr char kCouldNotRunFunctionBinding[] =
     "ROMA: Could not run C++ function binding.";
 constexpr char kUnexpectedDataInBindingCallback[] =
     "ROMA: Unexpected data in global callback.";
+constexpr char kUnexpectedParametersInBindingCallback[] =
+    "ROMA: Unexpected parameters in global callback.";
+constexpr char kUnexpectedParameterTypeInBindingCallback[] =
+    "ROMA: Unexpected parameter type in global callback.";
 constexpr char kCouldNotConvertJsFunctionInputToNative[] =
     "ROMA: Could not convert JS function input to native C++ type.";
 constexpr char kErrorInFunctionBindingInvocation[] =
@@ -131,11 +136,26 @@ V8IsolateFunctionBinding::V8IsolateFunctionBinding(
         .instance = this,
     });
   }
+  // Temporary until all callbacks are implemented using the
+  // native_function_server
+  binding_references_.emplace_back(Binding{
+      .function_name = "TestHostServer.TestMethod",
+      .instance = this,
+  });
+  binding_references_.emplace_back(Binding{
+      .function_name = "TestHostServer.TestMethod1",
+      .instance = this,
+  });
+  binding_references_.emplace_back(Binding{
+      .function_name = "TestHostServer.TestMethod2",
+      .instance = this,
+  });
 
   if (!server_address.empty()) {
     grpc_channel_ = grpc::CreateChannel(std::string(server_address),
                                         grpc::InsecureChannelCredentials());
-    stub_ = privacy_sandbox::server_common::TestService::NewStub(grpc_channel_);
+    stub_ = privacy_sandbox::server_common::JSCallbackService::NewStub(
+        grpc_channel_);
   }
 }
 
@@ -196,6 +216,62 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   info.GetReturnValue().Set(returned_value);
 }
 
+void V8IsolateFunctionBinding::GrpcServerCallback(
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
+  ROMA_VLOG(9) << "Calling V8 gRPC Server callback";
+  auto isolate = info.GetIsolate();
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  auto data = info.Data();
+  if (data.IsEmpty()) {
+    isolate->ThrowError(kUnexpectedDataInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedDataInBindingCallback;
+    return;
+  }
+
+  if (info.Length() != 1) {
+    isolate->ThrowError(kUnexpectedParametersInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedParametersInBindingCallback;
+    return;
+  }
+
+  std::string native_data;
+  if (!TypeConverter<std::string>::FromV8(isolate, info[0], &native_data)) {
+    // Handle error: Value is not backed by an v8::String
+    isolate->ThrowError(kUnexpectedParameterTypeInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedParameterTypeInBindingCallback;
+    return;
+  }
+
+  auto binding_external = v8::Local<v8::External>::Cast(data);
+  auto binding = reinterpret_cast<Binding*>(binding_external->Value());
+  auto& stub = binding->instance->stub_;
+  auto uuid = binding->instance->invocation_req_uuid_;
+
+  privacy_sandbox::server_common::InvokeCallbackRequest request;
+  request.set_function_name(binding->function_name);
+  *request.mutable_request_payload() = std::move(native_data);
+
+  privacy_sandbox::server_common::InvokeCallbackResponse response;
+  grpc::ClientContext context;
+  context.AddMetadata(std::string(google::scp::roma::grpc_server::kUuidTag),
+                      uuid);
+
+  const grpc::Status status =
+      stub->InvokeCallback(&context, request, &response);
+
+  if (status.ok()) {
+    LOG(ERROR) << "Successfully sent request to gRPC server.";
+    LOG(ERROR) << response.response_payload();
+    info.GetReturnValue().Set(
+        TypeConverter<std::string>::ToV8(isolate, response.response_payload()));
+  } else {
+    LOG(ERROR) << "RPC failed: " << status.error_message();
+    info.GetReturnValue().Set(
+        TypeConverter<std::string>::ToV8(isolate, status.error_message()));
+  }
+}
+
 void V8IsolateFunctionBinding::BindFunction(
     v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& global_object_template,
     void* binding, void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
@@ -225,8 +301,8 @@ void V8IsolateFunctionBinding::BindFunction(
     current_template = it->second;
   }
 
-  const auto function_template = v8::FunctionTemplate::New(
-      isolate, &GlobalV8FunctionCallback, binding_context);
+  const auto function_template =
+      v8::FunctionTemplate::New(isolate, callback, binding_context);
   const auto& binding_name =
       TypeConverter<std::string>::ToV8(isolate, tokens.back()).As<v8::String>();
   current_template->Set(binding_name, function_template);
@@ -242,8 +318,13 @@ bool V8IsolateFunctionBinding::BindFunctions(
   absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>
       child_templates;
   for (auto& binding : binding_references_) {
+    // Temporary: To differentiate between Rpc methods and regular callbacks.
+    // Will be removed when all callbacks are handled via gRPC
+    auto callback = absl::StrContains(binding.function_name, "TestHostServer")
+                        ? &GrpcServerCallback
+                        : &GlobalV8FunctionCallback;
     BindFunction(isolate, global_object_template,
-                 reinterpret_cast<void*>(&binding), &GlobalV8FunctionCallback,
+                 reinterpret_cast<void*>(&binding), callback,
                  binding.function_name, child_templates);
   }
 
@@ -270,6 +351,8 @@ void V8IsolateFunctionBinding::AddExternalReferences(
   }
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));
+  external_references.push_back(
+      reinterpret_cast<intptr_t>(&GrpcServerCallback));
 }
 
 absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {

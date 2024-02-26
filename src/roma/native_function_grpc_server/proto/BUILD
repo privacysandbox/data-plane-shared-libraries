@@ -38,6 +38,11 @@ proto_library(
     srcs = ["logging_service.proto"],
 )
 
+proto_library(
+    name = "callback_service_proto",
+    srcs = ["callback_service.proto"],
+)
+
 cc_proto_library(
     name = "test_service_cc_proto",
     visibility = [":grpc_proto_users_pkg"],
@@ -59,6 +64,14 @@ cc_proto_library(
     visibility = [":grpc_proto_users_pkg"],
     deps = [
         ":logging_service_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "callback_service_cc_proto",
+    visibility = [":grpc_proto_users_pkg"],
+    deps = [
+        ":callback_service_proto",
     ],
 )
 
@@ -86,6 +99,14 @@ cc_grpc_library(
     deps = [":logging_service_cc_proto"],
 )
 
+cc_grpc_library(
+    name = "callback_service_grpc_proto",
+    srcs = [":callback_service_proto"],
+    grpc_only = True,
+    visibility = [":grpc_proto_users_pkg"],
+    deps = [":callback_service_cc_proto"],
+)
+
 buf_lint_test(
     name = "test_service_proto_lint",
     size = "small",
@@ -107,10 +128,18 @@ buf_lint_test(
     targets = [":logging_service_proto"],
 )
 
+buf_lint_test(
+    name = "callback_service_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":callback_service_proto"],
+)
+
 package_group(
     name = "grpc_proto_users_pkg",
     packages = [
         "//src/roma/native_function_grpc_server/...",
+        "//src/roma/roma_service/...",
         "//src/roma/sandbox/js_engine/v8_engine/...",
     ],
 )
