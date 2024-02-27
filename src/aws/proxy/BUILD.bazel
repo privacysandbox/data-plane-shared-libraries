@@ -380,6 +380,7 @@ container_image(
     ],
     visibility = [
         "//production/packaging/aws:__subpackages__",
+        "//src/public/cpio/validator:__subpackages__",
     ],
 )
 

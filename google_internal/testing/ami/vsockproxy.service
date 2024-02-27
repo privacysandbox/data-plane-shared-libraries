@@ -1,0 +1,11 @@
+[Unit]
+Description=Vsock proxy for allowing outgoing connections from the Nitro enclave image
+After=network.target
+
+[Service]
+ExecStart=/opt/privacysandbox/proxy
+WorkingDirectory=/tmp/proxy
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
