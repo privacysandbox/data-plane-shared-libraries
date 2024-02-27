@@ -22,7 +22,6 @@ import (
 	"log"
 	"os"
 	"path"
-	"strings"
 
 	pgdCmd "github.com/privacysandbox/data-plane-shared/roma/tools/api_plugin/cmd/cmd"
 	gendoc "github.com/pseudomuto/protoc-gen-doc"
@@ -31,15 +30,11 @@ import (
 
 var (
 	tmplWorkdir string
+	tmplSymlink string = "redacted"
 )
-var tmplSymlink = "redacted"
 
 //go:embed tmpl/*
 var embedFS embed.FS
-
-func squoteEscape(input string) string {
-	return fmt.Sprintf("'%s'", strings.ReplaceAll(input, "'", "''"))
-}
 
 func copyToDir(srcFS fs.FS, destDir string) error {
 	return fs.WalkDir(srcFS, ".", func(filePath string, d fs.DirEntry, e error) error {
@@ -108,8 +103,7 @@ func listFS(srcFS fs.FS) error {
 }
 
 func extractTemplates() (err error) {
-	// tmplWorkdir is a temp dir into which embedded sut files and
-	// workdir/zip content are copied
+	// tmplWorkdir is a temp dir into which template files are copied
 	if tmplWorkdir, err = os.MkdirTemp("", "tmpl"); err != nil {
 		return
 	}
