@@ -23,8 +23,8 @@ cc_library(
         "//src/roma/sandbox/worker_api:__subpackages__",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface",
+        "//src/core/interface:type_def",
         "//src/roma/config",
         "//src/roma/logging",
         "//src/roma/sandbox/constants",
@@ -51,7 +51,7 @@ cc_test(
     ],
     deps = [
         ":worker",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
         "//src/roma/wasm:wasm_testing",

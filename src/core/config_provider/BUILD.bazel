@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "config_provider_lib",
+    name = "config_provider",
     srcs = [
         "config_provider.cc",
         "env_config_provider.cc",
@@ -28,7 +28,7 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/core/utils:core_utils",
         "@nlohmann_json//:lib",
     ],
@@ -40,7 +40,7 @@ cc_test(
     srcs = ["config_provider_test.cc"],
     data = ["resources/test_config.json"],
     deps = [
-        ":config_provider_lib",
+        ":config_provider",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
@@ -51,7 +51,7 @@ cc_test(
     size = "small",
     srcs = ["env_config_provider_test.cc"],
     deps = [
-        ":config_provider_lib",
+        ":config_provider",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],

@@ -17,13 +17,13 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "concurrent_map_lib",
+    name = "concurrent_map",
     hdrs = [
         "concurrent_map.h",
         "error_codes.h",
     ],
     deps = [
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface:type_def",
         "@oneTBB//:tbb",
     ],
 )
@@ -33,9 +33,9 @@ cc_test(
     size = "small",
     srcs = ["concurrent_map_test.cc"],
     deps = [
-        ":concurrent_map_lib",
-        "//src/core/interface:type_def_lib",
-        "//src/core/test/utils:utils_lib",
+        ":concurrent_map",
+        "//src/core/interface:type_def",
+        "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],

@@ -17,14 +17,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "auth_token_provider_select_lib",
+    name = "auth_token_provider_select",
     deps = select(
         {
             "//:aws_platform": [
-                "//src/cpio/client_providers/auth_token_provider/aws:aws_auth_token_provider_lib",
+                "//src/cpio/client_providers/auth_token_provider/aws:aws_auth_token_provider",
             ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/auth_token_provider/gcp:gcp_auth_token_provider_lib",
+                "//src/cpio/client_providers/auth_token_provider/gcp:gcp_auth_token_provider",
             ],
         },
         no_match_error = "Please build for AWS or GCP",

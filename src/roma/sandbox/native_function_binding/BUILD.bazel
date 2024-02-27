@@ -91,7 +91,7 @@ cc_library(
         ":native_function_table",
         ":rpc_wrapper_cc_proto",
         ":thread_safe_map",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/roma/config",
         "//src/roma/interface:function_binding_io_cc_proto",
         "//src/roma/logging",
@@ -109,7 +109,7 @@ cc_test(
     srcs = ["native_function_handler_sapi_ipc_test.cc"],
     deps = [
         ":native_function_handler_sapi_ipc",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
     ],
@@ -121,7 +121,7 @@ cc_test(
     srcs = ["native_function_invoker_sapi_ipc_test.cc"],
     deps = [
         ":native_function_invoker_sapi_ipc",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",

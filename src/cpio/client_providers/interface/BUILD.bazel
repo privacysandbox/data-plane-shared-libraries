@@ -17,12 +17,12 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "cpio_client_providers_interface_lib",
+    name = "cpio_client_providers_interface",
     srcs = [
         ":cpio_client_provider_interface_srcs",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/interface/blob_storage_client:type_def",
@@ -92,7 +92,7 @@ cc_library(
             "type_def.h",
         ],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "@com_google_protobuf//:protobuf",
     ],
 )

@@ -22,11 +22,11 @@ cc_library(
     hdrs = ["blob_storage_client_interface.h"],
     deps = [
         ":type_def",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/blob_storage_client_provider:blob_storage_client_provider_select_lib",
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider:blob_storage_client_provider_select",
+        "//src/cpio/client_providers/global_cpio",
         "//src/public/cpio/interface:type_def",
     ],
 )

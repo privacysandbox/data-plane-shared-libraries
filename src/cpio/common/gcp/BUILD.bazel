@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "gcp_utils_lib",
+    name = "gcp_utils",
     srcs = [
         "gcp_utils.cc",
     ],
@@ -26,7 +26,7 @@ cc_library(
         "gcp_utils.h",
     ],
     deps = [
-        "//src/core/common/global_logger:global_logger_lib",
+        "//src/core/common/global_logger",
         "//src/public/cpio/interface:cpio_errors",
         "@com_github_googleapis_google_cloud_cpp//:common",
         "@com_github_grpc_grpc//:grpc++",
@@ -38,7 +38,7 @@ cc_test(
     size = "small",
     srcs = ["gcp_utils_test.cc"],
     deps = [
-        ":gcp_utils_lib",
+        ":gcp_utils",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/interface:cpio_errors",
         "@com_github_googleapis_google_cloud_cpp//:common",

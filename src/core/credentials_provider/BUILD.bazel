@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "core_credentials_provider_lib",
+    name = "credentials_provider",
     srcs = [
         "aws_assume_role_credentials_provider.cc",
         "aws_credentials_provider.cc",
@@ -28,8 +28,8 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//src/core/async_executor/aws:core_aws_async_executor_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/interface",
         "@aws_sdk_cpp//:sts",
         "@com_google_absl//absl/functional:bind_front",
     ],

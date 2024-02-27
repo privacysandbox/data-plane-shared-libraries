@@ -17,18 +17,18 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "gcp_queue_client_provider_lib",
+    name = "gcp_queue_client_provider",
     srcs = [
         ":gcp_queue_client_provider_srcs",
     ],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
-        "//src/cpio/common/gcp:gcp_utils_lib",
+        "//src/cpio/common/gcp:gcp_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:pubsub",
@@ -60,13 +60,13 @@ cc_test(
         "gcp_queue_client_provider_test.cc",
     ],
     deps = [
-        ":gcp_queue_client_provider_lib",
+        ":gcp_queue_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/cpio/client_providers/queue_client_provider/mock/gcp:gcp_queue_client_provider_mock",
-        "//src/cpio/common/gcp:gcp_utils_lib",
+        "//src/cpio/common/gcp:gcp_utils",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
         "@com_google_absl//absl/synchronization",
@@ -77,7 +77,7 @@ cc_test(
 )
 
 cc_library(
-    name = "test_gcp_queue_client_provider_lib",
+    name = "test_gcp_queue_client_provider",
     srcs = [
         "test_gcp_queue_client_provider.cc",
         "//src/cpio/client_providers/queue_client_provider/gcp:gcp_queue_client_provider_srcs",
@@ -87,6 +87,6 @@ cc_library(
         "//src/cpio/client_providers/interface:queue_client_provider_interface.h",
     ],
     deps = [
-        ":gcp_queue_client_provider_lib",
+        ":gcp_queue_client_provider",
     ],
 )

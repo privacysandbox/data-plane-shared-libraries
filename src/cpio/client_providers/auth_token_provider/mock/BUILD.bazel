@@ -21,9 +21,9 @@ cc_library(
     testonly = True,
     hdrs = ["mock_auth_token_provider.h"],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest",
     ],

@@ -24,7 +24,7 @@ cc_library(
         "type_converter.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/roma/interface:function_binding_io_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
@@ -38,7 +38,7 @@ cc_test(
     srcs = ["function_binding_v2_test.cc"],
     deps = [
         ":config",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/util:process_util",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/log:check",
@@ -68,7 +68,7 @@ cc_test(
     tags = ["manual"],
     deps = [
         ":config",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",
@@ -85,7 +85,7 @@ cc_test(
     srcs = ["type_converter_test.cc"],
     deps = [
         ":config",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",

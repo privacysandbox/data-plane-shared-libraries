@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "docker_helper_lib",
+    name = "docker_helper",
     srcs = ["docker_helper.cc"],
     hdrs = ["docker_helper.h"],
     deps = [
@@ -31,7 +31,7 @@ cc_test(
     size = "small",
     srcs = ["docker_helper_test.cc"],
     deps = [
-        ":docker_helper_lib",
+        ":docker_helper",
         "@com_google_absl//absl/container:btree",
         "@com_google_googletest//:gtest_main",
     ],

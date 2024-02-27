@@ -30,16 +30,16 @@ filegroup(
 )
 
 cc_library(
-    name = "global_cpio_lib",
+    name = "global_cpio",
     srcs =
         [
             ":global_cpio_srcs",
         ],
     deps = [
-        "//src/core/logger:logger_lib",
-        "//src/core/logger/log_providers:log_providers_lib",
-        "//src/core/logger/log_providers/syslog:syslog_lib",
-        "//src/cpio/client_providers/global_cpio/cpio_provider:cpio_provider_lib",
+        "//src/core/logger",
+        "//src/core/logger/log_providers",
+        "//src/core/logger/log_providers/syslog",
+        "//src/cpio/client_providers/global_cpio/cpio_provider",
         "@com_google_absl//absl/log:check",
     ],
 )

@@ -20,7 +20,7 @@ cc_library(
     name = "parameter_client_provider_gcp_interface",
     hdrs = ["gcp_secret_manager_interface.h"],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
     ],

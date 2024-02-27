@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "private_key_client_provider_lib",
+    name = "private_key_client_provider",
     srcs = [
         "private_key_client_provider.cc",
         "private_key_client_utils.cc",
@@ -28,11 +28,11 @@ cc_library(
         "private_key_client_utils.h",
     ],
     deps = [
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
-        "//src/cpio/client_providers/kms_client_provider:kms_client_provider_select_lib",
-        "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_select_lib",
-        "//src/cpio/client_providers/role_credentials_provider:role_credentials_provider_select_lib",
+        "//src/cpio/client_providers/kms_client_provider:kms_client_provider_select",
+        "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_select",
+        "//src/cpio/client_providers/role_credentials_provider:role_credentials_provider_select",
         "//src/public/cpio/interface/private_key_client:type_def",
         "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
         "@com_google_absl//absl/container:btree",
@@ -46,11 +46,11 @@ cc_test(
     size = "small",
     srcs = ["private_key_client_provider_test.cc"],
     deps = [
-        ":private_key_client_provider_lib",
+        ":private_key_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/message_router:message_router_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/message_router",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock:kms_client_provider_mock",
         "//src/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
         "//src/cpio/client_providers/private_key_fetcher_provider/mock:private_key_fetcher_provider_mock",
@@ -68,11 +68,11 @@ cc_test(
     size = "small",
     srcs = ["private_key_client_utils_test.cc"],
     deps = [
-        ":private_key_client_provider_lib",
+        ":private_key_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/message_router:message_router_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/message_router",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",

@@ -17,14 +17,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:__subpackages__"])
 
 cc_library(
-    name = "global_logger_lib",
+    name = "global_logger",
     srcs = ["global_logger.cc"],
     hdrs = ["global_logger.h"],
     deps = [
-        "//src/core/interface:errors_lib",
-        "//src/core/logger/interface:logger_interface_lib",
-        "//src/core/logger/log_providers:log_providers_lib",
-        "//src/core/logger/log_providers/syslog:syslog_lib",
+        "//src/core/interface:errors",
+        "//src/core/logger/interface:logger_interface",
+        "//src/core/logger/log_providers",
+        "//src/core/logger/log_providers/syslog",
         "//src/core/logger/mock:logger_mock",
         "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/base:nullability",

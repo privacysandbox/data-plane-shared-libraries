@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "http1_curl_client_lib",
+    name = "http1_curl_client",
     srcs = [
         "http1_curl_client.cc",
         "http1_curl_wrapper.cc",
@@ -28,10 +28,10 @@ cc_library(
         "http1_curl_wrapper.h",
     ],
     deps = [
-        "//src/core/common/concurrent_map:concurrent_map_lib",
-        "//src/core/common/operation_dispatcher:operation_dispatcher_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/common/concurrent_map",
+        "//src/core/common/operation_dispatcher",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
         "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/strings",
@@ -48,8 +48,8 @@ cc_test(
             "http1_curl_wrapper_test.cc",
         ],
     deps = [
-        ":http1_curl_client_lib",
-        "//src/core/interface:interface_lib",
+        ":http1_curl_client",
+        "//src/core/interface",
         "//src/core/test/utils/http1_helper:test_http1_server",
         "//src/core/utils:core_utils",
         "//src/public/core:test_execution_result_matchers",
@@ -66,10 +66,10 @@ cc_test(
             "http1_curl_client_test.cc",
         ],
     deps = [
-        ":http1_curl_client_lib",
+        ":http1_curl_client",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/core/utils:core_utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/log:check",

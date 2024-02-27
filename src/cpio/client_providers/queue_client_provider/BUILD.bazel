@@ -17,14 +17,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "queue_client_provider_select_lib",
+    name = "queue_client_provider_select",
     deps = select(
         {
             "//:aws_platform": [
-                "//src/cpio/client_providers/queue_client_provider/aws:aws_queue_client_provider_lib",
+                "//src/cpio/client_providers/queue_client_provider/aws:aws_queue_client_provider",
             ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/queue_client_provider/gcp:gcp_queue_client_provider_lib",
+                "//src/cpio/client_providers/queue_client_provider/gcp:gcp_queue_client_provider",
             ],
         },
         no_match_error = "Please build for AWS or GCP",

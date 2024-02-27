@@ -20,9 +20,9 @@ cc_library(
     name = "parameter_client_provider_mock",
     hdrs = ["mock_parameter_client_provider.h"],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "@com_google_protobuf//:protobuf",
     ],
 )

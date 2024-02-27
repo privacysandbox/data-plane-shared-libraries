@@ -19,16 +19,16 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "message_router_lib",
+    name = "message_router",
     srcs = ["message_router.cc"],
     hdrs = [
         "error_codes.h",
         "message_router.h",
     ],
     deps = [
-        "//src/core/common/concurrent_map:concurrent_map_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/common/concurrent_map",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -48,10 +48,10 @@ cc_test(
     size = "small",
     srcs = ["message_router_test.cc"],
     deps = [
-        ":message_router_lib",
+        ":message_router",
         ":test_cc_proto",
-        "//src/core/common/concurrent_queue:concurrent_queue_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/common/concurrent_queue",
+        "//src/core/interface",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/synchronization",

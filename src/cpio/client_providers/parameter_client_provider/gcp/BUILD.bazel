@@ -17,17 +17,17 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "gcp_parameter_client_provider_lib",
+    name = "gcp_parameter_client_provider",
     srcs = [
         ":gcp_parameter_client_provider_srcs",
     ],
     deps = [
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
-        "//src/cpio/client_providers/global_cpio/cpio_provider:cpio_provider_lib",
-        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/global_cpio/cpio_provider",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
-        "//src/cpio/common/gcp:gcp_utils_lib",
+        "//src/cpio/common/gcp:gcp_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
@@ -55,11 +55,11 @@ cc_test(
     srcs = ["gcp_parameter_client_provider_test.cc"],
     deps = [
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/parameter_client_provider/mock/gcp:gcp_parameter_client_provider_mock",
-        "//src/cpio/common/gcp:gcp_utils_lib",
+        "//src/cpio/common/gcp:gcp_utils",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager_mocks",

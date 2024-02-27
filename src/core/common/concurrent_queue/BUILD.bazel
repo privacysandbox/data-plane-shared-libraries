@@ -17,13 +17,13 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "concurrent_queue_lib",
+    name = "concurrent_queue",
     hdrs = [
         "concurrent_queue.h",
         "error_codes.h",
     ],
     deps = [
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface:type_def",
         "@oneTBB//:tbb",
     ],
 )
@@ -33,9 +33,9 @@ cc_test(
     size = "small",
     srcs = ["concurrent_queue_test.cc"],
     deps = [
-        "//src/core/common/concurrent_queue:concurrent_queue_lib",
-        "//src/core/interface:type_def_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/common/concurrent_queue",
+        "//src/core/interface:type_def",
+        "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],

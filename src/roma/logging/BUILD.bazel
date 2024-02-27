@@ -38,7 +38,7 @@ cc_test(
         "notsan-aarch64",  # TODO(b/307540489) - Fix TSAN errors in this test. Fails on aarch64.
     ],
     deps = [
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "//src/roma/roma_service",
         "@com_google_absl//absl/log:scoped_mock_log",

@@ -35,9 +35,9 @@ cc_test(
     srcs = ["private_key_client_test.cc"],
     deps = [
         ":private_key_client_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
-        "//src/cpio/client_providers/private_key_client_provider:private_key_client_provider_lib",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/private_key_client_provider",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/core:lib_cpio_mock",
         "//src/public/cpio/interface:cpio_errors",

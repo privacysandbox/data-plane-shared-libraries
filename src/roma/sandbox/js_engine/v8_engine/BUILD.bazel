@@ -88,8 +88,8 @@ cc_library(
         ":v8_console",
         ":v8_isolate_function_binding",
         ":v8_isolate_wrapper",
-        "//src/core/interface:interface_lib",
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface",
+        "//src/core/interface:type_def",
         "//src/roma/config",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine",
@@ -97,7 +97,7 @@ cc_library(
         "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
         "//src/roma/sandbox/worker",
         "//src/roma/worker:execution_utils",
-        "//src/roma/worker:execution_watchdog_lib",
+        "//src/roma/worker:execution_watchdog",
         "//src/util:duration",
         "//src/util:process_util",
         "//src/util/status_macro:status_macros",
@@ -125,7 +125,7 @@ cc_test(
     ],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
@@ -138,7 +138,7 @@ cc_test(
     srcs = ["v8_console_test.cc"],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -149,7 +149,7 @@ cc_test(
     srcs = ["v8_isolate_function_binding_test.cc"],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],

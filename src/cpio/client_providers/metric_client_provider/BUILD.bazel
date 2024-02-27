@@ -17,14 +17,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "metric_client_provider_select_lib",
+    name = "metric_client_provider_select",
     deps = select(
         {
             "//:aws_platform": [
-                "//src/cpio/client_providers/metric_client_provider/aws:aws_metric_client_provider_lib",
+                "//src/cpio/client_providers/metric_client_provider/aws:aws_metric_client_provider",
             ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/metric_client_provider/gcp:gcp_metric_client_provider_lib",
+                "//src/cpio/client_providers/metric_client_provider/gcp:gcp_metric_client_provider",
             ],
         },
         no_match_error = "Please build for AWS or GCP",
@@ -32,7 +32,7 @@ cc_library(
 )
 
 cc_library(
-    name = "metric_client_provider_lib",
+    name = "metric_client_provider",
     srcs = [
         "metric_client_provider.cc",
         "metric_client_utils.cc",
@@ -43,9 +43,9 @@ cc_library(
         "metric_client_utils.h",
     ],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
@@ -65,13 +65,13 @@ cc_test(
     size = "small",
     srcs = ["metric_client_provider_test.cc"],
     deps = [
-        ":metric_client_provider_lib",
+        ":metric_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/message_router:message_router_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/message_router",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/metric_client_provider/mock:metric_client_provider_mock",
-        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_google_absl//absl/synchronization",
@@ -85,8 +85,8 @@ cc_test(
     size = "small",
     srcs = ["metric_client_utils_test.cc"],
     deps = [
-        ":metric_client_provider_lib",
-        "//src/core/interface:interface_lib",
+        ":metric_client_provider",
+        "//src/core/interface",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_google_googletest//:gtest_main",

@@ -22,10 +22,10 @@ cc_library(
         "roma_service.h",
     ],
     deps = [
-        "//src/core/async_executor:core_async_executor_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/interface:type_def_lib",
-        "//src/core/os/linux:system_resource_info_provider_linux_lib",
+        "//src/core/async_executor",
+        "//src/core/interface",
+        "//src/core/interface:type_def",
+        "//src/core/os/linux:system_resource_info_provider_linux",
         "//src/public/core/interface:execution_result",
         "//src/roma/logging",
         "//src/roma/sandbox/dispatcher",
@@ -47,7 +47,7 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -65,7 +65,7 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/strings",
@@ -84,7 +84,7 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/strings",
@@ -104,7 +104,7 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "//src/util:duration",
         "@com_google_absl//absl/strings",
@@ -129,7 +129,7 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/log:scoped_mock_log",

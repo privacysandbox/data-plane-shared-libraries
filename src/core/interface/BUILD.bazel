@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:private"])
 
 cc_library(
-    name = "interface_lib",
+    name = "interface",
     hdrs = [
         "async_executor_interface.h",
         "authorization_proxy_interface.h",
@@ -47,13 +47,13 @@ cc_library(
     ],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
-        ":async_context_lib",
-        ":service_interface_lib",
-        ":streaming_context_lib",
-        "//src/core/common/concurrent_map:concurrent_map_lib",
-        "//src/core/common/proto:core_common_proto_lib",
-        "//src/core/common/streaming_context:streaming_context_errors_lib",
-        "//src/core/common/uuid:uuid_lib",
+        ":async_context",
+        ":service_interface",
+        ":streaming_context",
+        "//src/core/common/concurrent_map",
+        "//src/core/common/proto:common_proto",
+        "//src/core/common/streaming_context:streaming_context_errors",
+        "//src/core/common/uuid",
         "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",
@@ -61,7 +61,7 @@ cc_library(
 )
 
 cc_library(
-    name = "service_interface_lib",
+    name = "service_interface",
     hdrs = [
         "service_interface.h",
     ],
@@ -71,43 +71,43 @@ cc_library(
 )
 
 cc_library(
-    name = "async_context_lib",
+    name = "async_context",
     hdrs = [
         "async_context.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/core/common/global_logger:global_logger_lib",
-        "//src/core/common/uuid:uuid_lib",
+        "//src/core/common/global_logger",
+        "//src/core/common/uuid",
     ],
 )
 
 cc_library(
-    name = "streaming_context_lib",
+    name = "streaming_context",
     hdrs = [
         "streaming_context.h",
     ],
     deps = [
-        ":async_context_lib",
-        "//src/core/common/concurrent_queue:concurrent_queue_lib",
-        "//src/core/common/global_logger:global_logger_lib",
-        "//src/core/common/uuid:uuid_lib",
+        ":async_context",
+        "//src/core/common/concurrent_queue",
+        "//src/core/common/global_logger",
+        "//src/core/common/uuid",
     ],
 )
 
 cc_library(
-    name = "type_def_lib",
+    name = "type_def",
     hdrs = [
         "type_def.h",
     ],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
-        "//src/core/common/proto:core_common_proto_lib",
+        "//src/core/common/proto:common_proto",
     ],
 )
 
 cc_library(
-    name = "errors_lib",
+    name = "errors",
     srcs = [
         "errors.cc",
     ],

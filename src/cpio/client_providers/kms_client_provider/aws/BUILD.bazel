@@ -112,7 +112,7 @@ container_layer(
 )
 
 cc_library(
-    name = "nontee_aws_kms_client_provider_lib",
+    name = "nontee_aws_kms_client_provider",
     srcs = [
         ":aws_kms_aead.cc",
         ":nontee_aws_kms_client_provider.cc",
@@ -123,13 +123,13 @@ cc_library(
         ":nontee_error_codes.h",
     ],
     deps = [
-        "//src/core/async_executor/aws:core_aws_async_executor_lib",
-        "//src/core/common/uuid:uuid_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/common/uuid",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@aws_sdk_cpp//:kms",
@@ -138,7 +138,7 @@ cc_library(
 )
 
 cc_library(
-    name = "tee_aws_kms_client_provider_lib",
+    name = "tee_aws_kms_client_provider",
     srcs = [
         ":tee_aws_kms_client_provider.cc",
         ":tee_aws_kms_client_provider_utils.cc",
@@ -155,12 +155,12 @@ cc_library(
         ),
     ],
     deps = [
-        "//src/core/common/uuid:uuid_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/common/uuid",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@aws_sdk_cpp//:kms",
@@ -209,10 +209,10 @@ cc_test(
     size = "small",
     srcs = ["nontee_aws_kms_client_provider_test.cc"],
     deps = [
-        ":nontee_aws_kms_client_provider_lib",
+        ":nontee_aws_kms_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
@@ -226,9 +226,9 @@ cc_test(
     size = "small",
     srcs = ["tee_aws_kms_client_provider_test.cc"],
     deps = [
-        ":tee_aws_kms_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        ":tee_aws_kms_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
@@ -244,9 +244,9 @@ cc_test(
     srcs =
         ["aws_kms_aead_test.cc"],
     deps = [
-        ":nontee_aws_kms_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        ":nontee_aws_kms_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
@@ -263,7 +263,7 @@ cc_test(
         ":true",
     ],
     deps = [
-        ":tee_aws_kms_client_provider_lib",
+        ":tee_aws_kms_client_provider",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -272,7 +272,7 @@ cc_test(
 )
 
 cc_library(
-    name = "test_aws_kms_client_provider_lib",
+    name = "test_aws_kms_client_provider",
     srcs = [
         "test_aws_kms_client_provider.cc",
     ],
@@ -281,8 +281,8 @@ cc_library(
         "//src/cpio/client_providers/interface:kms_client_provider_interface.h",
     ],
     deps = [
-        ":nontee_aws_kms_client_provider_lib",
-        "//src/cpio/common/aws:test_aws_utils_lib",
+        ":nontee_aws_kms_client_provider",
+        "//src/cpio/common/aws:test_aws_utils",
         "//src/public/cpio/test/kms_client:test_aws_kms_client_options",
     ],
 )

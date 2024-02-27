@@ -96,7 +96,7 @@ sapi_library(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
     ],
 )
 
@@ -109,7 +109,7 @@ cc_library(
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         ":worker_wrapper-sapi",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
         "//src/roma/sandbox/worker",
@@ -143,7 +143,7 @@ cc_test(
     deps = [
         ":error_codes",
         ":worker_sandbox_api",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
     ],
@@ -158,7 +158,7 @@ cc_test(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
         "@google_benchmark//:benchmark",
@@ -172,7 +172,7 @@ cc_test(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
     ],

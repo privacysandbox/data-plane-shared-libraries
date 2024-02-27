@@ -23,7 +23,7 @@ cc_library(
         "mock_private_key_fetcher_provider_with_overrides.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_lib",
+        "//src/core/interface",
+        "//src/cpio/client_providers/private_key_fetcher_provider",
     ],
 )

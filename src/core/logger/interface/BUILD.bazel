@@ -17,11 +17,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "logger_interface_lib",
+    name = "logger_interface",
     hdrs = ["log_provider_interface.h"],
     deps = [
-        "//src/core/common/uuid:uuid_lib",
-        "//src/core/interface:service_interface_lib",
+        "//src/core/common/uuid",
+        "//src/core/interface:service_interface",
         "//src/public/core/interface:execution_result",
     ],
 )

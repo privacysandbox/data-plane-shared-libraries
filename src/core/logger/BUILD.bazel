@@ -17,11 +17,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "logger_lib",
+    name = "logger",
     srcs = ["log_utils.cc"],
     hdrs = ["log_utils.h"],
     deps = [
-        "//src/core/logger/interface:logger_interface_lib",
+        "//src/core/logger/interface:logger_interface",
         "@com_google_absl//absl/strings",
     ],
 )

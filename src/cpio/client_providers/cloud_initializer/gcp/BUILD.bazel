@@ -17,12 +17,12 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "no_op_initializer_lib",
+    name = "no_op_initializer",
     srcs = [
         ":no_op_initializer_srcs",
     ],
     deps = [
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/core/interface:execution_result",
     ],
 )

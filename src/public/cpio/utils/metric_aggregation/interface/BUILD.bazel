@@ -20,7 +20,7 @@ cc_library(
     name = "type_def",
     hdrs = ["type_def.h"],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_protobuf//:protobuf",
     ],

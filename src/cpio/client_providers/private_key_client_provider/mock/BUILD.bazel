@@ -25,9 +25,9 @@ cc_library(
     ],
     deps = [
         "//src/core/http2_client/mock:http2_client_mock",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/cpio/client_providers/kms_client_provider/mock:kms_client_provider_mock",
-        "//src/cpio/client_providers/private_key_client_provider:private_key_client_provider_lib",
+        "//src/cpio/client_providers/private_key_client_provider",
         "//src/cpio/client_providers/private_key_fetcher_provider/mock:private_key_fetcher_provider_mock",
         "@com_google_protobuf//:protobuf",
     ],

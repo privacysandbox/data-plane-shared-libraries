@@ -23,9 +23,9 @@ cc_test(
     srcs = ["aws_cpio_lib_integration_test.cc"],
     tags = ["manual"],
     deps = [
-        "//src/core/test/utils:utils_lib",
-        "//src/core/test/utils/aws_helper:aws_helper_lib",
-        "//src/core/test/utils/docker_helper:docker_helper_lib",
+        "//src/core/test/utils",
+        "//src/core/test/utils/aws_helper",
+        "//src/core/test/utils/docker_helper",
         "//src/core/utils:core_utils",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/core/interface:execution_result",

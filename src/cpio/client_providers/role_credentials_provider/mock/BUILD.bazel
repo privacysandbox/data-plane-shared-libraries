@@ -20,7 +20,7 @@ cc_library(
     name = "role_credentials_provider_mock",
     hdrs = ["mock_role_credentials_provider.h"],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
     ],
 )

@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "system_resource_info_provider_linux_lib",
+    name = "system_resource_info_provider_linux",
     srcs = [
         "system_resource_info_provider_linux.cc",
     ],
@@ -26,8 +26,8 @@ cc_library(
         "system_resource_info_provider_linux.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/os:system_resource_info_provider_lib",
+        "//src/core/interface",
+        "//src/core/os:system_resource_info_provider",
         "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/strings",
     ],
@@ -43,8 +43,8 @@ cc_test(
         "files/valid_meminfo_file.txt",
     ],
     deps = [
-        ":system_resource_info_provider_linux_lib",
-        "//src/core/test/utils:utils_lib",
+        ":system_resource_info_provider_linux",
+        "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],

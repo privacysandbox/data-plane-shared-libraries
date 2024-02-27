@@ -17,11 +17,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "core_blob_storage_provider_common_lib",
+    name = "blob_storage_provider_common",
     hdrs = ["error_codes.h"],
     deps = [
-        "//src/core/async_executor/aws:core_aws_async_executor_lib",
-        "//src/core/common/global_logger:global_logger_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/common/global_logger",
+        "//src/core/interface",
     ],
 )

@@ -37,7 +37,7 @@ cc_library(
     ],
     deps = [
         ":test_aws_blob_storage_client_options",
-        "//src/cpio/client_providers/blob_storage_client_provider/aws:test_aws_blob_storage_client_provider_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/aws:test_aws_blob_storage_client_provider",
         "//src/public/cpio/interface/blob_storage_client",
     ],
 )
@@ -63,7 +63,7 @@ cc_library(
     ],
     deps = [
         ":test_aws_blob_storage_client_options",
-        "//src/cpio/client_providers/blob_storage_client_provider/gcp:test_gcp_blob_storage_client_provider_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/gcp:test_gcp_blob_storage_client_provider",
         "//src/public/cpio/interface/blob_storage_client",
     ],
 )

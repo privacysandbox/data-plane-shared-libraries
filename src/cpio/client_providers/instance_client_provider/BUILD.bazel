@@ -17,14 +17,14 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "instance_client_provider_select_lib",
+    name = "instance_client_provider_select",
     deps = select(
         {
             "//:aws_platform": [
-                "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider_lib",
+                "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
             ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider_lib",
+                "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
             ],
         },
         no_match_error = "Please build for AWS or GCP",
@@ -32,7 +32,7 @@ cc_library(
 )
 
 cc_library(
-    name = "test_instance_client_provider_lib",
+    name = "test_instance_client_provider",
     srcs = [
         "test_instance_client_provider.cc",
     ],
@@ -40,9 +40,9 @@ cc_library(
         "test_instance_client_provider.h",
     ],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "//src/public/cpio/test/global_cpio:test_cpio_options",
         "@com_google_absl//absl/strings:str_format",

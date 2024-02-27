@@ -37,7 +37,7 @@ cc_library(
     ],
     deps = [
         ":test_aws_kms_client_options",
-        "//src/cpio/client_providers/kms_client_provider/aws:test_aws_kms_client_provider_lib",
+        "//src/cpio/client_providers/kms_client_provider/aws:test_aws_kms_client_provider",
         "//src/public/cpio/interface/kms_client",
     ],
 )

@@ -17,19 +17,19 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "error_codes_lib",
+    name = "error_codes",
     hdrs = [
         "error_codes.h",
     ],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
-        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/core/interface:execution_result",
     ],
 )
 
 cc_library(
-    name = "error_converter_lib",
+    name = "error_converter",
     srcs = [
         "sqs_error_converter.cc",
     ],
@@ -37,13 +37,13 @@ cc_library(
         "sqs_error_converter.h",
     ],
     deps = [
-        ":error_codes_lib",
+        ":error_codes",
         "@aws_sdk_cpp//:sqs",
     ],
 )
 
 cc_library(
-    name = "aws_queue_client_provider_lib",
+    name = "aws_queue_client_provider",
     srcs = [
         "aws_queue_client_provider.cc",
     ],
@@ -52,11 +52,11 @@ cc_library(
     ],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
-        ":error_converter_lib",
-        "//src/core/async_executor/aws:core_aws_async_executor_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        ":error_converter",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
         "@aws_sdk_cpp//:sqs",
@@ -71,9 +71,9 @@ cc_test(
     srcs =
         ["sqs_error_converter_test.cc"],
     deps = [
-        ":aws_queue_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/common/aws:aws_utils_lib",
+        ":aws_queue_client_provider",
+        "//src/core/interface",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
@@ -87,10 +87,10 @@ cc_test(
         "aws_queue_client_provider_test.cc",
     ],
     deps = [
-        ":aws_queue_client_provider_lib",
+        ":aws_queue_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/cpio/client_providers/queue_client_provider/mock/aws:aws_queue_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",

@@ -25,8 +25,8 @@ cc_library(
         "test_http1_server.h",
     ],
     deps = [
-        "//src/core/interface:errors_lib",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/interface:errors",
+        "//src/core/test/utils",
         "//src/public/core/interface:execution_result",
         "@boost//:asio",
         "@boost//:beast",

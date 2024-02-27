@@ -17,10 +17,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "core_aws_async_executor_lib",
+    name = "aws_async_executor",
     hdrs = ["aws_async_executor.h"],
     deps = [
-        "//src/core/async_executor:core_async_executor_lib",
+        "//src/core/async_executor",
         "@aws_sdk_cpp//:core",
     ],
 )

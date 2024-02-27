@@ -82,7 +82,7 @@ cc_test(
     ],
     deps = [
         ":fake_kv_server",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -91,7 +91,7 @@ cc_binary(
     name = "logging_benchmark",
     srcs = ["logging_benchmark.cc"],
     deps = [
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/interface",
         "//src/roma/roma_service",
         "@com_google_absl//absl/strings",

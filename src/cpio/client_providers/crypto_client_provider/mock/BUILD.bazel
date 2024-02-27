@@ -23,6 +23,6 @@ cc_library(
         "mock_crypto_client_provider.h",
     ],
     deps = [
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
     ],
 )

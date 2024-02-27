@@ -59,8 +59,8 @@ cc_library(
     name = "type_def",
     hdrs = ["type_def.h"],
     deps = [
-        "//src/core/common/global_logger:global_logger_lib",
-        "//src/core/interface:async_context_lib",
+        "//src/core/common/global_logger",
+        "//src/core/interface:async_context",
         "//src/public/core/interface:execution_result",
     ],
 )
@@ -71,13 +71,13 @@ cc_library(
     hdrs = ["cpio.h"],
     deps = [
         ":type_def",
-        "//src/core/interface:interface_lib",
-        "//src/core/logger:logger_lib",
-        "//src/core/logger/log_providers:log_providers_lib",
-        "//src/core/logger/log_providers/syslog:syslog_lib",
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
-        "//src/cpio/client_providers/global_cpio/cpio_provider:cpio_provider_lib",
-        "//src/public/cpio/core:cpio_utils_lib",
+        "//src/core/interface",
+        "//src/core/logger",
+        "//src/core/logger/log_providers",
+        "//src/core/logger/log_providers/syslog",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/global_cpio/cpio_provider",
+        "//src/public/cpio/core:cpio_utils",
     ],
 )
 
@@ -87,6 +87,6 @@ cc_library(
     name = "cpio_errors",
     hdrs = ["error_codes.h"],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
     ],
 )

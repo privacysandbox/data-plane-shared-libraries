@@ -17,10 +17,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "cpio_utils_lib",
+    name = "cpio_utils",
     hdrs = ["cpio_utils.h"],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
     ],
 )

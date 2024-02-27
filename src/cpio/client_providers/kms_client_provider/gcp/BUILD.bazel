@@ -17,16 +17,16 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "nontee_gcp_kms_client_provider_lib",
+    name = "nontee_gcp_kms_client_provider",
     srcs = [
         ":nontee_gcp_kms_client_provider_srcs",
     ],
     deps = [
-        "//src/core/common/uuid:uuid_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/common/uuid",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
@@ -38,16 +38,16 @@ cc_library(
 )
 
 cc_library(
-    name = "tee_gcp_kms_client_provider_lib",
+    name = "tee_gcp_kms_client_provider",
     srcs = [
         ":tee_gcp_kms_client_provider_srcs",
     ],
     deps = [
-        "//src/core/common/uuid:uuid_lib",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/common/uuid",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
@@ -109,9 +109,9 @@ cc_test(
     srcs =
         ["gcp_kms_aead_test.cc"],
     deps = [
-        ":nontee_gcp_kms_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        ":nontee_gcp_kms_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/gcp:gcp_kms_client_provider_mock",
         "@com_github_googleapis_google_cloud_cpp//:kms",
         "@com_google_googletest//:gtest_main",
@@ -124,9 +124,9 @@ cc_test(
     srcs =
         ["gcp_kms_client_provider_test.cc"],
     deps = [
-        ":nontee_gcp_kms_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        ":nontee_gcp_kms_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/gcp:gcp_kms_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
         "@com_github_googleapis_google_cloud_cpp//:kms",
@@ -141,7 +141,7 @@ cc_test(
     srcs =
         ["tee_gcp_kms_client_provider_utils_test.cc"],
     deps = [
-        ":tee_gcp_kms_client_provider_lib",
+        ":tee_gcp_kms_client_provider",
         "@com_google_googletest//:gtest_main",
     ],
 )

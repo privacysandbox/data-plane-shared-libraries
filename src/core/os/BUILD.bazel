@@ -17,12 +17,12 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "system_resource_info_provider_lib",
+    name = "system_resource_info_provider",
     srcs = [
         "system_resource_info_provider.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/public/core/interface:execution_result",
     ],
 )

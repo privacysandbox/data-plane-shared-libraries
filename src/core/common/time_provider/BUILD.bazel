@@ -17,10 +17,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "time_provider_lib",
+    name = "time_provider",
     hdrs = ["time_provider.h"],
     deps = [
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface:type_def",
         "//src/public/core/interface:execution_result",
     ],
 )

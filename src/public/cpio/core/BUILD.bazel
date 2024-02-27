@@ -19,14 +19,14 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 exports_files(["cpio.cc"])
 
 cc_library(
-    name = "cpio_utils_lib",
+    name = "cpio_utils",
     srcs = ["cpio_utils.cc"],
     hdrs = ["cpio_utils.h"],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/logger/interface:logger_interface_lib",
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
-        "//src/cpio/client_providers/global_cpio/cpio_provider:cpio_provider_lib",
+        "//src/core/interface",
+        "//src/core/logger/interface:logger_interface",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/global_cpio/cpio_provider",
     ],
 )
 
@@ -35,7 +35,7 @@ cc_test(
     size = "small",
     srcs = ["lib_cpio_test.cc"],
     deps = [
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/interface/metric_client",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
@@ -48,7 +48,7 @@ cc_library(
     testonly = True,
     hdrs = ["mock_lib_cpio.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
+        "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/global_cpio/mock:global_cpio_mock",
     ],
 )

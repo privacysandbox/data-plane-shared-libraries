@@ -20,10 +20,10 @@ cc_library(
     name = "metric_client_provider_mock",
     hdrs = ["mock_metric_client_provider_with_overrides.h"],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/message_router:message_router_lib",
+        "//src/core/interface",
+        "//src/core/message_router",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
-        "//src/cpio/client_providers/metric_client_provider:metric_client_provider_lib",
+        "//src/cpio/client_providers/metric_client_provider",
         "@com_google_protobuf//:protobuf",
     ],
 )

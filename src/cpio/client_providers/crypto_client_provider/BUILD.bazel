@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "crypto_client_provider_lib",
+    name = "crypto_client_provider",
     srcs = [
         "crypto_client_provider.cc",
     ],
@@ -26,10 +26,10 @@ cc_library(
         "error_codes.h",
     ],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/crypto_client:type_def",
@@ -51,9 +51,9 @@ cc_test(
     size = "small",
     srcs = ["crypto_client_provider_test.cc"],
     deps = [
-        ":crypto_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        ":crypto_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/interface/crypto_client:type_def",
         "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",

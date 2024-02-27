@@ -58,7 +58,7 @@ cc_test(
     srcs = ["serializer_test.cc"],
     deps = [
         ":serializer",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -69,7 +69,7 @@ cc_test(
     srcs = ["deserializer_test.cc"],
     deps = [
         ":deserializer",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
     ],
 )
 
@@ -80,7 +80,7 @@ cc_test(
     deps = [
         ":deserializer",
         ":serializer",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
     ],
 )
 

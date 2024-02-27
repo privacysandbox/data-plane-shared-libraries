@@ -36,7 +36,7 @@ filegroup(
 )
 
 cc_library(
-    name = "gcp_instance_client_provider_lib",
+    name = "gcp_instance_client_provider",
     srcs = [
         "gcp_instance_client_provider.cc",
         "gcp_instance_client_utils.cc",
@@ -47,10 +47,10 @@ cc_library(
         "gcp_instance_client_utils.h",
     ],
     deps = [
-        "//src/core/http2_client:http2_client_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
-        "//src/cpio/common:cpio_utils_lib",
+        "//src/core/http2_client",
+        "//src/core/interface",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common:cpio_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@com_google_absl//absl/strings",
@@ -68,9 +68,9 @@ cc_test(
             "gcp_instance_client_provider_test.cc",
         ],
     deps = [
-        ":gcp_instance_client_provider_lib",
+        ":gcp_instance_client_provider",
         "//src/core/curl_client/mock:mock_curl_client",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
@@ -86,9 +86,9 @@ cc_test(
             "gcp_instance_client_utils_test.cc",
         ],
     deps = [
-        ":gcp_instance_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
+        ":gcp_instance_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
@@ -96,7 +96,7 @@ cc_test(
 )
 
 cc_library(
-    name = "test_gcp_instance_client_provider_lib",
+    name = "test_gcp_instance_client_provider",
     srcs = [
         "test_gcp_instance_client_provider.cc",
     ],
@@ -104,10 +104,10 @@ cc_library(
         "test_gcp_instance_client_provider.h",
     ],
     deps = [
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "//src/public/cpio/test/global_cpio:test_cpio_options",
         "@com_google_absl//absl/strings:str_format",

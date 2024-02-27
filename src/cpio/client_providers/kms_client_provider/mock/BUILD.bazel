@@ -20,9 +20,9 @@ cc_library(
     name = "kms_client_provider_mock",
     hdrs = ["mock_kms_client_provider.h"],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/message_router:message_router_lib",
-        "//src/cpio/client_providers/kms_client_provider:kms_client_provider_select_lib",
+        "//src/core/interface",
+        "//src/core/message_router",
+        "//src/cpio/client_providers/kms_client_provider:kms_client_provider_select",
         "@com_google_protobuf//:protobuf",
     ],
 )

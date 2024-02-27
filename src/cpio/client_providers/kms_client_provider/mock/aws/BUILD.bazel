@@ -24,7 +24,7 @@ cc_library(
         "mock_tee_aws_kms_client_provider_with_overrides.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/core/utils:core_utils",
         "@aws_sdk_cpp//:kms",
     ],

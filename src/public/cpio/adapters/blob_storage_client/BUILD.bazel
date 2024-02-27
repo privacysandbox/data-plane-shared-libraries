@@ -53,9 +53,9 @@ cc_test(
     srcs = ["blob_storage_client_test.cc"],
     deps = [
         ":blob_storage_client_mock",
-        "//src/core/interface:interface_lib",
-        "//src/core/test/utils:utils_lib",
-        "//src/cpio/client_providers/blob_storage_client_provider:blob_storage_client_provider_select_lib",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/blob_storage_client_provider:blob_storage_client_provider_select",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/cpio/core:lib_cpio_mock",
         "//src/public/cpio/interface:cpio_errors",
@@ -73,7 +73,7 @@ cc_library(
     hdrs = ["mock_blob_storage_client_with_overrides.h"],
     deps = [
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/cpio/client_providers/blob_storage_client_provider/mock:mock_blob_storage_provider_lib",
+        "//src/cpio/client_providers/blob_storage_client_provider/mock:mock_blob_storage_provider",
         "//src/public/cpio/interface/blob_storage_client",
     ],
 )

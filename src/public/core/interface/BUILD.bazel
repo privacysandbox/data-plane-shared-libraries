@@ -21,7 +21,7 @@ cc_library(
     srcs = ["//src/public/core:errors.cc"],
     hdrs = ["errors.h"],
     deps = [
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
     ],
 )
 
@@ -30,7 +30,7 @@ cc_library(
     srcs = ["//src/public/core:execution_result.cc"],
     hdrs = ["execution_result.h"],
     deps = [
-        "//src/core/common/proto:core_common_proto_lib",
+        "//src/core/common/proto:common_proto",
         "@com_google_absl//absl/container:flat_hash_map",
     ],
 )

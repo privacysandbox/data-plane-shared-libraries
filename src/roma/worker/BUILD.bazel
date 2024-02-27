@@ -26,8 +26,8 @@ cc_library(
         "//src/roma/sandbox/js_engine:__subpackages__",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface",
+        "//src/core/interface:type_def",
         "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/wasm:deserializer",
@@ -41,7 +41,7 @@ cc_library(
 )
 
 cc_library(
-    name = "execution_watchdog_lib",
+    name = "execution_watchdog",
     srcs = ["execution_watchdog.cc"],
     hdrs = ["execution_watchdog.h"],
     visibility = [
@@ -71,7 +71,7 @@ cc_test(
     ],
     deps = [
         ":execution_utils",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/wasm:deserializer",
         "//src/roma/wasm:wasm_testing",
         "//src/roma/wasm:wasm_types",
@@ -87,7 +87,7 @@ cc_test(
     size = "small",
     srcs = ["execution_watchdog_test.cc"],
     deps = [
-        ":execution_watchdog_lib",
+        ":execution_watchdog",
         "//src/util:process_util",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",

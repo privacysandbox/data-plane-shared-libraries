@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "uuid_lib",
+    name = "uuid",
     srcs = [
         "uuid.cc",
     ],
@@ -26,7 +26,7 @@ cc_library(
         "uuid.h",
     ],
     deps = [
-        "//src/core/interface:errors_lib",
+        "//src/core/interface:errors",
         "//src/public/core/interface:execution_result",
         "//src/util:duration",
         "@com_google_absl//absl/random",
@@ -41,7 +41,7 @@ cc_test(
         "uuid_test.cc",
     ],
     deps = [
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
@@ -56,7 +56,7 @@ cc_library(
         "uuid_to_string.h",
     ],
     deps = [
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "@com_google_absl//absl/functional:any_invocable",
     ],
 )
@@ -78,7 +78,7 @@ cc_binary(
     srcs = ["uuid_benchmark.cc"],
     deps = [
         ":uuid_to_string",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "@google_benchmark//:benchmark",
     ],
 )

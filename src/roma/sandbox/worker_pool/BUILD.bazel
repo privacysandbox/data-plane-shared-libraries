@@ -59,7 +59,7 @@ cc_test(
     ],
     deps = [
         ":worker_pool_api_sapi",
-        "//src/core/test/utils:utils_lib",
+        "//src/core/test/utils",
         "//src/roma/sandbox/worker_api:worker_api_sapi",
         "@com_google_googletest//:gtest_main",
     ],

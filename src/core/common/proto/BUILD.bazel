@@ -24,7 +24,7 @@ proto_library(
 )
 
 cc_proto_library(
-    name = "core_common_proto_lib",
+    name = "common_proto",
     deps = [":core_common_proto"],
 )
 

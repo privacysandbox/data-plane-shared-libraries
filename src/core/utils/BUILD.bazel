@@ -34,8 +34,8 @@ cc_library(
         "string_util.h",
     ],
     deps = [
-        "//src/core/interface:interface_lib",
-        "//src/core/interface:type_def_lib",
+        "//src/core/interface",
+        "//src/core/interface:type_def",
         "//src/public/core/interface:execution_result",
         "@boringssl//:crypto",
         "@com_google_absl//absl/strings",
@@ -55,7 +55,7 @@ cc_test(
     ],
     deps = [
         ":core_utils",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],

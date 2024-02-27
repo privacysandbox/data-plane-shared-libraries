@@ -23,7 +23,7 @@ cc_library(
             "adapter_utils.h",
         ],
     deps = [
-        "//src/core/interface:async_context_lib",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
         "//src/public/core/interface:execution_result",
     ],

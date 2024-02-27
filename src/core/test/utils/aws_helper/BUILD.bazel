@@ -17,7 +17,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "aws_helper_lib",
+    name = "aws_helper",
     srcs = ["aws_helper.cc"],
     hdrs = ["aws_helper.h"],
     deps = [

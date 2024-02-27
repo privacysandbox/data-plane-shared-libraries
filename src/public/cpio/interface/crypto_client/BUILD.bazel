@@ -29,10 +29,10 @@ cc_library(
     hdrs = ["crypto_client_interface.h"],
     deps = [
         ":type_def",
-        "//src/core/interface:async_context_lib",
-        "//src/core/interface:interface_lib",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/crypto_client_provider:crypto_client_provider_lib",
+        "//src/cpio/client_providers/crypto_client_provider",
         "//src/public/cpio/adapters/common:adapter_utils",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",

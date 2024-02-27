@@ -17,18 +17,18 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "aws_parameter_client_provider_lib",
+    name = "aws_parameter_client_provider",
     srcs = [
         ":aws_parameter_client_provider_srcs",
     ],
     deps = [
-        "//src/core/async_executor/aws:core_aws_async_executor_lib",
-        "//src/cpio/client_providers/global_cpio:global_cpio_lib",
-        "//src/cpio/client_providers/global_cpio/cpio_provider:cpio_provider_lib",
-        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider_lib",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface_lib",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/global_cpio/cpio_provider",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
-        "//src/cpio/common/aws:aws_utils_lib",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "@aws_sdk_cpp//:core",
@@ -56,7 +56,7 @@ filegroup(
 )
 
 cc_library(
-    name = "test_aws_parameter_client_provider_lib",
+    name = "test_aws_parameter_client_provider",
     srcs = [
         "test_aws_parameter_client_provider.cc",
         "//src/cpio/client_providers/parameter_client_provider/aws:aws_parameter_client_provider_srcs",
@@ -65,8 +65,8 @@ cc_library(
         "test_aws_parameter_client_provider.h",
     ],
     deps = [
-        ":aws_parameter_client_provider_lib",
-        "//src/cpio/common/aws:test_aws_utils_lib",
+        ":aws_parameter_client_provider",
+        "//src/cpio/common/aws:test_aws_utils",
         "//src/public/cpio/test/parameter_client:test_aws_parameter_client_options",
     ],
 )
@@ -77,9 +77,9 @@ cc_test(
     srcs =
         ["ssm_error_converter_test.cc"],
     deps = [
-        ":aws_parameter_client_provider_lib",
-        "//src/core/interface:interface_lib",
-        "//src/cpio/common/aws:aws_utils_lib",
+        ":aws_parameter_client_provider",
+        "//src/core/interface",
+        "//src/cpio/common/aws:aws_utils",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
