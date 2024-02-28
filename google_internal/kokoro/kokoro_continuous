@@ -126,6 +126,8 @@ fi
 # Tests without any sanitizers
 "${WORKSPACE}"/builders/tools/bazel-debian test --keep_going //...
 
+"${WORKSPACE}"/scripts/build-proxy
+
 "${WORKSPACE}"/scripts/build-docs
 
 # Roma sandboxed service test
