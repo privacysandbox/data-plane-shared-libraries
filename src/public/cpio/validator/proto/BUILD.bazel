@@ -16,8 +16,6 @@ load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//src/public/cpio/validator:__subpackages__"])
-
 proto_library(
     name = "validator_config_proto",
     srcs = ["validator_config.proto"],
@@ -28,7 +26,9 @@ proto_library(
 
 cc_proto_library(
     name = "validator_config_cc_proto",
-    visibility = ["//visibility:public"],
+    visibility = [
+        "//src:scp_internal_pkg",
+    ],
     deps = [":validator_config_proto"],
 )
 

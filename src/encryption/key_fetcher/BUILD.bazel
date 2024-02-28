@@ -24,12 +24,12 @@ cc_library(
         ":key_fetcher_utils",
         "//src/encryption/key_fetcher/interface:public_key_fetcher_interface",
         "//src/metric:key_fetch",
+        "//src/public/cpio/interface/public_key_client",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/random",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/synchronization",
-        "@google_privacysandbox_servers_common//src/public/cpio/interface/public_key_client",
     ],
 )
 
@@ -41,12 +41,12 @@ cc_library(
         ":key_fetcher_utils",
         "//src/encryption/key_fetcher/interface:private_key_fetcher_interface",
         "//src/metric:key_fetch",
+        "//src/public/cpio/interface/crypto_client",
+        "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
-        "@google_privacysandbox_servers_common//src/public/cpio/interface/crypto_client",
-        "@google_privacysandbox_servers_common//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
     ],
 )
 

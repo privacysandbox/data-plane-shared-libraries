@@ -16,15 +16,20 @@ load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//visibility:public"])
-
 proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
+    visibility = [
+        "//docs/cpio/protobuf:__pkg__",
+        "//src:scp_internal_pkg",
+    ],
 )
 
 cc_proto_library(
     name = "common_cc_proto",
+    visibility = [
+        "//src:scp_internal_pkg",
+    ],
     deps = [":common_proto"],
 )
 

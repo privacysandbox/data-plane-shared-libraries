@@ -16,8 +16,6 @@ load("@com_google_googleapis_imports//:imports.bzl", "cc_grpc_library", "cc_prot
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//visibility:public"])
-
 proto_library(
     name = "crypto_service_proto",
     srcs = ["crypto_service.proto"],
@@ -33,6 +31,10 @@ proto_library(
 
 cc_proto_library(
     name = "crypto_service_cc_proto",
+    visibility = [
+        "//src:scp_internal_pkg",
+        "//src/encryption/key_fetcher:__pkg__",
+    ],
     deps = [":crypto_service_proto"],
 )
 

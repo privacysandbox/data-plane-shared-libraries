@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 exports_files([
     "errors.cc",
     "execution_result.cc",
@@ -25,6 +23,9 @@ cc_library(
     name = "test_execution_result_matchers",
     srcs = ["test_execution_result_matchers.cc"],
     hdrs = ["test_execution_result_matchers.h"],
+    visibility = [
+        "//src:scp_internal_pkg",
+    ],
     deps = [
         "//src/core/common/proto:common_cc_proto",
         "//src/public/core/interface:errors",
