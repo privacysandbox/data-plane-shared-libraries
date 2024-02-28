@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@com_google_googleapis_imports//:imports.bzl", "cc_grpc_library", "cc_proto_library")
+load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -35,14 +35,6 @@ cc_proto_library(
         "//src:scp_internal_pkg",
     ],
     deps = [":private_key_service_proto"],
-)
-
-cc_grpc_library(
-    name = "private_key_service_cc_grpc",
-    srcs = [":private_key_service_proto"],
-    generate_mocks = True,
-    grpc_only = True,
-    deps = [":private_key_service_cc_proto"],
 )
 
 buf_lint_test(
