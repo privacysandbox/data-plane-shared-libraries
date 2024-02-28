@@ -43,7 +43,7 @@ write_source_files(
     cpio_docs(
         name = "cpio_protobuf_{}_md".format(proto),
         options = {
-            "@google_privacysandbox_servers_common//src/cpio/documentation:cpio_protobuf_gen_md": [
+            "@google_privacysandbox_servers_common//src/cpio/documentation:proto_gen_md": [
                 "{}/tmpl/protobuf_markdown.tmpl,{}-protobuf.md".format(templates_dir, proto),
             ],
         },
@@ -51,7 +51,6 @@ write_source_files(
         protos = [
             "{}:{}_proto".format(pkg, proto),
         ],
-        visibility = ["//docs/cpio/protobuf:__pkg__"],
     )
     for pkg, proto in doc_protos
 ]

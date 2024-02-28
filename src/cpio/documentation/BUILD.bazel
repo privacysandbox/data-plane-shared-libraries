@@ -40,7 +40,7 @@ go_binary(
 )
 
 proto_plugin(
-    name = "cpio_protobuf_gen_md",
+    name = "proto_gen_md",
     outputs = ["{basename}-protobuf.md"],
     tool = ":docs_plugin",
     visibility = [

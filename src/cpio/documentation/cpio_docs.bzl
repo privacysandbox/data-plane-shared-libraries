@@ -27,7 +27,7 @@ cpio_docs = rule(
         proto_compile_attrs,
         _plugins = attr.label_list(
             providers = [ProtoPluginInfo],
-            default = [Label("//src/cpio/documentation:cpio_protobuf_gen_md")],
+            default = [Label("//src/cpio/documentation:proto_gen_md")],
             doc = "List of protoc plugins to apply",
         ),
     ),
