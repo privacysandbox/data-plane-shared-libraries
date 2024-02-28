@@ -62,8 +62,19 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# TODO: Support GCP or make AWS specific in file name.
+if [[ ${INSTANCE_AND_PLATFORM} != "aws" ]]; then
+  ERROR_MESSAGE="Only `aws` instance and platform is currently supported with --isntance-and-platform."
+  printf "\n\n[ERROR]: Failure: %s\n\n" "${ERROR_MESSAGE}"
+  exit 1
+fi
+
 # TODO(b/327473814): Support multiple regions.
-if [[ ${#AMI_REGIONS[@]} -ne 1 ]]; then
+if [[ ${#AMI_REGIONS[@]} -lt 1 ]]; then
+  ERROR_MESSAGE="Please provide --with-ami."
+  printf "\n\n[ERROR]: Failure: %s\n\n" "${ERROR_MESSAGE}"
+  usage 1
+elif [[ ${#AMI_REGIONS[@]} -ne 1 ]]; then
   ERROR_MESSAGE="Only one AMI is currently supported with --with-ami."
   printf "\n\n[ERROR]: Failure: %s\n\n" "${ERROR_MESSAGE}"
   exit 1
