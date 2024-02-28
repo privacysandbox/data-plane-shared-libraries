@@ -25,7 +25,7 @@ This document discusses how to SSH into a Nitro Enclave for debugging.
 
 ## Building Proxy
 
-1. Use `scripts/build_proxy` to build proxy.
+1. Use `scripts/build-proxy` to build proxy.
 1. Look for `dist/aws/proxy-al2-amd64.zip` and unzip it, this is the binary needed by the EC2
    instance created. Example -
 

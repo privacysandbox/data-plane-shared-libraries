@@ -49,7 +49,7 @@ establishment, you'll probably get some garbage.
 ## Building the proxy
 
 ```shell
-    scripts/build_proxy
+    scripts/build-proxy
 ```
 
 ## Building and running tests
@@ -64,7 +64,7 @@ establishment, you'll probably get some garbage.
 
 If you'd like to try out this proxy with your own application, follow these steps:
 
-1. Use `scripts/build_proxy` to build proxy.
+1. Use `scripts/build-proxy` to build proxy.
 1. Look for `dist/aws/proxy-al2-amd64.zip`, unzip and upload it to your EC2 instance.
 1. Run proxy in background on the EC2 instance.
 1. (Optional) Run `//src/aws/proxy:copy_to_dist` and upload

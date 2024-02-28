@@ -55,7 +55,7 @@ fi
 
 "${WORKSPACE}"/builders/tools/bazel-debian test //...
 
-"${WORKSPACE}"/scripts/build_proxy
+"${WORKSPACE}"/scripts/build-proxy
 
 "${WORKSPACE}"/scripts/build-docs
 
