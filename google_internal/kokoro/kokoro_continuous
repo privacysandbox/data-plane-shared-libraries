@@ -123,15 +123,15 @@ if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
   kokoro::init_perfgate
 fi
 
-#--------------------------
-# Tests without any sanitizers:
-#--------------------------
+# Tests without any sanitizers
 "${WORKSPACE}"/builders/tools/bazel-debian test --keep_going //...
 
+"${WORKSPACE}"/scripts/build-docs
+
+# Roma sandboxed service test
 EXTRA_DOCKER_RUN_ARGS=${EXTRA_DOCKER_RUN_ARGS}" --security-opt seccomp=unconfined " \
   "${WORKSPACE}"/builders/tools/bazel-debian test --keep_going \
   //src/roma/roma_service:sandboxed_service_test
-#--------------------------
 
 "${WORKSPACE}"/scripts/run-benchmarks
 
