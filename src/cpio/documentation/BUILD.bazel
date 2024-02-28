@@ -14,8 +14,7 @@
 
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@rules_proto_grpc//:defs.bzl", "proto_plugin")
-
-templates_dir = "cpio_templates"
+load("//src/cpio/documentation:cpio_docs.bzl", "templates_dir")
 
 go_library(
     name = "docs_plugin_lib",

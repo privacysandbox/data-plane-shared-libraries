@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
-load("//src/cpio/documentation:cpio_docs.bzl", "cpio_docs")
+load("//src/cpio/documentation:cpio_docs.bzl", "cpio_docs", "templates_dir")
 
 doc_protos = [
     ("//src/public/cpio/proto/blob_storage_service/v1", "blob_storage_service"),
@@ -38,8 +38,6 @@ write_source_files(
         for _, proto in doc_protos
     },
 )
-
-templates_dir = "cpio_templates"
 
 [
     cpio_docs(

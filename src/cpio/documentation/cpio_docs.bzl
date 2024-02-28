@@ -19,6 +19,8 @@ load(
     "proto_compile_impl",
 )
 
+templates_dir = "cpio_templates"
+
 cpio_docs = rule(
     implementation = proto_compile_impl,
     attrs = dict(
