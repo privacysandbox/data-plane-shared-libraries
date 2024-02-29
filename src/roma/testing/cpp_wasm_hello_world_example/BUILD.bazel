@@ -14,8 +14,6 @@
 
 load("//build_defs/cc:wasm.bzl", "cc_inline_wasm_udf_js")
 
-package(default_visibility = ["//visibility:private"])
-
 cc_inline_wasm_udf_js(
     name = "cpp_wasm_hello_world_example",
     srcs = ["hello_world.cc"],

@@ -16,8 +16,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@rules_proto_grpc//:defs.bzl", "proto_plugin")
 load("//src/roma/tools/api_plugin:internal/roma_app_api.bzl", "template_dir_name", get_roma_api_plugins = "get_plugins")
 
-package(default_visibility = ["//visibility:private"])
-
 go_library(
     name = "app_api_plugin_lib",
     srcs = [

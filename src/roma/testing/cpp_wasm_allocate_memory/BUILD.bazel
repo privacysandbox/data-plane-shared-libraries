@@ -14,8 +14,6 @@
 
 load("//build_defs/cc:wasm.bzl", "inline_wasm_cc_binary")
 
-package(default_visibility = ["//visibility:private"])
-
 inline_wasm_cc_binary(
     name = "cpp_wasm_allocate_memory",
     srcs = ["allocate_memory.cc"],
