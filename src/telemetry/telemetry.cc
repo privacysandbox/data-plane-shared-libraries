@@ -21,6 +21,7 @@
 
 #include "opentelemetry/metrics/provider.h"
 #include "opentelemetry/nostd/shared_ptr.h"
+#include "opentelemetry/sdk/logs/batch_log_record_processor_factory.h"
 #include "opentelemetry/sdk/logs/logger.h"
 #include "opentelemetry/sdk/logs/logger_provider.h"
 #include "opentelemetry/sdk/logs/logger_provider_factory.h"
@@ -134,6 +135,19 @@ std::unique_ptr<logs_api::LoggerProvider> ConfigurePrivateLogger(
   return LoggerProviderFactory::Create(
       logs_sdk::SimpleLogRecordProcessorFactory::Create(
           CreateLogRecordExporter(collector_endpoint)),
+      resource);
+}
+
+std::unique_ptr<logs_api::LoggerProvider> ConfigurePrivateBatchLogger(
+    opentelemetry::sdk::resource::Resource resource,
+    absl::optional<std::string> collector_endpoint,
+    const logs_sdk::BatchLogRecordProcessorOptions& options) {
+  if (!TelemetryProvider::GetInstance().log_enabled()) {
+    return std::make_unique<logs_api::NoopLoggerProvider>();
+  }
+  return LoggerProviderFactory::Create(
+      logs_sdk::BatchLogRecordProcessorFactory::Create(
+          CreateLogRecordExporter(collector_endpoint), options),
       resource);
 }
 

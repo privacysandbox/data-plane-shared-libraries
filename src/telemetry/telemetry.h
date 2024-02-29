@@ -28,6 +28,7 @@
 #include "opentelemetry/common/attribute_value.h"
 #include "opentelemetry/logs/provider.h"
 #include "opentelemetry/nostd/string_view.h"
+#include "opentelemetry/sdk/logs/batch_log_record_processor_options.h"
 #include "opentelemetry/sdk/metrics/export/periodic_exporting_metric_reader.h"
 #include "opentelemetry/sdk/metrics/meter.h"
 #include "opentelemetry/sdk/metrics/meter_provider.h"
@@ -77,6 +78,13 @@ opentelemetry::nostd::shared_ptr<opentelemetry::trace::Tracer> GetTracer();
 std::unique_ptr<opentelemetry::logs::LoggerProvider> ConfigurePrivateLogger(
     opentelemetry::sdk::resource::Resource resource,
     absl::optional<std::string> collector_endpoint);
+
+// Same as above, but use `BatchLogRecordProcessor` to improve performance
+std::unique_ptr<opentelemetry::logs::LoggerProvider>
+ConfigurePrivateBatchLogger(
+    opentelemetry::sdk::resource::Resource resource,
+    absl::optional<std::string> collector_endpoint,
+    const opentelemetry::sdk::logs::BatchLogRecordProcessorOptions& options);
 
 }  // namespace privacy_sandbox::server_common
 

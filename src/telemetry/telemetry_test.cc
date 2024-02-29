@@ -87,6 +87,23 @@ TEST(Init, PrivateLog) {
       private_logger.get()));
 }
 
+TEST(Init, PrivateBatchLog) {
+  InitTelemetry("service_name", "build_version",
+                /*trace_enabled=*/false,
+                /*metric_enabled=*/true,
+                /*logs_enabled=*/true);
+  auto private_logger = ConfigurePrivateBatchLogger(
+      opentelemetry::sdk::resource::Resource::GetDefault(), "NOT USED",
+      opentelemetry::sdk::logs::BatchLogRecordProcessorOptions());
+
+  // shared is no op
+  EXPECT_TRUE(dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(
+      opentelemetry::logs::Provider::GetLoggerProvider().get()));
+  // not shared is real logger
+  EXPECT_FALSE(dynamic_cast<opentelemetry::logs::NoopLoggerProvider*>(
+      private_logger.get()));
+}
+
 }  // namespace
 
 }  // namespace privacy_sandbox::server_common
