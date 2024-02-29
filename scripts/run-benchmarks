@@ -15,7 +15,6 @@
 
 # Run benchmarks
 set -o errexit
-set -o xtrace
 set -o pipefail
 
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
