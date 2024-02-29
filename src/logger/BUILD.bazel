@@ -15,8 +15,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//visibility:public"])
-
 proto_library(
     name = "logger_proto",
     srcs = ["logger.proto"],
@@ -40,6 +38,7 @@ cc_library(
         "//:non_prod_build": ["PS_LOG_NON_PROD=1"],
         "//conditions:default": [],
     }),
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/log:absl_log",
     ],
@@ -66,6 +65,7 @@ cc_library(
     name = "request_context_impl",
     srcs = ["request_context_impl.cc"],
     hdrs = ["request_context_impl.h"],
+    visibility = ["//visibility:public"],
     deps = [
         ":logger_cc_proto",
         ":request_context_logger",
