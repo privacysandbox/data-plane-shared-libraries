@@ -128,7 +128,7 @@ fi
 
 "${WORKSPACE}"/scripts/build-proxy
 
-"${WORKSPACE}"/scripts/build-docs
+"${WORKSPACE}"/scripts/build-docs --run-tests
 
 # Roma sandboxed service test
 EXTRA_DOCKER_RUN_ARGS=${EXTRA_DOCKER_RUN_ARGS}" --security-opt seccomp=unconfined " \

@@ -57,7 +57,7 @@ fi
 
 "${WORKSPACE}"/scripts/build-proxy
 
-"${WORKSPACE}"/scripts/build-docs
+"${WORKSPACE}"/scripts/build-docs --run-tests
 
 declare -x -r NO_LOCAL_BAZEL
 "${WORKSPACE}"/testing/test_import/run-build
