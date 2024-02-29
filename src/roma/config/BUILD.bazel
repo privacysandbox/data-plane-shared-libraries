@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "config",
     hdrs = [
@@ -23,6 +21,7 @@ cc_library(
         "function_binding_object_v2.h",
         "type_converter.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         "//src/core/interface",
         "//src/roma/interface:function_binding_io_cc_proto",
