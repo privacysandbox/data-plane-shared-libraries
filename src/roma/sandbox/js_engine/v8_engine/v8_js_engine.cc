@@ -34,6 +34,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/types/span.h"
 #include "src/debug/debug-interface.h"
+#include "src/logger/request_context_logger.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -117,7 +118,7 @@ absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
   std::vector<std::string> errors =
       GetErrors(isolate, try_catch, top_level_error);
   errors.push_back(GetStackTrace(isolate, try_catch, context));
-  LOG(ERROR) << absl::StrJoin(errors, "\n");
+  PS_VLOG(2) << absl::StrJoin(errors, "\n");
   return absl::InternalError(top_level_error);
 }
 

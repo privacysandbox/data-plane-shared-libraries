@@ -90,6 +90,7 @@ cc_library(
         ":v8_isolate_wrapper",
         "//src/core/interface",
         "//src/core/interface:type_def",
+        "//src/logger:request_context_logger",
         "//src/roma/config",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine",
