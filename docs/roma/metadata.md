@@ -53,8 +53,8 @@ on some struct/class that maintains `RequestContext` as a member (henceforth ref
 `ContextWrapper`).
 
 This allows clients to construct `InvocationStrRequest<RequestContext>` or
-`InvocationRequest<ContextWrapper>` to pass the RequestContext associated with Roma execution into
-the UDF for passage into PS_VLOG without said RequestContext ever entering the SAPI sandbox,
+`InvocationRequest<ContextWrapper>` to pass the `RequestContext` associated with Roma execution into
+the UDF for passage into `PS_VLOG` without said `RequestContext` ever entering the SAPI sandbox,
 ensuring that it is privacy-safe.
 
 ### Example 1: RequestContext
