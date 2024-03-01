@@ -25,7 +25,7 @@ cc_library(
                 "//scp/cc/cpio/client_providers/role_credentials_provider/src/aws:aws_role_credentials_provider_lib",
             ],
             "//:azure_platform": [
-                "//scp/cc/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_lib",
+                "//scp/cc/cpio/client_providers/role_credentials_provider/src/azure:azure_role_credentials_provider_lib",
             ],
             "//:gcp_platform": [
                 "//scp/cc/cpio/client_providers/role_credentials_provider/src/gcp:gcp_role_credentials_provider_lib",
