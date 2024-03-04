@@ -91,3 +91,7 @@ if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
     "${KYTHE_OUTPUT_DIRECTORY}/${KYTHE_KZIP_NAME}" \
     "gs://kiwi-air-force-kythe-cross-references/commo-repo/${KYTHE_KZIP_NAME}"
 fi
+
+# Allow coverage to fail.
+"${WORKSPACE}"/builders/tools/bazel-debian coverage //... || true
+"${WORKSPACE}"/builders/tools/bazel-debian run //:collect-coverage || true
