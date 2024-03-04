@@ -20,7 +20,7 @@ go_library(
     name = "docs_plugin_lib",
     srcs = ["protoc_template_plugin.go"],
     embedsrcs = glob(["tmpl/*"]),
-    importpath = "github.com/privacysandbox/data-plane-shared/src/cpio/documentation/cmd",
+    importpath = "github.com/privacysandbox/data-plane-shared/cpio/documentation/cmd",
     x_defs = {
         "tmplSymlink": templates_dir,
     },
