@@ -25,7 +25,6 @@ import struct
 import subprocess
 import sys
 import threading
-import time
 
 
 class TCPEchoHandler(socketserver.BaseRequestHandler):
@@ -45,10 +44,11 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     processing, so we are fine.
     """
 
-    pass
-
 
 def Socks5Handshake(sock, ip, port):
+    """
+    Perform proxy sock5 handshake
+    """
     socks5_req_ipv4 = b"\x05\x01\x00\x05\x01\x00\x01"
     ipv4_addr = socket.inet_aton(ip)
     socks5_req_ipv4 = socks5_req_ipv4 + ipv4_addr
@@ -91,7 +91,7 @@ def VsockProxyClient(vsock_port, ip, ip_port):
     # use IP socket to to simulate VSOCK here
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.connect(("localhost", vsock_port))
-        if Socks5Handshake(sock, ip, ip_port) == False:
+        if not Socks5Handshake(sock, ip, ip_port):
             print("SOCKS5 Handshake failed")
             return False
         sock.send(rand_data)
@@ -101,18 +101,17 @@ def VsockProxyClient(vsock_port, ip, ip_port):
         if checksum != h.digest():
             print("Data checksum does not match")
             return False
-        else:
-            return True
+        return True
 
 
 def ClientThread(ret, vsock_port, ip, ip_port):
     ret.append(VsockProxyClient(vsock_port, ip, ip_port))
 
 
-if __name__ == "__main__":
+def main():
     # Find an arbitrary unused port by specifying 0.
-    HOST, PORT = "localhost", 0
-    server = ThreadedTCPServer((HOST, PORT), TCPEchoHandler)
+    host, port = "localhost", 0
+    server = ThreadedTCPServer((host, port), TCPEchoHandler)
     proxy_path = sys.argv[1]
     # Since many machines, including kokoro, do not support VSOCK loopback, we
     # use IP socket to to simulate VSOCK here by setting "-t".
@@ -134,7 +133,7 @@ if __name__ == "__main__":
     client_threads = []
     num_threads = 100
     # Create 100 threads
-    for i in range(num_threads):
+    for _ in range(num_threads):
         th = threading.Thread(target=ClientThread, args=(success, proxy_port, ip, port))
         client_threads.append(th)
         th.start()
@@ -148,3 +147,7 @@ if __name__ == "__main__":
     for ret in success:
         if ret is False:
             sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
