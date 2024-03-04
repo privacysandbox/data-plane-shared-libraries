@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.56.0 (2024-02-29)
+
+
+### Features
+
+* Add pylint to presubmit
+
+
+### Bug Fixes
+
+* Clean bazel build and mod caches
+* Pin okigan/awscurl to v0.29
+
 ## 0.55.2 (2024-02-23)
 
 
