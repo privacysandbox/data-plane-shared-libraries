@@ -171,3 +171,15 @@ repos:
   hooks:
   - id: black
     name: black python formatter
+
+- repo: https://github.com/pylint-dev/pylint
+  rev: v3.1.0
+  hooks:
+  - id: pylint
+    types:
+    - python
+    args:
+    - -rn
+    - -sn
+    - --rcfile=.pylintrc
+    - --fail-on=I
