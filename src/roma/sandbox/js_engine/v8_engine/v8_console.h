@@ -40,11 +40,13 @@
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
 class V8Console : public v8::debug::ConsoleDelegate {
+ private:
+  using LogFunctionHandler = absl::AnyInvocable<absl::Status(
+      std::string_view, std::string_view, std::string_view, std::string_view,
+      absl::LogSeverity)>;
+
  public:
-  explicit V8Console(
-      v8::Isolate* isolate,
-      absl::AnyInvocable<absl::Status(google::scp::roma::proto::RpcWrapper&)>
-          invoke_rpc_func);
+  explicit V8Console(v8::Isolate* isolate, LogFunctionHandler handle_log_func_);
 
   void SetIds(std::string_view uuid, std::string_view id);
   void SetMinLogLevel(absl::LogSeverity severity);
@@ -59,15 +61,12 @@ class V8Console : public v8::debug::ConsoleDelegate {
 
   void HandleLog(const v8::debug::ConsoleCallArguments& args,
                  std::string_view function_name);
-  proto::RpcWrapper ConstructRpcWrapper(std::string_view function_name,
-                                        std::string_view log_msg);
 
   v8::Isolate* isolate_;
-  absl::AnyInvocable<absl::Status(google::scp::roma::proto::RpcWrapper&)>
-      invoke_rpc_func_;
   std::string invocation_req_uuid_;
   std::string invocation_req_id_;
   absl::LogSeverity min_log_level_ = absl::LogSeverity::kInfo;
+  LogFunctionHandler handle_log_func_;
 };
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

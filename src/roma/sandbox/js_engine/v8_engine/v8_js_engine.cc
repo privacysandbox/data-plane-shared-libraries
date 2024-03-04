@@ -36,8 +36,10 @@
 #include "src/debug/debug-interface.h"
 #include "src/logger/request_context_logger.h"
 #include "src/roma/config/type_converter.h"
+#include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 #include "src/roma/worker/execution_utils.h"
 #include "src/util/duration.h"
 #include "src/util/process_util.h"
@@ -48,6 +50,8 @@
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
+using google::scp::roma::proto::FunctionBindingIoProto;
+using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
@@ -64,6 +68,16 @@ using google::scp::roma::sandbox::js_engine::v8_js_engine::
 using google::scp::roma::worker::ExecutionUtils;
 
 namespace {
+absl::LogSeverity GetSeverity(std::string_view severity) {
+  if (severity == "ROMA_ERROR") {
+    return absl::LogSeverity::kError;
+  } else if (severity == "ROMA_WARN") {
+    return absl::LogSeverity::kWarning;
+  } else {
+    return absl::LogSeverity::kInfo;
+  }
+}
+
 absl::LogSeverity GetLogLevel(std::string_view level) {
   int severity;
   if (!absl::SimpleAtoi(level, &severity)) {
@@ -122,6 +136,20 @@ absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
   return absl::InternalError(top_level_error);
 }
 
+RpcWrapper ConstructRpcWrapper(std::string_view function_name,
+                               std::string_view log_msg, std::string_view id,
+                               std::string_view uuid) {
+  RpcWrapper rpc_proto;
+  FunctionBindingIoProto function_proto;
+  function_proto.set_input_string(log_msg);
+
+  rpc_proto.set_function_name(function_name);
+  rpc_proto.set_request_id(id);
+  rpc_proto.set_request_uuid(uuid);
+  *rpc_proto.mutable_io_proto() = std::move(function_proto);
+  return rpc_proto;
+}
+
 }  // namespace
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
@@ -178,6 +206,21 @@ void V8JsEngine::OneTimeSetup(
     v8::V8::Initialize();
     return v8_platform.release();
   }();
+}
+
+absl::Status V8JsEngine::HandleLog(std::string_view function_name,
+                                   std::string_view msg,
+                                   std::string_view request_uuid,
+                                   std::string_view request_id,
+                                   absl::LogSeverity min_log_level) {
+  if (GetSeverity(function_name) < min_log_level ||
+      isolate_function_binding_ == nullptr) {
+    return absl::OkStatus();
+  }
+
+  auto rpc_proto =
+      ConstructRpcWrapper(function_name, msg, request_id, request_uuid);
+  return isolate_function_binding_->InvokeRpc(rpc_proto);
 }
 
 absl::Status V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
@@ -285,14 +328,18 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
 V8Console* V8JsEngine::console(v8::Isolate* isolate)
     ABSL_LOCKS_EXCLUDED(console_mutex_) {
   absl::MutexLock lock(&console_mutex_);
-  auto invoke_func = [this](google::scp::roma::proto::RpcWrapper& proto) {
-    if (isolate_function_binding_) {
-      return isolate_function_binding_->InvokeRpc(proto);
-    }
-    return absl::OkStatus();
-  };
+  auto handle_log_func =
+      [this](std::string_view function_name, std::string_view msg,
+             std::string_view request_uuid, std::string_view request_id,
+             absl::LogSeverity min_log_level) {
+        return HandleLog(function_name, msg, request_uuid, request_id,
+                         min_log_level);
+      };
 
-  if (!console_) console_ = std::make_unique<V8Console>(isolate, invoke_func);
+  if (console_ == nullptr) {
+    console_ = std::make_unique<V8Console>(isolate, handle_log_func);
+  }
+
   return console_.get();
 }
 

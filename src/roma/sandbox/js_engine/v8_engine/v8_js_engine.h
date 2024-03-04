@@ -188,6 +188,20 @@ class V8JsEngine : public JsEngine {
                                     absl::Span<const std::uint8_t> wasm,
                                     std::string& err_msg);
 
+  /**
+   * @brief Log `msg` using logging function in host process with severity from
+   * `function_name`. Per-request metadata needs to be included in `metadata`.
+   *
+   * @param function_name
+   * @param msg
+   * @param metadata
+   * @return absl::Status
+   */
+  absl::Status HandleLog(std::string_view function_name, std::string_view msg,
+                         std::string_view request_uuid,
+                         std::string_view request_id,
+                         absl::LogSeverity min_log_level);
+
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
   std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding_;
 

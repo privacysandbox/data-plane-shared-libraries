@@ -27,12 +27,7 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_join.h"
 #include "include/v8.h"
-#include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
-#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
-
-using google::scp::roma::proto::FunctionBindingIoProto;
-using google::scp::roma::proto::RpcWrapper;
 
 constexpr std::string_view kCouldNotConvertArgToString =
     "V8_CONSOLE: Could not perform string conversion for argument ";
@@ -61,23 +56,10 @@ std::vector<std::string> GetLogMsg(
   }
   return msgs;
 }
-
-absl::LogSeverity GetSeverity(std::string_view severity) {
-  if (severity == "ROMA_ERROR") {
-    return absl::LogSeverity::kError;
-  } else if (severity == "ROMA_WARN") {
-    return absl::LogSeverity::kWarning;
-  } else {
-    return absl::LogSeverity::kInfo;
-  }
-}
 }  // anonymous namespace
 
-V8Console::V8Console(
-    v8::Isolate* isolate,
-    absl::AnyInvocable<absl::Status(google::scp::roma::proto::RpcWrapper&)>
-        invoke_rpc_func)
-    : isolate_(isolate), invoke_rpc_func_(std::move(invoke_rpc_func)) {}
+V8Console::V8Console(v8::Isolate* isolate, LogFunctionHandler handle_log_func)
+    : isolate_(isolate), handle_log_func_(std::move(handle_log_func)) {}
 
 void V8Console::Log(const v8::debug::ConsoleCallArguments& args,
                     const v8::debug::ConsoleContext&) {
@@ -94,17 +76,6 @@ void V8Console::Error(const v8::debug::ConsoleCallArguments& args,
   HandleLog(args, "ROMA_ERROR");
 }
 
-void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
-                          std::string_view function_name) {
-  if (GetSeverity(function_name) < min_log_level_) {
-    return;
-  }
-  const auto msgs = GetLogMsg(isolate_, args);
-  const std::string msg = absl::StrJoin(msgs, " ");
-  auto rpc_proto = ConstructRpcWrapper(function_name, msg);
-  (void)invoke_rpc_func_(rpc_proto);
-}
-
 void V8Console::SetIds(std::string_view uuid, std::string_view id) {
   invocation_req_uuid_ = uuid;
   invocation_req_id_ = id;
@@ -114,17 +85,12 @@ void V8Console::SetMinLogLevel(absl::LogSeverity severity) {
   min_log_level_ = severity;
 }
 
-RpcWrapper V8Console::ConstructRpcWrapper(std::string_view function_name,
-                                          std::string_view log_msg) {
-  RpcWrapper rpc_proto;
-  FunctionBindingIoProto function_proto;
-  function_proto.set_input_string(log_msg);
-
-  rpc_proto.set_function_name(function_name);
-  rpc_proto.set_request_id(invocation_req_id_);
-  rpc_proto.set_request_uuid(invocation_req_uuid_);
-  *rpc_proto.mutable_io_proto() = std::move(function_proto);
-  return rpc_proto;
+void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
+                          std::string_view function_name) {
+  const auto msgs = GetLogMsg(isolate_, args);
+  const std::string msg = absl::StrJoin(msgs, " ");
+  handle_log_func_(function_name, msg, invocation_req_uuid_, invocation_req_id_,
+                   min_log_level_);
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
