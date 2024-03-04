@@ -94,16 +94,21 @@ function upload_benchmarks_to_perfgate() {
     local -r upload_arch="$("${WORKSPACE}"/builders/tools/get-architecture)"
 
     # List of all of the benchmark files to upload:
+    # IMPORTANT: When changing scripts/run-benchmarks, please change here.
     local -a -r json_file_names=(
-      ba_server_benchmark
-      # This test is currently disabled:
-      # benchmark_test
-      dispatcher_benchmark
-      kv_server_udf_benchmark
-      # logging_benchmark
-      type_converter_benchmark
+      benchmark_test
       uuid_benchmark
+      ba_server_benchmark
+      kv_server_udf_benchmark
+      dispatcher_benchmark
       worker_wrapper_benchmark
+      # These tests are currently disabled:
+      # TODO: b/328056518 - Turn this back on once v8 upgrade is complete.
+      # type_converter_benchmark
+      # TODO: Enable logging benchmark after reducing volume of log output.
+      # logging_benchmark
+      # TODO: b/303250465 - Turn this back on once the segfault is fixed.
+      # benchmark_suite_test
     )
 
     for json_file_name in "${json_file_names[@]}"; do

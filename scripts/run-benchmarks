@@ -28,17 +28,19 @@ source "${TOOLS_DIR}"/builder.sh
 # named after the build target, so changing the build target will lose history
 # if not preserved. To remedy this, add a map from "json_file_names" to
 # "perfgate_benchmark_name" in https://source.corp.google.com/piper///depot/google3/chrome/privacy_sandbox/kiwi_air_force/perfgate/backfill_placer_data.sh;l=44.
+# IMPORTANT: When changing target names, please change all other occurances.
 declare -a -r targets=(
   //src/aws/proxy:benchmark_test
   //src/core/common/uuid:uuid_benchmark
   //src/roma/benchmark:ba_server_benchmark
   //src/roma/benchmark:kv_server_udf_benchmark_test
-  # TODO(b/328056518): Turn this back on once v8 upgrade is complete.
+  # TODO: b/328056518 - Turn this back on once v8 upgrade is complete.
   # //src/roma/config:type_converter_benchmark
   //src/roma/sandbox/dispatcher:dispatcher_benchmark
   //src/roma/sandbox/worker_api/sapi:worker_wrapper_benchmark
+  # TODO: Enable logging benchmark after reducing volume of log output.
   # //src/roma/benchmark:logging_benchmark
-  # TODO(b/303250465): Turn this back on once the segfault is fixed.
+  # TODO: b/303250465 - Turn this back on once the segfault is fixed.
   # //src/roma/benchmark:benchmark_suite_test
 )
 
