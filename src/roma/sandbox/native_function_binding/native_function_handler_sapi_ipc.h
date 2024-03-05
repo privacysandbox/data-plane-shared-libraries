@@ -160,7 +160,9 @@ class NativeFunctionHandlerSapiIpc {
     return metadata_map_.Add(std::move(uuid), std::move(metadata));
   }
 
-  void DeleteMetadata(std::string_view uuid) { metadata_map_.Delete(uuid); }
+  void DeleteMetadata(std::string_view uuid) {
+    (void)metadata_map_.Delete(uuid);
+  }
 
  private:
   bool stop_ ABSL_GUARDED_BY(stop_mutex_);
