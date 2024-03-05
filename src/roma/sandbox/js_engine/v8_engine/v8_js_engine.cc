@@ -530,9 +530,9 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     }
     if (!TypeConverter<std::string>::FromV8(v8_isolate, result,
                                             &execution_response.response)) {
-      LOG(ERROR) << "Failed to convert the V8 Local string to std::string";
+      LOG(ERROR) << "Failed to convert V8 string to std::string";
       return GetError(v8_isolate, try_catch, v8_context,
-                      "Error converting output to JSON.");
+                      "Error converting V8 string to std::string");
     }
   }
   return execution_response;
