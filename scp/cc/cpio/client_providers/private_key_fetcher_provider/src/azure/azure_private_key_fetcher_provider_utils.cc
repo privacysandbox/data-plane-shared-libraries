@@ -16,8 +16,6 @@
 
 #include "azure_private_key_fetcher_provider_utils.h"
 
-#include <memory>
-
 #include "azure/attestation/src/attestation.h"
 
 using google::scp::azure::attestation::fetchFakeSnpAttestation;
@@ -41,4 +39,51 @@ void AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
   CHECK(report.has_value()) << "Failed to get attestation report";
   http_request.body = core::BytesBuffer(nlohmann::json(report.value()).dump());
 }
+
+/**
+ * @brief Generate a new wrapping key
+*/
+RSA* AzurePrivateKeyFetchingClientUtils::GenerateWrappingKey() {
+  RSA* rsa = RSA_new();
+  BIGNUM* e = BN_new();
+
+  BN_set_word(e, RSA_F4);
+  RSA_generate_key_ex(rsa, 2048, e, NULL);
+
+  BN_free(e);
+  return rsa;
+}
+
+/**
+ * @brief Wrap a key using RSA OAEP
+   *
+   * @param wrappingKey RSA public key used to wrap a key.
+   * @param key         Key in PEM format to wrap.
+*/
+std::vector<unsigned char> AzurePrivateKeyFetchingClientUtils::KeyWrap(
+    RSA* wrappingKey, const std::string& key) {
+  std::vector<unsigned char> encrypted(RSA_size(wrappingKey));
+  int encrypted_len = RSA_public_encrypt(
+      key.size(), reinterpret_cast<const unsigned char*>(key.c_str()),
+      encrypted.data(), wrappingKey, RSA_PKCS1_OAEP_PADDING);
+  encrypted.resize(encrypted_len);
+  return encrypted;
+}
+
+/**
+ * @brief Unwrap a key using RSA OAEP
+   *
+   * @param wrappingKey RSA private key used to unwrap a key.
+   * @param encrypted   Wrapped key to unwrap.
+*/
+std::string AzurePrivateKeyFetchingClientUtils::KeyUnwrap(
+    RSA* wrappingKey, const std::vector<unsigned char>& encrypted) {
+  std::vector<unsigned char> decrypted(RSA_size(wrappingKey));
+  int decrypted_len =
+      RSA_private_decrypt(encrypted.size(), encrypted.data(), decrypted.data(),
+                          wrappingKey, RSA_PKCS1_OAEP_PADDING);
+  decrypted.resize(decrypted_len);
+  return std::string(decrypted.begin(), decrypted.end());
+}
+
 }  // namespace google::scp::cpio::client_providers
