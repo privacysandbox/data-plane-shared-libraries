@@ -143,4 +143,14 @@ absl::Span<const std::string_view> BuildDependentConfig::GetPartition(
   return it->second;
 }
 
+int BuildDependentConfig::GetMaxPartitionsContributed(
+    const metrics::internal::Partitioned& definition,
+    absl::string_view name) const {
+  absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
+  if (metric_config.ok() && metric_config->has_max_partitions_contributed()) {
+    return metric_config->max_partitions_contributed();
+  }
+  return definition.max_partitions_contributed_;
+}
+
 }  // namespace privacy_sandbox::server_common::telemetry

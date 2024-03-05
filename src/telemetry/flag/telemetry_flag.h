@@ -42,6 +42,11 @@ std::string AbslUnparseFlag(const TelemetryFlag&);
 // depends on the build options `//:non_prod_build`
 class BuildDependentConfig {
  public:
+  struct BoundOverride {
+    double lower_bound_;
+    double upper_bound_;
+  };
+
   explicit BuildDependentConfig(TelemetryConfig config);
 
   enum class BuildMode { kProd, kExperiment };
@@ -102,6 +107,81 @@ class BuildDependentConfig {
   absl::Span<const std::string_view> GetPartition(
       const metrics::internal::Partitioned& definition,
       const std::string_view name) const;
+
+  // Return max_partions_contributed of a metric.
+  template <typename MetricT>
+  int GetMaxPartitionsContributed(const MetricT& definition) const {
+    return GetMaxPartitionsContributed(definition, definition.name_);
+  }
+
+  int GetMaxPartitionsContributed(
+      const metrics::internal::Partitioned& definition,
+      absl::string_view name) const;
+
+  // Return drop_noisy_values_probability of a metric.
+  template <typename MetricT>
+  double GetDropNoisyValuesProbability(const MetricT& definition) const {
+    return GetDropNoisyValuesProbability(definition, definition.name_);
+  }
+
+  template <typename T>
+  double GetDropNoisyValuesProbability(
+      const metrics::internal::DifferentialPrivacy<T>& definition,
+      absl::string_view name) const {
+    absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
+    if (metric_config.ok() &&
+        metric_config->has_drop_noisy_values_probability()) {
+      return metric_config->drop_noisy_values_probability();
+    }
+    return definition.drop_noisy_values_probability_;
+  }
+
+  // Return privacy_budget_weight of a metric.
+  template <typename MetricT>
+  double GetPrivacyBudgetWeight(const MetricT& definition) const {
+    return GetPrivacyBudgetWeight(definition, definition.name_);
+  }
+
+  template <typename T>
+  double GetPrivacyBudgetWeight(
+      const metrics::internal::DifferentialPrivacy<T>& definition,
+      absl::string_view name) const {
+    absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
+    if (metric_config.ok() && metric_config->has_privacy_budget_weight()) {
+      return metric_config->privacy_budget_weight();
+    }
+    return definition.privacy_budget_weight_;
+  }
+
+  // Return lower_bound and upper_bound of a metric.
+  template <typename MetricT>
+  BoundOverride GetBound(const MetricT& definition) const {
+    return GetBound(definition, definition.name_);
+  }
+
+  template <typename T>
+  BoundOverride GetBound(
+      const metrics::internal::DifferentialPrivacy<T>& definition,
+      absl::string_view name) const {
+    absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
+    if (metric_config.ok()) {
+      double new_lower_bound = definition.lower_bound_;
+      double new_upper_bound = definition.upper_bound_;
+      if (metric_config->has_lower_bound())
+        new_lower_bound = metric_config->lower_bound();
+      if (metric_config->has_upper_bound())
+        new_upper_bound = metric_config->upper_bound();
+      if (new_lower_bound < new_upper_bound)
+        return BoundOverride{
+            .lower_bound_ = new_lower_bound,
+            .upper_bound_ = new_upper_bound,
+        };
+    }
+    return BoundOverride{
+        .lower_bound_ = double(definition.lower_bound_),
+        .upper_bound_ = double(definition.upper_bound_),
+    };
+  }
 
  private:
   TelemetryConfig server_config_;

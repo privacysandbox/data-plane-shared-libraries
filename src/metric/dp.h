@@ -77,8 +77,10 @@ class DpAggregator : public DpAggregatorBase {
       const std::string_view current_partition[] = {partition};
       absl::Span<const std::string_view> all_partitions = current_partition;
       if constexpr (instrument == Instrument::kPartitionedCounter) {
-        max_partitions_contributed = definition_.max_partitions_contributed_;
-        if (absl::Span<const std::string_view> partitions =
+        max_partitions_contributed =
+            metric_router_.metric_config().template GetMaxPartitionsContributed(
+                definition_);
+        if (absl::Span<const absl::string_view> partitions =
                 metric_router_.metric_config().template GetPartition(
                     definition_);
             !partitions.empty()) {
@@ -87,15 +89,18 @@ class DpAggregator : public DpAggregatorBase {
       } else {
         max_partitions_contributed = 1;
       }
-      for (std::string_view each : all_partitions) {
+      auto bound =
+          metric_router_.metric_config().template GetBound(definition_);
+      for (absl::string_view each : all_partitions) {
         PS_ASSIGN_OR_RETURN(
             std::unique_ptr<differential_privacy::BoundedSum<TValue>>
                 bounded_sum,
             typename differential_privacy::BoundedSum<TValue>::Builder()
                 .SetEpsilon(privacy_budget_per_weight_.epsilon *
-                            definition_.privacy_budget_weight_)
-                .SetLower(definition_.lower_bound_)
-                .SetUpper(definition_.upper_bound_)
+                            metric_router_.metric_config()
+                                .template GetPrivacyBudgetWeight(definition_))
+                .SetLower(bound.lower_bound_)
+                .SetUpper(bound.upper_bound_)
                 .SetMaxPartitionsContributed(max_partitions_contributed)
                 .SetLaplaceMechanism(
                     std::make_unique<
@@ -117,14 +122,17 @@ class DpAggregator : public DpAggregatorBase {
     absl::MutexLock mutex_lock(&mutex_);
     std::vector<differential_privacy::Output> ret(bounded_sums_.size());
     auto it = ret.begin();
+    const double drop_noisy_values_probability =
+        metric_router_.metric_config().template GetDropNoisyValuesProbability(
+            definition_);
     for (auto& [partition, bounded_sum] : bounded_sums_) {
       PS_ASSIGN_OR_RETURN(*it, bounded_sum->PartialResult());
-      if ((definition_.min_noise_to_output_ > 0.001) &&
-          (definition_.min_noise_to_output_ < 1.0)) {
+      if ((drop_noisy_values_probability > 0.001) &&
+          (drop_noisy_values_probability < 1.0)) {
         PS_ASSIGN_OR_RETURN(
             differential_privacy::ConfidenceInterval noise_bound,
             bounded_sum->NoiseConfidenceInterval(
-                definition_.min_noise_to_output_));
+                drop_noisy_values_probability));
         if (differential_privacy::GetValue<TValue>(*it) <=
             noise_bound.upper_bound()) {
           differential_privacy::Output output =

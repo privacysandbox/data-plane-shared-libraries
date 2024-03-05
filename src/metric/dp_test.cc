@@ -74,7 +74,7 @@ constexpr DefinitionPartition kUnitPartitionCounterWithErrorReport(
     /*public_partitions*/ pv,
     /*upper_bound*/ 1,
     /*lower_bound*/ 0,
-    /*min_noise_to_output*/ 0.95);
+    /*drop_noisy_values_probability*/ 0.95);
 
 constexpr double kHistogram[] = {50, 100, 250};
 constexpr DefinitionHistogram kHistogramCounter("kHistogramCounter", "",
