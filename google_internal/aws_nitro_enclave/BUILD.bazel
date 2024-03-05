@@ -113,52 +113,6 @@ pkg_tar(
 )
 
 oci_image(
-    name = "sshd_commands_image",
-    base = select({
-        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
-        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
-    }),
-    cmd = [
-        # Install socat, IP command, Open SSH, strace, etc.
-        """
-apt-get update
-apt-get install -y iproute2 openssh-client openssh-server strace sysvinit-utils util-linux
-""",
-    ],
-    tags = [
-        "manual",
-        "no-remote",
-    ],
-)
-
-oci_image(
-    name = "socat_image",
-    base = select({
-        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
-        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
-    }),
-    cmd = [
-        """
-apt-get -o 'Acquire::https::No-Cache=True' -o 'Acquire::http::No-Cache=True' update --quiet
-DEBIAN_FRONTEND=noninteractive apt-get install --quiet -y --no-install-recommends curl gcc libc-dev make
-mkdir -p /tmp/socat-build
-cd /tmp/socat-build
-curl -L http://www.dest-unreach.org/socat/download/socat-1.7.4.4.tar.gz \
-  | tar -xz --strip-components=1
-./configure
-make -j socat
-mv socat /
-cd /
-rm -rf /tmp/socat-build
-""",
-    ],
-    tags = [
-        "manual",
-        "no-remote",
-    ],
-)
-
-oci_image(
     name = "aws_nitro_enclaves_debug_debian_image",
     base = select({
         "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
@@ -172,9 +126,7 @@ oci_image(
         "no-remote",
     ],
     tars = [
-        ":sshd_commands_image",
         ":ssh_cert_tar",
-        ":socat_image",
         "//src/aws/proxy:libnsm_and_proxify_tar",
         ":init_server_enclave_tar",
         ":resolv_conf_tar",

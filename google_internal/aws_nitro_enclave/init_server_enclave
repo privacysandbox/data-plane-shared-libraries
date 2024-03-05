@@ -13,6 +13,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Install socat, IP command, Open SSH, strace, etc.
+apt-get update
+apt-get install -y iproute2 openssh-client openssh-server strace sysvinit-utils util-linux
+
+apt-get -o 'Acquire::https::No-Cache=True' -o 'Acquire::http::No-Cache=True' update --quiet
+DEBIAN_FRONTEND=noninteractive apt-get install --quiet -y --no-install-recommends curl gcc libc-dev make
+mkdir -p /tmp/socat-build
+cd /tmp/socat-build
+curl -L http://www.dest-unreach.org/socat/download/socat-1.7.4.4.tar.gz \
+  | tar -xz --strip-components=1
+./configure
+make -j socat
+mv socat /
+cd /
+rm -rf /tmp/socat-build
+
 set -o xtrace
 /socat -V
 ip addr add 0.0.0.0/32 dev lo
