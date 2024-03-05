@@ -35,6 +35,13 @@ namespace google::scp::roma::logging {
 // Check whether the verbose_level is smaller than ROMA_VLOG_LEVEL.
 bool VLogIsOn(int verbose_level);
 
+// Options struct for invoking logging callback in host process
+struct LogOptions {
+  std::string_view uuid;
+  std::string_view id;
+  absl::LogSeverity min_log_level;
+};
+
 // Read the ROMA VLOG verbose level from environment variable.
 int GetVlogVerboseLevel();
 }  // namespace google::scp::roma::logging

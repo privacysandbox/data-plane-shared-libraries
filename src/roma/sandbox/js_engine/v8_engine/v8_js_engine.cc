@@ -50,6 +50,7 @@
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
+using google::scp::roma::logging::LogOptions;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
@@ -126,16 +127,6 @@ std::string GetStackTrace(v8::Isolate* isolate, v8::TryCatch& try_catch,
                                  : "<failed to convert stack trace>";
 }
 
-absl::Status GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
-                      v8::Local<v8::Context> context,
-                      std::string_view top_level_error) {
-  std::vector<std::string> errors =
-      GetErrors(isolate, try_catch, top_level_error);
-  errors.push_back(GetStackTrace(isolate, try_catch, context));
-  PS_VLOG(2) << absl::StrJoin(errors, "\n");
-  return absl::InternalError(top_level_error);
-}
-
 RpcWrapper ConstructRpcWrapper(std::string_view function_name,
                                std::string_view log_msg, std::string_view id,
                                std::string_view uuid) {
@@ -150,6 +141,29 @@ RpcWrapper ConstructRpcWrapper(std::string_view function_name,
   return rpc_proto;
 }
 
+LogOptions GetLogOptions(
+    const absl::flat_hash_map<std::string_view, std::string_view>& metadata) {
+  absl::LogSeverity min_log_level = absl::LogSeverity::kInfo;
+  if (const auto log_level_it = metadata.find(kMinLogLevel);
+      log_level_it != metadata.end()) {
+    min_log_level = GetLogLevel(log_level_it->second);
+  }
+
+  std::string_view uuid;
+  std::string_view id;
+  if (const auto uuid_it = metadata.find(kRequestUuid),
+      id_it = metadata.find(kRequestId);
+      uuid_it != metadata.end() && id_it != metadata.end()) {
+    uuid = uuid_it->second;
+    id = id_it->second;
+  }
+
+  return {
+      .uuid = uuid,
+      .id = id,
+      .min_log_level = min_log_level,
+  };
+}
 }  // namespace
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
@@ -208,18 +222,28 @@ void V8JsEngine::OneTimeSetup(
   }();
 }
 
+absl::Status V8JsEngine::FormatAndLogError(v8::Isolate* isolate,
+                                           v8::TryCatch& try_catch,
+                                           v8::Local<v8::Context> context,
+                                           std::string_view top_level_error,
+                                           LogOptions log_options) {
+  std::vector<std::string> errors =
+      GetErrors(isolate, try_catch, top_level_error);
+  errors.push_back(GetStackTrace(isolate, try_catch, context));
+  HandleLog("ROMA_ERROR", absl::StrJoin(errors, "\n"), std::move(log_options));
+  return absl::InternalError(top_level_error);
+}
+
 absl::Status V8JsEngine::HandleLog(std::string_view function_name,
                                    std::string_view msg,
-                                   std::string_view request_uuid,
-                                   std::string_view request_id,
-                                   absl::LogSeverity min_log_level) {
-  if (GetSeverity(function_name) < min_log_level ||
+                                   LogOptions log_options) {
+  if (GetSeverity(function_name) < log_options.min_log_level ||
       isolate_function_binding_ == nullptr) {
     return absl::OkStatus();
   }
 
   auto rpc_proto =
-      ConstructRpcWrapper(function_name, msg, request_id, request_uuid);
+      ConstructRpcWrapper(function_name, msg, log_options.id, log_options.uuid);
   return isolate_function_binding_->InvokeRpc(rpc_proto);
 }
 
@@ -328,13 +352,10 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
 V8Console* V8JsEngine::console(v8::Isolate* isolate)
     ABSL_LOCKS_EXCLUDED(console_mutex_) {
   absl::MutexLock lock(&console_mutex_);
-  auto handle_log_func =
-      [this](std::string_view function_name, std::string_view msg,
-             std::string_view request_uuid, std::string_view request_id,
-             absl::LogSeverity min_log_level) {
-        return HandleLog(function_name, msg, request_uuid, request_id,
-                         min_log_level);
-      };
+  auto handle_log_func = [this](std::string_view function_name,
+                                std::string_view msg, LogOptions log_options) {
+    return HandleLog(function_name, msg, std::move(log_options));
+  };
 
   if (console_ == nullptr) {
     console_ = std::make_unique<V8Console>(isolate, handle_log_func);
@@ -431,7 +452,7 @@ V8JsEngine::CreateCompilationContext(
     }
 
     // TODO(b/298062607): deprecate err_msg, all exceptions should being caught
-    // by GetError().
+    // by FormatAndLogError().
     if (auto status = ExecutionUtils::CreateUnboundScript(
             snapshot_context->unbound_script, isolate_or->isolate(), code,
             err_msg);
@@ -484,6 +505,8 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
         current_compilation_context,
     std::string_view function_name, const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata) {
+  LogOptions log_options = GetLogOptions(metadata);
+
   v8::Isolate* v8_isolate = current_compilation_context->isolate->isolate();
   v8::Isolate::Scope isolate_scope(v8_isolate);
   // Create a handle scope to keep the temporary object references.
@@ -537,8 +560,9 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     // If argv_array size doesn't match with input. Input conversion failed.
     if (argv_array.IsEmpty() || argv_array->Length() != argc) {
       LOG(ERROR) << "Could not parse the inputs";
-      return GetError(v8_isolate, try_catch, v8_context,
-                      "Error parsing input as valid JSON.");
+      return FormatAndLogError(v8_isolate, try_catch, v8_context,
+                               "Error parsing input as valid JSON.",
+                               std::move(log_options));
     }
     v8::Local<v8::Value> argv[argc];
     for (size_t i = 0; i < argc; ++i) {
@@ -551,15 +575,18 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     if (!handler_func->Call(v8_context, v8_context->Global(), argc, argv)
              .ToLocal(&result)) {
       LOG(ERROR) << "Handler function calling failed";
-      return GetError(v8_isolate, try_catch, v8_context,
-                      "Error when invoking the handler.");
+      return FormatAndLogError(v8_isolate, try_catch, v8_context,
+                               "Error when invoking the handler.",
+                               std::move(log_options));
     }
     if (result->IsPromise()) {
       std::string error_msg;
       if (!ExecutionUtils::V8PromiseHandler(v8_isolate, result, error_msg)) {
         DLOG(ERROR) << "V8 Promise execution failed" << error_msg;
-        return GetError(v8_isolate, try_catch, v8_context,
-                        "The code object async function execution failed.");
+        return FormatAndLogError(
+            v8_isolate, try_catch, v8_context,
+            "The code object async function execution failed.",
+            std::move(log_options));
       }
     }
     execution_response.metrics[kHandlerCallMetricJsEngineDuration] =
@@ -571,15 +598,17 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
       if (auto result_json_maybe = v8::JSON::Stringify(v8_context, result);
           !result_json_maybe.ToLocal(&result)) {
         LOG(ERROR) << "Failed to convert the V8 JSON result to Local string";
-        return GetError(v8_isolate, try_catch, v8_context,
-                        "Error converting output to JSON.");
+        return FormatAndLogError(v8_isolate, try_catch, v8_context,
+                                 "Error converting output to JSON.",
+                                 std::move(log_options));
       }
     }
     if (!TypeConverter<std::string>::FromV8(v8_isolate, result,
                                             &execution_response.response)) {
       LOG(ERROR) << "Failed to convert V8 string to std::string";
-      return GetError(v8_isolate, try_catch, v8_context,
-                      "Error converting V8 string to std::string");
+      return FormatAndLogError(v8_isolate, try_catch, v8_context,
+                               "Error converting V8 string to std::string",
+                               std::move(log_options));
     }
   }
   return execution_response;
@@ -599,6 +628,7 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
     const std::vector<std::string_view>& input,
     const absl::flat_hash_map<std::string_view, std::string_view>& metadata,
     const RomaJsEngineCompilationContext& context) {
+  LogOptions log_options = GetLogOptions(metadata);
   JsEngineExecutionResponse execution_response;
 
   if (auto isolate_or = CreateIsolate(); isolate_or) {
@@ -663,8 +693,9 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
 
       if (wasm_input_array.IsEmpty() ||
           wasm_input_array->Length() != input.size()) {
-        return GetError(isolate, try_catch, context,
-                        "Error parsing input as valid JSON.");
+        return FormatAndLogError(isolate, try_catch, context,
+                                 "Error parsing input as valid JSON.",
+                                 std::move(log_options));
       }
 
       auto input_length = wasm_input_array->Length();
@@ -679,8 +710,9 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
       if (!handler_function
                ->Call(context, context->Global(), input_length, wasm_input)
                .ToLocal(&wasm_result)) {
-        return GetError(isolate_wrapper_->isolate(), try_catch, context,
-                        "Error when invoking the handler.");
+        return FormatAndLogError(isolate_wrapper_->isolate(), try_catch,
+                                 context, "Error when invoking the handler.",
+                                 std::move(log_options));
       }
 
       const auto offset = wasm_result.As<v8::Int32>()->Value();
@@ -690,15 +722,18 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunWasm(
           v8::JSON::Stringify(context, wasm_execution_output);
       v8::Local<v8::String> result_json;
       if (!result_json_maybe.ToLocal(&result_json)) {
-        return GetError(isolate_wrapper_->isolate(), try_catch, context,
-                        "Error converting output to native string.");
+        return FormatAndLogError(isolate_wrapper_->isolate(), try_catch,
+                                 context,
+                                 "Error converting output to native string.",
+                                 std::move(log_options));
       }
 
       if (!TypeConverter<std::string>::FromV8(
               isolate, result_json,
               &execution_response.execution_response.response)) {
-        return GetError(isolate, try_catch, context,
-                        "Error converting output to native string.");
+        return FormatAndLogError(isolate, try_catch, context,
+                                 "Error converting output to native string.",
+                                 std::move(log_options));
       }
     }
   }
@@ -728,19 +763,16 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
   } else {
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
-    if (const auto log_level_it = metadata.find(kMinLogLevel);
-        log_level_it != metadata.end()) {
+    auto [uuid, id, min_log_level] = GetLogOptions(metadata);
+    {
       absl::MutexLock lock(&console_mutex_);
-      console_->SetMinLogLevel(GetLogLevel(log_level_it->second));
+      console_->SetMinLogLevel(min_log_level);
     }
 
-    if (const auto uuid_it = metadata.find(kRequestUuid),
-        id_it = metadata.find(kRequestId);
-        isolate_function_binding_ && uuid_it != metadata.end() &&
-        id_it != metadata.end()) {
+    if (isolate_function_binding_) {
+      isolate_function_binding_->AddIds(uuid, id);
       absl::MutexLock lock(&console_mutex_);
-      isolate_function_binding_->AddIds(uuid_it->second, id_it->second);
-      console_->SetIds(uuid_it->second, id_it->second);
+      console_->SetIds(uuid, id);
     }
   }
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();

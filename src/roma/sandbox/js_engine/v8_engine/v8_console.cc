@@ -27,7 +27,6 @@
 #include "absl/log/log.h"
 #include "absl/strings/str_join.h"
 #include "include/v8.h"
-#include "src/roma/logging/logging.h"
 
 constexpr std::string_view kCouldNotConvertArgToString =
     "V8_CONSOLE: Could not perform string conversion for argument ";
@@ -89,8 +88,12 @@ void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
                           std::string_view function_name) {
   const auto msgs = GetLogMsg(isolate_, args);
   const std::string msg = absl::StrJoin(msgs, " ");
-  handle_log_func_(function_name, msg, invocation_req_uuid_, invocation_req_id_,
-                   min_log_level_);
+  handle_log_func_(function_name, msg,
+                   {
+                       .uuid = invocation_req_uuid_,
+                       .id = invocation_req_id_,
+                       .min_log_level = min_log_level_,
+                   });
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

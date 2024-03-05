@@ -34,6 +34,7 @@
 #include "absl/status/status.h"
 #include "absl/functional/any_invocable.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
+#include "src/roma/logging/logging.h"
 
 // clang-format on
 
@@ -41,9 +42,9 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
 class V8Console : public v8::debug::ConsoleDelegate {
  private:
-  using LogFunctionHandler = absl::AnyInvocable<absl::Status(
-      std::string_view, std::string_view, std::string_view, std::string_view,
-      absl::LogSeverity)>;
+  using LogFunctionHandler =
+      absl::AnyInvocable<absl::Status(std::string_view, std::string_view,
+                                      google::scp::roma::logging::LogOptions)>;
 
  public:
   explicit V8Console(v8::Isolate* isolate, LogFunctionHandler handle_log_func_);

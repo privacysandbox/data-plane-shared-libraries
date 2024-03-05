@@ -198,9 +198,24 @@ class V8JsEngine : public JsEngine {
    * @return absl::Status
    */
   absl::Status HandleLog(std::string_view function_name, std::string_view msg,
-                         std::string_view request_uuid,
-                         std::string_view request_id,
-                         absl::LogSeverity min_log_level);
+                         google::scp::roma::logging::LogOptions log_options);
+
+  /**
+   * @brief Format top_level_error and log stacktrace in host process.
+   *
+   * @param isolate
+   * @param try_catch
+   * @param context
+   * @param top_level_error
+   * @param uuid
+   * @param id
+   * @param min_log_level
+   * @return absl::Status
+   */
+  absl::Status FormatAndLogError(
+      v8::Isolate* isolate, v8::TryCatch& try_catch,
+      v8::Local<v8::Context> context, std::string_view top_level_error,
+      google::scp::roma::logging::LogOptions log_options);
 
   std::unique_ptr<V8IsolateWrapper> isolate_wrapper_;
   std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding_;
