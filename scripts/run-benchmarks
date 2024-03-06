@@ -17,11 +17,40 @@
 set -o errexit
 set -o pipefail
 
+function usage() {
+  local -r -i exitval=${1-1}
+  cat &>/dev/stderr <<USAGE
+usage:
+  ${BASH_SOURCE[0]} <options>
+    --verbose                    Enable xtrace verbose output
+
+environment variables (all optional):
+    WORKSPACE                    Set the path to the workspace (repo root)
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 readonly SCRIPT_DIR
 readonly TOOLS_DIR="${SCRIPT_DIR}"/../builders/tools
 # shellcheck disable=SC1090
 source "${TOOLS_DIR}"/builder.sh
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose)
+      VERBOSE=1
+      shift
+      ;;
+    -h | --help) usage 0 ;;
+    *) usage ;;
+  esac
+done
+
+if [[ ${VERBOSE} -eq 1 ]]; then
+  set -o xtrace
+fi
 
 # TODO: b/326459539 - Normalize benchmark target names
 # JSON output files for each benchmark and the metrics that're in perfgate are
