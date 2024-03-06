@@ -25,19 +25,3 @@ cc_library(
         "//src/public/cpio/interface/kms_client:type_def",
     ],
 )
-
-cc_library(
-    name = "test_aws_kms_client",
-    srcs = [
-        "//src/public/cpio/adapters/kms_client:kms_client_srcs",
-        "//src/public/cpio/adapters/kms_client:test_aws_kms_client_srcs",
-    ],
-    hdrs = [
-        "//src/public/cpio/interface/kms_client:kms_client_interface.h",
-    ],
-    deps = [
-        ":test_aws_kms_client_options",
-        "//src/cpio/client_providers/kms_client_provider/aws:test_aws_kms_client_provider",
-        "//src/public/cpio/interface/kms_client",
-    ],
-)

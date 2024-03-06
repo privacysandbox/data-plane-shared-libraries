@@ -23,26 +23,3 @@ cc_library(
         "//src/public/cpio/interface/parameter_client:type_def",
     ],
 )
-
-cc_library(
-    name = "test_aws_parameter_client",
-    srcs = [
-        "//src/public/cpio/adapters/parameter_client:parameter_client_srcs",
-        "//src/public/cpio/adapters/parameter_client:test_aws_parameter_client_srcs",
-    ],
-    hdrs = [
-        "//src/public/cpio/interface/parameter_client:parameter_client_interface.h",
-    ],
-    deps = [
-        ":test_aws_parameter_client_options",
-        "//src/core/interface",
-        "//src/core/interface:async_context",
-        "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/global_cpio",
-        "//src/cpio/client_providers/parameter_client_provider/aws:test_aws_parameter_client_provider",
-        "//src/public/cpio/adapters/common:adapter_utils",
-        "//src/public/cpio/interface:type_def",
-        "//src/public/cpio/interface/parameter_client:type_def",
-        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
-    ],
-)

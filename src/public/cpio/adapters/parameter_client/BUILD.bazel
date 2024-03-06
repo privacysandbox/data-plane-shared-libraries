@@ -29,15 +29,6 @@ filegroup(
     ],
 )
 
-exports_files(["test_aws_parameter_client.h"])
-
-filegroup(
-    name = "test_aws_parameter_client_srcs",
-    srcs = [
-        ":test_aws_parameter_client.h",
-    ],
-)
-
 cc_test(
     name = "parameter_client_test",
     size = "small",
