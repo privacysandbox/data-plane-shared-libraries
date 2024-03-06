@@ -110,7 +110,7 @@ repos:
   rev: v3.1.0
   hooks:
   - id: prettier
-    name: prettier markdown
+    name: prettier markdown and javascript
     types_or:
     - markdown
     - javascript
