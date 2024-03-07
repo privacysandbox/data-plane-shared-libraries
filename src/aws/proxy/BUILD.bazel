@@ -596,7 +596,7 @@ cc_test(
 )
 
 cc_binary(
-    name = "benchmark_test",
+    name = "aws_proxy_benchmark",
     srcs = ["benchmark_test.cc"],
     deps = [
         ":proxy_server",
