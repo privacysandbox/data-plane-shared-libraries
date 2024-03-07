@@ -46,7 +46,7 @@ class GcpPubSubStubFactory {
    * result.
    */
   virtual std::shared_ptr<google::pubsub::v1::Publisher::StubInterface>
-  CreatePublisherStub(const QueueClientOptions& options) noexcept;
+  CreatePublisherStub(std::string_view queue_name) noexcept;
   /**
    * @brief Creates Subscriber Stub.
    *
@@ -55,7 +55,7 @@ class GcpPubSubStubFactory {
    * result.
    */
   virtual std::shared_ptr<google::pubsub::v1::Subscriber::StubInterface>
-  CreateSubscriberStub(const QueueClientOptions& options) noexcept;
+  CreateSubscriberStub(std::string_view queue_name) noexcept;
 
   virtual ~GcpPubSubStubFactory() = default;
 
@@ -63,11 +63,11 @@ class GcpPubSubStubFactory {
   /**
    * @brief Gets Pub/Sub Channel.
    *
-   * @param options the QueueClientOptions.
+   * @param queue_name
    * @return std::shared_ptr<grpc::Channel> the creation result.
    */
   virtual std::shared_ptr<grpc::Channel> GetPubSubChannel(
-      const QueueClientOptions& options) noexcept;
+      std::string_view queue_name) noexcept;
 
  protected:
   // An Instance of the gRPC Channel for Publisher and Subscriber Stubs.
@@ -87,7 +87,8 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
       core::AsyncExecutorInterface* io_async_executor,
       std::shared_ptr<GcpPubSubStubFactory> pubsub_stub_factory =
           std::make_shared<GcpPubSubStubFactory>())
-      : queue_client_options_(std::move(queue_client_options)),
+      : queue_name_(std::move(queue_client_options.queue_name)),
+        project_id_(std::move(queue_client_options.project_id)),
         instance_client_provider_(instance_client_provider),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
@@ -166,7 +167,7 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
           delete_message_context) noexcept;
 
   /// The configuration for queue client.
-  QueueClientOptions queue_client_options_;
+  std::string queue_name_;
 
   /// The instance client provider.
   InstanceClientProviderInterface* instance_client_provider_;

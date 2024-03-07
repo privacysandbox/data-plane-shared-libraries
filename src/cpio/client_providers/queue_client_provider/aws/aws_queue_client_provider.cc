@@ -95,7 +95,7 @@ ExecutionResult AwsQueueClientProvider::Init() noexcept {
 
 ExecutionResult AwsQueueClientProvider::Run() noexcept {
   ExecutionResult execution_result(SuccessExecutionResult());
-  if (queue_client_options_.queue_name.empty()) {
+  if (queue_name_.empty()) {
     execution_result = FailureExecutionResult(
         SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED);
     SCP_ERROR(kAwsQueueClientProvider, kZeroUuid, execution_result,
@@ -145,7 +145,7 @@ AwsQueueClientProvider::CreateClientConfiguration() noexcept {
 
 ExecutionResultOr<std::string> AwsQueueClientProvider::GetQueueUrl() noexcept {
   GetQueueUrlRequest get_queue_url_request;
-  get_queue_url_request.SetQueueName(queue_client_options_.queue_name.c_str());
+  get_queue_url_request.SetQueueName(queue_name_.c_str());
 
   auto get_queue_url_outcome = sqs_client_->GetQueueUrl(get_queue_url_request);
   if (!get_queue_url_outcome.IsSuccess()) {

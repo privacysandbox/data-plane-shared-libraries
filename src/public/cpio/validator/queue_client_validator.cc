@@ -80,6 +80,7 @@ void RunEnqueueMessageValidator(
 
   QueueClientOptions options;
   options.queue_name = kQueueName;
+  options.project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
           std::move(options), instance_client, cpu_async_executor,
@@ -165,6 +166,7 @@ void RunGetTopMessageValidator(std::string_view name) {
 
   QueueClientOptions options;
   options.queue_name = kQueueName;
+  options.project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
           std::move(options), instance_client, cpu_async_executor,

@@ -47,7 +47,7 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
       core::AsyncExecutorInterface* io_async_executor,
       std::shared_ptr<AwsSqsClientFactory> sqs_client_factory =
           std::make_shared<AwsSqsClientFactory>())
-      : queue_client_options_(std::move(queue_client_options)),
+      : queue_name_(std::move(queue_client_options).queue_name),
         instance_client_provider_(instance_client_provider),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
@@ -187,7 +187,7 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
           async_context) noexcept;
 
   /// The configuration for queue client.
-  QueueClientOptions queue_client_options_;
+  std::string queue_name_;
 
   /// The instance client provider.
   InstanceClientProviderInterface* instance_client_provider_;

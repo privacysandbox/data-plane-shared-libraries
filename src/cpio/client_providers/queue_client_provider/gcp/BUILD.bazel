@@ -75,18 +75,3 @@ cc_test(
         "@com_google_protobuf//:protobuf",
     ],
 )
-
-cc_library(
-    name = "test_gcp_queue_client_provider",
-    srcs = [
-        "test_gcp_queue_client_provider.cc",
-        "//src/cpio/client_providers/queue_client_provider/gcp:gcp_queue_client_provider_srcs",
-    ],
-    hdrs = [
-        "test_gcp_queue_client_provider.h",
-        "//src/cpio/client_providers/interface:queue_client_provider_interface.h",
-    ],
-    deps = [
-        ":gcp_queue_client_provider",
-    ],
-)

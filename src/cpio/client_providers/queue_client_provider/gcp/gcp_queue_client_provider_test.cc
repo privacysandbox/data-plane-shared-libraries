@@ -98,9 +98,9 @@ constexpr uint16_t kInvalidAckDeadlineSeconds = 1200;
 class MockGcpPubSubStubFactory : public GcpPubSubStubFactory {
  public:
   MOCK_METHOD(std::shared_ptr<Publisher::StubInterface>, CreatePublisherStub,
-              (const QueueClientOptions&), (noexcept, override));
+              (std::string_view), (noexcept, override));
   MOCK_METHOD(std::shared_ptr<Subscriber::StubInterface>, CreateSubscriberStub,
-              (const QueueClientOptions&), (noexcept, override));
+              (std::string_view), (noexcept, override));
 };
 
 class GcpQueueClientProviderTest : public ::testing::Test {

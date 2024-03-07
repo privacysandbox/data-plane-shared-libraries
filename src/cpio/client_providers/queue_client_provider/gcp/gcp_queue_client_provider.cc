@@ -98,7 +98,7 @@ namespace google::scp::cpio::client_providers {
 
 ExecutionResult GcpQueueClientProvider::Init() noexcept {
   ExecutionResult execution_result(SuccessExecutionResult());
-  if (queue_client_options_.queue_name.empty()) {
+  if (queue_name_.empty()) {
     execution_result = FailureExecutionResult(
         SC_GCP_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED);
     SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, execution_result,
@@ -110,17 +110,18 @@ ExecutionResult GcpQueueClientProvider::Init() noexcept {
 }
 
 ExecutionResult GcpQueueClientProvider::Run() noexcept {
-  auto project_id_or =
-      GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_provider_);
-  if (!project_id_or.Successful()) {
-    SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, project_id_or.result(),
-              "Failed to get project ID for current instance");
-    return project_id_or.result();
+  if (project_id_.empty()) {
+    auto project_id_or =
+        GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_provider_);
+    if (!project_id_or.Successful()) {
+      SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, project_id_or.result(),
+                "Failed to get project ID for current instance");
+      return project_id_or.result();
+    }
+    project_id_ = std::move(*project_id_or);
   }
-  project_id_ = std::move(*project_id_or);
 
-  publisher_stub_ =
-      pubsub_stub_factory_->CreatePublisherStub(queue_client_options_);
+  publisher_stub_ = pubsub_stub_factory_->CreatePublisherStub(queue_name_);
   if (!publisher_stub_) {
     auto execution_result =
         FailureExecutionResult(SC_GCP_QUEUE_CLIENT_PROVIDER_PUBLISHER_REQUIRED);
@@ -129,8 +130,7 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
     return execution_result;
   }
 
-  subscriber_stub_ =
-      pubsub_stub_factory_->CreateSubscriberStub(queue_client_options_);
+  subscriber_stub_ = pubsub_stub_factory_->CreateSubscriberStub(queue_name_);
   if (!subscriber_stub_) {
     auto execution_result = FailureExecutionResult(
         SC_GCP_QUEUE_CLIENT_PROVIDER_SUBSCRIBER_REQUIRED);
@@ -139,11 +139,10 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
     return execution_result;
   }
 
-  topic_name_ = absl::Substitute(kGcpTopicFormatString, project_id_,
-                                 queue_client_options_.queue_name);
+  topic_name_ =
+      absl::Substitute(kGcpTopicFormatString, project_id_, queue_name_);
   subscription_name_ =
-      absl::Substitute(kGcpSubscriptionFormatString, project_id_,
-                       queue_client_options_.queue_name);
+      absl::Substitute(kGcpSubscriptionFormatString, project_id_, queue_name_);
 
   return SuccessExecutionResult();
 }
@@ -461,7 +460,7 @@ void GcpQueueClientProvider::DeleteMessageAsync(
 }
 
 std::shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
-    const QueueClientOptions& options) noexcept {
+    std::string_view /*queue_name*/) noexcept {
   if (!channel_) {
     ChannelArguments args;
     args.SetInt(GRPC_ARG_ENABLE_RETRIES, 1);  // enable
@@ -473,16 +472,16 @@ std::shared_ptr<Channel> GcpPubSubStubFactory::GetPubSubChannel(
 
 std::shared_ptr<Publisher::StubInterface>
 GcpPubSubStubFactory::CreatePublisherStub(
-    const QueueClientOptions& options) noexcept {
+    std::string_view queue_name) noexcept {
   return std::unique_ptr<Publisher::Stub>(
-      Publisher::NewStub(GetPubSubChannel(options), StubOptions()));
+      Publisher::NewStub(GetPubSubChannel(queue_name), StubOptions()));
 }
 
 std::shared_ptr<Subscriber::StubInterface>
 GcpPubSubStubFactory::CreateSubscriberStub(
-    const QueueClientOptions& options) noexcept {
+    std::string_view queue_name) noexcept {
   return std::unique_ptr<Subscriber::Stub>(
-      Subscriber::NewStub(GetPubSubChannel(options), StubOptions()));
+      Subscriber::NewStub(GetPubSubChannel(queue_name), StubOptions()));
 }
 
 std::unique_ptr<QueueClientProviderInterface>
