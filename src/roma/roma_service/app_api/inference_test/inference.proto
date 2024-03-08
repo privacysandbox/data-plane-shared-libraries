@@ -1,0 +1,99 @@
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacysandbox.roma.app_api.inference_test.v1;
+
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
+service InferenceService {
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Inference Service',
+    code_id: "PAA_inference_roma_app_test_v1",
+    description: 'An inference value server built to operate within Trusted Execution Environments',
+    cpp_namespace: 'privacysandbox::bidding_auction::inference::roma_app_api',
+    romav8_app_name: 'InferenceServer'
+  };
+
+  rpc RunInference(RunInferenceRequest) returns (RunInferenceResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'Run a model inference'
+    };
+  }
+}
+
+message RunInferenceRequest {
+  option (privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation) = {
+    description: 'A RunInferenceRequest can run across multiple models.'
+  };
+  repeated InferenceRequest request = 1 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'Each InferenceRequest request is for a single model.'
+  }];
+}
+
+message RunInferenceResponse {
+  repeated InferenceResponse response = 1;
+}
+
+message InferenceRequest {
+  string model_path = 1 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'Required servable model path; e.g. "my_bucket/models/pcvr_models/1"'
+  }];
+  repeated Tensor tensors = 2;
+}
+
+message InferenceResponse {
+  string model_path = 1 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'Required servable model path; e.g. "my_bucket/models/pcvr_models/1"'
+  }];
+  repeated Tensor tensors = 2;
+}
+
+message Tensor {
+  DataType data_type = 1 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'Type of data stored in tensor_content. A tensor exclusively holds data of a uniform type.'
+  }];
+
+  repeated int64 tensor_shape = 2 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'The order of entries in "tensor_shape" matters: It indicates the layout of '
+                 'the values in the tensor in-memory representation. The first entry is '
+                 'the outermost dimension. The last entry is the innermost dimension.'
+  }];
+
+  string tensor_name = 3 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'name of the tensor'
+  }];
+
+  bytes tensor_content = 4 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'Serialized raw tensor content. It holds the flattened representation of '
+                 'the tensor in row-major order. Only the representation corresponding to '
+                 '"data_type" field can be set. The number of elements in tensor_content '
+                 'should be equal to the product of tensor_shape elements, for example '
+                 'a tensor of shape [1,4] will expect a flat array or 4 elements '
+                 '(e.g. [1, 2, 7, 4]) and one with a shape [2,3] will expect a 6 element one.'
+  }];
+}
+
+enum DataType {
+  option (privacysandbox.apis.roma.app_api.v1.roma_enum_annotation) = {
+    description: 'Supported tensor data types.'
+  };
+  DT_FLOAT = 0 [(privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
+    description: '32-bit floating point'
+  }];
+  DT_INT64 = 1 [(privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
+    description: '64-bit integer (signed)'
+  }];
+}
