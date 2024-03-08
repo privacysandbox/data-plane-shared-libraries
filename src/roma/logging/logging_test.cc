@@ -29,6 +29,8 @@
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
+using ::testing::AllOf;
+using ::testing::HasSubstr;
 
 namespace google::scp::roma::test {
 namespace {
@@ -106,6 +108,73 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
   EXPECT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
 
   EXPECT_TRUE(roma_service->Stop().ok());
+  log.StopCapturingLogs();
+}
+
+TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
+  Config config;
+  config.number_of_workers = 2;
+  config.SetLoggingFunction(LoggingFunction);
+  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
+  auto status = roma_service->Init();
+  ASSERT_TRUE(status.ok());
+
+  absl::Notification load_finished;
+  absl::Notification execute_failed;
+
+  absl::ScopedMockLog log;
+  constexpr std::string_view input = "Hello World";
+  EXPECT_CALL(
+      log, Log(absl::LogSeverity::kError, _,
+               AllOf(HasSubstr(absl::StrCat("Uncaught Error: ", input)),
+                     HasSubstr("at ErrorFunction"), HasSubstr("at Handler"))));
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+      function ErrorFunction(input) {
+        throw new Error(input);
+      }
+
+      function Handler(input) {
+        ErrorFunction(input);
+      }
+    )JS_CODE",
+    });
+
+    status = roma_service->LoadCodeObj(
+        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          EXPECT_TRUE(resp.ok());
+          load_finished.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", input, "\"")},
+        });
+
+    status = roma_service->Execute(
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+          ASSERT_EQ(resp.status().code(), absl::StatusCode::kInternal);
+          execute_failed.Notify();
+        });
+    EXPECT_TRUE(status.ok());
+  }
+
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
+  status = roma_service->Stop();
+  EXPECT_TRUE(status.ok());
   log.StopCapturingLogs();
 }
 
