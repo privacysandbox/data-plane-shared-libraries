@@ -54,9 +54,20 @@ constexpr int kWorkerQueueMax = 100;
 // needed by v8.
 constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
 
+/**
+ * @brief The template parameter, TMetadata, needs to be default assignable and
+ * movable.
+ */
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
+  explicit RomaService(Config<TMetadata> config = Config<TMetadata>())
+      : config_(std::move(config)) {}
+
+  // RomaService is neither copyable nor movable.
+  RomaService(const RomaService&) = delete;
+  RomaService& operator=(const RomaService&) = delete;
+
   absl::Status Init() {
     if (!RomaHasEnoughMemoryForStartup()) {
       return absl::InternalError(
@@ -100,15 +111,6 @@ class RomaService {
   }
 
   absl::Status Stop() { return StopInternal(); }
-
-  RomaService(const RomaService&) = delete;
-
-  /**
-   * @brief The template parameter, TMetadata, needs to be default
-   * assignable and movable.
-   */
-  explicit RomaService(Config<TMetadata> config = Config<TMetadata>())
-      : config_(std::move(config)) {}
 
  private:
   absl::Status InitInternal() {
