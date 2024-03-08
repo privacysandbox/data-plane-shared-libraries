@@ -39,8 +39,8 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   std::string result;
@@ -58,11 +58,11 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
                    "\"; return \"Hello world! \"}";
     EXPECT_GE(code_obj->js.length(), payload_size);
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     ASSERT_TRUE(status.ok());
   }
 
@@ -74,12 +74,12 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     ASSERT_TRUE(resp.ok());
-                                     result = std::move(resp->resp);
-                                     success_execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    ASSERT_TRUE(resp.ok());
+                                    result = std::move(resp->resp);
+                                    success_execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
 
@@ -88,7 +88,7 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
       absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Hello world! ")"));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 
@@ -99,8 +99,8 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   std::string result;
@@ -116,11 +116,11 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     }
   )JS_CODE";
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -134,7 +134,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
     std::string dummy_string(payload_size, 'A');
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
-    status = roma_service->Execute(
+    status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           ASSERT_TRUE(resp.ok());
           EXPECT_GE(resp->resp.length(), payload_size);
@@ -147,7 +147,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   ASSERT_TRUE(oversize_execute_finished.WaitForNotificationWithTimeout(
       absl::Seconds(10)));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 
@@ -158,8 +158,8 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = false;
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
@@ -177,11 +177,11 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     }
   )JS_CODE";
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -196,7 +196,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
     auto payload_size = 1024 * 1024 * 1.2;
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
-    status = roma_service->Execute(
+    status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           ASSERT_TRUE(resp.ok());
           EXPECT_GE(resp->resp.length(), payload_size);
@@ -209,7 +209,7 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   ASSERT_TRUE(oversize_execute_finished.WaitForNotificationWithTimeout(
       absl::Seconds(10)));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 
@@ -221,8 +221,8 @@ TEST(BufferSizeTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   std::string result;
@@ -237,7 +237,7 @@ TEST(BufferSizeTest,
     std::string dummy_js_string(payload_size, 'A');
     code_obj->js = "\"" + dummy_js_string + "\"";
 
-    status = roma_service->LoadCodeObj(
+    status = roma_service.LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
           EXPECT_FALSE(resp.ok());
           EXPECT_THAT(resp.status().message(),
@@ -250,7 +250,7 @@ TEST(BufferSizeTest,
 
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 
@@ -262,8 +262,8 @@ TEST(BufferSizeTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   std::string result;
@@ -282,11 +282,11 @@ TEST(BufferSizeTest,
     }
   )JS_CODE";
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -298,12 +298,12 @@ TEST(BufferSizeTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     ASSERT_TRUE(resp.ok());
-                                     result = std::move(resp->resp);
-                                     success_execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    ASSERT_TRUE(resp.ok());
+                                    result = std::move(resp->resp);
+                                    success_execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
 
@@ -318,7 +318,7 @@ TEST(BufferSizeTest,
     std::string dummy_string(payload_size, 'A');
     execution_obj->input.push_back("\"" + dummy_string + "\"");
 
-    status = roma_service->Execute(
+    status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           EXPECT_FALSE(resp.ok());
           EXPECT_THAT(resp.status().message(),
@@ -337,12 +337,12 @@ TEST(BufferSizeTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     ASSERT_TRUE(resp.ok());
-                                     retry_result = std::move(resp->resp);
-                                     retry_success_execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    ASSERT_TRUE(resp.ok());
+                                    retry_result = std::move(resp->resp);
+                                    retry_success_execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
 
@@ -356,7 +356,7 @@ TEST(BufferSizeTest,
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
   EXPECT_THAT(retry_result, StrEq(R"("Hello world! \"Foobar\"")"));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 
@@ -368,8 +368,8 @@ TEST(BufferSizeTest,
   config.sandbox_request_response_shared_buffer_size_mb = 1;
   config.enable_sandbox_sharing_request_response_with_buffer_only = true;
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
@@ -389,11 +389,11 @@ TEST(BufferSizeTest,
     }
   )JS_CODE";
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -405,11 +405,11 @@ TEST(BufferSizeTest,
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"1024\"");
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     EXPECT_TRUE(resp.ok());
-                                     success_execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    success_execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
 
@@ -424,7 +424,7 @@ TEST(BufferSizeTest,
     auto payload_size = 1024 * 1024 * 1.2;
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
-    status = roma_service->Execute(
+    status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           // Failure in execution
           EXPECT_EQ(resp.status().code(), absl::StatusCode::kResourceExhausted);
@@ -442,11 +442,11 @@ TEST(BufferSizeTest,
     auto payload_size = 1024 * 800;
     execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     EXPECT_TRUE(resp.ok());
-                                     retry_success_execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    retry_success_execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
 
@@ -458,7 +458,7 @@ TEST(BufferSizeTest,
   retry_success_execute_finished.WaitForNotificationWithTimeout(
       absl::Seconds(10));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 

@@ -55,8 +55,8 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  ASSERT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -72,11 +72,11 @@ TEST(FunctionBindingTest,
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
 
@@ -90,14 +90,14 @@ TEST(FunctionBindingTest,
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                if (resp.ok()) {
-                                  result = std::move(resp->resp);
-                                }
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -105,7 +105,7 @@ TEST(FunctionBindingTest,
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   EXPECT_THAT(result, StrEq(R"("Foobar String from C++")"));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 void ListOfStringInListOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
@@ -127,8 +127,8 @@ TEST(
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  ASSERT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -147,11 +147,11 @@ TEST(
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
 
@@ -164,14 +164,14 @@ TEST(
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                if (resp.ok()) {
-                                  result = std::move(resp->resp);
-                                }
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -182,7 +182,7 @@ TEST(
       StrEq(
           R"(["str 1 Some other stuff 1","str 2 Some other stuff 2","str 3 Some other stuff 3"])"));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
@@ -210,8 +210,8 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  ASSERT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -232,11 +232,11 @@ TEST(FunctionBindingTest,
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
 
@@ -249,14 +249,14 @@ TEST(FunctionBindingTest,
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                if (resp.ok()) {
-                                  result = std::move(resp->resp);
-                                }
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -267,7 +267,7 @@ TEST(FunctionBindingTest,
   EXPECT_THAT(result, HasSubstr(R"(["key-a1","value-a1"])"));
   EXPECT_THAT(result, HasSubstr(R"(["key-b2","value-b2"])"));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 void StringInStringOutFunctionWithNoInputParams(
@@ -289,8 +289,8 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
   function_binding_object->function_name = "cool_function";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  ASSERT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -306,11 +306,11 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
 
@@ -323,14 +323,14 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                if (resp.ok()) {
-                                  result = std::move(resp->resp);
-                                }
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -339,7 +339,7 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
 
   EXPECT_THAT(result, StrEq(R"("String from C++")"));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 void ByteOutFunction(FunctionBindingPayload<>& wrapper) {
@@ -356,8 +356,8 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "get_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  ASSERT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -380,11 +380,11 @@ TEST(FunctionBindingTest,
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -398,12 +398,12 @@ TEST(FunctionBindingTest,
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                result = std::move(resp->resp);
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               result = std::move(resp->resp);
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   ASSERT_TRUE(
@@ -412,7 +412,7 @@ TEST(FunctionBindingTest,
   EXPECT_THAT(result,
               StrEq(R"({"0":1,"1":2,"2":3,"3":4,"4":4,"5":3,"6":2,"7":1})"));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 void ByteInFunction(FunctionBindingPayload<>& wrapper) {
@@ -437,8 +437,8 @@ TEST(FunctionBindingTest,
   function_binding_object->function_name = "set_some_bytes";
   config.RegisterFunctionBinding(std::move(function_binding_object));
 
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  ASSERT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -463,11 +463,11 @@ TEST(FunctionBindingTest,
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -481,12 +481,12 @@ TEST(FunctionBindingTest,
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                result = std::move(resp->resp);
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               result = std::move(resp->resp);
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   ASSERT_TRUE(
@@ -494,7 +494,7 @@ TEST(FunctionBindingTest,
 
   EXPECT_THAT(result, StrEq(R"str("Hello there :)")str"));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
 }
 
 }  // namespace google::scp::roma::test
