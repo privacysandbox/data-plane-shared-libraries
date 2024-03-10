@@ -82,9 +82,9 @@ Utilization ReadCpuTime(const std::vector<size_t>& cpu_times,
   idle_time = cpu_times[kCpuIdle];
 
   // calculate and update total_time
-  size_t total_time_new =
-      std::accumulate(cpu_times.begin(), cpu_times.end(), 0);
-  size_t total_time_diff =
+  const size_t total_time_new =
+      std::accumulate(cpu_times.begin(), cpu_times.end(), 0UL);
+  const size_t total_time_diff =
       total_time_new >= total_time ? total_time_new - total_time : 0;
   total_time = total_time_new;
 
@@ -108,7 +108,6 @@ Utilization ReadCpuTime(const std::vector<size_t>& cpu_times,
   size_t self_time_diff = self_time_new - self_time;
   self_time = self_time_new;
   ret.self = total_time_diff == 0 ? 0 : 1.0 * self_time_diff / total_time_diff;
-
   return ret;
 }
 
