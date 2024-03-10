@@ -149,3 +149,14 @@ def cpp_dependencies():
         strip_prefix = "emsdk-{ver}/bazel".format(ver = EMSCRIPTEN_VER),
         url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/{ver}.zip".format(ver = EMSCRIPTEN_VER),
     )
+    maybe(
+        http_archive,
+        name = "bazel_clang_tidy",
+        patch_args = ["-p1"],
+        patches = ["//third_party:bazel_clang_tidy.patch"],
+        sha256 = "352aeb57ad7ed53ff6e02344885de426421fb6fd7a3890b04d14768d759eb598",
+        strip_prefix = "bazel_clang_tidy-4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39",
+        urls = [
+            "https://github.com/erenon/bazel_clang_tidy/archive/4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39.zip",
+        ],
+    )

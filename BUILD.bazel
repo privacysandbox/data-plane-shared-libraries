@@ -148,3 +148,8 @@ gazelle(
     command = "update-repos",
     gazelle = ":gazelle-buf",
 )
+
+filegroup(
+    name = "clang_tidy_config",
+    srcs = [".clang-tidy"],
+)
