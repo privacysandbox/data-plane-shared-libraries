@@ -317,8 +317,8 @@ TEST(StatusBuilderTest, WithRef) {
 }
 
 TEST(StatusBuilderTest, WithTypeChange) {
-  auto policy = [](StatusBuilder sb) -> std::string {
-    return sb.ok() ? "true" : "false";
+  auto policy = [](const StatusBuilder& status_builder) -> std::string {
+    return status_builder.ok() ? "true" : "false";
   };
   EXPECT_THAT(
       StatusBuilder(absl::CancelledError(), SourceLocation()).With(policy),
@@ -329,7 +329,7 @@ TEST(StatusBuilderTest, WithTypeChange) {
 
 TEST(StatusBuilderTest, WithVoidTypeAndSideEffects) {
   absl::StatusCode code;
-  auto policy = [&code](absl::Status status) { code = status.code(); };
+  auto policy = [&code](const absl::Status& status) { code = status.code(); };
   StatusBuilder(absl::CancelledError(), SourceLocation()).With(policy);
   EXPECT_EQ(absl::StatusCode::kCancelled, code);
   StatusBuilder(absl::OkStatus(), SourceLocation()).With(policy);
