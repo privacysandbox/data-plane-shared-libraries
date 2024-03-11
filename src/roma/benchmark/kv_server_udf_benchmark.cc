@@ -52,7 +52,7 @@ void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
   const int extra_padding_bytes = state.range(1);
   if (extra_padding_bytes > 0) {
     std::string padding = " // ";
-    padding += std::string('0', extra_padding_bytes);
+    padding += std::string(extra_padding_bytes, '0');
     code_config.js += padding;
   }
 
@@ -151,8 +151,10 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
 // Register the function as a benchmark
 BENCHMARK(BM_LoadHelloWorld)
     ->ArgsProduct({
-        {1, 10, 100},         // Run this many loads of the code.
-        {0, 128, 512, 1024},  // Pad with this many extra bytes.
+        // Run this many loads of the code.
+        {1, 10, 100},
+        // Pad with this many extra bytes.
+        {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
     });
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
