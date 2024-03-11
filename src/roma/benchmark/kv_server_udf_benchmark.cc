@@ -41,6 +41,7 @@ using google::scp::roma::benchmark::FakeKvServer;
 void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
                        benchmark::State& state) {
   Config config;
+  config.number_of_workers = 10;
   FakeKvServer server(std::move(config));
 
   CodeConfig code_config;
