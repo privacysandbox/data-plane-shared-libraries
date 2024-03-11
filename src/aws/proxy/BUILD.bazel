@@ -408,18 +408,11 @@ pkg_files(
 )
 
 pkg_tar(
-    name = "libnsm_tar",
-    srcs = [
-        ":libnsm_libs",
-    ],
-    package_dir = "/",
-)
-
-pkg_tar(
     name = "libnsm_and_proxify_tar",
     srcs = [
-        ":libnsm_tar",
-        ":proxify_tar",
+        ":libnsm_libs",
+        ":proxify_executables",
+        ":proxify_libs",
     ],
     visibility = [
         "//visibility:public",  # Leave as public for KV server.
