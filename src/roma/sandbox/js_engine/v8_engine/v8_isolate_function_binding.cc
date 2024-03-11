@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/strings/match.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
@@ -121,10 +122,17 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
 V8IsolateFunctionBinding::V8IsolateFunctionBinding(
     const std::vector<std::string>& function_names,
     std::unique_ptr<native_function_binding::NativeFunctionInvoker>
-        function_invoker)
+        function_invoker,
+    std::string_view server_address)
     : function_invoker_(std::move(function_invoker)) {
   for (const auto& function_name : function_names) {
     binding_references_.emplace_back(std::make_pair(function_name, this));
+  }
+
+  if (!server_address.empty()) {
+    grpc_channel_ = grpc::CreateChannel(std::string(server_address),
+                                        grpc::InsecureChannelCredentials());
+    stub_ = privacy_sandbox::server_common::TestService::NewStub(grpc_channel_);
   }
 }
 
@@ -188,6 +196,22 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   info.GetReturnValue().Set(returned_value);
 }
 
+void V8IsolateFunctionBinding::BindFunction(
+    v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& global_object_template,
+    void* binding_ref,
+    void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
+    std::string_view function_name) {
+  const v8::Local<v8::External>& binding_context_pair =
+      v8::External::New(isolate, binding_ref);
+  // Create the function template to register in the global object
+  const auto function_template =
+      v8::FunctionTemplate::New(isolate, callback, binding_context_pair);
+  // Convert the function binding name to a v8 type
+  const auto& binding_name =
+      TypeConverter<std::string>::ToV8(isolate, function_name).As<v8::String>();
+  global_object_template->Set(binding_name, function_template);
+}
+
 bool V8IsolateFunctionBinding::BindFunctions(
     v8::Isolate* isolate,
     v8::Local<v8::ObjectTemplate>& global_object_template) {
@@ -195,17 +219,9 @@ bool V8IsolateFunctionBinding::BindFunctions(
     return false;
   }
   for (auto& binding_ref : binding_references_) {
-    // Store a pointer to this V8IsolateFunctionBinding instance
-    const v8::Local<v8::External>& binding_context_pair =
-        v8::External::New(isolate, reinterpret_cast<void*>(&binding_ref));
-    // Create the function template to register in the global object
-    const auto function_template = v8::FunctionTemplate::New(
-        isolate, &GlobalV8FunctionCallback, binding_context_pair);
-    // Convert the function binding name to a v8 type
-    const auto& binding_name =
-        TypeConverter<std::string>::ToV8(isolate, binding_ref.first)
-            .As<v8::String>();
-    global_object_template->Set(binding_name, function_template);
+    BindFunction(isolate, global_object_template,
+                 reinterpret_cast<void*>(&binding_ref),
+                 &GlobalV8FunctionCallback, binding_ref.first);
   }
 
   return true;

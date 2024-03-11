@@ -169,11 +169,11 @@ class RomaService {
   }
 
   void SetupNativeFunctionGrpcServer() {
-    std::vector<std::string> socket_addresses = {
+    native_function_server_addresses_ = {
         absl::StrCat("unix:", std::tmpnam(nullptr), ".sock")};
     native_function_server_ =
         std::make_unique<grpc_server::NativeFunctionGrpcServer<TMetadata>>(
-            &metadata_storage_, socket_addresses);
+            &metadata_storage_, native_function_server_addresses_);
 
     config_.RegisterService(
         std::make_unique<grpc_server::AsyncLoggingService>(),
@@ -270,6 +270,9 @@ class RomaService {
       const NativeFunctionBindingSetup& native_binding_setup) {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
+    std::string server_address = native_function_server_addresses_.empty()
+                                     ? ""
+                                     : native_function_server_addresses_[0];
 
     JsEngineResourceConstraints resource_constraints;
     config_.GetJsEngineResourceConstraints(resource_constraints);
@@ -280,6 +283,7 @@ class RomaService {
           /*require_preload=*/true,
           /*native_js_function_comms_fd=*/remote_fd,
           /*native_js_function_names=*/function_names,
+          /*server_address=*/server_address,
           /*max_worker_virtual_memory_mb=*/config_.max_worker_virtual_memory_mb,
           /*js_engine_initial_heap_size_mb=*/
           resource_constraints.initial_heap_size_in_mb,
@@ -451,6 +455,7 @@ class RomaService {
       native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
       native_function_binding_handler_;
   std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
+  std::vector<std::string> native_function_server_addresses_;
   std::unique_ptr<grpc_server::NativeFunctionGrpcServer<TMetadata>>
       native_function_server_;
   std::thread run_server_thread_;

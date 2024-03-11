@@ -44,4 +44,7 @@ message WorkerInitParamsProto {
 
   // The capacity size of the Buffer in bytes.
   uint64 request_and_response_data_buffer_size_bytes = 10;
+
+  // Address of Host gRPC Server
+  string server_address = 11;
 }

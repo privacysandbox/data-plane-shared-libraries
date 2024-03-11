@@ -55,6 +55,7 @@ namespace {
 struct V8WorkerEngineParams {
   int native_js_function_comms_fd;
   std::vector<std::string> native_js_function_names;
+  std::string server_address;
   google::scp::roma::JsEngineResourceConstraints resource_constraints;
   size_t max_wasm_memory_number_of_pages;
   bool require_preload = true;
@@ -79,7 +80,8 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
       params.native_js_function_comms_fd);
 
   auto isolate_function_binding = std::make_unique<V8IsolateFunctionBinding>(
-      params.native_js_function_names, std::move(native_function_invoker));
+      params.native_js_function_names, std::move(native_function_invoker),
+      params.server_address);
 
   auto v8_engine = std::make_unique<V8JsEngine>(
       std::move(isolate_function_binding), params.resource_constraints);
@@ -113,6 +115,7 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   V8WorkerEngineParams v8_params{
       .native_js_function_comms_fd = init_params->native_js_function_comms_fd(),
       .native_js_function_names = native_js_function_names,
+      .server_address = init_params->server_address(),
       .resource_constraints = resource_constraints,
       .max_wasm_memory_number_of_pages = static_cast<size_t>(
           init_params->js_engine_max_wasm_memory_number_of_pages()),

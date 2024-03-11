@@ -57,6 +57,8 @@ class WorkerSandboxApi {
    * function calls through the sandbox.
    * @param native_js_function_names The names of the functions that should be
    * registered to be available in JS.
+   * @param server_address The address of the gRPC server in the host process
+   * for native function calls.
    * @param max_worker_virtual_memory_mb The maximum amount of virtual memory in
    * MB that the worker process is allowed to use.
    * @param js_engine_initial_heap_size_mb The initial heap size in MB for the
@@ -72,7 +74,7 @@ class WorkerSandboxApi {
   WorkerSandboxApi(
       bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names,
-      size_t max_worker_virtual_memory_mb,
+      const std::string& server_address, size_t max_worker_virtual_memory_mb,
       size_t js_engine_initial_heap_size_mb,
       size_t js_engine_maximum_heap_size_mb,
       size_t js_engine_max_wasm_memory_number_of_pages,
@@ -194,6 +196,23 @@ class WorkerSandboxApi {
               .AllowSyscall(__NR_ioctl)
               .AllowSyscall(__NR_prlimit64)
               //------------------------
+              // These are to send RPC out of sandbox:
+              .AllowSyscall(__NR_eventfd2)
+              .AllowSyscall(__NR_epoll_create1)
+              .AllowSyscall(__NR_epoll_ctl)
+#ifdef __NR_epoll_wait
+              .AllowSyscall(__NR_epoll_wait)
+#else
+              .AllowSyscall(__NR_epoll_pwait)
+#endif
+              .AllowSyscall(__NR_getrandom)
+              .AllowSyscall(__NR_socket)
+              .AllowSyscall(__NR_fcntl)
+              .AllowSyscall(__NR_connect)
+              .AllowSyscall(__NR_getsockname)
+              .AllowSyscall(__NR_setsockopt)
+              .AllowSyscall(__NR_shutdown)
+              //------------------------
               // These are for TCMalloc:
               .AllowTcMalloc()
               .AllowSyscall(__NR_sched_getparam)
@@ -236,6 +255,7 @@ class WorkerSandboxApi {
   bool require_preload_;
   int native_js_function_comms_fd_;
   std::vector<std::string> native_js_function_names_;
+  std::string server_address_;
   size_t max_worker_virtual_memory_mb_;
   size_t js_engine_initial_heap_size_mb_;
   size_t js_engine_maximum_heap_size_mb_;

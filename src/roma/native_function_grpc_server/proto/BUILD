@@ -20,8 +20,6 @@ load(
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//src/roma/native_function_grpc_server:__subpackages__"])
-
 proto_library(
     name = "test_service_proto",
     srcs = ["test_service.proto"],
@@ -34,6 +32,7 @@ proto_library(
 
 cc_proto_library(
     name = "test_service_cc_proto",
+    visibility = [":grpc_proto_users_pkg"],
     deps = [
         ":test_service_proto",
     ],
@@ -41,6 +40,7 @@ cc_proto_library(
 
 cc_proto_library(
     name = "logging_service_cc_proto",
+    visibility = [":grpc_proto_users_pkg"],
     deps = [
         ":logging_service_proto",
     ],
@@ -50,6 +50,7 @@ cc_grpc_library(
     name = "test_service_grpc_proto",
     srcs = [":test_service_proto"],
     grpc_only = True,
+    visibility = [":grpc_proto_users_pkg"],
     deps = [":test_service_cc_proto"],
 )
 
@@ -57,6 +58,7 @@ cc_grpc_library(
     name = "logging_service_grpc_proto",
     srcs = [":logging_service_proto"],
     grpc_only = True,
+    visibility = [":grpc_proto_users_pkg"],
     deps = [":logging_service_cc_proto"],
 )
 
@@ -72,4 +74,12 @@ buf_lint_test(
     size = "small",
     config = "//src:buf.yaml",
     targets = [":logging_service_proto"],
+)
+
+package_group(
+    name = "grpc_proto_users_pkg",
+    packages = [
+        "//src/roma/native_function_grpc_server/...",
+        "//src/roma/sandbox/js_engine/v8_engine/...",
+    ],
 )

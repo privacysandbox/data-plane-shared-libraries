@@ -22,7 +22,11 @@
 #include <utility>
 #include <vector>
 
+#include <grpcpp/grpcpp.h>
+
 #include "include/v8.h"
+#include "src/roma/native_function_grpc_server/proto/test_service.grpc.pb.h"
+#include "src/roma/native_function_grpc_server/proto/test_service.pb.h"
 #include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
@@ -36,11 +40,18 @@ class V8IsolateFunctionBinding {
   V8IsolateFunctionBinding(
       const std::vector<std::string>& function_names,
       std::unique_ptr<native_function_binding::NativeFunctionInvoker>
-          function_invoker);
+          function_invoker,
+      std::string_view server_address);
 
   // Not copyable or movable
   V8IsolateFunctionBinding(const V8IsolateFunctionBinding&) = delete;
   V8IsolateFunctionBinding& operator=(const V8IsolateFunctionBinding&) = delete;
+
+  void BindFunction(
+      v8::Isolate* isolate,
+      v8::Local<v8::ObjectTemplate>& global_object_template, void* binding_ref,
+      void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
+      std::string_view function_name);
 
   // Returns success
   bool BindFunctions(v8::Isolate* isolate,
@@ -68,6 +79,8 @@ class V8IsolateFunctionBinding {
   const std::vector<std::string> function_names_;
   std::unique_ptr<native_function_binding::NativeFunctionInvoker>
       function_invoker_;
+  std::shared_ptr<grpc::Channel> grpc_channel_;
+  std::unique_ptr<privacy_sandbox::server_common::TestService::Stub> stub_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 

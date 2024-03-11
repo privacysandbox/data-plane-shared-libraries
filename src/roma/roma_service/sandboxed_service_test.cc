@@ -47,7 +47,10 @@ using ::testing::StrEq;
 namespace google::scp::roma::test {
 namespace {
 TEST(SandboxedServiceTest, InitStop) {
-  RomaService roma_service;
+  Config config;
+  config.number_of_workers = 2;
+
+  RomaService roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
   EXPECT_TRUE(roma_service.Stop().ok());
 }
@@ -55,6 +58,7 @@ TEST(SandboxedServiceTest, InitStop) {
 TEST(SandboxedServiceTest,
      ShouldFailToInitializeIfVirtualMemoryCapIsTooLittle) {
   Config config;
+  config.number_of_workers = 2;
   config.max_worker_virtual_memory_mb = 10;
 
   RomaService<> roma_service(std::move(config));

@@ -17,7 +17,10 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 cc_library(
     name = "interface",
     hdrs = ["interface.h"],
-    visibility = ["//src/roma/config:__subpackages__"],
+    visibility = [
+        "//src/roma/config:__subpackages__",
+        "//src/roma/sandbox/js_engine/v8_engine:__subpackages__",
+    ],
     deps = [
         "//src/roma/metadata_storage",
         "@com_github_grpc_grpc//:grpc++",

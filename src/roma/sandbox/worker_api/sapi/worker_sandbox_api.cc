@@ -63,7 +63,8 @@ std::pair<absl::Status, WorkerSandboxApi::RetryStatus> WrapResultWithRetry(
 WorkerSandboxApi::WorkerSandboxApi(
     bool require_preload, int native_js_function_comms_fd,
     const std::vector<std::string>& native_js_function_names,
-    size_t max_worker_virtual_memory_mb, size_t js_engine_initial_heap_size_mb,
+    const std::string& server_address, size_t max_worker_virtual_memory_mb,
+    size_t js_engine_initial_heap_size_mb,
     size_t js_engine_maximum_heap_size_mb,
     size_t js_engine_max_wasm_memory_number_of_pages,
     size_t sandbox_request_response_shared_buffer_size_mb,
@@ -71,6 +72,7 @@ WorkerSandboxApi::WorkerSandboxApi(
     : require_preload_(require_preload),
       native_js_function_comms_fd_(native_js_function_comms_fd),
       native_js_function_names_(native_js_function_names),
+      server_address_(server_address),
       max_worker_virtual_memory_mb_(max_worker_virtual_memory_mb),
       js_engine_initial_heap_size_mb_(js_engine_initial_heap_size_mb),
       js_engine_maximum_heap_size_mb_(js_engine_maximum_heap_size_mb),
@@ -162,6 +164,7 @@ absl::Status WorkerSandboxApi::Init() {
   worker_init_params.set_native_js_function_comms_fd(js_hook_remote_fd);
   worker_init_params.mutable_native_js_function_names()->Assign(
       native_js_function_names_.begin(), native_js_function_names_.end());
+  worker_init_params.set_server_address(server_address_);
   worker_init_params.set_js_engine_initial_heap_size_mb(
       js_engine_initial_heap_size_mb_);
   worker_init_params.set_js_engine_maximum_heap_size_mb(
