@@ -100,13 +100,14 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -117,11 +118,13 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -214,13 +217,15 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   absl::Notification failed_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler(input) { return "Hello world! " + JSON.stringify(input);
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+      function Handler(input) {
+        return "Hello world! " + JSON.stringify(input);
+      }
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -231,11 +236,13 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -249,11 +256,13 @@ TEST(SandboxedServiceTest, ShouldFailWithInvalidHandlerName) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "WrongHandler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "WrongHandler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -286,12 +295,13 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -302,10 +312,12 @@ TEST(SandboxedServiceTest, ExecuteCodeWithEmptyId) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -338,12 +350,13 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(arg1, arg2) { return arg1; }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -354,11 +367,12 @@ TEST(SandboxedServiceTest, ShouldAllowEmptyInputs) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
                                     EXPECT_TRUE(resp.ok());
@@ -390,14 +404,15 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->id = "my_cool_id";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .id = "my_cool_id",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -409,11 +424,13 @@ TEST(SandboxedServiceTest, ShouldGetIdInResponse) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -446,11 +463,13 @@ TEST(SandboxedServiceTest,
   absl::Notification execute_finished;
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -479,10 +498,10 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
       function sleep(milliseconds) {
         const date = Date.now();
         let currentDate = null;
@@ -512,7 +531,8 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
           const result = await multiplePromises();
           return result.join(" ");
       }
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -523,10 +543,12 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -559,13 +581,14 @@ TEST(SandboxedServiceTest, BatchExecute) {
   absl::Notification load_finished;
   absl::Notification execute_finished;
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -576,11 +599,12 @@ TEST(SandboxedServiceTest, BatchExecute) {
   }
 
   {
-    auto execution_obj = InvocationStrRequest<>();
-    execution_obj.id = "foo";
-    execution_obj.version_string = "v1";
-    execution_obj.handler_name = "Handler";
-    execution_obj.input.push_back(R"("Foobar")");
+    auto execution_obj = InvocationStrRequest<>({
+        .id = "foo",
+        .version_string = "v1",
+        .handler_name = "Handler",
+        .input = {R"("Foobar")"},
+    });
 
     std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
     status = roma_service.BatchExecute(
@@ -622,13 +646,14 @@ TEST(SandboxedServiceTest,
   absl::Notification load_finished;
   absl::Notification execute_finished;
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -639,11 +664,12 @@ TEST(SandboxedServiceTest,
   }
 
   {
-    auto execution_obj = InvocationStrRequest<>();
-    execution_obj.id = "foo";
-    execution_obj.version_string = "v1";
-    execution_obj.handler_name = "Handler";
-    execution_obj.input.push_back(R"("Foobar")");
+    auto execution_obj = InvocationStrRequest<>({
+        .id = "foo",
+        .version_string = "v1",
+        .handler_name = "Handler",
+        .input = {R"("Foobar")"},
+    });
 
     std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
 
@@ -680,13 +706,14 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   ASSERT_TRUE(status.ok());
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -707,11 +734,12 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
   for (int i = 0; i < kNumThreads; i++) {
     threads.emplace_back([&, i]() {
       absl::Notification local_execute;
-      InvocationStrRequest<> execution_obj{};
-      execution_obj.id = "foo";
-      execution_obj.version_string = "v1";
-      execution_obj.handler_name = "Handler";
-      execution_obj.input.push_back(absl::StrCat(R"(")", "Foobar", i, R"(")"));
+      InvocationStrRequest<> execution_obj{
+          .id = "foo",
+          .version_string = "v1",
+          .handler_name = "Handler",
+          .input = {absl::StrCat(R"(")", "Foobar", i, R"(")")},
+      };
 
       std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
 
@@ -765,13 +793,14 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   std::vector<std::string> results(total_runs);
   std::vector<absl::Notification> finished(total_runs);
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -783,12 +812,14 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 
   {
     for (auto i = 0u; i < total_runs; ++i) {
-      auto code_obj = std::make_unique<InvocationSharedRequest<>>();
-      code_obj->id = "foo";
-      code_obj->version_string = "v1";
-      code_obj->handler_name = "Handler";
-      code_obj->input.push_back(std::make_shared<std::string>(
-          R"("Foobar)" + std::to_string(i) + R"(")"));
+      auto code_obj =
+          std::make_unique<InvocationSharedRequest<>>(InvocationSharedRequest<>{
+              .id = "foo",
+              .version_string = "v1",
+              .handler_name = "Handler",
+              .input = {std::make_shared<std::string>(
+                  R"("Foobar)" + std::to_string(i) + R"(")")},
+          });
 
       status = roma_service.Execute(
           std::move(code_obj), [&, i](absl::StatusOr<ResponseObject> resp) {
@@ -830,10 +861,10 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   absl::Notification execute_success;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"""(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"""(
     function sleep(milliseconds) {
       const date = Date.now();
       let currentDate = null;
@@ -849,7 +880,8 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
         }
         return "Hello world!"
       }
-    )""";
+    )""",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -861,11 +893,13 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
   // The execution should timeout as the kTimeoutDurationTag value is too small.
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "hello_js";
-    execution_obj->tags[kTimeoutDurationTag] = "100ms";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "hello_js",
+            .tags = {{std::string(kTimeoutDurationTag), "100ms"}},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -878,10 +912,12 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
   // The execution should return invoking error as it try to get value from
   // undefined var.
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "hello_js";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "hello_js",
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -893,12 +929,14 @@ TEST(SandboxedServiceTest, ShouldReturnCorrectErrorForDifferentException) {
 
   // The execution should success.
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "hello_js";
-    execution_obj->input.push_back(R"("0")");
-    execution_obj->tags[kTimeoutDurationTag] = "300ms";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "hello_js",
+            .input = {R"("0")"},
+            .tags = {{std::string(kTimeoutDurationTag), "300ms"}},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -945,11 +983,11 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // Dummy code to allocate memory based on input
-    code_obj->js = R"(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Dummy code to allocate memory based on input
+        .js = R"(
         function Handler(input) {
           const bigObject = [];
           for (let i = 0; i < 1024*512*Number(input); i++) {
@@ -961,7 +999,8 @@ TEST(SandboxedServiceTest,
           }
           return 233;
         }
-      )";
+      )",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -975,15 +1014,16 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo2";
-    code_obj->version_string = "v2";
-    // Dummy code to exercise binding
-    code_obj->js = R"(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo2",
+        .version_string = "v2",
+        // Dummy code to exercise binding
+        .js = R"(
         function Handler(input) {
           return echo_function(input);
         }
-      )";
+      )",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -997,12 +1037,14 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // Large input which should fail
-    execution_obj->input.push_back(R"("10")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            // Large input which should fail
+            .input = {R"("10")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1021,12 +1063,14 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     std::string result;
 
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // Small input which should work
-    execution_obj->input.push_back(R"("1")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            // Small input which should work
+            .input = {R"("1")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -1048,12 +1092,14 @@ TEST(SandboxedServiceTest,
     absl::Notification execute_finished;
     std::string result;
 
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v2";
-    execution_obj->handler_name = "Handler";
-    // Small input which should work
-    execution_obj->input.push_back(R"("Hello, World!")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v2",
+            .handler_name = "Handler",
+            // Small input which should work
+            .input = {R"("Hello, World!")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -1087,13 +1133,14 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1104,11 +1151,13 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1156,13 +1205,14 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   // Load version 1
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world1! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1180,11 +1230,12 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     {
       std::vector<InvocationStrRequest<>> batch;
       for (int i = 0; i < 50; i++) {
-        InvocationStrRequest<> req;
-        req.id = "foo";
-        req.version_string = "v1";
-        req.handler_name = "Handler";
-        req.input.push_back(R"("Foobar")");
+        InvocationStrRequest<> req{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        };
         batch.push_back(req);
       }
       auto batch_result = roma_service.BatchExecute(
@@ -1203,13 +1254,14 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     // Load version 2 while execution is happening
     absl::Notification load_finished;
     {
-      auto code_obj = std::make_unique<CodeObject>();
-      code_obj->id = "foo";
-      code_obj->version_string = "v2";
-      code_obj->js = R"JS_CODE(
+      auto code_obj = std::make_unique<CodeObject>(CodeObject{
+          .id = "foo",
+          .version_string = "v2",
+          .js = R"JS_CODE(
     function Handler(input) { return "Hello world2! " + JSON.stringify(input);
     }
-  )JS_CODE";
+  )JS_CODE",
+      });
 
       status = roma_service.LoadCodeObj(
           std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1241,11 +1293,11 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
 
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // Code to sleep for the number of milliseconds passed as input
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Code to sleep for the number of milliseconds passed as input
+        .js = R"JS_CODE(
     function sleep(milliseconds) {
       const date = Date.now();
       let currentDate = null;
@@ -1258,7 +1310,8 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
       sleep(parseInt(input));
       return "Hello world!";
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1276,12 +1329,14 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification execute_finished;
     // Should not timeout since we only sleep for 9 sec but the timeout is 10
     // sec.
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("9000")");
-    execution_obj->tags[kTimeoutDurationTag] = "10000ms";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("9000")"},
+            .tags = {{std::string(kTimeoutDurationTag), "10000ms"}},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -1310,12 +1365,14 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification execute_finished;
     // Should time out since we sleep for 11 which is longer than the 10
     // sec timeout.
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("11000")");
-    execution_obj->tags[kTimeoutDurationTag] = "10000ms";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("11000")"},
+            .tags = {{std::string(kTimeoutDurationTag), "10000ms"}},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -1349,13 +1406,14 @@ TEST(SandboxedServiceTest, ShouldGetCompileErrorForBadJsCode) {
   absl::Notification load_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // Bad JS code.
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Bad JS code.
+        .js = R"JS_CODE(
     function Handler(input) { return "Hello world! " + JSON.stringify(input);
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1383,17 +1441,18 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   absl::Notification execute_failed;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
       function Handler(input) {
         if (input === "0") {
           throw new Error('Yeah...Input cannot be 0!');
         }
         return "Hello world! " + JSON.stringify(input);
       }
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1404,11 +1463,13 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back("9000");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {"9000"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1420,11 +1481,13 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("0")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("0")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1455,10 +1518,10 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   absl::Notification execute_failed;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
       let x;
       function Handler(input) {
         if (input === "0") {
@@ -1466,7 +1529,8 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
         }
         return "Hello world! " + JSON.stringify(input);
       }
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1477,11 +1541,13 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back("9000");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {"9000"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1493,11 +1559,13 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("0")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("0")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1528,14 +1596,15 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(arg1, arg2) {
       return arg1 + arg2;
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1546,12 +1615,13 @@ TEST(SandboxedServiceTest, CanHandleMultipleInputs) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar1")");
-    execution_obj->input.push_back(R"(" Barfoo2")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar1")", R"(" Barfoo2")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -1584,14 +1654,15 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   absl::Notification execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) {
       return input;
     }
-  )JS_CODE";
+  )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1602,12 +1673,14 @@ TEST(SandboxedServiceTest, ErrorShouldBeExplicitWhenInputCannotBeParsed) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // Not a JSON string
-    execution_obj->input.push_back("Foobar1");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            // Not a JSON string
+            .input = {"Foobar1"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1636,13 +1709,14 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // Bad syntax so load should fail
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Bad syntax so load should fail
+        .js = R"JS_CODE(
     function Handler(input) { return "123
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1657,11 +1731,13 @@ TEST(SandboxedServiceTest,
 
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1678,12 +1754,13 @@ TEST(SandboxedServiceTest,
   // Should be able to load same version
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler() { return "Hello there";}
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1698,10 +1775,12 @@ TEST(SandboxedServiceTest,
   // Execution should work now
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1730,12 +1809,13 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Load v1
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler(input) { return "version 1"; }
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1750,11 +1830,13 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Execute version 1
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back(R"("Foobar")");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -1770,12 +1852,13 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Should be able to load same version
   {
     absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
     function Handler() { return "version 1 but updated";}
-    )JS_CODE";
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -1790,10 +1873,12 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   // Execution should run the new version of the code
   {
     absl::Notification execute_finished;
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
