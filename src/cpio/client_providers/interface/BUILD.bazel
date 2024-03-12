@@ -47,7 +47,6 @@ cc_library(
 )
 
 exports_files([
-    "auto_scaling_client_provider_interface.h",
     "blob_storage_client_provider_interface.h",
     "cpio_provider_interface.h",
     "crypto_client_provider_interface.h",
@@ -68,7 +67,6 @@ filegroup(
     name = "cpio_client_provider_interface_srcs",
     srcs = [
         ":auth_token_provider_interface.h",
-        ":auto_scaling_client_provider_interface.h",
         ":blob_storage_client_provider_interface.h",
         ":cloud_initializer_interface.h",
         ":cpio_provider_interface.h",
