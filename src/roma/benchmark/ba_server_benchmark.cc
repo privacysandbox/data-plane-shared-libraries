@@ -40,16 +40,20 @@ using google::scp::roma::benchmark::FakeBaServer;
 constexpr std::string_view kVersionString = "v1";
 
 void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
-  FakeBaServer server(Config{});
+  Config config;
+  config.number_of_workers = 10;
+  FakeBaServer server(std::move(config));
 
   // If the code is being padded with extra bytes then add a comment at the end
   // and fill it with extra zeroes.
-  const int extra_padding_bytes = state.range(1);
   std::string padded_code = std::string(code);
-  if (extra_padding_bytes > 0) {
-    std::string padding = " // ";
-    padding += std::string('0', extra_padding_bytes);
-    padded_code += padding;
+  if (const int extra_padding_bytes = state.range(1); extra_padding_bytes > 0) {
+    constexpr std::string_view extra_prefix = " // ";
+    const int total_size =
+        padded_code.size() + extra_prefix.size() + extra_padding_bytes;
+    padded_code.reserve(total_size);
+    padded_code.append(extra_prefix);
+    padded_code.resize(total_size, '0');
   }
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
@@ -61,7 +65,7 @@ void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
     }
   }
   state.SetItemsProcessed(number_of_loads);
-  state.SetBytesProcessed(number_of_loads * code.length());
+  state.SetBytesProcessed(number_of_loads * padded_code.length());
 }
 
 void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
@@ -120,8 +124,10 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
 // Register the function as a benchmark
 BENCHMARK(BM_LoadHelloWorld)
     ->ArgsProduct({
-        {1, 10, 100},         // Run this many loads of the code.
-        {0, 128, 512, 1024},  // Pad with this many extra bytes.
+        // Run this many loads of the code.
+        {1, 10, 100},
+        // Pad with this many extra bytes.
+        {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
     });
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
