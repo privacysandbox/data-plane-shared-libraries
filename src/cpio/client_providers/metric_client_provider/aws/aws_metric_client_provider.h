@@ -56,10 +56,10 @@ class AwsMetricClientProvider : public MetricClientProvider {
       core::AsyncExecutorInterface* async_executor,
       core::AsyncExecutorInterface* io_async_executor,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
-      : MetricClientProvider(async_executor, std::move(metric_client_options),
-                             instance_client_provider,
+      : MetricClientProvider(async_executor, instance_client_provider,
                              std::move(metric_batching_options)),
-        io_async_executor_(io_async_executor) {}
+        io_async_executor_(io_async_executor),
+        region_(std::move(metric_client_options).region) {}
 
   absl::Status Run() noexcept override;
 
@@ -75,11 +75,9 @@ class AwsMetricClientProvider : public MetricClientProvider {
    * @brief Creates a Client Configuration object.
    *
    * @param region input region.
-   * @param client_config returned Client Configuration.
    */
-  virtual void CreateClientConfiguration(
-      std::string_view region,
-      Aws::Client::ClientConfiguration& client_config) noexcept;
+  virtual Aws::Client::ClientConfiguration GetClientConfig(
+      std::string_view region) noexcept;
 
   /// CloudWatchClient.
   std::optional<Aws::CloudWatch::CloudWatchClient> cloud_watch_client_;
@@ -105,6 +103,7 @@ class AwsMetricClientProvider : public MetricClientProvider {
 
   /// An instance of the IO async executor.
   core::AsyncExecutorInterface* io_async_executor_;
+  std::string region_;
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -198,11 +198,11 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
 
 std::unique_ptr<MetricClientProviderInterface>
 MetricClientProviderFactory::Create(
-    MetricClientOptions options,
+    MetricClientOptions /*options*/,
     InstanceClientProviderInterface* instance_client_provider,
     AsyncExecutorInterface* async_executor,
-    AsyncExecutorInterface* io_async_executor) {
-  return std::make_unique<GcpMetricClientProvider>(
-      std::move(options), instance_client_provider, async_executor);
+    AsyncExecutorInterface* /*io_async_executor*/) {
+  return std::make_unique<GcpMetricClientProvider>(instance_client_provider,
+                                                   async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -41,6 +41,20 @@ cc_library(
     ],
 )
 
+cc_test(
+    name = "aws_metric_client_provider_test",
+    size = "small",
+    srcs = ["aws_metric_client_provider_test.cc"],
+    deps = [
+        ":aws_metric_client_provider",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "@aws_sdk_cpp//:core",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
 exports_files([
     "aws_metric_client_provider.h",
     "aws_metric_client_provider.cc",

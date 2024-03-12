@@ -38,12 +38,10 @@ namespace google::scp::cpio::client_providers {
 class GcpMetricClientProvider : public MetricClientProvider {
  public:
   explicit GcpMetricClientProvider(
-      MetricClientOptions metric_client_options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* async_executor = nullptr,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
-      : MetricClientProvider(async_executor, std::move(metric_client_options),
-                             instance_client_provider,
+      : MetricClientProvider(async_executor, instance_client_provider,
                              std::move(metric_batching_options)) {}
 
   GcpMetricClientProvider() = delete;
@@ -54,12 +52,10 @@ class GcpMetricClientProvider : public MetricClientProvider {
   explicit GcpMetricClientProvider(
       std::shared_ptr<google::cloud::monitoring::MetricServiceClient>
           metric_service_client,
-      MetricClientOptions metric_client_options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* async_executor = nullptr,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
-      : MetricClientProvider(async_executor, std::move(metric_client_options),
-                             instance_client_provider,
+      : MetricClientProvider(async_executor, instance_client_provider,
                              std::move(metric_batching_options)),
         metric_service_client_(std::move(metric_service_client)) {}
 

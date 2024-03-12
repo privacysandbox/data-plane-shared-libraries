@@ -33,8 +33,7 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
   explicit MockMetricClientWithOverrides(
       core::AsyncExecutorInterface* async_executor,
       MetricBatchingOptions metric_batching_options)
-      : MetricClientProvider(async_executor, MetricClientOptions(),
-                             &instance_client_provider_,
+      : MetricClientProvider(async_executor, &instance_client_provider_,
                              std::move(metric_batching_options)) {}
 
   std::function<core::ExecutionResult(

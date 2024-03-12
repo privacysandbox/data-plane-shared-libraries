@@ -42,11 +42,9 @@ class MetricClientProvider : public MetricClientProviderInterface {
 
   explicit MetricClientProvider(
       core::AsyncExecutorInterface* async_executor,
-      MetricClientOptions metric_client_options,
       InstanceClientProviderInterface* instance_client_provider,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
       : async_executor_(async_executor),
-        metric_client_options_(std::move(metric_client_options)),
         metric_batching_options_(std::move(metric_batching_options)),
         is_batch_recording_enable(
             metric_batching_options_.enable_batch_recording),
@@ -110,10 +108,6 @@ class MetricClientProvider : public MetricClientProviderInterface {
 
   /// An instance to the async executor.
   core::AsyncExecutorInterface* async_executor_;
-
-  /// The configuration for metric client.
-  MetricClientOptions metric_client_options_;
-
   MetricBatchingOptions metric_batching_options_;
 
   /// Whether metric client enables batch recording.

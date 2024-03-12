@@ -59,7 +59,7 @@ struct CpioOptions {
 
   /// Location ID for GCP, region code for AWS. If set at neither the CPIO nor
   /// service level, found through the instance client.
-  /// Implemented for Blob Storage and Parameter clients.
+  /// Implemented for Blob Storage, Metric, and Parameter clients.
   std::string region;
 };
 

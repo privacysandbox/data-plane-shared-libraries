@@ -38,8 +38,7 @@ class MockGcpMetricClientProviderOverrides : public GcpMetricClientProvider {
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* async_executor = nullptr)
       : GcpMetricClientProvider(std::move(metric_service_client),
-                                MetricClientOptions(), instance_client_provider,
-                                async_executor,
+                                instance_client_provider, async_executor,
                                 std::move(metric_batching_options)) {}
 
   core::ExecutionResult MetricsBatchPush(
