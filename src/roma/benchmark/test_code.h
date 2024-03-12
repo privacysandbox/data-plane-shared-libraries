@@ -16,6 +16,9 @@
 
 // This file has code that will be executed as part of benchmarking for both
 // KV and BA servers.
+
+#include <string_view>
+
 namespace google::scp::roma::benchmark {
 
 constexpr std::string_view kCodeHelloWorld = "hello = () => 'Hello world!';";
@@ -25,34 +28,34 @@ constexpr std::string_view kHandlerNameHelloWorld = "hello";
 // code is based on:
 // https://www.tutorialspoint.com/using-sieve-of-eratosthenes-to-find-primes-javascript
 constexpr std::string_view kCodePrimeSieve = R"(
-      function sieve() {
-         // Find all prime numbers less than this:
-         const n = 100000;
-         // Create a boolean array of size n+1
-         const primes = new Array(n + 1).fill(true);
-         // Set first two values to false
-         primes[0] = false;
-         primes[1] = false;
-         // Loop through the elements
-         for (let i = 2; i <= Math.sqrt(n); i++) {
-            if (primes[i]) {
-               for (let j = i * i; j <= n; j += i) {
-                  primes[j] = false;
-               }
-            }
-         }
+  function sieve() {
+    // Find all prime numbers less than this:
+    const n = 100000;
+    // Create a boolean array of size n+1
+    const primes = new Array(n + 1).fill(true);
+    // Set first two values to false
+    primes[0] = false;
+    primes[1] = false;
+    // Loop through the elements
+    for (let i = 2; i <= Math.sqrt(n); i++) {
+       if (primes[i]) {
+          for (let j = i * i; j <= n; j += i) {
+             primes[j] = false;
+          }
+       }
+    }
 
-         const result = [];
-         // Loop through the array from 2 to n
-         for (let i = 2; i <= n; i++) {
-            if (primes[i]) {
-               result.push(i);
-            }
-         }
+    const result = [];
+    // Loop through the array from 2 to n
+    for (let i = 2; i <= n; i++) {
+       if (primes[i]) {
+          result.push(i);
+       }
+    }
 
-         return result;
-      }
-    )";
+    return result;
+  }
+)";
 constexpr std::string_view kHandlerNamePrimeSieve = "sieve";
 
 // This code was fetched from this publicly available URL on 2023-10-16:
