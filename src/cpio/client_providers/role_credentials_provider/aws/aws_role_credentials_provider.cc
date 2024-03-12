@@ -83,15 +83,19 @@ ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
     return execution_result;
   }
 
-  auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
-  if (!region_code_or.Successful()) {
-    SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, region_code_or.result(),
-              "Failed to get region code for current instance");
-    return region_code_or.result();
+  ClientConfiguration client_config;
+  if (!region_code_.empty()) {
+    client_config = CreateClientConfiguration(region_code_);
+  } else {
+    auto region_code_or = AwsInstanceClientUtils::GetCurrentRegionCode(
+        *instance_client_provider_);
+    if (!region_code_or.Successful()) {
+      SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, region_code_or.result(),
+                "Failed to get region code for current instance");
+      return region_code_or.result();
+    }
+    client_config = CreateClientConfiguration(*region_code_or);
   }
-
-  auto client_config = CreateClientConfiguration(*region_code_or);
   client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
   sts_client_ = std::make_shared<STSClient>(std::move(client_config));
@@ -178,6 +182,7 @@ RoleCredentialsProviderFactory::Create(
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<AwsRoleCredentialsProvider>(
-      instance_client_provider, cpu_async_executor, io_async_executor);
+      std::move(options), instance_client_provider, cpu_async_executor,
+      io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -96,6 +96,7 @@ class LibCpioProvider : public CpioProviderInterface {
  private:
   virtual std::unique_ptr<RoleCredentialsProviderInterface>
   CreateRoleCredentialsProvider(
+      RoleCredentialsProviderOptions options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor) noexcept;

@@ -46,10 +46,10 @@ ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
 
 std::unique_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
-    RoleCredentialsProviderOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
+    RoleCredentialsProviderOptions /*options*/,
+    InstanceClientProviderInterface* /*instance_client_provider*/,
+    core::AsyncExecutorInterface* /*cpu_async_executor*/,
+    core::AsyncExecutorInterface* /*io_async_executor*/) noexcept {
   return std::make_unique<GcpRoleCredentialsProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

@@ -52,8 +52,8 @@ class TestAwsRoleCredentialsProvider : public AwsRoleCredentialsProvider {
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor)
-      : AwsRoleCredentialsProvider(instance_client_provider, cpu_async_executor,
-                                   io_async_executor),
+      : AwsRoleCredentialsProvider(options, instance_client_provider,
+                                   cpu_async_executor, io_async_executor),
         test_options_(std::move(options)) {}
 
  protected:
