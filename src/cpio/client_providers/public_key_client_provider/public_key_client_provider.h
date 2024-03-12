@@ -40,8 +40,8 @@ class PublicKeyClientProvider : public PublicKeyClientProviderInterface {
   explicit PublicKeyClientProvider(
       PublicKeyClientOptions public_key_client_options,
       core::HttpClientInterface* http_client)
-      : http_client_(std::move(http_client)),
-        public_key_client_options_(public_key_client_options) {}
+      : http_client_(http_client),
+        public_key_client_options_(std::move(public_key_client_options)) {}
 
   core::ExecutionResult Init() noexcept override;
 
