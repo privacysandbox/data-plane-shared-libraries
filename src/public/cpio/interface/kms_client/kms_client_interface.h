@@ -41,6 +41,8 @@ namespace google::scp::cpio {
  */
 class KmsClientInterface : public core::ServiceInterface {
  public:
+  virtual ~KmsClientInterface() = default;
+
   /**
    * @brief Decrypts some data.
    *

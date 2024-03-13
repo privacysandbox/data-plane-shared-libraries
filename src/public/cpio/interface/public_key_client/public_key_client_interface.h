@@ -40,6 +40,8 @@ namespace google::scp::cpio {
  */
 class PublicKeyClientInterface : public core::ServiceInterface {
  public:
+  virtual ~PublicKeyClientInterface() = default;
+
   /**
    * @brief Lists a list of public keys.
    *

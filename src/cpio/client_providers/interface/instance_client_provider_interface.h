@@ -34,6 +34,8 @@ namespace google::scp::cpio::client_providers {
  */
 class InstanceClientProviderInterface : public core::ServiceInterface {
  public:
+  virtual ~InstanceClientProviderInterface() = default;
+
   /**
    * @brief Get the Current Instance Resource Name object
    *

@@ -35,6 +35,8 @@ class ParameterClient : public ParameterClientInterface {
       const std::shared_ptr<ParameterClientOptions>& options)
       : options_(options) {}
 
+  virtual ~ParameterClient() = default;
+
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;

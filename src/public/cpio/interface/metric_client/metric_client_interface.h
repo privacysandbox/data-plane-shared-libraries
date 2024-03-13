@@ -38,6 +38,8 @@ namespace google::scp::cpio {
  */
 class MetricClientInterface : public core::ServiceInterface {
  public:
+  virtual ~MetricClientInterface() = default;
+
   /**
    * @brief Records custom metrics on Cloud.
    *

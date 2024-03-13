@@ -41,6 +41,8 @@ namespace google::scp::cpio {
  */
 class BlobStorageClientInterface : public core::ServiceInterface {
  public:
+  virtual ~BlobStorageClientInterface() = default;
+
   /**
    * @brief Gets a Blob from storage.
    *

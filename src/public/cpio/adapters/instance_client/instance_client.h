@@ -34,6 +34,8 @@ class InstanceClient : public InstanceClientInterface {
   explicit InstanceClient(const std::shared_ptr<InstanceClientOptions>& options)
       : options_(options) {}
 
+  virtual ~InstanceClient() = default;
+
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;

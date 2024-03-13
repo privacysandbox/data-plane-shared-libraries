@@ -31,6 +31,8 @@ namespace google::scp::cpio::client_providers {
  */
 class CloudInitializerInterface : public core::ServiceInterface {
  public:
+  virtual ~CloudInitializerInterface() = default;
+
   /// Init cloud.
   virtual void InitCloud() noexcept = 0;
 

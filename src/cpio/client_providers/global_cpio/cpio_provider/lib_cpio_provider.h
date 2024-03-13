@@ -45,6 +45,8 @@ class LibCpioProvider : public CpioProviderInterface {
   explicit LibCpioProvider(CpioOptions options)
       : cpio_options_(std::move(options)), cloud_initializer_(nullptr) {}
 
+  virtual ~LibCpioProvider() = default;
+
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;

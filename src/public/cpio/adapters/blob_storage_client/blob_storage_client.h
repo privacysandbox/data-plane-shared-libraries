@@ -40,6 +40,8 @@ class BlobStorageClient : public BlobStorageClientInterface {
       const std::shared_ptr<BlobStorageClientOptions>& options)
       : options_(options) {}
 
+  virtual ~BlobStorageClient() = default;
+
   core::ExecutionResult Init() noexcept override;
   core::ExecutionResult Run() noexcept override;
   core::ExecutionResult Stop() noexcept override;

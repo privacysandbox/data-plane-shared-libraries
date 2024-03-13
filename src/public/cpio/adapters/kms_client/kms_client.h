@@ -39,6 +39,8 @@ class KmsClient : public KmsClientInterface {
   explicit KmsClient(const std::shared_ptr<KmsClientOptions>& options)
       : options_(options) {}
 
+  virtual ~KmsClient() = default;
+
   core::ExecutionResult Init() noexcept override;
   core::ExecutionResult Run() noexcept override;
   core::ExecutionResult Stop() noexcept override;

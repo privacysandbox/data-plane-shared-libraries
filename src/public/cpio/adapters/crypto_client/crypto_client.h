@@ -31,6 +31,8 @@ class CryptoClient : public CryptoClientInterface {
  public:
   explicit CryptoClient(const std::shared_ptr<CryptoClientOptions>& options);
 
+  virtual ~CryptoClient() = default;
+
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;

@@ -40,6 +40,8 @@ namespace google::scp::cpio {
  */
 class PrivateKeyClientInterface : public core::ServiceInterface {
  public:
+  virtual ~PrivateKeyClientInterface() = default;
+
   /**
    * @brief Lists a list of private keys for the given list of IDs. The
    * private key is already decrypted by using KMS and can be used to decrypt

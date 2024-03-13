@@ -33,6 +33,8 @@ class MetricClient : public MetricClientInterface {
   explicit MetricClient(const std::shared_ptr<MetricClientOptions>& options)
       : options_(options) {}
 
+  virtual ~MetricClient() = default;
+
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;

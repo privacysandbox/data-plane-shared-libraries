@@ -39,6 +39,8 @@ namespace google::scp::cpio {
  */
 class CryptoClientInterface : public core::ServiceInterface {
  public:
+  virtual ~CryptoClientInterface() = default;
+
   /**
    * @brief Encrypts payload using HPKE.
    *

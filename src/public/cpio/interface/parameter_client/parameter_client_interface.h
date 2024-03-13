@@ -40,6 +40,8 @@ namespace google::scp::cpio {
  */
 class ParameterClientInterface : public core::ServiceInterface {
  public:
+  virtual ~ParameterClientInterface() = default;
+
   /**
    * @brief Gets parameter value for a given name.
    *

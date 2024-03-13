@@ -33,6 +33,8 @@ namespace google::scp::cpio::client_providers {
  */
 class ParameterClientProviderInterface : public core::ServiceInterface {
  public:
+  virtual ~ParameterClientProviderInterface() = default;
+
   /**
    * @brief Fetches the parameter value.
    *

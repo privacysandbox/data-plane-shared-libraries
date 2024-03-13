@@ -38,6 +38,8 @@ namespace google::scp::cpio {
  */
 class InstanceClientInterface : public core::ServiceInterface {
  public:
+  virtual ~InstanceClientInterface() = default;
+
   /**
    * @brief Gets the resource name for the instance where the code is running
    * on.

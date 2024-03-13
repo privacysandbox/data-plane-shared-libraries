@@ -34,6 +34,8 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
       const std::shared_ptr<PrivateKeyClientOptions>& options)
       : options_(options) {}
 
+  virtual ~PrivateKeyClient() = default;
+
   core::ExecutionResult Init() noexcept override;
 
   core::ExecutionResult Run() noexcept override;
