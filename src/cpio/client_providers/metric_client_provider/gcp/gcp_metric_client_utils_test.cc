@@ -177,7 +177,7 @@ TEST_F(GcpMetricClientUtilsTest, OverSizeLabels) {
   // Adds oversize labels.
   auto& labels = *context.request->add_metrics()->mutable_labels();
   for (int i = 0; i < 33; ++i) {
-    labels[std::string("key") + std::to_string(i)] = std::string("value");
+    labels[absl::StrCat("key", i)] = "value";
   }
   std::vector<TimeSeries> time_series_list;
   auto result = GcpMetricClientUtils::ParseRequestToTimeSeries(

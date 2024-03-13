@@ -837,9 +837,8 @@ TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
 
   for (auto i = 0u; i < total_runs; ++i) {
     finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
-    std::string expected_result = std::string(R"("Hello world! )") +
-                                  std::string("\\\"Foobar") +
-                                  std::to_string(i) + std::string("\\\"\"");
+    std::string expected_result =
+        absl::StrCat(R"("Hello world! )", "\\\"Foobar", i, "\\\"\"");
     EXPECT_THAT(results[i], StrEq(expected_result));
   }
 

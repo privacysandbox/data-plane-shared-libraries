@@ -101,7 +101,7 @@ std::shared_ptr<PutMetricsRequest> CreatePutMetricsRequest() {
       cmrt::sdk::metric_service::v1::MetricUnit::METRIC_UNIT_COUNT);
 
   auto& labels = *metric->mutable_labels();
-  labels[std::string("label_key")] = "label_value";
+  labels["label_key"] = "label_value";
   return request;
 }
 

@@ -44,8 +44,9 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     if (get_blob_mock) {
       return get_blob_mock(get_blob_context);
     }
-    auto full_path = *get_blob_context.request->bucket_name + std::string("/") +
-                     *get_blob_context.request->blob_name;
+    std::string full_path =
+        absl::StrCat(*get_blob_context.request->bucket_name, "/",
+                     *get_blob_context.request->blob_name);
 
     std::ifstream input_stream(full_path, std::ios::binary | std::ios::ate);
 
@@ -149,8 +150,9 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     if (put_blob_mock) {
       return put_blob_mock(put_blob_context);
     }
-    auto full_path = *put_blob_context.request->bucket_name + std::string("/") +
-                     *put_blob_context.request->blob_name;
+    std::string full_path =
+        absl::StrCat(*put_blob_context.request->bucket_name, "/",
+                     *put_blob_context.request->blob_name);
 
     std::filesystem::path storage_path(full_path);
     std::filesystem::create_directories(storage_path.parent_path());
@@ -171,8 +173,9 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     if (delete_blob_mock) {
       return delete_blob_mock(delete_blob_context);
     }
-    auto full_path = *delete_blob_context.request->bucket_name +
-                     std::string("/") + *delete_blob_context.request->blob_name;
+    std::string full_path =
+        absl::StrCat(*delete_blob_context.request->bucket_name, "/",
+                     *delete_blob_context.request->blob_name);
     if (!std::filesystem::remove_all(full_path)) {
       delete_blob_context.Finish(FailureExecutionResult(
           errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND));

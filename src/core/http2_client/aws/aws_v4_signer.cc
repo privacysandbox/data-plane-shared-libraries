@@ -206,7 +206,7 @@ ExecutionResult AwsV4Signer::SignRequest(
 
 std::string AwsV4Signer::CalculateSignature(std::string_view string_to_sign,
                                             std::string_view date) noexcept {
-  std::string init_key_str = std::string("AWS4") + aws_secret_key_;
+  std::string init_key_str = absl::StrCat("AWS4", aws_secret_key_);
   std::vector<unsigned char> secret(init_key_str.begin(), init_key_str.end());
   auto hmac_date = HmacSha256(secret, date);
   auto hmac_region = HmacSha256(hmac_date, aws_region_);

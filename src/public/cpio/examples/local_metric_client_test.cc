@@ -77,7 +77,7 @@ int main(int argc, char* argv[]) {
   metric->set_value("12");
   metric->set_unit(MetricUnit::METRIC_UNIT_COUNT);
   auto& labels = *metric->mutable_labels();
-  labels[std::string("label_key")] = std::string("label_value");
+  labels["label_key"] = "label_value";
 
   absl::Notification finished;
   auto context = AsyncContext<PutMetricsRequest, PutMetricsResponse>(

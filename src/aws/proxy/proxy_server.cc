@@ -106,7 +106,7 @@ void ProxyServer::Run(size_t concurrency) {
   for (auto i = 0u; i <= concurrency; ++i) {
     threads.emplace_back([this]() { io_context_.run(); });
     auto& t = threads[i];
-    std::string name = std::string("worker_") + std::to_string(i);
+    std::string name = absl::StrCat("worker_", i);
     pthread_setname_np(t.native_handle(), name.c_str());
   }
   for (auto i = 0u; i <= concurrency; ++i) {

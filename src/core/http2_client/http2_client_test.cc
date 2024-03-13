@@ -152,7 +152,7 @@ class HttpServer {
       }
 
       res.write_head(
-          200u, {{std::string("content-length"),
+          200u, {{"content-length",
                   {std::to_string(length + SHA256_DIGEST_LENGTH), false}}});
       std::shared_ptr<RandomGenHandler> handler =
           RandomGenHandler::Create(length);
