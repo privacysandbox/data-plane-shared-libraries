@@ -105,7 +105,6 @@ using google::scp::core::errors::
     SC_BLOB_STORAGE_PROVIDER_STREAM_SESSION_EXPIRED;
 using google::scp::core::utils::Base64Encode;
 using google::scp::cpio::client_providers::GcpInstanceClientUtils;
-using google::scp::cpio::client_providers::GlobalCpio;
 
 namespace {
 
@@ -137,11 +136,11 @@ uint64_t GetMaxPageSize(const ListBlobsMetadataRequest& list_blobs_request) {
 namespace google::scp::cpio::client_providers {
 
 ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
-  // Try to get project_id from Global Cpio Options, otherwise get project_id
-  // from running instance_client.
-  std::string project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
+  // Try to get project_id from options, otherwise get project_id from running
+  // instance_client.
+  BlobStorageClientOptions options = options_;
 
-  if (project_id.empty()) {
+  if (options.project_id.empty()) {
     auto project_id_or =
         GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_);
     if (!project_id_or.Successful()) {
@@ -150,10 +149,10 @@ ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
                 "Failed to get project ID for current instance");
       return project_id_or.result();
     }
-    project_id = std::move(*project_id_or);
+    options.project_id = std::move(*project_id_or);
   }
 
-  auto client_or = cloud_storage_factory_->CreateClient(options_, project_id);
+  auto client_or = cloud_storage_factory_->CreateClient(std::move(options));
   if (!client_or.Successful()) {
     SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid, client_or.result(),
               "Failed creating Google Cloud Storage client.");
@@ -878,9 +877,9 @@ void GcpBlobStorageClientProvider::DeleteBlobInternal(
 }
 
 Options GcpCloudStorageFactory::CreateClientOptions(
-    BlobStorageClientOptions options, std::string_view project_id) noexcept {
+    BlobStorageClientOptions options) noexcept {
   Options client_options;
-  client_options.set<ProjectIdOption>(std::string{project_id});
+  client_options.set<ProjectIdOption>(std::move(options.project_id));
   client_options.set<ConnectionPoolSizeOption>(kMaxConcurrentConnections);
   client_options.set<RetryPolicyOption>(
       LimitedErrorCountRetryPolicy(options.retry_limit).clone());
@@ -892,10 +891,9 @@ Options GcpCloudStorageFactory::CreateClientOptions(
 }
 
 core::ExecutionResultOr<std::unique_ptr<Client>>
-GcpCloudStorageFactory::CreateClient(BlobStorageClientOptions options,
-                                     std::string_view project_id) noexcept {
-  return std::make_unique<Client>(
-      CreateClientOptions(std::move(options), project_id));
+GcpCloudStorageFactory::CreateClient(
+    BlobStorageClientOptions options) noexcept {
+  return std::make_unique<Client>(CreateClientOptions(std::move(options)));
 }
 
 std::unique_ptr<BlobStorageClientProviderInterface>

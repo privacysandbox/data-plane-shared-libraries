@@ -40,11 +40,10 @@ class GcpCloudStorageFactory {
  public:
   virtual core::ExecutionResultOr<
       std::unique_ptr<google::cloud::storage::Client>>
-  CreateClient(BlobStorageClientOptions options,
-               std::string_view project_id) noexcept;
+  CreateClient(BlobStorageClientOptions options) noexcept;
 
   virtual cloud::Options CreateClientOptions(
-      BlobStorageClientOptions options, std::string_view project_id) noexcept;
+      BlobStorageClientOptions options) noexcept;
 
   virtual ~GcpCloudStorageFactory() = default;
 };

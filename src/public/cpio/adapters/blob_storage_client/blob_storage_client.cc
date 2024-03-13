@@ -89,6 +89,9 @@ ExecutionResult BlobStorageClient::Init() noexcept {
     instance_client = *client;
   }
   BlobStorageClientOptions options = *options_;
+  if (options.project_id.empty()) {
+    options.project_id = cpio_->GetProjectId();
+  }
   if (options.region.empty()) {
     options.region = cpio_->GetRegion();
   }

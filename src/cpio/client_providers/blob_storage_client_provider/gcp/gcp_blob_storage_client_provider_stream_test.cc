@@ -93,7 +93,6 @@ using google::scp::core::utils::CalculateMd5Hash;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
-using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using testing::ByMove;
 using testing::ElementsAre;
@@ -122,8 +121,7 @@ class MockGcpCloudStorageFactory : public GcpCloudStorageFactory {
  public:
   MOCK_METHOD(
       core::ExecutionResultOr<std::unique_ptr<google::cloud::storage::Client>>,
-      CreateClient, (BlobStorageClientOptions, std::string_view),
-      (noexcept, override));
+      CreateClient, (BlobStorageClientOptions), (noexcept, override));
 };
 
 class GcpBlobStorageClientProviderStreamTest : public testing::Test {
@@ -154,14 +152,12 @@ class GcpBlobStorageClientProviderStreamTest : public testing::Test {
       finish_called_ = true;
     };
 
-    EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options_));
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Init());
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Run());
   }
 
   ~GcpBlobStorageClientProviderStreamTest() {
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Stop());
-    EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options_));
   }
 
   MockInstanceClientProvider instance_client_;
@@ -170,7 +166,6 @@ class GcpBlobStorageClientProviderStreamTest : public testing::Test {
   MockGcpCloudStorageFactory* storage_factory_;
   std::shared_ptr<MockClient> mock_client_;
   std::optional<GcpBlobStorageClientProvider> gcp_cloud_storage_client_;
-  TestCpioOptions cpio_options_;
 
   ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
       get_blob_stream_context_;

@@ -33,9 +33,8 @@ using google::scp::core::AsyncExecutorInterface;
 
 namespace google::scp::cpio::client_providers {
 Options TestGcpCloudStorageFactory::CreateClientOptions(
-    BlobStorageClientOptions options, std::string_view project_id) noexcept {
-  Options client_options =
-      GcpCloudStorageFactory::CreateClientOptions(options, project_id);
+    BlobStorageClientOptions options) noexcept {
+  Options client_options = GcpCloudStorageFactory::CreateClientOptions(options);
   auto test_options =
       std::move(dynamic_cast<TestGcpBlobStorageClientOptions&>(options));
   if (!test_options.impersonate_service_account.empty()) {
