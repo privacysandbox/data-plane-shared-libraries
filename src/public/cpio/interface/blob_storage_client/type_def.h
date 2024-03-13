@@ -37,6 +37,9 @@ struct BlobStorageClientOptions {
   std::chrono::seconds transfer_stall_timeout = std::chrono::seconds(60 * 2);
   // GCP - How many retries should be used for blob storage operations.
   size_t retry_limit = 3;
+  // Location ID for GCP, region code for AWS. Overrides region set at CPIO
+  // level.
+  std::string region;
 };
 }  // namespace google::scp::cpio
 

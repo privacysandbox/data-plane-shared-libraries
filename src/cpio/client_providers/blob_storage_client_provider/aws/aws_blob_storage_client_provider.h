@@ -55,6 +55,7 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
       : instance_client_(instance_client),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
+        region_code_(std::move(options).region),
         s3_factory_(std::move(s3_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
@@ -378,6 +379,7 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
   /// operations respectively.
   core::AsyncExecutorInterface* cpu_async_executor_;
   core::AsyncExecutorInterface* io_async_executor_;
+  std::string region_code_;
 
   // TODO(b/321321138): Rewrite test case to make pointer unnecessary.
   // An instance of the factory for Aws::S3::S3Client.

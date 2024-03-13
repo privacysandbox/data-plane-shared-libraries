@@ -54,14 +54,14 @@ struct CpioOptions {
   /// Default is kInitInCpio.
   CloudInitOption cloud_init_option = CloudInitOption::kInitInCpio;
 
-  /// Cloud Project ID. Project ID for GCP. If not set, attempted to be found
-  /// through the instance client. Not implemented for all services yet,
-  /// implemented for Parameter client only.
+  /// Project ID for GCP. If set at neither the CPIO nor service level, found
+  /// through the instance client.
+  /// Implemented for Blob Storage and Parameter clients.
   std::string project_id;
 
-  /// Cloud region. Location ID for GCP, region code for AWS. If not set,
-  /// attempted to be found through the instance client. Not implemented for all
-  /// services yet, implemented for Parameter client only.
+  /// Location ID for GCP, region code for AWS. If set at neither the CPIO nor
+  /// service level, found through the instance client.
+  /// Implemented for Blob Storage and Parameter clients.
   std::string region;
 };
 

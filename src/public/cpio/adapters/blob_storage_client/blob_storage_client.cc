@@ -88,8 +88,13 @@ ExecutionResult BlobStorageClient::Init() noexcept {
   } else {
     instance_client = *client;
   }
+  BlobStorageClientOptions options = *options_;
+  if (options.region.empty()) {
+    options.region = cpio_->GetRegion();
+  }
   blob_storage_client_provider_ = BlobStorageClientProviderFactory::Create(
-      *options_, instance_client, cpu_async_executor, io_async_executor);
+      std::move(options), instance_client, cpu_async_executor,
+      io_async_executor);
   auto execution_result = blob_storage_client_provider_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
