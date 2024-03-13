@@ -18,6 +18,7 @@
 #define CPIO_CLIENT_PROVIDERS_CRYPTO_CLIENT_PROVIDER_CRYPTO_CLIENT_PROVIDER_H_
 
 #include <memory>
+#include <utility>
 
 #include <tink/hybrid/internal/hpke_context.h>
 
@@ -37,9 +38,8 @@ namespace google::scp::cpio::client_providers {
  */
 class CryptoClientProvider : public CryptoClientProviderInterface {
  public:
-  explicit CryptoClientProvider(
-      const std::shared_ptr<CryptoClientOptions>& options)
-      : options_(options) {}
+  explicit CryptoClientProvider(CryptoClientOptions options)
+      : options_(std::move(options)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -70,7 +70,7 @@ class CryptoClientProvider : public CryptoClientProviderInterface {
  protected:
   /// HpkeParams passed in from configuration which will override the default
   /// params.
-  std::shared_ptr<CryptoClientOptions> options_;
+  CryptoClientOptions options_;
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -87,8 +87,7 @@ constexpr std::string_view kDecryptedPrivateKeyForAes128Gcm =
 class CryptoClientProviderTest : public ScpTestBase {
  protected:
   void SetUp() override {
-    auto options = std::make_shared<CryptoClientOptions>();
-    client_ = std::make_unique<CryptoClientProvider>(options);
+    client_.emplace(CryptoClientOptions());
 
     EXPECT_SUCCESS(client_->Init());
     EXPECT_SUCCESS(client_->Run());
@@ -217,7 +216,7 @@ class CryptoClientProviderTest : public ScpTestBase {
         [&](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {});
   }
 
-  std::unique_ptr<CryptoClientProvider> client_;
+  std::optional<CryptoClientProvider> client_;
 };
 
 TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptSuccessForOneDirection) {
@@ -238,15 +237,15 @@ TEST_F(CryptoClientProviderTest,
 
 TEST_F(CryptoClientProviderTest,
        HpkeEncryptAndDecryptSuccessForConfigHpkeParams) {
-  auto options = std::make_shared<CryptoClientOptions>();
-  options->hpke_params.set_kem(HpkeKem::DHKEM_X25519_HKDF_SHA256);
-  options->hpke_params.set_kdf(HpkeKdf::HKDF_SHA256);
-  options->hpke_params.set_aead(HpkeAead::AES_128_GCM);
-  client_ = std::make_unique<CryptoClientProvider>(options);
+  CryptoClientOptions options;
+  options.hpke_params.set_kem(HpkeKem::DHKEM_X25519_HKDF_SHA256);
+  options.hpke_params.set_kdf(HpkeKdf::HKDF_SHA256);
+  options.hpke_params.set_aead(HpkeAead::AES_128_GCM);
+  client_.emplace(options);
 
   auto encrypt_context = CreateHpkeEncryptContext(
       false /*is_bidirectional*/, SuccessExecutionResult(),
-      "" /*exporter_context*/, HpkeParams(), options->hpke_params);
+      "" /*exporter_context*/, HpkeParams(), options.hpke_params);
   EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
 }
 

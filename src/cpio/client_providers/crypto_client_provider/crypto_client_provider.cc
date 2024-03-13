@@ -228,7 +228,7 @@ ExecutionResult CryptoClientProvider::HpkeEncrypt(
   Base64Decode(encrypt_context.request->public_key().public_key(), decoded_key);
   auto cipher = HpkeContext::SetupSender(
       ToHpkeParams(encrypt_context.request->hpke_params(),
-                   GetExistingHpkeParams(options_->hpke_params)),
+                   GetExistingHpkeParams(options_.hpke_params)),
       decoded_key, "" /*Empty application info*/);
 
   if (!cipher.ok()) {
@@ -329,7 +329,7 @@ ExecutionResult CryptoClientProvider::HpkeDecrypt(
     return decrypt_context.result;
   }
   auto hpke_params = ToHpkeParams(decrypt_context.request->hpke_params(),
-                                  GetExistingHpkeParams(options_->hpke_params));
+                                  GetExistingHpkeParams(options_.hpke_params));
   auto splitted_ciphertext = SplitPayload(
       hpke_params.kem, decrypt_context.request->encrypted_data().ciphertext());
   if (!splitted_ciphertext.ok()) {

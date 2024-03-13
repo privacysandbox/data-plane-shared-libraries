@@ -53,7 +53,7 @@ constexpr std::string_view kCryptoClient = "CryptoClient";
 namespace google::scp::cpio {
 CryptoClient::CryptoClient(
     const std::shared_ptr<CryptoClientOptions>& options) {
-  crypto_client_provider_ = std::make_unique<CryptoClientProvider>(options);
+  crypto_client_provider_ = std::make_unique<CryptoClientProvider>(*options);
 }
 
 ExecutionResult CryptoClient::Init() noexcept {
