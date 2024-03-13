@@ -37,8 +37,8 @@ class TestAwsParameterClientProvider : public AwsParameterClientProvider {
       TestAwsParameterClientOptions test_options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* io_async_executor)
-      : AwsParameterClientProvider(test_options, instance_client_provider,
-                                   io_async_executor),
+      : AwsParameterClientProvider(test_options, /*region_code=*/"",
+                                   instance_client_provider, io_async_executor),
         test_options_(std::move(test_options)) {}
 
  protected:

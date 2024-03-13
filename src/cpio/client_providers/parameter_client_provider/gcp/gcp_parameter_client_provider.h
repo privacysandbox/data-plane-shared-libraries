@@ -49,10 +49,11 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
       core::AsyncExecutorInterface* async_executor,
       core::AsyncExecutorInterface* io_async_executor,
       InstanceClientProviderInterface* instance_client_provider,
-      ParameterClientOptions options)
+      ParameterClientOptions options, std::string project_id)
       : async_executor_(async_executor),
         io_async_executor_(io_async_executor),
-        instance_client_provider_(instance_client_provider) {}
+        instance_client_provider_(instance_client_provider),
+        project_id_(std::move(project_id)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -108,8 +109,6 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
   /// An instance of the GCP Secret Manager client.
   std::shared_ptr<const cloud::secretmanager::SecretManagerServiceClient>
       sm_client_shared_;
-
-  CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio::client_providers
 

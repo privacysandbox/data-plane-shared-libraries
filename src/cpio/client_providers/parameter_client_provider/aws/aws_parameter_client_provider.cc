@@ -71,11 +71,9 @@ ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
 ExecutionResult AwsParameterClientProvider::Init() noexcept {
   // Try to get region code from Global Cpio Options, otherwise get region code
   // from running instance_client.
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  if (const std::string& region_code = cpio_->GetRegion();
-      !region_code.empty()) {
+  if (!region_code_.empty()) {
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
-        CreateClientConfiguration(region_code), io_async_executor_);
+        CreateClientConfiguration(region_code_), io_async_executor_);
   } else {
     auto region_code_or = AwsInstanceClientUtils::GetCurrentRegionCode(
         *instance_client_provider_);
@@ -153,11 +151,13 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
 
 std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    ParameterClientOptions options,
+    ParameterClientOptions options, std::string /*project_id*/,
+    std::string region_code,
     InstanceClientProviderInterface* instance_client_provider,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) {
   return std::make_unique<AwsParameterClientProvider>(
-      std::move(options), instance_client_provider, io_async_executor);
+      std::move(options), std::move(region_code), instance_client_provider,
+      io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -86,8 +86,8 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   }
 
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
-      *options_, instance_client_provider, cpu_async_executor,
-      io_async_executor);
+      *options_, cpio_->GetProjectId(), cpio_->GetRegion(),
+      instance_client_provider, cpu_async_executor, io_async_executor);
   return SuccessExecutionResult();
 }
 

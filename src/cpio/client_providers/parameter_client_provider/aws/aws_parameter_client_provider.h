@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <aws/ssm/SSMClient.h>
@@ -49,14 +50,15 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
    * @param io_async_executor The Aws io async context.
    */
   AwsParameterClientProvider(
-      ParameterClientOptions options,
+      ParameterClientOptions options, std::string region_code,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* io_async_executor,
       std::shared_ptr<SSMClientFactory> ssm_client_factory =
           std::make_shared<SSMClientFactory>())
       : instance_client_provider_(instance_client_provider),
         io_async_executor_(io_async_executor),
-        ssm_client_factory_(ssm_client_factory) {}
+        ssm_client_factory_(ssm_client_factory),
+        region_code_(std::move(region_code)) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -105,7 +107,7 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
   std::shared_ptr<SSMClientFactory> ssm_client_factory_;
 
  private:
-  CpioProviderInterface* cpio_;
+  std::string region_code_;
 };
 
 /// Provides SSMClient.

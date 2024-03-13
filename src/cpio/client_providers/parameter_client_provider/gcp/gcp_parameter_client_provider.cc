@@ -63,11 +63,8 @@ constexpr std::string_view kGcpSecretNameFormatString =
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult GcpParameterClientProvider::Init() noexcept {
-  // Try to get project_id from Global Cpio Options, otherwise get project_id
-  // from running instance_client.
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  project_id_ = cpio_->GetProjectId();
-
+  // Try to get project_id from constructor, otherwise get project_id from
+  // running instance_client.
   if (project_id_.empty()) {
     auto project_id_or =
         GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_provider_);
@@ -173,12 +170,13 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
 
 std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    ParameterClientOptions options,
+    ParameterClientOptions options, std::string project_id,
+    std::string /*region_code*/,
     InstanceClientProviderInterface* instance_client_provider,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) {
   return std::make_unique<GcpParameterClientProvider>(
       cpu_async_executor, io_async_executor, instance_client_provider,
-      std::move(options));
+      std::move(options), std::move(project_id));
 }
 }  // namespace google::scp::cpio::client_providers
