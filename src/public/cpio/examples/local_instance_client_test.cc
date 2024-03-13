@@ -47,8 +47,6 @@ namespace {
 constexpr std::string_view kRegion = "us-east-1";
 constexpr std::string_view kInstanceId = "i-1234";
 
-std::unique_ptr<InstanceClientInterface> instance_client;
-
 void GetCurrentInstanceResourceNameCallback(
     absl::Notification& finished, ExecutionResult result,
     GetCurrentInstanceResourceNameResponse get_resource_name_response) {
@@ -76,7 +74,7 @@ int main(int argc, char* argv[]) {
   }
 
   InstanceClientOptions instance_client_options;
-  instance_client =
+  auto instance_client =
       InstanceClientFactory::Create(std::move(instance_client_options));
   result = instance_client->Init();
   if (!result.Successful()) {

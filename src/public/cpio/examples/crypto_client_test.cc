@@ -55,8 +55,6 @@ constexpr std::string_view kSharedInfo = "shared_info";
 constexpr std::string_view kRequestPayload = "abcdefg";
 constexpr std::string_view kResponsePayload = "hijklmn";
 
-std::unique_ptr<CryptoClientInterface> crypto_client;
-
 void AeadDecryptCallback(absl::Notification& finished, ExecutionResult result,
                          AeadDecryptResponse aead_decrypt_response) {
   finished.Notify();
@@ -70,6 +68,7 @@ void AeadDecryptCallback(absl::Notification& finished, ExecutionResult result,
 }
 
 void AeadEncryptCallback(absl::Notification& finished, std::string& secret,
+                         CryptoClientInterface* crypto_client,
                          ExecutionResult result,
                          AeadEncryptResponse aead_encrypt_response) {
   if (result.Successful()) {
@@ -90,6 +89,7 @@ void AeadEncryptCallback(absl::Notification& finished, std::string& secret,
 }
 
 void HpkeDecryptCallback(bool is_bidirectional, absl::Notification& finished,
+                         CryptoClientInterface* crypto_client,
                          ExecutionResult result,
                          HpkeDecryptResponse hpke_decrypt_response) {
   if (result.Successful()) {
@@ -105,7 +105,8 @@ void HpkeDecryptCallback(bool is_bidirectional, absl::Notification& finished,
       aead_encrypt_request.set_secret(secret);
       crypto_client->AeadEncrypt(
           std::move(aead_encrypt_request),
-          absl::bind_front(AeadEncryptCallback, std::ref(finished), secret));
+          absl::bind_front(AeadEncryptCallback, std::ref(finished), secret,
+                           crypto_client));
     } else {
       finished.Notify();
     }
@@ -117,6 +118,7 @@ void HpkeDecryptCallback(bool is_bidirectional, absl::Notification& finished,
 }
 
 void HpkeEncryptCallback(bool is_bidirectional, absl::Notification& finished,
+                         CryptoClientInterface* crypto_client,
                          ExecutionResult result,
                          HpkeEncryptResponse hpke_encrypt_response) {
   if (result.Successful()) {
@@ -132,7 +134,7 @@ void HpkeEncryptCallback(bool is_bidirectional, absl::Notification& finished,
     crypto_client->HpkeDecrypt(
         std::move(hpke_decrypt_request),
         absl::bind_front(HpkeDecryptCallback, is_bidirectional,
-                         std::ref(finished)));
+                         std::ref(finished), crypto_client));
   } else {
     std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
               << std::endl;
@@ -156,7 +158,8 @@ int main(int argc, char* argv[]) {
 
   CryptoClientOptions crypto_client_options;
 
-  crypto_client = CryptoClientFactory::Create(std::move(crypto_client_options));
+  auto crypto_client =
+      CryptoClientFactory::Create(std::move(crypto_client_options));
   result = crypto_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init crypto client!"
@@ -182,7 +185,7 @@ int main(int argc, char* argv[]) {
   crypto_client->HpkeEncrypt(
       std::move(hpke_encrypt_request),
       absl::bind_front(HpkeEncryptCallback, is_bidirectional,
-                       std::ref(finished)));
+                       std::ref(finished), crypto_client.get()));
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
 
   result = crypto_client->Stop();

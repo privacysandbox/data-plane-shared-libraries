@@ -44,8 +44,6 @@ using google::scp::cpio::InstanceClientInterface;
 using google::scp::cpio::InstanceClientOptions;
 using google::scp::cpio::LogOption;
 
-std::unique_ptr<InstanceClientInterface> instance_client;
-
 void GetTagsByResourceNameCallback(
     absl::Notification& finished, ExecutionResult result,
     GetTagsByResourceNameResponse get_tags_response) {
@@ -63,7 +61,8 @@ void GetTagsByResourceNameCallback(
 }
 
 void GetCurrentInstanceResourceNameCallback(
-    absl::Notification& finished, ExecutionResult result,
+    InstanceClientInterface* instance_client, absl::Notification& finished,
+    ExecutionResult result,
     GetCurrentInstanceResourceNameResponse get_resource_name_response) {
   if (!result.Successful()) {
     std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
@@ -97,7 +96,7 @@ int main(int argc, char* argv[]) {
   }
 
   InstanceClientOptions instance_client_options;
-  instance_client =
+  auto instance_client =
       InstanceClientFactory::Create(std::move(instance_client_options));
   result = instance_client->Init();
   if (!result.Successful()) {
@@ -116,7 +115,7 @@ int main(int argc, char* argv[]) {
   result = instance_client->GetCurrentInstanceResourceName(
       GetCurrentInstanceResourceNameRequest(),
       absl::bind_front(GetCurrentInstanceResourceNameCallback,
-                       std::ref(finished)));
+                       instance_client.get(), std::ref(finished)));
 
   if (!result.Successful()) {
     std::cout << "GetCurrentInstanceResourceName failed immediately: "
