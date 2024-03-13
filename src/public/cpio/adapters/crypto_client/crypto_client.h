@@ -60,9 +60,9 @@ class CryptoClient : public CryptoClientInterface {
           callback) noexcept override;
 
  protected:
-  std::shared_ptr<client_providers::CryptoClientProviderInterface>
+  // Must be a pointer so it can be replaced with a mock.
+  std::unique_ptr<client_providers::CryptoClientProviderInterface>
       crypto_client_provider_;
-  std::shared_ptr<CryptoClientOptions> options_;
 };
 }  // namespace google::scp::cpio
 

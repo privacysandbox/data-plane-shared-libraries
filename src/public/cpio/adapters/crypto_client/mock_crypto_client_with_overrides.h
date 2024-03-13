@@ -29,14 +29,12 @@ class MockCryptoClientWithOverrides : public CryptoClient {
       const std::shared_ptr<CryptoClientOptions>& options)
       : CryptoClient(options) {
     crypto_client_provider_ =
-        std::make_shared<client_providers::mock::MockCryptoClientProvider>();
+        std::make_unique<client_providers::mock::MockCryptoClientProvider>();
   }
 
-  std::shared_ptr<client_providers::mock::MockCryptoClientProvider>
-  GetCryptoClientProvider() {
-    return std::dynamic_pointer_cast<
-        client_providers::mock::MockCryptoClientProvider>(
-        crypto_client_provider_);
+  client_providers::mock::MockCryptoClientProvider& GetCryptoClientProvider() {
+    return dynamic_cast<client_providers::mock::MockCryptoClientProvider&>(
+        *crypto_client_provider_);
   }
 };
 }  // namespace google::scp::cpio::mock

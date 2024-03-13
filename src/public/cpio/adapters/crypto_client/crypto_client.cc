@@ -51,9 +51,9 @@ constexpr std::string_view kCryptoClient = "CryptoClient";
 }
 
 namespace google::scp::cpio {
-CryptoClient::CryptoClient(const std::shared_ptr<CryptoClientOptions>& options)
-    : options_(options) {
-  crypto_client_provider_ = std::make_shared<CryptoClientProvider>(options_);
+CryptoClient::CryptoClient(
+    const std::shared_ptr<CryptoClientOptions>& options) {
+  crypto_client_provider_ = std::make_unique<CryptoClientProvider>(options);
 }
 
 ExecutionResult CryptoClient::Init() noexcept {
@@ -88,7 +88,7 @@ core::ExecutionResult CryptoClient::HpkeEncrypt(
     Callback<HpkeEncryptResponse> callback) noexcept {
   return Execute<HpkeEncryptRequest, HpkeEncryptResponse>(
       absl::bind_front(&CryptoClientProviderInterface::HpkeEncrypt,
-                       crypto_client_provider_),
+                       crypto_client_provider_.get()),
       request, callback);
 }
 
@@ -97,7 +97,7 @@ core::ExecutionResult CryptoClient::HpkeDecrypt(
     Callback<HpkeDecryptResponse> callback) noexcept {
   return Execute<HpkeDecryptRequest, HpkeDecryptResponse>(
       absl::bind_front(&CryptoClientProviderInterface::HpkeDecrypt,
-                       crypto_client_provider_),
+                       crypto_client_provider_.get()),
       request, callback);
 }
 
@@ -106,7 +106,7 @@ core::ExecutionResult CryptoClient::AeadEncrypt(
     Callback<AeadEncryptResponse> callback) noexcept {
   return Execute<AeadEncryptRequest, AeadEncryptResponse>(
       absl::bind_front(&CryptoClientProviderInterface::AeadEncrypt,
-                       crypto_client_provider_),
+                       crypto_client_provider_.get()),
       request, callback);
 }
 
@@ -115,7 +115,7 @@ core::ExecutionResult CryptoClient::AeadDecrypt(
     Callback<AeadDecryptResponse> callback) noexcept {
   return Execute<AeadDecryptRequest, AeadDecryptResponse>(
       absl::bind_front(&CryptoClientProviderInterface::AeadDecrypt,
-                       crypto_client_provider_),
+                       crypto_client_provider_.get()),
       request, callback);
 }
 
