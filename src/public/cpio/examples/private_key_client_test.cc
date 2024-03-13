@@ -62,21 +62,24 @@ int main(int argc, char* argv[]) {
   }
 
   PrivateKeyClientOptions private_key_client_options;
-  PrivateKeyVendingEndpoint primary_endpoint;
-  primary_endpoint.account_identity = kIamRole1;
-  primary_endpoint.service_region = kServiceRegion;
-  primary_endpoint.private_key_vending_service_endpoint = kPrivateKeyEndpoint1;
-  private_key_client_options.primary_private_key_vending_endpoint =
-      primary_endpoint;
-
-  PrivateKeyVendingEndpoint secondary_endpoint;
-  secondary_endpoint.account_identity = kIamRole2;
-  secondary_endpoint.service_region = kServiceRegion;
-  secondary_endpoint.private_key_vending_service_endpoint =
-      kPrivateKeyEndpoint2;
-  private_key_client_options.secondary_private_key_vending_endpoints
-      .emplace_back(secondary_endpoint);
-
+  {
+    PrivateKeyVendingEndpoint primary_endpoint;
+    primary_endpoint.account_identity = kIamRole1;
+    primary_endpoint.service_region = kServiceRegion;
+    primary_endpoint.private_key_vending_service_endpoint =
+        kPrivateKeyEndpoint1;
+    private_key_client_options.primary_private_key_vending_endpoint =
+        std::move(primary_endpoint);
+  }
+  {
+    PrivateKeyVendingEndpoint secondary_endpoint;
+    secondary_endpoint.account_identity = kIamRole2;
+    secondary_endpoint.service_region = kServiceRegion;
+    secondary_endpoint.private_key_vending_service_endpoint =
+        kPrivateKeyEndpoint2;
+    private_key_client_options.secondary_private_key_vending_endpoints
+        .push_back(std::move(secondary_endpoint));
+  }
   auto private_key_client =
       PrivateKeyClientFactory::Create(std::move(private_key_client_options));
   result = private_key_client->Init();
