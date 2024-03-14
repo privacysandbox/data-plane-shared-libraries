@@ -25,6 +25,8 @@ load(
     "app_api_cc_protoc",
     "app_api_js_plugins",
     "app_api_js_protoc",
+    "roma_js_proto_library",
+    "roma_js_proto_plugins",
 )
 
 def _filter_files_suffix_impl(ctx):
@@ -93,10 +95,55 @@ def roma_app_api(proto_basename, protos):
     Args:
         proto_basename: basename of the protobuf source file
         protos: list of proto_library targets
+
+    Returns:
+        struct of Roma App-related info
     """
     return struct(
         proto_basename = proto_basename,
         protos = protos,
+    )
+
+def js_proto_library(name, protos, proto_basename, **kwargs):
+    """
+    JS protobuf library.
+
+    Args:
+        name: target name the generated JS library
+        protos: label list of source proto libraries
+        **kwargs: attributes for cc_library and those common to bazel build rules
+    """
+    name_proto = name + "_proto_js_library"
+    roma_js_proto_library(
+        name = name_proto,
+        options = {
+            "@google_privacysandbox_servers_common//src/roma/tools/api_plugin:{}".format(p.name): [
+                p.option.format(basename = proto_basename),
+            ]
+            for p in roma_js_proto_plugins
+            if hasattr(p, "option")
+        },
+        output_mode = "NO_PREFIX",
+        protos = protos,
+    )
+    filter_files(
+        name = name + "_js_srcs",
+        target = name_proto,
+        extensions = ["js"],
+    )
+    filter_files(
+        name = name + "_docs",
+        target = name_proto,
+        extensions = ["md"],
+    )
+    closure_js_library(
+        name = name,
+        srcs = [":{}_js_srcs".format(name)],
+        convention = "NONE",
+        lenient = True,
+        deps = [
+            "@io_bazel_rules_closure//closure/protobuf:jspb",
+        ],
     )
 
 def roma_service_js_library(name, roma_app_api):
@@ -122,40 +169,32 @@ def roma_service_js_library(name, roma_app_api):
         output_mode = "NO_PREFIX",
         protos = roma_app_api.protos,
     )
-
     filter_files(
         name = name + "_js_srcs",
         target = name_proto,
         extensions = ["js"],
     )
-
     filter_files(
         name = name + "_docs",
         target = name_proto,
         extensions = ["md"],
     )
-
     closure_js_library(
         name = name + "_js_lib",
-        srcs = [
-            ":{}_js_srcs".format(name),
-        ],
+        srcs = [":{}_js_srcs".format(name)],
         convention = "NONE",
         lenient = True,
         deps = [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
     )
-
     closure_js_binary(
         name = name,
         debug = False,
         language = "ECMASCRIPT_NEXT",
         compilation_level = "SIMPLE_OPTIMIZATIONS",
         formatting = "PRETTY_PRINT",
-        deps = [
-            ":{}_js_lib".format(name),
-        ],
+        deps = [":{}_js_lib".format(name)],
     )
 
 def roma_client_cc_library(name, roma_app_api, roma_service_js_library, **kwargs):

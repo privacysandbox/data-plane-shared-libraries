@@ -21,14 +21,14 @@ load(
     "proto_compile_impl",
 )
 
-_js_protobuf_plugins = [
+roma_js_proto_plugins = [
     struct(
         name = "js",
         exclusions = [],
         option = ",".join([
-            "library={basename}_pb",
             "binary",
             "import_style=closure",
+            "library={basename}_pb",
         ]),
         outputs = ["{basename}_pb.js"],
         tool = "@protocolbuffers_protobuf_javascript//generator:protoc-gen-js",
@@ -64,7 +64,7 @@ _js_template_plugins = [
     ])
 ]
 
-app_api_js_plugins = _js_protobuf_plugins + _js_template_plugins
+app_api_js_plugins = roma_js_proto_plugins + _js_template_plugins
 
 _cc_protobuf_plugins = [
     struct(
@@ -104,7 +104,6 @@ app_api_cc_protoc = rule(
         _plugins = attr.label_list(
             providers = [ProtoPluginInfo],
             default = [Label("//src/roma/tools/api_plugin:{}".format(plugin.name)) for plugin in app_api_cc_plugins],
-            doc = "List of protoc plugins to apply",
         ),
     ),
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
@@ -117,11 +116,22 @@ app_api_js_protoc = rule(
         _plugins = attr.label_list(
             providers = [ProtoPluginInfo],
             default = [Label("//src/roma/tools/api_plugin:{}".format(plugin.name)) for plugin in app_api_js_plugins],
-            doc = "List of protoc plugins to apply",
         ),
     ),
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
-def get_plugins():
+roma_js_proto_library = rule(
+    implementation = proto_compile_impl,
+    attrs = dict(
+        proto_compile_attrs,
+        _plugins = attr.label_list(
+            providers = [ProtoPluginInfo],
+            default = [Label("//src/roma/tools/api_plugin:{}".format(plugin.name)) for plugin in roma_js_proto_plugins],
+        ),
+    ),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
+)
+
+def get_all_app_api_plugins():
     return app_api_cc_plugins + app_api_js_plugins
