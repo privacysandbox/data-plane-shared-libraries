@@ -58,8 +58,7 @@ class ParameterClientProviderFactory {
    * ParameterClientProvider.
    */
   static std::unique_ptr<ParameterClientProviderInterface> Create(
-      ParameterClientOptions options, std::string project_id,
-      std::string region_code,
+      ParameterClientOptions options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor);

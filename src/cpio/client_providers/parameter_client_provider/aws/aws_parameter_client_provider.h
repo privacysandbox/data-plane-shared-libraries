@@ -50,7 +50,7 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
    * @param io_async_executor The Aws io async context.
    */
   AwsParameterClientProvider(
-      ParameterClientOptions options, std::string region_code,
+      ParameterClientOptions options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* io_async_executor,
       std::shared_ptr<SSMClientFactory> ssm_client_factory =
@@ -58,7 +58,7 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
       : instance_client_provider_(instance_client_provider),
         io_async_executor_(io_async_executor),
         ssm_client_factory_(ssm_client_factory),
-        region_code_(std::move(region_code)) {}
+        region_code_(std::move(options).region) {}
 
   core::ExecutionResult Init() noexcept override;
 

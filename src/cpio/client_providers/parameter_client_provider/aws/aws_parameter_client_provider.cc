@@ -151,13 +151,11 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
 
 std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    ParameterClientOptions options, std::string /*project_id*/,
-    std::string region_code,
+    ParameterClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
+    core::AsyncExecutorInterface* /*cpu_async_executor*/,
     core::AsyncExecutorInterface* io_async_executor) {
   return std::make_unique<AwsParameterClientProvider>(
-      std::move(options), std::move(region_code), instance_client_provider,
-      io_async_executor);
+      std::move(options), instance_client_provider, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -85,9 +85,16 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
     io_async_executor = *executor;
   }
 
+  ParameterClientOptions options = *options_;
+  if (options.project_id.empty()) {
+    options.project_id = cpio_->GetProjectId();
+  }
+  if (options.region.empty()) {
+    options.region = cpio_->GetRegion();
+  }
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
-      *options_, cpio_->GetProjectId(), cpio_->GetRegion(),
-      instance_client_provider, cpu_async_executor, io_async_executor);
+      std::move(options), instance_client_provider, cpu_async_executor,
+      io_async_executor);
   return SuccessExecutionResult();
 }
 

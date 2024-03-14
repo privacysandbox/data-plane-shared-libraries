@@ -170,13 +170,12 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
 
 std::unique_ptr<ParameterClientProviderInterface>
 ParameterClientProviderFactory::Create(
-    ParameterClientOptions options, std::string project_id,
-    std::string /*region_code*/,
+    ParameterClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) {
   return std::make_unique<GcpParameterClientProvider>(
       cpu_async_executor, io_async_executor, instance_client_provider,
-      std::move(options), std::move(project_id));
+      std::move(options));
 }
 }  // namespace google::scp::cpio::client_providers
