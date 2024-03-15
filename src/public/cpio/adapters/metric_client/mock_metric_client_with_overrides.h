@@ -18,6 +18,7 @@
 #define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
 
 #include <memory>
+#include <utility>
 
 #include "src/core/async_executor/mock/mock_async_executor.h"
 #include "src/core/message_router/message_router.h"
@@ -27,9 +28,8 @@
 namespace google::scp::cpio::mock {
 class MockMetricClientWithOverrides : public MetricClient {
  public:
-  MockMetricClientWithOverrides(
-      const std::shared_ptr<MetricClientOptions>& options)
-      : MetricClient(options) {}
+  explicit MockMetricClientWithOverrides(MetricClientOptions options)
+      : MetricClient(std::move(options)) {}
 
   core::ExecutionResult create_metric_client_provider_result =
       core::SuccessExecutionResult();

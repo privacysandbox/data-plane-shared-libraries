@@ -45,7 +45,7 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class MetricClientTest : public ::testing::Test {
  protected:
-  MetricClientTest() : client_(std::make_shared<MetricClientOptions>()) {
+  MetricClientTest() : client_(MetricClientOptions()) {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }
