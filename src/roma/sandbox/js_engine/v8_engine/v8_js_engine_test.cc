@@ -683,4 +683,22 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
   }
   engine.Stop();
 }
+
+TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessage) {
+  V8JsEngine engine;
+  engine.Run();
+
+  constexpr std::string_view js_code = R"JS_CODE(
+      function Handler() {
+          throw new Error("throw!");
+      }
+    )JS_CODE";
+  const auto response_or =
+      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
+
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
+  EXPECT_THAT(response_or.status().message(),
+              StrEq("Error when invoking the handler. Uncaught Error: throw!"));
+  engine.Stop();
+}
 }  // namespace google::scp::roma::sandbox::js_engine::test
