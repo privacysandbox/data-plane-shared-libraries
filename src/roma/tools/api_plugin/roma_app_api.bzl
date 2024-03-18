@@ -21,12 +21,9 @@ load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 load("@rules_proto_grpc//:defs.bzl", "bazel_build_rule_common_attrs", "filter_files")
 load(
     "//src/roma/tools/api_plugin:internal/roma_app_api.bzl",
-    "app_api_cc_plugins",
     "app_api_cc_protoc",
-    "app_api_js_plugins",
     "app_api_js_protoc",
     "roma_js_proto_library",
-    "roma_js_proto_plugins",
 )
 
 def _filter_files_suffix_impl(ctx):
@@ -106,7 +103,7 @@ def roma_app_api(*, cc_protos, proto_basename, protos):
         protos = protos,
     )
 
-def js_proto_library(name, protos, proto_basename, **kwargs):
+def js_proto_library(*, name, protos, proto_basename, **kwargs):
     """
     JS protobuf library.
 
@@ -115,18 +112,14 @@ def js_proto_library(name, protos, proto_basename, **kwargs):
         protos: label list of source proto libraries
         **kwargs: attributes for cc_library and those common to bazel build rules
     """
+    roma_app_api = roma_app_api(
+        proto_basename = proto_basename,
+        protos = protos,
+    )
     name_proto = name + "_proto_js_library"
     roma_js_proto_library(
         name = name_proto,
-        options = {
-            "@google_privacysandbox_servers_common//src/roma/tools/api_plugin:{}".format(p.name): [
-                p.option.format(basename = proto_basename),
-            ]
-            for p in roma_js_proto_plugins
-            if hasattr(p, "option")
-        },
-        output_mode = "NO_PREFIX",
-        protos = protos,
+        roma_app_api = roma_app_api,
     )
     filter_files(
         name = name + "_js_srcs",
@@ -148,28 +141,19 @@ def js_proto_library(name, protos, proto_basename, **kwargs):
         ],
     )
 
-def roma_service_js_library(name, roma_app_api):
+def roma_service_js_library(*, name, roma_app_api):
     """
     JS service library for a Roma Application API.
 
     Args:
         name: name of js_binary target, basename of ancillary targets.
         roma_app_api: the roma_app_api struct
-        roma_app_api: label of the roma_app_api target implemented by this JS service library.
     """
     name_proto = name + "_proto_js_plugin"
 
     app_api_js_protoc(
         name = name_proto,
-        options = {
-            "@google_privacysandbox_servers_common//src/roma/tools/api_plugin:{}".format(p.name): [
-                p.option.format(basename = roma_app_api.proto_basename),
-            ]
-            for p in app_api_js_plugins
-            if hasattr(p, "option")
-        },
-        output_mode = "NO_PREFIX",
-        protos = roma_app_api.protos,
+        roma_app_api = roma_app_api,
     )
     filter_files(
         name = name + "_js_srcs",
@@ -199,7 +183,7 @@ def roma_service_js_library(name, roma_app_api):
         deps = [":{}_js_lib".format(name)],
     )
 
-def roma_client_cc_library(name, roma_app_api, roma_service_js_library, **kwargs):
+def roma_client_cc_library(*, name, roma_app_api, roma_service_js_library, **kwargs):
     """
     Top-level macro for the Roma Application API.
 
@@ -235,15 +219,7 @@ def roma_client_cc_library(name, roma_app_api, roma_service_js_library, **kwargs
 
     app_api_cc_protoc(
         name = name_proto,
-        options = {
-            "@google_privacysandbox_servers_common//src/roma/tools/api_plugin:{}".format(p.name): [
-                p.option.format(basename = roma_app_api.proto_basename),
-            ]
-            for p in app_api_cc_plugins
-            if hasattr(p, "option")
-        },
-        output_mode = "NO_PREFIX",
-        protos = roma_app_api.protos,
+        roma_app_api = roma_app_api,
     )
 
     # Filter files to sources and headers
@@ -252,25 +228,21 @@ def roma_client_cc_library(name, roma_app_api, roma_service_js_library, **kwargs
         target = name_proto,
         suffixes = ["_test.cc"],
     )
-
     _filter_files_suffix(
         name = name + "_romav8_app_pb_js_cc",
         target = name_proto,
         suffixes = ["_romav8_app_pb_js.cc"],
     )
-
     _filter_files_suffix(
         name = name + "_roma_app_h_tmpl",
         target = name_proto,
         suffixes = ["_roma_app.h.tmpl"],
     )
-
     filter_files(
         name = name + "_cc_hdrs",
         target = name_proto,
         extensions = ["h"],
     )
-
     filter_files(
         name = name + "_docs",
         target = name_proto,
