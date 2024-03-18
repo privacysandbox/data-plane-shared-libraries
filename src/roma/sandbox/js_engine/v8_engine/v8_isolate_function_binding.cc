@@ -126,7 +126,10 @@ V8IsolateFunctionBinding::V8IsolateFunctionBinding(
     std::string_view server_address)
     : function_invoker_(std::move(function_invoker)) {
   for (const auto& function_name : function_names) {
-    binding_references_.emplace_back(std::make_pair(function_name, this));
+    binding_references_.emplace_back(Binding{
+        .function_name = function_name,
+        .instance = this,
+    });
   }
 
   if (!server_address.empty()) {
@@ -137,16 +140,16 @@ V8IsolateFunctionBinding::V8IsolateFunctionBinding(
 }
 
 bool V8IsolateFunctionBinding::NativeFieldsToProto(
-    const BindingPair& binding_pair, FunctionBindingIoProto& function_proto,
+    const Binding& binding, FunctionBindingIoProto& function_proto,
     RpcWrapper& rpc_proto) {
-  std::string_view native_function_name = binding_pair.first;
+  std::string_view native_function_name = binding.function_name;
   if (native_function_name.empty()) {
     return false;
   }
 
   rpc_proto.set_function_name(native_function_name);
-  rpc_proto.set_request_id(binding_pair.second->invocation_req_id_);
-  rpc_proto.set_request_uuid(binding_pair.second->invocation_req_uuid_);
+  rpc_proto.set_request_id(binding.instance->invocation_req_id_);
+  rpc_proto.set_request_uuid(binding.instance->invocation_req_uuid_);
   *rpc_proto.mutable_io_proto() = function_proto;
   return true;
 }
@@ -163,9 +166,8 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
     ROMA_VLOG(1) << kUnexpectedDataInBindingCallback;
     return;
   }
-  auto binding_info_pair_external = v8::Local<v8::External>::Cast(data);
-  auto binding_info_pair =
-      reinterpret_cast<BindingPair*>(binding_info_pair_external->Value());
+  auto binding_external = v8::Local<v8::External>::Cast(data);
+  auto binding = reinterpret_cast<Binding*>(binding_external->Value());
   FunctionBindingIoProto function_invocation_proto;
   if (!V8TypesToProto(info, function_invocation_proto)) {
     isolate->ThrowError(kCouldNotConvertJsFunctionInputToNative);
@@ -174,14 +176,12 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   }
 
   RpcWrapper rpc_proto;
-  if (!NativeFieldsToProto(*binding_info_pair, function_invocation_proto,
-                           rpc_proto)) {
+  if (!NativeFieldsToProto(*binding, function_invocation_proto, rpc_proto)) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
     ROMA_VLOG(1) << kCouldNotRunFunctionBinding;
   }
 
-  const auto result =
-      binding_info_pair->second->function_invoker_->Invoke(rpc_proto);
+  const auto result = binding->instance->function_invoker_->Invoke(rpc_proto);
   if (!result.ok()) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
     ROMA_VLOG(1) << kCouldNotRunFunctionBinding;
@@ -198,14 +198,13 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
 
 void V8IsolateFunctionBinding::BindFunction(
     v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& global_object_template,
-    void* binding_ref,
-    void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
+    void* binding, void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
     std::string_view function_name) {
-  const v8::Local<v8::External>& binding_context_pair =
-      v8::External::New(isolate, binding_ref);
+  const v8::Local<v8::External>& binding_context =
+      v8::External::New(isolate, binding);
   // Create the function template to register in the global object
   const auto function_template =
-      v8::FunctionTemplate::New(isolate, callback, binding_context_pair);
+      v8::FunctionTemplate::New(isolate, callback, binding_context);
   // Convert the function binding name to a v8 type
   const auto& binding_name =
       TypeConverter<std::string>::ToV8(isolate, function_name).As<v8::String>();
@@ -218,10 +217,10 @@ bool V8IsolateFunctionBinding::BindFunctions(
   if (!isolate) {
     return false;
   }
-  for (auto& binding_ref : binding_references_) {
+  for (auto& binding : binding_references_) {
     BindFunction(isolate, global_object_template,
-                 reinterpret_cast<void*>(&binding_ref),
-                 &GlobalV8FunctionCallback, binding_ref.first);
+                 reinterpret_cast<void*>(&binding), &GlobalV8FunctionCallback,
+                 binding.function_name);
   }
 
   return true;
@@ -229,9 +228,12 @@ bool V8IsolateFunctionBinding::BindFunctions(
 
 void V8IsolateFunctionBinding::AddIds(std::string_view uuid,
                                       std::string_view id) {
-  if (binding_references_.size() > 0) {
-    binding_references_[0].second->invocation_req_uuid_ = uuid;
-    binding_references_[0].second->invocation_req_id_ = id;
+  if (!binding_references_.empty()) {
+    // All binding_references_ share a single V8IsolateFunctionBinding instance,
+    // so setting the members on binding_references[0].instance changes all
+    // elements of binding_references_.
+    binding_references_[0].instance->invocation_req_uuid_ = uuid;
+    binding_references_[0].instance->invocation_req_id_ = id;
   }
 }
 
@@ -239,8 +241,8 @@ void V8IsolateFunctionBinding::AddExternalReferences(
     std::vector<intptr_t>& external_references) {
   // Must add pointers that are not within the v8 heap to external_references_
   // so that the snapshot serialization works.
-  for (const auto& binding_ref : binding_references_) {
-    external_references.push_back(reinterpret_cast<intptr_t>(&binding_ref));
+  for (const auto& binding : binding_references_) {
+    external_references.push_back(reinterpret_cast<intptr_t>(&binding));
   }
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));

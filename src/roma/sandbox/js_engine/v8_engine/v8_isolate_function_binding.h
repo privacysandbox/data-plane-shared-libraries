@@ -64,15 +64,18 @@ class V8IsolateFunctionBinding {
   absl::Status InvokeRpc(google::scp::roma::proto::RpcWrapper& rpc_proto);
 
  private:
-  using BindingPair = std::pair<std::string, V8IsolateFunctionBinding*>;
-  std::vector<BindingPair> binding_references_;
+  struct Binding {
+    std::string function_name;
+    V8IsolateFunctionBinding* instance;
+  };
+  std::vector<Binding> binding_references_;
   std::string invocation_req_uuid_;
   std::string invocation_req_id_;
 
   static void GlobalV8FunctionCallback(
       const v8::FunctionCallbackInfo<v8::Value>& info);
 
-  static bool NativeFieldsToProto(const BindingPair& binding_pair,
+  static bool NativeFieldsToProto(const Binding& binding,
                                   proto::FunctionBindingIoProto& function_proto,
                                   proto::RpcWrapper& rpc_proto);
 
