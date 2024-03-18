@@ -31,10 +31,7 @@ proto_library(
 
 cc_proto_library(
     name = "crypto_service_cc_proto",
-    visibility = [
-        "//src:scp_internal_pkg",
-        "//src/encryption/key_fetcher:__pkg__",
-    ],
+    visibility = ["//visibility:public"],
     deps = [":crypto_service_proto"],
 )
 
