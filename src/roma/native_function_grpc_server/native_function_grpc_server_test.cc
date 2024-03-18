@@ -166,13 +166,13 @@ TEST_F(NativeFunctionGrpcServerTest, ServerCanLogByDefault) {
   PopulateMetadataStorage(num_processes, num_iters);
 
   // Logging Service and associated factory function are registered by default
-  // in RomaService, and lifetime of objects is maintained by config
+  // in RomaService
   Config<DefaultMetadata> config;
   config.RegisterService(std::make_unique<AsyncLoggingService>(),
                          LogHandler<DefaultMetadata>());
 
-  server_->AddService(config.GetServices().front().get());
-  server_->AddFactories(config.GetFactories());
+  server_->AddServices(config.ReleaseServices());
+  server_->AddFactories(config.ReleaseFactories());
 
   TestBinary(kLoggingClientPath, socket_address_, *server_, num_processes,
              num_iters);
@@ -195,8 +195,8 @@ TEST_F(NativeFunctionGrpcServerTest, ServerCanRegisterRpcHandler) {
   config.RegisterService(std::make_unique<AsyncService>(),
                          TestMethodHandler<DefaultMetadata>());
 
-  server_->AddService(config.GetServices().front().get());
-  server_->AddFactories(config.GetFactories());
+  server_->AddServices(config.ReleaseServices());
+  server_->AddFactories(config.ReleaseFactories());
 
   TestBinary(kClientPath, socket_address_, *server_, num_processes, num_iters);
 
@@ -222,8 +222,8 @@ TEST_F(NativeFunctionGrpcServerTest, ServerCanRegisterMultipleRpcHandlers) {
                          TestMethod1Handler<DefaultMetadata>(),
                          TestMethod2Handler<DefaultMetadata>());
 
-  server_->AddService(config.GetServices().front().get());
-  server_->AddFactories(config.GetFactories());
+  server_->AddServices(config.ReleaseServices());
+  server_->AddFactories(config.ReleaseFactories());
 
   TestBinary(kMultiClientPath, socket_address_, *server_, num_processes,
              num_iters);

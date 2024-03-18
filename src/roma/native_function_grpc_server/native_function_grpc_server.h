@@ -65,21 +65,27 @@ class NativeFunctionGrpcServer final {
 
   void Shutdown() { server_->Shutdown(); }
 
-  /** @brief Adds a gRPC service to server for invocation of RPCs from arbitrary
-    services. Lifetime of service is managed externally, for RomaService, is
-    managed by Config.
+  /** @brief Adds a vector of gRPC services to server for invocation of RPCs
+    from arbitrary services.
    */
-  void AddService(grpc::Service* service) { builder_.RegisterService(service); }
+  void AddServices(std::vector<std::unique_ptr<grpc::Service>> services) {
+    services_ = std::move(services);
+    for (auto& service : services_) {
+      builder_.RegisterService(service.get());
+    }
+  }
 
   /** @brief Stores pointer to vector of factory functions on server for
    * generation of RequestHandlerImpl<TMetadata, THandler> instances, allowing
-   * completion queue to handle arbitrary RPCs in HandleRpcs. Lifetime of
-   factories vector is managed externally, for RomaService, is managed by
-   Config.
+   * completion queue to handle arbitrary RPCs in HandleRpcs. Factories exists
+   * on the heap, and the NativeFunctionGrpcServer takes ownership and handles
+   * deallocation.
    */
   void AddFactories(
       std::vector<grpc_server::FactoryFunction<TMetadata>>* factories) {
-    factories_ = factories;
+    factories_ =
+        std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>(
+            factories);
   }
 
   void Run() {
@@ -103,7 +109,8 @@ class NativeFunctionGrpcServer final {
 
   std::unique_ptr<grpc::ServerCompletionQueue> completion_queue_;
   MetadataStorage<TMetadata>* metadata_storage_;
-  std::vector<FactoryFunction<TMetadata>>* factories_;
+  std::vector<std::unique_ptr<grpc::Service>> services_;
+  std::unique_ptr<std::vector<FactoryFunction<TMetadata>>> factories_;
   std::unique_ptr<grpc::Server> server_;
   grpc::ServerBuilder builder_;
 };

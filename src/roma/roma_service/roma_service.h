@@ -178,11 +178,8 @@ class RomaService {
     config_.RegisterService(
         std::make_unique<grpc_server::AsyncLoggingService>(),
         grpc_server::LogHandler<TMetadata>());
-    auto& services = config_.GetServices();
-    for (auto& service : services) {
-      native_function_server_->AddService(service.get());
-    }
-    native_function_server_->AddFactories(config_.GetFactories());
+    native_function_server_->AddServices(config_.ReleaseServices());
+    native_function_server_->AddFactories(config_.ReleaseFactories());
 
     run_server_thread_ = std::thread(&RomaService::RunServer, this);
   }

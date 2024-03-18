@@ -179,12 +179,12 @@ class Config {
                                                  function_bindings_v2_.end());
   }
 
-  std::vector<std::unique_ptr<grpc::Service>>& GetServices() {
-    return services_;
+  std::vector<std::unique_ptr<grpc::Service>> ReleaseServices() {
+    return std::move(services_);
   }
 
-  std::vector<grpc_server::FactoryFunction<TMetadata>>* GetFactories() {
-    return factories_.get();
+  std::vector<grpc_server::FactoryFunction<TMetadata>>* ReleaseFactories() {
+    return factories_.release();
   }
 
   void SetLoggingFunction(LogCallback logging_func) {
