@@ -65,10 +65,11 @@ class LogHandler
         return absl::LogSeverity::kWarning;
       case privacy_sandbox::server_common::Severity::SEVERITY_INFO:
         return absl::LogSeverity::kInfo;
+      default:
+        LOG(ERROR) << "Unexpected value for Severity: "
+                   << static_cast<int>(severity);
+        return absl::LogSeverity::kFatal;
     }
-    LOG(ERROR) << "Unexpected value for Severity: "
-               << static_cast<int>(severity);
-    return absl::LogSeverity::kFatal;
   }
 
   TRequest request_;

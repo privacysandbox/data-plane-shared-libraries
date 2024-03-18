@@ -191,7 +191,13 @@ class RomaService {
     return metadata_storage_.Add(std::move(uuid), std::move(metadata));
   }
 
-  void DeleteMetadata(std::string_view uuid) { metadata_storage_.Delete(uuid); }
+  void DeleteMetadata(std::string_view uuid) {
+    if (auto deletion_status = metadata_storage_.Delete(uuid);
+        !deletion_status.ok()) {
+      ROMA_VLOG(1) << "Failed to delete metadata. UUID: " << uuid
+                   << ", status: " << deletion_status;
+    }
+  }
 
   struct NativeFunctionBindingSetup {
     std::vector<int> remote_file_descriptors;
