@@ -77,42 +77,42 @@ ExecutionResult MetricClient::CreateMetricClientProvider() noexcept {
 }
 
 ExecutionResult MetricClient::Init() noexcept {
-  auto execution_result = CreateMetricClientProvider();
-  if (!execution_result.Successful()) {
+  if (const auto execution_result = CreateMetricClientProvider();
+      !execution_result.Successful()) {
     SCP_ERROR(kMetricClient, kZeroUuid, execution_result,
               "Failed to create MetricClientProvider.");
     return ConvertToPublicExecutionResult(execution_result);
   }
-
-  execution_result = metric_client_provider_->Init();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kMetricClient, kZeroUuid, execution_result,
+  if (absl::Status error = metric_client_provider_->Init(); !error.ok()) {
+    SCP_ERROR(kMetricClient, kZeroUuid, error,
               "Failed to initialize MetricClient.");
+    return FailureExecutionResult(SC_UNKNOWN);
   }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 ExecutionResult MetricClient::Run() noexcept {
-  auto execution_result = metric_client_provider_->Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kMetricClient, kZeroUuid, execution_result,
-              "Failed to run MetricClient.");
+  if (absl::Status error = metric_client_provider_->Run(); !error.ok()) {
+    SCP_ERROR(kMetricClient, kZeroUuid, error, "Failed to run MetricClient.");
+    return FailureExecutionResult(SC_UNKNOWN);
   }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 ExecutionResult MetricClient::Stop() noexcept {
-  auto execution_result = metric_client_provider_->Stop();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kMetricClient, kZeroUuid, execution_result,
-              "Failed to stop MetricClient.");
+  if (absl::Status error = metric_client_provider_->Stop(); !error.ok()) {
+    SCP_ERROR(kMetricClient, kZeroUuid, error, "Failed to stop MetricClient.");
+    return FailureExecutionResult(SC_UNKNOWN);
   }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 core::ExecutionResult MetricClient::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse> context) noexcept {
-  return metric_client_provider_->PutMetrics(std::move(context));
+  if (!metric_client_provider_->PutMetrics(std::move(context)).ok()) {
+    return FailureExecutionResult(SC_UNKNOWN);
+  }
+  return SuccessExecutionResult();
 }
 
 std::unique_ptr<MetricClientInterface> MetricClientFactory::Create(

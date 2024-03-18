@@ -36,7 +36,7 @@
 namespace google::scp::cpio::client_providers {
 /*! @copydoc MetricClientInterface
  */
-class MetricClientProvider : public MetricClientInterface {
+class MetricClientProvider : public MetricClientProviderInterface {
  public:
   virtual ~MetricClientProvider() = default;
 
@@ -55,15 +55,13 @@ class MetricClientProvider : public MetricClientInterface {
         active_push_count_(0),
         number_metrics_in_vector_(0) {}
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override
-      ABSL_LOCKS_EXCLUDED(sync_mutex_);
+  absl::Status Run() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
-  core::ExecutionResult Stop() noexcept override
-      ABSL_LOCKS_EXCLUDED(sync_mutex_);
+  absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
-  core::ExecutionResult PutMetrics(
+  absl::Status PutMetrics(
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
                          cmrt::sdk::metric_service::v1::PutMetricsResponse>
           record_metric_context) noexcept override

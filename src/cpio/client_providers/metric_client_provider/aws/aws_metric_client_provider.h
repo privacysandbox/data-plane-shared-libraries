@@ -61,7 +61,7 @@ class AwsMetricClientProvider : public MetricClientProvider {
                              std::move(metric_batching_options)),
         io_async_executor_(io_async_executor) {}
 
-  core::ExecutionResult Run() noexcept override;
+  absl::Status Run() noexcept override;
 
  protected:
   core::ExecutionResult MetricsBatchPush(

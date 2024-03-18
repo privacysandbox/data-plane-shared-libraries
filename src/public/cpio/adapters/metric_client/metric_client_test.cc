@@ -58,7 +58,7 @@ class MetricClientTest : public ::testing::Test {
 TEST_F(MetricClientTest, PutMetricsSuccess) {
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context;
   EXPECT_CALL(client_.GetMetricClientProvider(), PutMetrics)
-      .WillOnce(Return(SuccessExecutionResult()));
+      .WillOnce(Return(absl::OkStatus()));
   EXPECT_THAT(client_.PutMetrics(context), IsSuccessful());
 }
 

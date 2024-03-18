@@ -97,8 +97,8 @@ class GcpMetricClientProviderTest : public ::testing::Test {
     mock_client_ = std::make_shared<MetricServiceClient>(connection_);
 
     metric_client_provider_ = CreateClient(false);
-    EXPECT_SUCCESS(metric_client_provider_->Init());
-    EXPECT_SUCCESS(metric_client_provider_->Run());
+    ASSERT_TRUE(metric_client_provider_->Init().ok());
+    ASSERT_TRUE(metric_client_provider_->Run().ok());
   }
 
   std::unique_ptr<MockGcpMetricClientProviderOverrides> CreateClient(
@@ -196,8 +196,8 @@ TEST_F(GcpMetricClientProviderTest,
 
 TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
   metric_client_provider_ = CreateClient(true);
-  EXPECT_SUCCESS(metric_client_provider_->Init());
-  EXPECT_SUCCESS(metric_client_provider_->Run());
+  ASSERT_TRUE(metric_client_provider_->Init().ok());
+  ASSERT_TRUE(metric_client_provider_->Run().ok());
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
@@ -227,8 +227,8 @@ TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
 
 TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
   metric_client_provider_ = CreateClient(true);
-  EXPECT_SUCCESS(metric_client_provider_->Init());
-  EXPECT_SUCCESS(metric_client_provider_->Run());
+  ASSERT_TRUE(metric_client_provider_->Init().ok());
+  ASSERT_TRUE(metric_client_provider_->Run().ok());
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
