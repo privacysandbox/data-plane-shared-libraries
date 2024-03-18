@@ -51,7 +51,9 @@ class V8IsolateFunctionBinding {
       v8::Isolate* isolate,
       v8::Local<v8::ObjectTemplate>& global_object_template, void* binding_ref,
       void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
-      std::string_view function_name);
+      std::string_view function_name,
+      absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>&
+          child_templates);
 
   // Returns success
   bool BindFunctions(v8::Isolate* isolate,

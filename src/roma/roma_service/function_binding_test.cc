@@ -497,4 +497,84 @@ TEST(FunctionBindingTest,
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
+void FooBarFunc1(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
+                                     " String from foo.bar.func1");
+}
+
+void FoObarFunc2(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
+                                     " String from fo.obar.func2");
+}
+
+TEST(FunctionBindingTest, CanRegisterNonGlobalBindingsAndExecuteCode) {
+  Config config;
+  config.number_of_workers = 2;
+  auto func1_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
+  func1_binding_object->function = FooBarFunc1;
+  func1_binding_object->function_name = "foo.bar.func1";
+  config.RegisterFunctionBinding(std::move(func1_binding_object));
+
+  auto func2_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
+  func2_binding_object->function = FoObarFunc2;
+  func2_binding_object->function_name = "fo.obar.func2";
+  config.RegisterFunctionBinding(std::move(func2_binding_object));
+
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler(input) {
+            return `func1: ${foo.bar.func1(input)} func2: ${fo.obar.func2(input)}`;
+          })JS_CODE",
+    });
+
+    EXPECT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
+
+    EXPECT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_THAT(
+      result,
+      StrEq(
+          R"("func1: Foobar String from foo.bar.func1 func2: Foobar String from fo.obar.func2")"));
+
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
 }  // namespace google::scp::roma::test
