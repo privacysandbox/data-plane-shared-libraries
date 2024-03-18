@@ -29,7 +29,6 @@
 #include "src/core/async_executor/aws/aws_async_executor.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/core/interface/execution_result.h"
@@ -53,7 +52,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::common::CreateClientConfiguration;
 
 namespace {
@@ -69,8 +67,8 @@ ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
 }
 
 ExecutionResult AwsParameterClientProvider::Init() noexcept {
-  // Try to get region code from Global Cpio Options, otherwise get region code
-  // from running instance_client.
+  // Try to get region code from options, otherwise get region code from running
+  // instance_client.
   if (!region_code_.empty()) {
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
         CreateClientConfiguration(region_code_), io_async_executor_);

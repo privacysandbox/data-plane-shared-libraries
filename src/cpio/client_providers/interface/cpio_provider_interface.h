@@ -26,7 +26,6 @@
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/message_router_interface.h"
 #include "src/core/interface/service_interface.h"
-#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"

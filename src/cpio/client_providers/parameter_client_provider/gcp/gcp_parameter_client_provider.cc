@@ -25,7 +25,6 @@
 #include "google/cloud/secretmanager/secret_manager_connection.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
 #include "src/cpio/common/gcp/gcp_utils.h"
 #include "src/public/core/interface/execution_result.h"
