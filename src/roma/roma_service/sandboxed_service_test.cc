@@ -34,6 +34,7 @@
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
+#include "src/roma/native_function_grpc_server/test_request_handlers.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
 

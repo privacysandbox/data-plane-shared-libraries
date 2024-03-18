@@ -38,6 +38,7 @@
 #include "src/roma/config/config.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/request_handlers.h"
+#include "src/roma/native_function_grpc_server/test_request_handlers.h"
 
 using ::testing::_;
 constexpr std::string_view kClientPath =

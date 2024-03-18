@@ -108,7 +108,7 @@ cc_test(
         ":roma_service",
         "//src/core/test/utils",
         "//src/roma/interface",
-        "//src/roma/native_function_grpc_server:request_handlers",
+        "//src/roma/native_function_grpc_server:test_request_handlers",
         "//src/util:duration",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
