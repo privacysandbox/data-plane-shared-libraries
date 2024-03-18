@@ -54,7 +54,7 @@ _js_template_plugins = [
         exclusions = [],
         option = _get_template_options(suffix, template_file),
         outputs = ["{basename}" + suffix],
-        tool = "//src/roma/tools/api_plugin:app_api_plugin",
+        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, (template_file, suffix) in enumerate([
         ("js_service_sdk_markdown.tmpl", "_js_service_sdk.md"),
@@ -86,7 +86,7 @@ _cc_template_plugins = [
         name = "roma_app_api_cc_plugin{}".format(i),
         option = _get_template_options(suffix, template_file),
         outputs = ["{basename}" + suffix],
-        tool = "//src/roma/tools/api_plugin:app_api_plugin",
+        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, (template_file, suffix) in enumerate([
         ("cpp_client_sdk_markdown.tmpl", "_cpp_client_sdk.md"),
@@ -133,5 +133,5 @@ roma_js_proto_library = rule(
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
-def get_all_app_api_plugins():
+def get_all_roma_api_plugins():
     return app_api_cc_plugins + app_api_js_plugins
