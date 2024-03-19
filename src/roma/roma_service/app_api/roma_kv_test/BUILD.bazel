@@ -15,7 +15,7 @@
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
-load("//src/roma/tools/api_plugin:roma_app_api.bzl", "roma_app_api", "roma_client_cc_library", "roma_service_js_library")
+load("//src/roma/tools/api_plugin:roma_app_api.bzl", "declare_roma_app_api", "roma_client_cc_library", "roma_service_js_library")
 
 proto_library(
     name = "kv_proto",
@@ -37,7 +37,7 @@ cc_proto_library(
     deps = [":kv_proto"],
 )
 
-kv_api = roma_app_api(
+kv_api = declare_roma_app_api(
     cc_protos = [":kv_cc_proto"],
     proto_basename = "kv",
     protos = [":kv_proto"],

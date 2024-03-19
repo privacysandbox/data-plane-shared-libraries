@@ -85,7 +85,7 @@ _expand_template_file = rule(
     },
 )
 
-def roma_app_api(*, cc_protos, proto_basename, protos):
+def declare_roma_app_api(*, cc_protos, proto_basename, protos):
     """
     Creates struct for a the Roma App API as an entity.
 
@@ -112,7 +112,7 @@ def js_proto_library(*, name, protos, proto_basename, **kwargs):
         protos: label list of source proto libraries
         **kwargs: attributes for cc_library and those common to bazel build rules
     """
-    roma_app_api = roma_app_api(
+    roma_app_api = declare_roma_app_api(
         proto_basename = proto_basename,
         protos = protos,
     )
