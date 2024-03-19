@@ -25,9 +25,7 @@
 namespace google::scp::cpio::mock {
 class MockInstanceClientWithOverrides : public InstanceClient {
  public:
-  MockInstanceClientWithOverrides(
-      const std::shared_ptr<InstanceClientOptions>& options)
-      : InstanceClient(options) {}
+  MockInstanceClientWithOverrides() : InstanceClient(InstanceClientOptions()) {}
 
   core::ExecutionResult create_instance_client_provider_result =
       core::SuccessExecutionResult();

@@ -47,7 +47,7 @@ using google::scp::cpio::mock::MockInstanceClientWithOverrides;
 namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
  protected:
-  InstanceClientTest() : client_(std::make_shared<InstanceClientOptions>()) {
+  InstanceClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }

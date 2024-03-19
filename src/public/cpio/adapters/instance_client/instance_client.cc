@@ -137,7 +137,6 @@ core::ExecutionResult InstanceClient::ListInstanceDetailsByEnvironment(
 
 std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create(
     InstanceClientOptions options) {
-  return std::make_unique<InstanceClient>(
-      std::make_shared<InstanceClientOptions>(std::move(options)));
+  return std::make_unique<InstanceClient>(std::move(options));
 }
 }  // namespace google::scp::cpio
