@@ -25,9 +25,7 @@
 namespace google::scp::cpio::mock {
 class MockCryptoClientWithOverrides : public CryptoClient {
  public:
-  MockCryptoClientWithOverrides(
-      const std::shared_ptr<CryptoClientOptions>& options)
-      : CryptoClient(options) {
+  MockCryptoClientWithOverrides() : CryptoClient(CryptoClientOptions()) {
     crypto_client_provider_ =
         std::make_unique<client_providers::mock::MockCryptoClientProvider>();
   }

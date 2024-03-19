@@ -53,7 +53,7 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class CryptoClientTest : public ::testing::Test {
  protected:
-  CryptoClientTest() : client_(std::make_shared<CryptoClientOptions>()) {
+  CryptoClientTest() {
     EXPECT_CALL(client_.GetCryptoClientProvider(), Init)
         .WillOnce(Return(SuccessExecutionResult()));
     EXPECT_CALL(client_.GetCryptoClientProvider(), Run)

@@ -26,7 +26,6 @@
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/errors.h"
 #include "src/core/utils/error_utils.h"
-#include "src/cpio/client_providers/crypto_client_provider/crypto_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
@@ -51,11 +50,6 @@ constexpr std::string_view kCryptoClient = "CryptoClient";
 }
 
 namespace google::scp::cpio {
-CryptoClient::CryptoClient(
-    const std::shared_ptr<CryptoClientOptions>& options) {
-  crypto_client_provider_ = std::make_unique<CryptoClientProvider>(*options);
-}
-
 ExecutionResult CryptoClient::Init() noexcept {
   auto execution_result = crypto_client_provider_->Init();
   if (!execution_result.Successful()) {
@@ -121,7 +115,6 @@ core::ExecutionResult CryptoClient::AeadDecrypt(
 
 std::unique_ptr<CryptoClientInterface> CryptoClientFactory::Create(
     CryptoClientOptions options) {
-  return std::make_unique<CryptoClient>(
-      std::make_shared<CryptoClientOptions>(options));
+  return std::make_unique<CryptoClient>(std::move(options));
 }
 }  // namespace google::scp::cpio
