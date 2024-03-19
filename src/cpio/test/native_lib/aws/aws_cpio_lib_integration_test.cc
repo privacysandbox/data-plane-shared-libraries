@@ -35,8 +35,6 @@
 #include "src/public/cpio/adapters/metric_client/test_aws_metric_client.h"
 #include "src/public/cpio/adapters/parameter_client/test_aws_parameter_client.h"
 #include "src/public/cpio/test/blob_storage_client/test_aws_blob_storage_client_options.h"
-#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 #include "src/public/cpio/test/kms_client/test_aws_kms_client_options.h"
 #include "src/public/cpio/test/parameter_client/test_aws_parameter_client_options.h"
 
@@ -72,8 +70,6 @@ using google::scp::cpio::TestAwsMetricClient;
 using google::scp::cpio::TestAwsMetricClientOptions;
 using google::scp::cpio::TestAwsParameterClient;
 using google::scp::cpio::TestAwsParameterClientOptions;
-using google::scp::cpio::TestCpioOptions;
-using google::scp::cpio::TestLibCpio;
 using ::testing::StrEq;
 
 namespace {
@@ -123,7 +119,6 @@ class CpioIntegrationTest : public ::testing::Test {
     cpio_options.project_id = "123456789";
     cpio_options.instance_id = "987654321";
     cpio_options.sts_endpoint_override = localstack_endpoint;
-    EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
   }
 
   void TearDown() override {
@@ -139,8 +134,6 @@ class CpioIntegrationTest : public ::testing::Test {
     if (kms_client) {
       EXPECT_SUCCESS(kms_client->Stop());
     }
-
-    EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
   }
 
   void CreateMetricClient() {
@@ -220,8 +213,6 @@ class CpioIntegrationTest : public ::testing::Test {
   std::unique_ptr<TestAwsParameterClient> parameter_client;
   std::unique_ptr<TestAwsBlobStorageClient> blob_storage_client;
   std::unique_ptr<TestAwsKmsClient> kms_client;
-
-  TestCpioOptions cpio_options;
 };
 
 TEST_F(CpioIntegrationTest, MetricClientPutMetricsSuccessfully) {

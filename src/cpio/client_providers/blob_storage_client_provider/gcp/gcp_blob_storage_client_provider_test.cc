@@ -38,8 +38,6 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/public/core/test_execution_result_matchers.h"
-#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::cloud::Status;
 using google::cloud::StatusOr;
@@ -84,7 +82,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
-using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::GcpCloudStorageFactory;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;

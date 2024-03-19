@@ -36,8 +36,6 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/gcp/gcp_blob_storage_client_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/public/core/test_execution_result_matchers.h"
-#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::cloud::Status;
 using google::cloud::StatusOr;
@@ -90,8 +88,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
-using google::scp::cpio::TestCpioOptions;
-using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using testing::ByMove;
@@ -880,9 +876,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
   // In order to test the "no message" path, we must have real async executors.
   AsyncExecutor cpu_async_executor(1, 5);
   AsyncExecutor io_async_executor(1, 5);
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
   EXPECT_SUCCESS(cpu_async_executor.Init());
   EXPECT_SUCCESS(io_async_executor.Init());
   EXPECT_SUCCESS(cpu_async_executor.Run());
@@ -957,7 +950,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
   EXPECT_SUCCESS(gcp_cloud_storage_client.Stop());
   EXPECT_SUCCESS(io_async_executor.Stop());
   EXPECT_SUCCESS(cpu_async_executor.Stop());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
 }
 
 }  // namespace

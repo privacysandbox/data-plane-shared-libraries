@@ -32,7 +32,6 @@ cc_test(
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/test/blob_storage_client:test_aws_blob_storage_client",
         "//src/public/cpio/test/blob_storage_client:test_aws_blob_storage_client_options",
-        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "//src/public/cpio/test/kms_client:test_aws_kms_client",
         "//src/public/cpio/test/kms_client:test_aws_kms_client_options",
         "//src/public/cpio/test/metric_client:test_aws_metric_client",
