@@ -70,7 +70,6 @@ closure_js_binary(
     language = "ECMASCRIPT_NEXT",
     deps = [
         ":kv_js_library",
-        ":kv_js_proto_lib",
     ],
 )
 
