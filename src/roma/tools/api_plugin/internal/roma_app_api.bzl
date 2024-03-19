@@ -21,20 +21,6 @@ load(
     grpc_proto_compile_attrs = "proto_compile_attrs",
 )
 
-roma_js_proto_plugins = [
-    struct(
-        name = "js",
-        exclusions = [],
-        option = ",".join([
-            "binary",
-            "import_style=closure",
-            "library={basename}_pb",
-        ]),
-        outputs = ["{basename}_pb.js"],
-        tool = "@protocolbuffers_protobuf_javascript//generator:protoc-gen-js",
-    ),
-]
-
 # the template_dir_name must be a valid string value for unix directories, the
 # path does not need to exist -- the golang plugin and the plugin options both
 # use this string value
@@ -67,7 +53,7 @@ _js_plugins = [
     ),
 ]
 
-_js_template_plugins = [
+_app_api_js_plugins = [
     struct(
         name = "roma_app_api_js_plugin{}".format(i),
         exclusions = [],
@@ -77,8 +63,6 @@ _js_template_plugins = [
     )
     for i, plugin in enumerate(_js_plugins)
 ]
-
-app_api_js_plugins = roma_js_proto_plugins + _js_template_plugins
 
 _cc_protobuf_plugins = [
     struct(
@@ -120,8 +104,6 @@ _cc_template_plugins = [
     for i, plugin in enumerate(_cc_plugins)
 ]
 
-app_api_cc_plugins = _cc_protobuf_plugins + _cc_template_plugins
-
 def _get_proto_compile_attrs(plugins):
     return dict(
         {k: v for k, v in grpc_proto_compile_attrs.items() if k not in ("output_mode")},
@@ -132,13 +114,15 @@ def _get_proto_compile_attrs(plugins):
         ),
         _plugins = attr.label_list(
             providers = [ProtoPluginInfo],
-            default = [Label("//src/roma/tools/api_plugin:{}".format(plugin.name)) for plugin in plugins],
+            default = [Label("@google_privacysandbox_servers_common//src/roma/tools/api_plugin:{}".format(plugin.name)) for plugin in plugins],
         ),
     )
 
+_app_api_cc_plugins = _cc_protobuf_plugins + _cc_template_plugins
+
 _app_api_cc_protoc = rule(
     implementation = proto_compile_impl,
-    attrs = _get_proto_compile_attrs(app_api_cc_plugins),
+    attrs = _get_proto_compile_attrs(_app_api_cc_plugins),
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
@@ -160,14 +144,14 @@ def app_api_cc_protoc(*, name, roma_app_api, **kwargs):
     _roma_api_protoc(
         name = name,
         protoc_rule = _app_api_cc_protoc,
-        plugins = app_api_cc_plugins,
+        plugins = _app_api_cc_plugins,
         roma_app_api = roma_app_api,
         **kwargs
     )
 
 _app_api_js_protoc = rule(
     implementation = proto_compile_impl,
-    attrs = _get_proto_compile_attrs(app_api_js_plugins),
+    attrs = _get_proto_compile_attrs(_app_api_js_plugins),
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
@@ -175,14 +159,28 @@ def app_api_js_protoc(*, name, roma_app_api, **kwargs):
     _roma_api_protoc(
         name = name,
         protoc_rule = _app_api_js_protoc,
-        plugins = app_api_js_plugins,
+        plugins = _app_api_js_plugins,
         roma_app_api = roma_app_api,
         **kwargs
     )
 
+_protobuf_js_plugins = [
+    struct(
+        name = "js",
+        exclusions = [],
+        option = ",".join([
+            "binary",
+            "import_style=closure",
+            "library={basename}_pb",
+        ]),
+        outputs = ["{basename}_pb.js"],
+        tool = "@protocolbuffers_protobuf_javascript//generator:protoc-gen-js",
+    ),
+]
+
 _roma_js_proto_library = rule(
     implementation = proto_compile_impl,
-    attrs = _get_proto_compile_attrs(roma_js_proto_plugins),
+    attrs = _get_proto_compile_attrs(_protobuf_js_plugins),
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
@@ -190,10 +188,10 @@ def roma_js_proto_library(*, name, roma_app_api, **kwargs):
     _roma_api_protoc(
         name = name,
         protoc_rule = _roma_js_proto_library,
-        plugins = roma_js_proto_plugins,
+        plugins = _protobuf_js_plugins,
         roma_app_api = roma_app_api,
         **kwargs
     )
 
 def get_all_roma_api_plugins():
-    return app_api_cc_plugins + app_api_js_plugins
+    return _app_api_cc_plugins + _app_api_js_plugins + _protobuf_js_plugins

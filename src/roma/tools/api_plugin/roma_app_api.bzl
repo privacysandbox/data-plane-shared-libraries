@@ -14,7 +14,7 @@
 
 """Macro for the Roma Application API."""
 
-load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary", "closure_js_library")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
@@ -103,20 +103,16 @@ def declare_roma_app_api(*, cc_protos, proto_basename, protos):
         protos = protos,
     )
 
-def js_proto_library(*, name, protos, proto_basename, **kwargs):
+def js_proto_library(*, name, roma_app_api, **kwargs):
     """
     JS protobuf library.
 
     Args:
         name: target name the generated JS library
-        protos: label list of source proto libraries
+        roma_app_api: the roma_app_api struct
         **kwargs: attributes for cc_library and those common to bazel build rules
     """
-    roma_app_api = declare_roma_app_api(
-        proto_basename = proto_basename,
-        protos = protos,
-    )
-    name_proto = name + "_proto_js_library"
+    name_proto = name + "_pb"
     roma_js_proto_library(
         name = name_proto,
         roma_app_api = roma_app_api,
@@ -136,12 +132,12 @@ def js_proto_library(*, name, protos, proto_basename, **kwargs):
         srcs = [":{}_js_srcs".format(name)],
         convention = "NONE",
         lenient = True,
-        deps = [
+        deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
     )
 
-def roma_service_js_library(*, name, roma_app_api):
+def roma_service_js_library(*, name, roma_app_api, **kwargs):
     """
     JS service library for a Roma Application API.
 
@@ -170,20 +166,12 @@ def roma_service_js_library(*, name, roma_app_api):
         srcs = [":{}_js_srcs".format(name)],
         convention = "NONE",
         lenient = True,
-        deps = [
+        deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
     )
-    closure_js_binary(
-        name = name,
-        debug = False,
-        language = "ECMASCRIPT_NEXT",
-        compilation_level = "SIMPLE_OPTIMIZATIONS",
-        formatting = "PRETTY_PRINT",
-        deps = [":{}_js_lib".format(name)],
-    )
 
-def roma_client_cc_library(*, name, roma_app_api, roma_service_js_library, **kwargs):
+def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwargs):
     """
     Top-level macro for the Roma Application API.
 
@@ -194,7 +182,8 @@ def roma_client_cc_library(*, name, roma_app_api, roma_service_js_library, **kwa
     Args:
         name: name of cc_library target, basename of ancillary targets.
         roma_app_api: the roma_app_api struct
-        roma_service_js_library: label of the associated roma_api target.
+        js_library: label of the associated roma_api target.
+        docs: list of docs labels to include in sdk.
         **kwargs: attributes for cc_library and those common to bazel build rules
 
     Generates:
@@ -254,7 +243,7 @@ def roma_client_cc_library(*, name, roma_app_api, roma_service_js_library, **kwa
         name = "{}_romav8_app_header".format(name),
         template = ":{}_roma_app_h_tmpl".format(name),
         match = "@ROMA_APP_JSCODE@",
-        content = "{}.js".format(roma_service_js_library),
+        content = "{}.js".format(js_library),
         out = service_h,
     )
 
@@ -306,9 +295,8 @@ def roma_client_cc_library(*, name, roma_app_api, roma_service_js_library, **kwa
 
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = [
+        srcs = docs + [
             ":{}_docs".format(name),
-            "{}_docs".format(roma_service_js_library),
         ],
         prefix = "docs",
     )
@@ -317,7 +305,7 @@ def roma_client_cc_library(*, name, roma_app_api, roma_service_js_library, **kwa
         name = name + "_artifacts",
         srcs = [
             ":{}".format(name),
-            "{}.js".format(roma_service_js_library),
+            "{}.js".format(js_library),
             ":{}_cc_hdrs".format(name),
             ":{}_doc_artifacts".format(name),
             service_h,
