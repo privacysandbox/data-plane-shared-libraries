@@ -46,7 +46,7 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class PublicKeyClientTest : public ::testing::Test {
  protected:
-  PublicKeyClientTest() : client_(std::make_shared<PublicKeyClientOptions>()) {
+  PublicKeyClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }

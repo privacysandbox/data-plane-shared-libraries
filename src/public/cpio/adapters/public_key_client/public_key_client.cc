@@ -63,7 +63,7 @@ ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
     http_client = *client;
   }
   public_key_client_provider_ =
-      PublicKeyClientProviderFactory::Create(*options_, http_client);
+      PublicKeyClientProviderFactory::Create(options_, http_client);
   return SuccessExecutionResult();
 }
 
@@ -112,7 +112,6 @@ core::ExecutionResult PublicKeyClient::ListPublicKeys(
 
 std::unique_ptr<PublicKeyClientInterface> PublicKeyClientFactory::Create(
     PublicKeyClientOptions options) {
-  return std::make_unique<PublicKeyClient>(
-      std::make_shared<PublicKeyClientOptions>(std::move(options)));
+  return std::make_unique<PublicKeyClient>(std::move(options));
 }
 }  // namespace google::scp::cpio
