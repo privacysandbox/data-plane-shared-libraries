@@ -20,7 +20,6 @@
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
@@ -35,7 +34,6 @@ using google::cmrt::sdk::queue_service::v1::GetTopMessageRequest;
 using google::cmrt::sdk::queue_service::v1::GetTopMessageResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
-using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::QueueClientOptions;
 using google::scp::cpio::validator::proto::EnqueueMessageConfig;
@@ -44,7 +42,8 @@ inline constexpr std::string_view kQueueName = "queue_service_test_queue";
 }  // namespace
 
 void RunEnqueueMessageValidator(
-    std::string_view name, const EnqueueMessageConfig& enqueue_message_config) {
+    client_providers::CpioProviderInterface& cpio, std::string_view name,
+    const EnqueueMessageConfig& enqueue_message_config) {
   if (enqueue_message_config.message_body().empty()) {
     std::cout << "[ FAILURE ]  " << name << " No message body provided."
               << std::endl;
@@ -52,13 +51,11 @@ void RunEnqueueMessageValidator(
   }
   QueueClientOptions options;
   options.queue_name = kQueueName;
-  options.project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
+  options.project_id = cpio.GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-          std::move(options),
-          &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
-          &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
-          &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
+          std::move(options), &cpio.GetInstanceClientProvider(),
+          &cpio.GetCpuAsyncExecutor(), &cpio.GetIoAsyncExecutor());
   if (!queue_client.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << queue_client.status()
               << std::endl;
@@ -96,16 +93,15 @@ void RunEnqueueMessageValidator(
   }
 }
 
-void RunGetTopMessageValidator(std::string_view name) {
+void RunGetTopMessageValidator(client_providers::CpioProviderInterface& cpio,
+                               std::string_view name) {
   QueueClientOptions options;
   options.queue_name = kQueueName;
-  options.project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
+  options.project_id = cpio.GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-          std::move(options),
-          &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
-          &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
-          &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
+          std::move(options), &cpio.GetInstanceClientProvider(),
+          &cpio.GetCpuAsyncExecutor(), &cpio.GetIoAsyncExecutor());
   if (!queue_client.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << queue_client.status()
               << std::endl;

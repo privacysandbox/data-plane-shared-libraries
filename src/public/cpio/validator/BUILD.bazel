@@ -148,7 +148,6 @@ cc_library(
     srcs = ["queue_client_validator.cc"],
     hdrs = ["queue_client_validator.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/queue_client_provider:queue_client_provider_select",
         "//src/public/core/interface:errors",
@@ -166,7 +165,6 @@ cc_library(
     srcs = ["key_fetcher_validator.cc"],
     hdrs = ["key_fetcher_validator.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_select",
         "//src/public/core/interface:errors",
