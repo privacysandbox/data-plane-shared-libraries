@@ -38,7 +38,6 @@
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
