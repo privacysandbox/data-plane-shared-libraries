@@ -21,6 +21,7 @@ load(
     "declare_roma_app_api",
     "js_proto_library",
     "roma_client_cc_library",
+    "roma_sdk",
     "roma_service_js_library",
 )
 
@@ -68,21 +69,28 @@ closure_js_binary(
     formatting = "PRETTY_PRINT",
     language = "ECMASCRIPT_NEXT",
     deps = [
-        ":kv_js_library_js_lib",
+        ":kv_js_library",
         ":kv_js_proto_lib",
     ],
 )
 
 roma_client_cc_library(
     name = "kv_roma_api",
-    docs = [
-        ":kv_js_library_docs",
-    ],
     js_library = ":kv_js",
     roma_app_api = kv_api,
     tags = [
         "noasan",
     ],
+    visibility = ["//visibility:public"],
+)
+
+roma_sdk(
+    name = "kv_sdk",
+    srcs = [
+        ":kv_js",
+    ],
+    cc_library = ":kv_roma_api",
+    js_library = ":kv_js_library",
     visibility = ["//visibility:public"],
 )
 

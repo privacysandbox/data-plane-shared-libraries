@@ -162,7 +162,7 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         extensions = ["md"],
     )
     closure_js_library(
-        name = name + "_js_lib",
+        name = name,
         srcs = [":{}_js_srcs".format(name)],
         convention = "NONE",
         lenient = True,
@@ -171,7 +171,7 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         ],
     )
 
-def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwargs):
+def roma_client_cc_library(*, name, roma_app_api, js_library, **kwargs):
     """
     Top-level macro for the Roma Application API.
 
@@ -182,9 +182,8 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwarg
     Args:
         name: name of cc_library target, basename of ancillary targets.
         roma_app_api: the roma_app_api struct
-        js_library: label of the associated roma_api target.
-        docs: list of docs labels to include in sdk.
-        **kwargs: attributes for cc_library and those common to bazel build rules
+        js_library: label of the associated roma_service_js_library target.
+        **kwargs: attributes for cc_library and those common to bazel build rules.
 
     Generates:
         <name>_js_server_api.md
@@ -196,7 +195,6 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwarg
         <name> -- cc_library
         <name>_srcs -- c++ source files
         <name>_hdrs -- c++ header files
-        <name>_docs -- markdown docs
 
     Returns:
         Providers:
@@ -216,11 +214,6 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwarg
         name = name + "_cc_test_srcs",
         target = name_proto,
         suffixes = ["_test.cc"],
-    )
-    _filter_files_suffix(
-        name = name + "_romav8_app_pb_js_cc",
-        target = name_proto,
-        suffixes = ["_romav8_app_pb_js.cc"],
     )
     _filter_files_suffix(
         name = name + "_roma_app_h_tmpl",
@@ -246,11 +239,16 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwarg
         content = "{}.js".format(js_library),
         out = service_h,
     )
+    pkg_files(
+        name = name + "_cc_service_hdrs",
+        srcs = [":{}".format(service_h)],
+        prefix = "docs",
+    )
 
     cc_library(
         name = name,
         hdrs = [
-            ":{}".format(service_h),
+            ":{}_cc_service_hdrs".format(name),
             ":{}_cc_hdrs".format(name),
         ],
         includes = ["."],
@@ -293,22 +291,37 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, docs = [], **kwarg
         }  # forward common bazel args
     )
 
+def roma_sdk(*, name, srcs, cc_library, js_library, **kwargs):
+    """
+    Top-level macro for the Roma SDK.
+
+    Generates a bundle of SDK artifacts for the specified Roma API.
+
+    Args:
+        name: name of sdk target, basename of ancillary targets.
+        srcs: label list of targets to include.
+        cc_library: label of the associated roma_service_cc_library target.
+        js_library: label of the associated roma_service_js_library target.
+        **kwargs: attributes common to bazel build rules.
+
+    Targets:
+        <name>_doc_artifacts -- docs pkg_files
+        <name> -- sdk pkg_zip
+    """
+
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = docs + [
-            ":{}_docs".format(name),
-        ],
+        srcs = ["{}_docs".format(tgt) for tgt in (cc_library, js_library)],
         prefix = "docs",
     )
 
     pkg_zip(
-        name = name + "_artifacts",
-        srcs = [
-            ":{}".format(name),
-            "{}.js".format(js_library),
-            ":{}_cc_hdrs".format(name),
+        name = name,
+        srcs = srcs + [
+            "{}".format(cc_library),
+            "{}_cc_service_hdrs".format(cc_library),
+            "{}_cc_hdrs".format(cc_library),
             ":{}_doc_artifacts".format(name),
-            service_h,
         ],
         package_dir = "/{}".format(name),
     )
