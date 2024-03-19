@@ -46,8 +46,7 @@ using google::scp::cpio::mock::MockPrivateKeyClientWithOverrides;
 namespace google::scp::cpio::test {
 class PrivateKeyClientTest : public ::testing::Test {
  protected:
-  PrivateKeyClientTest()
-      : client_(std::make_shared<PrivateKeyClientOptions>()) {
+  PrivateKeyClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }

@@ -97,7 +97,7 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
     io_async_executor = *executor;
   }
   private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
-      *options_, http_client, role_credentials_provider, auth_token_provider,
+      options_, http_client, role_credentials_provider, auth_token_provider,
       io_async_executor);
   return SuccessExecutionResult();
 }
@@ -147,7 +147,6 @@ core::ExecutionResult PrivateKeyClient::ListPrivateKeys(
 
 std::unique_ptr<PrivateKeyClientInterface> PrivateKeyClientFactory::Create(
     PrivateKeyClientOptions options) {
-  return std::make_unique<PrivateKeyClient>(
-      std::make_shared<PrivateKeyClientOptions>(std::move(options)));
+  return std::make_unique<PrivateKeyClient>(std::move(options));
 }
 }  // namespace google::scp::cpio

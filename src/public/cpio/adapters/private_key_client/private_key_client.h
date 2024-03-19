@@ -18,6 +18,7 @@
 #define PUBLIC_CPIO_ADAPTERS_PRIVATE_KEY_CLIENT_PRIVATE_KEY_CLIENT_H_
 
 #include <memory>
+#include <utility>
 
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/private_key_client_provider_interface.h"
@@ -30,9 +31,8 @@ namespace google::scp::cpio {
  */
 class PrivateKeyClient : public PrivateKeyClientInterface {
  public:
-  explicit PrivateKeyClient(
-      const std::shared_ptr<PrivateKeyClientOptions>& options)
-      : options_(options) {}
+  explicit PrivateKeyClient(PrivateKeyClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~PrivateKeyClient() = default;
 
@@ -54,7 +54,7 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
       private_key_client_provider_;
 
  private:
-  std::shared_ptr<PrivateKeyClientOptions> options_;
+  PrivateKeyClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
