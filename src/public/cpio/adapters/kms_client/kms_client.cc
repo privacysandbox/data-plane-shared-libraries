@@ -66,7 +66,7 @@ ExecutionResult KmsClient::Init() noexcept {
     io_async_executor = *executor;
   }
   kms_client_provider_ = KmsClientProviderFactory::Create(
-      *options_, role_credentials_provider, io_async_executor);
+      options_, role_credentials_provider, io_async_executor);
   auto execution_result = kms_client_provider_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
@@ -103,7 +103,6 @@ ExecutionResult KmsClient::Decrypt(
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
     KmsClientOptions options) {
-  return std::make_unique<KmsClient>(
-      std::make_shared<KmsClientOptions>(std::move(options)));
+  return std::make_unique<KmsClient>(std::move(options));
 }
 }  // namespace google::scp::cpio
