@@ -25,9 +25,8 @@
 namespace google::scp::cpio::mock {
 class MockParameterClientWithOverrides : public ParameterClient {
  public:
-  MockParameterClientWithOverrides(
-      const std::shared_ptr<ParameterClientOptions>& options)
-      : ParameterClient(options) {}
+  MockParameterClientWithOverrides()
+      : ParameterClient(ParameterClientOptions()) {}
 
   core::ExecutionResult create_parameter_client_provider_result =
       core::SuccessExecutionResult();

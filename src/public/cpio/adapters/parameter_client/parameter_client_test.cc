@@ -46,7 +46,7 @@ using google::scp::cpio::mock::MockParameterClientWithOverrides;
 namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
  protected:
-  ParameterClientTest() : client_(std::make_shared<ParameterClientOptions>()) {
+  ParameterClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }

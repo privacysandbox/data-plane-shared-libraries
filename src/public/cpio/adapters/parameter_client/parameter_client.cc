@@ -85,7 +85,7 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
     io_async_executor = *executor;
   }
 
-  ParameterClientOptions options = *options_;
+  ParameterClientOptions options = options_;
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
   }
@@ -146,7 +146,6 @@ core::ExecutionResult ParameterClient::GetParameter(
 
 std::unique_ptr<ParameterClientInterface> ParameterClientFactory::Create(
     ParameterClientOptions options) {
-  return std::make_unique<ParameterClient>(
-      std::make_shared<ParameterClientOptions>(std::move(options)));
+  return std::make_unique<ParameterClient>(std::move(options));
 }
 }  // namespace google::scp::cpio
