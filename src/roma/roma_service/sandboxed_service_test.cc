@@ -103,34 +103,6 @@ TEST(SandboxedServiceTest, StopGracefullyWithPendingLoads) {
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
-template <typename TMetadata>
-class InvokeCallbackHandler
-    : public google::scp::roma::grpc_server::RequestHandlerBase<
-          privacy_sandbox::server_common::InvokeCallbackRequest,
-          privacy_sandbox::server_common::InvokeCallbackResponse,
-          privacy_sandbox::server_common::JSCallbackService::AsyncService> {
- public:
-  void Request(TService* service, grpc::ServerContext* ctx,
-               grpc::ServerAsyncResponseWriter<TResponse>* responder,
-               grpc::ServerCompletionQueue* cq, void* tag) {
-    service->RequestInvokeCallback(ctx, &request_, responder, cq, cq, tag);
-  }
-
-  std::pair<TResponse*, grpc::Status> ProcessRequest(
-      const TMetadata& metadata) {
-    LOG(INFO) << "InvokeCallback gRPC called.";
-    auto [response_bytes, status] =
-        privacysandbox::test_server::HandleNativeRequest(
-            request_.request_payload(), metadata, request_.function_name());
-    *response_.mutable_response_payload() = std::move(response_bytes);
-    return std::make_pair(&response_, status);
-  }
-
- private:
-  TRequest request_;
-  TResponse response_;
-};
-
 template <typename T>
 std::string ProtoToBytesStr(const T& request) {
   std::string str = request.SerializeAsString();
@@ -147,7 +119,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   config.RegisterService(
       std::make_unique<
           privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
-      InvokeCallbackHandler<std::string>());
+      privacysandbox::test_server::InvokeCallbackHandler<std::string>());
 
   auto roma_service =
       std::make_unique<RomaService<std::string>>(std::move(config));

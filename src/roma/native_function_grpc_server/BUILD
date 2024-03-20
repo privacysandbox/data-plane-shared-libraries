@@ -19,6 +19,7 @@ cc_library(
     hdrs = ["interface.h"],
     visibility = [
         "//src/roma/config:__subpackages__",
+        "//src/roma/roma_service:__subpackages__",
         "//src/roma/sandbox/js_engine/v8_engine:__subpackages__",
     ],
     deps = [

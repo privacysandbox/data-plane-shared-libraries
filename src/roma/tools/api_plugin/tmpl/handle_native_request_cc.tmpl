@@ -25,6 +25,9 @@
 #include <grpcpp/grpcpp.h>
 
 #include "src/util/status_macro/status_util.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
+#include "src/roma/native_function_grpc_server/interface.h"
 {{range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 {{range $path := $svcopts.CppHostProcessCallbackIncludes}}
@@ -58,6 +61,33 @@ std::pair<std::string, grpc::Status> HandleNativeRequest(
   grpc::Status status(grpc::StatusCode::NOT_FOUND, "Invalid function name");
   return std::make_pair("", status);
 }
+
+template <typename TMetadata>
+class InvokeCallbackHandler
+    : public google::scp::roma::grpc_server::RequestHandlerBase<
+          privacy_sandbox::server_common::InvokeCallbackRequest,
+          privacy_sandbox::server_common::InvokeCallbackResponse,
+          privacy_sandbox::server_common::JSCallbackService::AsyncService> {
+ public:
+  void Request(TService* service, grpc::ServerContext* ctx,
+               grpc::ServerAsyncResponseWriter<TResponse>* responder,
+               grpc::ServerCompletionQueue* cq, void* tag) {
+    service->RequestInvokeCallback(ctx, &request_, responder, cq, cq, tag);
+  }
+
+  std::pair<TResponse*, grpc::Status> ProcessRequest(
+      const TMetadata& metadata) {
+    LOG(INFO) << "InvokeCallback gRPC called.";
+    auto [response_bytes, status] = HandleNativeRequest(
+        request_.request_payload(), metadata, request_.function_name());
+    *response_.mutable_response_payload() = std::move(response_bytes);
+    return std::make_pair(&response_, status);
+  }
+
+ private:
+  TRequest request_;
+  TResponse response_;
+};
 }  // namespace {{$svcopts.CppNamespace}}
 {{- end -}}{{/*svc range*/}}
 
