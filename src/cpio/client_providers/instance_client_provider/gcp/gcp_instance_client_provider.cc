@@ -168,18 +168,6 @@ GcpInstanceClientProvider::GcpInstanceClientProvider(
       http_uri_instance_zone_(
           std::make_shared<std::string>(kURIForInstanceZone)) {}
 
-ExecutionResult GcpInstanceClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpInstanceClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpInstanceClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   GetCurrentInstanceResourceNameRequest request;

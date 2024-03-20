@@ -89,15 +89,6 @@ ExecutionResult LibCpioProvider::Run() noexcept {
 }
 
 ExecutionResult LibCpioProvider::Stop() noexcept {
-  if (instance_client_provider_) {
-    auto execution_result = instance_client_provider_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop instance client provider.");
-      return execution_result;
-    }
-  }
-
   if (auth_token_provider_) {
     auto execution_result = auth_token_provider_->Stop();
     if (!execution_result.Successful()) {
@@ -316,27 +307,9 @@ LibCpioProvider::GetInstanceClientProvider() noexcept {
     return io_async_executor.status();
   }
 
-  auto instance_client_provider = InstanceClientProviderFactory::Create(
+  instance_client_provider_ = InstanceClientProviderFactory::Create(
       *auth_token_provider, *http1_client, *http2_client, *cpu_async_executor,
       *io_async_executor);
-  if (const auto execution_result = instance_client_provider->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize instance client provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize instance client provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = instance_client_provider->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run instance client provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run instance client provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  instance_client_provider_ = std::move(instance_client_provider);
   return instance_client_provider_.get();
 }
 

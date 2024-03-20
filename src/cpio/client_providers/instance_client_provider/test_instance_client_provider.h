@@ -63,12 +63,6 @@ class TestInstanceClientProvider : public InstanceClientProviderInterface {
   explicit TestInstanceClientProvider(TestInstanceClientOptions test_options)
       : test_options_(std::move(test_options)) {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   core::ExecutionResult GetCurrentInstanceResourceName(
       core::AsyncContext<cmrt::sdk::instance_service::v1::
                              GetCurrentInstanceResourceNameRequest,

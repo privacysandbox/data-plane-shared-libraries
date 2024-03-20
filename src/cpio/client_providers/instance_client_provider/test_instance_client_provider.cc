@@ -48,18 +48,6 @@ constexpr std::string_view kAwsResourceNameFormat =
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult TestInstanceClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult TestInstanceClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult TestInstanceClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult
 TestInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     std::string_view resource_name,

@@ -32,7 +32,7 @@ namespace google::scp::cpio::client_providers {
 /**
  * @brief Interface responsible for fetching instance data.
  */
-class InstanceClientProviderInterface : public core::ServiceInterface {
+class InstanceClientProviderInterface {
  public:
   virtual ~InstanceClientProviderInterface() = default;
 

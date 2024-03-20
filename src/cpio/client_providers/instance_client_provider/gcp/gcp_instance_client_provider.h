@@ -35,12 +35,6 @@ class GcpInstanceClientProvider : public InstanceClientProviderInterface {
                             core::HttpClientInterface* http1_client,
                             core::HttpClientInterface* http2_client);
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   core::ExecutionResult GetCurrentInstanceResourceName(
       core::AsyncContext<cmrt::sdk::instance_service::v1::
                              GetCurrentInstanceResourceNameRequest,

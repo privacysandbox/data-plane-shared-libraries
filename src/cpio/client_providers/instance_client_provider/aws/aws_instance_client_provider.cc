@@ -121,18 +121,6 @@ const auto& GetRequiredFieldsForInstanceDynamicData() {
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult AwsInstanceClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsInstanceClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsInstanceClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResultOr<std::shared_ptr<EC2Client>>
 AwsInstanceClientProvider::GetEC2ClientByRegion(
     std::string_view region) noexcept {

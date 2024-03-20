@@ -60,12 +60,6 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
         io_async_executor_(io_async_executor),
         ec2_factory_(std::move(ec2_factory)) {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   core::ExecutionResult GetCurrentInstanceResourceName(
       core::AsyncContext<cmrt::sdk::instance_service::v1::
                              GetCurrentInstanceResourceNameRequest,

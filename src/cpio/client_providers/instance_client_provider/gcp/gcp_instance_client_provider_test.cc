@@ -108,9 +108,6 @@ class GcpInstanceClientProviderTest : public testing::Test {
   GcpInstanceClientProviderTest()
       : instance_provider_(&authorizer_provider_, &http1_client_,
                            &http2_client_) {
-    EXPECT_SUCCESS(instance_provider_.Init());
-    EXPECT_SUCCESS(instance_provider_.Run());
-
     get_details_path_mock_ =
         absl::StrCat(kGcpInstanceGetUrlPrefix, kResourceId);
     get_details_request_ =
@@ -121,10 +118,6 @@ class GcpInstanceClientProviderTest : public testing::Test {
                                           absl::StrCat(kZoneMock, "-"));
     get_tags_request_ = std::make_shared<GetTagsByResourceNameRequest>();
     get_tags_request_->set_resource_name(kInstanceResourceName);
-  }
-
-  ~GcpInstanceClientProviderTest() {
-    EXPECT_SUCCESS(instance_provider_.Stop());
   }
 
   MockCurlClient http1_client_;

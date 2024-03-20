@@ -30,18 +30,6 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockInstanceClientProvider : public InstanceClientProviderInterface {
  public:
-  core::ExecutionResult Init() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Run() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Stop() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
   MOCK_METHOD(
       core::ExecutionResult, GetCurrentInstanceResourceName,
       ((core::AsyncContext<cmrt::sdk::instance_service::v1::
