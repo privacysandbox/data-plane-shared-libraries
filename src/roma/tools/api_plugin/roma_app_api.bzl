@@ -22,7 +22,7 @@ load("@rules_proto_grpc//:defs.bzl", "bazel_build_rule_common_attrs", "filter_fi
 load(
     "//src/roma/tools/api_plugin:internal/roma_app_api.bzl",
     "app_api_cc_protoc",
-    "app_api_js_protoc",
+    "app_api_handler_js_protoc",
     "roma_js_proto_library",
 )
 
@@ -147,7 +147,7 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
     """
     name_proto = name + "_proto_js_plugin"
 
-    app_api_js_protoc(
+    app_api_handler_js_protoc(
         name = name_proto,
         roma_app_api = roma_app_api,
     )
