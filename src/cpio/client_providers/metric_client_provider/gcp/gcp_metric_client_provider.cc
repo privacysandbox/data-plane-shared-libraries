@@ -71,14 +71,13 @@ absl::Status GcpMetricClientProvider::Run() noexcept {
   }
 
   std::string instance_resource_name;
-  if (const auto result =
+  if (absl::Status error =
           instance_client_provider_->GetCurrentInstanceResourceNameSync(
               instance_resource_name);
-      !result.Successful()) {
-    SCP_ERROR(kGcpMetricClientProvider, kZeroUuid, result,
+      !error.ok()) {
+    SCP_ERROR(kGcpMetricClientProvider, kZeroUuid, error,
               "Failed to fetch current instance resource name");
-    return absl::UnknownError(
-        core::errors::GetErrorMessage(result.status_code));
+    return error;
   }
 
   if (const auto result =

@@ -205,8 +205,7 @@ TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {
   MockAsyncExecutor async_executor_mock;
   MockAsyncExecutor io_async_executor_mock;
   MockInstanceClientProvider instance_client_mock;
-  instance_client_mock.get_instance_resource_name_mock =
-      FailureExecutionResult(SC_UNKNOWN);
+  instance_client_mock.get_instance_resource_name_mock = absl::UnknownError("");
 
   auto connection =
       std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();

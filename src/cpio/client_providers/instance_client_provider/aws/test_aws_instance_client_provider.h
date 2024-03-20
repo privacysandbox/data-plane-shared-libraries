@@ -17,16 +17,10 @@
 #ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_TEST_AWS_INSTANCE_CLIENT_PROVIDER_H_
 #define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_TEST_AWS_INSTANCE_CLIENT_PROVIDER_H_
 
-#include <map>
-#include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
-#include "src/core/interface/service_interface.h"
 #include "src/cpio/client_providers/instance_client_provider/test_instance_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 
 namespace google::scp::cpio::client_providers {
 /**
@@ -37,7 +31,7 @@ class TestAwsInstanceClientProvider : public TestInstanceClientProvider {
   explicit TestAwsInstanceClientProvider(TestInstanceClientOptions test_options)
       : TestInstanceClientProvider(std::move(test_options)) {}
 
-  core::ExecutionResult GetCurrentInstanceResourceNameSync(
+  absl::Status GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override;
 };
 }  // namespace google::scp::cpio::client_providers

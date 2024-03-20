@@ -98,19 +98,26 @@ core::ExecutionResult InstanceClient::GetCurrentInstanceResourceName(
     Callback<GetCurrentInstanceResourceNameResponse> callback) noexcept {
   return Execute<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>(
-      absl::bind_front(
-          &InstanceClientProviderInterface::GetCurrentInstanceResourceName,
-          instance_client_provider_),
-      request, callback);
+             absl::bind_front(&InstanceClientProviderInterface::
+                                  GetCurrentInstanceResourceName,
+                              instance_client_provider_),
+             request, callback)
+                 .ok()
+             ? core::SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 core::ExecutionResult InstanceClient::GetTagsByResourceName(
     GetTagsByResourceNameRequest request,
     Callback<GetTagsByResourceNameResponse> callback) noexcept {
   return Execute<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>(
-      absl::bind_front(&InstanceClientProviderInterface::GetTagsByResourceName,
-                       instance_client_provider_),
-      request, callback);
+             absl::bind_front(
+                 &InstanceClientProviderInterface::GetTagsByResourceName,
+                 instance_client_provider_),
+             request, callback)
+                 .ok()
+             ? core::SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 core::ExecutionResult InstanceClient::GetInstanceDetailsByResourceName(
@@ -118,10 +125,13 @@ core::ExecutionResult InstanceClient::GetInstanceDetailsByResourceName(
     Callback<GetInstanceDetailsByResourceNameResponse> callback) noexcept {
   return Execute<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>(
-      absl::bind_front(
-          &InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
-          instance_client_provider_),
-      request, callback);
+             absl::bind_front(&InstanceClientProviderInterface::
+                                  GetInstanceDetailsByResourceName,
+                              instance_client_provider_),
+             request, callback)
+                 .ok()
+             ? core::SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 core::ExecutionResult InstanceClient::ListInstanceDetailsByEnvironment(
@@ -129,10 +139,13 @@ core::ExecutionResult InstanceClient::ListInstanceDetailsByEnvironment(
     Callback<ListInstanceDetailsByEnvironmentResponse> callback) noexcept {
   return Execute<ListInstanceDetailsByEnvironmentRequest,
                  ListInstanceDetailsByEnvironmentResponse>(
-      absl::bind_front(
-          &InstanceClientProviderInterface::ListInstanceDetailsByEnvironment,
-          instance_client_provider_),
-      request, callback);
+             absl::bind_front(&InstanceClientProviderInterface::
+                                  ListInstanceDetailsByEnvironment,
+                              instance_client_provider_),
+             request, callback)
+                 .ok()
+             ? core::SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create(

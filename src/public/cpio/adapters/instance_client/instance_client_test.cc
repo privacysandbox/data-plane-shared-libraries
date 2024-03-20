@@ -66,7 +66,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
             context.response =
                 std::make_shared<GetCurrentInstanceResourceNameResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -88,7 +88,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -110,7 +110,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
                                  GetTagsByResourceNameResponse>& context) {
         context.response = std::make_shared<GetTagsByResourceNameResponse>();
         context.Finish(SuccessExecutionResult());
-        return SuccessExecutionResult();
+        return absl::OkStatus();
       });
 
   absl::Notification finished;
@@ -130,7 +130,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.Finish(FailureExecutionResult(SC_UNKNOWN));
-        return FailureExecutionResult(SC_UNKNOWN);
+        return absl::UnknownError("");
       });
 
   absl::Notification finished;
@@ -155,7 +155,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
             context.response =
                 std::make_shared<GetInstanceDetailsByResourceNameResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -177,7 +177,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;

@@ -17,14 +17,9 @@
 #include "test_gcp_instance_client_provider.h"
 
 #include <string>
-#include <vector>
+#include <string_view>
 
 #include "absl/strings/substitute.h"
-#include "src/public/core/interface/execution_result.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 
 namespace {
 constexpr std::string_view kGcpResourceNameFormat =
@@ -33,13 +28,12 @@ constexpr std::string_view kGcpResourceNameFormat =
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult
-TestGcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+absl::Status TestGcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
       absl::Substitute(kGcpResourceNameFormat, test_options_.project_id,
                        test_options_.zone, test_options_.instance_id);
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 }  // namespace google::scp::cpio::client_providers

@@ -22,5 +22,6 @@ cc_library(
     deps = [
         "//src/core/interface",
         "//src/core/interface:async_context",
+        "//src/util/status_macro:status_macros",
     ],
 )

@@ -177,15 +177,15 @@ TEST_F(AwsQueueClientProviderTest, RunWithEmptyQueueName) {
 }
 
 TEST_F(AwsQueueClientProviderTest, RunWithCreateClientConfigurationFailed) {
-  auto failure_result = FailureExecutionResult(123);
-  mock_instance_client_.get_instance_resource_name_mock = failure_result;
+  mock_instance_client_.get_instance_resource_name_mock =
+      absl::UnknownError("");
   MockAsyncExecutor cpu_async_executor;
   MockAsyncExecutor io_async_executor;
   AwsQueueClientProvider client(queue_client_options_, &mock_instance_client_,
                                 &cpu_async_executor, &io_async_executor,
                                 mock_sqs_client_factory_);
 
-  EXPECT_THAT(client.Init(), ResultIs(failure_result));
+  EXPECT_FALSE(client.Init().Successful());
 }
 
 TEST_F(AwsQueueClientProviderTest, RunWithGetQueueUrlFailed) {

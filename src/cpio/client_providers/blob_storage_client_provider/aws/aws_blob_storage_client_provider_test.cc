@@ -142,10 +142,9 @@ MATCHER_P2(HasBucketAndKey, bucket, key, "") {
 
 TEST_F(AwsBlobStorageClientProviderTest,
        RunWithCreateClientConfigurationFailed) {
-  ExecutionResult failure_result = FailureExecutionResult(SC_UNKNOWN);
-  instance_client_.get_instance_resource_name_mock = failure_result;
+  instance_client_.get_instance_resource_name_mock = absl::UnknownError("");
 
-  EXPECT_THAT(provider_->Init(), ResultIs(failure_result));
+  EXPECT_FALSE(provider_->Init().Successful());
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {

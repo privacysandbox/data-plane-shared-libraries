@@ -194,14 +194,14 @@ TEST_F(GcpQueueClientProviderTest, InitWithEmptyQueueName) {
 
 TEST_F(GcpQueueClientProviderTest, InitWithGetProjectIdFailure) {
   mock_instance_client_provider_.get_instance_resource_name_mock =
-      FailureExecutionResult(123);
+      absl::UnknownError("");
   MockAsyncExecutor cpu_async_executor;
   MockAsyncExecutor io_async_executor;
   GcpQueueClientProvider client(
       queue_client_options_, &mock_instance_client_provider_,
       &cpu_async_executor, &io_async_executor, mock_pubsub_stub_factory_);
 
-  EXPECT_THAT(client.Init(), ResultIs(FailureExecutionResult(123)));
+  EXPECT_FALSE(client.Init().Successful());
 }
 
 TEST_F(GcpQueueClientProviderTest, InitWithPublisherCreationFailure) {
