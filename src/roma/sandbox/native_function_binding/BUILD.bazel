@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -26,6 +27,13 @@ proto_library(
     name = "rpc_wrapper_proto",
     srcs = ["rpc_wrapper.proto"],
     deps = ["//src/roma/interface:function_binding_io_proto"],
+)
+
+buf_lint_test(
+    name = "rpc_wrapper_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":rpc_wrapper_proto"],
 )
 
 cc_proto_library(
