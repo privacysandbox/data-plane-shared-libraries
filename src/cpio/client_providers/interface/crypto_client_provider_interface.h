@@ -27,7 +27,7 @@ namespace google::scp::cpio::client_providers {
  * @brief Interface responsible for retrieving encrypter and decrypter, or
  * encrypting and decrypting payload.
  */
-class CryptoClientProviderInterface : public core::ServiceInterface {
+class CryptoClientProviderInterface {
  public:
   virtual ~CryptoClientProviderInterface() = default;
 
@@ -37,7 +37,7 @@ class CryptoClientProviderInterface : public core::ServiceInterface {
    * @param context context of the operation.
    * @return ExecutionResult result of the operation.
    */
-  virtual core::ExecutionResult HpkeEncrypt(
+  virtual absl::Status HpkeEncrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::HpkeEncryptRequest,
                          cmrt::sdk::crypto_service::v1::HpkeEncryptResponse>&
           context) noexcept = 0;
@@ -48,7 +48,7 @@ class CryptoClientProviderInterface : public core::ServiceInterface {
    * @param context context of the operation.
    * @return ExecutionResult result of the operation.
    */
-  virtual core::ExecutionResult HpkeDecrypt(
+  virtual absl::Status HpkeDecrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::HpkeDecryptRequest,
                          cmrt::sdk::crypto_service::v1::HpkeDecryptResponse>&
           context) noexcept = 0;
@@ -59,7 +59,7 @@ class CryptoClientProviderInterface : public core::ServiceInterface {
    * @param context context of the operation.
    * @return ExecutionResult result of the operation.
    */
-  virtual core::ExecutionResult AeadEncrypt(
+  virtual absl::Status AeadEncrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::AeadEncryptRequest,
                          cmrt::sdk::crypto_service::v1::AeadEncryptResponse>&
           context) noexcept = 0;
@@ -70,7 +70,7 @@ class CryptoClientProviderInterface : public core::ServiceInterface {
    * @param context context of the operation.
    * @return ExecutionResult result of the operation.
    */
-  virtual core::ExecutionResult AeadDecrypt(
+  virtual absl::Status AeadDecrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::AeadDecryptRequest,
                          cmrt::sdk::crypto_service::v1::AeadDecryptResponse>&
           context) noexcept = 0;

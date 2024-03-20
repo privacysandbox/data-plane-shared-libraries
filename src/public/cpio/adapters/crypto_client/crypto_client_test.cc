@@ -54,13 +54,6 @@ namespace google::scp::cpio::test {
 class CryptoClientTest : public ::testing::Test {
  protected:
   CryptoClientTest() {
-    EXPECT_CALL(client_.GetCryptoClientProvider(), Init)
-        .WillOnce(Return(SuccessExecutionResult()));
-    EXPECT_CALL(client_.GetCryptoClientProvider(), Run)
-        .WillOnce(Return(SuccessExecutionResult()));
-    EXPECT_CALL(client_.GetCryptoClientProvider(), Stop)
-        .WillOnce(Return(SuccessExecutionResult()));
-
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }
@@ -76,7 +69,7 @@ TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
             context.response = std::make_shared<HpkeEncryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -95,7 +88,7 @@ TEST_F(CryptoClientTest, HpkeEncryptFailure) {
       .WillOnce(
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -116,7 +109,7 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
             context.response = std::make_shared<HpkeDecryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -135,7 +128,7 @@ TEST_F(CryptoClientTest, HpkeDecryptFailure) {
       .WillOnce(
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -156,7 +149,7 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
             context.response = std::make_shared<AeadEncryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -175,7 +168,7 @@ TEST_F(CryptoClientTest, AeadEncryptFailure) {
       .WillOnce(
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -196,7 +189,7 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
             context.response = std::make_shared<AeadDecryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -215,7 +208,7 @@ TEST_F(CryptoClientTest, AeadDecryptFailure) {
       .WillOnce(
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;

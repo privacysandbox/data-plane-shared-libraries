@@ -41,28 +41,22 @@ class CryptoClientProvider : public CryptoClientProviderInterface {
   explicit CryptoClientProvider(CryptoClientOptions options)
       : options_(std::move(options)) {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult HpkeEncrypt(
+  absl::Status HpkeEncrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::HpkeEncryptRequest,
                          cmrt::sdk::crypto_service::v1::HpkeEncryptResponse>&
           context) noexcept override;
 
-  core::ExecutionResult HpkeDecrypt(
+  absl::Status HpkeDecrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::HpkeDecryptRequest,
                          cmrt::sdk::crypto_service::v1::HpkeDecryptResponse>&
           context) noexcept override;
 
-  core::ExecutionResult AeadEncrypt(
+  absl::Status AeadEncrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::AeadEncryptRequest,
                          cmrt::sdk::crypto_service::v1::AeadEncryptResponse>&
           context) noexcept override;
 
-  core::ExecutionResult AeadDecrypt(
+  absl::Status AeadDecrypt(
       core::AsyncContext<cmrt::sdk::crypto_service::v1::AeadDecryptRequest,
                          cmrt::sdk::crypto_service::v1::AeadDecryptResponse>&
           context) noexcept override;
