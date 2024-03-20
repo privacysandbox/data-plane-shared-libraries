@@ -164,6 +164,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":roma_service",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],

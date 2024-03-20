@@ -37,10 +37,11 @@
 class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata> {
  public:
   using AppService = google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata>;
-  using RomaService = typename AppService::RomaService;
+  using Config = typename AppService::Config;
 
  public:
-  explicit {{$svc.Name}}(RomaService& roma_service, const std::string& code_id = "{{$svcopts.CodeId}}")
+  static absl::StatusOr<{{$svc.Name}}<TMetadata>> Create(Config config);
+
   absl::Status Register(absl::Notification& notification,
                         absl::Status& notify_status,
                         std::string_view jscode,

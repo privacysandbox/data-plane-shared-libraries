@@ -21,6 +21,7 @@
 
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/roma_service/romav8_app_service.h"
+#include "src/util/status_macro/status_macros.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
 
 #include "absl/status/status.h"
@@ -39,11 +40,14 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata> {
  public:
   using AppService = google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata>;
-  using RomaService = typename AppService::RomaService;
+  using Config = typename AppService::Config;
 
  public:
-  explicit {{$svc.Name}}(RomaService& roma_service, const std::string& code_id = "{{$svcopts.CodeId}}")
-      : AppService(roma_service, code_id) {}
+   static absl::StatusOr<{{$svc.Name}}<TMetadata>> Create(Config config) {
+    auto service = {{$svc.Name}}(std::move(config));
+    PS_RETURN_IF_ERROR(service.Init());
+    return service;
+  }
 
   absl::Status Register(absl::Notification& notification,
                         absl::Status& notify_status,
@@ -75,6 +79,9 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
 
 {{end}}
  private:
+  explicit {{$svc.Name}}(Config config, const std::string& code_id = "{{$svcopts.CodeId}}")
+    : AppService(std::move(config), code_id) {}
+
  inline static constexpr std::string_view roma_app_jscode = R"ROMA_APP_JSCODE(
 @ROMA_APP_JSCODE@
 )ROMA_APP_JSCODE";

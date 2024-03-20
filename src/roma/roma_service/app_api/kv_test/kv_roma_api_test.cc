@@ -33,32 +33,15 @@ using ::privacysandbox::roma::app_api::kv_test::v1::GetValuesResponse;
 
 namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest {
 
-class RomaV8AppTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    google::scp::roma::Config cfg;
-    cfg.number_of_workers = 2;
-    roma_service_ = std::make_unique<
-        google::scp::roma::sandbox::roma_service::RomaService<>>(
-        std::move(cfg));
-    EXPECT_TRUE(roma_service_->Init().ok());
-  }
-
-  void TearDown() override {
-    const absl::Status status = roma_service_->Stop();
-    EXPECT_TRUE(status.ok());
-  }
-
- protected:
-  std::unique_ptr<RomaService<>> roma_service_;
-};
-
 namespace {
 const absl::Duration kDefaultTimeout = absl::Seconds(10);
 }
 
-TEST_F(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
-  KeyValueService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = KeyValueService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     KvServer.GetValues = function(req) {
@@ -74,14 +57,14 @@ TEST_F(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   GetValuesRequest req;
   GetValuesResponse resp;
-  ASSERT_TRUE(app_svc.GetValues(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.vals(), Contains("Hi Foobar!"));
@@ -90,8 +73,11 @@ TEST_F(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   EXPECT_THAT(resp.foos_size(), Eq(0));
 }
 
-TEST_F(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
-  KeyValueService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = KeyValueService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     KvServer.GetValues = function(req) {
@@ -106,14 +92,14 @@ TEST_F(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   GetValuesRequest req;
   GetValuesResponse resp;
-  ASSERT_TRUE(app_svc.GetValues(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.vals(), IsEmpty());
@@ -122,8 +108,11 @@ TEST_F(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   ASSERT_THAT(resp.foos_size(), Eq(0));
 }
 
-TEST_F(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
-  KeyValueService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = KeyValueService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     KvServer.GetValues = function(req) {
@@ -148,14 +137,14 @@ TEST_F(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   GetValuesRequest req;
   GetValuesResponse resp;
-  ASSERT_TRUE(app_svc.GetValues(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.vals_size(), Eq(4));
@@ -164,8 +153,11 @@ TEST_F(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   EXPECT_THAT(resp.foos(1).foobar2(), StrEq("abc123"));
 }
 
-TEST_F(RomaV8AppTest, UseRequestField) {
-  KeyValueService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, UseRequestField) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = KeyValueService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     KvServer.GetValues = function(req) {
@@ -178,7 +170,7 @@ TEST_F(RomaV8AppTest, UseRequestField) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
@@ -188,7 +180,7 @@ TEST_F(RomaV8AppTest, UseRequestField) {
   req.set_key2("def123");
   req.add_keys("Foobar");
   GetValuesResponse resp;
-  ASSERT_TRUE(app_svc.GetValues(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.vals(), Contains("Hi Foobar!"));

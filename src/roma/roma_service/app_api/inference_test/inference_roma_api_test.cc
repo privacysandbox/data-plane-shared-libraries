@@ -35,32 +35,15 @@ using ::privacysandbox::roma::app_api::inference_test::v1::RunInferenceResponse;
 
 namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest {
 
-class RomaV8AppTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    google::scp::roma::Config cfg;
-    cfg.number_of_workers = 2;
-    roma_service_ = std::make_unique<
-        google::scp::roma::sandbox::roma_service::RomaService<>>(
-        std::move(cfg));
-    EXPECT_TRUE(roma_service_->Init().ok());
-  }
-
-  void TearDown() override {
-    const absl::Status status = roma_service_->Stop();
-    EXPECT_TRUE(status.ok());
-  }
-
- protected:
-  std::unique_ptr<RomaService<>> roma_service_;
-};
-
 namespace {
 const absl::Duration kDefaultTimeout = absl::Seconds(10);
 }
 
-TEST_F(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
-  InferenceService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = InferenceService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     InferenceServer.RunInference = function(req) {
@@ -75,22 +58,25 @@ TEST_F(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   RunInferenceRequest req;
   RunInferenceResponse resp;
-  ASSERT_TRUE(app_svc.RunInference(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.response_size(), Eq(1));
   EXPECT_THAT(resp.response(0).model_path(), StrEq("a/b/c/1/2/3"));
 }
 
-TEST_F(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
-  InferenceService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = InferenceService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     InferenceServer.RunInference = function(req) {
@@ -102,21 +88,24 @@ TEST_F(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   RunInferenceRequest req;
   RunInferenceResponse resp;
-  ASSERT_TRUE(app_svc.RunInference(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.response(), IsEmpty());
 }
 
-TEST_F(RomaV8AppTest, UseRequestField) {
-  InferenceService<> app_svc(*roma_service_);
+TEST(RomaV8AppTest, UseRequestField) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = InferenceService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
     InferenceServer.RunInference = function(req) {
@@ -138,7 +127,7 @@ TEST_F(RomaV8AppTest, UseRequestField) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc.Register(register_finished, register_status, jscode).ok());
+      app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
@@ -148,7 +137,7 @@ TEST_F(RomaV8AppTest, UseRequestField) {
   req.add_request()->set_model_path(model_path);
 
   RunInferenceResponse resp;
-  ASSERT_TRUE(app_svc.RunInference(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(resp.response_size(), Eq(2));
