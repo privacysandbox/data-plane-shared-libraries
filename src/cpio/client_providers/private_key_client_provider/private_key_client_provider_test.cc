@@ -232,10 +232,10 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
                 context.response->set_plaintext(it->second);
               }
               context.Finish(mock_result);
-              if (mock_schedule_result) {
-                return mock_result;
+              if (mock_schedule_result && !mock_result.Successful()) {
+                return absl::UnknownError("");
               }
-              return SuccessExecutionResult();
+              return absl::OkStatus();
             });
   }
 
@@ -823,7 +823,7 @@ class PrivateKeyClientProviderSinglePartyKeyTest : public ::testing::Test {
               context.response = std::make_shared<DecryptResponse>();
               context.response->set_plaintext(kDecryptedSinglePartyKey);
               context.Finish(SuccessExecutionResult());
-              return context.result;
+              return absl::OkStatus();
             });
   }
 

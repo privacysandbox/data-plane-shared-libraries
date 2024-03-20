@@ -210,15 +210,14 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
                   list_private_keys_context, std::placeholders::_1,
                   list_keys_status, encryption_key, uri_index),
         list_private_keys_context);
-    execution_result = kms_client_provider_->Decrypt(decrypt_context);
-
-    if (!execution_result.Successful()) {
+    if (absl::Status error = kms_client_provider_->Decrypt(decrypt_context);
+        !error.ok()) {
       auto got_failure = false;
       if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                 true)) {
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          execution_result, "Failed to send decrypt request.");
-        list_private_keys_context.Finish(execution_result);
+                          error, "Failed to send decrypt request.");
+        list_private_keys_context.Finish(FailureExecutionResult(SC_UNKNOWN));
       }
       return;
     }

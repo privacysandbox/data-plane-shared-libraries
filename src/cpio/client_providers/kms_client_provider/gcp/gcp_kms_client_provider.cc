@@ -56,19 +56,7 @@ constexpr std::string_view kGcpKmsClientProvider = "GcpKmsClientProvider";
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult GcpKmsClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpKmsClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpKmsClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpKmsClientProvider::Decrypt(
+absl::Status GcpKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
         decrypt_context) noexcept {
   const auto& ciphertext = decrypt_context.request->ciphertext();
@@ -78,7 +66,9 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Failed to get cipher text from decryption request.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   const auto& key_arn = decrypt_context.request->key_resource_name();
@@ -88,7 +78,9 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Failed to get Key Arn from decryption request.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   auto aead_or =
@@ -99,7 +91,8 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, aead_or.result(),
                       "Failed to get Aead.");
     decrypt_context.Finish(aead_or.result());
-    return decrypt_context.result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        aead_or.result().status_code));
   }
 
   std::string decoded_ciphertext;
@@ -110,7 +103,8 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
     SCP_ERROR_CONTEXT(kGcpKmsClientProvider, decrypt_context, execution_result,
                       "Failed to decode the ciphertext using base64.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   auto decrypt_or =
@@ -122,12 +116,12 @@ ExecutionResult GcpKmsClientProvider::Decrypt(
                       "Aead Decryption failed with error %s.",
                       decrypt_or.status().ToString().c_str());
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return decrypt_or.status();
   }
   decrypt_context.response = std::make_shared<DecryptResponse>();
   decrypt_context.response->set_plaintext(std::move(*decrypt_or));
   decrypt_context.Finish(SuccessExecutionResult());
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 ExecutionResultOr<std::shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
@@ -154,7 +148,7 @@ ExecutionResultOr<std::shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     KmsClientOptions options,
-    RoleCredentialsProviderInterface* role_credentials_provider,
+    absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
     AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<GcpKmsClientProvider>();
 }

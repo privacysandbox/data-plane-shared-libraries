@@ -42,18 +42,12 @@ class TeeAwsKmsClientProvider : public KmsClientProviderInterface {
    * @param credential_provider the credential provider.
    */
   explicit TeeAwsKmsClientProvider(
-      RoleCredentialsProviderInterface* credential_provider)
+      absl::Nonnull<RoleCredentialsProviderInterface*> credential_provider)
       : credential_provider_(credential_provider) {}
 
   TeeAwsKmsClientProvider() = delete;
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult Decrypt(
+  absl::Status Decrypt(
       core::AsyncContext<cmrt::sdk::kms_service::v1::DecryptRequest,
                          cmrt::sdk::kms_service::v1::DecryptResponse>&
           decrypt_context) noexcept override;
