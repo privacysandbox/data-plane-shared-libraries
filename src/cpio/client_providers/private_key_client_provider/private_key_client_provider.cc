@@ -56,7 +56,7 @@ constexpr std::string_view kPrivateKeyClientProvider =
 }
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
+absl::Status PrivateKeyClientProvider::ListPrivateKeys(
     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
         list_private_keys_context) noexcept {
   auto list_keys_status = std::make_shared<ListPrivateKeysStatus>();
@@ -113,12 +113,13 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
           list_private_keys_context.Finish(execution_result);
         }
 
-        return execution_result;
+        return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
       }
     }
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(

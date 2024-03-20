@@ -27,7 +27,7 @@ namespace google::scp::cpio::client_providers::mock {
 class MockPrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
  public:
   MOCK_METHOD(
-      core::ExecutionResult, ListPrivateKeys,
+      absl::Status, ListPrivateKeys,
       ((core::AsyncContext<
           cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest,
           cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>&)),

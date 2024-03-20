@@ -62,7 +62,7 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
     endpoint_count_ = endpoint_list_.size();
   }
 
-  core::ExecutionResult ListPrivateKeys(
+  absl::Status ListPrivateKeys(
       core::AsyncContext<
           cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest,
           cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>&

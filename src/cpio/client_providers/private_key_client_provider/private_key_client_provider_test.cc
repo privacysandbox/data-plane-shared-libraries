@@ -375,8 +375,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByIdsSuccess) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -404,8 +403,7 @@ TEST_F(PrivateKeyClientProviderTest, ListPrivateKeysByAgeSuccess) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -431,8 +429,7 @@ TEST_F(PrivateKeyClientProviderTest, KeyListIsEmpty) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -467,8 +464,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointReturnEmptyList) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -512,8 +508,7 @@ TEST_F(PrivateKeyClientProviderTest, LastEndpointMissingKeySplit) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -557,8 +552,7 @@ TEST_F(PrivateKeyClientProviderTest, FirstEndpointMissingMultipleKeySplits) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -604,8 +598,7 @@ TEST_F(PrivateKeyClientProviderTest,
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -646,8 +639,7 @@ TEST_F(PrivateKeyClientProviderTest, FetchingPrivateKeysFailed) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -674,8 +666,7 @@ TEST_F(PrivateKeyClientProviderTest, KeyDataNotFound) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -710,8 +701,7 @@ TEST_F(PrivateKeyClientProviderTest,
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -736,8 +726,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithDecryptPrivateKey) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -762,8 +751,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithDecrypt) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -805,8 +793,7 @@ TEST_F(PrivateKeyClientProviderTest, FailedWithOneKmsDecryptContext) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -942,8 +929,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysSuccess) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider_->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider_->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -1013,8 +999,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest,
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider_->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider_->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 
@@ -1036,8 +1021,7 @@ TEST_F(PrivateKeyClientProviderSinglePartyKeyTest, ListSinglePartyKeysFailure) {
         response_count.Notify();
       });
 
-  auto result = private_key_client_provider_->ListPrivateKeys(context);
-  EXPECT_SUCCESS(result);
+  EXPECT_TRUE(private_key_client_provider_->ListPrivateKeys(context).ok());
   response_count.WaitForNotification();
 }
 }  // namespace

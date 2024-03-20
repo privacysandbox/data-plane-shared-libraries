@@ -62,7 +62,7 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysSuccess) {
                                  ListPrivateKeysResponse>& context) {
         context.response = std::make_shared<ListPrivateKeysResponse>();
         context.Finish(SuccessExecutionResult());
-        return SuccessExecutionResult();
+        return absl::OkStatus();
       });
 
   absl::Notification finished;
@@ -81,7 +81,7 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysFailure) {
       .WillOnce([=](AsyncContext<ListPrivateKeysRequest,
                                  ListPrivateKeysResponse>& context) {
         context.Finish(FailureExecutionResult(SC_UNKNOWN));
-        return FailureExecutionResult(SC_UNKNOWN);
+        return absl::UnknownError("");
       });
 
   absl::Notification finished;

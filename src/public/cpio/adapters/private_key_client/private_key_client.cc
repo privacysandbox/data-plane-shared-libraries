@@ -124,9 +124,13 @@ core::ExecutionResult PrivateKeyClient::ListPrivateKeys(
     ListPrivateKeysRequest request,
     Callback<ListPrivateKeysResponse> callback) noexcept {
   return Execute<ListPrivateKeysRequest, ListPrivateKeysResponse>(
-      absl::bind_front(&PrivateKeyClientProviderInterface::ListPrivateKeys,
-                       private_key_client_provider_.get()),
-      request, callback);
+             absl::bind_front(
+                 &PrivateKeyClientProviderInterface::ListPrivateKeys,
+                 private_key_client_provider_.get()),
+             request, callback)
+                 .ok()
+             ? SuccessExecutionResult()
+             : FailureExecutionResult(SC_UNKNOWN);
 }
 
 std::unique_ptr<PrivateKeyClientInterface> PrivateKeyClientFactory::Create(
