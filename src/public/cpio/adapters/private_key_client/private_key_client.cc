@@ -109,31 +109,15 @@ ExecutionResult PrivateKeyClient::Init() noexcept {
               "Failed to create PrivateKeyClientProvider.");
     return ConvertToPublicExecutionResult(execution_result);
   }
-
-  execution_result = private_key_client_provider_->Init();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to initialize PrivateKeyClient.");
-  }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 ExecutionResult PrivateKeyClient::Run() noexcept {
-  auto execution_result = private_key_client_provider_->Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to run PrivateKeyClient.");
-  }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 ExecutionResult PrivateKeyClient::Stop() noexcept {
-  auto execution_result = private_key_client_provider_->Stop();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to stop PrivateKeyClient.");
-  }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 core::ExecutionResult PrivateKeyClient::ListPrivateKeys(

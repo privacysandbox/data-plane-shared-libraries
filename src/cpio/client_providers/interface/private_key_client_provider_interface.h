@@ -32,7 +32,7 @@ namespace google::scp::cpio::client_providers {
 /**
  * @brief Interface responsible for fetching private keys.
  */
-class PrivateKeyClientProviderInterface : public core::ServiceInterface {
+class PrivateKeyClientProviderInterface {
  public:
   virtual ~PrivateKeyClientProviderInterface() = default;
   /**
