@@ -106,32 +106,19 @@ ExecutionResult ParameterClient::Init() noexcept {
     return ConvertToPublicExecutionResult(execution_result);
   }
 
-  execution_result = parameter_client_provider_->Init();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
+  if (absl::Status error = parameter_client_provider_->Init(); !error.ok()) {
+    SCP_ERROR(kParameterClient, kZeroUuid, error,
               "Failed to initialize ParameterClientProvider.");
-    return execution_result;
+    return FailureExecutionResult(SC_UNKNOWN);
   }
   return SuccessExecutionResult();
 }
 
 ExecutionResult ParameterClient::Run() noexcept {
-  auto execution_result = parameter_client_provider_->Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
-              "Failed to run ParameterClientProvider.");
-    return execution_result;
-  }
   return SuccessExecutionResult();
 }
 
 ExecutionResult ParameterClient::Stop() noexcept {
-  auto execution_result = parameter_client_provider_->Stop();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
-              "Failed to stop ParameterClientProvider.");
-    return execution_result;
-  }
   return SuccessExecutionResult();
 }
 
@@ -139,9 +126,12 @@ core::ExecutionResult ParameterClient::GetParameter(
     GetParameterRequest request,
     Callback<GetParameterResponse> callback) noexcept {
   return Execute<GetParameterRequest, GetParameterResponse>(
-      absl::bind_front(&ParameterClientProviderInterface::GetParameter,
-                       parameter_client_provider_.get()),
-      request, callback);
+             absl::bind_front(&ParameterClientProviderInterface::GetParameter,
+                              parameter_client_provider_.get()),
+             std::move(request), std::move(callback))
+                 .ok()
+             ? SuccessExecutionResult()
+             : FailureExecutionResult(SC_UNKNOWN);
 }
 
 std::unique_ptr<ParameterClientInterface> ParameterClientFactory::Create(

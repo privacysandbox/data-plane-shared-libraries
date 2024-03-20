@@ -81,11 +81,8 @@ class GcpParameterClientProviderTest : public ::testing::Test {
         std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
     client_->secret_manager_mock =
         std::make_shared<SecretManagerServiceClient>(connection_);
-    EXPECT_SUCCESS(client_->Init());
-    EXPECT_SUCCESS(client_->Run());
+    EXPECT_TRUE(client_->Init().ok());
   }
-
-  void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
 
   std::string GetSecretName(
       std::string_view parameter_name = kParameterNameMock) {
@@ -128,7 +125,7 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -149,7 +146,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -158,9 +155,7 @@ TEST_F(GcpParameterClientProviderTest, FailedWithInvalidParameterName) {
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
-  EXPECT_THAT(client_->GetParameter(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME)));
+  EXPECT_FALSE(client_->GetParameter(context).ok());
 }
 
 TEST_F(GcpParameterClientProviderTest,
@@ -181,7 +176,7 @@ TEST_F(GcpParameterClientProviderTest,
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -202,7 +197,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -220,7 +215,7 @@ TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {
 
   MockGcpParameterClientProviderOverrides client(
       &async_executor_mock, &io_async_executor_mock, &instance_client_mock);
-  EXPECT_THAT(client.Init(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(client.Init().ok());
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
@@ -231,9 +226,7 @@ TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
 
   MockGcpParameterClientProviderOverrides client(
       &async_executor_mock, &io_async_executor_mock, &instance_client_mock);
-  EXPECT_THAT(client.Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_PARAMETER_CLIENT_PROVIDER_CREATE_SM_CLIENT_FAILURE)));
+  EXPECT_FALSE(client.Init().ok());
 }
 
 }  // namespace

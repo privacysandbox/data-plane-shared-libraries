@@ -61,7 +61,7 @@ constexpr std::string_view kGcpSecretNameFormatString =
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult GcpParameterClientProvider::Init() noexcept {
+absl::Status GcpParameterClientProvider::Init() noexcept {
   // Try to get project_id from constructor, otherwise get project_id from
   // running instance_client.
   if (project_id_.empty()) {
@@ -70,7 +70,8 @@ ExecutionResult GcpParameterClientProvider::Init() noexcept {
     if (!project_id_or.Successful()) {
       SCP_ERROR(kGcpParameterClientProvider, kZeroUuid, project_id_or.result(),
                 "Failed to get project ID for current instance");
-      return project_id_or.result();
+      return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+          project_id_or.result().status_code));
     }
     project_id_ = std::move(*project_id_or);
   }
@@ -81,18 +82,11 @@ ExecutionResult GcpParameterClientProvider::Init() noexcept {
         SC_GCP_PARAMETER_CLIENT_PROVIDER_CREATE_SM_CLIENT_FAILURE);
     SCP_ERROR(kGcpParameterClientProvider, kZeroUuid, execution_result,
               "Failed to create secret manager service client.");
-    return execution_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpParameterClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpParameterClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 std::shared_ptr<SecretManagerServiceClient>
@@ -101,7 +95,7 @@ GcpParameterClientProvider::GetSecretManagerClient() noexcept {
       MakeSecretManagerServiceConnection());
 }
 
-ExecutionResult GcpParameterClientProvider::GetParameter(
+absl::Status GcpParameterClientProvider::GetParameter(
     AsyncContext<GetParameterRequest, GetParameterResponse>&
         get_parameter_context) noexcept {
   const auto& secret = get_parameter_context.request->parameter_name();
@@ -111,7 +105,9 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
     SCP_ERROR_CONTEXT(kGcpParameterClientProvider, get_parameter_context,
                       execution_result, "Failed due to an empty parameter.");
     get_parameter_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   std::string name =
@@ -133,10 +129,11 @@ ExecutionResult GcpParameterClientProvider::GetParameter(
     SCP_ERROR_CONTEXT(kGcpParameterClientProvider, get_parameter_context,
                       schedule_result,
                       "Failed to schedule AsyncGetParameterCallback().");
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpParameterClientProvider::AsyncGetParameterCallback(

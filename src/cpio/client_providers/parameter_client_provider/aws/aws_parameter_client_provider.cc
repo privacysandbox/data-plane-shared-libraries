@@ -66,7 +66,7 @@ ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
   return common::CreateClientConfiguration(region);
 }
 
-ExecutionResult AwsParameterClientProvider::Init() noexcept {
+absl::Status AwsParameterClientProvider::Init() noexcept {
   // Try to get region code from options, otherwise get region code from running
   // instance_client.
   if (!region_code_.empty()) {
@@ -78,24 +78,17 @@ ExecutionResult AwsParameterClientProvider::Init() noexcept {
     if (!region_code_or.Successful()) {
       SCP_ERROR(kAwsParameterClientProvider, kZeroUuid, region_code_or.result(),
                 "Failed to get region code for current instance");
-      return region_code_or.result();
+      return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+          region_code_or.result().status_code));
     }
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
         CreateClientConfiguration(*region_code_or), io_async_executor_);
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsParameterClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsParameterClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsParameterClientProvider::GetParameter(
+absl::Status AwsParameterClientProvider::GetParameter(
     AsyncContext<GetParameterRequest, GetParameterResponse>&
         get_parameter_context) noexcept {
   if (get_parameter_context.request->parameter_name().empty()) {
@@ -106,7 +99,9 @@ ExecutionResult AwsParameterClientProvider::GetParameter(
                       "Failed to get the parameter value for %s.",
                       get_parameter_context.request->parameter_name().c_str());
     get_parameter_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   Aws::SSM::Model::GetParameterRequest request;
@@ -118,7 +113,7 @@ ExecutionResult AwsParameterClientProvider::GetParameter(
                        this, get_parameter_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsParameterClientProvider::OnGetParameterCallback(

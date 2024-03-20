@@ -62,7 +62,7 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
                         context) {
         context.response = std::make_shared<GetParameterResponse>();
         context.Finish(SuccessExecutionResult());
-        return SuccessExecutionResult();
+        return absl::OkStatus();
       });
 
   absl::Notification finished;
@@ -81,7 +81,7 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
         context.Finish(FailureExecutionResult(SC_UNKNOWN));
-        return FailureExecutionResult(SC_UNKNOWN);
+        return absl::UnknownError("");
       });
 
   absl::Notification finished;
