@@ -22,9 +22,11 @@ using google::scp::azure::attestation::fetchFakeSnpAttestation;
 using google::scp::azure::attestation::fetchSnpAttestation;
 using google::scp::azure::attestation::hasSnp;
 
-int main() {
+int main(int argc, char* argv[]) {
+  std::string report_data = argc > 1 ? argv[1] : "";
   const auto report =
-      hasSnp() ? fetchSnpAttestation() : fetchFakeSnpAttestation();
+      hasSnp() ? fetchSnpAttestation(report_data) : fetchFakeSnpAttestation();
+
   CHECK(report.has_value()) << "Failed to get attestation report";
   std::cout << "report (fake=" << !hasSnp() << "):\n";
   std::cout << nlohmann::json(report.value()).dump(2) << std::endl;
