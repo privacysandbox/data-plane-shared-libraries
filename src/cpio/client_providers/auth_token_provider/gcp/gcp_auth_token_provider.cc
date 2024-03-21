@@ -123,14 +123,6 @@ ExecutionResult GcpAuthTokenProvider::Init() noexcept {
   return SuccessExecutionResult();
 };
 
-ExecutionResult GcpAuthTokenProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpAuthTokenProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult GcpAuthTokenProvider::GetSessionToken(
     AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
         get_token_context) noexcept {

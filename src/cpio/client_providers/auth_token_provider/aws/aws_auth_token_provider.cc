@@ -69,14 +69,6 @@ ExecutionResult AwsAuthTokenProvider::Init() noexcept {
   return SuccessExecutionResult();
 };
 
-ExecutionResult AwsAuthTokenProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsAuthTokenProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult AwsAuthTokenProvider::GetSessionToken(
     AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
         get_token_context) noexcept {

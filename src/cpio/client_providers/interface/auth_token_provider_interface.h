@@ -53,9 +53,10 @@ struct GetSessionTokenForTargetAudienceRequest {
  * token. For more information, see
  * https://developers.google.com/identity/protocols/oauth2
  */
-class AuthTokenProviderInterface : public core::ServiceInterface {
+class AuthTokenProviderInterface {
  public:
   virtual ~AuthTokenProviderInterface() = default;
+  virtual core::ExecutionResult Init() noexcept = 0;
 
   /**
    * @brief Gets a session token from instance metadata service.

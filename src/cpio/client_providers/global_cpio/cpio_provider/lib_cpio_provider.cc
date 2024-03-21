@@ -77,15 +77,6 @@ ExecutionResult LibCpioProvider::Run() noexcept {
 }
 
 ExecutionResult LibCpioProvider::Stop() noexcept {
-  if (auth_token_provider_) {
-    auto execution_result = auth_token_provider_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop auth token provider.");
-      return execution_result;
-    }
-  }
-
   if (http2_client_) {
     auto execution_result = http2_client_->Stop();
     if (!execution_result.Successful()) {
@@ -315,15 +306,6 @@ LibCpioProvider::GetAuthTokenProvider() noexcept {
               "Failed to initialize auth token provider.");
     return absl::FailedPreconditionError(
         absl::StrCat("Failed to initialize auth token provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = auth_token_provider->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run role  auth token provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run role  auth token provider:\n",
                      GetErrorMessage(execution_result.status_code)));
   }
   auth_token_provider_ = std::move(auth_token_provider);

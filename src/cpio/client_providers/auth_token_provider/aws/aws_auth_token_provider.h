@@ -35,10 +35,6 @@ class AwsAuthTokenProvider : public AuthTokenProviderInterface {
 
   core::ExecutionResult Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   core::ExecutionResult GetSessionToken(
       core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
           get_token_context) noexcept override;
