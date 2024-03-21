@@ -86,10 +86,8 @@ void RunEnqueueMessageValidator(
           std::move(options), instance_client, cpu_async_executor,
           io_async_executor);
 
-  if (google::scp::core::ExecutionResult result = queue_client->Init();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = queue_client->Init(); !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
   // EnqueueMessage.
@@ -109,13 +107,10 @@ void RunEnqueueMessageValidator(
             }
             finished.Notify();
           });
-  if (auto enqueue_message_result =
+  if (absl::Status error =
           queue_client->EnqueueMessage(enqueue_message_context);
-      !enqueue_message_result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(
-                     enqueue_message_result.status_code)
-              << std::endl;
+      !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
   finished.WaitForNotification();
@@ -162,10 +157,8 @@ void RunGetTopMessageValidator(std::string_view name) {
           std::move(options), instance_client, cpu_async_executor,
           io_async_executor);
 
-  if (google::scp::core::ExecutionResult result = queue_client->Init();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = queue_client->Init(); !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
   // GetTopMessage.
@@ -184,13 +177,9 @@ void RunGetTopMessageValidator(std::string_view name) {
             }
             finished.Notify();
           });
-  if (auto get_top_message_result =
-          queue_client->GetTopMessage(get_top_message_context);
-      !get_top_message_result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(
-                     get_top_message_result.status_code)
-              << std::endl;
+  if (absl::Status error = queue_client->GetTopMessage(get_top_message_context);
+      !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
   finished.WaitForNotification();

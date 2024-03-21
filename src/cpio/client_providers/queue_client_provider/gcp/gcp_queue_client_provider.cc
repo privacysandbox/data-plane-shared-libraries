@@ -96,14 +96,15 @@ constexpr uint16_t kMaxAckDeadlineSeconds = 600;
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult GcpQueueClientProvider::Init() noexcept {
-  ExecutionResult execution_result(SuccessExecutionResult());
+absl::Status GcpQueueClientProvider::Init() noexcept {
   if (queue_name_.empty()) {
-    execution_result = FailureExecutionResult(
+    const ExecutionResult execution_result = FailureExecutionResult(
         SC_GCP_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED);
     SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, execution_result,
               "Invalid queue name.");
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   if (project_id_.empty()) {
@@ -112,27 +113,31 @@ ExecutionResult GcpQueueClientProvider::Init() noexcept {
     if (!project_id_or.Successful()) {
       SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, project_id_or.result(),
                 "Failed to get project ID for current instance");
-      return project_id_or.result();
+      return absl::InvalidArgumentError(
+          google::scp::core::errors::GetErrorMessage(
+              project_id_or.result().status_code));
     }
     project_id_ = std::move(*project_id_or);
   }
 
   publisher_stub_ = pubsub_stub_factory_->CreatePublisherStub(queue_name_);
   if (!publisher_stub_) {
-    auto execution_result =
+    const ExecutionResult execution_result =
         FailureExecutionResult(SC_GCP_QUEUE_CLIENT_PROVIDER_PUBLISHER_REQUIRED);
     SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, execution_result,
               "Failed to create publisher.");
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   subscriber_stub_ = pubsub_stub_factory_->CreateSubscriberStub(queue_name_);
   if (!subscriber_stub_) {
-    auto execution_result = FailureExecutionResult(
+    const ExecutionResult execution_result = FailureExecutionResult(
         SC_GCP_QUEUE_CLIENT_PROVIDER_SUBSCRIBER_REQUIRED);
     SCP_ERROR(kGcpQueueClientProvider, kZeroUuid, execution_result,
               "Failed to create subscriber.");
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   topic_name_ =
@@ -140,14 +145,14 @@ ExecutionResult GcpQueueClientProvider::Init() noexcept {
   subscription_name_ =
       absl::Substitute(kGcpSubscriptionFormatString, project_id_, queue_name_);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult GcpQueueClientProvider::EnqueueMessage(
+absl::Status GcpQueueClientProvider::EnqueueMessage(
     AsyncContext<EnqueueMessageRequest, EnqueueMessageResponse>&
         enqueue_message_context) noexcept {
   if (enqueue_message_context.request->message_body().empty()) {
-    auto execution_result =
+    const ExecutionResult execution_result =
         FailureExecutionResult(SC_GCP_QUEUE_CLIENT_PROVIDER_INVALID_MESSAGE);
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, enqueue_message_context, execution_result,
@@ -155,24 +160,27 @@ ExecutionResult GcpQueueClientProvider::EnqueueMessage(
         "the request for topic: %s",
         topic_name_.c_str());
     enqueue_message_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
-  auto execution_result = io_async_executor_->Schedule(
-      [this, enqueue_message_context]() mutable {
-        EnqueueMessageAsync(enqueue_message_context);
-      },
-      AsyncPriority::Normal);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result = io_async_executor_->Schedule(
+          [this, enqueue_message_context]() mutable {
+            EnqueueMessageAsync(enqueue_message_context);
+          },
+          AsyncPriority::Normal);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, enqueue_message_context,
         enqueue_message_context.result,
         "Enqueue Message request failed to be scheduled. Topic: %s",
         topic_name_.c_str());
     enqueue_message_context.Finish(execution_result);
-    return execution_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpQueueClientProvider::EnqueueMessageAsync(
@@ -220,24 +228,25 @@ void GcpQueueClientProvider::EnqueueMessageAsync(
                 *cpu_async_executor_);
 }
 
-ExecutionResult GcpQueueClientProvider::GetTopMessage(
+absl::Status GcpQueueClientProvider::GetTopMessage(
     AsyncContext<GetTopMessageRequest, GetTopMessageResponse>&
         get_top_message_context) noexcept {
-  auto execution_result = io_async_executor_->Schedule(
-      [this, get_top_message_context]() mutable {
-        GetTopMessageAsync(get_top_message_context);
-      },
-      AsyncPriority::Normal);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result = io_async_executor_->Schedule(
+          [this, get_top_message_context]() mutable {
+            GetTopMessageAsync(get_top_message_context);
+          },
+          AsyncPriority::Normal);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, get_top_message_context,
         get_top_message_context.result,
         "Get Top Message request failed to be scheduled. Topic: %s",
         topic_name_.c_str());
     get_top_message_context.Finish(execution_result);
-    return execution_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpQueueClientProvider::GetTopMessageAsync(
@@ -298,7 +307,7 @@ void GcpQueueClientProvider::GetTopMessageAsync(
                 *cpu_async_executor_);
 }
 
-ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
+absl::Status GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
     AsyncContext<UpdateMessageVisibilityTimeoutRequest,
                  UpdateMessageVisibilityTimeoutResponse>&
         update_message_visibility_timeout_context) noexcept {
@@ -313,7 +322,9 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
         "receipt info in the request. Subscription: %s",
         subscription_name_.c_str());
     update_message_visibility_timeout_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   auto lifetime_in_seconds = update_message_visibility_timeout_context.request
@@ -329,16 +340,18 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
         "message visibility timeout in the request. Subscription: %s",
         subscription_name_.c_str());
     update_message_visibility_timeout_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
-  auto execution_result = io_async_executor_->Schedule(
-      [this, update_message_visibility_timeout_context]() mutable {
-        UpdateMessageVisibilityTimeoutAsync(
-            update_message_visibility_timeout_context);
-      },
-      AsyncPriority::Normal);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result = io_async_executor_->Schedule(
+          [this, update_message_visibility_timeout_context]() mutable {
+            UpdateMessageVisibilityTimeoutAsync(
+                update_message_visibility_timeout_context);
+          },
+          AsyncPriority::Normal);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpQueueClientProvider,
                       update_message_visibility_timeout_context,
                       update_message_visibility_timeout_context.result,
@@ -346,9 +359,10 @@ ExecutionResult GcpQueueClientProvider::UpdateMessageVisibilityTimeout(
                       "scheduled for subscription: %s",
                       subscription_name_.c_str());
     update_message_visibility_timeout_context.Finish(execution_result);
-    return execution_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpQueueClientProvider::UpdateMessageVisibilityTimeoutAsync(
@@ -390,7 +404,7 @@ void GcpQueueClientProvider::UpdateMessageVisibilityTimeoutAsync(
                 *cpu_async_executor_);
 }
 
-ExecutionResult GcpQueueClientProvider::DeleteMessage(
+absl::Status GcpQueueClientProvider::DeleteMessage(
     AsyncContext<DeleteMessageRequest, DeleteMessageResponse>&
         delete_message_context) noexcept {
   if (delete_message_context.request->receipt_info().empty()) {
@@ -402,24 +416,27 @@ ExecutionResult GcpQueueClientProvider::DeleteMessage(
                       "the request. Subscription: %s",
                       subscription_name_.c_str());
     delete_message_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
-  auto execution_result = io_async_executor_->Schedule(
-      [this, delete_message_context]() mutable {
-        DeleteMessageAsync(delete_message_context);
-      },
-      AsyncPriority::Normal);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result = io_async_executor_->Schedule(
+          [this, delete_message_context]() mutable {
+            DeleteMessageAsync(delete_message_context);
+          },
+          AsyncPriority::Normal);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kGcpQueueClientProvider, delete_message_context,
         delete_message_context.result,
         "Delete request failed to be scheduled for subscription: %s",
         subscription_name_.c_str());
     delete_message_context.Finish(execution_result);
-    return execution_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpQueueClientProvider::DeleteMessageAsync(

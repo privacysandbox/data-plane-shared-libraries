@@ -35,31 +35,31 @@ namespace google::scp::cpio::client_providers {
 class QueueClientProviderInterface {
  public:
   virtual ~QueueClientProviderInterface() = default;
-  virtual core::ExecutionResult Init() noexcept = 0;
+  virtual absl::Status Init() noexcept = 0;
   /**
    * @brief Enqueue a message to the queue.
    * @param enqueue_message_context context of the operation.
-   * @return ExecutionResult result of the operation.
+   * @return absl::Status status of the operation.
    */
-  virtual core::ExecutionResult EnqueueMessage(
+  virtual absl::Status EnqueueMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::EnqueueMessageRequest,
                          cmrt::sdk::queue_service::v1::EnqueueMessageResponse>&
           enqueue_message_context) noexcept = 0;
   /**
    * @brief Get top message from the queue.
    * @param get_top_message_context context of the operation.
-   * @return ExecutionResult result of the operation.
+   * @return absl::Status status of the operation.
    */
-  virtual core::ExecutionResult GetTopMessage(
+  virtual absl::Status GetTopMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::GetTopMessageRequest,
                          cmrt::sdk::queue_service::v1::GetTopMessageResponse>&
           get_top_message_context) noexcept = 0;
   /**
    * @brief Update visibility timeout of a message from the queue.
    * @param update_message_visibility_timeout_context context of the operation.
-   * @return ExecutionResult result of the operation.
+   * @return absl::Status status of the operation.
    */
-  virtual core::ExecutionResult UpdateMessageVisibilityTimeout(
+  virtual absl::Status UpdateMessageVisibilityTimeout(
       core::AsyncContext<
           cmrt::sdk::queue_service::v1::UpdateMessageVisibilityTimeoutRequest,
           cmrt::sdk::queue_service::v1::UpdateMessageVisibilityTimeoutResponse>&
@@ -67,9 +67,9 @@ class QueueClientProviderInterface {
   /**
    * @brief Delete a message from the queue.
    * @param delete_message_context context of the operation.
-   * @return ExecutionResult result of the operation.
+   * @return absl::Status status of the operation.
    */
-  virtual core::ExecutionResult DeleteMessage(
+  virtual absl::Status DeleteMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::DeleteMessageRequest,
                          cmrt::sdk::queue_service::v1::DeleteMessageResponse>&
           delete_message_context) noexcept = 0;
