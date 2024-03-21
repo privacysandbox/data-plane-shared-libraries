@@ -141,8 +141,6 @@ void RunHttpValidator(
     http_client = *result;
   }
 
-  http_client->Init();
-  http_client->Run();
   absl::flat_hash_map<std::string, google::scp::core::HttpMethod>
       http_method_map = {{"GET", google::scp::core::HttpMethod::GET},
                          {"POST", google::scp::core::HttpMethod::POST},
@@ -165,8 +163,6 @@ void RunHttpValidator(
     std::cout << "[ SUCCESS ] " << name << " Connected to request URL."
               << std::endl;
   }
-
-  http_client->Stop();
 }
 
 int main(int argc, char* argv[]) {
@@ -268,5 +264,13 @@ int main(int argc, char* argv[]) {
   std::cout << "Ran all validation tests. For individual statuses, "
                "see above."
             << std::endl;
+  if (google::scp::core::ExecutionResult result =
+          google::scp::cpio::Cpio::ShutdownCpio(cpio_options);
+      !result.Successful()) {
+    std::cout << "[ FAILURE ] Unable to shutdown CPIO: "
+              << GetErrorMessage(result.status_code) << std::endl;
+    std::cout << GetValidatorFailedToRunMsg() << std::endl;
+    return -1;
+  }
   return 0;
 }

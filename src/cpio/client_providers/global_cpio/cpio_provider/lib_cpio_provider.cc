@@ -26,8 +26,6 @@
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/common/global_logger/global_logger.h"
 #include "src/core/common/uuid/uuid.h"
-#include "src/core/curl_client/http1_curl_client.h"
-#include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/errors.h"
 #include "src/core/interface/http_client_interface.h"
@@ -89,15 +87,6 @@ ExecutionResult LibCpioProvider::Stop() noexcept {
     }
   }
 
-  if (http1_client_) {
-    auto execution_result = http1_client_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop http1 client.");
-      return execution_result;
-    }
-  }
-
   if (cloud_initializer_) {
     cloud_initializer_->ShutdownCloud();
   }
@@ -115,25 +104,7 @@ absl::StatusOr<HttpClientInterface*> LibCpioProvider::GetHttpClient() noexcept {
     return cpu_async_executor.status();
   }
 
-  auto http2_client = std::make_unique<HttpClient>(*cpu_async_executor);
-  if (const auto execution_result = http2_client->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize http2 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize http2 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = http2_client->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run http2 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run http2 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  http2_client_ = std::move(http2_client);
+  http2_client_ = std::make_unique<HttpClient>(*cpu_async_executor);
   return http2_client_.get();
 }
 
@@ -153,26 +124,8 @@ LibCpioProvider::GetHttp1Client() noexcept {
     return io_async_executor.status();
   }
 
-  auto http1_client = std::make_unique<Http1CurlClient>(*cpu_async_executor,
-                                                        *io_async_executor);
-  if (const auto execution_result = http1_client->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize http1 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize http1 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = http1_client->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run http1 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run http1 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  http1_client_ = std::move(http1_client);
+  http1_client_ = std::make_unique<Http1CurlClient>(*cpu_async_executor,
+                                                    *io_async_executor);
   return http1_client_.get();
 }
 

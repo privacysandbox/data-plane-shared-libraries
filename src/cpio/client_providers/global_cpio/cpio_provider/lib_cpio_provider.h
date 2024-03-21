@@ -25,6 +25,8 @@
 #include "absl/status/statusor.h"
 #include "google/protobuf/any.pb.h"
 #include "src/core/async_executor/async_executor.h"
+#include "src/core/curl_client/http1_curl_client.h"
+#include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/message_router_interface.h"
@@ -85,7 +87,8 @@ class LibCpioProvider : public CpioProviderInterface {
   std::unique_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
       io_async_executor_;
   /// Global http clients.
-  std::unique_ptr<core::HttpClientInterface> http1_client_, http2_client_;
+  std::unique_ptr<core::Http1CurlClient> http1_client_;
+  std::unique_ptr<core::HttpClient> http2_client_;
   /// Global instance client provider to fetch cloud metadata.
   std::unique_ptr<InstanceClientProviderInterface> instance_client_provider_;
   /// Global role credential provider.

@@ -35,8 +35,6 @@ class HttpConnectionPoolTest : public testing::Test {
  protected:
   void SetUp() override {
     connection_pool_.emplace(&async_executor_, num_connections_per_host_);
-    EXPECT_SUCCESS(connection_pool_->Init());
-    EXPECT_SUCCESS(connection_pool_->Run());
   }
 
   void TearDown() override { EXPECT_SUCCESS(connection_pool_->Stop()); }

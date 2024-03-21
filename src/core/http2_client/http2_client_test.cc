@@ -188,9 +188,6 @@ TEST(HttpClientTest, FailedToConnect) {
   request->path = std::make_shared<std::string>("http://localhost.failed:8000");
   MockAsyncExecutor async_executor;
   HttpClient http_client(&async_executor);
-  http_client.Init();
-  http_client.Run();
-
   absl::Notification finished;
   AsyncContext<HttpRequest, HttpResponse> context(
       std::move(request),
@@ -220,8 +217,6 @@ class HttpClientTestII : public ::testing::Test {
         kDefaultMaxConnectionsPerHost, kHttp2ReadTimeoutInSeconds);
 
     http_client.emplace(&*async_executor, std::move(options));
-    ASSERT_SUCCESS(http_client->Init());
-    ASSERT_SUCCESS(http_client->Run());
   }
 
   void TearDown() override {
