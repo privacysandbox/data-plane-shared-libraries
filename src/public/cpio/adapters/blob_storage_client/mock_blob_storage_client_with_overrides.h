@@ -25,10 +25,8 @@
 namespace google::scp::cpio::mock {
 class MockBlobStorageClientWithOverrides : public BlobStorageClient {
  public:
-  explicit MockBlobStorageClientWithOverrides(
-      const std::shared_ptr<BlobStorageClientOptions>& options =
-          std::make_shared<BlobStorageClientOptions>())
-      : BlobStorageClient(options) {}
+  MockBlobStorageClientWithOverrides()
+      : BlobStorageClient(BlobStorageClientOptions()) {}
 
   core::ExecutionResult Init() noexcept override {
     blob_storage_client_provider_ = std::make_unique<

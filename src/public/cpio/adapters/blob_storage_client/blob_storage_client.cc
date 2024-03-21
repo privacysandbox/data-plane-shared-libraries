@@ -59,7 +59,7 @@ namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  BlobStorageClientOptions options = *options_;
+  BlobStorageClientOptions options = options_;
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
   }
@@ -141,7 +141,6 @@ ExecutionResult BlobStorageClient::PutBlobStream(
 
 std::unique_ptr<BlobStorageClientInterface> BlobStorageClientFactory::Create(
     BlobStorageClientOptions options) {
-  return std::make_unique<BlobStorageClient>(
-      std::make_shared<BlobStorageClientOptions>(std::move(options)));
+  return std::make_unique<BlobStorageClient>(std::move(options));
 }
 }  // namespace google::scp::cpio

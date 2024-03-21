@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "src/core/common/concurrent_queue/concurrent_queue.h"
@@ -36,9 +37,8 @@ namespace google::scp::cpio {
  */
 class BlobStorageClient : public BlobStorageClientInterface {
  public:
-  explicit BlobStorageClient(
-      const std::shared_ptr<BlobStorageClientOptions>& options)
-      : options_(options) {}
+  explicit BlobStorageClient(BlobStorageClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~BlobStorageClient() = default;
 
@@ -90,7 +90,7 @@ class BlobStorageClient : public BlobStorageClientInterface {
       blob_storage_client_provider_;
 
  private:
-  std::shared_ptr<BlobStorageClientOptions> options_;
+  BlobStorageClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
