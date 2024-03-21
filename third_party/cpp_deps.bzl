@@ -68,6 +68,16 @@ def cpp_dependencies():
         url = "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_x86_64.tar.gz",
         sha256 = "a422d1e8ad854a305c0dd53f2f2053da242211d3d1810e7addb40a041e309516",
     )
+    http_file(
+        # ca_certificates for amd64 and aarch64 are the same.
+        # Retrived from https://github.com/GoogleContainerTools/distroless/blob/f55b2b343481f52ef3bde34c8a2f3631a40a36c1/debian_archives.bzl
+        name = "ca_certificates_deb",
+        urls = [
+            "https://snapshot-cloudflare.debian.org/archive/debian/20240210T223313Z/pool/main/c/ca-certificates/ca-certificates_20230311_all.deb",
+            "https://snapshot.debian.org/archive/debian/20240210T223313Z/pool/main/c/ca-certificates/ca-certificates_20230311_all.deb",
+        ],
+        sha256 = "5308b9bd88eebe2a48be3168cb3d87677aaec5da9c63ad0cf561a29b8219115c",
+    )
     maybe(
         http_archive,
         name = "jq",
