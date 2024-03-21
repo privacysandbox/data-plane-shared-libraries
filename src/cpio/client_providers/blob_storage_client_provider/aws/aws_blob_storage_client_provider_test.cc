@@ -111,7 +111,7 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
       finish_called_ = true;
     };
 
-    EXPECT_SUCCESS(provider_->Init());
+    EXPECT_TRUE(provider_->Init().ok());
   }
 
   ~AwsBlobStorageClientProviderTest() { ShutdownAPI(options_); }
@@ -144,7 +144,7 @@ TEST_F(AwsBlobStorageClientProviderTest,
        RunWithCreateClientConfigurationFailed) {
   instance_client_.get_instance_resource_name_mock = absl::UnknownError("");
 
-  EXPECT_FALSE(provider_->Init().Successful());
+  EXPECT_FALSE(provider_->Init().ok());
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
@@ -172,7 +172,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
                  std::move(get_object_outcome), nullptr /*async_context*/);
       });
 
-  EXPECT_SUCCESS(provider_->GetBlob(get_blob_context_));
+  EXPECT_TRUE(provider_->GetBlob(get_blob_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -214,7 +214,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
                  std::move(get_object_outcome), nullptr /*async_context*/);
       });
 
-  EXPECT_SUCCESS(provider_->GetBlob(get_blob_context_));
+  EXPECT_TRUE(provider_->GetBlob(get_blob_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -266,7 +266,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
                  std::move(get_object_outcome), nullptr /*async_context*/);
       });
 
-  EXPECT_SUCCESS(provider_->GetBlob(get_blob_context_));
+  EXPECT_TRUE(provider_->GetBlob(get_blob_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -312,7 +312,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
                  std::move(put_object_outcome), nullptr /*async_context*/);
       });
 
-  EXPECT_SUCCESS(provider_->PutBlob(put_blob_context_));
+  EXPECT_TRUE(provider_->PutBlob(put_blob_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -348,7 +348,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
                  std::move(put_object_outcome), nullptr /*async_context*/);
       });
 
-  EXPECT_SUCCESS(provider_->PutBlob(put_blob_context_));
+  EXPECT_TRUE(provider_->PutBlob(put_blob_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));

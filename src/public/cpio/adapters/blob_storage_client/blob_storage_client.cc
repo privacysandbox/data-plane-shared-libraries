@@ -98,11 +98,10 @@ ExecutionResult BlobStorageClient::Init() noexcept {
   blob_storage_client_provider_ = BlobStorageClientProviderFactory::Create(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
-  auto execution_result = blob_storage_client_provider_->Init();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
+  if (absl::Status error = blob_storage_client_provider_->Init(); !error.ok()) {
+    SCP_ERROR(kBlobStorageClient, kZeroUuid, error,
               "Failed to initialize BlobStorageClientProvider.");
-    return execution_result;
+    return core::FailureExecutionResult(SC_UNKNOWN);
   }
   return SuccessExecutionResult();
 }
@@ -117,37 +116,52 @@ ExecutionResult BlobStorageClient::Stop() noexcept {
 
 ExecutionResult BlobStorageClient::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context) noexcept {
-  return blob_storage_client_provider_->GetBlob(get_blob_context);
+  return blob_storage_client_provider_->GetBlob(get_blob_context).ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 ExecutionResult BlobStorageClient::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
         list_blobs_metadata_context) noexcept {
-  return blob_storage_client_provider_->ListBlobsMetadata(
-      list_blobs_metadata_context);
+  return blob_storage_client_provider_
+                 ->ListBlobsMetadata(list_blobs_metadata_context)
+                 .ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 ExecutionResult BlobStorageClient::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context) noexcept {
-  return blob_storage_client_provider_->PutBlob(put_blob_context);
+  return blob_storage_client_provider_->PutBlob(put_blob_context).ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 ExecutionResult BlobStorageClient::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>
         delete_blob_context) noexcept {
-  return blob_storage_client_provider_->DeleteBlob(delete_blob_context);
+  return blob_storage_client_provider_->DeleteBlob(delete_blob_context).ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 ExecutionResult BlobStorageClient::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
         get_blob_stream_context) noexcept {
-  return blob_storage_client_provider_->GetBlobStream(get_blob_stream_context);
+  return blob_storage_client_provider_->GetBlobStream(get_blob_stream_context)
+                 .ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 ExecutionResult BlobStorageClient::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>
         put_blob_stream_context) noexcept {
-  return blob_storage_client_provider_->PutBlobStream(put_blob_stream_context);
+  return blob_storage_client_provider_->PutBlobStream(put_blob_stream_context)
+                 .ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 std::unique_ptr<BlobStorageClientInterface> BlobStorageClientFactory::Create(
