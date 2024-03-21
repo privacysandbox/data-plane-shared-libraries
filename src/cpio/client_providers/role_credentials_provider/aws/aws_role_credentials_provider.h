@@ -35,19 +35,15 @@ class AwsRoleCredentialsProvider : public RoleCredentialsProviderInterface {
  public:
   AwsRoleCredentialsProvider(
       RoleCredentialsProviderOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor)
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor)
       : instance_client_provider_(instance_client_provider),
         cpu_async_executor_(cpu_async_executor),
         io_async_executor_(io_async_executor),
         region_code_(std::move(options).region) {}
 
   core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
 
   core::ExecutionResult GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&

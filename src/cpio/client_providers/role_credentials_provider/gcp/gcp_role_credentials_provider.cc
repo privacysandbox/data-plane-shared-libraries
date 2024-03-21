@@ -30,14 +30,6 @@ ExecutionResult GcpRoleCredentialsProvider::Init() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResult GcpRoleCredentialsProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpRoleCredentialsProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
     core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
         get_credentials_context) noexcept {
@@ -47,9 +39,11 @@ ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
 std::unique_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
     RoleCredentialsProviderOptions /*options*/,
-    InstanceClientProviderInterface* /*instance_client_provider*/,
-    core::AsyncExecutorInterface* /*cpu_async_executor*/,
-    core::AsyncExecutorInterface* /*io_async_executor*/) noexcept {
+    absl::Nonnull<
+        InstanceClientProviderInterface*> /*instance_client_provider*/,
+    absl::Nonnull<core::AsyncExecutorInterface*> /*cpu_async_executor*/,
+    absl::Nonnull<
+        core::AsyncExecutorInterface*> /*io_async_executor*/) noexcept {
   return std::make_unique<GcpRoleCredentialsProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

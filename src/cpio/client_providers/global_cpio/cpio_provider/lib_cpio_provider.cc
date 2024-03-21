@@ -275,15 +275,6 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
         absl::StrCat("Failed to initialize role credential provider:\n",
                      GetErrorMessage(execution_result.status_code)));
   }
-
-  if (const auto execution_result = role_credentials_provider->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run role credential provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run role credential provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
   role_credentials_provider_ = std::move(role_credentials_provider);
   return role_credentials_provider_.get();
 }

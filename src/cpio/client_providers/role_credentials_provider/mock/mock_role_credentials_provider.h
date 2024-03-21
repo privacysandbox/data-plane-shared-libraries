@@ -30,14 +30,6 @@ class MockRoleCredentialsProvider : public RoleCredentialsProviderInterface {
     return core::SuccessExecutionResult();
   }
 
-  core::ExecutionResult Run() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Stop() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
   core::ExecutionResult GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_credentials_context) noexcept override {

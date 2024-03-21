@@ -63,26 +63,6 @@ ClientConfiguration AwsRoleCredentialsProvider::CreateClientConfiguration(
 }
 
 ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
-  return SuccessExecutionResult();
-};
-
-ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
-  if (!instance_client_provider_) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
-    SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, execution_result,
-              "InstanceClientProvider cannot be null.");
-    return execution_result;
-  }
-
-  if (!cpu_async_executor_ || !io_async_executor_) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
-    SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, execution_result,
-              "AsyncExecutor cannot be null.");
-    return execution_result;
-  }
-
   ClientConfiguration client_config;
   if (!region_code_.empty()) {
     client_config = CreateClientConfiguration(region_code_);
@@ -104,10 +84,6 @@ ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
       TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
   session_name_ = std::make_shared<std::string>(timestamp);
 
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsRoleCredentialsProvider::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
@@ -178,9 +154,9 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
 std::unique_ptr<RoleCredentialsProviderInterface>
 RoleCredentialsProviderFactory::Create(
     RoleCredentialsProviderOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept {
   return std::make_unique<AwsRoleCredentialsProvider>(
       std::move(options), instance_client_provider, cpu_async_executor,
       io_async_executor);

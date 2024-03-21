@@ -49,9 +49,10 @@ struct GetRoleCredentialsResponse {
 };
 
 /// Provides cloud role credentials functionality.
-class RoleCredentialsProviderInterface : public core::ServiceInterface {
+class RoleCredentialsProviderInterface {
  public:
   virtual ~RoleCredentialsProviderInterface() = default;
+  virtual core::ExecutionResult Init() noexcept = 0;
 
   /**
    * @brief Gets the role credentials for the given AccountIdentity.
@@ -75,9 +76,9 @@ class RoleCredentialsProviderFactory {
    */
   static std::unique_ptr<RoleCredentialsProviderInterface> Create(
       RoleCredentialsProviderOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor) noexcept;
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 
