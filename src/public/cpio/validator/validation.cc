@@ -225,6 +225,9 @@ int main(int argc, char* argv[]) {
   // Run test cases for CPIO components.
   for (auto test_case : validator_config.test_cases()) {
     switch (test_case.client_config_case()) {
+      case TestCase::ClientConfigCase::kDnsConfig:
+      case TestCase::ClientConfigCase::kHttpConfig:
+        break;
       case TestCase::ClientConfigCase::kGetTagsByResourceNameConfig:
         google::scp::cpio::validator::RunGetTagsByResourceNameValidator(
             test_case.name(), test_case.get_tags_by_resource_name_config());
