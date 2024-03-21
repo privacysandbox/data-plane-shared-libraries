@@ -200,10 +200,6 @@ ClientConfiguration AwsBlobStorageClientProvider::CreateClientConfiguration(
 }
 
 ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
   std::string region_code;
   if (!region_code_.empty()) {
     region_code = region_code_;
@@ -225,10 +221,6 @@ ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
     return client_or.result();
   }
   s3_client_ = *std::move(client_or);
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsBlobStorageClientProvider::Stop() noexcept {
   return SuccessExecutionResult();
 }
 

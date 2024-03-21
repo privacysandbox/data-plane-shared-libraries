@@ -30,10 +30,6 @@ class MockBlobStorageClientProvider
  public:
   MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
 
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-
   MOCK_METHOD(core::ExecutionResult, GetBlob,
               ((core::AsyncContext<
                   cmrt::sdk::blob_storage_service::v1::GetBlobRequest,

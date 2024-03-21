@@ -59,8 +59,6 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
         s3_factory_(std::move(s3_factory)) {}
 
   core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
 
   core::ExecutionResult GetBlob(
       core::AsyncContext<cmrt::sdk::blob_storage_service::v1::GetBlobRequest,

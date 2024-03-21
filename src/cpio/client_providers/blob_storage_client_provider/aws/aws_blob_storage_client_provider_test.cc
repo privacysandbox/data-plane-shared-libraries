@@ -112,7 +112,6 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
     };
 
     EXPECT_SUCCESS(provider_->Init());
-    EXPECT_SUCCESS(provider_->Run());
   }
 
   ~AwsBlobStorageClientProviderTest() { ShutdownAPI(options_); }
@@ -146,8 +145,7 @@ TEST_F(AwsBlobStorageClientProviderTest,
   ExecutionResult failure_result = FailureExecutionResult(SC_UNKNOWN);
   instance_client_.get_instance_resource_name_mock = failure_result;
 
-  EXPECT_SUCCESS(provider_->Init());
-  EXPECT_THAT(provider_->Run(), ResultIs(failure_result));
+  EXPECT_THAT(provider_->Init(), ResultIs(failure_result));
 }
 
 TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {

@@ -66,8 +66,6 @@ class GcpBlobStorageClientProvider : public BlobStorageClientProviderInterface {
         io_async_executor_(io_async_executor) {}
 
   core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
 
   core::ExecutionResult GetBlob(
       core::AsyncContext<cmrt::sdk::blob_storage_service::v1::GetBlobRequest,

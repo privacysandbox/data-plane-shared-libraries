@@ -108,22 +108,10 @@ ExecutionResult BlobStorageClient::Init() noexcept {
 }
 
 ExecutionResult BlobStorageClient::Run() noexcept {
-  auto execution_result = blob_storage_client_provider_->Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
-              "Failed to run BlobStorageClientProvider.");
-    return execution_result;
-  }
   return SuccessExecutionResult();
 }
 
 ExecutionResult BlobStorageClient::Stop() noexcept {
-  auto execution_result = blob_storage_client_provider_->Stop();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
-              "Failed to stop BlobStorageClientProvider.");
-    return execution_result;
-  }
   return SuccessExecutionResult();
 }
 

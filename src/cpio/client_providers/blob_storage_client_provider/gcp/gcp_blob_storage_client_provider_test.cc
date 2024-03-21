@@ -161,11 +161,6 @@ class GcpBlobStorageClientProviderTest
     };
 
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Init());
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Run());
-  }
-
-  ~GcpBlobStorageClientProviderTest() {
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Stop());
   }
 
   MockInstanceClientProvider instance_client_;

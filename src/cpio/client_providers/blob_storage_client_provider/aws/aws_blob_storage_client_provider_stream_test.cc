@@ -118,7 +118,6 @@ class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
     };
 
     EXPECT_SUCCESS(provider_->Init());
-    EXPECT_SUCCESS(provider_->Run());
   }
 
   ~AwsBlobStorageClientProviderStreamTest() { ShutdownAPI(options_); }

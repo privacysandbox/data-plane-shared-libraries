@@ -34,10 +34,10 @@ namespace google::scp::cpio::client_providers {
 
 /// BlobStorageClientProviderInterface provide cloud blob storage access
 /// functionalities.
-class BlobStorageClientProviderInterface : public core::ServiceInterface {
+class BlobStorageClientProviderInterface {
  public:
   virtual ~BlobStorageClientProviderInterface() = default;
-
+  virtual core::ExecutionResult Init() noexcept = 0;
   /**
    * @brief Used to download a blob using blob identifiers.
    *

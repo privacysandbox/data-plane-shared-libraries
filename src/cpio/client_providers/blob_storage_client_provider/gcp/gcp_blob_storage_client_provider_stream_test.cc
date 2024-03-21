@@ -149,11 +149,6 @@ class GcpBlobStorageClientProviderStreamTest : public testing::Test {
     };
 
     EXPECT_SUCCESS(gcp_cloud_storage_client_->Init());
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Run());
-  }
-
-  ~GcpBlobStorageClientProviderStreamTest() {
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Stop());
   }
 
   MockInstanceClientProvider instance_client_;
@@ -894,7 +889,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
               ClientFromMock(mock_client)))));
 
   EXPECT_SUCCESS(gcp_cloud_storage_client.Init());
-  EXPECT_SUCCESS(gcp_cloud_storage_client.Run());
 
   put_blob_stream_context.request = std::make_unique<PutBlobStreamRequest>();
   put_blob_stream_context.request->mutable_blob_portion()
@@ -942,7 +936,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
   put_blob_stream_context.MarkDone();
 
   finished.WaitForNotification();
-  EXPECT_SUCCESS(gcp_cloud_storage_client.Stop());
 }
 
 }  // namespace

@@ -161,14 +161,6 @@ ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
   return SuccessExecutionResult();
 }
 
-ExecutionResult GcpBlobStorageClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpBlobStorageClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult GcpBlobStorageClientProvider::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) noexcept {
   const auto& request = *get_blob_context.request;
