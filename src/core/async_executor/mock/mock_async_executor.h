@@ -28,12 +28,6 @@ class MockAsyncExecutor : public core::AsyncExecutorInterface {
  public:
   MockAsyncExecutor() {}
 
-  ExecutionResult Init() noexcept override { return SuccessExecutionResult(); }
-
-  ExecutionResult Run() noexcept override { return SuccessExecutionResult(); }
-
-  ExecutionResult Stop() noexcept override { return SuccessExecutionResult(); }
-
   ExecutionResult Schedule(AsyncOperation work,
                            AsyncPriority priority) noexcept override {
     if (schedule_mock) {

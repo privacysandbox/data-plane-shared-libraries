@@ -876,11 +876,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
   // In order to test the "no message" path, we must have real async executors.
   AsyncExecutor cpu_async_executor(1, 5);
   AsyncExecutor io_async_executor(1, 5);
-  EXPECT_SUCCESS(cpu_async_executor.Init());
-  EXPECT_SUCCESS(io_async_executor.Init());
-  EXPECT_SUCCESS(cpu_async_executor.Run());
-  EXPECT_SUCCESS(io_async_executor.Run());
-
   MockInstanceClientProvider instance_client;
   instance_client.instance_resource_name = kInstanceResourceName;
   std::shared_ptr<MockClient> mock_client =
@@ -948,8 +943,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
 
   finished.WaitForNotification();
   EXPECT_SUCCESS(gcp_cloud_storage_client.Stop());
-  EXPECT_SUCCESS(io_async_executor.Stop());
-  EXPECT_SUCCESS(cpu_async_executor.Stop());
 }
 
 }  // namespace

@@ -32,24 +32,13 @@ namespace google::scp::core {
  * @brief A single threaded priority async executor. This executor will have one
  * thread working with one priority queue.
  */
-class SingleThreadPriorityAsyncExecutor : ServiceInterface {
+class SingleThreadPriorityAsyncExecutor {
  public:
   explicit SingleThreadPriorityAsyncExecutor(
       size_t queue_cap,
-      std::optional<size_t> affinity_cpu_number = std::nullopt)
-      : is_running_(false),
-        worker_thread_started_(false),
-        worker_thread_stopped_(false),
-        update_wait_time_(false),
-        next_scheduled_task_timestamp_(UINT64_MAX),
-        queue_cap_(queue_cap),
-        affinity_cpu_number_(affinity_cpu_number) {}
+      std::optional<size_t> affinity_cpu_number = std::nullopt);
 
-  ExecutionResult Init() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
-
-  ExecutionResult Run() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
-
-  ExecutionResult Stop() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
+  ~SingleThreadPriorityAsyncExecutor();
 
   /**
    * @brief Schedules a task to be executed at a certain time.
@@ -80,8 +69,7 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
    * @brief Returns the ID of the spawned thread object to enable looking it up
    * via thread IDs later. Will only be populated after Run() is called.
    */
-  ExecutionResultOr<std::thread::id> GetThreadId() const
-      ABSL_LOCKS_EXCLUDED(mutex_);
+  std::thread::id GetThreadId() const;
 
  private:
   /// Starts the internal worker thread.
@@ -115,9 +103,9 @@ class SingleThreadPriorityAsyncExecutor : ServiceInterface {
   /// Queue for accepting the incoming tasks.
   /// TODO(b/315140459): Replace `priority_queue`. `shared_ptr` is necessary
   /// since `top` returns a const reference, necessitating a copy.
-  std::optional<std::priority_queue<std::shared_ptr<AsyncTask>,
-                                    std::vector<std::shared_ptr<AsyncTask>>,
-                                    AsyncTaskCompareGreater>>
+  std::priority_queue<std::shared_ptr<AsyncTask>,
+                      std::vector<std::shared_ptr<AsyncTask>>,
+                      AsyncTaskCompareGreater>
       queue_ ABSL_GUARDED_BY(mutex_);
   /**
    * @brief Used for signaling the thread that an element is pushed to the

@@ -28,16 +28,11 @@
 #include "typedef.h"
 
 namespace google::scp::core {
-ExecutionResult AsyncExecutor::Init() noexcept {
-  if (thread_count_ <= 0 || thread_count_ > kMaxThreadCount) {
-    return FailureExecutionResult(
-        errors::SC_ASYNC_EXECUTOR_INVALID_THREAD_COUNT);
-  }
-
-  if (queue_cap_ <= 0 || queue_cap_ > kMaxQueueCap) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_INVALID_QUEUE_CAP);
-  }
-
+AsyncExecutor::AsyncExecutor(size_t thread_count, size_t queue_cap,
+                             TaskLoadBalancingScheme task_load_balancing_scheme)
+    : thread_count_(std::clamp<size_t>(thread_count, 0, kMaxThreadCount)),
+      queue_cap_(std::clamp<size_t>(queue_cap, 0, kMaxQueueCap)),
+      task_load_balancing_scheme_(task_load_balancing_scheme) {
   for (size_t i = 0; i < thread_count_; ++i) {
     // TODO We select the CPU affinity just starting at 0 and working our way
     // up. Should we instead randomly assign the CPUs?
@@ -45,41 +40,13 @@ ExecutionResult AsyncExecutor::Init() noexcept {
     urgent_task_executor_pool_.push_back(
         std::make_unique<SingleThreadPriorityAsyncExecutor>(
             queue_cap_, cpu_affinity_number));
-    auto execution_result = urgent_task_executor_pool_.back()->Init();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
     normal_task_executor_pool_.push_back(
         std::make_unique<SingleThreadAsyncExecutor>(queue_cap_,
                                                     cpu_affinity_number));
-    execution_result = normal_task_executor_pool_.back()->Init();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
-  }
-
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AsyncExecutor::Run() noexcept {
-  if (urgent_task_executor_pool_.size() < thread_count_ ||
-      normal_task_executor_pool_.size() < thread_count_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED);
-  }
-
-  for (size_t i = 0; i < thread_count_; ++i) {
     auto* urgent_executor = urgent_task_executor_pool_.at(i).get();
-    auto execution_result = urgent_executor->Run();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
     auto* normal_executor = normal_task_executor_pool_.at(i).get();
-    execution_result = normal_executor->Run();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
-    ASSIGN_OR_RETURN(auto normal_thread_id, normal_executor->GetThreadId());
-    ASSIGN_OR_RETURN(auto urgent_thread_id, urgent_executor->GetThreadId());
+    auto normal_thread_id = normal_executor->GetThreadId();
+    auto urgent_thread_id = urgent_executor->GetThreadId();
 
     // We map both thread IDs to the same executors because we can maintain
     // affinity when migrating from normal -> urgent or vice versa. The
@@ -89,22 +56,6 @@ ExecutionResult AsyncExecutor::Run() noexcept {
     thread_id_to_executor_map_[urgent_thread_id] = {normal_executor,
                                                     urgent_executor};
   }
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AsyncExecutor::Stop() noexcept {
-  // Ensures all of thread are waited to finish.
-  for (size_t i = 0; i < thread_count_; ++i) {
-    auto execution_result = urgent_task_executor_pool_.at(i)->Stop();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
-    execution_result = normal_task_executor_pool_.at(i)->Stop();
-    if (!execution_result.Successful()) {
-      return execution_result;
-    }
-  }
-  return SuccessExecutionResult();
 }
 
 template <class TaskExecutorType>

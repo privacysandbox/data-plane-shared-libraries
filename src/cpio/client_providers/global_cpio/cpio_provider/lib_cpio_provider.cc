@@ -116,24 +116,6 @@ ExecutionResult LibCpioProvider::Stop() noexcept {
     }
   }
 
-  if (cpu_async_executor_) {
-    auto execution_result = cpu_async_executor_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop CPU async executor.");
-      return execution_result;
-    }
-  }
-
-  if (io_async_executor_) {
-    auto execution_result = io_async_executor_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop IO async executor.");
-      return execution_result;
-    }
-  }
-
   if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
     cloud_initializer_->ShutdownCloud();
     auto execution_result = cloud_initializer_->Stop();
@@ -223,27 +205,8 @@ LibCpioProvider::GetCpuAsyncExecutor() noexcept {
   if (cpu_async_executor_) {
     return cpu_async_executor_.get();
   }
-
-  auto cpu_async_executor = std::make_unique<AsyncExecutor>(
-      kThreadPoolThreadCount, kThreadPoolQueueSize);
-  if (const auto execution_result = cpu_async_executor->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = cpu_async_executor->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  cpu_async_executor_ = std::move(cpu_async_executor);
+  cpu_async_executor_ = std::make_unique<AsyncExecutor>(kThreadPoolThreadCount,
+                                                        kThreadPoolQueueSize);
   return cpu_async_executor_.get();
 }
 
@@ -252,27 +215,8 @@ LibCpioProvider::GetIoAsyncExecutor() noexcept {
   if (io_async_executor_) {
     return io_async_executor_.get();
   }
-
-  auto io_async_executor = std::make_unique<AsyncExecutor>(
-      kIOThreadPoolThreadCount, kIOThreadPoolQueueSize);
-  if (const auto execution_result = io_async_executor->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize IO async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize IO async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = io_async_executor->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run IO async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run IO async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  io_async_executor_ = std::move(io_async_executor);
+  io_async_executor_ = std::make_unique<AsyncExecutor>(kIOThreadPoolThreadCount,
+                                                       kIOThreadPoolQueueSize);
   return io_async_executor_.get();
 }
 

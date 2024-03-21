@@ -188,8 +188,6 @@ TEST(HttpClientTest, FailedToConnect) {
   request->path = std::make_shared<std::string>("http://localhost.failed:8000");
   MockAsyncExecutor async_executor;
   HttpClient http_client(&async_executor);
-  async_executor.Init();
-  async_executor.Run();
   http_client.Init();
   http_client.Run();
 
@@ -207,7 +205,6 @@ TEST(HttpClientTest, FailedToConnect) {
   ASSERT_SUCCESS(http_client.PerformRequest(context));
   finished.WaitForNotification();
   http_client.Stop();
-  async_executor.Stop();
 }
 
 class HttpClientTestII : public ::testing::Test {
@@ -216,9 +213,6 @@ class HttpClientTestII : public ::testing::Test {
     server.emplace("localhost", "0", 1);
     server->Run();
     async_executor.emplace(2, 1000);
-    async_executor->Init();
-    async_executor->Run();
-
     auto options = HttpClientOptions(
         RetryStrategyOptions(RetryStrategyType::Exponential,
                              kDefaultRetryStrategyDelayInMs,
@@ -232,7 +226,6 @@ class HttpClientTestII : public ::testing::Test {
 
   void TearDown() override {
     ASSERT_SUCCESS(http_client->Stop());
-    async_executor->Stop();
     server->Stop();
   }
 

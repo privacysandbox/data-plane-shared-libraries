@@ -15,6 +15,7 @@
 #include <gtest/gtest.h>
 
 #include <functional>
+#include <optional>
 #include <vector>
 
 #include "src/core/async_executor/single_thread_async_executor.h"
@@ -32,15 +33,12 @@ class SingleThreadAsyncExecutorBenchmarkTest : public ::testing::Test {
   void SetUpExecutor() {
     size_t queue_size = 100000000;
     bool drop_tasks_on_stop = false;
-    async_executor_ = std::make_shared<SingleThreadAsyncExecutor>(
-        queue_size, drop_tasks_on_stop);
-    EXPECT_SUCCESS(async_executor_->Init());
-    EXPECT_SUCCESS(async_executor_->Run());
+    async_executor_.emplace(queue_size, drop_tasks_on_stop);
   }
 
   int num_threads_scheduling_tasks_ = 10;
   int task_schedule_count_per_thread_ = 1000000;
-  std::shared_ptr<SingleThreadAsyncExecutor> async_executor_;
+  std::optional<SingleThreadAsyncExecutor> async_executor_;
   std::atomic<int64_t> execution_count_ = 0;
   std::function<void()> test_work_function_ = [&]() {
     execution_count_ += 1;
@@ -83,7 +81,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
                    .count()
             << " milliseconds elapsed" << std::endl;
 
-  EXPECT_SUCCESS(async_executor_->Stop());
+  async_executor_ = std::nullopt;
   EXPECT_EQ(execution_count_.load(), 5 * num_threads_scheduling_tasks_ *
                                          task_schedule_count_per_thread_);
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
@@ -126,7 +124,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
                    .count()
             << " milliseconds elapsed" << std::endl;
 
-  EXPECT_SUCCESS(async_executor_->Stop());
+  async_executor_ = std::nullopt;
   EXPECT_EQ(execution_count_.load(), 5 * num_threads_scheduling_tasks_ *
                                          task_schedule_count_per_thread_);
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
