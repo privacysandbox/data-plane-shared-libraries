@@ -87,18 +87,9 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
   } else {
     auth_token_provider = *provider;
   }
-  AsyncExecutorInterface* io_async_executor;
-  if (auto executor = cpio_->GetIoAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to get IOAsyncExecutor.");
-    return execution_result;
-  } else {
-    io_async_executor = *executor;
-  }
   private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
       options_, http_client, role_credentials_provider, auth_token_provider,
-      io_async_executor);
+      &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }
 

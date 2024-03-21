@@ -99,12 +99,7 @@ absl::StatusOr<HttpClientInterface*> LibCpioProvider::GetHttpClient() noexcept {
     return http2_client_.get();
   }
 
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  http2_client_ = std::make_unique<HttpClient>(*cpu_async_executor);
+  http2_client_ = std::make_unique<HttpClient>(&GetCpuAsyncExecutor());
   return http2_client_.get();
 }
 
@@ -114,39 +109,25 @@ LibCpioProvider::GetHttp1Client() noexcept {
     return http1_client_.get();
   }
 
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto io_async_executor = GetIoAsyncExecutor();
-  if (!io_async_executor.ok()) {
-    return io_async_executor.status();
-  }
-
-  http1_client_ = std::make_unique<Http1CurlClient>(*cpu_async_executor,
-                                                    *io_async_executor);
+  http1_client_ = std::make_unique<Http1CurlClient>(&GetCpuAsyncExecutor(),
+                                                    &GetIoAsyncExecutor());
   return http1_client_.get();
 }
 
-absl::StatusOr<AsyncExecutorInterface*>
-LibCpioProvider::GetCpuAsyncExecutor() noexcept {
-  if (cpu_async_executor_) {
-    return cpu_async_executor_.get();
+AsyncExecutorInterface& LibCpioProvider::GetCpuAsyncExecutor() noexcept {
+  if (!cpu_async_executor_) {
+    cpu_async_executor_ = std::make_unique<AsyncExecutor>(
+        kThreadPoolThreadCount, kThreadPoolQueueSize);
   }
-  cpu_async_executor_ = std::make_unique<AsyncExecutor>(kThreadPoolThreadCount,
-                                                        kThreadPoolQueueSize);
-  return cpu_async_executor_.get();
+  return *cpu_async_executor_;
 }
 
-absl::StatusOr<AsyncExecutorInterface*>
-LibCpioProvider::GetIoAsyncExecutor() noexcept {
-  if (io_async_executor_) {
-    return io_async_executor_.get();
+AsyncExecutorInterface& LibCpioProvider::GetIoAsyncExecutor() noexcept {
+  if (!io_async_executor_) {
+    io_async_executor_ = std::make_unique<AsyncExecutor>(
+        kIOThreadPoolThreadCount, kIOThreadPoolQueueSize);
   }
-  io_async_executor_ = std::make_unique<AsyncExecutor>(kIOThreadPoolThreadCount,
-                                                       kIOThreadPoolQueueSize);
-  return io_async_executor_.get();
+  return *io_async_executor_;
 }
 
 absl::StatusOr<InstanceClientProviderInterface*>
@@ -169,20 +150,9 @@ LibCpioProvider::GetInstanceClientProvider() noexcept {
   if (!http2_client.ok()) {
     return http2_client.status();
   }
-
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto io_async_executor = GetIoAsyncExecutor();
-  if (!io_async_executor.ok()) {
-    return io_async_executor.status();
-  }
-
   instance_client_provider_ = InstanceClientProviderFactory::Create(
-      *auth_token_provider, *http1_client, *http2_client, *cpu_async_executor,
-      *io_async_executor);
+      *auth_token_provider, *http1_client, *http2_client,
+      &GetCpuAsyncExecutor(), &GetIoAsyncExecutor());
   return instance_client_provider_.get();
 }
 
@@ -203,16 +173,6 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
     return role_credentials_provider_.get();
   }
 
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto io_async_executor = GetIoAsyncExecutor();
-  if (!io_async_executor.ok()) {
-    return io_async_executor.status();
-  }
-
   auto instance_client = GetInstanceClientProvider();
   if (!instance_client.ok()) {
     return instance_client.status();
@@ -220,9 +180,9 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
 
   RoleCredentialsProviderOptions options;
   options.region = GetRegion();
-  auto role_credentials_provider =
-      CreateRoleCredentialsProvider(std::move(options), *instance_client,
-                                    *cpu_async_executor, *io_async_executor);
+  auto role_credentials_provider = CreateRoleCredentialsProvider(
+      std::move(options), *instance_client, &GetCpuAsyncExecutor(),
+      &GetIoAsyncExecutor());
   if (!role_credentials_provider.ok()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, role_credentials_provider.status(),
               "Failed to initialize role credential provider.");

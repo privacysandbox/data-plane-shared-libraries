@@ -49,8 +49,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return cpu_async_executor the CPU Async Executor.
    */
-  virtual absl::StatusOr<core::AsyncExecutorInterface*>
-  GetCpuAsyncExecutor() noexcept = 0;
+  virtual core::AsyncExecutorInterface& GetCpuAsyncExecutor() noexcept = 0;
 
   /**
    * @brief Gets the global IO Async Executor. Only create it when it is
@@ -58,8 +57,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return io_async_executor the IO Async Executor.
    */
-  virtual absl::StatusOr<core::AsyncExecutorInterface*>
-  GetIoAsyncExecutor() noexcept = 0;
+  virtual core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept = 0;
 
   /**
    * @brief Get the Http2 Client object. Only create it when it is needed.

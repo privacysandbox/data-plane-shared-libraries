@@ -63,28 +63,6 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   } else {
     instance_client_provider = *provider;
   }
-
-  AsyncExecutorInterface* cpu_async_executor;
-  if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
-              "Failed to get CpuAsyncExecutor.");
-    return execution_result;
-  } else {
-    cpu_async_executor = *executor;
-  }
-
-  // TODO(b/321117161): Replace CPU w/ IO executor.
-  AsyncExecutorInterface* io_async_executor;
-  if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
-              "Failed to get IoAsyncExecutor.");
-    return execution_result;
-  } else {
-    io_async_executor = *executor;
-  }
-
   ParameterClientOptions options = options_;
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
@@ -92,9 +70,12 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
   if (options.region.empty()) {
     options.region = cpio_->GetRegion();
   }
+
+  // TODO(b/321117161): Replace CPU w/ IO executor.
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
-      std::move(options), instance_client_provider, cpu_async_executor,
-      io_async_executor);
+      std::move(options), instance_client_provider,
+      /*cpu_async_executor=*/&cpio_->GetCpuAsyncExecutor(),
+      /*io_async_executor=*/&cpio_->GetCpuAsyncExecutor());
   return SuccessExecutionResult();
 }
 

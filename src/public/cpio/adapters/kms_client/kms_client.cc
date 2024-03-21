@@ -56,17 +56,8 @@ ExecutionResult KmsClient::Init() noexcept {
   } else {
     role_credentials_provider = *provider;
   }
-  AsyncExecutorInterface* io_async_executor;
-  if (auto executor = cpio_->GetIoAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to get IOAsyncExecutor.");
-    return execution_result;
-  } else {
-    io_async_executor = *executor;
-  }
   kms_client_provider_ = KmsClientProviderFactory::Create(
-      options_, role_credentials_provider, io_async_executor);
+      options_, role_credentials_provider, &cpio_->GetIoAsyncExecutor());
   auto execution_result = kms_client_provider_->Init();
   if (!execution_result.Successful()) {
     SCP_ERROR(kKmsClient, kZeroUuid, execution_result,

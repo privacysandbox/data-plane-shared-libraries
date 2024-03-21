@@ -54,11 +54,9 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::ExecutionResult Stop() noexcept override;
 
-  absl::StatusOr<core::AsyncExecutorInterface*> GetCpuAsyncExecutor() noexcept
-      override;
+  core::AsyncExecutorInterface& GetCpuAsyncExecutor() noexcept override;
 
-  absl::StatusOr<core::AsyncExecutorInterface*> GetIoAsyncExecutor() noexcept
-      override;
+  core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept override;
 
   absl::StatusOr<core::HttpClientInterface*> GetHttpClient() noexcept override;
 

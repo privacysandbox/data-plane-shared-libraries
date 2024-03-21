@@ -75,8 +75,7 @@ TEST(LibCpioTest, StopSuccessfully) {
   options.log_option = LogOption::kSysLog;
   options.region = kRegion;
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  auto cpu_async_executor = GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
-  ASSERT_TRUE(cpu_async_executor.ok());
+  GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
   ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 

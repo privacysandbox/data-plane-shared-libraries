@@ -59,26 +59,6 @@ namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  AsyncExecutorInterface* cpu_async_executor;
-  if (auto executor = cpio_->GetCpuAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
-              "Failed to get AsyncExecutor.");
-    return execution_result;
-  } else {
-    cpu_async_executor = *executor;
-  }
-
-  AsyncExecutorInterface* io_async_executor;
-  if (auto executor = cpio_->GetIoAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
-              "Failed to get IOAsyncExecutor.");
-    return execution_result;
-  } else {
-    io_async_executor = *executor;
-  }
-
   InstanceClientProviderInterface* instance_client;
   if (auto client = cpio_->GetInstanceClientProvider(); !client.ok()) {
     ExecutionResult execution_result;
@@ -96,8 +76,8 @@ ExecutionResult BlobStorageClient::Init() noexcept {
     options.region = cpio_->GetRegion();
   }
   blob_storage_client_provider_ = BlobStorageClientProviderFactory::Create(
-      std::move(options), instance_client, cpu_async_executor,
-      io_async_executor);
+      std::move(options), instance_client, &cpio_->GetCpuAsyncExecutor(),
+      &cpio_->GetIoAsyncExecutor());
   if (absl::Status error = blob_storage_client_provider_->Init(); !error.ok()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid, error,
               "Failed to initialize BlobStorageClientProvider.");
