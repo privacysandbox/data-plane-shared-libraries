@@ -32,9 +32,10 @@ namespace google::scp::cpio::client_providers {
 /**
  * @brief Interface responsible for queuing messages.
  */
-class QueueClientProviderInterface : public core::ServiceInterface {
+class QueueClientProviderInterface {
  public:
   virtual ~QueueClientProviderInterface() = default;
+  virtual core::ExecutionResult Init() noexcept = 0;
   /**
    * @brief Enqueue a message to the queue.
    * @param enqueue_message_context context of the operation.

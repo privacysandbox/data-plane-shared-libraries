@@ -92,12 +92,6 @@ void RunEnqueueMessageValidator(
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
     return;
   }
-  if (google::scp::core::ExecutionResult result = queue_client->Run();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
-    return;
-  }
   // EnqueueMessage.
   absl::Notification finished;
   google::scp::core::ExecutionResult result;
@@ -129,10 +123,6 @@ void RunEnqueueMessageValidator(
     std::cout << "[ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
     return;
-  }
-  if (auto result = queue_client->Stop(); !result.Successful()) {
-    std::cout << " [ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
 }
 
@@ -178,12 +168,6 @@ void RunGetTopMessageValidator(std::string_view name) {
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
     return;
   }
-  if (google::scp::core::ExecutionResult result = queue_client->Run();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
-    return;
-  }
   // GetTopMessage.
   absl::Notification finished;
   google::scp::core::ExecutionResult result;
@@ -214,10 +198,6 @@ void RunGetTopMessageValidator(std::string_view name) {
     std::cout << "[ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
     return;
-  }
-  if (auto result = queue_client->Stop(); !result.Successful()) {
-    std::cout << " [ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
 }
 }  // namespace google::scp::cpio::validator

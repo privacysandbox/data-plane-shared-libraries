@@ -145,8 +145,6 @@ class AwsQueueClientProviderTest : public ::testing::Test {
         &io_async_executor_, mock_sqs_client_factory_);
   }
 
-  void TearDown() override { EXPECT_SUCCESS(queue_client_provider_->Stop()); }
-
   QueueClientOptions queue_client_options_;
   MockAsyncExecutor cpu_async_executor_;
   MockAsyncExecutor io_async_executor_;
@@ -173,8 +171,7 @@ TEST_F(AwsQueueClientProviderTest, RunWithEmptyQueueName) {
                                 &cpu_async_executor, &io_async_executor,
                                 mock_sqs_client_factory_);
 
-  EXPECT_SUCCESS(client.Init());
-  EXPECT_THAT(client.Run(),
+  EXPECT_THAT(client.Init(),
               ResultIs(FailureExecutionResult(
                   SC_AWS_QUEUE_CLIENT_PROVIDER_QUEUE_NAME_REQUIRED)));
 }
@@ -188,8 +185,7 @@ TEST_F(AwsQueueClientProviderTest, RunWithCreateClientConfigurationFailed) {
                                 &cpu_async_executor, &io_async_executor,
                                 mock_sqs_client_factory_);
 
-  EXPECT_SUCCESS(client.Init());
-  EXPECT_THAT(client.Run(), ResultIs(failure_result));
+  EXPECT_THAT(client.Init(), ResultIs(failure_result));
 }
 
 TEST_F(AwsQueueClientProviderTest, RunWithGetQueueUrlFailed) {
@@ -199,8 +195,7 @@ TEST_F(AwsQueueClientProviderTest, RunWithGetQueueUrlFailed) {
   EXPECT_CALL(*mock_sqs_client_, GetQueueUrl)
       .WillOnce(Return(get_queue_url_outcome));
 
-  EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_THAT(queue_client_provider_->Run(),
+  EXPECT_THAT(queue_client_provider_->Init(),
               ResultIs(FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE)));
 }
 
@@ -218,13 +213,11 @@ TEST_F(AwsQueueClientProviderTest, RunSuccessWithExistingQueue) {
       .WillOnce(Return(get_queue_url_outcome));
 
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 }
 
 TEST_F(AwsQueueClientProviderTest,
        UpdateMessageVisibilityTimeoutWithInvalidReceiptInfo) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   update_message_visibility_timeout_context_.request->set_receipt_info(
       kInvalidReceiptInfo);
@@ -243,7 +236,6 @@ TEST_F(AwsQueueClientProviderTest,
 TEST_F(AwsQueueClientProviderTest,
        UpdateMessageVisibilityTimeoutWithInvalidExpirationTime) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   update_message_visibility_timeout_context_.request->set_receipt_info(
       kReceiptInfo);

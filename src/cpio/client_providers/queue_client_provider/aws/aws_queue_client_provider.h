@@ -55,10 +55,6 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
 
   core::ExecutionResult Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   core::ExecutionResult EnqueueMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::EnqueueMessageRequest,
                          cmrt::sdk::queue_service::v1::EnqueueMessageResponse>&

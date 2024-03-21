@@ -90,10 +90,6 @@ constexpr uint16_t kMaxVisibilityTimeoutSeconds = 600;
 
 namespace google::scp::cpio::client_providers {
 ExecutionResult AwsQueueClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsQueueClientProvider::Run() noexcept {
   ExecutionResult execution_result(SuccessExecutionResult());
   if (queue_name_.empty()) {
     execution_result = FailureExecutionResult(
@@ -160,10 +156,6 @@ ExecutionResultOr<std::string> AwsQueueClientProvider::GetQueueUrl() noexcept {
     return execution_result;
   }
   return get_queue_url_outcome.GetResult().GetQueueUrl().c_str();
-}
-
-ExecutionResult AwsQueueClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
 }
 
 ExecutionResult AwsQueueClientProvider::EnqueueMessage(

@@ -106,10 +106,6 @@ ExecutionResult GcpQueueClientProvider::Init() noexcept {
     return execution_result;
   }
 
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpQueueClientProvider::Run() noexcept {
   if (project_id_.empty()) {
     auto project_id_or =
         GcpInstanceClientUtils::GetCurrentProjectId(*instance_client_provider_);
@@ -144,10 +140,6 @@ ExecutionResult GcpQueueClientProvider::Run() noexcept {
   subscription_name_ =
       absl::Substitute(kGcpSubscriptionFormatString, project_id_, queue_name_);
 
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpQueueClientProvider::Stop() noexcept {
   return SuccessExecutionResult();
 }
 

@@ -151,8 +151,6 @@ class GcpQueueClientProviderTest : public ::testing::Test {
     };
   }
 
-  void TearDown() override { EXPECT_SUCCESS(queue_client_provider_->Stop()); }
-
   QueueClientOptions queue_client_options_;
   MockInstanceClientProvider mock_instance_client_provider_;
   MockAsyncExecutor cpu_async_executor_;
@@ -203,16 +201,14 @@ TEST_F(GcpQueueClientProviderTest, InitWithGetProjectIdFailure) {
       queue_client_options_, &mock_instance_client_provider_,
       &cpu_async_executor, &io_async_executor, mock_pubsub_stub_factory_);
 
-  EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_THAT(client.Run(), ResultIs(FailureExecutionResult(123)));
+  EXPECT_THAT(client.Init(), ResultIs(FailureExecutionResult(123)));
 }
 
 TEST_F(GcpQueueClientProviderTest, InitWithPublisherCreationFailure) {
   EXPECT_CALL(*mock_pubsub_stub_factory_, CreatePublisherStub)
       .WillOnce(Return(nullptr));
 
-  EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_THAT(queue_client_provider_->Run(),
+  EXPECT_THAT(queue_client_provider_->Init(),
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_PUBLISHER_REQUIRED)));
 }
@@ -221,8 +217,7 @@ TEST_F(GcpQueueClientProviderTest, InitWithSubscriberCreationFailure) {
   EXPECT_CALL(*mock_pubsub_stub_factory_, CreateSubscriberStub)
       .WillOnce(Return(nullptr));
 
-  EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_THAT(queue_client_provider_->Run(),
+  EXPECT_THAT(queue_client_provider_->Init(),
               ResultIs(FailureExecutionResult(
                   SC_GCP_QUEUE_CLIENT_PROVIDER_SUBSCRIBER_REQUIRED)));
 }
@@ -239,7 +234,6 @@ MATCHER_P2(HasPublishParams, topic_name, message_body, "") {
 
 TEST_F(GcpQueueClientProviderTest, EnqueueMessageSuccess) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_publisher_stub_,
               Publish(_, HasPublishParams(kExpectedTopicName, kMessageBody), _))
@@ -267,7 +261,6 @@ TEST_F(GcpQueueClientProviderTest, EnqueueMessageSuccess) {
 
 TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithEmptyMessageBody) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   enqueue_message_context_.request->set_message_body("");
   enqueue_message_context_.callback =
@@ -291,7 +284,6 @@ TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithEmptyMessageBody) {
 
 TEST_F(GcpQueueClientProviderTest, EnqueueMessageFailureWithPubSubError) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_publisher_stub_,
               Publish(_, HasPublishParams(kExpectedTopicName, kMessageBody), _))
@@ -324,7 +316,6 @@ MATCHER_P2(HasPullParams, subscription_name, max_messages, "") {
 
 TEST_F(GcpQueueClientProviderTest, GetTopMessageSuccess) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_subscriber_stub_,
               Pull(_,
@@ -363,7 +354,6 @@ TEST_F(GcpQueueClientProviderTest, GetTopMessageSuccess) {
 
 TEST_F(GcpQueueClientProviderTest, GetTopMessageWithNoMessagesReturns) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_subscriber_stub_,
               Pull(_,
@@ -392,7 +382,6 @@ TEST_F(GcpQueueClientProviderTest, GetTopMessageWithNoMessagesReturns) {
 
 TEST_F(GcpQueueClientProviderTest, GetTopMessageFailureWithPubSubError) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_subscriber_stub_,
               Pull(_,
@@ -421,7 +410,6 @@ TEST_F(GcpQueueClientProviderTest, GetTopMessageFailureWithPubSubError) {
 TEST_F(GcpQueueClientProviderTest,
        GetTopMessageFailureWithNumberOfMessagesReceivedExceedingLimit) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_subscriber_stub_,
               Pull(_,
@@ -465,7 +453,6 @@ MATCHER_P3(HasModifyAckDeadlineParams, subscription_name, ack_id,
 
 TEST_F(GcpQueueClientProviderTest, UpdateMessageVisibilityTimeoutSuccess) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_subscriber_stub_,
               ModifyAckDeadline(
@@ -500,7 +487,6 @@ TEST_F(GcpQueueClientProviderTest, UpdateMessageVisibilityTimeoutSuccess) {
 TEST_F(GcpQueueClientProviderTest,
        UpdateMessageVisibilityTimeoutFailureWithEmptyReceiptInfo) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   update_message_visibility_timeout_context_.request->set_receipt_info("");
   update_message_visibility_timeout_context_.callback =
@@ -527,7 +513,6 @@ TEST_F(GcpQueueClientProviderTest,
 TEST_F(GcpQueueClientProviderTest,
        UpdateMessageVisibilityTimeoutFailureWithInvalidMessageLifetime) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   update_message_visibility_timeout_context_.request->set_receipt_info(
       kReceiptInfo);
@@ -559,7 +544,6 @@ TEST_F(GcpQueueClientProviderTest,
 TEST_F(GcpQueueClientProviderTest,
        UpdateMessageVisibilityTimeoutFailureWithPubSubError) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(*mock_subscriber_stub_,
               ModifyAckDeadline(
@@ -602,7 +586,6 @@ MATCHER_P2(HasAcknowledgeParams, subscription_name, ack_id, "") {
 
 TEST_F(GcpQueueClientProviderTest, DeleteMessageSuccess) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(
       *mock_subscriber_stub_,
@@ -629,7 +612,6 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageSuccess) {
 
 TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithEmptyReceiptInfo) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   delete_message_context_.request->set_receipt_info("");
   delete_message_context_.callback =
@@ -653,7 +635,6 @@ TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithEmptyReceiptInfo) {
 
 TEST_F(GcpQueueClientProviderTest, DeleteMessageFailureWithPubSubError) {
   EXPECT_SUCCESS(queue_client_provider_->Init());
-  EXPECT_SUCCESS(queue_client_provider_->Run());
 
   EXPECT_CALL(
       *mock_subscriber_stub_,

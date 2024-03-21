@@ -29,10 +29,6 @@ class MockQueueClientProvider : public QueueClientProviderInterface {
  public:
   MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
 
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-
   MOCK_METHOD(core::ExecutionResult, EnqueueMessage,
               ((core::AsyncContext<
                   cmrt::sdk::queue_service::v1::EnqueueMessageRequest,
