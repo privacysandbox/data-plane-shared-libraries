@@ -28,18 +28,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult AwsInitializer::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsInitializer::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsInitializer::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 void AwsInitializer::InitCloud() noexcept { InitAPI(options_); }
 
 void AwsInitializer::ShutdownCloud() noexcept { ShutdownAPI(options_); }

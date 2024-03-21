@@ -65,24 +65,12 @@ namespace google::scp::cpio::client_providers {
 ExecutionResult LibCpioProvider::Init() noexcept {
   if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
     cloud_initializer_ = CloudInitializerFactory::Create();
-    auto execution_result = cloud_initializer_->Init();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to init cloud initializer.");
-      return execution_result;
-    }
   }
   return SuccessExecutionResult();
 }
 
 ExecutionResult LibCpioProvider::Run() noexcept {
   if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
-    auto execution_result = cloud_initializer_->Run();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to run cloud initializer.");
-      return execution_result;
-    }
     cloud_initializer_->InitCloud();
   }
   return SuccessExecutionResult();
@@ -118,12 +106,6 @@ ExecutionResult LibCpioProvider::Stop() noexcept {
 
   if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
     cloud_initializer_->ShutdownCloud();
-    auto execution_result = cloud_initializer_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop cloud initializer.");
-      return execution_result;
-    }
   }
 
   return SuccessExecutionResult();
