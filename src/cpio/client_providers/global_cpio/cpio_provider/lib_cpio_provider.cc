@@ -299,16 +299,7 @@ LibCpioProvider::GetAuthTokenProvider() noexcept {
     return http1_client.status();
   }
 
-  auto auth_token_provider = AuthTokenProviderFactory::Create(*http1_client);
-  if (const auto execution_result = auth_token_provider->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize auth token provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize auth token provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  auth_token_provider_ = std::move(auth_token_provider);
+  auth_token_provider_ = AuthTokenProviderFactory::Create(*http1_client);
   return auth_token_provider_.get();
 }
 

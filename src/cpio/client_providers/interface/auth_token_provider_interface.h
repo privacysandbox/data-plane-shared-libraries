@@ -56,8 +56,6 @@ struct GetSessionTokenForTargetAudienceRequest {
 class AuthTokenProviderInterface {
  public:
   virtual ~AuthTokenProviderInterface() = default;
-  virtual core::ExecutionResult Init() noexcept = 0;
-
   /**
    * @brief Gets a session token from instance metadata service.
    *
@@ -89,7 +87,7 @@ class AuthTokenProviderFactory {
    * AuthTokenProvider.
    */
   static std::unique_ptr<AuthTokenProviderInterface> Create(
-      core::HttpClientInterface* http1_client);
+      absl::Nonnull<core::HttpClientInterface*> http1_client);
 };
 }  // namespace google::scp::cpio::client_providers
 

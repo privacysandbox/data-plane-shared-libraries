@@ -209,14 +209,6 @@ INSTANTIATE_TEST_SUITE_P(BadTokens, GcpAuthTokenProviderTest,
                               "expires_in": 3599
                             })""" /*missing field*/));
 
-TEST_F(GcpAuthTokenProviderTest, NullHttpClientProvider) {
-  auto auth_token_provider = std::make_shared<GcpAuthTokenProvider>(nullptr);
-
-  EXPECT_THAT(auth_token_provider->Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED)));
-}
-
 TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
   EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     EXPECT_EQ(http_context.request->method, HttpMethod::GET);
