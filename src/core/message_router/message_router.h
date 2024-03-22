@@ -22,7 +22,6 @@
 #include <string>
 
 #include "google/protobuf/any.pb.h"
-#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/message_router_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -49,17 +48,19 @@ class MessageRouter : public MessageRouterInterface<google::protobuf::Any,
   void OnMessageReceived(
       const std::shared_ptr<
           AsyncContext<google::protobuf::Any, google::protobuf::Any>>&
-          context) noexcept override;
+          context) noexcept override ABSL_LOCKS_EXCLUDED(mu_);
 
   using AsyncAction = typename std::function<void(
       AsyncContext<google::protobuf::Any, google::protobuf::Any>&)>;
-  ExecutionResult Subscribe(const RequestTypeId& request_type,
-                            const AsyncAction& action) noexcept override;
+  ExecutionResult Subscribe(RequestTypeId request_type,
+                            AsyncAction action) noexcept override
+      ABSL_LOCKS_EXCLUDED(mu_);
 
  private:
   // TODO(b/229794047): Figures out a better way to store the request_type to
   // have a better performance.
-  common::ConcurrentMap<std::string, AsyncAction> actions_;
+  absl::flat_hash_map<std::string, AsyncAction> actions_ ABSL_GUARDED_BY(mu_);
+  absl::Mutex mu_;
 };
 }  // namespace google::scp::core
 
