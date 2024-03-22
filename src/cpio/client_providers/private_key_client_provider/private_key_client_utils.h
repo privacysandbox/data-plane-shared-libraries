@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "google/protobuf/any.pb.h"
+#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/http_types.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"

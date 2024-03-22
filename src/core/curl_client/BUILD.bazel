@@ -28,7 +28,6 @@ cc_library(
         "http1_curl_wrapper.h",
     ],
     deps = [
-        "//src/core/common/concurrent_map",
         "//src/core/common/operation_dispatcher",
         "//src/core/interface",
         "//src/core/interface:async_context",
