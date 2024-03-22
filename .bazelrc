@@ -3,7 +3,6 @@ build --verbose_failures
 build --compilation_mode=opt
 build --output_filter='^//((?!(third_party):).)*$'`
 build --color=yes
-build --@io_bazel_rules_docker//transitions:enable=false
 build --config=cpp
 build --config=roma_sandboxed
 build --config=otel

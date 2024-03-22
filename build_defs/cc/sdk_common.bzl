@@ -18,13 +18,11 @@ load("//build_defs/cc/shared:cc_utils.bzl", "cc_utils")
 load("//build_defs/cc/shared:google_cloud_cpp.bzl", "import_google_cloud_cpp")
 load("//build_defs/cc/shared:gtest.bzl", "google_test")
 load("//build_defs/cc/shared:nghttp2.bzl", "nghttp2")
-load("//build_defs/shared:bazel_docker_rules.bzl", "bazel_docker_rules")
 load("//build_defs/shared:golang.bzl", "go_deps")
 load("//build_defs/shared:grpc.bzl", "grpc")
 load("//build_defs/tink:tink_defs.bzl", "tink_dependencies")
 
 def sdk_common():
-    bazel_docker_rules()
     boost()
     boringssl()
     cc_utils()

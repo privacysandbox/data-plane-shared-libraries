@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
 load("@rules_oci//oci:pull.bzl", "oci_pull")
 
 def container_deps():
@@ -53,17 +52,6 @@ def container_deps():
             name = "{}-{}".format(img_name, arch),
             digest = "sha256:" + hash,
             image = "{}/{}".format(image["registry"], image["repository"]),
-        )
-        for img_name, image in images.items()
-        for arch, hash in image["arch_hashes"].items()
-    ]
-
-    [
-        container_pull(
-            name = "{}-{}-docker".format(img_name, arch),
-            digest = "sha256:" + hash,
-            registry = image["registry"],
-            repository = image["repository"],
         )
         for img_name, image in images.items()
         for arch, hash in image["arch_hashes"].items()

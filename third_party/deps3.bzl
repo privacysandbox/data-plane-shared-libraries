@@ -21,7 +21,6 @@ load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
 load("@com_google_sandboxed_api//sandboxed_api/bazel:llvm_config.bzl", "llvm_disable_optional_support_deps")
 load("@com_google_sandboxed_api//sandboxed_api/bazel:sapi_deps.bzl", "sapi_deps")
 load("@google_benchmark//:bazel/benchmark_deps.bzl", "benchmark_deps")
-load("@io_bazel_rules_docker//repositories:repositories.bzl", container_repositories = "repositories")
 load("@io_opentelemetry_cpp//bazel:repository.bzl", "opentelemetry_cpp_deps")
 load("@rules_buf//buf:repositories.bzl", "rules_buf_dependencies", "rules_buf_toolchains")
 load("@rules_fuzzing//fuzzing:init.bzl", "rules_fuzzing_init")
@@ -50,7 +49,6 @@ def deps3():
     rules_buf_dependencies()
     rules_buf_toolchains(version = "v1.27.1")
     tink_cc_deps()
-    container_repositories()
     switched_rules_by_language(
         name = "com_google_googleapis_imports",
         cc = True,
