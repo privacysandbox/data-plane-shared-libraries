@@ -132,7 +132,7 @@ class MetricClientProvider : public MetricClientProviderInterface {
   /// Indicates whther the component stopped
   bool is_running_ ABSL_GUARDED_BY(sync_mutex_);
   /// Number of active metric push.
-  std::atomic<size_t> active_push_count_;
+  size_t active_push_count_ ABSL_GUARDED_BY(sync_mutex_);
   /// Number of metrics received in metric_requests_vector_.
   uint64_t number_metrics_in_vector_ ABSL_GUARDED_BY(sync_mutex_);
 

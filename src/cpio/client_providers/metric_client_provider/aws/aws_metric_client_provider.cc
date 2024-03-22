@@ -186,7 +186,10 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
           absl::bind_front(
               &AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
               context_chunk));
-      active_push_count_++;
+      {
+        absl::MutexLock l(&sync_mutex_);
+        active_push_count_++;
+      }
 
       // Resets all chunks.
       chunk_size = 0;
@@ -209,6 +212,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
         request_chunk,
         absl::bind_front(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback,
                          this, context_chunk));
+    absl::MutexLock l(&sync_mutex_);
     active_push_count_++;
   }
 
@@ -221,7 +225,10 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
     const CloudWatchClient*, const PutMetricDataRequest&,
     const PutMetricDataOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
-  active_push_count_--;
+  {
+    absl::MutexLock l(&sync_mutex_);
+    active_push_count_--;
+  }
   if (outcome.IsSuccess()) {
     for (auto& record_metric_context : metric_requests_vector) {
       record_metric_context.response = std::make_shared<PutMetricsResponse>();

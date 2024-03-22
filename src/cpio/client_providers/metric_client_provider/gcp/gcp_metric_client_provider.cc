@@ -156,7 +156,10 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
           .then(absl::bind_front(
               &GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback, this,
               *requests_vector));
-      active_push_count_++;
+      {
+        absl::MutexLock l(&sync_mutex_);
+        active_push_count_++;
+      }
 
       // Clear requests_vector and protobuf repeated field.
       time_series_request.mutable_time_series()->Clear();
@@ -173,7 +176,10 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
     std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
         metric_requests_vector,
     future<Status> outcome) noexcept {
-  active_push_count_--;
+  {
+    absl::MutexLock l(&sync_mutex_);
+    active_push_count_--;
+  }
   auto outcome_status = outcome.get();
   auto result = GcpUtils::GcpErrorConverter(outcome_status);
 

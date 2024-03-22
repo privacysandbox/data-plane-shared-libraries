@@ -100,21 +100,18 @@ absl::Status MetricClientProvider::Run() noexcept {
 }
 
 absl::Status MetricClientProvider::Stop() noexcept {
-  {
-    absl::MutexLock l(&sync_mutex_);
-    is_running_ = false;
-    if (is_batch_recording_enable) {
-      current_cancellation_callback_();
-      // To push the remaining metrics in the vector.
-      RunMetricsBatchPush();
-    }
+  absl::MutexLock l(&sync_mutex_);
+  is_running_ = false;
+  if (is_batch_recording_enable) {
+    current_cancellation_callback_();
+    // To push the remaining metrics in the vector.
+    RunMetricsBatchPush();
   }
-
-  while (active_push_count_ > 0) {
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(kShutdownWaitIntervalMilliseconds));
-  }
-
+  auto condition_fn = [&] {
+    sync_mutex_.AssertReaderHeld();
+    return active_push_count_ == 0;
+  };
+  sync_mutex_.Await(absl::Condition(&condition_fn));
   return absl::OkStatus();
 }
 
