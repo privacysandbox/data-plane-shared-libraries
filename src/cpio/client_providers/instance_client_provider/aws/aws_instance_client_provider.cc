@@ -147,19 +147,20 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
     return FailureExecutionResult(SC_AWS_INSTANCE_CLIENT_INVALID_REGION_CODE);
   }
 
-  std::shared_ptr<EC2Client> ec2_client;
-  if (ec2_clients_list_.Find(target_region, ec2_client).Successful()) {
-    return ec2_client;
+  {
+    absl::MutexLock l(&mu_);
+    if (const auto it = ec2_clients_list_.find(target_region);
+        it != ec2_clients_list_.end()) {
+      return it->second;
+    }
   }
 
-  auto ec2_client_or =
-      ec2_factory_.CreateClient(target_region, io_async_executor_);
-  RETURN_IF_FAILURE(ec2_client_or.result());
+  ASSIGN_OR_RETURN(
+      std::shared_ptr<EC2Client> ec2_client,
+      ec2_factory_.CreateClient(target_region, io_async_executor_));
 
-  ec2_client = std::move(*ec2_client_or);
-  ec2_clients_list_.Insert(std::make_pair(std::move(target_region), ec2_client),
-                           ec2_client);
-
+  absl::MutexLock l(&mu_);
+  ec2_clients_list_[std::move(target_region)] = ec2_client;
   return ec2_client;
 }
 

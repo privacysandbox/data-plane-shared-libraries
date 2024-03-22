@@ -23,7 +23,6 @@ cc_library(
     ],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
-        "//src/core/common/concurrent_map",
         "//src/core/common/uuid",
         "//src/core/interface",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",

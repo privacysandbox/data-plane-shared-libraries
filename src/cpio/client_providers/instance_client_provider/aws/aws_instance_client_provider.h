@@ -23,7 +23,6 @@
 
 #include <aws/ec2/EC2Client.h>
 
-#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -175,11 +174,13 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
    * client if success.
    */
   core::ExecutionResultOr<std::shared_ptr<Aws::EC2::EC2Client>>
-  GetEC2ClientByRegion(std::string_view region) noexcept;
+  GetEC2ClientByRegion(std::string_view region) noexcept
+      ABSL_LOCKS_EXCLUDED(mu_);
 
   /// On-demand EC2 client for region codes.
-  core::common::ConcurrentMap<std::string, std::shared_ptr<Aws::EC2::EC2Client>>
-      ec2_clients_list_;
+  absl::flat_hash_map<std::string, std::shared_ptr<Aws::EC2::EC2Client>>
+      ec2_clients_list_ ABSL_GUARDED_BY(mu_);
+  absl::Mutex mu_;
 
   /// Instance of auth token provider.
   AuthTokenProviderInterface* auth_token_provider_;
