@@ -222,7 +222,7 @@ absl::Status V8JsEngine::FormatAndLogError(v8::Isolate* isolate,
                                            std::string_view top_level_error,
                                            LogOptions log_options) {
   std::string err_msg = GetError(isolate, try_catch, top_level_error);
-  HandleLog(
+  (void)HandleLog(
       "ROMA_ERROR",
       absl::StrCat(err_msg, "\n", GetStackTrace(isolate, try_catch, context)),
       std::move(log_options));
