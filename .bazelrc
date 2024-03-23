@@ -18,7 +18,7 @@ build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
 build:cpp --cxxopt=-std=c++17
 build:cpp --client_env=CC=clang
 build:cpp --copt=-Werror=return-type
-build:cpp --copt=-Werror=thread-safety-analysis
+build:cpp --copt=-Werror=thread-safety
 build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
 build:cpp --per_file_copt=src/roma/roma_service/.*@-fconstexpr-steps=1271242
