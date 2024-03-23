@@ -37,9 +37,9 @@ SingleThreadAsyncExecutor::SingleThreadAsyncExecutor(
       worker_thread_started_(false),
       worker_thread_stopped_(false),
       queue_cap_(queue_cap),
+      affinity_cpu_number_(affinity_cpu_number),
       normal_pri_queue_(queue_cap_),
-      high_pri_queue_(queue_cap_),
-      affinity_cpu_number_(affinity_cpu_number) {
+      high_pri_queue_(queue_cap_) {
   working_thread_.emplace(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadAsyncExecutor* ptr) {
