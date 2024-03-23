@@ -48,12 +48,13 @@ void StringInStringOutFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputString) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = StringInStringOutFunction;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = StringInStringOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -120,12 +121,13 @@ void ListOfStringInListOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
 TEST(
     FunctionBindingTest,
     CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputListOfString) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = ListOfStringInListOfStringOutFunction;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = ListOfStringInListOfStringOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -203,12 +205,13 @@ void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputMapOfString) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = MapOfStringInMapOfStringOutFunction;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = MapOfStringInMapOfStringOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -281,13 +284,13 @@ void StringInStringOutFunctionWithNoInputParams(
 }
 
 TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function =
-      StringInStringOutFunctionWithNoInputParams;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = StringInStringOutFunctionWithNoInputParams,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -349,12 +352,13 @@ void ByteOutFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithOutputBytes) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = ByteOutFunction;
-  function_binding_object->function_name = "get_some_bytes";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "get_some_bytes",
+          .function = ByteOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -430,12 +434,13 @@ void ByteInFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputBytes) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = ByteInFunction;
-  function_binding_object->function_name = "set_some_bytes";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "set_some_bytes",
+          .function = ByteInFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -508,17 +513,18 @@ void FoObarFunc2(FunctionBindingPayload<>& wrapper) {
 }
 
 TEST(FunctionBindingTest, CanRegisterNonGlobalBindingsAndExecuteCode) {
-  Config config;
-  config.number_of_workers = 2;
-  auto func1_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  func1_binding_object->function = FooBarFunc1;
-  func1_binding_object->function_name = "foo.bar.func1";
-  config.RegisterFunctionBinding(std::move(func1_binding_object));
-
-  auto func2_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  func2_binding_object->function = FoObarFunc2;
-  func2_binding_object->function_name = "fo.obar.func2";
-  config.RegisterFunctionBinding(std::move(func2_binding_object));
+  RomaService<>::Config config;
+  config.number_of_workers = 3;
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "foo.bar.func1",
+          .function = FooBarFunc1,
+      }));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "fo.obar.func2",
+          .function = FoObarFunc2,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());

@@ -64,8 +64,9 @@ constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
-  explicit RomaService(Config<TMetadata> config = Config<TMetadata>())
-      : config_(std::move(config)) {}
+  using Config = Config<TMetadata>;
+
+  explicit RomaService(Config config = Config()) : config_(std::move(config)) {}
 
   // RomaService is neither copyable nor movable.
   RomaService(const RomaService&) = delete;
@@ -448,7 +449,7 @@ class RomaService {
     }
   }
 
-  Config<TMetadata> config_;
+  Config config_;
   std::vector<worker_api::WorkerSandboxApi> workers_;
   native_function_binding::NativeFunctionTable<TMetadata>
       native_function_binding_table_;
