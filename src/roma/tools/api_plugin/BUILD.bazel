@@ -14,7 +14,7 @@
 
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@rules_proto_grpc//:defs.bzl", "proto_plugin")
-load("//src/roma/tools/api_plugin:internal/roma_app_api.bzl", "get_all_roma_api_plugins", "template_dir_name")
+load("//src/roma/tools/api_plugin:internal/roma_api.bzl", "get_all_roma_api_plugins", "template_dir_name")
 
 go_library(
     name = "roma_api_plugin_lib",

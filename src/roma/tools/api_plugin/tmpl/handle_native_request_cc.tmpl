@@ -15,9 +15,15 @@
  */
 
 {{range $file := .Files}}
-{{- $defineGuard := $file.Package | printf "%s_" | replace "." "_" | upper}}
-#ifndef {{$defineGuard}}_NATIVE_REQUEST_HANDLER
-#define {{$defineGuard}}_NATIVE_REQUEST_HANDLER
+{{- $svcGuard := "" }}
+{{with index .Services 0}}
+{{- $svcopts := index .Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
+{{- $svcGuard = $svcopts.Romav8AppName | upper }}
+{{end}}
+
+{{- $defineGuard := $file.Package | printf "%s_%s_NATIVE_REQUEST_HANDLER" $svcGuard | replace "." "_" | upper}}
+#ifndef {{$defineGuard}}
+#define {{$defineGuard}}
 
 #include <string_view>
 #include <utility>
@@ -91,5 +97,5 @@ class InvokeCallbackHandler
 }  // namespace {{$svcopts.CppNamespace}}
 {{- end -}}{{/*svc range*/}}
 
-#endif  // {{$defineGuard}}_NATIVE_REQUEST_HANDLER
+#endif  // {{$defineGuard}}
 {{- end -}}{{/*file range*/}}

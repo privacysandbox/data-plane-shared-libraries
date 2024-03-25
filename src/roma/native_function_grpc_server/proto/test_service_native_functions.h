@@ -14,28 +14,27 @@
  * limitations under the License.
  */
 
-#ifndef PRIVACY_SANDBOX_TEST_SERVICE_H
-#define PRIVACY_SANDBOX_TEST_SERVICE_H
+#ifndef PRIVACY_SANDBOX_TEST_SERVICE_NATIVE_FUNCTIONS_H
+#define PRIVACY_SANDBOX_TEST_SERVICE_NATIVE_FUNCTIONS_H
 
 #include <utility>
 
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.grpc.pb.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.pb.h"
+#include "src/roma/native_function_grpc_server/proto/test_host_service.pb.h"
 
-namespace privacysandbox::test_server {
+namespace privacysandbox::test_host_server {
 template <typename TMetadata>
-std::pair<privacy_sandbox::server_common::TestMethodResponse, absl::Status>
-HandleTestMethod(
+std::pair<privacy_sandbox::server_common::NativeMethodResponse, absl::Status>
+HandleNativeMethod(
     const TMetadata& metadata,
-    const privacy_sandbox::server_common::TestMethodRequest& request) {
-  privacy_sandbox::server_common::TestMethodResponse response;
+    const privacy_sandbox::server_common::NativeMethodRequest& request) {
+  privacy_sandbox::server_common::NativeMethodResponse response;
   LOG(INFO) << "TestMethod gRPC called.";
   response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
   return std::make_pair(response, absl::OkStatus());
 }
-}  // namespace privacysandbox::test_server
+}  // namespace privacysandbox::test_host_server
 
-#endif  // PRIVACY_SANDBOX_TEST_SERVICE_H
+#endif  // PRIVACY_SANDBOX_TEST_SERVICE_NATIVE_FUNCTIONS_H

@@ -29,6 +29,7 @@
 #include <grpcpp/impl/service_type.h>
 
 #include "src/roma/native_function_grpc_server/interface.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 
 #include "function_binding_object_v2.h"
 
@@ -159,10 +160,11 @@ class Config {
 
   /**
    * @brief Register an async gRPC service and handlers for all gRPC methods on
-   * this service. Allows clients (V8 and arbitrary binaries) to invoke gRPC
-   * methods in the host process. Config has ownership of all registered
-   * services and associated factory functions, and passes pointers to both to
-   * the NativeFunctionGrpcServer to be registered.
+   * this service. Note that each async gRPC service can only be registered
+   * once. Allows clients (V8 and arbitrary binaries) to invoke gRPC methods in
+   * the host process. Config has ownership of all registered services and
+   * associated factory functions, and passes pointers to both to the
+   * NativeFunctionGrpcServer to be registered.
    *
    * @param service
    * @param handlers
@@ -170,8 +172,22 @@ class Config {
   template <template <typename> typename... THandlers>
   void RegisterService(std::unique_ptr<grpc::Service> service,
                        THandlers<TMetadata>&&... handlers) {
-    services_.push_back(std::move(service));
-    (CreateFactory(handlers), ...);
+    bool is_callback_service = IsCallbackService(service.get());
+    // Ensures JSCallbackService is only registered once, necessary to allow
+    // multiple host apis to be registered
+    if (is_callback_service && !is_callback_service_registered_) {
+      callback_service_index_ = services_.size();
+      services_.push_back(std::move(service));
+      is_callback_service_registered_ = true;
+    } else if (!is_callback_service) {
+      services_.push_back(std::move(service));
+    }
+
+    auto CreateFactoryWrapper = [&](auto&& handler) {
+      CreateFactory(is_callback_service, handler);
+    };
+
+    (CreateFactoryWrapper(handlers), ...);
   }
 
   std::vector<FunctionBindingObjectPtr> GetFunctionBindings() const {
@@ -241,17 +257,32 @@ class Config {
    * rpc method on a grpc::Service should create an associated factory function.
    */
   template <template <typename> typename THandler>
-  void CreateFactory(THandler<TMetadata>) {
+  void CreateFactory(bool is_callback_service, THandler<TMetadata>) {
     const size_t index = factories_->size();
+    grpc::Service* service_ptr =
+        is_callback_service ? services_.at(callback_service_index_).get()
+                            : services_.back().get();
+
     factories_->push_back(
-        [service_ptr = services_.back().get(), factories_ptr = factories_.get(),
-         index](
+        [service_ptr, factories_ptr = factories_.get(), index](
             grpc::ServerCompletionQueue* completion_queue,
             metadata_storage::MetadataStorage<TMetadata>* metadata_storage) {
           new grpc_server::RequestHandlerImpl<TMetadata, THandler>(
               static_cast<typename THandler<TMetadata>::TService*>(service_ptr),
               completion_queue, metadata_storage, factories_ptr->at(index));
         });
+  }
+
+  /**
+   * @brief Returns whether the service passed in from RegisterService is a
+   * JSCallbackService.
+   */
+  bool IsCallbackService(grpc::Service* service) {
+    using CallbackService =
+        privacy_sandbox::server_common::JSCallbackService::AsyncService;
+
+    CallbackService* callback_service = dynamic_cast<CallbackService*>(service);
+    return callback_service != nullptr;
   }
 
   /**
@@ -264,6 +295,9 @@ class Config {
       factories_ = std::make_unique<
           std::vector<grpc_server::FactoryFunction<TMetadata>>>();
   std::vector<std::string> rpc_method_names_;
+
+  bool is_callback_service_registered_ = false;
+  size_t callback_service_index_ = 0;
 
   // default no-op logging implementation
   LogCallback logging_func_ = [](absl::LogSeverity severity,

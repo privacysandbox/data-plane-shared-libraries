@@ -42,7 +42,7 @@
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
-#include "src/roma/native_function_grpc_server/proto/test_service_native_request_handler.h"
+#include "src/roma/native_function_grpc_server/proto/test_host_service_native_request_handler.h"
 #include "src/roma/native_function_grpc_server/test_request_handlers.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
@@ -119,8 +119,8 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   config.RegisterService(
       std::make_unique<
           privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
-      privacysandbox::test_server::InvokeCallbackHandler<std::string>());
-  config.RegisterRpcHandler("TestHostServer.TestMethod");
+      privacysandbox::test_host_server::InvokeCallbackHandler<std::string>());
+  config.RegisterRpcHandler("TestHostServer.NativeMethod");
 
   auto roma_service =
       std::make_unique<RomaService<std::string>>(std::move(config));
@@ -146,7 +146,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
         }
 
         function Handler(input) {
-          return TestHostServer.TestMethod(ArrayStrToString(input));
+          return TestHostServer.NativeMethod(ArrayStrToString(input));
         }
       )JS_CODE",
     });
@@ -162,7 +162,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   {
     // Convert proto to string representation of byte array and send to UDF.
     // Stand-in from UDF sending proto encoded as Uint8Array of bytes.
-    privacy_sandbox::server_common::TestMethodRequest request;
+    privacy_sandbox::server_common::NativeMethodRequest request;
     request.set_input("Hello ");
     std::string request_bytes = ProtoToBytesStr(request);
 
@@ -196,7 +196,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   // Extract the string value from the JSON
   result = j["result"];
 
-  privacy_sandbox::server_common::TestMethodResponse response;
+  privacy_sandbox::server_common::NativeMethodResponse response;
   response.ParseFromString(result);
 
   EXPECT_THAT(response.output(), StrEq("Hello World. From SERVER"));

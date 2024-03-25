@@ -17,10 +17,10 @@ load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
-    "//src/roma/tools/api_plugin:roma_app_api.bzl",
-    "declare_roma_app_api",
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
     "js_proto_library",
-    "roma_client_cc_library",
+    "roma_app_api_cc_library",
     "roma_sdk",
     "roma_service_js_library",
 )
@@ -45,7 +45,7 @@ cc_proto_library(
     deps = [":inference_proto"],
 )
 
-inference_api = declare_roma_app_api(
+inference_api = declare_roma_api(
     cc_protos = [":inference_cc_proto"],
     proto_basename = "inference",
     protos = [":inference_proto"],
@@ -53,7 +53,7 @@ inference_api = declare_roma_app_api(
 
 js_proto_library(
     name = "inference_js_proto_lib",
-    roma_app_api = inference_api,
+    roma_api = inference_api,
 )
 
 roma_service_js_library(
@@ -73,7 +73,7 @@ closure_js_binary(
     ],
 )
 
-roma_client_cc_library(
+roma_app_api_cc_library(
     name = "inference_roma_api",
     js_library = ":inference_js",
     roma_app_api = inference_api,
@@ -90,6 +90,7 @@ roma_sdk(
     ],
     cc_library = ":inference_roma_api",
     js_library = ":inference_js_library",
+    roma_app_api = inference_api,
     visibility = ["//visibility:public"],
 )
 

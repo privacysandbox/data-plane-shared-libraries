@@ -1,4 +1,4 @@
-# Roma Application JavaScript Service SDK
+# Roma JavaScript Host Api
 
 ## Table of Contents
 {{- range $file := .Files}}
@@ -30,17 +30,25 @@
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 <a name="{{$svc.FullName | anchor}}"></a>
 ## Service: {{$svcopts.Romav8AppName}} (`{{$svc.FullName}}`)
-`{{$svcopts.Description}}`
+{{- if $svcopts.Description}}
+Description: `{{$svcopts.Description}}`
+{{- end}}{{/*svcopts.Description*/}}
 
+### Host Process Callback Paths:
+{{range $path := $svcopts.CppHostProcessCallbackIncludes}}
+- [{{$path}}](#{{$path | anchor}})
+{{- end -}}{{/*$svcopts.CppHostProcessCallbackIncludes range*/}}
+
+### RPCs:
 {{range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
 {{- $reqFullType := $rpc.RequestFullType | printf "proto.%s" }}
 {{- $reqType := $rpc.RequestType }}
 {{- $respFullType := $rpc.ResponseFullType | printf "proto.%s" }}
 {{- $respType := $rpc.ResponseType }}
 
-### rpc: {{$svcopts.Romav8AppName}}.{{$rpc.Name}}
+#### Rpc Js Name: `{{$svcopts.Romav8AppName}}.{{$rpc.Name}}`
 {{- if $rpc.Description}}
-{{$rpc.Description}}
+Description: {{$rpc.Description}}
 {{- end}}
 
 Request: `{{$reqFullType}}`
@@ -49,10 +57,11 @@ Response: `{{$respFullType}}`
 
 {{end}}{{/*methods*/}}
 
-| Method Name | Request Type | Response Type | Description |
-| ----------- | ------------ | ------------- | ------------|
+| Method Name | Request Type | Response Type | Callback | Description |
+| ----------- | ------------ | ------------- | ---------| ----------- |
 {{- range $rpc := $svc.Methods}}
-| {{$rpc.Name}} | [{{$rpc.RequestLongType}}](#{{$rpc.RequestFullType | anchor}}){{if $rpc.RequestStreaming}} stream{{end}} | [{{$rpc.ResponseLongType}}](#{{$rpc.ResponseFullType | anchor}}){{if $rpc.ResponseStreaming}} stream{{end}} | {{nobr $rpc.Description}} |
+{{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
+| {{$rpc.Name}} | [{{$rpc.RequestLongType}}](#{{$rpc.RequestFullType | anchor}}){{if $rpc.RequestStreaming}} stream{{end}} | [{{$rpc.ResponseLongType}}](#{{$rpc.ResponseFullType | anchor}}){{if $rpc.ResponseStreaming}} stream{{end}} | `{{$rpcopts.CppHostProcessCallback}}` | {{nobr $rpc.Description}} |
 {{- end}}
 
 {{- end}}{{/*services*/}}

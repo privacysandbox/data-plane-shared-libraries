@@ -20,9 +20,11 @@ load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 load("@rules_proto_grpc//:defs.bzl", "bazel_build_rule_common_attrs", "filter_files")
 load(
-    "//src/roma/tools/api_plugin:internal/roma_app_api.bzl",
+    "//src/roma/tools/api_plugin:internal/roma_api.bzl",
     "app_api_cc_protoc",
     "app_api_handler_js_protoc",
+    "host_api_cc_protoc",
+    "host_api_js_protoc",
     "roma_js_proto_library",
 )
 
@@ -31,7 +33,8 @@ def _filter_files_suffix_impl(ctx):
     return [DefaultInfo(
         files = depset([
             file
-            for file in ctx.attr.target.files.to_list()
+            for target in ctx.attr.targets
+            for file in target.files.to_list()
             for suffix in ctx.attr.suffixes
             if file.basename.endswith(suffix)
         ]),
@@ -44,8 +47,9 @@ _filter_files_suffix = rule(
             doc = "The suffixes of the files to keep eg. ['h']",
             mandatory = True,
         ),
-        "target": attr.label(
-            doc = "The source target to filter",
+        "targets": attr.label_list(
+            allow_empty = False,
+            doc = "The source targets to filter",
             mandatory = True,
         ),
     },
@@ -85,7 +89,7 @@ _expand_template_file = rule(
     },
 )
 
-def declare_roma_app_api(*, cc_protos, proto_basename, protos):
+def declare_roma_api(*, cc_protos, proto_basename, protos, host_apis = []):
     """
     Creates struct for a the Roma App API as an entity.
 
@@ -99,23 +103,24 @@ def declare_roma_app_api(*, cc_protos, proto_basename, protos):
     """
     return struct(
         cc_protos = cc_protos,
+        host_apis = host_apis,
         proto_basename = proto_basename,
         protos = protos,
     )
 
-def js_proto_library(*, name, roma_app_api, **kwargs):
+def js_proto_library(*, name, roma_api, **kwargs):
     """
     JS protobuf library.
 
     Args:
         name: target name the generated JS library
-        roma_app_api: the roma_app_api struct
+        roma_api: the roma_api struct
         **kwargs: attributes for cc_library and those common to bazel build rules
     """
     name_proto = name + "_pb"
     roma_js_proto_library(
         name = name_proto,
-        roma_app_api = roma_app_api,
+        roma_api = roma_api,
     )
     filter_files(
         name = name + "_js_srcs",
@@ -143,9 +148,30 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
 
     Args:
         name: name of js_binary target, basename of ancillary targets.
-        roma_app_api: the roma_app_api struct
+        roma_app_api: the roma_api struct
     """
     name_proto = name + "_proto_js_plugin"
+
+    host_api_targets = []
+    for i, host_api in enumerate(roma_app_api.host_apis):
+        target_name = "{}_host_api_{}".format(name, i)
+        host_api_targets.append(target_name)
+        host_api_js_protoc(
+            name = target_name,
+            roma_host_api = host_api,
+        )
+
+    if host_api_targets:
+        _filter_files_suffix(
+            name = name + "_host_api_docs",
+            targets = host_api_targets,
+            suffixes = ["md"],
+        )
+        _filter_files_suffix(
+            name = name + "_host_js_srcs",
+            targets = host_api_targets,
+            suffixes = ["js"],
+        )
 
     app_api_handler_js_protoc(
         name = name_proto,
@@ -163,7 +189,7 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
     )
     closure_js_library(
         name = name,
-        srcs = [":{}_js_srcs".format(name)],
+        srcs = [":{}_js_srcs".format(name)] + ([":{}_host_js_srcs".format(name)] if host_api_targets else []),
         convention = "NONE",
         lenient = True,
         deps = kwargs.get("deps", []) + [
@@ -171,7 +197,80 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         ],
     )
 
-def roma_client_cc_library(*, name, roma_app_api, js_library, **kwargs):
+def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
+    """
+    Top-level macro for the Roma Host API.
+
+    Generates C++ library targets for the Roma Host API.
+    This includes C++ client APIs for invoking the Roma App and protobuf helper
+    functions for request/repsponse messages.
+
+    Args:
+        name: name of cc_library target, basename of ancillary targets.
+        roma_host_api: the roma_api struct
+        **kwargs: attributes for cc_library and those common to bazel build rules.
+
+    Generates:
+        <name>_js_host_api.md
+        <name>_roma_host.h
+        <name>_native_request_handler.h
+
+    Targets:
+        <name> -- cc_library
+        <name>_srcs -- c++ source files
+        <name>_hdrs -- c++ header files
+
+    Returns:
+        Providers:
+            - ProtoPluginInfo
+            - DefaultInfo
+    """
+
+    name_proto = name + "_proto_cc_plugin"
+
+    host_api_cc_protoc(
+        name = name_proto,
+        roma_host_api = roma_host_api,
+    )
+
+    filter_files(
+        name = name + "_cc_hdrs",
+        target = name_proto,
+        extensions = ["h"],
+    )
+    filter_files(
+        name = name + "_docs",
+        target = name_proto,
+        extensions = ["md"],
+    )
+
+    cc_library(
+        name = name,
+        hdrs = [
+            ":{}_cc_hdrs".format(name),
+        ],
+        includes = ["."],
+        deps = kwargs.get("deps", []) + roma_host_api.cc_protos + [
+            "@com_google_absl//absl/status",
+            "@com_google_absl//absl/strings",
+        ],
+        alwayslink = kwargs.get("alwayslink"),
+        copts = kwargs.get("copts"),
+        defines = kwargs.get("defines"),
+        include_prefix = kwargs.get("include_prefix"),
+        linkopts = kwargs.get("linkopts"),
+        linkstatic = kwargs.get("linkstatic"),
+        local_defines = kwargs.get("local_defines"),
+        nocopts = kwargs.get("nocopts"),
+        strip_include_prefix = kwargs.get("strip_include_prefix"),
+        **{
+            k: v
+            for (k, v) in kwargs.items()
+            if k in bazel_build_rule_common_attrs
+        }  # forward common bazel args
+    )
+
+def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
     """
     Top-level macro for the Roma Application API.
 
@@ -181,7 +280,7 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, **kwargs):
 
     Args:
         name: name of cc_library target, basename of ancillary targets.
-        roma_app_api: the roma_app_api struct
+        roma_app_api: the roma_api struct
         js_library: label of the associated roma_service_js_library target.
         **kwargs: attributes for cc_library and those common to bazel build rules.
 
@@ -212,12 +311,12 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, **kwargs):
     # Filter files to sources and headers
     _filter_files_suffix(
         name = name + "_cc_test_srcs",
-        target = name_proto,
+        targets = [name_proto],
         suffixes = ["_test.cc"],
     )
     _filter_files_suffix(
         name = name + "_roma_app_h_tmpl",
-        target = name_proto,
+        targets = [name_proto],
         suffixes = ["_roma_app.h.tmpl"],
     )
     filter_files(
@@ -291,7 +390,7 @@ def roma_client_cc_library(*, name, roma_app_api, js_library, **kwargs):
         }  # forward common bazel args
     )
 
-def roma_sdk(*, name, srcs, cc_library, js_library, **kwargs):
+def roma_sdk(*, name, srcs, roma_app_api, cc_library, js_library, **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -300,7 +399,8 @@ def roma_sdk(*, name, srcs, cc_library, js_library, **kwargs):
     Args:
         name: name of sdk target, basename of ancillary targets.
         srcs: label list of targets to include.
-        cc_library: label of the associated roma_service_cc_library target.
+        roma_app_api: the roma_api struct.
+        cc_library: label of the associated roma_app_api_cc_library target.
         js_library: label of the associated roma_service_js_library target.
         **kwargs: attributes common to bazel build rules.
 
@@ -311,7 +411,7 @@ def roma_sdk(*, name, srcs, cc_library, js_library, **kwargs):
 
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["{}_docs".format(tgt) for tgt in (cc_library, js_library)],
+        srcs = ["{}_docs".format(tgt) for tgt in (cc_library, js_library)] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
         prefix = "docs",
     )
 

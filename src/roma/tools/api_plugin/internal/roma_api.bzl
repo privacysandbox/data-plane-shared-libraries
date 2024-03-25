@@ -24,7 +24,7 @@ load(
 # the template_dir_name must be a valid string value for unix directories, the
 # path does not need to exist -- the golang plugin and the plugin options both
 # use this string value through this template_dir_name variable
-template_dir_name = "roma-app-api-templates"
+template_dir_name = "roma-api-templates"
 
 def _get_template_options(suffix, template_file):
     return "{tmpl_dir}/tmpl/{tmpl},{basename}{suffix}".format(
@@ -49,21 +49,21 @@ def _get_proto_compile_attrs(plugins):
         ),
     )
 
-def _roma_api_protoc(*, name, protoc_rule, plugins, roma_app_api, **kwargs):
+def _roma_api_protoc(*, name, protoc_rule, plugins, roma_api, **kwargs):
     protoc_rule(
         name = name,
         options = {
             "@google_privacysandbox_servers_common//src/roma/tools/api_plugin:{}".format(p.name): [
-                p.option.format(basename = roma_app_api.proto_basename),
+                p.option.format(basename = roma_api.proto_basename),
             ]
             for p in plugins
             if hasattr(p, "option")
         },
-        protos = roma_app_api.protos,
+        protos = roma_api.protos,
         **kwargs
     )
 
-_cc_template_plugins = [
+_cc_app_template_plugins = [
     struct(
         name = "roma_app_api_cc_plugin{}".format(i),
         option = _get_template_options(plugin.suffix, plugin.template_file),
@@ -83,10 +83,6 @@ _cc_template_plugins = [
             template_file = "hpp_romav8.tmpl",
             suffix = "_roma_app.h.tmpl",
         ),
-        struct(
-            template_file = "handle_native_request_cc.tmpl",
-            suffix = "_native_request_handler.h",
-        ),
     ])
 ]
 
@@ -105,7 +101,7 @@ _cc_protobuf_plugins = [
     ),
 ]
 
-_app_api_cc_plugins = _cc_protobuf_plugins + _cc_template_plugins
+_app_api_cc_plugins = _cc_protobuf_plugins + _cc_app_template_plugins
 
 _app_api_cc_protoc = rule(
     implementation = proto_compile_impl,
@@ -118,7 +114,7 @@ def app_api_cc_protoc(*, name, roma_app_api, **kwargs):
         name = name,
         protoc_rule = _app_api_cc_protoc,
         plugins = _app_api_cc_plugins,
-        roma_app_api = roma_app_api,
+        roma_api = roma_app_api,
         **kwargs
     )
 
@@ -161,7 +157,78 @@ def app_api_handler_js_protoc(*, name, roma_app_api, **kwargs):
         name = name,
         protoc_rule = _app_api_handler_js_protoc,
         plugins = _app_api_handler_js_plugins,
-        roma_app_api = roma_app_api,
+        roma_api = roma_app_api,
+        **kwargs
+    )
+
+_cc_host_template_plugins = [
+    struct(
+        name = "roma_host_api_cc_plugin{}".format(i),
+        option = _get_template_options(plugin.suffix, plugin.template_file),
+        outputs = ["{basename}" + plugin.suffix],
+        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
+    )
+    for i, plugin in enumerate([
+        struct(
+            template_file = "hpp_host_romav8.tmpl",
+            suffix = "_roma_host.h",
+        ),
+        struct(
+            template_file = "handle_native_request_cc.tmpl",
+            suffix = "_native_request_handler.h",
+        ),
+    ])
+]
+
+_host_api_cc_plugins = _cc_protobuf_plugins + _cc_host_template_plugins
+
+_host_api_cc_protoc = rule(
+    implementation = proto_compile_impl,
+    attrs = _get_proto_compile_attrs(_host_api_cc_plugins),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
+)
+
+def host_api_cc_protoc(*, name, roma_host_api, **kwargs):
+    _roma_api_protoc(
+        name = name,
+        protoc_rule = _host_api_cc_protoc,
+        plugins = _host_api_cc_plugins,
+        roma_api = roma_host_api,
+        **kwargs
+    )
+
+_host_api_js_plugins = [
+    struct(
+        name = "roma_host_api_js_plugin{}".format(i),
+        exclusions = [],
+        option = _get_template_options(plugin.suffix, plugin.template_file),
+        outputs = ["{basename}" + plugin.suffix],
+        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
+    )
+    for i, plugin in enumerate([
+        struct(
+            template_file = "js_host_api_markdown.tmpl",
+            suffix = "_js_host_api.md",
+        ),
+        struct(
+            template_file = "js_pb_helpers.tmpl",
+            suffix = "_pb_helpers.js",
+        ),
+    ])
+]
+
+_host_api_js_protoc = rule(
+    implementation = proto_compile_impl,
+    attrs = _get_proto_compile_attrs(_host_api_js_plugins),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
+)
+
+def host_api_js_protoc(*, name, roma_host_api, **kwargs):
+    _roma_api_protoc(
+        name = name,
+        protoc_rule = _host_api_js_protoc,
+        plugins = _host_api_js_plugins,
+        roma_api = roma_host_api,
         **kwargs
     )
 
@@ -185,14 +252,14 @@ _roma_js_proto_library = rule(
     toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
 )
 
-def roma_js_proto_library(*, name, roma_app_api, **kwargs):
+def roma_js_proto_library(*, name, roma_api, **kwargs):
     _roma_api_protoc(
         name = name,
         protoc_rule = _roma_js_proto_library,
         plugins = _protobuf_js_plugins,
-        roma_app_api = roma_app_api,
+        roma_api = roma_api,
         **kwargs
     )
 
 def get_all_roma_api_plugins():
-    return _app_api_cc_plugins + _app_api_handler_js_plugins + _protobuf_js_plugins
+    return _app_api_cc_plugins + _app_api_handler_js_plugins + _cc_host_template_plugins + _host_api_js_plugins + _protobuf_js_plugins
