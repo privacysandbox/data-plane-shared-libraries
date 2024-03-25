@@ -179,6 +179,21 @@ class Config {
                                                  function_bindings_v2_.end());
   }
 
+  /**
+   * @brief Register the name of a RPC method for a registered service. Called
+   * by generated code. Allows clients to invoke rpc method on service via gRPC
+   * in UDF
+   *
+   * @param method_name
+   */
+  void RegisterRpcHandler(std::string_view method_name) {
+    rpc_method_names_.emplace_back(method_name);
+  }
+
+  std::vector<std::string> GetRpcMethodNames() const {
+    return rpc_method_names_;
+  }
+
   std::vector<std::unique_ptr<grpc::Service>> ReleaseServices() {
     return std::move(services_);
   }
@@ -248,6 +263,7 @@ class Config {
   std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
       factories_ = std::make_unique<
           std::vector<grpc_server::FactoryFunction<TMetadata>>>();
+  std::vector<std::string> rpc_method_names_;
 
   // default no-op logging implementation
   LogCallback logging_func_ = [](absl::LogSeverity severity,

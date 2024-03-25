@@ -39,6 +39,7 @@ class V8IsolateFunctionBinding {
    */
   V8IsolateFunctionBinding(
       const std::vector<std::string>& function_names,
+      const std::vector<std::string>& rpc_method_names,
       std::unique_ptr<native_function_binding::NativeFunctionInvoker>
           function_invoker,
       std::string_view server_address);
@@ -69,6 +70,7 @@ class V8IsolateFunctionBinding {
   struct Binding {
     std::string function_name;
     V8IsolateFunctionBinding* instance;
+    void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
   };
   std::vector<Binding> binding_references_;
   std::string invocation_req_uuid_;

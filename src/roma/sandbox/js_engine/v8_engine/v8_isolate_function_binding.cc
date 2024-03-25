@@ -126,6 +126,7 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
 
 V8IsolateFunctionBinding::V8IsolateFunctionBinding(
     const std::vector<std::string>& function_names,
+    const std::vector<std::string>& rpc_method_names,
     std::unique_ptr<native_function_binding::NativeFunctionInvoker>
         function_invoker,
     std::string_view server_address)
@@ -134,22 +135,16 @@ V8IsolateFunctionBinding::V8IsolateFunctionBinding(
     binding_references_.emplace_back(Binding{
         .function_name = function_name,
         .instance = this,
+        .callback = &GlobalV8FunctionCallback,
     });
   }
-  // Temporary until all callbacks are implemented using the
-  // native_function_server
-  binding_references_.emplace_back(Binding{
-      .function_name = "TestHostServer.TestMethod",
-      .instance = this,
-  });
-  binding_references_.emplace_back(Binding{
-      .function_name = "TestHostServer.TestMethod1",
-      .instance = this,
-  });
-  binding_references_.emplace_back(Binding{
-      .function_name = "TestHostServer.TestMethod2",
-      .instance = this,
-  });
+  for (const auto& rpc_method_name : rpc_method_names) {
+    binding_references_.emplace_back(Binding{
+        .function_name = rpc_method_name,
+        .instance = this,
+        .callback = &GrpcServerCallback,
+    });
+  }
 
   if (!server_address.empty()) {
     grpc_channel_ = grpc::CreateChannel(std::string(server_address),
@@ -318,13 +313,8 @@ bool V8IsolateFunctionBinding::BindFunctions(
   absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>
       child_templates;
   for (auto& binding : binding_references_) {
-    // Temporary: To differentiate between Rpc methods and regular callbacks.
-    // Will be removed when all callbacks are handled via gRPC
-    auto callback = absl::StrContains(binding.function_name, "TestHostServer")
-                        ? &GrpcServerCallback
-                        : &GlobalV8FunctionCallback;
     BindFunction(isolate, global_object_template,
-                 reinterpret_cast<void*>(&binding), callback,
+                 reinterpret_cast<void*>(&binding), binding.callback,
                  binding.function_name, child_templates);
   }
 

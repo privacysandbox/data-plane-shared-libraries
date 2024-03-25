@@ -59,7 +59,8 @@ TEST_F(V8ConsoleTest, ConsoleFunctionsInvokeRPC) {
 
   std::vector<std::string> function_names;
   auto visitor = std::make_unique<v8_js_engine::V8IsolateFunctionBinding>(
-      function_names, std::move(function_invoker), /*server_address=*/"");
+      function_names, /*rpc_method_names=*/std::vector<std::string>(),
+      std::move(function_invoker), /*server_address=*/"");
 
   js_engine::v8_js_engine::V8JsEngine js_engine(std::move(visitor));
   js_engine.Run();

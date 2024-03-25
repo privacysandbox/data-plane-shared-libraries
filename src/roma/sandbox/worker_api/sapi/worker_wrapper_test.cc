@@ -53,6 +53,7 @@ static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
   init_params.set_native_js_function_comms_fd(-1);
   init_params.set_server_address("");
   init_params.mutable_native_js_function_names()->Clear();
+  init_params.mutable_rpc_method_names()->Clear();
   init_params.set_js_engine_initial_heap_size_mb(0);
   init_params.set_js_engine_maximum_heap_size_mb(0);
   init_params.set_js_engine_max_wasm_memory_number_of_pages(0);

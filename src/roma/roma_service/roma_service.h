@@ -267,6 +267,7 @@ class RomaService {
       const NativeFunctionBindingSetup& native_binding_setup) {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
+    const auto& rpc_method_names = config_.GetRpcMethodNames();
     std::string server_address = native_function_server_addresses_.empty()
                                      ? ""
                                      : native_function_server_addresses_[0];
@@ -280,6 +281,7 @@ class RomaService {
           /*require_preload=*/true,
           /*native_js_function_comms_fd=*/remote_fd,
           /*native_js_function_names=*/function_names,
+          /*rpc_method_names=*/rpc_method_names,
           /*server_address=*/server_address,
           /*max_worker_virtual_memory_mb=*/config_.max_worker_virtual_memory_mb,
           /*js_engine_initial_heap_size_mb=*/
