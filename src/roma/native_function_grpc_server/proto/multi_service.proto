@@ -22,8 +22,27 @@ import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 option cc_enable_arenas = true;
 
 service MultiService {
-  rpc TestMethod1(TestMethod1Request) returns (TestMethod1Response) {};
-  rpc TestMethod2(TestMethod2Request) returns (TestMethod2Response) {};
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Multi Server',
+    description: 'Multi Server',
+    cpp_namespace: 'privacysandbox::multi_server',
+    romav8_app_name: 'MultiServer',
+    cpp_host_process_callback_includes: [
+      'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
+    ],
+  };
+
+  rpc TestMethod1(TestMethod1Request) returns (TestMethod1Response) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacysandbox::multi_server::HandleTestMethod1',
+    };
+  };
+
+  rpc TestMethod2(TestMethod2Request) returns (TestMethod2Response) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacysandbox::multi_server::HandleTestMethod2',
+    };
+  };
 }
 
 message TestMethod1Request {

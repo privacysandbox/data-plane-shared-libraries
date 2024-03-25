@@ -19,7 +19,7 @@ load(
 )
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
@@ -35,6 +35,7 @@ cc_library(
     name = "test_service_native_functions",
     srcs = ["test_service_native_functions.h"],
     deps = [
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_host_service_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
@@ -122,9 +123,18 @@ test_service_host_api = declare_roma_api(
     protos = [":test_host_service_proto"],
 )
 
+multi_service_host_api = declare_roma_api(
+    cc_protos = [":multi_service_cc_proto"],
+    proto_basename = "multi_service",
+    protos = [":multi_service_proto"],
+)
+
 test_service_app_api = declare_roma_api(
     cc_protos = [":test_service_cc_proto"],
-    host_apis = [test_service_host_api],
+    host_apis = [
+        test_service_host_api,
+        multi_service_host_api,
+    ],
     proto_basename = "test_service",
     protos = [":test_service_proto"],
 )
@@ -139,10 +149,16 @@ js_proto_library(
     roma_api = test_service_host_api,
 )
 
+js_proto_library(
+    name = "multi_service_host_js_proto_lib",
+    roma_api = multi_service_host_api,
+)
+
 roma_service_js_library(
     name = "test_service_js_library",
     roma_app_api = test_service_app_api,
     deps = [
+        ":multi_service_host_js_proto_lib",
         ":test_service_app_js_proto_lib",
         ":test_service_host_js_proto_lib",
     ],
@@ -155,6 +171,7 @@ closure_js_binary(
     formatting = "PRETTY_PRINT",
     language = "ECMASCRIPT_NEXT",
     deps = [
+        ":multi_service_host_js_proto_lib",
         ":test_service_app_js_proto_lib",
         ":test_service_host_js_proto_lib",
         ":test_service_js_library",
@@ -164,6 +181,18 @@ closure_js_binary(
 roma_host_api_cc_library(
     name = "test_service_roma_host_api",
     roma_host_api = test_service_host_api,
+    tags = [
+        "noasan",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":test_service_native_functions",
+    ],
+)
+
+roma_host_api_cc_library(
+    name = "multi_service_roma_host_api",
+    roma_host_api = multi_service_host_api,
     tags = [
         "noasan",
     ],
@@ -192,6 +221,24 @@ roma_sdk(
     js_library = ":test_service_js_library",
     roma_app_api = test_service_app_api,
     visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "test_service_cc_test",
+    size = "small",
+    srcs = [":test_service_roma_api_test.cc"],
+    tags = [
+        "noasan",
+    ],
+    deps = [
+        ":multi_service_roma_host_api",
+        ":test_service_roma_app_api",
+        ":test_service_roma_host_api",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
 )
 
 cc_grpc_library(

@@ -199,7 +199,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   privacy_sandbox::server_common::NativeMethodResponse response;
   response.ParseFromString(result);
 
-  EXPECT_THAT(response.output(), StrEq("Hello World. From SERVER"));
+  EXPECT_THAT(response.output(), StrEq("Hello World. From NativeMethod"));
 
   status = roma_service->Stop();
   EXPECT_TRUE(status.ok());
