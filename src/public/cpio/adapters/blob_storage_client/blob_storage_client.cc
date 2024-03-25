@@ -59,15 +59,6 @@ namespace google::scp::cpio {
 
 ExecutionResult BlobStorageClient::Init() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  InstanceClientProviderInterface* instance_client;
-  if (auto client = cpio_->GetInstanceClientProvider(); !client.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, execution_result,
-              "Failed to get InstanceClientProvider.");
-    return execution_result;
-  } else {
-    instance_client = *client;
-  }
   BlobStorageClientOptions options = *options_;
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
@@ -77,7 +68,7 @@ ExecutionResult BlobStorageClient::Init() noexcept {
   }
   if (auto blob_storage_client_provider =
           BlobStorageClientProviderFactory::Create(
-              std::move(options), instance_client,
+              std::move(options), &cpio_->GetInstanceClientProvider(),
               &cpio_->GetCpuAsyncExecutor(), &cpio_->GetIoAsyncExecutor());
       !blob_storage_client_provider.ok()) {
     SCP_ERROR(kBlobStorageClient, kZeroUuid,

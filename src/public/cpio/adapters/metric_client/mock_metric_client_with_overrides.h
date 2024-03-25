@@ -33,16 +33,9 @@ class MockMetricClientWithOverrides : public MetricClient {
   explicit MockMetricClientWithOverrides(MetricClientOptions options)
       : MetricClient(std::move(options)) {}
 
-  core::ExecutionResult create_metric_client_provider_result =
-      core::SuccessExecutionResult();
-
-  core::ExecutionResult CreateMetricClientProvider() noexcept override {
-    if (create_metric_client_provider_result.Successful()) {
-      metric_client_provider_ = std::make_unique<testing::NiceMock<
-          client_providers::mock::MockMetricClientProvider>>();
-      return create_metric_client_provider_result;
-    }
-    return create_metric_client_provider_result;
+  void CreateMetricClientProvider() noexcept override {
+    metric_client_provider_ = std::make_unique<
+        testing::NiceMock<client_providers::mock::MockMetricClientProvider>>();
   }
 
   client_providers::mock::MockMetricClientProvider& GetMetricClientProvider() {

@@ -61,10 +61,4 @@ TEST_F(MetricClientTest, PutMetricsSuccess) {
       .WillOnce(Return(absl::OkStatus()));
   EXPECT_THAT(client_.PutMetrics(context), IsSuccessful());
 }
-
-TEST_F(MetricClientTest, FailureToCreateMetricClientProvider) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_.create_metric_client_provider_result = failure;
-  EXPECT_EQ(client_.Init(), failure);
-}
 }  // namespace google::scp::cpio::test

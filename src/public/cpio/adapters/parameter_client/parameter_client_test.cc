@@ -95,10 +95,4 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   finished.WaitForNotification();
 }
-
-TEST_F(ParameterClientTest, FailureToCreateParameterClientProvider) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_.create_parameter_client_provider_result = failure;
-  EXPECT_EQ(client_.Init(), failure);
-}
 }  // namespace google::scp::cpio::test

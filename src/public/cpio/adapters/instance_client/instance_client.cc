@@ -55,33 +55,14 @@ using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 
-namespace {
-constexpr std::string_view kInstanceClient = "InstanceClient";
-}  // namespace
-
 namespace google::scp::cpio {
-ExecutionResult InstanceClient::CreateInstanceClientProvider() noexcept {
+void InstanceClient::CreateInstanceClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  if (auto provider = cpio_->GetInstanceClientProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kInstanceClient, kZeroUuid, execution_result,
-              "Failed to get InstanceClientProvider.");
-    return execution_result;
-  } else {
-    instance_client_provider_ = *provider;
-  }
-
-  return SuccessExecutionResult();
+  instance_client_provider_ = &cpio_->GetInstanceClientProvider();
 }
 
 ExecutionResult InstanceClient::Init() noexcept {
-  auto execution_result = CreateInstanceClientProvider();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kInstanceClient, kZeroUuid, execution_result,
-              "Failed to create InstanceClientProvider.");
-    return ConvertToPublicExecutionResult(execution_result);
-  }
-
+  CreateInstanceClientProvider();
   return SuccessExecutionResult();
 }
 

@@ -52,17 +52,8 @@ constexpr std::string_view kParameterClient = "ParameterClient";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
+void ParameterClient::CreateParameterClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  InstanceClientProviderInterface* instance_client_provider;
-  if (auto provider = cpio_->GetInstanceClientProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
-              "Failed to get InstanceClientProvider.");
-    return execution_result;
-  } else {
-    instance_client_provider = *provider;
-  }
   ParameterClientOptions options = options_;
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
@@ -73,20 +64,13 @@ ExecutionResult ParameterClient::CreateParameterClientProvider() noexcept {
 
   // TODO(b/321117161): Replace CPU w/ IO executor.
   parameter_client_provider_ = ParameterClientProviderFactory::Create(
-      std::move(options), instance_client_provider,
+      std::move(options), &cpio_->GetInstanceClientProvider(),
       /*cpu_async_executor=*/&cpio_->GetCpuAsyncExecutor(),
       /*io_async_executor=*/&cpio_->GetCpuAsyncExecutor());
-  return SuccessExecutionResult();
 }
 
 ExecutionResult ParameterClient::Init() noexcept {
-  auto execution_result = CreateParameterClientProvider();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kParameterClient, kZeroUuid, execution_result,
-              "Failed to create ParameterClientProvider.");
-    return ConvertToPublicExecutionResult(execution_result);
-  }
-
+  CreateParameterClientProvider();
   if (absl::Status error = parameter_client_provider_->Init(); !error.ok()) {
     SCP_ERROR(kParameterClient, kZeroUuid, error,
               "Failed to initialize ParameterClientProvider.");

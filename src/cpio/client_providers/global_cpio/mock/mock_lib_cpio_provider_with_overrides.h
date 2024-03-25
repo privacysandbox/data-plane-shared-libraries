@@ -30,9 +30,9 @@ class MockLibCpioProviderWithOverrides : public LibCpioProvider {
  public:
   MockLibCpioProviderWithOverrides() : LibCpioProvider(CpioOptions()) {}
 
-  absl::StatusOr<InstanceClientProviderInterface*>
-  GetInstanceClientProvider() noexcept override {
-    return &instance_client_provider_;
+  InstanceClientProviderInterface& GetInstanceClientProvider() noexcept
+      override {
+    return instance_client_provider_;
   }
 
  private:

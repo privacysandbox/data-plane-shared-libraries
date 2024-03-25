@@ -125,16 +125,14 @@ AsyncExecutorInterface& LibCpioProvider::GetIoAsyncExecutor() noexcept {
   return *io_async_executor_;
 }
 
-absl::StatusOr<InstanceClientProviderInterface*>
+InstanceClientProviderInterface&
 LibCpioProvider::GetInstanceClientProvider() noexcept {
-  if (instance_client_provider_) {
-    return instance_client_provider_.get();
+  if (!instance_client_provider_) {
+    instance_client_provider_ = InstanceClientProviderFactory::Create(
+        &GetAuthTokenProvider(), &GetHttp1Client(), &GetHttpClient(),
+        &GetCpuAsyncExecutor(), &GetIoAsyncExecutor());
   }
-
-  instance_client_provider_ = InstanceClientProviderFactory::Create(
-      &GetAuthTokenProvider(), &GetHttp1Client(), &GetHttpClient(),
-      &GetCpuAsyncExecutor(), &GetIoAsyncExecutor());
-  return instance_client_provider_.get();
+  return *instance_client_provider_;
 }
 
 absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
@@ -154,15 +152,10 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
     return role_credentials_provider_.get();
   }
 
-  auto instance_client = GetInstanceClientProvider();
-  if (!instance_client.ok()) {
-    return instance_client.status();
-  }
-
   RoleCredentialsProviderOptions options;
   options.region = GetRegion();
   auto role_credentials_provider = CreateRoleCredentialsProvider(
-      std::move(options), *instance_client, &GetCpuAsyncExecutor(),
+      std::move(options), &GetInstanceClientProvider(), &GetCpuAsyncExecutor(),
       &GetIoAsyncExecutor());
   if (!role_credentials_provider.ok()) {
     SCP_ERROR(kLibCpioProvider, kZeroUuid, role_credentials_provider.status(),

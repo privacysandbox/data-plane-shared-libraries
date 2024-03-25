@@ -50,23 +50,13 @@ void RunEnqueueMessageValidator(
               << std::endl;
     return;
   }
-
-  InstanceClientProviderInterface* instance_client;
-  if (auto res = GlobalCpio::GetGlobalCpio().GetInstanceClientProvider();
-      !res.ok()) {
-    std::cout << "[ FAILURE ] Unable to get Instance Client Provider."
-              << std::endl;
-    return;
-  } else {
-    instance_client = *res;
-  }
-
   QueueClientOptions options;
   options.queue_name = kQueueName;
   options.project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-          std::move(options), instance_client,
+          std::move(options),
+          &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
           &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
           &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
 
@@ -106,21 +96,13 @@ void RunEnqueueMessageValidator(
 }
 
 void RunGetTopMessageValidator(std::string_view name) {
-  InstanceClientProviderInterface* instance_client;
-  if (auto res = GlobalCpio::GetGlobalCpio().GetInstanceClientProvider();
-      !res.ok()) {
-    std::cout << "[ FAILURE ] Unable to get Instance Client Provider."
-              << std::endl;
-    return;
-  } else {
-    instance_client = *res;
-  }
   QueueClientOptions options;
   options.queue_name = kQueueName;
   options.project_id = GlobalCpio::GetGlobalCpio().GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-          std::move(options), instance_client,
+          std::move(options),
+          &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
           &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
           &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
 

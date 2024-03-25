@@ -79,7 +79,7 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return instance_client output InstanceClientProvider.
    */
-  virtual absl::StatusOr<InstanceClientProviderInterface*>
+  virtual InstanceClientProviderInterface&
   GetInstanceClientProvider() noexcept = 0;
 
   /**

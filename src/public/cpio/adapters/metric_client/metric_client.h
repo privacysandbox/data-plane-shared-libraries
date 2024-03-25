@@ -53,7 +53,7 @@ class MetricClient : public MetricClientInterface {
       metric_client_provider_;
 
  private:
-  virtual core::ExecutionResult CreateMetricClientProvider() noexcept;
+  virtual void CreateMetricClientProvider() noexcept;
 
   MetricClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;

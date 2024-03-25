@@ -28,16 +28,9 @@ class MockParameterClientWithOverrides : public ParameterClient {
   MockParameterClientWithOverrides()
       : ParameterClient(ParameterClientOptions()) {}
 
-  core::ExecutionResult create_parameter_client_provider_result =
-      core::SuccessExecutionResult();
-
-  core::ExecutionResult CreateParameterClientProvider() noexcept override {
-    if (create_parameter_client_provider_result.Successful()) {
-      parameter_client_provider_ = std::make_unique<
-          client_providers::mock::MockParameterClientProvider>();
-      return create_parameter_client_provider_result;
-    }
-    return create_parameter_client_provider_result;
+  void CreateParameterClientProvider() noexcept override {
+    parameter_client_provider_ =
+        std::make_unique<client_providers::mock::MockParameterClientProvider>();
   }
 
   client_providers::mock::MockParameterClientProvider&

@@ -60,26 +60,15 @@ constexpr std::string_view kMetricClient = "MetricClient";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResult MetricClient::CreateMetricClientProvider() noexcept {
+void MetricClient::CreateMetricClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  auto instance_client_provider = cpio_->GetInstanceClientProvider();
-  if (!instance_client_provider.ok()) {
-    return ExecutionResult();
-  }
   metric_client_provider_ = MetricClientProviderFactory::Create(
-      options_, *instance_client_provider, &cpio_->GetCpuAsyncExecutor(),
-      &cpio_->GetIoAsyncExecutor());
-
-  return SuccessExecutionResult();
+      options_, &cpio_->GetInstanceClientProvider(),
+      &cpio_->GetCpuAsyncExecutor(), &cpio_->GetIoAsyncExecutor());
 }
 
 ExecutionResult MetricClient::Init() noexcept {
-  if (const auto execution_result = CreateMetricClientProvider();
-      !execution_result.Successful()) {
-    SCP_ERROR(kMetricClient, kZeroUuid, execution_result,
-              "Failed to create MetricClientProvider.");
-    return ConvertToPublicExecutionResult(execution_result);
-  }
+  CreateMetricClientProvider();
   if (absl::Status error = metric_client_provider_->Init(); !error.ok()) {
     SCP_ERROR(kMetricClient, kZeroUuid, error,
               "Failed to initialize MetricClient.");

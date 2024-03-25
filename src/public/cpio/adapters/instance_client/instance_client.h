@@ -70,7 +70,7 @@ class InstanceClient : public InstanceClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual core::ExecutionResult CreateInstanceClientProvider() noexcept;
+  virtual void CreateInstanceClientProvider() noexcept;
 
   client_providers::InstanceClientProviderInterface* instance_client_provider_;
 

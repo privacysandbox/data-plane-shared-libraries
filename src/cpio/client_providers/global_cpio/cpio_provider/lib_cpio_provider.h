@@ -62,8 +62,8 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::HttpClientInterface& GetHttp1Client() noexcept override;
 
-  absl::StatusOr<InstanceClientProviderInterface*>
-  GetInstanceClientProvider() noexcept override;
+  InstanceClientProviderInterface& GetInstanceClientProvider() noexcept
+      override;
 
   absl::StatusOr<RoleCredentialsProviderInterface*>
   GetRoleCredentialsProvider() noexcept override;
