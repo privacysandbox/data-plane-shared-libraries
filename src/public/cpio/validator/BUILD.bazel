@@ -357,3 +357,10 @@ container_structure_test(
     image = ":aws_nitro_enclaves_validator_image",
     tags = ["noasan"],
 )
+
+container_structure_test(
+    name = "structure_test",
+    configs = ["testdata/structure.yaml"],
+    image = ":aws_nitro_enclaves_validator_image",
+    tags = ["noasan"],
+)
