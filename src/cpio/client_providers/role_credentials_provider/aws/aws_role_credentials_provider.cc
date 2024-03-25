@@ -29,6 +29,7 @@
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/client_providers/role_credentials_provider/aws/sts_error_converter.h"
 #include "src/cpio/common/aws/aws_utils.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "error_codes.h"
 
@@ -62,7 +63,7 @@ ClientConfiguration AwsRoleCredentialsProvider::CreateClientConfiguration(
   return common::CreateClientConfiguration(std::string(region));
 }
 
-ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
+absl::Status AwsRoleCredentialsProvider::Init() noexcept {
   ClientConfiguration client_config;
   if (!region_code_.empty()) {
     client_config = CreateClientConfiguration(region_code_);
@@ -72,7 +73,8 @@ ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
     if (!region_code_or.Successful()) {
       SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, region_code_or.result(),
                 "Failed to get region code for current instance");
-      return region_code_or.result();
+      return absl::InternalError(
+          core::errors::GetErrorMessage(region_code_or.result().status_code));
     }
     client_config = CreateClientConfiguration(*region_code_or);
   }
@@ -84,10 +86,10 @@ ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
       TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
   session_name_ = std::make_shared<std::string>(timestamp);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsRoleCredentialsProvider::GetRoleCredentials(
+absl::Status AwsRoleCredentialsProvider::GetRoleCredentials(
     AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
         get_credentials_context) noexcept {
   AssumeRoleRequest sts_request;
@@ -101,7 +103,7 @@ ExecutionResult AwsRoleCredentialsProvider::GetRoleCredentials(
           get_credentials_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
@@ -151,14 +153,16 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
   get_credentials_context.Finish(SuccessExecutionResult());
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 RoleCredentialsProviderFactory::Create(
     RoleCredentialsProviderOptions options,
     absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
     absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
     absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept {
-  return std::make_unique<AwsRoleCredentialsProvider>(
+  auto provider = std::make_unique<AwsRoleCredentialsProvider>(
       std::move(options), instance_client_provider, cpu_async_executor,
       io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

@@ -158,8 +158,11 @@ ExecutionResult TeeAwsKmsClientProvider::Decrypt(
               &TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt,
               this, decrypt_context),
           decrypt_context);
-  return credential_provider_->GetRoleCredentials(
-      get_session_credentials_context);
+  return credential_provider_
+                 ->GetRoleCredentials(get_session_credentials_context)
+                 .ok()
+             ? SuccessExecutionResult()
+             : FailureExecutionResult(SC_UNKNOWN);
 }
 
 void TeeAwsKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(

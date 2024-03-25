@@ -43,9 +43,9 @@ class AwsRoleCredentialsProvider : public RoleCredentialsProviderInterface {
         io_async_executor_(io_async_executor),
         region_code_(std::move(options).region) {}
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept;
 
-  core::ExecutionResult GetRoleCredentials(
+  absl::Status GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_credentials_context) noexcept override;
 

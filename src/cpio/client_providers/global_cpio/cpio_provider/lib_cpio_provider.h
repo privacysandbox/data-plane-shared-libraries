@@ -97,7 +97,7 @@ class LibCpioProvider : public CpioProviderInterface {
   std::unique_ptr<AuthTokenProviderInterface> auth_token_provider_;
 
  private:
-  virtual std::unique_ptr<RoleCredentialsProviderInterface>
+  virtual absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
   CreateRoleCredentialsProvider(
       RoleCredentialsProviderOptions options,
       InstanceClientProviderInterface* instance_client_provider,

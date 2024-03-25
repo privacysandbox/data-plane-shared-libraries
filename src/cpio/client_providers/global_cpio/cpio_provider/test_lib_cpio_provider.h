@@ -32,7 +32,7 @@ class TestLibCpioProvider : public LibCpioProvider {
   explicit TestLibCpioProvider(TestCpioOptions test_options);
 
  private:
-  std::unique_ptr<RoleCredentialsProviderInterface>
+  absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
   CreateRoleCredentialsProvider(
       RoleCredentialsProviderOptions options,
       InstanceClientProviderInterface* instance_client_provider,

@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/service_interface.h"
@@ -52,8 +53,6 @@ struct GetRoleCredentialsResponse {
 class RoleCredentialsProviderInterface {
  public:
   virtual ~RoleCredentialsProviderInterface() = default;
-  virtual core::ExecutionResult Init() noexcept = 0;
-
   /**
    * @brief Gets the role credentials for the given AccountIdentity.
    *
@@ -61,7 +60,7 @@ class RoleCredentialsProviderInterface {
    * operation.
    * @return ExecutionResult The execution result of the operation.
    */
-  virtual core::ExecutionResult GetRoleCredentials(
+  virtual absl::Status GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_role_credentials_context) noexcept = 0;
 };
@@ -74,7 +73,8 @@ class RoleCredentialsProviderFactory {
    * @return std::unique_ptr<RoleCredentialsProviderInterface> created
    * RoleCredentialsProviderInterface.
    */
-  static std::unique_ptr<RoleCredentialsProviderInterface> Create(
+  static absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
+  Create(
       RoleCredentialsProviderOptions options,
       absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
       absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,

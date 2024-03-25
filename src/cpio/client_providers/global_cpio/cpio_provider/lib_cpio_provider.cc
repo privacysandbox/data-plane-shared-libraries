@@ -186,7 +186,7 @@ LibCpioProvider::GetInstanceClientProvider() noexcept {
   return instance_client_provider_.get();
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 LibCpioProvider::CreateRoleCredentialsProvider(
     RoleCredentialsProviderOptions options,
     InstanceClientProviderInterface* instance_client_provider,
@@ -223,15 +223,12 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
   auto role_credentials_provider =
       CreateRoleCredentialsProvider(std::move(options), *instance_client,
                                     *cpu_async_executor, *io_async_executor);
-  if (const auto execution_result = role_credentials_provider->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
+  if (!role_credentials_provider.ok()) {
+    SCP_ERROR(kLibCpioProvider, kZeroUuid, role_credentials_provider.status(),
               "Failed to initialize role credential provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize role credential provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
+    return role_credentials_provider.status();
   }
-  role_credentials_provider_ = std::move(role_credentials_provider);
+  role_credentials_provider_ = *std::move(role_credentials_provider);
   return role_credentials_provider_.get();
 }
 

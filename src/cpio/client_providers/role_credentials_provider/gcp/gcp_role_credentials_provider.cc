@@ -26,17 +26,13 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult GcpRoleCredentialsProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
+absl::Status GcpRoleCredentialsProvider::GetRoleCredentials(
     core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
         get_credentials_context) noexcept {
-  return FailureExecutionResult(SC_UNKNOWN);
+  return absl::UnknownError("");
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 RoleCredentialsProviderFactory::Create(
     RoleCredentialsProviderOptions /*options*/,
     absl::Nonnull<

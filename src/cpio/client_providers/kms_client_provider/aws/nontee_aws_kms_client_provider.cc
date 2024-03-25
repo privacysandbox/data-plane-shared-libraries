@@ -221,8 +221,11 @@ ExecutionResult NonteeAwsKmsClientProvider::CreateKmsClient(
                                GetSessionCredentialsCallbackToCreateKms,
                            this, create_kms_context),
           create_kms_context);
-  return role_credentials_provider_->GetRoleCredentials(
-      get_role_credentials_context);
+  return role_credentials_provider_
+                 ->GetRoleCredentials(get_role_credentials_context)
+                 .ok()
+             ? SuccessExecutionResult()
+             : FailureExecutionResult(SC_UNKNOWN);
 }
 
 void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
