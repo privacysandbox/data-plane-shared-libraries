@@ -80,9 +80,7 @@ TEST(LibCpioProviderTest, AuthTokenProviderCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  auto auth_token_provider = lib_cpio_provider->GetAuthTokenProvider();
-  ASSERT_TRUE(auth_token_provider.ok());
-  ASSERT_THAT(*auth_token_provider, NotNull());
+  lib_cpio_provider->GetAuthTokenProvider();
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 }  // namespace google::scp::cpio::test

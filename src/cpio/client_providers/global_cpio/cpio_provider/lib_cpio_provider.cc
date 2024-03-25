@@ -131,13 +131,8 @@ LibCpioProvider::GetInstanceClientProvider() noexcept {
     return instance_client_provider_.get();
   }
 
-  auto auth_token_provider = GetAuthTokenProvider();
-  if (!auth_token_provider.ok()) {
-    return auth_token_provider.status();
-  }
-
   instance_client_provider_ = InstanceClientProviderFactory::Create(
-      *auth_token_provider, &GetHttp1Client(), &GetHttpClient(),
+      &GetAuthTokenProvider(), &GetHttp1Client(), &GetHttpClient(),
       &GetCpuAsyncExecutor(), &GetIoAsyncExecutor());
   return instance_client_provider_.get();
 }
@@ -178,13 +173,11 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
   return role_credentials_provider_.get();
 }
 
-absl::StatusOr<AuthTokenProviderInterface*>
-LibCpioProvider::GetAuthTokenProvider() noexcept {
-  if (auth_token_provider_) {
-    return auth_token_provider_.get();
+AuthTokenProviderInterface& LibCpioProvider::GetAuthTokenProvider() noexcept {
+  if (!auth_token_provider_) {
+    auth_token_provider_ = AuthTokenProviderFactory::Create(&GetHttp1Client());
   }
-  auth_token_provider_ = AuthTokenProviderFactory::Create(&GetHttp1Client());
-  return auth_token_provider_.get();
+  return *auth_token_provider_;
 }
 
 const std::string& LibCpioProvider::GetProjectId() noexcept {

@@ -90,8 +90,7 @@ class CpioProviderInterface : public core::ServiceInterface {
   virtual absl::StatusOr<RoleCredentialsProviderInterface*>
   GetRoleCredentialsProvider() noexcept = 0;
 
-  virtual absl::StatusOr<AuthTokenProviderInterface*>
-  GetAuthTokenProvider() noexcept = 0;
+  virtual AuthTokenProviderInterface& GetAuthTokenProvider() noexcept = 0;
 
   /**
    * @brief Gets the Project ID from CpioOptions if originally provided.

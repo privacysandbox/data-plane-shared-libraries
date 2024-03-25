@@ -68,8 +68,7 @@ class LibCpioProvider : public CpioProviderInterface {
   absl::StatusOr<RoleCredentialsProviderInterface*>
   GetRoleCredentialsProvider() noexcept override;
 
-  absl::StatusOr<AuthTokenProviderInterface*> GetAuthTokenProvider() noexcept
-      override;
+  AuthTokenProviderInterface& GetAuthTokenProvider() noexcept override;
 
   const std::string& GetProjectId() noexcept override;
 

@@ -69,18 +69,9 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
   } else {
     role_credentials_provider = *provider;
   }
-  AuthTokenProviderInterface* auth_token_provider;
-  if (auto provider = cpio_->GetAuthTokenProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to get role auth token provider.");
-    return execution_result;
-  } else {
-    auth_token_provider = *provider;
-  }
   private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
       options_, &cpio_->GetHttpClient(), role_credentials_provider,
-      auth_token_provider, &cpio_->GetIoAsyncExecutor());
+      &cpio_->GetAuthTokenProvider(), &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }
 

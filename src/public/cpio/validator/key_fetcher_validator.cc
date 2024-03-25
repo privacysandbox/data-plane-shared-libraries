@@ -92,19 +92,11 @@ void RunFetchPrivateKeyValidator(
     role_credentials_provider = *res;
   }
 
-  if (auto res = GlobalCpio::GetGlobalCpio().GetAuthTokenProvider();
-      !res.ok()) {
-    std::cout << "[ FAILURE ] Unable to get Auth Token Provider." << std::endl
-              << std::endl;
-    return;
-  } else {
-    auth_token_provider = *res;
-  }
-
   auto key_fetcher =
       google::scp::cpio::client_providers::PrivateKeyFetcherProviderFactory::
           Create(&GlobalCpio::GetGlobalCpio().GetHttp1Client(),
-                 role_credentials_provider, auth_token_provider);
+                 role_credentials_provider,
+                 &GlobalCpio::GetGlobalCpio().GetAuthTokenProvider());
 
   if (google::scp::core::ExecutionResult result = key_fetcher->Init();
       !result.Successful()) {
