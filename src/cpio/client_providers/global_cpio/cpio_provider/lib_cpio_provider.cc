@@ -62,17 +62,20 @@ constexpr size_t kIOThreadPoolQueueSize = 100000;
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult LibCpioProvider::Init() noexcept {
-  if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
+LibCpioProvider::LibCpioProvider(CpioOptions options)
+    : project_id_(std::move(options.project_id)),
+      region_(std::move(options.region)) {
+  if (options.cloud_init_option == CloudInitOption::kInitInCpio) {
     cloud_initializer_ = CloudInitializerFactory::Create();
+    cloud_initializer_->InitCloud();
   }
+}
+
+ExecutionResult LibCpioProvider::Init() noexcept {
   return SuccessExecutionResult();
 }
 
 ExecutionResult LibCpioProvider::Run() noexcept {
-  if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
-    cloud_initializer_->InitCloud();
-  }
   return SuccessExecutionResult();
 }
 
@@ -95,7 +98,7 @@ ExecutionResult LibCpioProvider::Stop() noexcept {
     }
   }
 
-  if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
+  if (cloud_initializer_) {
     cloud_initializer_->ShutdownCloud();
   }
 
@@ -295,12 +298,10 @@ LibCpioProvider::GetAuthTokenProvider() noexcept {
 }
 
 const std::string& LibCpioProvider::GetProjectId() noexcept {
-  return cpio_options_.project_id;
+  return project_id_;
 }
 
-const std::string& LibCpioProvider::GetRegion() noexcept {
-  return cpio_options_.region;
-}
+const std::string& LibCpioProvider::GetRegion() noexcept { return region_; }
 
 std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
     CpioOptions options) {

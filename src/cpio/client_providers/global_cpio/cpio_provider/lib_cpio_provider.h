@@ -42,8 +42,7 @@ namespace google::scp::cpio::client_providers {
  */
 class LibCpioProvider : public CpioProviderInterface {
  public:
-  explicit LibCpioProvider(CpioOptions options)
-      : cpio_options_(std::move(options)), cloud_initializer_(nullptr) {}
+  explicit LibCpioProvider(CpioOptions options);
 
   virtual ~LibCpioProvider() = default;
 
@@ -78,7 +77,8 @@ class LibCpioProvider : public CpioProviderInterface {
 
  protected:
   /// Global CPIO options.
-  CpioOptions cpio_options_;
+  std::string project_id_;
+  std::string region_;
   /// Global cloud initializer.
   std::unique_ptr<CloudInitializerInterface> cloud_initializer_;
   /// Global async executors.
