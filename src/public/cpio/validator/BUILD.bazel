@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
@@ -348,4 +349,11 @@ EOF""",
     executable = True,
     local = True,
     message = "copying aws artifacts to dist directory",
+)
+
+container_structure_test(
+    name = "ubuntu_version_test",
+    configs = ["testdata/version.yaml"],
+    image = ":aws_nitro_enclaves_validator_image",
+    tags = ["noasan"],
 )
