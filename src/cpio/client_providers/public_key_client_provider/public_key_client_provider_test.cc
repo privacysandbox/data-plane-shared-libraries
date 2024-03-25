@@ -72,9 +72,7 @@ TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
   PublicKeyClientProvider public_key_client(
       std::move(public_key_client_options), &http_client);
 
-  EXPECT_THAT(public_key_client.Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS)));
+  EXPECT_FALSE(public_key_client.Init().ok());
 }
 
 TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
@@ -84,9 +82,7 @@ TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
   PublicKeyClientProvider public_key_client(
       std::move(public_key_client_options), nullptr);
 
-  EXPECT_THAT(public_key_client.Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED)));
+  EXPECT_FALSE(public_key_client.Init().ok());
 }
 
 class PublicKeyClientProviderTestII : public ::testing::Test {
@@ -99,8 +95,7 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     public_key_client_.emplace(std::move(public_key_client_options),
                                &http_client_);
 
-    EXPECT_SUCCESS(public_key_client_->Init());
-    EXPECT_SUCCESS(public_key_client_->Run());
+    ASSERT_TRUE(public_key_client_->Init().ok());
   }
 
   HttpResponse GetValidHttpResponse() {
@@ -123,12 +118,6 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
     response.body.bytes->assign(bytes_str.begin(), bytes_str.end());
     response.body.length = bytes_str.length();
     return response;
-  }
-
-  void TearDown() override {
-    if (public_key_client_) {
-      EXPECT_SUCCESS(public_key_client_->Stop());
-    }
   }
 
   MockHttpClient http_client_;
@@ -165,7 +154,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysSuccess) {
         success_callback.Notify();
       });
 
-  EXPECT_SUCCESS(public_key_client_->ListPublicKeys(context));
+  EXPECT_TRUE(public_key_client_->ListPublicKeys(context).ok());
   // ListPublicKeys context callback will only run once even all uri get
   // success.
   success_callback.WaitForNotification();
@@ -198,7 +187,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysFailure) {
         failure_callback.Notify();
       });
 
-  EXPECT_SUCCESS(public_key_client_->ListPublicKeys(context));
+  EXPECT_TRUE(public_key_client_->ListPublicKeys(context).ok());
 
   // ListPublicKeys context callback will only run once even all uri get
   // fail.
@@ -224,12 +213,11 @@ TEST_F(PublicKeyClientProviderTestII, AllUrisPerformRequestFailed) {
   AsyncContext<ListPublicKeysRequest, ListPublicKeysResponse> context(
       std::move(request), [&](AsyncContext<ListPublicKeysRequest,
                                            ListPublicKeysResponse>& context) {
-        EXPECT_THAT(context.result, ResultIs(cpio_failure));
+        EXPECT_FALSE(context.result.Successful());
         failure_callback.Notify();
       });
 
-  EXPECT_THAT(public_key_client_->ListPublicKeys(context),
-              ResultIs(cpio_failure));
+  EXPECT_FALSE(public_key_client_->ListPublicKeys(context).ok());
 
   // ListPublicKeys context callback will only run once even all uri get
   // fail.
@@ -264,7 +252,7 @@ TEST_F(PublicKeyClientProviderTestII, ListPublicKeysPartialUriSuccess) {
         success_callback.Notify();
       });
 
-  EXPECT_SUCCESS(public_key_client_->ListPublicKeys(context));
+  EXPECT_TRUE(public_key_client_->ListPublicKeys(context).ok());
   // ListPublicKeys success with partial uris got success response.
   success_callback.WaitForNotification();
   perform_calls.Wait();

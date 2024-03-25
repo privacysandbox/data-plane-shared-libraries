@@ -48,7 +48,7 @@ class PublicKeyClient : public PublicKeyClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual core::ExecutionResult CreatePublicKeyClientProvider() noexcept;
+  virtual absl::Status CreatePublicKeyClientProvider() noexcept;
 
   std::unique_ptr<client_providers::PublicKeyClientProviderInterface>
       public_key_client_provider_;

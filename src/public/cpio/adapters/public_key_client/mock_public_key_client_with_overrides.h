@@ -29,14 +29,13 @@ class MockPublicKeyClientWithOverrides : public PublicKeyClient {
   MockPublicKeyClientWithOverrides()
       : PublicKeyClient(PublicKeyClientOptions()) {}
 
-  core::ExecutionResult create_public_key_client_provider_result =
-      core::SuccessExecutionResult();
+  absl::Status create_public_key_client_provider_result = absl::OkStatus();
 
-  core::ExecutionResult CreatePublicKeyClientProvider() noexcept override {
-    if (create_public_key_client_provider_result.Successful()) {
+  absl::Status CreatePublicKeyClientProvider() noexcept override {
+    if (create_public_key_client_provider_result.ok()) {
       public_key_client_provider_ = std::make_unique<
           client_providers::mock::MockPublicKeyClientProvider>();
-      return create_public_key_client_provider_result;
+      return absl::OkStatus();
     }
     return create_public_key_client_provider_result;
   }
