@@ -81,7 +81,6 @@ cc_test(
         ":grpc_logging_client",
         ":grpc_multi_client",
     ],
-    tags = ["notsan"],
     deps = [
         ":native_function_grpc_server",
         ":request_handlers",

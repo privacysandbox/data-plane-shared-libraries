@@ -59,6 +59,7 @@ class NativeFunctionGrpcServer final {
 
   ~NativeFunctionGrpcServer() {
     // Always shutdown the completion queue after the server.
+    handle_rpc_thread_.join();
     completion_queue_->Shutdown();
     DrainQueue(completion_queue_.get());
   }
@@ -92,8 +93,9 @@ class NativeFunctionGrpcServer final {
     // Start accepting requests to the server.
     completion_queue_ = builder_.AddCompletionQueue();
     server_ = builder_.BuildAndStart();
-    HandleRpcs<TMetadata>(completion_queue_.get(), metadata_storage_,
-                          *factories_);
+    handle_rpc_thread_ =
+        std::thread(HandleRpcs<TMetadata>, completion_queue_.get(),
+                    metadata_storage_, *factories_);
   }
 
  private:
@@ -113,6 +115,7 @@ class NativeFunctionGrpcServer final {
   std::unique_ptr<std::vector<FactoryFunction<TMetadata>>> factories_;
   std::unique_ptr<grpc::Server> server_;
   grpc::ServerBuilder builder_;
+  std::thread handle_rpc_thread_;
 };
 }  // namespace google::scp::roma::grpc_server
 

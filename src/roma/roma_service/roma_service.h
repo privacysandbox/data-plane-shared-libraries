@@ -155,18 +155,12 @@ class RomaService {
     }
     if (native_function_server_) {
       native_function_server_->Shutdown();
-      run_server_thread_.join();
     }
     native_function_binding_table_.Clear();
     for (worker_api::WorkerSandboxApi& worker : workers_) {
       PS_RETURN_IF_ERROR(worker.Stop());
     }
     return absl::OkStatus();
-  }
-
-  void RunServer() {
-    LOG(INFO) << "Initializing the server...";
-    native_function_server_->Run();
   }
 
   void SetupNativeFunctionGrpcServer() {
@@ -181,8 +175,7 @@ class RomaService {
         grpc_server::LogHandler<TMetadata>());
     native_function_server_->AddServices(config_.ReleaseServices());
     native_function_server_->AddFactories(config_.ReleaseFactories());
-
-    run_server_thread_ = std::thread(&RomaService::RunServer, this);
+    native_function_server_->Run();
   }
 
   absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
@@ -462,7 +455,6 @@ class RomaService {
   std::vector<std::string> native_function_server_addresses_;
   std::unique_ptr<grpc_server::NativeFunctionGrpcServer<TMetadata>>
       native_function_server_;
-  std::thread run_server_thread_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service
 

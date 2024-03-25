@@ -84,11 +84,6 @@ class NativeFunctionGrpcServerTest : public ::testing::Test {
   std::string socket_address_;
 };
 
-void RunServer(NativeFunctionGrpcServer<DefaultMetadata>& server) {
-  LOG(INFO) << "Initializing the server...";
-  server.Run();
-}
-
 void ExecuteClientBinaries(std::string_view path, std::string_view address,
                            int num_processes, int num_iters) {
   std::vector<pid_t> child_pids;
@@ -145,12 +140,12 @@ void TestBinary(std::string_view path, std::string_view socket_address,
                 int num_processes = 10, int num_iters = 1) {
   ASSERT_EQ(access(path.data(), X_OK), 0);
 
-  std::thread init_server(RunServer, std::ref(server));
+  LOG(INFO) << "Initializing the server...";
+  server.Run();
 
   ExecuteClientBinaries(path, socket_address, num_processes, num_iters);
 
   server.Shutdown();
-  init_server.join();
 }
 }  // namespace
 
