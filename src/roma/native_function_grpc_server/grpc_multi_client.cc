@@ -32,8 +32,8 @@
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
 #include "src/roma/native_function_grpc_server/interface.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.grpc.pb.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.pb.h"
+#include "src/roma/native_function_grpc_server/proto/multi_service.grpc.pb.h"
+#include "src/roma/native_function_grpc_server/proto/multi_service.pb.h"
 
 ABSL_FLAG(std::string, server_address, "", "Address to connect to GRPC server");
 ABSL_FLAG(int32_t, id, -1, "Id of GRPC Client");

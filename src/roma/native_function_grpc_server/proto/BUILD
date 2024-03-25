@@ -26,6 +26,14 @@ proto_library(
 )
 
 proto_library(
+    name = "multi_service_proto",
+    srcs = ["multi_service.proto"],
+    deps = [
+        "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
+    ],
+)
+
+proto_library(
     name = "logging_service_proto",
     srcs = ["logging_service.proto"],
 )
@@ -35,6 +43,14 @@ cc_proto_library(
     visibility = [":grpc_proto_users_pkg"],
     deps = [
         ":test_service_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "multi_service_cc_proto",
+    visibility = [":grpc_proto_users_pkg"],
+    deps = [
+        ":multi_service_proto",
     ],
 )
 
@@ -55,6 +71,14 @@ cc_grpc_library(
 )
 
 cc_grpc_library(
+    name = "multi_service_grpc_proto",
+    srcs = [":multi_service_proto"],
+    grpc_only = True,
+    visibility = [":grpc_proto_users_pkg"],
+    deps = [":multi_service_cc_proto"],
+)
+
+cc_grpc_library(
     name = "logging_service_grpc_proto",
     srcs = [":logging_service_proto"],
     grpc_only = True,
@@ -64,6 +88,13 @@ cc_grpc_library(
 
 buf_lint_test(
     name = "test_service_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":test_service_proto"],
+)
+
+buf_lint_test(
+    name = "multi_service_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
     targets = [":test_service_proto"],

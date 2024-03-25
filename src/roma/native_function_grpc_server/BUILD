@@ -46,6 +46,8 @@ cc_library(
     visibility = ["//src/roma/roma_service:__subpackages__"],
     deps = [
         ":interface",
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_grpc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
@@ -86,6 +88,8 @@ cc_test(
         ":test_request_handlers",
         "//src/core/test/utils",
         "//src/roma/config",
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_grpc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "@com_google_absl//absl/log:scoped_mock_log",
@@ -149,8 +153,8 @@ cc_binary(
     deps = [
         ":interface",
         "//src/roma/logging",
-        "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
-        "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/container:node_hash_set",
         "@com_google_absl//absl/flags:flag",
