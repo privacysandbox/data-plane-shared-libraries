@@ -54,11 +54,9 @@ constexpr std::string_view kPublicKeyClient = "PublicKeyClient";
 namespace google::scp::cpio {
 absl::Status PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  PS_ASSIGN_OR_RETURN(HttpClientInterface * http_client,
-                      cpio_->GetHttpClient());
-  PS_ASSIGN_OR_RETURN(
-      public_key_client_provider_,
-      PublicKeyClientProviderFactory::Create(options_, http_client));
+  PS_ASSIGN_OR_RETURN(public_key_client_provider_,
+                      PublicKeyClientProviderFactory::Create(
+                          options_, &cpio_->GetHttpClient()));
   return absl::OkStatus();
 }
 

@@ -58,9 +58,9 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept override;
 
-  absl::StatusOr<core::HttpClientInterface*> GetHttpClient() noexcept override;
+  core::HttpClientInterface& GetHttpClient() noexcept override;
 
-  absl::StatusOr<core::HttpClientInterface*> GetHttp1Client() noexcept override;
+  core::HttpClientInterface& GetHttp1Client() noexcept override;
 
   absl::StatusOr<InstanceClientProviderInterface*>
   GetInstanceClientProvider() noexcept override;

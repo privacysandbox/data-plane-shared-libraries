@@ -131,16 +131,6 @@ google::scp::core::ExecutionResult MakeRequest(
 void RunHttpValidator(
     std::string_view name,
     const google::scp::cpio::validator::proto::HttpConfig& http_config) {
-  google::scp::core::HttpClientInterface* http_client;
-  if (auto result = GlobalCpio::GetGlobalCpio().GetHttp1Client();
-      !result.ok()) {
-    std::cout << "[ FAILURE ] " << name << " Unable to get Http Client."
-              << std::endl;
-    return;
-  } else {
-    http_client = *result;
-  }
-
   absl::flat_hash_map<std::string, google::scp::core::HttpMethod>
       http_method_map = {{"GET", google::scp::core::HttpMethod::GET},
                          {"POST", google::scp::core::HttpMethod::POST},
@@ -152,7 +142,8 @@ void RunHttpValidator(
               << " is invalid." << std::endl;
   }
 
-  if (!MakeRequest(*http_client, http_method_map[http_config.request_method()],
+  if (!MakeRequest(GlobalCpio::GetGlobalCpio().GetHttp1Client(),
+                   http_method_map[http_config.request_method()],
                    http_config.request_url(), http_config.request_headers())
            .Successful()) {
     std::cout << "[ FAILURE ] " << name

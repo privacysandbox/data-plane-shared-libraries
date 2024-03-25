@@ -94,24 +94,19 @@ ExecutionResult LibCpioProvider::Stop() noexcept {
   return SuccessExecutionResult();
 }
 
-absl::StatusOr<HttpClientInterface*> LibCpioProvider::GetHttpClient() noexcept {
-  if (http2_client_) {
-    return http2_client_.get();
+HttpClientInterface& LibCpioProvider::GetHttpClient() noexcept {
+  if (!http2_client_) {
+    http2_client_ = std::make_unique<HttpClient>(&GetCpuAsyncExecutor());
   }
-
-  http2_client_ = std::make_unique<HttpClient>(&GetCpuAsyncExecutor());
-  return http2_client_.get();
+  return *http2_client_;
 }
 
-absl::StatusOr<HttpClientInterface*>
-LibCpioProvider::GetHttp1Client() noexcept {
-  if (http1_client_) {
-    return http1_client_.get();
+HttpClientInterface& LibCpioProvider::GetHttp1Client() noexcept {
+  if (!http1_client_) {
+    http1_client_ = std::make_unique<Http1CurlClient>(&GetCpuAsyncExecutor(),
+                                                      &GetIoAsyncExecutor());
   }
-
-  http1_client_ = std::make_unique<Http1CurlClient>(&GetCpuAsyncExecutor(),
-                                                    &GetIoAsyncExecutor());
-  return http1_client_.get();
+  return *http1_client_;
 }
 
 AsyncExecutorInterface& LibCpioProvider::GetCpuAsyncExecutor() noexcept {
@@ -141,17 +136,8 @@ LibCpioProvider::GetInstanceClientProvider() noexcept {
     return auth_token_provider.status();
   }
 
-  auto http1_client = GetHttp1Client();
-  if (!http1_client.ok()) {
-    return http1_client.status();
-  }
-
-  auto http2_client = GetHttpClient();
-  if (!http2_client.ok()) {
-    return http2_client.status();
-  }
   instance_client_provider_ = InstanceClientProviderFactory::Create(
-      *auth_token_provider, *http1_client, *http2_client,
+      *auth_token_provider, &GetHttp1Client(), &GetHttpClient(),
       &GetCpuAsyncExecutor(), &GetIoAsyncExecutor());
   return instance_client_provider_.get();
 }
@@ -197,13 +183,7 @@ LibCpioProvider::GetAuthTokenProvider() noexcept {
   if (auth_token_provider_) {
     return auth_token_provider_.get();
   }
-
-  auto http1_client = GetHttp1Client();
-  if (!http1_client.ok()) {
-    return http1_client.status();
-  }
-
-  auth_token_provider_ = AuthTokenProviderFactory::Create(*http1_client);
+  auth_token_provider_ = AuthTokenProviderFactory::Create(&GetHttp1Client());
   return auth_token_provider_.get();
 }
 

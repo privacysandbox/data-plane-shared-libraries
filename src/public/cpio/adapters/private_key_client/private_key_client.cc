@@ -60,15 +60,6 @@ constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  HttpClientInterface* http_client;
-  if (auto client = cpio_->GetHttpClient(); !client.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to get http client.");
-    return execution_result;
-  } else {
-    http_client = *client;
-  }
   RoleCredentialsProviderInterface* role_credentials_provider;
   if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
     ExecutionResult execution_result;
@@ -88,8 +79,8 @@ ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
     auth_token_provider = *provider;
   }
   private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
-      options_, http_client, role_credentials_provider, auth_token_provider,
-      &cpio_->GetIoAsyncExecutor());
+      options_, &cpio_->GetHttpClient(), role_credentials_provider,
+      auth_token_provider, &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }
 

@@ -65,16 +65,14 @@ class CpioProviderInterface : public core::ServiceInterface {
    *
    * @return http_client output Http2 Client
    */
-  virtual absl::StatusOr<core::HttpClientInterface*>
-  GetHttpClient() noexcept = 0;
+  virtual core::HttpClientInterface& GetHttpClient() noexcept = 0;
 
   /**
    * @brief Get the Http1 Client object. Only create it when it is needed.
    *
    * @return http_client output Http1 Client
    */
-  virtual absl::StatusOr<core::HttpClientInterface*>
-  GetHttp1Client() noexcept = 0;
+  virtual core::HttpClientInterface& GetHttp1Client() noexcept = 0;
 
   /**
    * @brief Gets the InstanceClientProvider.
