@@ -16,11 +16,28 @@ syntax = "proto3";
 
 package privacy_sandbox.server_common;
 
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
 
 service TestService {
-  rpc TestMethod(TestMethodRequest) returns (TestMethodResponse) {}
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Test Server',
+    code_id: "app_api_roma_app_test_v1",
+    description: 'Test Server',
+    cpp_namespace: 'privacysandbox::test_server',
+    romav8_app_name: 'TestHostServer',
+    cpp_host_process_callback_includes: [
+      'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
+    ],
+  };
+
+  rpc TestMethod(TestMethodRequest) returns (TestMethodResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacysandbox::test_server::HandleTestMethod',
+    };
+  }
 }
 
 message TestMethodRequest {

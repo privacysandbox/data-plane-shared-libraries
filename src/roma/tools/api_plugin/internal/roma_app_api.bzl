@@ -83,6 +83,10 @@ _cc_template_plugins = [
             template_file = "hpp_romav8.tmpl",
             suffix = "_roma_app.h.tmpl",
         ),
+        struct(
+            template_file = "handle_native_request_cc.tmpl",
+            suffix = "_native_request_handler.h",
+        ),
     ])
 ]
 

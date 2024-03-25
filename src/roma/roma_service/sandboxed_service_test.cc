@@ -42,6 +42,7 @@
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
+#include "src/roma/native_function_grpc_server/proto/test_service_native_request_handler.h"
 #include "src/roma/native_function_grpc_server/test_request_handlers.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
@@ -102,76 +103,6 @@ TEST(SandboxedServiceTest, StopGracefullyWithPendingLoads) {
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
-// Functions from Roma Integrators
-// -------------------------------------------------------------------------
-template <typename TMetadata>
-std::pair<privacy_sandbox::server_common::TestMethodResponse, absl::Status>
-HandleTestMethod(
-    const TMetadata& metadata,
-    const privacy_sandbox::server_common::TestMethodRequest& request) {
-  privacy_sandbox::server_common::TestMethodResponse response;
-  LOG(INFO) << "TestMethod gRPC called.";
-  response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
-  return std::make_pair(response, absl::OkStatus());
-}
-
-template <typename TMetadata>
-std::pair<privacy_sandbox::server_common::TestMethod1Response, absl::Status>
-HandleTestMethod1(
-    const TMetadata& metadata,
-    const privacy_sandbox::server_common::TestMethod1Request& request) {
-  privacy_sandbox::server_common::TestMethod1Response response;
-  LOG(INFO) << "TestMethod1 gRPC called.";
-  response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
-  return std::make_pair(response, absl::OkStatus());
-}
-
-template <typename TMetadata>
-std::pair<privacy_sandbox::server_common::TestMethod2Response, absl::Status>
-HandleTestMethod2(
-    const TMetadata& metadata,
-    const privacy_sandbox::server_common::TestMethod2Request& request) {
-  privacy_sandbox::server_common::TestMethod2Response response;
-  LOG(INFO) << "TestMethod2 gRPC called.";
-  response.set_output(absl::StrCat(request.input(), "World. From SERVER"));
-  return std::make_pair(response, absl::OkStatus());
-}
-// -------------------------------------------------------------------------
-
-// Resultant generated code
-template <typename TMetadata>
-std::pair<std::string, grpc::Status> HandleNativeRequest(
-    std::string_view request_payload, const TMetadata& metadata,
-    std::string_view function_name) {
-  if (function_name == "TestHostServer.TestMethod") {
-    privacy_sandbox::server_common::TestMethodRequest request;
-    request.ParseFromString(request_payload);
-    auto [response_payload, status] = HandleTestMethod(metadata, request);
-    return std::make_pair(
-        response_payload.SerializeAsString(),
-        privacy_sandbox::server_common::FromAbslStatus(status));
-  }
-  if (function_name == "TestHostServer.TestMethod1") {
-    privacy_sandbox::server_common::TestMethod1Request request;
-    request.ParseFromString(request_payload);
-    auto [response_payload, status] = HandleTestMethod1(metadata, request);
-    return std::make_pair(
-        response_payload.SerializeAsString(),
-        privacy_sandbox::server_common::FromAbslStatus(status));
-  }
-  if (function_name == "TestHostServer.TestMethod2") {
-    privacy_sandbox::server_common::TestMethod2Request request;
-    request.ParseFromString(request_payload);
-    auto [response_payload, status] = HandleTestMethod2(metadata, request);
-    return std::make_pair(
-        response_payload.SerializeAsString(),
-        privacy_sandbox::server_common::FromAbslStatus(status));
-  }
-
-  grpc::Status status(grpc::StatusCode::NOT_FOUND, "Invalid function name");
-  return std::make_pair("", status);
-}
-
 template <typename TMetadata>
 class InvokeCallbackHandler
     : public google::scp::roma::grpc_server::RequestHandlerBase<
@@ -188,8 +119,9 @@ class InvokeCallbackHandler
   std::pair<TResponse*, grpc::Status> ProcessRequest(
       const TMetadata& metadata) {
     LOG(INFO) << "InvokeCallback gRPC called.";
-    auto [response_bytes, status] = HandleNativeRequest(
-        request_.request_payload(), metadata, request_.function_name());
+    auto [response_bytes, status] =
+        privacysandbox::test_server::HandleNativeRequest(
+            request_.request_payload(), metadata, request_.function_name());
     *response_.mutable_response_payload() = std::move(response_bytes);
     return std::make_pair(&response_, status);
   }
@@ -241,8 +173,6 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
         }
 
         function Handler(input) {
-          TestHostServer.TestMethod1(ArrayStrToString(input));
-          TestHostServer.TestMethod2(ArrayStrToString(input));
           return TestHostServer.TestMethod(ArrayStrToString(input));
         }
       )JS_CODE",
