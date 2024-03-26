@@ -192,6 +192,7 @@ class WorkerSandboxApi {
               .AllowSyscall(__NR_prctl)
               .AllowSyscall(__NR_uname)
               .AllowSyscall(__NR_pkey_alloc)
+              .AllowSyscall(__NR_pkey_mprotect)
               .AllowSyscall(__NR_madvise)
               .AllowSyscall(__NR_ioctl)
               .AllowSyscall(__NR_prlimit64)
