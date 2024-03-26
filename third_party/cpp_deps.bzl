@@ -51,11 +51,11 @@ def cpp_dependencies():
         http_archive,
         name = "curl",
         build_file = Label("//third_party:curl.BUILD"),
-        sha256 = "05fc17ff25b793a437a0906e0484b82172a9f4de02be5ed447e0cab8c3475add",
-        strip_prefix = "curl-8.5.0",
+        sha256 = "9c6db808160015f30f3c656c0dec125feb9dc00753596bf858a272b5dd8dc398",
+        strip_prefix = "curl-8.6.0",
         urls = [
-            "https://curl.haxx.se/download/curl-8.5.0.tar.gz",
-            "https://github.com/curl/curl/releases/download/curl-8_5_0/curl-8.5.0.tar.gz",
+            "https://curl.haxx.se/download/curl-8.6.0.tar.gz",
+            "https://github.com/curl/curl/releases/download/curl-8_6_0/curl-8.6.0.tar.gz",
         ],
     )
     http_file(
