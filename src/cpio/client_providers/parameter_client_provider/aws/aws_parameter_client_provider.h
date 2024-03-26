@@ -60,7 +60,7 @@ class AwsParameterClientProvider : public ParameterClientProviderInterface {
         ssm_client_factory_(ssm_client_factory),
         region_code_(std::move(options).region) {}
 
-  absl::Status Init() noexcept override;
+  absl::Status Init() noexcept;
 
   absl::Status GetParameter(
       core::AsyncContext<

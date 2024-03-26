@@ -26,12 +26,6 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockParameterClientProvider : public ParameterClientProviderInterface {
  public:
-  MockParameterClientProvider() {
-    ON_CALL(*this, Init).WillByDefault(testing::Return(absl::OkStatus()));
-  }
-
-  MOCK_METHOD(absl::Status, Init, (), (override, noexcept));
-
   MOCK_METHOD(absl::Status, GetParameter,
               ((core::AsyncContext<
                   cmrt::sdk::parameter_service::v1::GetParameterRequest,

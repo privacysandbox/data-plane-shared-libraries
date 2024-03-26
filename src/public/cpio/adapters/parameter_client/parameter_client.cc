@@ -31,6 +31,7 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
@@ -52,7 +53,7 @@ constexpr std::string_view kParameterClient = "ParameterClient";
 }  // namespace
 
 namespace google::scp::cpio {
-void ParameterClient::CreateParameterClientProvider() noexcept {
+absl::Status ParameterClient::CreateParameterClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
   ParameterClientOptions options = options_;
   if (options.project_id.empty()) {
@@ -63,17 +64,19 @@ void ParameterClient::CreateParameterClientProvider() noexcept {
   }
 
   // TODO(b/321117161): Replace CPU w/ IO executor.
-  parameter_client_provider_ = ParameterClientProviderFactory::Create(
-      std::move(options), &cpio_->GetInstanceClientProvider(),
-      /*cpu_async_executor=*/&cpio_->GetCpuAsyncExecutor(),
-      /*io_async_executor=*/&cpio_->GetCpuAsyncExecutor());
+  PS_ASSIGN_OR_RETURN(
+      parameter_client_provider_,
+      ParameterClientProviderFactory::Create(
+          std::move(options), &cpio_->GetInstanceClientProvider(),
+          /*cpu_async_executor=*/&cpio_->GetCpuAsyncExecutor(),
+          /*io_async_executor=*/&cpio_->GetCpuAsyncExecutor()));
+  return absl::OkStatus();
 }
 
 ExecutionResult ParameterClient::Init() noexcept {
-  CreateParameterClientProvider();
-  if (absl::Status error = parameter_client_provider_->Init(); !error.ok()) {
+  if (absl::Status error = CreateParameterClientProvider(); !error.ok()) {
     SCP_ERROR(kParameterClient, kZeroUuid, error,
-              "Failed to initialize ParameterClientProvider.");
+              "Failed to create ParameterClientProvider.");
     return FailureExecutionResult(SC_UNKNOWN);
   }
   return SuccessExecutionResult();

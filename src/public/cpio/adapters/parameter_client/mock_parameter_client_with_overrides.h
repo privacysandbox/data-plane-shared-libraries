@@ -28,9 +28,10 @@ class MockParameterClientWithOverrides : public ParameterClient {
   MockParameterClientWithOverrides()
       : ParameterClient(ParameterClientOptions()) {}
 
-  void CreateParameterClientProvider() noexcept override {
+  absl::Status CreateParameterClientProvider() noexcept override {
     parameter_client_provider_ =
         std::make_unique<client_providers::mock::MockParameterClientProvider>();
+    return absl::OkStatus();
   }
 
   client_providers::mock::MockParameterClientProvider&

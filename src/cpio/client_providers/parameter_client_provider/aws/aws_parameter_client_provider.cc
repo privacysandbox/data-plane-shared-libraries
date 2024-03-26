@@ -33,6 +33,7 @@
 #include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "error_codes.h"
 #include "ssm_error_converter.h"
@@ -142,13 +143,15 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
   return std::make_unique<SSMClient>(std::move(client_config));
 }
 
-std::unique_ptr<ParameterClientProviderInterface>
+absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
     core::AsyncExecutorInterface* /*cpu_async_executor*/,
     core::AsyncExecutorInterface* io_async_executor) {
-  return std::make_unique<AwsParameterClientProvider>(
+  auto provider = std::make_unique<AwsParameterClientProvider>(
       std::move(options), instance_client_provider, io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

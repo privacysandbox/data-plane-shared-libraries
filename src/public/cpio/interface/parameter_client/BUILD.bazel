@@ -40,5 +40,6 @@ cc_library(
         "//src/public/cpio/adapters/common:adapter_utils",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/util/status_macro:status_macros",
     ],
 )

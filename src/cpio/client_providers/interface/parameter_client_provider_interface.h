@@ -21,6 +21,7 @@
 #include <string>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/service_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -35,8 +36,6 @@ namespace google::scp::cpio::client_providers {
 class ParameterClientProviderInterface {
  public:
   virtual ~ParameterClientProviderInterface() = default;
-
-  virtual absl::Status Init() noexcept = 0;
 
   /**
    * @brief Fetches the parameter value.
@@ -60,11 +59,11 @@ class ParameterClientProviderFactory {
    * @return std::unique_ptr<ParameterClientProviderInterface> created
    * ParameterClientProvider.
    */
-  static std::unique_ptr<ParameterClientProviderInterface> Create(
-      ParameterClientOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor);
+  static absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
+  Create(ParameterClientOptions options,
+         InstanceClientProviderInterface* instance_client_provider,
+         core::AsyncExecutorInterface* cpu_async_executor,
+         core::AsyncExecutorInterface* io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

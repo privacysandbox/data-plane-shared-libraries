@@ -55,7 +55,7 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
         instance_client_provider_(instance_client_provider),
         project_id_(std::move(options).project_id) {}
 
-  absl::Status Init() noexcept override;
+  absl::Status Init() noexcept;
 
   absl::Status GetParameter(
       core::AsyncContext<

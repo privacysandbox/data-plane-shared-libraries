@@ -49,7 +49,7 @@ class ParameterClient : public ParameterClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual void CreateParameterClientProvider() noexcept;
+  virtual absl::Status CreateParameterClientProvider() noexcept;
   std::unique_ptr<client_providers::ParameterClientProviderInterface>
       parameter_client_provider_;
 
