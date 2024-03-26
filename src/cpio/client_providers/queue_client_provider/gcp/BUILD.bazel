@@ -31,6 +31,7 @@ cc_library(
         "//src/cpio/common/gcp:gcp_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+        "//src/util/status_macro:status_macros",
         "@com_github_googleapis_google_cloud_cpp//:pubsub",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_googleapis//google/pubsub/v1:pubsub_cc_grpc",

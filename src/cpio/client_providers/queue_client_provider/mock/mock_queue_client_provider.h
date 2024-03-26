@@ -27,8 +27,6 @@ namespace google::scp::cpio::client_providers::mock {
  */
 class MockQueueClientProvider : public QueueClientProviderInterface {
  public:
-  MOCK_METHOD(absl::Status, Init, (), (noexcept, override));
-
   MOCK_METHOD(absl::Status, EnqueueMessage,
               ((core::AsyncContext<
                   cmrt::sdk::queue_service::v1::EnqueueMessageRequest,

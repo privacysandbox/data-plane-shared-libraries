@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/service_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -35,7 +37,6 @@ namespace google::scp::cpio::client_providers {
 class QueueClientProviderInterface {
  public:
   virtual ~QueueClientProviderInterface() = default;
-  virtual absl::Status Init() noexcept = 0;
   /**
    * @brief Enqueue a message to the queue.
    * @param enqueue_message_context context of the operation.
@@ -100,7 +101,7 @@ class QueueClientProviderFactory {
    * @return std::unique_ptr<QueueClientProviderInterface> created
    * QueueClientProviderProvider.
    */
-  static std::unique_ptr<QueueClientProviderInterface> Create(
+  static absl::StatusOr<std::unique_ptr<QueueClientProviderInterface>> Create(
       QueueClientOptions options,
       InstanceClientProviderInterface* instance_client,
       core::AsyncExecutorInterface* cpu_async_executor,

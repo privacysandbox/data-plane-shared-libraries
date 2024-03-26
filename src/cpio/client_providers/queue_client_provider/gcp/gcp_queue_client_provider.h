@@ -94,7 +94,7 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
         io_async_executor_(io_async_executor),
         pubsub_stub_factory_(std::move(pubsub_stub_factory)) {}
 
-  absl::Status Init() noexcept override;
+  absl::Status Init() noexcept;
 
   absl::Status EnqueueMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::EnqueueMessageRequest,

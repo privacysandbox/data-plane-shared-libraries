@@ -53,7 +53,7 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
         io_async_executor_(io_async_executor),
         sqs_client_factory_(std::move(sqs_client_factory)) {}
 
-  absl::Status Init() noexcept override;
+  absl::Status Init() noexcept;
 
   absl::Status EnqueueMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::EnqueueMessageRequest,

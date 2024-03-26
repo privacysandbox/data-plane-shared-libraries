@@ -59,11 +59,12 @@ void RunEnqueueMessageValidator(
           &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
           &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
           &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
-
-  if (absl::Status error = queue_client->Init(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
+  if (!queue_client.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << queue_client.status()
+              << std::endl;
     return;
   }
+
   // EnqueueMessage.
   absl::Notification finished;
   google::scp::core::ExecutionResult result;
@@ -82,7 +83,7 @@ void RunEnqueueMessageValidator(
             finished.Notify();
           });
   if (absl::Status error =
-          queue_client->EnqueueMessage(enqueue_message_context);
+          (*queue_client)->EnqueueMessage(enqueue_message_context);
       !error.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
@@ -105,11 +106,12 @@ void RunGetTopMessageValidator(std::string_view name) {
           &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
           &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
           &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
-
-  if (absl::Status error = queue_client->Init(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
+  if (!queue_client.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << queue_client.status()
+              << std::endl;
     return;
   }
+
   // GetTopMessage.
   absl::Notification finished;
   google::scp::core::ExecutionResult result;
@@ -126,7 +128,8 @@ void RunGetTopMessageValidator(std::string_view name) {
             }
             finished.Notify();
           });
-  if (absl::Status error = queue_client->GetTopMessage(get_top_message_context);
+  if (absl::Status error =
+          (*queue_client)->GetTopMessage(get_top_message_context);
       !error.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;

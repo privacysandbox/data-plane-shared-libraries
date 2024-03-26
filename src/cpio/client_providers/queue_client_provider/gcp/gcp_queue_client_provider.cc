@@ -27,6 +27,7 @@
 #include "src/cpio/common/gcp/gcp_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "error_codes.h"
 
@@ -493,14 +494,16 @@ GcpPubSubStubFactory::CreateSubscriberStub(
       Subscriber::NewStub(GetPubSubChannel(queue_name), StubOptions()));
 }
 
-std::unique_ptr<QueueClientProviderInterface>
+absl::StatusOr<std::unique_ptr<QueueClientProviderInterface>>
 QueueClientProviderFactory::Create(
     QueueClientOptions options,
     InstanceClientProviderInterface* instance_client,
     AsyncExecutorInterface* cpu_async_executor,
     AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<GcpQueueClientProvider>(
+  auto provider = std::make_unique<GcpQueueClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

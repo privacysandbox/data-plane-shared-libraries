@@ -33,6 +33,7 @@
 #include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/queue_service/v1/queue_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "sqs_error_converter.h"
 
@@ -427,14 +428,16 @@ std::shared_ptr<SQSClient> AwsSqsClientFactory::CreateSqsClient(
   return std::make_shared<SQSClient>(client_config);
 }
 
-std::unique_ptr<QueueClientProviderInterface>
+absl::StatusOr<std::unique_ptr<QueueClientProviderInterface>>
 QueueClientProviderFactory::Create(
     QueueClientOptions options,
     InstanceClientProviderInterface* instance_client,
     AsyncExecutorInterface* cpu_async_executor,
     AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<AwsQueueClientProvider>(
+  auto provider = std::make_unique<AwsQueueClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers
