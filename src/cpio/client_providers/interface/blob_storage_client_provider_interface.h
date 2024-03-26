@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/service_interface.h"
@@ -37,7 +38,6 @@ namespace google::scp::cpio::client_providers {
 class BlobStorageClientProviderInterface {
  public:
   virtual ~BlobStorageClientProviderInterface() = default;
-  virtual absl::Status Init() noexcept = 0;
   /**
    * @brief Used to download a blob using blob identifiers.
    *
@@ -117,11 +117,11 @@ class BlobStorageClientProviderInterface {
  */
 class BlobStorageClientProviderFactory {
  public:
-  static std::unique_ptr<BlobStorageClientProviderInterface> Create(
-      BlobStorageClientOptions options,
-      InstanceClientProviderInterface* instance_client,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor) noexcept;
+  static absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
+  Create(BlobStorageClientOptions options,
+         InstanceClientProviderInterface* instance_client,
+         core::AsyncExecutorInterface* cpu_async_executor,
+         core::AsyncExecutorInterface* io_async_executor) noexcept;
 };
 
 }  // namespace google::scp::cpio::client_providers

@@ -27,6 +27,7 @@ cc_library(
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/common/aws:aws_utils",
         "//src/public/cpio/interface/blob_storage_client:type_def",
+        "//src/util/status_macro:status_macros",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
         "@com_google_absl//absl/functional:bind_front",

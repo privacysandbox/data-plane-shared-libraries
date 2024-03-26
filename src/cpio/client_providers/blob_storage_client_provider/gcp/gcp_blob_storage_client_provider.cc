@@ -41,6 +41,7 @@
 #include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "gcp_blob_storage_client_utils.h"
 
@@ -913,14 +914,16 @@ GcpCloudStorageFactory::CreateClient(
   return std::make_unique<Client>(CreateClientOptions(std::move(options)));
 }
 
-std::unique_ptr<BlobStorageClientProviderInterface>
+absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
     InstanceClientProviderInterface* instance_client,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<GcpBlobStorageClientProvider>(
+  auto provider = std::make_unique<GcpBlobStorageClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

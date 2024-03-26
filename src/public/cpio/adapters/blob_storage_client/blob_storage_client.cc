@@ -75,13 +75,17 @@ ExecutionResult BlobStorageClient::Init() noexcept {
   if (options.region.empty()) {
     options.region = cpio_->GetRegion();
   }
-  blob_storage_client_provider_ = BlobStorageClientProviderFactory::Create(
-      std::move(options), instance_client, &cpio_->GetCpuAsyncExecutor(),
-      &cpio_->GetIoAsyncExecutor());
-  if (absl::Status error = blob_storage_client_provider_->Init(); !error.ok()) {
-    SCP_ERROR(kBlobStorageClient, kZeroUuid, error,
+  if (auto blob_storage_client_provider =
+          BlobStorageClientProviderFactory::Create(
+              std::move(options), instance_client,
+              &cpio_->GetCpuAsyncExecutor(), &cpio_->GetIoAsyncExecutor());
+      !blob_storage_client_provider.ok()) {
+    SCP_ERROR(kBlobStorageClient, kZeroUuid,
+              blob_storage_client_provider.status(),
               "Failed to initialize BlobStorageClientProvider.");
     return core::FailureExecutionResult(SC_UNKNOWN);
+  } else {
+    blob_storage_client_provider_ = *std::move(blob_storage_client_provider);
   }
   return SuccessExecutionResult();
 }

@@ -58,7 +58,7 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
         region_code_(std::move(options).region),
         s3_factory_(std::move(s3_factory)) {}
 
-  absl::Status Init() noexcept override;
+  absl::Status Init() noexcept;
 
   absl::Status GetBlob(
       core::AsyncContext<cmrt::sdk::blob_storage_service::v1::GetBlobRequest,

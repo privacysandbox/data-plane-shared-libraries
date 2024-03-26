@@ -28,8 +28,6 @@ namespace google::scp::cpio::client_providers::mock {
 class MockBlobStorageClientProvider
     : public BlobStorageClientProviderInterface {
  public:
-  MOCK_METHOD(absl::Status, Init, (), (noexcept, override));
-
   MOCK_METHOD(absl::Status, GetBlob,
               ((core::AsyncContext<
                   cmrt::sdk::blob_storage_service::v1::GetBlobRequest,
