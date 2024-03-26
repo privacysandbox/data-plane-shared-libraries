@@ -1,24 +1,9 @@
-diff --git a/BUILD.bazel b/BUILD.bazel
-index e2594d43db3..aa7f31b71c8 100644
---- a/BUILD.bazel
-+++ b/BUILD.bazel
-@@ -2673,7 +2673,10 @@ filegroup(
-             "src/trap-handler/handler-inside-posix.cc",
-             "src/trap-handler/handler-outside-posix.cc",
-         ],
--        "//conditions:default": [],
-+        "//conditions:default": [
-+            "src/trap-handler/handler-inside-posix.cc",
-+            "src/trap-handler/handler-outside-posix.cc",
-+        ],
-     }) + select({
-         "@v8//bazel/config:v8_arm64_simulator": [
-             "src/trap-handler/handler-outside-simulator.cc",
+ # Default setting for v8_enable_pointer_compression.
 diff --git a/bazel/defs.bzl b/bazel/defs.bzl
-index 1ea9bc0da8d..c6eb4215171 100644
+index e957c0fad3..701651e0f2 100644
 --- a/bazel/defs.bzl
 +++ b/bazel/defs.bzl
-@@ -122,6 +122,7 @@ def _default_args():
+@@ -116,6 +116,7 @@ def _default_args():
          }) + select({
              "@v8//bazel/config:is_clang": [
                  "-Wno-invalid-offsetof",
@@ -26,7 +11,7 @@ index 1ea9bc0da8d..c6eb4215171 100644
                  "-std=c++17",
              ],
              "@v8//bazel/config:is_gcc": [
-@@ -137,6 +138,7 @@ def _default_args():
+@@ -131,6 +132,7 @@ def _default_args():
                  "-Wno-redundant-move",
                  "-Wno-return-type",
                  "-Wno-stringop-overflow",
@@ -34,17 +19,3 @@ index 1ea9bc0da8d..c6eb4215171 100644
                  # Use GNU dialect, because GCC doesn't allow using
                  # ##__VA_ARGS__ when in standards-conforming mode.
                  "-std=gnu++17",
-diff --git a/src/compiler/graph-visualizer.cc b/src/compiler/graph-visualizer.cc
-index 1b1b67c1abb..b2777aa6c91 100644
---- a/src/compiler/graph-visualizer.cc
-+++ b/src/compiler/graph-visualizer.cc
-@@ -297,7 +297,8 @@ void JsonPrintAllSourceWithPositionsWasm(
-   os << "\"inlinings\": {";
-   for (size_t i = 0; i < positions.size(); ++i) {
-     if (i != 0) os << ", ";
--    DCHECK(source_map.contains(positions[i].inlinee_func_index));
-+    DCHECK(source_map.find(positions[i].inlinee_func_index) !=
-+           source_map.end());
-     size_t source_id = source_map.find(positions[i].inlinee_func_index)->second;
-     SourcePosition inlining_pos = positions[i].caller_pos;
-     os << '"' << i << "\": {\"inliningId\": " << i
