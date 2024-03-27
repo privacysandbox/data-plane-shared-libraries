@@ -256,12 +256,9 @@ void V8IsolateFunctionBinding::GrpcServerCallback(
       stub->InvokeCallback(&context, request, &response);
 
   if (status.ok()) {
-    LOG(ERROR) << "Successfully sent request to gRPC server.";
-    LOG(ERROR) << response.response_payload();
     info.GetReturnValue().Set(
         TypeConverter<std::string>::ToV8(isolate, response.response_payload()));
   } else {
-    LOG(ERROR) << "RPC failed: " << status.error_message();
     info.GetReturnValue().Set(
         TypeConverter<std::string>::ToV8(isolate, status.error_message()));
   }

@@ -111,7 +111,10 @@ cc_proto_library(
 
 cc_proto_library(
     name = "callback_service_cc_proto",
-    visibility = [":grpc_proto_users_pkg"],
+    visibility = [
+        ":grpc_proto_users_pkg",
+        "//src/roma/benchmark:__subpackages__",
+    ],
     deps = [
         ":callback_service_proto",
     ],

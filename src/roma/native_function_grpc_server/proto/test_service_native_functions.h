@@ -32,7 +32,6 @@ HandleNativeMethod(
     const TMetadata& metadata,
     const privacy_sandbox::server_common::NativeMethodRequest& request) {
   privacy_sandbox::server_common::NativeMethodResponse response;
-  LOG(INFO) << "TestMethod gRPC called.";
   response.set_output(
       absl::StrCat(request.input(), "World. From NativeMethod"));
   return std::make_pair(response, absl::OkStatus());
