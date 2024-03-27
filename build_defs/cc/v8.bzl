@@ -37,6 +37,7 @@ def import_v8():
         name = "com_googlesource_chromium_icu",
         build_file = "@v8//:bazel/BUILD.icu",
         patch_cmds = ["find source -name BUILD.bazel | xargs rm"],
+        # sha256 is unstable for this url
         urls = ["https://chromium.googlesource.com/chromium/deps/icu/+archive/7ff1e9befce5567754dc88392dfaa4704e261ab3.tar.gz"],
     )
 
