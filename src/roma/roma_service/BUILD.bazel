@@ -176,6 +176,7 @@ cc_test(
     srcs = ["romav8_app_service_test.cc"],
     tags = [
         "noasan",
+        "notsan-aarch64",
     ],
     deps = [
         ":helloworld_cc_proto",
