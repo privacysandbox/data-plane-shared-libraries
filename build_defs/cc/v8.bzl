@@ -22,9 +22,9 @@ def import_v8():
         name = "v8",
         patch_args = ["-p1"],
         patches = [Label("//build_defs/cc:v8.patch")],
-        sha256 = "33f996c0b47cad6b492130d4f7ae8180d55a4d1bd4ff639b5c43ca56ffb7f5c1",
-        strip_prefix = "v8-11.1.277.9",
-        urls = ["https://github.com/v8/v8/archive/refs/tags/11.1.277.9.zip"],
+        sha256 = "f2da3da236c1240befb40d1d5e5658e09a0b16219de087a7d1bda098795de017",
+        strip_prefix = "v8-11.9.172",
+        urls = ["https://github.com/v8/v8/archive/refs/tags/11.9.172.zip"],
     )
 
     pip_parse(
@@ -37,8 +37,9 @@ def import_v8():
         name = "com_googlesource_chromium_icu",
         build_file = "@v8//:bazel/BUILD.icu",
         patch_cmds = ["find source -name BUILD.bazel | xargs rm"],
+        # ICU 74 for Chromium: https://chromium.googlesource.com/chromium/deps/icu/+/refs/heads/chromium/74staging
         # sha256 is unstable for this url
-        urls = ["https://chromium.googlesource.com/chromium/deps/icu/+archive/7ff1e9befce5567754dc88392dfaa4704e261ab3.tar.gz"],
+        urls = ["https://chromium.googlesource.com/chromium/deps/icu/+archive/ef208e4799590d594bf482f05d6575a73423e184.tar.gz"],
     )
 
     native.bind(
@@ -49,6 +50,26 @@ def import_v8():
     native.bind(
         name = "zlib_compression_utils",
         actual = "@com_googlesource_chromium_zlib//:zlib_compression_utils",
+    )
+
+    native.bind(
+        name = "absl_optional",
+        actual = "@com_google_absl//absl/types:optional",
+    )
+
+    native.bind(
+        name = "absl_btree",
+        actual = "@com_google_absl//absl/container:btree",
+    )
+
+    native.bind(
+        name = "absl_flat_hash_map",
+        actual = "@com_google_absl//absl/container:flat_hash_map",
+    )
+
+    native.bind(
+        name = "absl_flat_hash_set",
+        actual = "@com_google_absl//absl/container:flat_hash_set",
     )
 
     http_archive(
