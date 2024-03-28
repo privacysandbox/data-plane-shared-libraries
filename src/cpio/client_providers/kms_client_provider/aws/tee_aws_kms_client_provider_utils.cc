@@ -27,7 +27,7 @@
 
 namespace google::scp::cpio::client_providers::utils {
 
-absl::StatusOr<std::string> Exec(absl::Span<char* const> args) noexcept {
+absl::StatusOr<std::string> Exec(absl::Span<const char* const> args) noexcept {
   int fd[2];
   if (pipe(fd) == -1) {
     return absl::ErrnoToStatus(errno, "Exec failed to create a pipe.");
@@ -37,7 +37,8 @@ absl::StatusOr<std::string> Exec(absl::Span<char* const> args) noexcept {
     close(fd[0]);
 
     // Redirect child standard output to pipe and execute.
-    if (dup2(fd[1], STDOUT_FILENO) == -1 || execv(args[0], &args[0]) == -1) {
+    if (dup2(fd[1], STDOUT_FILENO) == -1 ||
+        execv(args[0], const_cast<char* const*>(&args[0])) == -1) {
       exit(errno);
     }
   } else if (pid == -1) {
