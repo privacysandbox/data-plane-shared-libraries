@@ -172,21 +172,22 @@ class Config {
   template <template <typename> typename... THandlers>
   void RegisterService(std::unique_ptr<grpc::Service> service,
                        THandlers<TMetadata>&&... handlers) {
-    bool is_callback_service = IsCallbackService(service.get());
+    const bool is_callback_service = IsCallbackService(service.get());
     // Ensures JSCallbackService is only registered once, necessary to allow
     // multiple host apis to be registered
-    if (is_callback_service && !is_callback_service_registered_) {
-      callback_service_index_ = services_.size();
-      services_.push_back(std::move(service));
-      is_callback_service_registered_ = true;
-    } else if (!is_callback_service) {
+    if (is_callback_service) {
+      if (!is_callback_service_registered_) {
+        callback_service_index_ = services_.size();
+        services_.push_back(std::move(service));
+        is_callback_service_registered_ = true;
+      }
+    } else {
       services_.push_back(std::move(service));
     }
 
-    auto CreateFactoryWrapper = [&](auto&& handler) {
+    const auto CreateFactoryWrapper = [&](auto&& handler) {
       CreateFactory(is_callback_service, handler);
     };
-
     (CreateFactoryWrapper(handlers), ...);
   }
 
@@ -277,12 +278,10 @@ class Config {
    * @brief Returns whether the service passed in from RegisterService is a
    * JSCallbackService.
    */
-  bool IsCallbackService(grpc::Service* service) {
+  static bool IsCallbackService(grpc::Service* service) {
     using CallbackService =
         privacy_sandbox::server_common::JSCallbackService::AsyncService;
-
-    CallbackService* callback_service = dynamic_cast<CallbackService*>(service);
-    return callback_service != nullptr;
+    return dynamic_cast<CallbackService*>(service) != nullptr;
   }
 
   /**
