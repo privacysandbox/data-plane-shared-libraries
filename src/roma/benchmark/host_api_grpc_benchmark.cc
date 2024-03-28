@@ -86,8 +86,7 @@ void DoGrpcServerSetup(const benchmark::State& state) {
   config.RegisterService(
       std::make_unique<
           privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
-      privacysandbox::test_host_server::InvokeCallbackHandler<
-          DefaultMetadata>());
+      privacysandbox::test_host_server::NativeMethodHandler<DefaultMetadata>());
   config.RegisterRpcHandler("TestHostServer.NativeMethod");
   DoSetup(std::move(config));
 }

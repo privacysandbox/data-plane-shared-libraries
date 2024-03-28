@@ -119,7 +119,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   config.RegisterService(
       std::make_unique<
           privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
-      privacysandbox::test_host_server::InvokeCallbackHandler<std::string>());
+      privacysandbox::test_host_server::NativeMethodHandler<std::string>());
   config.RegisterRpcHandler("TestHostServer.NativeMethod");
 
   auto roma_service =

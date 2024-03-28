@@ -46,30 +46,12 @@
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 namespace {{$svcopts.CppNamespace}} {
 
+{{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
+{{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
+{{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
+{{- if gt (len $svcopts.CppHostProcessCallbackIncludes) 0}}
 template <typename TMetadata>
-std::pair<std::string, grpc::Status> HandleNativeRequest(
-    std::string_view request_payload, const TMetadata& metadata,
-    std::string_view function_name) {
-  {{- range $rpc := $svc.MethodsWithOption
-  "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-  {{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-  {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
-  {{- if gt (len $svcopts.CppHostProcessCallbackIncludes) 0}}
-  if (function_name == "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}") {
-    {{$reqType}} request;
-    request.ParseFromString(request_payload);
-    auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(metadata, request);
-    return std::make_pair(response_payload.SerializeAsString(), privacy_sandbox::server_common::FromAbslStatus(status));
-  }
-  {{- end -}}{{/*if $svcopts.CppHostProcessCallbackIncludes*/}}
-  {{- end -}}{{/*rpc range*/}}
-
-  grpc::Status status(grpc::StatusCode::NOT_FOUND, "Invalid function name");
-  return std::make_pair("", status);
-}
-
-template <typename TMetadata>
-class InvokeCallbackHandler
+class {{$rpc.Name}}Handler
     : public google::scp::roma::grpc_server::RequestHandlerBase<
           privacy_sandbox::server_common::InvokeCallbackRequest,
           privacy_sandbox::server_common::InvokeCallbackResponse,
@@ -83,16 +65,20 @@ class InvokeCallbackHandler
 
   std::pair<TResponse*, grpc::Status> ProcessRequest(
       const TMetadata& metadata) {
-    auto [response_bytes, status] = HandleNativeRequest(
-        request_.request_payload(), metadata, request_.function_name());
-    *response_.mutable_response_payload() = std::move(response_bytes);
-    return std::make_pair(&response_, status);
+    {{$reqType}} request;
+    request.ParseFromString(request_.request_payload());
+    auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(metadata, request);
+    *response_.mutable_response_payload() = std::move(response_payload.SerializeAsString());
+    return std::make_pair(&response_, privacy_sandbox::server_common::FromAbslStatus(status));
   }
 
  private:
   TRequest request_;
   TResponse response_;
 };
+{{- end -}}{{/*if $svcopts.CppHostProcessCallbackIncludes*/}}
+{{- end -}}{{/*rpc range*/}}
+
 }  // namespace {{$svcopts.CppNamespace}}
 {{- end -}}{{/*svc range*/}}
 

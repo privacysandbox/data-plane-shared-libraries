@@ -50,7 +50,7 @@ void RegisterHostApi(google::scp::roma::Config<TMetadata>& config) {
           privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
       {{- $methods := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
       {{- range $index, $rpc := $methods}}
-      InvokeCallbackHandler<TMetadata>(){{- if ne $index (sub (len $methods) 1) -}},{{- end }}
+      {{$rpc.Name}}Handler<TMetadata>(){{- if ne $index (sub (len $methods) 1) -}},{{- end }}
       {{end}}{{/*rpc range*/}}
   );
 
