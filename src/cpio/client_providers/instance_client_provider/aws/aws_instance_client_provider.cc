@@ -148,7 +148,7 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
   }
 
   {
-    absl::MutexLock l(&mu_);
+    absl::MutexLock lock(&mu_);
     if (const auto it = ec2_clients_list_.find(target_region);
         it != ec2_clients_list_.end()) {
       return it->second;
@@ -159,7 +159,7 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
       std::shared_ptr<EC2Client> ec2_client,
       ec2_factory_.CreateClient(target_region, io_async_executor_));
 
-  absl::MutexLock l(&mu_);
+  absl::MutexLock lock(&mu_);
   ec2_clients_list_[std::move(target_region)] = ec2_client;
   return ec2_client;
 }

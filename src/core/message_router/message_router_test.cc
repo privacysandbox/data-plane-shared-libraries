@@ -47,12 +47,12 @@ class MessageRouterTest : public ::testing::Test {
     EXPECT_SUCCESS(router_.Run());
 
     {
-      absl::MutexLock l(&running_mu_);
+      absl::MutexLock lock(&running_mu_);
       running_ = true;
     }
     thread_ = std::thread([this] {
       auto is_running = [this] {
-        absl::MutexLock l(&running_mu_);
+        absl::MutexLock lock(&running_mu_);
         return running_;
       };
       while (is_running()) {
@@ -74,7 +74,7 @@ class MessageRouterTest : public ::testing::Test {
 
   void TearDown() override {
     {
-      absl::MutexLock l(&running_mu_);
+      absl::MutexLock lock(&running_mu_);
       running_ = false;
     }
     thread_.join();
@@ -177,7 +177,7 @@ TEST_F(MessageRouterTest, MultipleSubscriptions) {
   int count_1 = 0;
   router_.Subscribe(any_request_1_.type_url(),
                     [&](AsyncContext<Any, Any>& context) {
-                      absl::MutexLock l(&count_mu);
+                      absl::MutexLock lock(&count_mu);
                       count_1++;
                     });
   auto request_1 = std::make_shared<Any>(any_request_1_);
@@ -187,7 +187,7 @@ TEST_F(MessageRouterTest, MultipleSubscriptions) {
   int count_2 = 0;
   router_.Subscribe(any_request_2_.type_url(),
                     [&](AsyncContext<Any, Any>& context) {
-                      absl::MutexLock l(&count_mu);
+                      absl::MutexLock lock(&count_mu);
                       count_2++;
                     });
   auto request_2 = std::make_shared<Any>(any_request_2_);
@@ -198,7 +198,7 @@ TEST_F(MessageRouterTest, MultipleSubscriptions) {
   queue_->TryEnqueue(context_2);
 
   {
-    absl::MutexLock l(&count_mu);
+    absl::MutexLock lock(&count_mu);
     auto condition_fn = [&] {
       count_mu.AssertReaderHeld();
       return count_1 == 1 && count_2 == 1;

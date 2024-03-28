@@ -187,7 +187,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
               &AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
               context_chunk));
       {
-        absl::MutexLock l(&sync_mutex_);
+        absl::MutexLock lock(&sync_mutex_);
         active_push_count_++;
       }
 
@@ -212,7 +212,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
         request_chunk,
         absl::bind_front(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback,
                          this, context_chunk));
-    absl::MutexLock l(&sync_mutex_);
+    absl::MutexLock lock(&sync_mutex_);
     active_push_count_++;
   }
 
@@ -226,7 +226,7 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
     const PutMetricDataOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   {
-    absl::MutexLock l(&sync_mutex_);
+    absl::MutexLock lock(&sync_mutex_);
     active_push_count_--;
   }
   if (outcome.IsSuccess()) {

@@ -113,25 +113,25 @@ TEST(SingleThreadPriorityAsyncExecutorTests, OrderedTasksExecution) {
   size_t counter = 0;
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
-        absl::MutexLock l(&counter_mu);
+        absl::MutexLock lock(&counter_mu);
         EXPECT_EQ(counter++, 2);
       },
       task.GetExecutionTimestamp() + two_seconds));
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
-        absl::MutexLock l(&counter_mu);
+        absl::MutexLock lock(&counter_mu);
         EXPECT_EQ(counter++, 1);
       },
       task.GetExecutionTimestamp() + one_second));
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
-        absl::MutexLock l(&counter_mu);
+        absl::MutexLock lock(&counter_mu);
         EXPECT_EQ(counter++, 0);
       },
       task.GetExecutionTimestamp() + half_second));
 
   {
-    absl::MutexLock l(&counter_mu);
+    absl::MutexLock lock(&counter_mu);
     auto condition_fn = [&] {
       counter_mu.AssertReaderHeld();
       return counter == 3;

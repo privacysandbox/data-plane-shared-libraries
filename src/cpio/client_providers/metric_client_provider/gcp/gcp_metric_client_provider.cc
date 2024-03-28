@@ -157,7 +157,7 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
               &GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback, this,
               *requests_vector));
       {
-        absl::MutexLock l(&sync_mutex_);
+        absl::MutexLock lock(&sync_mutex_);
         active_push_count_++;
       }
 
@@ -177,7 +177,7 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
         metric_requests_vector,
     future<Status> outcome) noexcept {
   {
-    absl::MutexLock l(&sync_mutex_);
+    absl::MutexLock lock(&sync_mutex_);
     active_push_count_--;
   }
   auto outcome_status = outcome.get();

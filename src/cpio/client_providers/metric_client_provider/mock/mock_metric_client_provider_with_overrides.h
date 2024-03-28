@@ -86,7 +86,7 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
   }
 
   int GetSizeMetricRequestsVector() {
-    absl::MutexLock l(&(MetricClientProvider::sync_mutex_));
+    absl::MutexLock lock(&(MetricClientProvider::sync_mutex_));
     return MetricClientProvider::metric_requests_vector_.size();
   }
 

@@ -195,7 +195,7 @@ ExecutionResult PrivateKeyClientUtils::ExtractAnyFailure(
   for (auto& key_result : keys_result) {
     RETURN_IF_FAILURE(key_result.fetch_result);
 
-    absl::MutexLock l(&key_result.mu);
+    absl::MutexLock lock(&key_result.mu);
     if (const auto it = key_result.fetch_result_key_id_map.find(key_id);
         it != key_result.fetch_result_key_id_map.end()) {
       RETURN_IF_FAILURE(it->second);
@@ -214,7 +214,7 @@ std::optional<DecryptResult> PrivateKeyClientUtils::ExtractSinglePartyKey(
     const std::string& key_id) noexcept {
   for (auto& key_result : keys_result) {
     DecryptResult decrypt_result;
-    absl::MutexLock l(&key_result.mu);
+    absl::MutexLock lock(&key_result.mu);
     if (const auto it = key_result.decrypt_result_key_id_map.find(key_id);
         it != key_result.decrypt_result_key_id_map.end() &&
         it->second.encryption_key.encryption_key_type ==

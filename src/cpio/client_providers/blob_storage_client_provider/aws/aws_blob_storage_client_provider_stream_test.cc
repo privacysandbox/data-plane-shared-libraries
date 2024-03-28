@@ -113,7 +113,7 @@ class AwsBlobStorageClientProviderStreamTest : public ::testing::Test {
 
     get_blob_stream_context_.request = std::make_shared<GetBlobStreamRequest>();
     get_blob_stream_context_.process_callback = [this](auto, auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
@@ -224,7 +224,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -232,7 +232,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStream) {
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -299,7 +299,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -307,7 +307,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -388,7 +388,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -396,7 +396,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -447,7 +447,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -455,7 +455,7 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamIndexBeyondEnd) {
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -481,14 +481,14 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
     EXPECT_THAT(
         context.result,
         ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -520,14 +520,14 @@ TEST_F(AwsBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
   get_blob_stream_context_.process_callback = [this](auto& context, bool) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(SC_STREAMING_CONTEXT_DONE)));
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -561,14 +561,14 @@ TEST_F(AwsBlobStorageClientProviderStreamTest,
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(
                     SC_BLOB_STORAGE_PROVIDER_STREAM_SESSION_CANCELLED)));
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(provider_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());

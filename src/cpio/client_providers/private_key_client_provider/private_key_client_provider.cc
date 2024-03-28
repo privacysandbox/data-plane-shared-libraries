@@ -135,7 +135,7 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
   auto execution_result = fetch_private_key_context.result;
   if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
     {
-      absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
+      absl::MutexLock lock(&list_keys_status->result_list[uri_index].mu);
       list_keys_status->result_list[uri_index]
           .fetch_result_key_id_map[*fetch_private_key_context.request->key_id] =
           execution_result;
@@ -245,7 +245,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
       DecryptResult decrypt_result =
           MakeDecryptResult(*encryption_key, std::move(decrypt_context.result),
                             std::move(plaintext));
-      absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
+      absl::MutexLock lock(&list_keys_status->result_list[uri_index].mu);
       list_keys_status->result_list[uri_index]
           .decrypt_result_key_id_map[*decrypt_result.encryption_key.key_id] =
           std::move(decrypt_result);
@@ -290,7 +290,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
           std::optional<DecryptResult> decrypt_result;
           {
             auto& result = list_keys_status->result_list[i];
-            absl::MutexLock l(&result.mu);
+            absl::MutexLock lock(&result.mu);
             if (auto it = result.decrypt_result_key_id_map.find(key_id);
                 it != result.decrypt_result_key_id_map.end()) {
               decrypt_result = it->second;

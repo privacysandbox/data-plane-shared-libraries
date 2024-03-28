@@ -41,7 +41,7 @@ void MessageRouter::OnMessageReceived(
     const std::shared_ptr<AsyncContext<Any, Any>>& context) noexcept {
   std::optional<AsyncAction> action;
   {
-    absl::MutexLock l(&mu_);
+    absl::MutexLock lock(&mu_);
     if (const auto it = actions_.find(context->request->type_url());
         it != actions_.end()) {
       action = it->second;
@@ -57,7 +57,7 @@ void MessageRouter::OnMessageReceived(
 
 ExecutionResult MessageRouter::Subscribe(std::string request_type,
                                          AsyncAction action) noexcept {
-  absl::MutexLock l(&mu_);
+  absl::MutexLock lock(&mu_);
   if (!actions_.try_emplace(std::move(request_type), std::move(action))
            .second) {
     return FailureExecutionResult(

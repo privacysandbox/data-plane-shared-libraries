@@ -293,14 +293,14 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
                               EXPECT_THAT(resp->resp,
                                           absl::StrCat(R"("Hello)", i,
                                                        R"( Some string")"));
-                              absl::MutexLock l(&execution_count_mu);
+                              absl::MutexLock lock(&execution_count_mu);
                               execution_count++;
                             })
                     .ok());
   }
 
   {
-    absl::MutexLock l(&execution_count_mu);
+    absl::MutexLock lock(&execution_count_mu);
     auto condition_fn = [&] {
       execution_count_mu.AssertReaderHeld();
       return execution_count >= kRequestSent;

@@ -48,12 +48,12 @@ SingleThreadPriorityAsyncExecutor::SingleThreadPriorityAsyncExecutor(
           AsyncExecutorUtils::SetAffinity(*affinity_cpu_number);
         }
         {
-          absl::MutexLock l(&ptr->mutex_);
+          absl::MutexLock lock(&ptr->mutex_);
           ptr->worker_thread_started_ = true;
         }
         ptr->StartWorker();
         {
-          absl::MutexLock l(&ptr->mutex_);
+          absl::MutexLock lock(&ptr->mutex_);
           ptr->worker_thread_stopped_ = true;
         }
       },
@@ -69,7 +69,7 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
     const Timestamp current_timestamp =
         TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks();
     {
-      absl::MutexLock l(&mutex_);
+      absl::MutexLock lock(&mutex_);
       auto fn = [this, current_timestamp] {
         mutex_.AssertReaderHeld();
         return !is_running_ || update_wait_time_ ||
@@ -109,7 +109,7 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
 }
 
 SingleThreadPriorityAsyncExecutor::~SingleThreadPriorityAsyncExecutor() {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   is_running_ = false;
 
   // To ensure stop can happen cleanly, it is required to wait for the thread to
@@ -132,7 +132,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     AsyncOperation work, Timestamp timestamp,
     std::function<bool()>& cancellation_callback) noexcept {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   if (queue_.size() >= queue_cap_) {
     return RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP);
   }

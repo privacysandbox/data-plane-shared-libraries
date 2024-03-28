@@ -80,7 +80,7 @@ absl::Status MetricClientProvider::Init() noexcept {
 }
 
 absl::Status MetricClientProvider::Run() noexcept {
-  if (absl::MutexLock l(&sync_mutex_); is_running_) {
+  if (absl::MutexLock lock(&sync_mutex_); is_running_) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING);
     SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
@@ -100,7 +100,7 @@ absl::Status MetricClientProvider::Run() noexcept {
 }
 
 absl::Status MetricClientProvider::Stop() noexcept {
-  absl::MutexLock l(&sync_mutex_);
+  absl::MutexLock lock(&sync_mutex_);
   is_running_ = false;
   if (is_batch_recording_enable) {
     current_cancellation_callback_();
@@ -118,7 +118,7 @@ absl::Status MetricClientProvider::Stop() noexcept {
 absl::Status MetricClientProvider::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>
         record_metric_context) noexcept {
-  absl::MutexLock l(&sync_mutex_);
+  absl::MutexLock lock(&sync_mutex_);
   if (!is_running_) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
@@ -176,7 +176,7 @@ void MetricClientProvider::RunMetricsBatchPush() noexcept {
 }
 
 ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
-  if (absl::MutexLock l(&sync_mutex_); !is_running_) {
+  if (absl::MutexLock lock(&sync_mutex_); !is_running_) {
     auto execution_result =
         FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
     SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
@@ -191,7 +191,7 @@ ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
       [this]() {
         ScheduleMetricsBatchPush();
 
-        absl::MutexLock l(&sync_mutex_);
+        absl::MutexLock lock(&sync_mutex_);
         RunMetricsBatchPush();
       },
       next_push_time, current_cancellation_callback_);

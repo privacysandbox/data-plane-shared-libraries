@@ -241,7 +241,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
       [&](AsyncOperation work, Timestamp timestamp,
           std::function<bool()>& cancellation_callback) {
         {
-          absl::MutexLock l(&schedule_for_is_called_mu);
+          absl::MutexLock lock(&schedule_for_is_called_mu);
           schedule_for_is_called = true;
         }
         return SuccessExecutionResult();
@@ -259,7 +259,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         {
-          absl::MutexLock l(&batch_push_called_mu);
+          absl::MutexLock lock(&batch_push_called_mu);
           batch_push_called = true;
         }
         EXPECT_EQ(metric_requests_vector->size(), kMetricsBatchSize);
@@ -274,11 +274,11 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
   }
 
   {
-    absl::MutexLock l(&schedule_for_is_called_mu);
+    absl::MutexLock lock(&schedule_for_is_called_mu);
     schedule_for_is_called_mu.Await(absl::Condition(&schedule_for_is_called));
   }
 
-  absl::MutexLock l(&batch_push_called_mu);
+  absl::MutexLock lock(&batch_push_called_mu);
   batch_push_called_mu.Await(absl::Condition(&batch_push_called));
 }
 
@@ -314,7 +314,7 @@ TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
   EXPECT_TRUE(client->PutMetrics(context).ok());
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 2);
   {
-    absl::MutexLock l(client->mock_sync_mutex_);
+    absl::MutexLock lock(client->mock_sync_mutex_);
     client->RunMetricsBatchPush();
   }
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);

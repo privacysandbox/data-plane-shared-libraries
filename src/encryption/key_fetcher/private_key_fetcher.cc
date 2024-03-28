@@ -101,7 +101,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     if (result.Successful()) {
       KeyFetchResultCounter::SetNumPrivateKeysFetched(
           response.private_keys().size());
-      absl::MutexLock l(&mutex_);
+      absl::MutexLock lock(&mutex_);
       int num_priv_keys_added = 0;
       for (const auto& private_key : response.private_keys()) {
         std::string keyset_bytes;
@@ -160,7 +160,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   VLOG(3) << "Private key fetch pending...";
   fetch_notify.WaitForNotification();
 
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   // Clean up keys that have been stored in the cache for longer than the ttl.
   absl::Time cutoff_time = absl::Now() - ttl_;
   VLOG(3) << "Cleaning up private keys with cutoff time: " << cutoff_time;
@@ -178,7 +178,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
 std::optional<PrivateKey> PrivateKeyFetcher::GetKey(
     const google::scp::cpio::PublicPrivateKeyPairId& public_key_id) noexcept
     ABSL_LOCKS_EXCLUDED(mutex_) {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   if (const auto it = private_keys_map_.find(public_key_id);
       it != private_keys_map_.end()) {
     return it->second;

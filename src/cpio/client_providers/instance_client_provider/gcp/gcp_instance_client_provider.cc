@@ -255,7 +255,7 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
   if (!execution_result.Successful()) {
     // If got_failure is false, then the other thread hasn't failed - we should
     // be the ones to log and finish the context.
-    if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+    if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
         !instance_resource_name_tracker->got_failure) {
       instance_resource_name_tracker->got_failure = true;
       SCP_ERROR_CONTEXT(
@@ -279,7 +279,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
     std::shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
     ResourceType type) noexcept {
   // If got_failure is true, no need to process this request.
-  if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+  if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
       instance_resource_name_tracker->got_failure) {
     return;
   }
@@ -288,7 +288,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
   if (!result.Successful()) {
     // If got_failure is false, then the other thread hasn't failed - we should
     // be the ones to log and finish the context.
-    if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+    if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
         !instance_resource_name_tracker->got_failure) {
       instance_resource_name_tracker->got_failure = true;
       SCP_ERROR_CONTEXT(
@@ -334,7 +334,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
 
   int num_outstanding_calls;
   {
-    absl::MutexLock l(
+    absl::MutexLock lock(
         &instance_resource_name_tracker->num_outstanding_calls_mu);
     num_outstanding_calls =
         --instance_resource_name_tracker->num_outstanding_calls;
