@@ -220,7 +220,11 @@ roma_sdk(
     srcs = [
         ":test_service_js",
     ],
-    cc_library = ":test_service_roma_app_api",
+    app_api_cc_library = ":test_service_roma_app_api",
+    host_api_cc_libraries = [
+        ":test_service_roma_host_api",
+        ":multi_service_roma_host_api",
+    ],
     js_library = ":test_service_js_library",
     roma_app_api = test_service_app_api,
     visibility = ["//visibility:public"],

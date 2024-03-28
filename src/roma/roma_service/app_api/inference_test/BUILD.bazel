@@ -88,7 +88,7 @@ roma_sdk(
     srcs = [
         ":inference_js",
     ],
-    cc_library = ":inference_roma_api",
+    app_api_cc_library = ":inference_roma_api",
     js_library = ":inference_js_library",
     roma_app_api = inference_api,
     visibility = ["//visibility:public"],

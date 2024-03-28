@@ -72,8 +72,8 @@ _cc_app_template_plugins = [
     )
     for i, plugin in enumerate([
         struct(
-            template_file = "cpp_client_sdk_markdown.tmpl",
-            suffix = "_cpp_client_sdk.md",
+            template_file = "cpp_app_api_client_sdk_markdown.tmpl",
+            suffix = "_cpp_app_api_client_sdk.md",
         ),
         struct(
             template_file = "cc_test_romav8.tmpl",
@@ -169,6 +169,10 @@ _cc_host_template_plugins = [
         tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, plugin in enumerate([
+        struct(
+            template_file = "cpp_host_api_client_sdk_markdown.tmpl",
+            suffix = "_cpp_host_api_client_sdk.md",
+        ),
         struct(
             template_file = "hpp_host_romav8.tmpl",
             suffix = "_roma_host.h",

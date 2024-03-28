@@ -212,6 +212,7 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
 
     Generates:
         <name>_js_host_api.md
+        <name>_cpp_host_api_client_sdk.md
         <name>_roma_host.h
         <name>_native_request_handler.h
 
@@ -285,8 +286,8 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         **kwargs: attributes for cc_library and those common to bazel build rules.
 
     Generates:
-        <name>_js_server_api.md
-        <name>_cpp_client_api.md
+        <name>_js_service_sdk.md
+        <name>_cpp_app_api_client_sdk.md
         <name>_roma_app.cc
         <name>_roma_app.h
 
@@ -390,7 +391,7 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         }  # forward common bazel args
     )
 
-def roma_sdk(*, name, srcs, roma_app_api, cc_library, js_library, **kwargs):
+def roma_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -400,8 +401,9 @@ def roma_sdk(*, name, srcs, roma_app_api, cc_library, js_library, **kwargs):
         name: name of sdk target, basename of ancillary targets.
         srcs: label list of targets to include.
         roma_app_api: the roma_api struct.
-        cc_library: label of the associated roma_app_api_cc_library target.
+        app_api_cc_library: label of the associated roma_app_api_cc_library target.
         js_library: label of the associated roma_service_js_library target.
+        host_api_cc_libraries: labels of the associated roma_host_api_cc_library targets.
         **kwargs: attributes common to bazel build rules.
 
     Targets:
@@ -411,16 +413,16 @@ def roma_sdk(*, name, srcs, roma_app_api, cc_library, js_library, **kwargs):
 
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["{}_docs".format(tgt) for tgt in (cc_library, js_library)] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
+        srcs = ["{}_docs".format(tgt) for tgt in (host_api_cc_libraries + [app_api_cc_library, js_library])] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
         prefix = "docs",
     )
 
     pkg_zip(
         name = name,
         srcs = srcs + [
-            "{}".format(cc_library),
-            "{}_cc_service_hdrs".format(cc_library),
-            "{}_cc_hdrs".format(cc_library),
+            "{}".format(app_api_cc_library),
+            "{}_cc_service_hdrs".format(app_api_cc_library),
+            "{}_cc_hdrs".format(app_api_cc_library),
             ":{}_doc_artifacts".format(name),
         ],
         package_dir = "/{}".format(name),
