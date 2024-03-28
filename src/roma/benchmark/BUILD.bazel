@@ -100,8 +100,8 @@ cc_binary(
 )
 
 cc_binary(
-    name = "grpc_benchmark",
-    srcs = ["grpc_benchmark.cc"],
+    name = "host_api_grpc_benchmark",
+    srcs = ["host_api_grpc_benchmark.cc"],
     deps = [
         "//src/core/test/utils",
         "//src/roma/interface",
