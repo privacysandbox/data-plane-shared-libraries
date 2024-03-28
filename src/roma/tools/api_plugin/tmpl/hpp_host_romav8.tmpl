@@ -44,18 +44,8 @@ template <typename TMetadata>
 void RegisterHostApi(google::scp::roma::Config<TMetadata>& config) {
   config.enable_native_function_grpc_server = true;
 
-  // Register handler for JS callback service
-  config.RegisterService(
-      std::make_unique<
-          privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
-      {{- $methods := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-      {{- range $index, $rpc := $methods}}
-      {{$rpc.Name}}Handler<TMetadata>(){{- if ne $index (sub (len $methods) 1) -}},{{- end }}
-      {{end}}{{/*rpc range*/}}
-  );
-
   {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-  config.RegisterRpcHandler("{{$svcopts.Romav8AppName}}.{{$rpc.Name}}");
+  config.RegisterRpcHandler("{{$svcopts.Romav8AppName}}.{{$rpc.Name}}", {{$rpc.Name}}Handler<TMetadata>());
   {{end}}{{/*rpc range*/}}
 }
 

@@ -116,11 +116,9 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   Config<std::string> config;
   config.number_of_workers = 2;
   config.enable_native_function_grpc_server = true;
-  config.RegisterService(
-      std::make_unique<
-          privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
+  config.RegisterRpcHandler(
+      "TestHostServer.NativeMethod",
       privacysandbox::test_host_server::NativeMethodHandler<std::string>());
-  config.RegisterRpcHandler("TestHostServer.NativeMethod");
 
   auto roma_service =
       std::make_unique<RomaService<std::string>>(std::move(config));

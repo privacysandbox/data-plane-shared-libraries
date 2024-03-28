@@ -83,11 +83,10 @@ void DoGrpcServerSetup(const benchmark::State& state) {
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
   config.enable_native_function_grpc_server = true;
-  config.RegisterService(
-      std::make_unique<
-          privacy_sandbox::server_common::JSCallbackService::AsyncService>(),
+
+  config.RegisterRpcHandler(
+      "TestHostServer.NativeMethod",
       privacysandbox::test_host_server::NativeMethodHandler<DefaultMetadata>());
-  config.RegisterRpcHandler("TestHostServer.NativeMethod");
   DoSetup(std::move(config));
 }
 

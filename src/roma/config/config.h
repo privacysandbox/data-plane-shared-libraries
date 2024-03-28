@@ -64,6 +64,10 @@ struct JsEngineResourceConstraints {
 template <typename TMetadata = DefaultMetadata>
 class Config {
  public:
+  Config()
+      : factories_(std::make_unique<
+                   std::vector<grpc_server::FactoryFunction<TMetadata>>>()),
+        callback_service_(std::make_unique<CallbackService>()) {}
   /**
    * @brief The number of workers that Roma will start. If no valid value is
    * configured here, the default number of workers (number of host CPUs) will
@@ -172,20 +176,10 @@ class Config {
   template <template <typename> typename... THandlers>
   void RegisterService(std::unique_ptr<grpc::Service> service,
                        THandlers<TMetadata>&&... handlers) {
-    const bool is_callback_service = IsCallbackService(service.get());
-    // Ensures JSCallbackService is only registered once, necessary to allow
-    // multiple host apis to be registered
-    if (is_callback_service) {
-      if (!is_callback_service_registered_) {
-        callback_service_index_ = services_.size();
-        services_.push_back(std::move(service));
-        is_callback_service_registered_ = true;
-      }
-    } else {
-      services_.push_back(std::move(service));
-    }
+    services_.push_back(std::move(service));
 
     const auto CreateFactoryWrapper = [&](auto&& handler) {
+      static constexpr bool is_callback_service = false;
       CreateFactory(is_callback_service, handler);
     };
     (CreateFactoryWrapper(handlers), ...);
@@ -203,8 +197,12 @@ class Config {
    *
    * @param method_name
    */
-  void RegisterRpcHandler(std::string_view method_name) {
+  template <template <typename> typename THandler>
+  void RegisterRpcHandler(std::string_view method_name,
+                          THandler<TMetadata>&& handler) {
     rpc_method_names_.emplace_back(method_name);
+    static constexpr bool is_callback_service = true;
+    CreateFactory(is_callback_service, handler);
   }
 
   std::vector<std::string> GetRpcMethodNames() const {
@@ -212,6 +210,7 @@ class Config {
   }
 
   std::vector<std::unique_ptr<grpc::Service>> ReleaseServices() {
+    services_.push_back(std::move(callback_service_));
     return std::move(services_);
   }
 
@@ -261,8 +260,7 @@ class Config {
   void CreateFactory(bool is_callback_service, THandler<TMetadata>) {
     const size_t index = factories_->size();
     grpc::Service* service_ptr =
-        is_callback_service ? services_.at(callback_service_index_).get()
-                            : services_.back().get();
+        is_callback_service ? callback_service_.get() : services_.back().get();
 
     factories_->push_back(
         [service_ptr, factories_ptr = factories_.get(), index](
@@ -275,28 +273,18 @@ class Config {
   }
 
   /**
-   * @brief Returns whether the service passed in from RegisterService is a
-   * JSCallbackService.
-   */
-  static bool IsCallbackService(grpc::Service* service) {
-    using CallbackService =
-        privacy_sandbox::server_common::JSCallbackService::AsyncService;
-    return dynamic_cast<CallbackService*>(service) != nullptr;
-  }
-
-  /**
    * @brief User-registered function JS/C++ function bindings
    */
   std::vector<FunctionBindingObjectPtr> function_bindings_v2_;
 
   std::vector<std::unique_ptr<grpc::Service>> services_;
   std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
-      factories_ = std::make_unique<
-          std::vector<grpc_server::FactoryFunction<TMetadata>>>();
+      factories_;
   std::vector<std::string> rpc_method_names_;
 
-  bool is_callback_service_registered_ = false;
-  size_t callback_service_index_ = 0;
+  using CallbackService =
+      privacy_sandbox::server_common::JSCallbackService::AsyncService;
+  std::unique_ptr<CallbackService> callback_service_;
 
   // default no-op logging implementation
   LogCallback logging_func_ = [](absl::LogSeverity severity,
