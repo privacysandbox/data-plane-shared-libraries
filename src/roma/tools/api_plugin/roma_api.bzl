@@ -207,6 +207,18 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         }
     )
 
+_cc_attrs = bazel_build_rule_common_attrs + [
+    "alwayslink",
+    "copts",
+    "defines",
+    "include_prefix",
+    "linkopts",
+    "linkstatic",
+    "local_defines",
+    "nocopts",
+    "strip_include_prefix",
+]
+
 def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
     """
     Top-level macro for the Roma Host API.
@@ -265,20 +277,7 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
         ],
-        alwayslink = kwargs.get("alwayslink"),
-        copts = kwargs.get("copts"),
-        defines = kwargs.get("defines"),
-        include_prefix = kwargs.get("include_prefix"),
-        linkopts = kwargs.get("linkopts"),
-        linkstatic = kwargs.get("linkstatic"),
-        local_defines = kwargs.get("local_defines"),
-        nocopts = kwargs.get("nocopts"),
-        strip_include_prefix = kwargs.get("strip_include_prefix"),
-        **{
-            k: v
-            for (k, v) in kwargs.items()
-            if k in bazel_build_rule_common_attrs
-        }  # forward common bazel args
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
 def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
@@ -367,20 +366,7 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
         ],
-        alwayslink = kwargs.get("alwayslink"),
-        copts = kwargs.get("copts"),
-        defines = kwargs.get("defines"),
-        include_prefix = kwargs.get("include_prefix"),
-        linkopts = kwargs.get("linkopts"),
-        linkstatic = kwargs.get("linkstatic"),
-        local_defines = kwargs.get("local_defines"),
-        nocopts = kwargs.get("nocopts"),
-        strip_include_prefix = kwargs.get("strip_include_prefix"),
-        **{
-            k: v
-            for (k, v) in kwargs.items()
-            if k in bazel_build_rule_common_attrs
-        }  # forward common bazel args
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
     cc_test(
@@ -394,11 +380,7 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
             "@com_google_absl//absl/synchronization",
             "@com_google_googletest//:gtest_main",
         ],
-        **{
-            k: v
-            for (k, v) in kwargs.items()
-            if k in bazel_build_rule_common_attrs
-        }  # forward common bazel args
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
 def roma_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], **kwargs):
