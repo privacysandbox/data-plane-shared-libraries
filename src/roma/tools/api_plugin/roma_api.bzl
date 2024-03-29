@@ -256,6 +256,12 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         roma_host_api = roma_host_api,
     )
 
+    # Filter files to sources and headers
+    _filter_files_suffix(
+        name = name + "_cc_test_srcs",
+        targets = [name_proto],
+        suffixes = ["_test.cc"],
+    )
     filter_files(
         name = name + "_cc_hdrs",
         target = name_proto,
@@ -276,6 +282,24 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         deps = kwargs.get("deps", []) + roma_host_api.cc_protos + [
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
+            "@com_github_grpc_grpc//:grpc++",
+            "//src/util/status_macro:status_util",
+            "//src/roma/config",
+            "//src/roma/interface",
+        ],
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+    )
+    cc_test(
+        name = name + "_rpc_cc_test",
+        size = "small",
+        srcs = [":{}_cc_test_srcs".format(name)],
+        deps = kwargs.get("deps", []) + [
+            ":{}".format(name),
+            "@com_google_absl//absl/log:scoped_mock_log",
+            "@com_google_absl//absl/strings",
+            "@com_google_absl//absl/synchronization",
+            "@com_google_googletest//:gtest_main",
+            "//src/roma/roma_service",
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
