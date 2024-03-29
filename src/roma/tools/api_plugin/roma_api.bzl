@@ -187,14 +187,24 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         target = name_proto,
         extensions = ["md"],
     )
+    closure_js_attrs = {
+        "convention": "None",
+        "data": [],
+        "exports": [],
+        "no_closure_library": False,
+        "suppress": [],
+    }
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)] + ([":{}_host_js_srcs".format(name)] if host_api_targets else []),
-        convention = "NONE",
         lenient = True,
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
+        **{
+            k: kwargs.get(k, v)
+            for (k, v) in closure_js_attrs.items()
+        }
     )
 
 def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
