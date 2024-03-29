@@ -21,6 +21,7 @@
  * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
+#include <memory>
 #include <string>
 #include <string_view>
 
@@ -30,6 +31,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
@@ -38,12 +40,7 @@
 
 namespace {
 
-using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
-using google::scp::roma::DefaultMetadata;
-using google::scp::roma::FunctionBindingObjectV2;
-using google::scp::roma::FunctionBindingPayload;
-using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
@@ -56,26 +53,24 @@ void DoSetup(typename RomaService<>::Config config) {
   CHECK_OK(roma_service->Init());
 
   absl::Notification load_finished;
-  {
-    const std::string js = R"(
+  const std::string js = R"(
         function Handler(input) {
           return TestHostServer.NativeMethod(input);
         })";
 
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = js,
-    });
-    absl::Status load_status = roma_service->LoadCodeObj(
-        std::move(code_obj),
-        [&load_finished](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
-          load_finished.Notify();
-        });
+  using google::scp::roma::CodeObject;
+  absl::Status load_status = roma_service->LoadCodeObj(
+      std::make_unique<CodeObject>(CodeObject{
+          .id = "foo",
+          .version_string = "v1",
+          .js = js,
+      }),
+      [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
+        CHECK(resp.ok());
+        load_finished.Notify();
+      });
 
-    CHECK(load_status.ok()) << load_status;
-  }
+  CHECK(load_status.ok()) << load_status;
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
@@ -83,19 +78,21 @@ void DoGrpcServerSetup(const benchmark::State& state) {
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
   config.enable_native_function_grpc_server = true;
-
   config.RegisterRpcHandler(
       "TestHostServer.NativeMethod",
-      privacysandbox::test_host_server::NativeMethodHandler<DefaultMetadata>());
+      privacysandbox::test_host_server::NativeMethodHandler<
+          google::scp::roma::DefaultMetadata>());
   DoSetup(std::move(config));
 }
 
-void StringInStringOutFunction(FunctionBindingPayload<>& wrapper) {
+void StringInStringOutFunction(
+    google::scp::roma::FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
                                      "World. From SERVER");
 }
 
 void DoNativeFunctionHandlerSetup(const benchmark::State& state) {
+  using google::scp::roma::FunctionBindingObjectV2;
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(
@@ -113,6 +110,7 @@ void DoTeardown(const benchmark::State& state) {
 
 void RunBenchmark(benchmark::State& state, std::string_view input,
                   std::string_view output) {
+  using google::scp::roma::InvocationStrRequest;
   std::string result;
   result.reserve(100);
   for (auto _ : state) {
