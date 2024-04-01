@@ -35,8 +35,6 @@ namespace google::scp::cpio::client_providers {
 
 /// Configurations for batching metrics.
 struct MetricBatchingOptions {
-  virtual ~MetricBatchingOptions() = default;
-
   /**
    * @brief The top level grouping for the application metrics. A
    * typical example would be "/application_name/environment_name".
