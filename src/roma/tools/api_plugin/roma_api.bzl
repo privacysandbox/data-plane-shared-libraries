@@ -28,6 +28,15 @@ load(
     "roma_js_proto_library",
 )
 
+_closure_js_attrs = {
+    "convention": "None",
+    "data": [],
+    "exports": [],
+    "lenient": True,
+    "no_closure_library": False,
+    "suppress": [],
+}
+
 def _filter_files_suffix_impl(ctx):
     """Filter the files in DefaultInfo."""
     return [DefaultInfo(
@@ -135,11 +144,13 @@ def js_proto_library(*, name, roma_api, **kwargs):
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)],
-        convention = "NONE",
-        lenient = True,
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
+        **{
+            k: kwargs.get(k, v)
+            for (k, v) in _closure_js_attrs.items()
+        }
     )
 
 def roma_service_js_library(*, name, roma_app_api, **kwargs):
@@ -187,23 +198,15 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         target = name_proto,
         extensions = ["md"],
     )
-    closure_js_attrs = {
-        "convention": "None",
-        "data": [],
-        "exports": [],
-        "no_closure_library": False,
-        "suppress": [],
-    }
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)] + ([":{}_host_js_srcs".format(name)] if host_api_targets else []),
-        lenient = True,
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
         **{
             k: kwargs.get(k, v)
-            for (k, v) in closure_js_attrs.items()
+            for (k, v) in _closure_js_attrs.items()
         }
     )
 
