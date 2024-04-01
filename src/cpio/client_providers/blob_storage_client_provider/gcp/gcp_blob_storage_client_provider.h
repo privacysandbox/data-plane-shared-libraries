@@ -38,14 +38,13 @@ namespace google::scp::cpio::client_providers {
 /// Creates GCP cloud::storage::Client
 class GcpCloudStorageFactory {
  public:
+  virtual ~GcpCloudStorageFactory() = default;
   virtual core::ExecutionResultOr<
       std::unique_ptr<google::cloud::storage::Client>>
   CreateClient(BlobStorageClientOptions options) noexcept;
 
-  virtual cloud::Options CreateClientOptions(
-      BlobStorageClientOptions options) noexcept;
-
-  virtual ~GcpCloudStorageFactory() = default;
+ private:
+  cloud::Options CreateClientOptions(BlobStorageClientOptions options) noexcept;
 };
 
 /*! @copydoc BlobStorageClientProviderInterface

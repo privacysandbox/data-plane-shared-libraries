@@ -87,18 +87,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-cc_library(
-    name = "test_gcp_blob_storage_client_provider",
-    srcs = [
-        "test_gcp_blob_storage_client_provider.cc",
-        ":gcp_blob_storage_client_provider_srcs",
-    ],
-    hdrs = [
-        "test_gcp_blob_storage_client_provider.h",
-    ],
-    deps = [
-        ":gcp_blob_storage_client_provider",
-        "//src/public/cpio/test/blob_storage_client:test_gcp_blob_storage_client_options",
-    ],
-)
