@@ -23,8 +23,6 @@ namespace google::scp::cpio {
 
 /// Configurations for CryptoClient.
 struct CryptoClientOptions {
-  virtual ~CryptoClientOptions() = default;
-
   // Parameters to be used for encrypt/decrypt data using HPKE.
   cmrt::sdk::crypto_service::v1::HpkeParams hpke_params;
 };
