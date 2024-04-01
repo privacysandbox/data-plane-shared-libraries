@@ -24,9 +24,7 @@
 
 namespace google::scp::cpio {
 /// Configurations for MetricClient.
-struct MetricClientOptions {
-  virtual ~MetricClientOptions() = default;
-};
+struct MetricClientOptions {};
 }  // namespace google::scp::cpio
 
 #endif  // SCP_CPIO_INTERFACE_METRIC_CLIENT_TYPE_DEF_H_

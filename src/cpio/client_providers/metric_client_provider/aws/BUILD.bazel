@@ -64,22 +64,6 @@ filegroup(
     ],
 )
 
-cc_library(
-    name = "test_aws_metric_client_provider",
-    srcs = [
-        "test_aws_metric_client_provider.cc",
-        ":aws_metric_client_provider_srcs",
-    ],
-    hdrs = [
-        "test_aws_metric_client_provider.h",
-    ],
-    deps = [
-        ":aws_metric_client_provider",
-        "//src/cpio/common/aws:test_aws_utils",
-        "//src/public/cpio/test/metric_client:test_aws_metric_client_options",
-    ],
-)
-
 cc_test(
     name = "cloud_watch_error_converter_test",
     size = "small",
