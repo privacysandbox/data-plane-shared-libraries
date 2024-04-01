@@ -19,9 +19,7 @@
 
 namespace google::scp::cpio {
 /// Configurations for KmsClient.
-struct KmsClientOptions {
-  virtual ~KmsClientOptions() = default;
-};
+struct KmsClientOptions {};
 }  // namespace google::scp::cpio
 
 #endif  // SCP_CPIO_INTERFACE_KMS_CLIENT_TYPE_DEF_H_

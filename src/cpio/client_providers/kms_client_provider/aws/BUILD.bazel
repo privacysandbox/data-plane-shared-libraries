@@ -258,19 +258,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-cc_library(
-    name = "test_aws_kms_client_provider",
-    srcs = [
-        "test_aws_kms_client_provider.cc",
-    ],
-    hdrs = [
-        "test_aws_kms_client_provider.h",
-        "//src/cpio/client_providers/interface:kms_client_provider_interface.h",
-    ],
-    deps = [
-        ":nontee_aws_kms_client_provider",
-        "//src/cpio/common/aws:test_aws_utils",
-        "//src/public/cpio/test/kms_client:test_aws_kms_client_options",
-    ],
-)
