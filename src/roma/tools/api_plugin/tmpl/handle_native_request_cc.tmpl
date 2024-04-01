@@ -35,6 +35,7 @@
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/native_function_grpc_server/interface.h"
+#include "src/roma/roma_service/romav8_proto_utils.h"
 {{range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 {{range $path := $svcopts.CppHostProcessCallbackIncludes}}
@@ -42,6 +43,9 @@
 {{- end -}}{{/*$svcopts.CppHostProcessCallbackIncludes range*/}}
 {{- end -}}{{/*svc range*/}}
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
+
+using google::scp::roma::romav8::Decode;
+using google::scp::roma::romav8::Encode;
 
 {{range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -55,10 +59,10 @@ namespace {{$svcopts.CppNamespace}} {
 template <typename TMetadata>
 void {{$rpc.Name}}FunctionBinding(google::scp::roma::FunctionBindingPayload<TMetadata>& wrapper) {
   {{$reqType}} request;
-  request.ParseFromString(wrapper.io_proto.input_string());
+  CHECK(Decode(wrapper.io_proto.input_string(), request).ok());
   auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(wrapper.metadata, request);
   CHECK(status.ok()) << status;
-  wrapper.io_proto.set_output_string(response_payload.SerializeAsString());
+  wrapper.io_proto.set_output_string(*Encode(response_payload));
 }
 
 template <typename TMetadata>
@@ -76,9 +80,9 @@ class {{$rpc.Name}}Handler
 
   std::pair<TResponse*, grpc::Status> ProcessRequest(const TMetadata& metadata) {
     {{$reqType}} request;
-    request.ParseFromString(request_.request_payload());
+    CHECK(Decode(request_.request_payload(), request).ok());
     auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(metadata, request);
-    *response_.mutable_response_payload() = std::move(response_payload.SerializeAsString());
+    *response_.mutable_response_payload() = std::move(*Encode(response_payload));
     return std::make_pair(&response_, privacy_sandbox::server_common::FromAbslStatus(status));
   }
 

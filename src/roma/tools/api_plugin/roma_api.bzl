@@ -289,6 +289,7 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             "//src/util/status_macro:status_util",
             "//src/roma/config",
             "//src/roma/interface",
+            "//src/roma/roma_service:romav8_proto_utils",
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )

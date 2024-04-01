@@ -162,6 +162,7 @@ buf_lint_test(
 
 cc_proto_library(
     name = "helloworld_cc_proto",
+    visibility = ["//visibility:public"],
     deps = [":helloworld_proto"],
 )
 
@@ -171,9 +172,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":roma_service",
-        "//src/roma/native_function_grpc_server:interface",
-        "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
-        "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
+        ":romav8_proto_utils",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
@@ -194,6 +193,29 @@ cc_test(
         "//src/core/test/utils",
         "//src/logger:request_context_logger",
         "@com_google_absl//absl/strings",
+        "@com_google_googletest//:gtest",
+    ],
+)
+
+cc_library(
+    name = "romav8_proto_utils",
+    srcs = ["romav8_proto_utils.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "romav8_proto_utils_test",
+    size = "small",
+    srcs = ["romav8_proto_utils_test.cc"],
+    deps = [
+        ":helloworld_cc_proto",
+        ":romav8_proto_utils",
+        "//src/core/test/utils",
         "@com_google_googletest//:gtest",
     ],
 )
