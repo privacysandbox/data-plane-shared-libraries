@@ -21,7 +21,6 @@
 
 #include <google/protobuf/util/time_util.h>
 
-#include "absl/log/log.h"
 #include "absl/random/distributions.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_join.h"
@@ -30,6 +29,7 @@
 #include "absl/synchronization/mutex.h"
 #include "src/core/interface/errors.h"
 #include "src/encryption/key_fetcher/key_fetcher_utils.h"
+#include "src/logger/request_context_logger.h"
 #include "src/metric/key_fetch.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
@@ -80,7 +80,7 @@ PublicKeyFetcher::~PublicKeyFetcher() {
  * attempting to fetch keys from each platform.
  */
 absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
-  VLOG(3) << "Refreshing public keys...";
+  PS_VLOG(3) << "Refreshing public keys...";
   absl::BlockingCounter all_fetches_done(public_key_clients_.size());
 
   for (const auto& [cloud_platform, public_key_client] : public_key_clients_) {
@@ -88,7 +88,7 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         ListPublicKeysRequest(),
         [this, &all_fetches_done, platform = cloud_platform](
             ExecutionResult execution_result, ListPublicKeysResponse response) {
-          VLOG(3) << "List public keys call finished.";
+          PS_VLOG(3) << "List public keys call finished.";
 
           if (execution_result.Successful()) {
             const size_t num_public_keys = response.public_keys().size();
@@ -109,11 +109,11 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                                                           num_public_keys);
             KeyFetchResultCounter::SetNumPublicKeysCached(platform,
                                                           num_public_keys);
-            VLOG(3) << absl::Substitute(
+            PS_VLOG(3) << absl::Substitute(
                 kKeyFetchSuccessMessage,
                 absl::StrJoin(GetKeyIds(platform), ", "),
                 TimeUtil::ToString(response.expiration_time()));
-            VLOG(3) << "Public key refresh flow completed successfully. ";
+            PS_VLOG(3) << "Public key refresh flow completed successfully. ";
           } else {
             KeyFetchResultCounter::IncrementPublicKeyFetchAsyncFailureCount();
             KeyFetchResultCounter::SetNumPublicKeysParsed(platform, 0);
@@ -122,7 +122,7 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               KeyFetchResultCounter::SetNumPublicKeysCached(
                   platform, public_keys_[platform].size());
             }
-            VLOG(1) << absl::Substitute(
+            PS_VLOG(1) << absl::Substitute(
                 kKeyFetchFailMessage,
                 GetErrorMessage(execution_result.status_code));
           }
@@ -131,8 +131,8 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         });
 
     if (!result.Successful()) {
-      VLOG(1) << absl::Substitute(kKeyFetchFailMessage,
-                                  GetErrorMessage(result.status_code));
+      PS_VLOG(1) << absl::Substitute(kKeyFetchFailMessage,
+                                     GetErrorMessage(result.status_code));
       all_fetches_done.DecrementCount();
     }
   }
@@ -184,12 +184,12 @@ std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
 
     ExecutionResult init_result = public_key_client->Init();
     if (!init_result.Successful()) {
-      VLOG(1) << "Failed to initialize public key client.";
+      PS_VLOG(1) << "Failed to initialize public key client.";
     }
 
     ExecutionResult run_result = public_key_client->Run();
     if (!run_result.Successful()) {
-      VLOG(1) << "Failed to run public key client.";
+      PS_VLOG(1) << "Failed to run public key client.";
     }
 
     public_key_clients[cloud_platform] = std::move(public_key_client);

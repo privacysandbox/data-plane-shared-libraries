@@ -30,6 +30,7 @@
 #include "src/core/interface/errors.h"
 #include "src/core/interface/type_def.h"
 #include "src/encryption/key_fetcher/key_fetcher_utils.h"
+#include "src/logger/request_context_logger.h"
 #include "src/metric/key_fetch.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
@@ -64,7 +65,7 @@ absl::Status HandleFailure(
   std::string key_ids_str = absl::StrJoin(key_ids, ", ");
   const std::string error = absl::Substitute(kKeyFetchFailMessage, key_ids_str,
                                              GetErrorMessage(status_code));
-  VLOG(1) << error;
+  PS_VLOG(1) << error;
   return absl::UnavailableError(error);
 }
 
@@ -84,12 +85,12 @@ PrivateKeyFetcher::PrivateKeyFetcher(
 PrivateKeyFetcher::~PrivateKeyFetcher() {
   if (ExecutionResult result = private_key_client_->Stop();
       !result.Successful()) {
-    VLOG(1) << GetErrorMessage(result.status_code);
+    PS_VLOG(1) << GetErrorMessage(result.status_code);
   }
 }
 
 absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
-  VLOG(3) << "Refreshing private keys...";
+  PS_VLOG(3) << "Refreshing private keys...";
 
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(ToInt64Seconds(ttl_));
@@ -130,18 +131,18 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                      << private_key.key_id();
           continue;
         }
+        const PublicPrivateKeyPairId ohttp_key_id =
+            ToOhttpKeyId(private_key.key_id());
         PrivateKey key = {
-            ToOhttpKeyId(private_key.key_id()),
+            ohttp_key_id,
             hpke_priv_key.private_key(),
             ProtoToAbslDuration(private_key.creation_time()),
         };
-        private_keys_map_.insert_or_assign(key.key_id, std::move(key));
+        private_keys_map_.insert_or_assign(ohttp_key_id, std::move(key));
         ++num_priv_keys_added;
-        if (VLOG_IS_ON(2)) {
-          VLOG(2) << absl::StrCat(
-              "Caching private key: (KMS id: ", private_key.key_id(),
-              ", OHTTP ID: ", key.key_id, ")");
-        }
+        PS_VLOG(2) << absl::StrCat(
+            "Caching private key: (KMS id: ", private_key.key_id(),
+            ", OHTTP ID: ", ohttp_key_id, " )");
       }
       KeyFetchResultCounter::SetNumPrivateKeysParsed(num_priv_keys_added);
     } else {
@@ -157,13 +158,13 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     return HandleFailure(request.key_ids(), result.status_code);
   }
 
-  VLOG(3) << "Private key fetch pending...";
+  PS_VLOG(3) << "Private key fetch pending...";
   fetch_notify.WaitForNotification();
 
   absl::MutexLock lock(&mutex_);
   // Clean up keys that have been stored in the cache for longer than the ttl.
   absl::Time cutoff_time = absl::Now() - ttl_;
-  VLOG(3) << "Cleaning up private keys with cutoff time: " << cutoff_time;
+  PS_VLOG(3) << "Cleaning up private keys with cutoff time: " << cutoff_time;
   for (auto it = private_keys_map_.cbegin(); it != private_keys_map_.cend();) {
     if (it->second.creation_time < cutoff_time) {
       private_keys_map_.erase(it++);
@@ -198,11 +199,11 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
   if (const ExecutionResult init_result = private_key_client->Init();
       !init_result.Successful()) {
-    VLOG(1) << "Failed to initialize private key client.";
+    PS_VLOG(1) << "Failed to initialize private key client.";
   }
   if (const ExecutionResult run_result = private_key_client->Run();
       !run_result.Successful()) {
-    VLOG(1) << "Failed to run private key client.";
+    PS_VLOG(1) << "Failed to run private key client.";
   }
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
                                              key_ttl);
