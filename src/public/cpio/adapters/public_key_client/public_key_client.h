@@ -20,9 +20,10 @@
 #include <memory>
 #include <utility>
 
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/public_key_client_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
@@ -39,13 +40,13 @@ class PublicKeyClient : public PublicKeyClientInterface {
 
   ~PublicKeyClient() override = default;
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
+  absl::Status Run() noexcept override;
 
-  core::ExecutionResult Stop() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult ListPublicKeys(
+  absl::Status ListPublicKeys(
       cmrt::sdk::public_key_service::v1::ListPublicKeysRequest request,
       Callback<cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>
           callback) noexcept override;

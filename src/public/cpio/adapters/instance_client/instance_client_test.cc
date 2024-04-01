@@ -49,11 +49,11 @@ namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
  protected:
   InstanceClientTest() {
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
+    EXPECT_TRUE(client_.Init().ok());
+    EXPECT_TRUE(client_.Run().ok());
   }
 
-  ~InstanceClientTest() { EXPECT_THAT(client_.Stop(), IsSuccessful()); }
+  ~InstanceClientTest() { EXPECT_TRUE(client_.Stop().ok()); }
 
   MockInstanceClientWithOverrides client_;
 };
@@ -71,14 +71,15 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetCurrentInstanceResourceName(
-                  GetCurrentInstanceResourceNameRequest(),
-                  [&](const ExecutionResult result,
-                      GetCurrentInstanceResourceNameResponse response) {
-                    EXPECT_THAT(result, IsSuccessful());
-                    finished.Notify();
-                  }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .GetCurrentInstanceResourceName(
+                      GetCurrentInstanceResourceNameRequest(),
+                      [&](const ExecutionResult result,
+                          GetCurrentInstanceResourceNameResponse response) {
+                        EXPECT_THAT(result, IsSuccessful());
+                        finished.Notify();
+                      })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -93,15 +94,17 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetCurrentInstanceResourceName(
-                  GetCurrentInstanceResourceNameRequest(),
-                  [&](const ExecutionResult result,
-                      GetCurrentInstanceResourceNameResponse response) {
-                    EXPECT_THAT(result,
-                                ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                    finished.Notify();
-                  }),
-              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(client_
+                   .GetCurrentInstanceResourceName(
+                       GetCurrentInstanceResourceNameRequest(),
+                       [&](const ExecutionResult result,
+                           GetCurrentInstanceResourceNameResponse response) {
+                         EXPECT_THAT(
+                             result,
+                             ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                         finished.Notify();
+                       })
+                   .ok());
   finished.WaitForNotification();
 }
 
@@ -115,14 +118,15 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetTagsByResourceName(
-                  GetTagsByResourceNameRequest(),
-                  [&](const ExecutionResult result,
-                      GetTagsByResourceNameResponse response) {
-                    EXPECT_THAT(result, IsSuccessful());
-                    finished.Notify();
-                  }),
-              IsSuccessful());
+  EXPECT_TRUE(
+      client_
+          .GetTagsByResourceName(GetTagsByResourceNameRequest(),
+                                 [&](const ExecutionResult result,
+                                     GetTagsByResourceNameResponse response) {
+                                   EXPECT_THAT(result, IsSuccessful());
+                                   finished.Notify();
+                                 })
+          .ok());
   finished.WaitForNotification();
 }
 
@@ -135,15 +139,17 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetTagsByResourceName(
-                  GetTagsByResourceNameRequest(),
-                  [&](const ExecutionResult result,
-                      GetTagsByResourceNameResponse response) {
-                    EXPECT_THAT(result,
-                                ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                    finished.Notify();
-                  }),
-              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(client_
+                   .GetTagsByResourceName(
+                       GetTagsByResourceNameRequest(),
+                       [&](const ExecutionResult result,
+                           GetTagsByResourceNameResponse response) {
+                         EXPECT_THAT(
+                             result,
+                             ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                         finished.Notify();
+                       })
+                   .ok());
   finished.WaitForNotification();
 }
 
@@ -160,14 +166,15 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetInstanceDetailsByResourceName(
-                  GetInstanceDetailsByResourceNameRequest(),
-                  [&](const ExecutionResult result,
-                      GetInstanceDetailsByResourceNameResponse response) {
-                    EXPECT_THAT(result, IsSuccessful());
-                    finished.Notify();
-                  }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .GetInstanceDetailsByResourceName(
+                      GetInstanceDetailsByResourceNameRequest(),
+                      [&](const ExecutionResult result,
+                          GetInstanceDetailsByResourceNameResponse response) {
+                        EXPECT_THAT(result, IsSuccessful());
+                        finished.Notify();
+                      })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -182,15 +189,17 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetInstanceDetailsByResourceName(
-                  GetInstanceDetailsByResourceNameRequest(),
-                  [&](const ExecutionResult result,
-                      GetInstanceDetailsByResourceNameResponse response) {
-                    EXPECT_THAT(result,
-                                ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-                    finished.Notify();
-                  }),
-              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(client_
+                   .GetInstanceDetailsByResourceName(
+                       GetInstanceDetailsByResourceNameRequest(),
+                       [&](const ExecutionResult result,
+                           GetInstanceDetailsByResourceNameResponse response) {
+                         EXPECT_THAT(
+                             result,
+                             ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                         finished.Notify();
+                       })
+                   .ok());
   finished.WaitForNotification();
 }
 }  // namespace google::scp::cpio::test

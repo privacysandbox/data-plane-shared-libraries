@@ -19,29 +19,24 @@
 
 #include <gmock/gmock.h>
 
-#include <memory>
-
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
 
 namespace google::scp::cpio {
 class MockPrivateKeyClient : public PrivateKeyClientInterface {
  public:
   MockPrivateKeyClient() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
+    ON_CALL(*this, Init).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Run).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Stop).WillByDefault(testing::Return(absl::OkStatus()));
   }
 
-  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Init, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Run, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Stop, (), (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, ListPrivateKeys,
+      absl::Status, ListPrivateKeys,
       (cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest request,
        Callback<cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>
            callback),

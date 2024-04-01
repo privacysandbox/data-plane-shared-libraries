@@ -44,9 +44,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::cpio::CryptoClient;
-using google::scp::cpio::CryptoClientOptions;
-using google::scp::cpio::client_providers::mock::MockCryptoClientProvider;
 using google::scp::cpio::mock::MockCryptoClientWithOverrides;
 using testing::Return;
 
@@ -54,11 +51,11 @@ namespace google::scp::cpio::test {
 class CryptoClientTest : public ::testing::Test {
  protected:
   CryptoClientTest() {
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
+    EXPECT_TRUE(client_.Init().ok());
+    EXPECT_TRUE(client_.Run().ok());
   }
 
-  ~CryptoClientTest() { EXPECT_THAT(client_.Stop(), IsSuccessful()); }
+  ~CryptoClientTest() { EXPECT_TRUE(client_.Stop().ok()); }
 
   MockCryptoClientWithOverrides client_;
 };
@@ -73,13 +70,14 @@ TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.HpkeEncrypt(HpkeEncryptRequest(),
-                                  [&](const ExecutionResult result,
-                                      HpkeEncryptResponse response) {
-                                    EXPECT_THAT(result, IsSuccessful());
-                                    finished.Notify();
-                                  }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .HpkeEncrypt(HpkeEncryptRequest(),
+                               [&](const ExecutionResult result,
+                                   HpkeEncryptResponse response) {
+                                 EXPECT_THAT(result, IsSuccessful());
+                                 finished.Notify();
+                               })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -92,14 +90,16 @@ TEST_F(CryptoClientTest, HpkeEncryptFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(
-      client_.HpkeEncrypt(
-          HpkeEncryptRequest(),
-          [&](const ExecutionResult result, HpkeEncryptResponse response) {
-            EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished.Notify();
-          }),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      client_
+          .HpkeEncrypt(
+              HpkeEncryptRequest(),
+              [&](const ExecutionResult result, HpkeEncryptResponse response) {
+                EXPECT_THAT(result,
+                            ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                finished.Notify();
+              })
+          .ok());
   finished.WaitForNotification();
 }
 
@@ -113,13 +113,14 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.HpkeDecrypt(HpkeDecryptRequest(),
-                                  [&](const ExecutionResult result,
-                                      HpkeDecryptResponse response) {
-                                    EXPECT_THAT(result, IsSuccessful());
-                                    finished.Notify();
-                                  }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .HpkeDecrypt(HpkeDecryptRequest(),
+                               [&](const ExecutionResult result,
+                                   HpkeDecryptResponse response) {
+                                 EXPECT_THAT(result, IsSuccessful());
+                                 finished.Notify();
+                               })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -132,14 +133,16 @@ TEST_F(CryptoClientTest, HpkeDecryptFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(
-      client_.HpkeDecrypt(
-          HpkeDecryptRequest(),
-          [&](const ExecutionResult result, HpkeDecryptResponse response) {
-            EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished.Notify();
-          }),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      client_
+          .HpkeDecrypt(
+              HpkeDecryptRequest(),
+              [&](const ExecutionResult result, HpkeDecryptResponse response) {
+                EXPECT_THAT(result,
+                            ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                finished.Notify();
+              })
+          .ok());
   finished.WaitForNotification();
 }
 
@@ -153,13 +156,14 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.AeadEncrypt(AeadEncryptRequest(),
-                                  [&](const ExecutionResult result,
-                                      AeadEncryptResponse response) {
-                                    EXPECT_THAT(result, IsSuccessful());
-                                    finished.Notify();
-                                  }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .AeadEncrypt(AeadEncryptRequest(),
+                               [&](const ExecutionResult result,
+                                   AeadEncryptResponse response) {
+                                 EXPECT_THAT(result, IsSuccessful());
+                                 finished.Notify();
+                               })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -172,14 +176,16 @@ TEST_F(CryptoClientTest, AeadEncryptFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(
-      client_.AeadEncrypt(
-          AeadEncryptRequest(),
-          [&](const ExecutionResult result, AeadEncryptResponse response) {
-            EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished.Notify();
-          }),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      client_
+          .AeadEncrypt(
+              AeadEncryptRequest(),
+              [&](const ExecutionResult result, AeadEncryptResponse response) {
+                EXPECT_THAT(result,
+                            ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                finished.Notify();
+              })
+          .ok());
   finished.WaitForNotification();
 }
 
@@ -193,13 +199,14 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.AeadDecrypt(AeadDecryptRequest(),
-                                  [&](const ExecutionResult result,
-                                      AeadDecryptResponse response) {
-                                    EXPECT_THAT(result, IsSuccessful());
-                                    finished.Notify();
-                                  }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .AeadDecrypt(AeadDecryptRequest(),
+                               [&](const ExecutionResult result,
+                                   AeadDecryptResponse response) {
+                                 EXPECT_THAT(result, IsSuccessful());
+                                 finished.Notify();
+                               })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -212,14 +219,16 @@ TEST_F(CryptoClientTest, AeadDecryptFailure) {
           });
 
   absl::Notification finished;
-  EXPECT_THAT(
-      client_.AeadDecrypt(
-          AeadDecryptRequest(),
-          [&](const ExecutionResult result, AeadDecryptResponse response) {
-            EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished.Notify();
-          }),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      client_
+          .AeadDecrypt(
+              AeadDecryptRequest(),
+              [&](const ExecutionResult result, AeadDecryptResponse response) {
+                EXPECT_THAT(result,
+                            ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                finished.Notify();
+              })
+          .ok());
   finished.WaitForNotification();
 }
 }  // namespace google::scp::cpio::test

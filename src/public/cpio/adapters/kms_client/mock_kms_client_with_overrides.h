@@ -20,16 +20,14 @@
 #include <memory>
 
 #include "src/cpio/client_providers/kms_client_provider/mock/mock_kms_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/kms_client/kms_client.h"
 
 namespace google::scp::cpio::mock {
 class MockKmsClientWithOverrides final : public KmsClient {
  public:
-  core::ExecutionResult Init() noexcept override {
-    kms_client_provider_ =
-        std::make_unique<client_providers::mock::MockKmsClientProvider>();
-    return core::SuccessExecutionResult();
+  MockKmsClientWithOverrides()
+      : KmsClient(
+            std::make_unique<client_providers::mock::MockKmsClientProvider>()) {
   }
 
   client_providers::mock::MockKmsClientProvider& GetKmsClientProvider() {

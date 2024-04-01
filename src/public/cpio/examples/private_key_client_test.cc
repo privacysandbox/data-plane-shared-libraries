@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
 #include "src/public/core/interface/errors.h"
@@ -82,16 +83,12 @@ int main(int argc, char* argv[]) {
   }
   auto private_key_client =
       PrivateKeyClientFactory::Create(std::move(private_key_client_options));
-  result = private_key_client->Init();
-  if (!result.Successful()) {
-    std::cout << "Cannot init private key client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = private_key_client->Init(); !error.ok()) {
+    std::cout << "Cannot init private key client!" << error << std::endl;
     return 0;
   }
-  result = private_key_client->Run();
-  if (!result.Successful()) {
-    std::cout << "Cannot run private key client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = private_key_client->Run(); !error.ok()) {
+    std::cout << "Cannot run private key client!" << error << std::endl;
     return 0;
   }
 
@@ -100,27 +97,24 @@ int main(int argc, char* argv[]) {
   ListPrivateKeysRequest request;
   request.add_key_ids(kKeyId1);
   absl::Notification finished;
-  result = private_key_client->ListPrivateKeys(
-      std::move(request),
-      [&](const ExecutionResult result, ListPrivateKeysResponse response) {
-        if (!result.Successful()) {
-          std::cout << "ListPrivateKeys failed: "
-                    << GetErrorMessage(result.status_code) << std::endl;
-        } else {
-          std::cout << "ListPrivateKeys succeeded." << std::endl;
-        }
-        finished.Notify();
-      });
-  if (!result.Successful()) {
-    std::cout << "ListPrivateKeys failed immediately: "
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = private_key_client->ListPrivateKeys(
+          std::move(request),
+          [&](const ExecutionResult result, ListPrivateKeysResponse response) {
+            if (!result.Successful()) {
+              std::cout << "ListPrivateKeys failed: "
+                        << GetErrorMessage(result.status_code) << std::endl;
+            } else {
+              std::cout << "ListPrivateKeys succeeded." << std::endl;
+            }
+            finished.Notify();
+          });
+      !error.ok()) {
+    std::cout << "ListPrivateKeys failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
-  result = private_key_client->Stop();
-  if (!result.Successful()) {
-    std::cout << "Cannot stop private key client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = private_key_client->Stop(); !error.ok()) {
+    std::cout << "Cannot stop private key client!" << error << std::endl;
   }
 
   result = Cpio::ShutdownCpio(cpio_options);

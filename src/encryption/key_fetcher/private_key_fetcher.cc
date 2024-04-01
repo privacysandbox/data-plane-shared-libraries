@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "absl/log/log.h"
+#include "absl/status/status.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/substitute.h"
@@ -83,9 +84,8 @@ PrivateKeyFetcher::PrivateKeyFetcher(
     : private_key_client_(std::move(private_key_client)), ttl_(ttl) {}
 
 PrivateKeyFetcher::~PrivateKeyFetcher() {
-  if (ExecutionResult result = private_key_client_->Stop();
-      !result.Successful()) {
-    PS_VLOG(1) << GetErrorMessage(result.status_code);
+  if (const absl::Status error = private_key_client_->Stop(); !error.ok()) {
+    PS_VLOG(1) << error;
   }
 }
 
@@ -152,10 +152,13 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     }
     fetch_notify.Notify();
   };
-  if (const ExecutionResult result = private_key_client_->ListPrivateKeys(
+  if (const absl::Status error = private_key_client_->ListPrivateKeys(
           request, std::move(list_priv_key_cb));
-      !result.Successful()) {
-    return HandleFailure(request.key_ids(), result.status_code);
+      !error.ok()) {
+    return absl::Status(error.code(),
+                        absl::Substitute(kKeyFetchFailMessage,
+                                         absl::StrJoin(request.key_ids(), ", "),
+                                         error.message()));
   }
 
   PS_VLOG(3) << "Private key fetch pending...";
@@ -197,12 +200,10 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
 
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
-  if (const ExecutionResult init_result = private_key_client->Init();
-      !init_result.Successful()) {
+  if (const absl::Status error = private_key_client->Init(); !error.ok()) {
     PS_VLOG(1) << "Failed to initialize private key client.";
   }
-  if (const ExecutionResult run_result = private_key_client->Run();
-      !run_result.Successful()) {
+  if (const absl::Status error = private_key_client->Run(); !error.ok()) {
     PS_VLOG(1) << "Failed to run private key client.";
   }
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),

@@ -18,15 +18,13 @@
 #define PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_KMS_CLIENT_H_
 
 #include <memory>
-#include <string>
 #include <utility>
-#include <vector>
 
-#include "src/core/common/concurrent_queue/concurrent_queue.h"
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/kms_client/kms_client_interface.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 #include "src/public/cpio/interface/type_def.h"
@@ -37,13 +35,19 @@ namespace google::scp::cpio {
  */
 class KmsClient : public KmsClientInterface {
  public:
+  explicit KmsClient(
+      absl::Nonnull<
+          std::unique_ptr<client_providers::KmsClientProviderInterface>>
+          kms_client_provider)
+      : kms_client_provider_(std::move(kms_client_provider)) {}
+
   ~KmsClient() override = default;
 
-  core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
+  absl::Status Init() noexcept override;
+  absl::Status Run() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult Decrypt(
+  absl::Status Decrypt(
       core::AsyncContext<google::cmrt::sdk::kms_service::v1::DecryptRequest,
                          google::cmrt::sdk::kms_service::v1::DecryptResponse>
           decrypt_context) noexcept override;
@@ -51,9 +55,6 @@ class KmsClient : public KmsClientInterface {
  protected:
   std::unique_ptr<client_providers::KmsClientProviderInterface>
       kms_client_provider_;
-
- private:
-  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

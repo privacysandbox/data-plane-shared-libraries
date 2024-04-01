@@ -34,7 +34,7 @@ namespace privacy_sandbox::server_common {
 
 // Implementation of PublicKeyFetcherInterface that fetches the latest set of
 // (5) public keys from the Public Key Service and caches them in memory.
-class PublicKeyFetcher : public PublicKeyFetcherInterface {
+class PublicKeyFetcher final : public PublicKeyFetcherInterface {
  public:
   // Initializes an instance of PublicKeyFetcher.
   PublicKeyFetcher(absl::flat_hash_map<

@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -30,12 +31,9 @@ using google::cmrt::sdk::metric_service::v1::MetricUnit;
 using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::scp::core::AsyncContext;
-using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::LogOption;
 using google::scp::cpio::MetricClientFactory;
-using google::scp::cpio::MetricClientInterface;
 using google::scp::cpio::MetricClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
@@ -51,16 +49,12 @@ int main(int argc, char* argv[]) {
   MetricClientOptions metric_client_options;
   auto metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
-  ExecutionResult result = metric_client->Init();
-  if (!result.Successful()) {
-    std::cout << "Cannot init metric client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = metric_client->Init(); !error.ok()) {
+    std::cout << "Cannot init metric client!" << error << std::endl;
     return 0;
   }
-  result = metric_client->Run();
-  if (!result.Successful()) {
-    std::cout << "Cannot run metric client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = metric_client->Run(); !error.ok()) {
+    std::cout << "Cannot run metric client!" << error << std::endl;
     return 0;
   }
 
@@ -85,17 +79,13 @@ int main(int argc, char* argv[]) {
         }
         finished.Notify();
       });
-  result = metric_client->PutMetrics(context);
-  if (!result.Successful()) {
-    std::cout << "PutMetrics failed immediately: "
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = metric_client->PutMetrics(context); !error.ok()) {
+    std::cout << "PutMetrics failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
-  result = metric_client->Stop();
-  if (!result.Successful()) {
-    std::cout << "Cannot stop metric client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = metric_client->Stop(); !error.ok()) {
+    std::cout << "Cannot stop metric client!" << error << std::endl;
   }
   TestLibCpio::ShutdownCpio(cpio_options);
 }

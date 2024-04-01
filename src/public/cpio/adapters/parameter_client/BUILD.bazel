@@ -53,5 +53,6 @@ cc_library(
     deps = [
         "//src/cpio/client_providers/parameter_client_provider/mock:parameter_client_provider_mock",
         "//src/public/cpio/interface/parameter_client",
+        "@com_google_absl//absl/status",
     ],
 )

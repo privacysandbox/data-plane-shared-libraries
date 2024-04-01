@@ -78,12 +78,11 @@ TEST(LibCpioTest, InitializedCpioSucceedsTest) {
   TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
                                       .region = std::string{kRegion}}};
 
+  TestLibCpio::InitCpio(options);
   MetricClientOptions metric_client_options;
   std::unique_ptr<MetricClientInterface> metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
-
-  TestLibCpio::InitCpio(options);
-  EXPECT_SUCCESS(metric_client->Init());
+  ASSERT_TRUE(metric_client->Init().ok());
   TestLibCpio::ShutdownCpio(options);
 }
 
@@ -91,33 +90,9 @@ TEST(LibCpioDeathTest, UninitializedCpioFailsTest) {
   // Named "*DeathTest" to be run first for GlobalCpio static state.
   // https://github.com/google/googletest/blob/main/docs/advanced.md#death-tests-and-threads
   MetricClientOptions metric_client_options;
-  std::unique_ptr<MetricClientInterface> metric_client =
-      MetricClientFactory::Create(std::move(metric_client_options));
-
   ASSERT_DEATH(
-      metric_client->Init(),
+      MetricClientFactory::Create(std::move(metric_client_options)),
       "Cpio must be initialized with Cpio::InitCpio before client use");
-}
-
-TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
-  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
-                                      .region = std::string{kRegion}}};
-
-  MetricClientOptions metric_client_options;
-  std::unique_ptr<MetricClientInterface> metric_client =
-      MetricClientFactory::Create(std::move(metric_client_options));
-
-  constexpr std::string_view kExpectedUninitCpioErrorMessage =
-      "Cpio must be initialized with Cpio::InitCpio before client use";
-  ASSERT_DEATH(metric_client->Init(),
-               std::string{kExpectedUninitCpioErrorMessage});
-
-  TestLibCpio::InitCpio(options);
-  EXPECT_SUCCESS(metric_client->Init());
-  TestLibCpio::ShutdownCpio(options);
-
-  ASSERT_DEATH(metric_client->Init(),
-               std::string{kExpectedUninitCpioErrorMessage});
 }
 }  // namespace
 }  // namespace google::scp::cpio::test

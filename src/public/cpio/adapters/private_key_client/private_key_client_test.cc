@@ -47,11 +47,11 @@ namespace google::scp::cpio::test {
 class PrivateKeyClientTest : public ::testing::Test {
  protected:
   PrivateKeyClientTest() {
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
+    EXPECT_TRUE(client_.Init().ok());
+    EXPECT_TRUE(client_.Run().ok());
   }
 
-  ~PrivateKeyClientTest() { EXPECT_THAT(client_.Stop(), IsSuccessful()); }
+  ~PrivateKeyClientTest() { EXPECT_TRUE(client_.Stop().ok()); }
 
   MockPrivateKeyClientWithOverrides client_;
 };
@@ -66,13 +66,14 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysSuccess) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.ListPrivateKeys(ListPrivateKeysRequest(),
-                                      [&](const ExecutionResult result,
-                                          ListPrivateKeysResponse response) {
-                                        EXPECT_THAT(result, IsSuccessful());
-                                        finished.Notify();
-                                      }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .ListPrivateKeys(ListPrivateKeysRequest(),
+                                   [&](const ExecutionResult result,
+                                       ListPrivateKeysResponse response) {
+                                     EXPECT_THAT(result, IsSuccessful());
+                                     finished.Notify();
+                                   })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -85,20 +86,22 @@ TEST_F(PrivateKeyClientTest, ListPrivateKeysFailure) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(
-      client_.ListPrivateKeys(
-          ListPrivateKeysRequest(),
-          [&](const ExecutionResult result, ListPrivateKeysResponse response) {
-            EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished.Notify();
-          }),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      client_
+          .ListPrivateKeys(ListPrivateKeysRequest(),
+                           [&](const ExecutionResult result,
+                               ListPrivateKeysResponse response) {
+                             EXPECT_THAT(
+                                 result,
+                                 ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                             finished.Notify();
+                           })
+          .ok());
   finished.WaitForNotification();
 }
 
 TEST_F(PrivateKeyClientTest, FailureToCreatePrivateKeyClientProvider) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_.create_private_key_client_provider_result = failure;
-  EXPECT_EQ(client_.Init(), failure);
+  client_.create_private_key_client_provider_result = absl::UnknownError("");
+  EXPECT_FALSE(client_.Init().ok());
 }
 }  // namespace google::scp::cpio::test

@@ -33,6 +33,7 @@ cc_library(
         "//src/core/utils:core_utils",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_google_absl//absl/status",
     ],
 )
 

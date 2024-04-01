@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
 #include "src/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
@@ -32,7 +33,7 @@ namespace privacy_sandbox::server_common {
 // Implementation of PrivateKeyFetcherInterface that fetches private keys from
 // the Private Key Service, caching them in memory, and maintains only the keys
 // fetched during a sliding window.
-class PrivateKeyFetcher : public PrivateKeyFetcherInterface {
+class PrivateKeyFetcher final : public PrivateKeyFetcherInterface {
  public:
   // Initializes an instance of PrivateKeyFetcher. `private_key_client` is an
   // instance of PrivateKeyClientInterface for communicating with the Private

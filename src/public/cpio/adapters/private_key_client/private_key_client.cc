@@ -17,88 +17,46 @@
 #include "private_key_client.h"
 
 #include <memory>
-#include <string>
-#include <string_view>
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/common/global_logger/global_logger.h"
-#include "src/core/common/uuid/uuid.h"
-#include "src/core/interface/async_context.h"
-#include "src/core/interface/async_executor_interface.h"
-#include "src/core/interface/errors.h"
-#include "src/core/interface/http_client_interface.h"
-#include "src/core/utils/error_utils.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
-using google::scp::core::AsyncContext;
-using google::scp::core::AsyncExecutorInterface;
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::HttpClientInterface;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::common::kZeroUuid;
-using google::scp::core::errors::GetPublicErrorCode;
-using google::scp::core::utils::ConvertToPublicExecutionResult;
-using google::scp::cpio::client_providers::AuthTokenProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
-namespace {
-constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
-}  // namespace
-
 namespace google::scp::cpio {
-ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
-      options_, &cpio_->GetHttpClient(), &cpio_->GetRoleCredentialsProvider(),
-      &cpio_->GetAuthTokenProvider(), &cpio_->GetIoAsyncExecutor());
-  return SuccessExecutionResult();
-}
+absl::Status PrivateKeyClient::Init() noexcept { return absl::OkStatus(); }
 
-ExecutionResult PrivateKeyClient::Init() noexcept {
-  auto execution_result = CreatePrivateKeyClientProvider();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to create PrivateKeyClientProvider.");
-    return ConvertToPublicExecutionResult(execution_result);
-  }
-  return SuccessExecutionResult();
-}
+absl::Status PrivateKeyClient::Run() noexcept { return absl::OkStatus(); }
 
-ExecutionResult PrivateKeyClient::Run() noexcept {
-  return SuccessExecutionResult();
-}
+absl::Status PrivateKeyClient::Stop() noexcept { return absl::OkStatus(); }
 
-ExecutionResult PrivateKeyClient::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-core::ExecutionResult PrivateKeyClient::ListPrivateKeys(
+absl::Status PrivateKeyClient::ListPrivateKeys(
     ListPrivateKeysRequest request,
     Callback<ListPrivateKeysResponse> callback) noexcept {
   return Execute<ListPrivateKeysRequest, ListPrivateKeysResponse>(
-             absl::bind_front(
-                 &PrivateKeyClientProviderInterface::ListPrivateKeys,
-                 private_key_client_provider_.get()),
-             request, callback)
-                 .ok()
-             ? SuccessExecutionResult()
-             : FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(&PrivateKeyClientProviderInterface::ListPrivateKeys,
+                       private_key_client_provider_.get()),
+      request, callback);
 }
 
 std::unique_ptr<PrivateKeyClientInterface> PrivateKeyClientFactory::Create(
     PrivateKeyClientOptions options) {
-  return std::make_unique<PrivateKeyClient>(std::move(options));
+  return std::make_unique<PrivateKeyClient>(
+      PrivateKeyClientProviderFactory::Create(
+          std::move(options), &GlobalCpio::GetGlobalCpio().GetHttpClient(),
+          &GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider(),
+          &GlobalCpio::GetGlobalCpio().GetAuthTokenProvider(),
+          &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor()));
 }
 }  // namespace google::scp::cpio

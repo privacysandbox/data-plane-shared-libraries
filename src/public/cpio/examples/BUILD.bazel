@@ -36,6 +36,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/blob_storage_client",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
     ],
@@ -52,6 +53,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/metric_client",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -67,6 +69,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface/metric_client",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -82,6 +85,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/public_key_client",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -97,6 +101,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/kms_client",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -113,6 +118,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface/private_key_client",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -128,6 +134,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/private_key_client",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -143,6 +150,7 @@ cc_binary(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/crypto_client",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -159,6 +167,7 @@ cc_binary(
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/parameter_client",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -175,6 +184,7 @@ cc_binary(
         "//src/public/cpio/interface/parameter_client",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -191,6 +201,7 @@ cc_binary(
         "//src/public/cpio/interface:cpio",
         "//src/public/cpio/interface/instance_client",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -207,6 +218,7 @@ cc_binary(
         "//src/public/cpio/interface/instance_client",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )

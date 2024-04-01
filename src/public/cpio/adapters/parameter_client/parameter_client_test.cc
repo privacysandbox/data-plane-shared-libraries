@@ -47,11 +47,11 @@ namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
  protected:
   ParameterClientTest() {
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
+    EXPECT_TRUE(client_.Init().ok());
+    EXPECT_TRUE(client_.Run().ok());
   }
 
-  ~ParameterClientTest() { EXPECT_THAT(client_.Stop(), IsSuccessful()); }
+  ~ParameterClientTest() { EXPECT_TRUE(client_.Stop().ok()); }
 
   MockParameterClientWithOverrides client_;
 };
@@ -66,13 +66,14 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(client_.GetParameter(GetParameterRequest(),
-                                   [&](const ExecutionResult result,
-                                       GetParameterResponse response) {
-                                     EXPECT_THAT(result, IsSuccessful());
-                                     finished.Notify();
-                                   }),
-              IsSuccessful());
+  EXPECT_TRUE(client_
+                  .GetParameter(GetParameterRequest(),
+                                [&](const ExecutionResult result,
+                                    GetParameterResponse response) {
+                                  EXPECT_THAT(result, IsSuccessful());
+                                  finished.Notify();
+                                })
+                  .ok());
   finished.WaitForNotification();
 }
 
@@ -85,14 +86,16 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
       });
 
   absl::Notification finished;
-  EXPECT_THAT(
-      client_.GetParameter(
-          GetParameterRequest(),
-          [&](const ExecutionResult result, GetParameterResponse response) {
-            EXPECT_THAT(result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-            finished.Notify();
-          }),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      client_
+          .GetParameter(
+              GetParameterRequest(),
+              [&](const ExecutionResult result, GetParameterResponse response) {
+                EXPECT_THAT(result,
+                            ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+                finished.Notify();
+              })
+          .ok());
   finished.WaitForNotification();
 }
 }  // namespace google::scp::cpio::test

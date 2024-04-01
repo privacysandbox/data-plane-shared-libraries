@@ -20,9 +20,10 @@
 #include <memory>
 #include <utility>
 
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/crypto_client_provider/crypto_client_provider.h"
 #include "src/cpio/client_providers/interface/crypto_client_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
 #include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
@@ -31,35 +32,36 @@ namespace google::scp::cpio {
  */
 class CryptoClient : public CryptoClientInterface {
  public:
-  explicit CryptoClient(CryptoClientOptions options)
-      : crypto_client_provider_(
-            std::make_unique<client_providers::CryptoClientProvider>(
-                std::move(options))) {}
+  explicit CryptoClient(
+      absl::Nonnull<
+          std::unique_ptr<client_providers::CryptoClientProviderInterface>>
+          crypto_client_provider)
+      : crypto_client_provider_(std::move(crypto_client_provider)) {}
 
   virtual ~CryptoClient() = default;
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
+  absl::Status Run() noexcept override;
 
-  core::ExecutionResult Stop() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult HpkeEncrypt(
+  absl::Status HpkeEncrypt(
       cmrt::sdk::crypto_service::v1::HpkeEncryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::HpkeEncryptResponse>
           callback) noexcept override;
 
-  core::ExecutionResult HpkeDecrypt(
+  absl::Status HpkeDecrypt(
       cmrt::sdk::crypto_service::v1::HpkeDecryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::HpkeDecryptResponse>
           callback) noexcept override;
 
-  core::ExecutionResult AeadEncrypt(
+  absl::Status AeadEncrypt(
       cmrt::sdk::crypto_service::v1::AeadEncryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::AeadEncryptResponse>
           callback) noexcept override;
 
-  core::ExecutionResult AeadDecrypt(
+  absl::Status AeadDecrypt(
       cmrt::sdk::crypto_service::v1::AeadDecryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::AeadDecryptResponse>
           callback) noexcept override;

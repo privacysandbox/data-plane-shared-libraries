@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
 #include "absl/strings/strip.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
@@ -58,16 +59,12 @@ int main(int argc, char* argv[]) {
   KmsClientOptions kms_client_options;
 
   auto kms_client = KmsClientFactory::Create(std::move(kms_client_options));
-  result = kms_client->Init();
-  if (!result.Successful()) {
-    std::cout << "Cannot init kms client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = kms_client->Init(); !error.ok()) {
+    std::cout << "Cannot init kms client!" << error << std::endl;
     return 0;
   }
-  result = kms_client->Run();
-  if (!result.Successful()) {
-    std::cout << "Cannot run kms client!" << GetErrorMessage(result.status_code)
-              << std::endl;
+  if (absl::Status error = kms_client->Run(); !error.ok()) {
+    std::cout << "Cannot run kms client!" << error << std::endl;
     return 0;
   }
 
@@ -88,17 +85,13 @@ int main(int argc, char* argv[]) {
         }
         finished.Notify();
       });
-  result = kms_client->Decrypt(decrypt_context);
-  if (!result.Successful()) {
-    std::cout << "Decrypt failed immediately: "
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = kms_client->Decrypt(decrypt_context); !error.ok()) {
+    std::cout << "Decrypt failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
 
-  result = kms_client->Stop();
-  if (!result.Successful()) {
-    std::cout << "Cannot stop kms client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = kms_client->Stop(); !error.ok()) {
+    std::cout << "Cannot stop kms client!" << error << std::endl;
   }
 
   result = Cpio::ShutdownCpio(cpio_options);
