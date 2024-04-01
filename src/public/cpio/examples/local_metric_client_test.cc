@@ -45,9 +45,8 @@ constexpr std::string_view kRegion = "us-east-1";
 }
 
 int main(int argc, char* argv[]) {
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  cpio_options.region = kRegion;
+  TestCpioOptions cpio_options{.options = {.log_option = LogOption::kConsoleLog,
+                                           .region = std::string{kRegion}}};
   auto result = TestLibCpio::InitCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to initialize CPIO: "

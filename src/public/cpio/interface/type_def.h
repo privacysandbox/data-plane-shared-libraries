@@ -46,8 +46,6 @@ enum class CloudInitOption {
 
 /// Global options for CPIO.
 struct CpioOptions {
-  virtual ~CpioOptions() = default;
-
   /// Default is kNoLog.
   LogOption log_option = LogOption::kNoLog;
 

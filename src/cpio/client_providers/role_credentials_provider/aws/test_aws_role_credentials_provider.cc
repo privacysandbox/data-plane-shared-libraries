@@ -35,7 +35,7 @@ using google::scp::cpio::common::test::CreateTestClientConfiguration;
 namespace google::scp::cpio::client_providers {
 ClientConfiguration TestAwsRoleCredentialsProvider::CreateClientConfiguration(
     std::string_view region) noexcept {
-  return CreateTestClientConfiguration(*test_options_.sts_endpoint_override,
+  return CreateTestClientConfiguration(sts_endpoint_override_,
                                        std::string(region));
 }
 }  // namespace google::scp::cpio::client_providers

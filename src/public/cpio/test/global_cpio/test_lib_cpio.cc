@@ -32,23 +32,17 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::TestLibCpioProvider;
 
 namespace google::scp::cpio {
-static ExecutionResult SetGlobalCpio(const TestCpioOptions& options) {
-  cpio_ptr = std::make_unique<TestLibCpioProvider>(options);
-
-  CpioUtils::RunAndSetGlobalCpio(std::move(cpio_ptr));
-
-  return SuccessExecutionResult();
-}
-
 ExecutionResult TestLibCpio::InitCpio(TestCpioOptions options) {
-  auto execution_result = Cpio::InitCpio(options.ToCpioOptions(), false);
+  auto execution_result = Cpio::InitCpio(options.options, false);
   if (!execution_result.Successful()) {
     return execution_result;
   }
-  return SetGlobalCpio(options);
+  CpioUtils::RunAndSetGlobalCpio(
+      std::make_unique<TestLibCpioProvider>(std::move(options)));
+  return SuccessExecutionResult();
 }
 
 ExecutionResult TestLibCpio::ShutdownCpio(TestCpioOptions options) {
-  return Cpio::ShutdownCpio(options.ToCpioOptions());
+  return Cpio::ShutdownCpio(options.options);
 }
 }  // namespace google::scp::cpio

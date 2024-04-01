@@ -38,13 +38,28 @@ using google::scp::core::AsyncExecutorInterface;
 
 namespace google::scp::cpio::client_providers {
 TestLibCpioProvider::TestLibCpioProvider(TestCpioOptions test_options)
-    : LibCpioProvider(test_options), test_options_(std::move(test_options)) {
+    : LibCpioProvider(test_options.options),
+      test_options_(std::move(test_options)) {
 #if defined(AWS_TEST)
-  instance_client_provider_ = std::make_unique<TestAwsInstanceClientProvider>(
-      TestInstanceClientOptions(test_options_));
+  instance_client_provider_ =
+      std::make_unique<TestAwsInstanceClientProvider>(TestInstanceClientOptions{
+          .region = test_options_.options.region,
+          .instance_id = test_options_.instance_id,
+          .public_ipv4_address = test_options_.public_ipv4_address,
+          .private_ipv4_address = test_options_.private_ipv4_address,
+          .project_id = test_options_.options.project_id,
+          .zone = test_options_.zone,
+      });
 #elif defined(GCP_TEST)
-  instance_client_provider_ = std::make_unique<TestGcpInstanceClientProvider>(
-      TestInstanceClientOptions(test_options_));
+  instance_client_provider_ =
+      std::make_unique<TestGcpInstanceClientProvider>(TestInstanceClientOptions{
+          .region = test_options_.options.region,
+          .instance_id = test_options_.instance_id,
+          .public_ipv4_address = test_options_.public_ipv4_address,
+          .private_ipv4_address = test_options_.private_ipv4_address,
+          .project_id = test_options_.options.project_id,
+          .zone = test_options_.zone,
+      });
 #endif
 }
 
@@ -56,7 +71,8 @@ TestLibCpioProvider::CreateRoleCredentialsProvider(
     AsyncExecutorInterface* io_async_executor) noexcept {
 #if defined(AWS_TEST)
   return std::make_unique<TestAwsRoleCredentialsProvider>(
-      TestAwsRoleCredentialsProviderOptions(test_options_),
+      TestAwsRoleCredentialsProviderOptions{
+          .sts_endpoint_override = test_options_.sts_endpoint_override},
       instance_client_provider, cpu_async_executor, io_async_executor);
 #elif defined(GCP_TEST)
   return std::make_unique<GcpRoleCredentialsProvider>();

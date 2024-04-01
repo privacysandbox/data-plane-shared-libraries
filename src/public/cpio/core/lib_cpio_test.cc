@@ -47,42 +47,37 @@ namespace {
 constexpr std::string_view kRegion = "us-east-1";
 
 TEST(LibCpioTest, NoLogTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kNoLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
 TEST(LibCpioTest, ConsoleLogTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kConsoleLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
 TEST(LibCpioTest, SysLogTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
 TEST(LibCpioTest, StopSuccessfully) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
   ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
   GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
   ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
 }
 
 TEST(LibCpioTest, InitializedCpioSucceedsTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
 
   MetricClientOptions metric_client_options;
   std::unique_ptr<MetricClientInterface> metric_client =
@@ -106,9 +101,8 @@ TEST(LibCpioDeathTest, UninitializedCpioFailsTest) {
 }
 
 TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
 
   MetricClientOptions metric_client_options;
   std::unique_ptr<MetricClientInterface> metric_client =

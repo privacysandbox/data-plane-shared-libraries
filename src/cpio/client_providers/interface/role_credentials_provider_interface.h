@@ -30,7 +30,6 @@
 namespace google::scp::cpio::client_providers {
 /// Configurations for RoleCredentialProvider.
 struct RoleCredentialsProviderOptions {
-  virtual ~RoleCredentialsProviderOptions() = default;
   // Location ID for GCP, region code for AWS.
   std::string region;
 };

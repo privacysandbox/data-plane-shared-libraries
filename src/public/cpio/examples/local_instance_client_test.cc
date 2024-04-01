@@ -63,10 +63,9 @@ void GetCurrentInstanceResourceNameCallback(
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  cpio_options.region = kRegion;
-  cpio_options.instance_id = kInstanceId;
+  TestCpioOptions cpio_options{.instance_id = std::string{kInstanceId},
+                               .options = {.log_option = LogOption::kConsoleLog,
+                                           .region = std::string{kRegion}}};
   auto result = TestLibCpio::InitCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to initialize CPIO: "

@@ -17,7 +17,6 @@
 #ifndef CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_AWS_TEST_AWS_ROLE_CREDENTIALS_PROVIDER_H_
 #define CPIO_CLIENT_PROVIDERS_ROLE_CREDENTIALS_PROVIDER_AWS_TEST_AWS_ROLE_CREDENTIALS_PROVIDER_H_
 
-#include <memory>
 #include <string>
 #include <utility>
 
@@ -29,18 +28,9 @@
 
 namespace google::scp::cpio::client_providers {
 /// RoleCredentialsProviderOptions for testing on AWS.
-struct TestAwsRoleCredentialsProviderOptions
-    : public RoleCredentialsProviderOptions {
-  TestAwsRoleCredentialsProviderOptions() = default;
-
-  explicit TestAwsRoleCredentialsProviderOptions(
-      const TestCpioOptions& cpio_options)
-      : sts_endpoint_override(
-            std::make_shared<std::string>(cpio_options.sts_endpoint_override)) {
-  }
-
-  std::shared_ptr<std::string> sts_endpoint_override =
-      std::make_shared<std::string>();
+struct TestAwsRoleCredentialsProviderOptions {
+  std::string sts_endpoint_override;
+  RoleCredentialsProviderOptions options;
 };
 
 /*! @copydoc AwsRoleCredentialsProvider
@@ -52,15 +42,16 @@ class TestAwsRoleCredentialsProvider : public AwsRoleCredentialsProvider {
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor)
-      : AwsRoleCredentialsProvider(options, instance_client_provider,
-                                   cpu_async_executor, io_async_executor),
-        test_options_(std::move(options)) {}
+      : AwsRoleCredentialsProvider(std::move(options.options),
+                                   instance_client_provider, cpu_async_executor,
+                                   io_async_executor),
+        sts_endpoint_override_(std::move(options.sts_endpoint_override)) {}
 
  protected:
   Aws::Client::ClientConfiguration CreateClientConfiguration(
       std::string_view region) noexcept override;
 
-  TestAwsRoleCredentialsProviderOptions test_options_;
+  std::string sts_endpoint_override_;
 };
 }  // namespace google::scp::cpio::client_providers
 

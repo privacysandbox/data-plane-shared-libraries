@@ -52,9 +52,9 @@ constexpr std::string_view kKeyId1 = "key-id";
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  cpio_options.region = kServiceRegion;
+  TestCpioOptions cpio_options{
+      .options = {.log_option = LogOption::kConsoleLog,
+                  .region = std::string{kServiceRegion}}};
   auto result = TestLibCpio::InitCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to initialize CPIO: "
