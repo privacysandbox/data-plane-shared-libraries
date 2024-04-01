@@ -17,14 +17,9 @@
 #ifndef SCP_CPIO_INTERFACE_INSTANCE_CLIENT_TYPE_DEF_H_
 #define SCP_CPIO_INTERFACE_INSTANCE_CLIENT_TYPE_DEF_H_
 
-#include <string>
-#include <vector>
-
 namespace google::scp::cpio {
 /// Configurations for InstanceClient.
-struct InstanceClientOptions {
-  virtual ~InstanceClientOptions() = default;
-};
+struct InstanceClientOptions {};
 }  // namespace google::scp::cpio
 
 #endif  // SCP_CPIO_INTERFACE_INSTANCE_CLIENT_TYPE_DEF_H_
