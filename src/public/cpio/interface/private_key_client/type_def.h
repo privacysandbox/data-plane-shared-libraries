@@ -29,8 +29,6 @@ using GcpWIPProvider = std::string;
 
 /// Configurations for private key vending endpoint.
 struct PrivateKeyVendingEndpoint {
-  virtual ~PrivateKeyVendingEndpoint() = default;
-
   /** @brief The account identity to access the cloud. This is used to create
    *  temporary credentials to access resources you normally has no access. In
    *  AWS, it is the IAM Role ARN. In GCP, it would be the service account.
