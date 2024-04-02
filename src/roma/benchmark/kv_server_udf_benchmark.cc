@@ -29,6 +29,7 @@
 #include "src/roma/benchmark/fake_kv_server.h"
 #include "src/roma/benchmark/test_code.h"
 #include "src/roma/config/config.h"
+#include "src/roma/wasm/testing_utils.h"
 
 namespace {
 
@@ -139,6 +140,26 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
                        state);
 }
 
+void BM_ExecuteWasmPrimeSieve(benchmark::State& state) {
+  const std::string inline_wasm_js =
+      google::scp::roma::wasm::testing::WasmTestingUtils::LoadJsWithWasmFile(
+          "./src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example/"
+          "cpp_wasm_sieve_of_eratosthenes_example_generated.js");
+
+  const std::string udf = R"(
+async function HandleRequest() {
+  const module = await getModule();
+
+  const result = module.PrimeClass.SieveOfEratosthenes();
+  return result;
+}
+)";
+
+  std::string code = absl::StrCat(inline_wasm_js, udf);
+  std::string handler_name = "HandleRequest";
+  ExecuteCodeBenchmark(code, handler_name, state);
+}
+
 }  // namespace
 
 // Register the function as a benchmark
@@ -154,6 +175,7 @@ BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
 BENCHMARK(BM_ExecuteHelloWorld);
 BENCHMARK(BM_ExecuteHelloWorldCallback);
 BENCHMARK(BM_ExecutePrimeSieve);
+BENCHMARK(BM_ExecuteWasmPrimeSieve);
 
 // Run the benchmark
 BENCHMARK_MAIN();
