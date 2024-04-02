@@ -80,7 +80,6 @@ void RunFetchPrivateKeyValidator(
     return;
   }
   RoleCredentialsProviderInterface* role_credentials_provider;
-  AuthTokenProviderInterface* auth_token_provider;
 
   if (auto res = GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider();
       !res.ok()) {

@@ -45,10 +45,6 @@ using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::CryptoClientProvider;
 using google::scp::cpio::client_providers::CryptoClientProviderInterface;
 
-namespace {
-constexpr std::string_view kCryptoClient = "CryptoClient";
-}
-
 namespace google::scp::cpio {
 ExecutionResult CryptoClient::Init() noexcept {
   return SuccessExecutionResult();

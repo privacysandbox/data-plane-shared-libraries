@@ -165,15 +165,15 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
   /// The configuration for queue client.
   std::string queue_name_;
 
+  /// Project ID of current instance.
+  std::string project_id_;
+
   /// The instance client provider.
   InstanceClientProviderInterface* instance_client_provider_;
 
   /// The instance of the async executor.
   core::AsyncExecutorInterface* cpu_async_executor_;
   core::AsyncExecutorInterface* io_async_executor_;
-
-  /// Project ID of current instance.
-  std::string project_id_;
 
   /// Topic name of current instance. Format is
   /// projects/{project_id}/topics/{topic_name}.

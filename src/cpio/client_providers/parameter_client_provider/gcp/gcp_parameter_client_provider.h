@@ -50,10 +50,10 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
       core::AsyncExecutorInterface* io_async_executor,
       InstanceClientProviderInterface* instance_client_provider,
       ParameterClientOptions options)
-      : async_executor_(async_executor),
+      : project_id_(std::move(options).project_id),
+        async_executor_(async_executor),
         io_async_executor_(io_async_executor),
-        instance_client_provider_(instance_client_provider),
-        project_id_(std::move(options).project_id) {}
+        instance_client_provider_(instance_client_provider) {}
 
   absl::Status Init() noexcept;
 

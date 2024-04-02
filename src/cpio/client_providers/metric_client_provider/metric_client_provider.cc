@@ -53,7 +53,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 
 namespace {
 constexpr std::string_view kMetricClientProvider = "MetricClientProvider";
-constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
 // The metrics size to trigger a batch push.
 constexpr size_t kMetricsBatchSize = 1000;
 }  // namespace

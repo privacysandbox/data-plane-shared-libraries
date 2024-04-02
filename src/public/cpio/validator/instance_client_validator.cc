@@ -81,8 +81,8 @@ void RunGetTagsByResourceNameValidator(
               << std::endl;
     return;
   }
-  google::scp::cpio::InstanceClientOptions instance_client_options;
-  auto instance_client = InstanceClientFactory::Create(instance_client_options);
+
+  auto instance_client = InstanceClientFactory::Create();
   if (google::scp::core::ExecutionResult result = instance_client->Init();
       !result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
@@ -123,8 +123,7 @@ void RunGetTagsByResourceNameValidator(
 }
 
 void RunGetCurrentInstanceResourceNameValidator(std::string_view name) {
-  google::scp::cpio::InstanceClientOptions instance_client_options;
-  auto instance_client = InstanceClientFactory::Create(instance_client_options);
+  auto instance_client = InstanceClientFactory::Create();
   if (google::scp::core::ExecutionResult result = instance_client->Init();
       !result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "

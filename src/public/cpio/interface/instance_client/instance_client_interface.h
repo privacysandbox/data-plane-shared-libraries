@@ -109,8 +109,7 @@ class InstanceClientFactory {
    * @param options configurations for InstanceClient.
    * @return std::unique_ptr<InstanceClientInterface> InstanceClient object.
    */
-  static std::unique_ptr<InstanceClientInterface> Create(
-      InstanceClientOptions options);
+  static std::unique_ptr<InstanceClientInterface> Create();
 };
 }  // namespace google::scp::cpio
 

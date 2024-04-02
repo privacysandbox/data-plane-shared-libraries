@@ -96,8 +96,7 @@ int main(int argc, char* argv[]) {
   }
 
   InstanceClientOptions instance_client_options;
-  auto instance_client =
-      InstanceClientFactory::Create(std::move(instance_client_options));
+  auto instance_client = InstanceClientFactory::Create();
   result = instance_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init instance client!"

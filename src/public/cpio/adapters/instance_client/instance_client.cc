@@ -129,8 +129,7 @@ core::ExecutionResult InstanceClient::ListInstanceDetailsByEnvironment(
              : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
-std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create(
-    InstanceClientOptions options) {
-  return std::make_unique<InstanceClient>(std::move(options));
+std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create() {
+  return std::make_unique<InstanceClient>();
 }
 }  // namespace google::scp::cpio

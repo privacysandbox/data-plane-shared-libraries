@@ -32,8 +32,7 @@ namespace google::scp::cpio {
  */
 class InstanceClient : public InstanceClientInterface {
  public:
-  explicit InstanceClient(InstanceClientOptions options)
-      : options_(std::move(options)) {}
+  InstanceClient() {}
 
   virtual ~InstanceClient() = default;
 
@@ -75,7 +74,6 @@ class InstanceClient : public InstanceClientInterface {
   client_providers::InstanceClientProviderInterface* instance_client_provider_;
 
  private:
-  InstanceClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
