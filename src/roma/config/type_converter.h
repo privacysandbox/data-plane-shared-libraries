@@ -24,6 +24,7 @@
 #include <google/protobuf/map.h>
 #include <google/protobuf/repeated_field.h>
 
+#include "absl/base/nullability.h"
 #include "absl/container/flat_hash_map.h"
 #include "include/v8.h"
 
@@ -33,14 +34,16 @@ struct TypeConverter {};
 
 template <>
 struct TypeConverter<std::string> {
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, std::string_view val) {
+  static v8::Local<v8::Value> ToV8(absl::Nonnull<v8::Isolate*> isolate,
+                                   std::string_view val) {
     return v8::String::NewFromUtf8(isolate, val.data(),
                                    v8::NewStringType::kNormal, val.size())
         .ToLocalChecked();
   }
 
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     std::string* out) {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val,
+                     absl::Nonnull<std::string*> out) {
     if (val.IsEmpty() || !val->IsString()) {
       return false;
     }
@@ -58,7 +61,7 @@ struct TypeConverter<std::string> {
 template <>
 struct TypeConverter<std::vector<std::string>> {
   static v8::Local<v8::Value> ToV8(
-      v8::Isolate* isolate,
+      absl::Nonnull<v8::Isolate*> isolate,
       const google::protobuf::RepeatedPtrField<std::string>& val) {
     v8::Local<v8::Array> array = v8::Array::New(isolate, val.size());
 
@@ -74,8 +77,9 @@ struct TypeConverter<std::vector<std::string>> {
     return array;
   }
 
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     std::vector<std::string>* out) {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val,
+                     absl::Nonnull<std::vector<std::string>*> out) {
     if (val.IsEmpty() || !val->IsArray()) {
       return false;
     }
@@ -99,7 +103,7 @@ struct TypeConverter<std::vector<std::string>> {
 template <>
 struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
   static v8::Local<v8::Value> ToV8(
-      v8::Isolate* isolate,
+      absl::Nonnull<v8::Isolate*> isolate,
       const google::protobuf::Map<std::string, std::string>& val) {
     auto map = v8::Map::New(isolate);
     for (const auto& [k, v] : val) {
@@ -114,8 +118,9 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
   // Populates out parameter, `out`, with the contents of a V8 object, `val`,
   // for use in converting base JS objects to absl::flat_hash_map<std::string,
   // std::string>
-  static bool FromV8Object(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                           absl::flat_hash_map<std::string, std::string>* out) {
+  static bool FromV8Object(
+      absl::Nonnull<v8::Isolate*> isolate, v8::Local<v8::Value> val,
+      absl::Nonnull<absl::flat_hash_map<std::string, std::string>*> out) {
     if (!val->IsObject()) {
       return false;
     }
@@ -147,8 +152,9 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
     return true;
   }
 
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     absl::flat_hash_map<std::string, std::string>* out) {
+  static bool FromV8(
+      absl::Nonnull<v8::Isolate*> isolate, v8::Local<v8::Value> val,
+      absl::Nonnull<absl::flat_hash_map<std::string, std::string>*> out) {
     if (!out || val.IsEmpty() || !val->IsMap()) {
       return false;
     }
@@ -176,12 +182,13 @@ struct TypeConverter<absl::flat_hash_map<std::string, std::string>> {
 
 template <>
 struct TypeConverter<uint32_t> {
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const uint32_t& val) {
+  static v8::Local<v8::Value> ToV8(absl::Nonnull<v8::Isolate*> isolate,
+                                   const uint32_t& val) {
     return v8::Integer::NewFromUnsigned(isolate, val);
   }
 
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     uint32_t* out) {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val, absl::Nonnull<uint32_t*> out) {
     if (val.IsEmpty() || !val->IsUint32()) {
       return false;
     }
@@ -192,21 +199,23 @@ struct TypeConverter<uint32_t> {
 
 template <>
 struct TypeConverter<uint8_t*> {
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate, const uint8_t* data,
+  static v8::Local<v8::Value> ToV8(absl::Nonnull<v8::Isolate*> isolate,
+                                   absl::Nonnull<const uint8_t*> data,
                                    size_t data_size) {
     auto buffer = v8::ArrayBuffer::New(isolate, data_size);
     memcpy(buffer->Data(), data, data_size);
     return v8::Uint8Array::New(buffer, 0, data_size);
   }
 
-  static v8::Local<v8::Value> ToV8(v8::Isolate* isolate,
+  static v8::Local<v8::Value> ToV8(absl::Nonnull<v8::Isolate*> isolate,
                                    std::string_view data) {
     return ToV8(isolate, reinterpret_cast<const uint8_t*>(data.data()),
                 data.size());
   }
 
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     uint8_t* out, size_t out_buffer_size) {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val, absl::Nonnull<uint8_t*> out,
+                     size_t out_buffer_size) {
     if (val.IsEmpty() || !val->IsUint8Array() || out == nullptr) {
       return false;
     }
@@ -220,8 +229,8 @@ struct TypeConverter<uint8_t*> {
     return true;
   }
 
-  static bool FromV8(v8::Isolate* isolate, v8::Local<v8::Value> val,
-                     std::string& data) {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val, std::string& data) {
     return FromV8(isolate, val, reinterpret_cast<uint8_t*>(data.data()),
                   data.size());
   }

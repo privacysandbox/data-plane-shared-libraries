@@ -20,6 +20,7 @@
 #include <cstdlib>
 #include <thread>
 
+#include "absl/base/nullability.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "include/v8.h"
@@ -52,7 +53,7 @@ class ExecutionWatchDog {
    * @param isolate
    * @param ms_before_timeout
    */
-  void StartTimer(v8::Isolate* isolate, absl::Duration timeout);
+  void StartTimer(absl::Nonnull<v8::Isolate*> isolate, absl::Duration timeout);
 
   /// @brief End timing execution. This function will reset the
   /// timeout_timestamp_ to UINT64_MAX to avoid terminate standby isolate.

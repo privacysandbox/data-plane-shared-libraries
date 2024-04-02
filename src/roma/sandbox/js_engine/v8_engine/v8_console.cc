@@ -57,7 +57,8 @@ std::vector<std::string> GetLogMsg(
 }
 }  // anonymous namespace
 
-V8Console::V8Console(v8::Isolate* isolate, LogFunctionHandler handle_log_func)
+V8Console::V8Console(absl::Nonnull<v8::Isolate*> isolate,
+                     LogFunctionHandler handle_log_func)
     : isolate_(isolate), handle_log_func_(std::move(handle_log_func)) {}
 
 void V8Console::Log(const v8::debug::ConsoleCallArguments& args,

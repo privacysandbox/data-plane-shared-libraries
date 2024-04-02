@@ -49,6 +49,7 @@ cc_library(
     ],
     deps = [
         "//src/util:duration",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/synchronization",
         "@v8//:v8_icu",
     ],

@@ -59,7 +59,7 @@ bool ExecutionWatchDog::IsTerminateCalled() {
   return is_terminate_called_;
 }
 
-void ExecutionWatchDog::StartTimer(v8::Isolate* isolate,
+void ExecutionWatchDog::StartTimer(absl::Nonnull<v8::Isolate*> isolate,
                                    absl::Duration timeout) {
   absl::MutexLock lock(&mutex_);
   // Cancel TerminateExecution in case there was a previous

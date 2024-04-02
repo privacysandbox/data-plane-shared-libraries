@@ -302,7 +302,7 @@ void V8IsolateFunctionBinding::BindFunction(
 
 // BindFunctions does not guarantee thread safety, but it is not a requirement.
 bool V8IsolateFunctionBinding::BindFunctions(
-    v8::Isolate* isolate,
+    absl::Nonnull<v8::Isolate*> isolate,
     v8::Local<v8::ObjectTemplate>& global_object_template) {
   if (!isolate) {
     return false;

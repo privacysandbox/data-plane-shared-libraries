@@ -30,6 +30,7 @@
 #include <string>
 
 #include "src/debug/interface-types.h"
+#include "absl/base/nullability.h"
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/functional/any_invocable.h"
@@ -47,7 +48,8 @@ class V8Console : public v8::debug::ConsoleDelegate {
                                       google::scp::roma::logging::LogOptions)>;
 
  public:
-  explicit V8Console(v8::Isolate* isolate, LogFunctionHandler handle_log_func_);
+  explicit V8Console(absl::Nonnull<v8::Isolate*> isolate,
+                     LogFunctionHandler handle_log_func_);
 
   void SetIds(std::string_view uuid, std::string_view id);
   void SetMinLogLevel(absl::LogSeverity severity);
