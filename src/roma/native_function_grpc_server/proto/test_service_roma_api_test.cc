@@ -136,26 +136,17 @@ TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
 
   constexpr std::string_view jscode = R"(
     TestServer.TestMethod = function(req) {
-      var native_req = new TestHostServerPb.NativeMethodRequest();
-      native_req.input = req.input;
-      var native_bytes = TestHostServerPb.ObjectToProtoBytes_NativeMethodRequest(native_req);
-      var proto_response = TestHostServer.NativeMethod(native_bytes);
-      var native_res = TestHostServerPb.ProtoBytesToMessage_NativeMethodResponse(proto_response);
+      var native_req = {input: req.input};
+      var native_res = TestHostServer.NativeMethod(native_req);
 
-      var multi_req = new MultiServerPb.TestMethod1Request();
-      multi_req.input = req.input;
-      var multi_bytes = MultiServerPb.ObjectToProtoBytes_TestMethod1Request(multi_req);
-      var multi_proto_response = MultiServer.TestMethod1(multi_bytes);
-      var multi_res = MultiServerPb.ProtoBytesToMessage_TestMethod1Response(multi_proto_response);
+      var multi_req = {input: req.input};
+      var multi_res = MultiServer.TestMethod1(multi_req);
 
-      var multi_req2 = new MultiServerPb.TestMethod2Request();
-      multi_req2.input = req.input;
-      var multi_bytes2 = MultiServerPb.ObjectToProtoBytes_TestMethod2Request(multi_req2);
-      var multi_proto_response2 = MultiServer.TestMethod2(multi_bytes2);
-      var multi_res2 = MultiServerPb.ProtoBytesToMessage_TestMethod2Response(multi_proto_response2);
+      var multi_req2 = {input: req.input};
+      var multi_res2 = MultiServer.TestMethod2(multi_req2);
 
       return {
-        output: native_res.getOutput() + ". " + multi_res.getOutput() + ". " + multi_res2.getOutput(),
+        output: native_res.output + ". " + multi_res.output + ". " + multi_res2.output,
       };
     };
   )";

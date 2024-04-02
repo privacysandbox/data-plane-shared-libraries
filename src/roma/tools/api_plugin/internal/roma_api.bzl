@@ -222,6 +222,10 @@ _host_api_js_plugins = [
             template_file = "js_pb_helpers.tmpl",
             suffix = "_pb_helpers.js",
         ),
+        struct(
+            template_file = "js_callback_wrappers.tmpl",
+            suffix = "_callback_wrappers.js",
+        ),
     ])
 ]
 
