@@ -241,10 +241,10 @@ cc_test(
         ":multi_service_roma_host_api",
         ":test_service_roma_app_api",
         ":test_service_roma_host_api",
-        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
+        "@nlohmann_json//:lib",
     ],
 )
 

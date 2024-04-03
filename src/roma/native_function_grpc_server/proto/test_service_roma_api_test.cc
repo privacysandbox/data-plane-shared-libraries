@@ -17,6 +17,8 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <nlohmann/json.hpp>
+
 #include "absl/status/status.h"
 #include "absl/time/time.h"
 
@@ -168,6 +170,80 @@ TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
       resp.output(),
       StrEq("Hello World. From NativeMethod. Hello World. From TestMethod1. "
             "Hello World. From TestMethod2"));
+}
+
+TEST(RomaV8AppTest, NativeCallbackObjectToProtoBytes) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  privacysandbox::test_host_server::RegisterHostApi(config);
+  privacysandbox::multi_server::RegisterHostApi(config);
+
+  auto app_svc = TestService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
+
+  constexpr std::string_view jscode = R"(
+    TestServer.TestMethod = function(req) {
+      var native_req = {input: req.input};
+
+      return {
+        output: TestHostServerPb.ObjectToProtoBytes_NativeMethodRequest(native_req),
+      };
+    };
+  )";
+  absl::Notification register_finished;
+  absl::Status register_status;
+  ASSERT_TRUE(
+      app_svc->Register(register_finished, register_status, jscode).ok());
+  register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
+  EXPECT_TRUE(register_status.ok());
+
+  absl::Notification completed;
+  TestMethodRequest req;
+  req.set_input("Hello ");
+  TestMethodResponse resp;
+  ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
+  completed.WaitForNotificationWithTimeout(kDefaultTimeout);
+
+  // Remove null terminator from resp.output() to compare with expected string
+  EXPECT_THAT(resp.output().substr(0, resp.output().length() - 1),
+              StrEq("\n\x6Hello \x10"));
+}
+
+TEST(RomaV8AppTest, NativeCallbackProtoBytesToObject) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  privacysandbox::test_host_server::RegisterHostApi(config);
+  privacysandbox::multi_server::RegisterHostApi(config);
+
+  auto app_svc = TestService<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
+
+  constexpr std::string_view jscode = R"(
+    TestServer.TestMethod = function(req) {
+      return {
+        output: JSON.stringify(TestHostServerPb.ProtoBytesToObject_NativeMethodRequest(req.input)),
+      };
+    };
+  )";
+  absl::Notification register_finished;
+  absl::Status register_status;
+  ASSERT_TRUE(
+      app_svc->Register(register_finished, register_status, jscode).ok());
+  register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
+  EXPECT_TRUE(register_status.ok());
+
+  absl::Notification completed;
+  privacy_sandbox::server_common::NativeMethodRequest native_method_req;
+  native_method_req.set_input("Hello ");
+  TestMethodRequest req;
+  req.set_input(native_method_req.SerializeAsString());
+
+  TestMethodResponse resp;
+  ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
+  completed.WaitForNotificationWithTimeout(kDefaultTimeout);
+
+  nlohmann::json j = nlohmann::json::parse(resp.output());
+  EXPECT_THAT(j["input"], native_method_req.input());
 }
 
 }  // namespace privacysandbox::testserver::roma::AppApi::RomaTestServiceTest
