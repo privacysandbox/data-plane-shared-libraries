@@ -31,10 +31,13 @@ namespace google::scp::cpio {
  */
 class PublicKeyClient : public PublicKeyClientInterface {
  public:
-  explicit PublicKeyClient(PublicKeyClientOptions options)
-      : options_(std::move(options)) {}
+  explicit PublicKeyClient(
+      absl::Nonnull<
+          std::unique_ptr<client_providers::PublicKeyClientProviderInterface>>
+          public_key_client_provider)
+      : public_key_client_provider_(std::move(public_key_client_provider)) {}
 
-  virtual ~PublicKeyClient() = default;
+  ~PublicKeyClient() override = default;
 
   core::ExecutionResult Init() noexcept override;
 
@@ -48,12 +51,8 @@ class PublicKeyClient : public PublicKeyClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual absl::Status CreatePublicKeyClientProvider() noexcept;
-
   std::unique_ptr<client_providers::PublicKeyClientProviderInterface>
       public_key_client_provider_;
-  PublicKeyClientOptions options_;
-  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

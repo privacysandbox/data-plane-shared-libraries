@@ -44,10 +44,6 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED;
-using google::scp::core::errors::
-    SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED;
-using google::scp::core::errors::
-    SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
 using google::scp::core::http2_client::mock::MockHttpClient;
 using google::scp::core::test::ResultIs;
 using ::testing::StrEq;
@@ -64,27 +60,6 @@ constexpr std::string_view kHeaderDateExample = "Wed, 16 Nov 2022 00:02:48 GMT";
 constexpr std::string_view kCacheControlExample = "max-age=254838";
 constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
 
-TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
-  MockHttpClient http_client;
-
-  PublicKeyClientOptions public_key_client_options;
-
-  PublicKeyClientProvider public_key_client(
-      std::move(public_key_client_options), &http_client);
-
-  EXPECT_FALSE(public_key_client.Init().ok());
-}
-
-TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
-  PublicKeyClientOptions public_key_client_options;
-  public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri1);
-
-  PublicKeyClientProvider public_key_client(
-      std::move(public_key_client_options), nullptr);
-
-  EXPECT_FALSE(public_key_client.Init().ok());
-}
-
 class PublicKeyClientProviderTestII : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -94,8 +69,6 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
 
     public_key_client_.emplace(std::move(public_key_client_options),
                                &http_client_);
-
-    ASSERT_TRUE(public_key_client_->Init().ok());
   }
 
   HttpResponse GetValidHttpResponse() {

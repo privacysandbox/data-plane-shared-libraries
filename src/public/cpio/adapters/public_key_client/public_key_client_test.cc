@@ -95,9 +95,4 @@ TEST_F(PublicKeyClientTest, ListPublicKeysFailure) {
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   finished.WaitForNotification();
 }
-
-TEST_F(PublicKeyClientTest, FailureToCreatePublicKeyClientProvider) {
-  client_.create_public_key_client_provider_result = absl::UnknownError("");
-  EXPECT_FALSE(client_.Init().Successful());
-}
 }  // namespace google::scp::cpio::test

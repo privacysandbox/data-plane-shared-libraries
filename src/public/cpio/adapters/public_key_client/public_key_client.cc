@@ -52,20 +52,7 @@ constexpr std::string_view kPublicKeyClient = "PublicKeyClient";
 }  // namespace
 
 namespace google::scp::cpio {
-absl::Status PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  PS_ASSIGN_OR_RETURN(public_key_client_provider_,
-                      PublicKeyClientProviderFactory::Create(
-                          options_, &cpio_->GetHttpClient()));
-  return absl::OkStatus();
-}
-
 ExecutionResult PublicKeyClient::Init() noexcept {
-  if (absl::Status error = CreatePublicKeyClientProvider(); !error.ok()) {
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, error,
-              "Failed to create PublicKeyClientProvider.");
-    return FailureExecutionResult(SC_UNKNOWN);
-  }
   return SuccessExecutionResult();
 }
 
@@ -91,6 +78,8 @@ core::ExecutionResult PublicKeyClient::ListPublicKeys(
 
 std::unique_ptr<PublicKeyClientInterface> PublicKeyClientFactory::Create(
     PublicKeyClientOptions options) {
-  return std::make_unique<PublicKeyClient>(std::move(options));
+  return std::make_unique<PublicKeyClient>(
+      PublicKeyClientProviderFactory::Create(
+          std::move(options), &GlobalCpio::GetGlobalCpio().GetHttpClient()));
 }
 }  // namespace google::scp::cpio
