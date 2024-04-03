@@ -350,14 +350,12 @@ PrivateKeyClientProviderFactory::Create(
     RoleCredentialsProviderInterface* role_credentials_provider,
     AuthTokenProviderInterface* auth_token_provider,
     core::AsyncExecutorInterface* io_async_executor) {
-  auto kms_client_provider = KmsClientProviderFactory::Create(
-      KmsClientOptions(), role_credentials_provider, io_async_executor);
-  auto private_key_fetcher = PrivateKeyFetcherProviderFactory::Create(
-      http_client, role_credentials_provider, auth_token_provider);
-
   return std::make_unique<PrivateKeyClientProvider>(
-      std::move(options), http_client, std::move(private_key_fetcher),
-      std::move(kms_client_provider));
+      std::move(options),
+      PrivateKeyFetcherProviderFactory::Create(
+          http_client, role_credentials_provider, auth_token_provider),
+      KmsClientProviderFactory::Create(
+          KmsClientOptions(), role_credentials_provider, io_async_executor));
 }
 
 }  // namespace google::scp::cpio::client_providers
