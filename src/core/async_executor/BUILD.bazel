@@ -41,6 +41,9 @@ cc_library(
 cc_library(
     name = "error_codes",
     hdrs = ["error_codes.h"],
+    deps = [
+        "//src/core/interface:errors",
+    ],
 )
 
 cc_library(
