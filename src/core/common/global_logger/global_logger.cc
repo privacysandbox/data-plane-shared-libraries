@@ -47,8 +47,8 @@ namespace internal::cpio_log {
       return &*provider;
     }
     case LogOption::kSysLog: {
-      static absl::NoDestructor<SyslogLogProvider> provider;
-      return &*provider;
+      static SyslogLogProvider provider;
+      return &provider;
     }
     default:
       return nullptr;

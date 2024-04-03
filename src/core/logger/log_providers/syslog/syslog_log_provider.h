@@ -30,7 +30,7 @@ namespace google::scp::core::logger::log_providers {
  * externally.
  *
  */
-class SyslogLogProvider : public LogProviderInterface {
+class SyslogLogProvider final : public LogProviderInterface {
  public:
   void Log(const LogLevel& level, const common::Uuid& correlation_id,
            const common::Uuid& parent_activity_id,
