@@ -21,6 +21,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -299,7 +300,7 @@ TEST(OperationDispatcherTests, OperationExpiration) {
 
   absl::Notification condition;
   AsyncContext<std::string, std::string> context;
-  context.expiration_time = UINT64_MAX;
+  context.expiration_time = std::numeric_limits<uint64_t>::max();
 
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result,

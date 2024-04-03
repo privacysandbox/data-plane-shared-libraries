@@ -17,7 +17,7 @@
 #ifndef ROMA_WORKER_EXECUTION_WATCHDOG_H_
 #define ROMA_WORKER_EXECUTION_WATCHDOG_H_
 
-#include <cstdlib>
+#include <limits>
 #include <thread>
 
 #include "absl/base/nullability.h"
@@ -30,6 +30,7 @@ using privacy_sandbox::server_common::ExpiringFlag;
 using privacy_sandbox::server_common::SteadyClock;
 
 namespace google::scp::roma::worker {
+
 /**
  * @brief ExecutionWatchDog starts a thread that monitors the execution
  * time of each code object. If the code object execution time is over the
@@ -56,7 +57,8 @@ class ExecutionWatchDog {
   void StartTimer(absl::Nonnull<v8::Isolate*> isolate, absl::Duration timeout);
 
   /// @brief End timing execution. This function will reset the
-  /// timeout_timestamp_ to UINT64_MAX to avoid terminate standby isolate.
+  /// timeout_timestamp_ to std::numeric_limits<uint64_t>::max() to avoid
+  /// terminate standby isolate.
   void EndTimer();
 
   bool IsTerminateCalled();

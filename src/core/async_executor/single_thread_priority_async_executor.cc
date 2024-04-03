@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <queue>
 #include <thread>
@@ -31,13 +32,14 @@
 using google::scp::core::common::TimeProvider;
 
 namespace google::scp::core {
+
 SingleThreadPriorityAsyncExecutor::SingleThreadPriorityAsyncExecutor(
     size_t queue_cap, std::optional<size_t> affinity_cpu_number)
     : is_running_(true),
       worker_thread_started_(false),
       worker_thread_stopped_(false),
       update_wait_time_(false),
-      next_scheduled_task_timestamp_(UINT64_MAX),
+      next_scheduled_task_timestamp_(std::numeric_limits<uint64_t>::max()),
       queue_cap_(queue_cap),
       affinity_cpu_number_(affinity_cpu_number) {
   working_thread_.emplace(
@@ -89,7 +91,7 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
         if (!is_running_) {
           break;
         }
-        next_scheduled_task_timestamp_ = UINT64_MAX;
+        next_scheduled_task_timestamp_ = std::numeric_limits<uint64_t>::max();
         wait_timeout_duration = absl::InfiniteDuration();
         continue;
       }
