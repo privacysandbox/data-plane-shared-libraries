@@ -150,6 +150,12 @@ message ListBlobsMetadataRequest {
   // ListBlobsMetadataResponse. If not provided, the default is 1000. The
   // maximum value is 1000.
   optional uint64 max_page_size = 3;
+
+  // If true, exclude blobs that are actually directories in "blob_metadatas"
+  // in ListBlobsMetadataResponse.
+  // GCP: MatchGlob parameter is set to "**[^/]".
+  // AWS: Checks the returned blob if the last character is set to "/".
+  optional bool exclude_directories = 4;
 }
 
 // Response of listing blob metadata.

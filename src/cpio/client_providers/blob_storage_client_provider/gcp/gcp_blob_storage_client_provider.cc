@@ -56,6 +56,7 @@ using google::cloud::storage::EnableMD5Hash;
 using google::cloud::storage::IdempotencyPolicyOption;
 using google::cloud::storage::LimitedErrorCountRetryPolicy;
 using google::cloud::storage::ListObjectsReader;
+using google::cloud::storage::MatchGlob;
 using google::cloud::storage::MaxResults;
 using google::cloud::storage::MD5HashValue;
 using google::cloud::storage::NewResumableUploadSession;
@@ -118,6 +119,7 @@ constexpr std::chrono::nanoseconds kMaximumStreamKeepaliveNanos =
     std::chrono::duration_cast<std::chrono::nanoseconds>(
         std::chrono::minutes(10));
 constexpr std::chrono::seconds kPutBlobRescanTime = std::chrono::seconds(5);
+constexpr char kExcludeDirectoriesMatchGlob[] = "**[^/]";
 
 bool IsPageTokenObject(const ListBlobsMetadataRequest& list_blobs_request,
                        const ObjectMetadata& obj_metadata) {
@@ -523,14 +525,18 @@ void GcpBlobStorageClientProvider::ListBlobsMetadataInternal(
     auto max_page_size = request.has_max_page_size()
                              ? request.max_page_size()
                              : kListBlobsMetadataMaxResults;
+    auto match_glob = request.exclude_directories()
+                          ? MatchGlob(kExcludeDirectoriesMatchGlob)
+                          : MatchGlob();
     auto max_results = MaxResults(max_page_size);
     if (!request.has_page_token() || request.page_token().empty()) {
       return cloud_storage_client.ListObjects(
-          request.blob_metadata().bucket_name(), prefix, max_results);
+          request.blob_metadata().bucket_name(), prefix, max_results,
+          match_glob);
     } else {
       return cloud_storage_client.ListObjects(
           request.blob_metadata().bucket_name(), prefix,
-          StartOffset(request.page_token()), max_results);
+          StartOffset(request.page_token()), max_results, match_glob);
     }
   }();
   list_blobs_context.response = std::make_shared<ListBlobsMetadataResponse>();

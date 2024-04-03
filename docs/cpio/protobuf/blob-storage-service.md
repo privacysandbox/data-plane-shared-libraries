@@ -123,6 +123,7 @@
 | blob_metadata | [BlobMetadata](#google-cmrt-sdk-blob_storage_service-v1-BlobMetadata) |  |  |
 | page_token | [string](#string) | optional |  |
 | max_page_size | [uint64](#uint64) | optional |  |
+| exclude_directories | [bool](#bool) | optional |  |
 <a name="google-cmrt-sdk-blob_storage_service-v1-ListBlobsMetadataResponse"></a>
 
 ### ListBlobsMetadataResponse

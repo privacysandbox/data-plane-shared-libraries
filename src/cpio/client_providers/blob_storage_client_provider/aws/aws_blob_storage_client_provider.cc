@@ -562,6 +562,10 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
   auto* blob_metadatas =
       list_blobs_metadata_context.response->mutable_blob_metadatas();
   for (auto& object : list_objects_outcome.GetResult().GetContents()) {
+    if (((*list_blobs_metadata_context.request).exclude_directories()) &&
+        (object.GetKey().back() == '/')) {
+      continue;
+    }
     BlobMetadata metadata;
     metadata.set_blob_name(object.GetKey());
     metadata.set_bucket_name(
