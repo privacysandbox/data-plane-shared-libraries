@@ -57,7 +57,7 @@ ExecutionResult KmsClient::Init() noexcept {
     role_credentials_provider = *provider;
   }
   kms_client_provider_ = KmsClientProviderFactory::Create(
-      options_, role_credentials_provider, &cpio_->GetIoAsyncExecutor());
+      role_credentials_provider, &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }
 
@@ -73,7 +73,7 @@ ExecutionResult KmsClient::Decrypt(
 }
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
-    KmsClientOptions options) {
-  return std::make_unique<KmsClient>(std::move(options));
+    KmsClientOptions /*options*/) {
+  return std::make_unique<KmsClient>();
 }
 }  // namespace google::scp::cpio

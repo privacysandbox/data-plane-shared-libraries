@@ -354,8 +354,8 @@ PrivateKeyClientProviderFactory::Create(
       std::move(options),
       PrivateKeyFetcherProviderFactory::Create(
           http_client, role_credentials_provider, auth_token_provider),
-      KmsClientProviderFactory::Create(
-          KmsClientOptions(), role_credentials_provider, io_async_executor));
+      KmsClientProviderFactory::Create(role_credentials_provider,
+                                       io_async_executor));
 }
 
 }  // namespace google::scp::cpio::client_providers

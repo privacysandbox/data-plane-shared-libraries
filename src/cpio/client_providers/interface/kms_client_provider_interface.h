@@ -57,7 +57,6 @@ class KmsClientProviderFactory {
    * KmsClientProvider.
    */
   static std::unique_ptr<KmsClientProviderInterface> Create(
-      KmsClientOptions options,
       absl::Nonnull<RoleCredentialsProviderInterface*>
           role_credentials_provider,
       core::AsyncExecutorInterface* io_async_executor) noexcept;

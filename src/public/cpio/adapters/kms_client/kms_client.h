@@ -37,9 +37,7 @@ namespace google::scp::cpio {
  */
 class KmsClient : public KmsClientInterface {
  public:
-  explicit KmsClient(KmsClientOptions options) : options_(std::move(options)) {}
-
-  virtual ~KmsClient() = default;
+  ~KmsClient() override = default;
 
   core::ExecutionResult Init() noexcept override;
   core::ExecutionResult Run() noexcept override;
@@ -55,7 +53,6 @@ class KmsClient : public KmsClientInterface {
       kms_client_provider_;
 
  private:
-  KmsClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
