@@ -98,5 +98,15 @@ class DebugResponseTest : public ConsentedLogTest {
   ConsentedDebugConfiguration debug_info_config_;
 };
 
+class SafePathLogTest : public ConsentedLogTest {
+ protected:
+  static std::unique_ptr<SafePathContext> CreateTestInstance() {
+    return std::unique_ptr<SafePathContext>(new SafePathContext());
+  }
+  void SetUp() override { ConsentedLogTest::SetUp(); }
+  std::unique_ptr<logs_api::LoggerProvider> logger_;
+  std::unique_ptr<SafePathContext> test_instance_;
+};
+
 }  // namespace privacy_sandbox::server_common::log
 #endif  // LOGGER_REQUEST_CONTEXT_IMPL_TEST_H_

@@ -103,5 +103,13 @@ TEST_F(DebugResponseTest, LoggedIfSet) {
                                       "\\(id: 1234\\)[ \t]+", kLogContent))));
 }
 
+TEST_F(SafePathLogTest, LogMessage) {
+  test_instance_ = CreateTestInstance();
+  EXPECT_THAT(LogWithCapturedStderr(
+                  [this]() { PS_VLOG(kMaxV, *test_instance_) << kLogContent; }),
+              ContainsRegex(kLogContent));
+  EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common::log

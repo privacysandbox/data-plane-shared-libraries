@@ -165,5 +165,13 @@ TEST_F(ConsentedLogTest, Update) {
   EXPECT_FALSE(test_instance_->is_consented());
 }
 
+TEST_F(SafePathLogTest, LogMessage) {
+  test_instance_ = CreateTestInstance();
+  EXPECT_THAT(LogWithCapturedStderr(
+                  [this]() { PS_VLOG(kMaxV, *test_instance_) << kLogContent; }),
+              IsEmpty());
+  EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common::log

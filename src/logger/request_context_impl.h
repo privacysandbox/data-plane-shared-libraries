@@ -142,6 +142,38 @@ class ContextImpl : public RequestContext {
   DebugResponseSinkImpl debug_response_sink_;
 };
 
+// OpenTelemetry log sink
+class OtelSinkImpl : public absl::LogSink {
+ public:
+  OtelSinkImpl() = default;
+  void Send(const absl::LogEntry& entry) override {
+    logger_private->EmitLogRecord(
+        entry.text_message_with_prefix_and_newline_c_str());
+  }
+  void Flush() override {}
+};
+
+// Defines SafePathContext class to always log to otel for safe code path
+class SafePathContext : public RequestContext {
+ public:
+  virtual ~SafePathContext() = default;
+  std::string_view ContextStr() const override { return ""; }
+
+  bool is_consented() const override { return true; }
+
+  absl::LogSink* ConsentedSink() override { return &otel_sink_; }
+
+  bool is_debug_response() const override { return false; };
+  absl::LogSink* DebugResponseSink() override { return nullptr; };
+
+ protected:
+  SafePathContext() = default;
+  friend class SafePathLogTest;
+
+ private:
+  OtelSinkImpl otel_sink_;
+};
+
 }  // namespace privacy_sandbox::server_common::log
 
 #endif  // LOGGER_REQUEST_CONTEXT_IMPL_H_
