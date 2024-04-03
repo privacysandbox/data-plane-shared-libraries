@@ -20,7 +20,6 @@
 #include "src/core/async_executor/error_codes.h"
 #include "src/core/common/global_logger/global_logger.h"
 #include "src/core/interface/async_executor_interface.h"
-#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
@@ -49,30 +48,30 @@ constexpr std::string_view kRegion = "us-east-1";
 TEST(LibCpioTest, NoLogTest) {
   TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
                                       .region = std::string{kRegion}}};
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::InitCpio(options);
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, ConsoleLogTest) {
   TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
                                       .region = std::string{kRegion}}};
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::InitCpio(options);
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, SysLogTest) {
   TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
                                       .region = std::string{kRegion}}};
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::InitCpio(options);
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, StopSuccessfully) {
   TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
                                       .region = std::string{kRegion}}};
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
+  TestLibCpio::InitCpio(options);
   GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
-  ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, InitializedCpioSucceedsTest) {
@@ -83,9 +82,9 @@ TEST(LibCpioTest, InitializedCpioSucceedsTest) {
   std::unique_ptr<MetricClientInterface> metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
 
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  ASSERT_SUCCESS(metric_client->Init());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::InitCpio(options);
+  EXPECT_SUCCESS(metric_client->Init());
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioDeathTest, UninitializedCpioFailsTest) {
@@ -113,9 +112,9 @@ TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
   ASSERT_DEATH(metric_client->Init(),
                std::string{kExpectedUninitCpioErrorMessage});
 
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  ASSERT_SUCCESS(metric_client->Init());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::InitCpio(options);
+  EXPECT_SUCCESS(metric_client->Init());
+  TestLibCpio::ShutdownCpio(options);
 
   ASSERT_DEATH(metric_client->Init(),
                std::string{kExpectedUninitCpioErrorMessage});

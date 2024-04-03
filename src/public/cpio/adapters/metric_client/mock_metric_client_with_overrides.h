@@ -23,7 +23,6 @@
 #include <utility>
 
 #include "src/core/async_executor/mock/mock_async_executor.h"
-#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/metric_client_provider/mock/mock_metric_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
 

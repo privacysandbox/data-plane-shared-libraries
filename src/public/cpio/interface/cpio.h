@@ -23,8 +23,6 @@
 #include "src/public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio {
-static std::unique_ptr<client_providers::CpioProviderInterface> cpio_ptr;
-
 /**
  * @brief To initialize and shutdown global CPIO objects.
  *
@@ -43,8 +41,7 @@ class Cpio {
    * @param options global configurations.
    * @return core::ExecutionResult result of initializing CPIO.
    */
-  static core::ExecutionResult InitCpio(CpioOptions options,
-                                        bool should_set_global_cpio = true);
+  static core::ExecutionResult InitCpio(CpioOptions options);
 
   /**
    * @brief Shuts down global CPIO objects.

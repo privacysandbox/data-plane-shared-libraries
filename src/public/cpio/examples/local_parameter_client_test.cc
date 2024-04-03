@@ -46,16 +46,11 @@ constexpr std::string_view kTestParameterName = "test_parameter";
 int main(int argc, char* argv[]) {
   TestCpioOptions cpio_options{.options = {.log_option = LogOption::kConsoleLog,
                                            .region = std::string{kRegion}}};
-  auto result = TestLibCpio::InitCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to initialize CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
+  TestLibCpio::InitCpio(cpio_options);
   ParameterClientOptions parameter_client_options;
   auto parameter_client =
       ParameterClientFactory::Create(std::move(parameter_client_options));
-  result = parameter_client->Init();
+  ExecutionResult result = parameter_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init parameter client!"
               << GetErrorMessage(result.status_code) << std::endl;
@@ -94,10 +89,5 @@ int main(int argc, char* argv[]) {
     std::cout << "Cannot stop parameter client!"
               << GetErrorMessage(result.status_code) << std::endl;
   }
-
-  result = TestLibCpio::ShutdownCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to shutdown CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
+  TestLibCpio::ShutdownCpio(cpio_options);
 }

@@ -23,20 +23,16 @@
 
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "google/protobuf/any.pb.h"
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/curl_client/http1_curl_client.h"
 #include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
-#include "src/core/interface/message_router_interface.h"
-#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/cloud_initializer_interface.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
 /*! @copydoc CpioProviderInterface
@@ -44,15 +40,13 @@ namespace google::scp::cpio::client_providers {
  */
 class LibCpioProvider : public CpioProviderInterface {
  public:
-  explicit LibCpioProvider(CpioOptions options);
+  static absl::StatusOr<std::unique_ptr<CpioProviderInterface>> Create(
+      CpioOptions options);
 
-  virtual ~LibCpioProvider() = default;
+  ~LibCpioProvider() override;
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
+  LibCpioProvider(LibCpioProvider&&) = delete;
+  LibCpioProvider& operator=(LibCpioProvider&&) = delete;
 
   core::AsyncExecutorInterface& GetCpuAsyncExecutor() noexcept override;
 
@@ -65,8 +59,8 @@ class LibCpioProvider : public CpioProviderInterface {
   InstanceClientProviderInterface& GetInstanceClientProvider() noexcept
       override;
 
-  absl::StatusOr<RoleCredentialsProviderInterface*>
-  GetRoleCredentialsProvider() noexcept override;
+  RoleCredentialsProviderInterface& GetRoleCredentialsProvider() noexcept
+      override;
 
   AuthTokenProviderInterface& GetAuthTokenProvider() noexcept override;
 
@@ -74,32 +68,29 @@ class LibCpioProvider : public CpioProviderInterface {
 
   const std::string& GetRegion() noexcept override;
 
- protected:
+ private:
+  absl::Status Init();
+
   /// Global CPIO options.
   std::string project_id_;
   std::string region_;
   /// Global cloud initializer.
   std::unique_ptr<CloudInitializerInterface> cloud_initializer_;
   /// Global async executors.
-  std::unique_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
-      io_async_executor_;
+  core::AsyncExecutor cpu_async_executor_, io_async_executor_;
   /// Global http clients.
-  std::unique_ptr<core::Http1CurlClient> http1_client_;
-  std::unique_ptr<core::HttpClient> http2_client_;
+  core::Http1CurlClient http1_client_;
+  core::HttpClient http2_client_;
+  /// Global auth token provider.
+  std::unique_ptr<AuthTokenProviderInterface> auth_token_provider_;
+
+ protected:
+  explicit LibCpioProvider(CpioOptions options);
+
   /// Global instance client provider to fetch cloud metadata.
   std::unique_ptr<InstanceClientProviderInterface> instance_client_provider_;
   /// Global role credential provider.
   std::unique_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;
-  /// Global auth token provider.
-  std::unique_ptr<AuthTokenProviderInterface> auth_token_provider_;
-
- private:
-  virtual absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
-  CreateRoleCredentialsProvider(
-      RoleCredentialsProviderOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor) noexcept;
 };
 }  // namespace google::scp::cpio::client_providers
 

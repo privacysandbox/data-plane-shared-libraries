@@ -60,17 +60,8 @@ constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
 namespace google::scp::cpio {
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  RoleCredentialsProviderInterface* role_credentials_provider;
-  if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to get role credentials provider.");
-    return execution_result;
-  } else {
-    role_credentials_provider = *provider;
-  }
   private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
-      options_, &cpio_->GetHttpClient(), role_credentials_provider,
+      options_, &cpio_->GetHttpClient(), &cpio_->GetRoleCredentialsProvider(),
       &cpio_->GetAuthTokenProvider(), &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }

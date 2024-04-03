@@ -55,12 +55,7 @@ int main(int argc, char* argv[]) {
   TestCpioOptions cpio_options{
       .options = {.log_option = LogOption::kConsoleLog,
                   .region = std::string{kServiceRegion}}};
-  auto result = TestLibCpio::InitCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to initialize CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
+  TestLibCpio::InitCpio(cpio_options);
   PrivateKeyClientOptions private_key_client_options;
   PrivateKeyVendingEndpoint primary_endpoint;
   primary_endpoint.account_identity = kIamRole1;
@@ -79,7 +74,7 @@ int main(int argc, char* argv[]) {
 
   auto private_key_client =
       PrivateKeyClientFactory::Create(std::move(private_key_client_options));
-  result = private_key_client->Init();
+  ExecutionResult result = private_key_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init private key client!"
               << GetErrorMessage(result.status_code) << std::endl;
@@ -119,10 +114,5 @@ int main(int argc, char* argv[]) {
     std::cout << "Cannot stop private key client!"
               << GetErrorMessage(result.status_code) << std::endl;
   }
-
-  result = TestLibCpio::ShutdownCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to shutdown CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
+  TestLibCpio::ShutdownCpio(cpio_options);
 }

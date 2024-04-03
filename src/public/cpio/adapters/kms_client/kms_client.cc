@@ -39,25 +39,12 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::KmsClientProviderFactory;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
-namespace {
-constexpr std::string_view kKmsClient = "KmsClient";
-}  // namespace
-
 namespace google::scp::cpio {
 
 ExecutionResult KmsClient::Init() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  RoleCredentialsProviderInterface* role_credentials_provider;
-  if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to get RoleCredentialsProvider.");
-    return execution_result;
-  } else {
-    role_credentials_provider = *provider;
-  }
   kms_client_provider_ = KmsClientProviderFactory::Create(
-      role_credentials_provider, &cpio_->GetIoAsyncExecutor());
+      &cpio_->GetRoleCredentialsProvider(), &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }
 

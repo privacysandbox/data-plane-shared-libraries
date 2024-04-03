@@ -38,44 +38,28 @@ using google::scp::core::AsyncExecutorInterface;
 
 namespace google::scp::cpio::client_providers {
 TestLibCpioProvider::TestLibCpioProvider(TestCpioOptions test_options)
-    : LibCpioProvider(test_options.options),
-      test_options_(std::move(test_options)) {
+    : LibCpioProvider(test_options.options) {
+  TestInstanceClientOptions test_instance_client_options{
+      .region = std::move(test_options.options.region),
+      .instance_id = std::move(test_options.instance_id),
+      .public_ipv4_address = std::move(test_options.public_ipv4_address),
+      .private_ipv4_address = std::move(test_options.private_ipv4_address),
+      .project_id = std::move(test_options.options.project_id),
+      .zone = std::move(test_options.zone),
+  };
 #if defined(AWS_TEST)
-  instance_client_provider_ =
-      std::make_unique<TestAwsInstanceClientProvider>(TestInstanceClientOptions{
-          .region = test_options_.options.region,
-          .instance_id = test_options_.instance_id,
-          .public_ipv4_address = test_options_.public_ipv4_address,
-          .private_ipv4_address = test_options_.private_ipv4_address,
-          .project_id = test_options_.options.project_id,
-          .zone = test_options_.zone,
-      });
-#elif defined(GCP_TEST)
-  instance_client_provider_ =
-      std::make_unique<TestGcpInstanceClientProvider>(TestInstanceClientOptions{
-          .region = test_options_.options.region,
-          .instance_id = test_options_.instance_id,
-          .public_ipv4_address = test_options_.public_ipv4_address,
-          .private_ipv4_address = test_options_.private_ipv4_address,
-          .project_id = test_options_.options.project_id,
-          .zone = test_options_.zone,
-      });
-#endif
-}
-
-absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
-TestLibCpioProvider::CreateRoleCredentialsProvider(
-    RoleCredentialsProviderOptions /*options*/,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) noexcept {
-#if defined(AWS_TEST)
-  return std::make_unique<TestAwsRoleCredentialsProvider>(
+  instance_client_provider_ = std::make_unique<TestAwsInstanceClientProvider>(
+      std::move(test_instance_client_options));
+  role_credentials_provider_ = std::make_unique<TestAwsRoleCredentialsProvider>(
       TestAwsRoleCredentialsProviderOptions{
-          .sts_endpoint_override = test_options_.sts_endpoint_override},
-      instance_client_provider, cpu_async_executor, io_async_executor);
+          .sts_endpoint_override =
+              std::move(test_options.sts_endpoint_override)},
+      &GetInstanceClientProvider(), &GetCpuAsyncExecutor(),
+      &GetIoAsyncExecutor());
 #elif defined(GCP_TEST)
-  return std::make_unique<GcpRoleCredentialsProvider>();
+  instance_client_provider_ = std::make_unique<TestGcpInstanceClientProvider>(
+      std::move(test_instance_client_options));
+  role_credentials_provider_ = std::make_unique<GcpRoleCredentialsProvider>();
 #endif
 }
 }  // namespace google::scp::cpio::client_providers

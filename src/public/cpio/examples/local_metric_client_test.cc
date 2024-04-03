@@ -47,16 +47,11 @@ constexpr std::string_view kRegion = "us-east-1";
 int main(int argc, char* argv[]) {
   TestCpioOptions cpio_options{.options = {.log_option = LogOption::kConsoleLog,
                                            .region = std::string{kRegion}}};
-  auto result = TestLibCpio::InitCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to initialize CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
+  TestLibCpio::InitCpio(cpio_options);
   MetricClientOptions metric_client_options;
   auto metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
-  result = metric_client->Init();
+  ExecutionResult result = metric_client->Init();
   if (!result.Successful()) {
     std::cout << "Cannot init metric client!"
               << GetErrorMessage(result.status_code) << std::endl;
@@ -102,10 +97,5 @@ int main(int argc, char* argv[]) {
     std::cout << "Cannot stop metric client!"
               << GetErrorMessage(result.status_code) << std::endl;
   }
-
-  result = TestLibCpio::ShutdownCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to shutdown CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
+  TestLibCpio::ShutdownCpio(cpio_options);
 }

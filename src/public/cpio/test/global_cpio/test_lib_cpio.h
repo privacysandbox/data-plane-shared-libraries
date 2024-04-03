@@ -32,17 +32,15 @@ class TestLibCpio {
    * @brief Initializes global CPIO objects for testing.
    *
    * @param options global configurations for testing.
-   * @return core::ExecutionResult result of initializing CPIO.
    */
-  static core::ExecutionResult InitCpio(TestCpioOptions options);
+  static void InitCpio(TestCpioOptions options);
 
   /**
    * @brief Shuts down global CPIO objects for testing.
    *
    * @param options global configurations for testing.
-   * @return core::ExecutionResult result of terminating CPIO.
    */
-  static core::ExecutionResult ShutdownCpio(TestCpioOptions options);
+  static void ShutdownCpio(TestCpioOptions options);
 };
 }  // namespace google::scp::cpio
 

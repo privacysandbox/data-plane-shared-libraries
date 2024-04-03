@@ -18,12 +18,11 @@
 
 #include <memory>
 
+#include "src/core/common/global_logger/global_logger.h"
 #include "src/cpio/client_providers/global_cpio/cpio_provider/test_lib_cpio_provider.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/core/cpio_utils.h"
-#include "src/public/cpio/interface/cpio.h"
 #include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 
 using google::scp::core::ExecutionResult;
@@ -32,17 +31,13 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::TestLibCpioProvider;
 
 namespace google::scp::cpio {
-ExecutionResult TestLibCpio::InitCpio(TestCpioOptions options) {
-  auto execution_result = Cpio::InitCpio(options.options, false);
-  if (!execution_result.Successful()) {
-    return execution_result;
-  }
-  CpioUtils::RunAndSetGlobalCpio(
+void TestLibCpio::InitCpio(TestCpioOptions options) {
+  InitializeCpioLog(options.options.log_option);
+  GlobalCpio::SetGlobalCpio(
       std::make_unique<TestLibCpioProvider>(std::move(options)));
-  return SuccessExecutionResult();
 }
 
-ExecutionResult TestLibCpio::ShutdownCpio(TestCpioOptions options) {
-  return Cpio::ShutdownCpio(options.options);
+void TestLibCpio::ShutdownCpio(TestCpioOptions options) {
+  GlobalCpio::ShutdownGlobalCpio();
 }
 }  // namespace google::scp::cpio
