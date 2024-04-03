@@ -58,7 +58,7 @@ ABSL_CONST_INIT inline opentelemetry::logs::Logger* logger_private = nullptr;
 std::string FormatContext(
     const absl::btree_map<std::string, std::string>& context_map);
 
-class ContextImpl : public RequestContext {
+class ContextImpl final : public RequestContext {
  public:
   ContextImpl(
       const absl::btree_map<std::string, std::string>& context_map,
@@ -69,7 +69,7 @@ class ContextImpl : public RequestContext {
     Update(context_map, debug_config);
   }
 
-  virtual ~ContextImpl() = default;
+  // note: base class RequestContext has no virtual destructor!
 
   std::string_view ContextStr() const override { return context_; }
 
@@ -156,7 +156,9 @@ class OtelSinkImpl : public absl::LogSink {
 // Defines SafePathContext class to always log to otel for safe code path
 class SafePathContext : public RequestContext {
  public:
+  // note: base class RequestContext has no virtual destructor!
   virtual ~SafePathContext() = default;
+
   std::string_view ContextStr() const override { return ""; }
 
   bool is_consented() const override { return true; }

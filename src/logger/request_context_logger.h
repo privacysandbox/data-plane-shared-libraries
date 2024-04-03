@@ -42,6 +42,9 @@ inline bool PS_VLOG_IS_ON(int verbose_level,
 
 // Used by `PS_VLOG`, to provide the context of how to log a request.
 class RequestContext {
+ protected:
+  ~RequestContext() = default;
+
  public:
   // `ContextStr()` will be added to the front of log message.
   virtual std::string_view ContextStr() const = 0;
@@ -53,8 +56,10 @@ class RequestContext {
   virtual absl::LogSink* DebugResponseSink() = 0;
 };
 
-class NoOpContext : public RequestContext {
+class NoOpContext final : public RequestContext {
  public:
+  // note: base class RequestContext has no virtual destructor!
+
   std::string_view ContextStr() const override { return ""; }
 
   bool is_consented() const override { return false; }
