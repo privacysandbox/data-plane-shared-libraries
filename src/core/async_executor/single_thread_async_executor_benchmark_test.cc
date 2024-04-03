@@ -63,6 +63,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
   };
 
   std::vector<std::thread> threads;
+  threads.reserve(num_threads_scheduling_tasks_);
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }
@@ -106,6 +107,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
   };
 
   std::vector<std::thread> threads;
+  threads.reserve(num_threads_scheduling_tasks_);
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }

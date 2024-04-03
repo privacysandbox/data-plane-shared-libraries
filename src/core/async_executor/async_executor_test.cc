@@ -313,6 +313,7 @@ void TestPickTaskExecutor(TaskExecutorPoolType pool_type,
 
   int num_executors =
       std::accumulate(pick_times_list.begin(), pick_times_list.end(), 0);
+  task_executor_pool.reserve(num_executors);
   for (int i = 0; i < num_executors; i++) {
     task_executor_pool.push_back(
         std::make_unique<TExecutor>(100 /* queue cap */));
@@ -382,6 +383,7 @@ TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinThreadLocalUrgentPool) {
   int num_executors = 10;
   std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
       task_executor_pool;
+  task_executor_pool.reserve(num_executors);
   for (int i = 0; i < num_executors; i++) {
     task_executor_pool.push_back(
         std::make_unique<SingleThreadPriorityAsyncExecutor>(
