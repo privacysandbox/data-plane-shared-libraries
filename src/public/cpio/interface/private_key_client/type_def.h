@@ -52,8 +52,6 @@ struct PrivateKeyVendingEndpoint {
 
 /// Configuration for PrivateKeyClient.
 struct PrivateKeyClientOptions {
-  virtual ~PrivateKeyClientOptions() = default;
-
   /** @brief This endpoint hosts part of the private key. It is the source of
    * truth. If the part is missing here, the private key is treated as invalid
    * even the other parts can be found in other endpoints.
