@@ -126,13 +126,13 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   default:                                   \
     !(condition) ? (void)0 : ::absl::log_internal::Voidify()&&
 
-#define PS_LOGGING_INTERNAL_LOG_INFO(request_context)    \
-  ::privacy_sandbox::server_common::log::PSLogMessage(   \
-      __FILE__, __LINE__, ::absl ::LogSeverity ::kInfo)  \
-      .ToSinkAlsoIf(request_context.is_consented(),      \
-                    request_context.ConsentedSink())     \
-      .ToSinkAlsoIf(request_context.is_debug_response(), \
-                    request_context.DebugResponseSink())
+#define PS_LOGGING_INTERNAL_LOG_INFO(request_context)      \
+  ::privacy_sandbox::server_common::log::PSLogMessage(     \
+      __FILE__, __LINE__, ::absl ::LogSeverity ::kInfo)    \
+      .ToSinkAlsoIf((request_context).is_consented(),      \
+                    (request_context).ConsentedSink())     \
+      .ToSinkAlsoIf((request_context).is_debug_response(), \
+                    (request_context).DebugResponseSink())
 
 #define PS_VLOG_CONTEXT_INTERNAL(verbose_level, request_context) \
   PS_VLOG_INTERNAL(verbose_level, request_context)               \
