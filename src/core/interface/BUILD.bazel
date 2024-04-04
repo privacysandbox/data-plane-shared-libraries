@@ -37,7 +37,6 @@ cc_library(
         "config_provider_interface.h",
         "configuration_keys.h",
         "credentials_provider_interface.h",
-        "dependency_injection_service_interface.h",
         "http_client_interface.h",
         "http_request_response_auth_interceptor_interface.h",
         "http_request_route_resolver_interface.h",
