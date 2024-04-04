@@ -47,10 +47,6 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
 
-namespace {
-constexpr std::string_view kPublicKeyClient = "PublicKeyClient";
-}  // namespace
-
 namespace google::scp::cpio {
 ExecutionResult PublicKeyClient::Init() noexcept {
   return SuccessExecutionResult();
