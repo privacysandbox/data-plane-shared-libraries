@@ -103,7 +103,7 @@ for tgt in "${targets[@]}"; do
     --benchmark_out="/src/workspace/dist/benchmarks/${out_fname}" \
     "${benchmark_args[@]}" \
     2>/dev/null \
-    | grep -Fv sandbox2.cc
+    | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc"
 done
 
 "${TOOLS_DIR}"/normalize-dist || true
