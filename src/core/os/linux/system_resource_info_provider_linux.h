@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <string>
+#include <string_view>
 
 #include "src/core/os/system_resource_info_provider.h"
 #include "src/public/core/interface/execution_result.h"
@@ -49,7 +50,7 @@ class SystemResourceInfoProviderLinux : public SystemResourceInfoProvider {
    * @return ExecutionResultOr<uint64_t>
    */
   core::ExecutionResultOr<uint64_t> GetMemInfoLineEntryKb(
-      std::string meminfo_line) noexcept;
+      std::string_view meminfo_line) noexcept;
 };
 }  // namespace google::scp::core::os::linux
 

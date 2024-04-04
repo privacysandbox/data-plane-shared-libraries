@@ -18,6 +18,8 @@
 
 #include <fstream>
 #include <sstream>
+#include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/strings/match.h"
@@ -39,8 +41,8 @@ using google::scp::core::errors::
 namespace {
 constexpr std::string_view kMemInfoFileName = "/proc/meminfo";
 constexpr std::string_view kMemInfoLineSeparator = " ";
-constexpr int kExpectedMemInfoLinePartsCount = 3;
-constexpr int kExpectedMemInfoLineNumericValueIndex = 1;
+constexpr size_t kExpectedMemInfoLinePartsCount = 3;
+constexpr size_t kExpectedMemInfoLineNumericValueIndex = 1;
 constexpr std::string_view kTotalAvailableMemory = "MemAvailable";
 }  // namespace
 
@@ -63,7 +65,7 @@ SystemResourceInfoProviderLinux::GetAvailableMemoryKb() noexcept {
 
   while (std::getline(meminfo_file, line)) {
     if (absl::StrContains(line, kTotalAvailableMemory)) {
-      auto mem_value = GetMemInfoLineEntryKb(line);
+      auto mem_value = GetMemInfoLineEntryKb(std::string_view(line));
       if (mem_value.Successful()) {
         total_available_mem_kb = *mem_value;
       } else {
@@ -86,10 +88,9 @@ std::string SystemResourceInfoProviderLinux::GetMemInfoFilePath() noexcept {
 
 ExecutionResultOr<uint64_t>
 SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
-    std::string meminfo_line) noexcept {
-  std::vector<std::string> line_parts =
+    std::string_view meminfo_line) noexcept {
+  const std::vector<std::string> line_parts =
       absl::StrSplit(meminfo_line, kMemInfoLineSeparator, absl::SkipEmpty());
-
   if (line_parts.size() != kExpectedMemInfoLinePartsCount) {
     return FailureExecutionResult(
         SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_PARSE_MEMINFO_LINE);
@@ -99,13 +100,11 @@ SystemResourceInfoProviderLinux::GetMemInfoLineEntryKb(
   std::stringstream int_parsing_stream;
   int_parsing_stream << line_parts.at(kExpectedMemInfoLineNumericValueIndex);
   int_parsing_stream >> read_memory_kb;
-
   if (!absl::SimpleAtoi(line_parts.at(kExpectedMemInfoLineNumericValueIndex),
                         &read_memory_kb)) {
     return FailureExecutionResult(
         SYSTEM_RESOURCE_INFO_PROVIDER_LINUX_COULD_NOT_PARSE_MEMINFO_LINE);
   }
-
   return read_memory_kb;
 }
 }  // namespace google::scp::core::os::linux
