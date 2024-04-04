@@ -37,7 +37,7 @@ std::string FormatContext(
   if (pairs.empty()) {
     return "";
   }
-  return absl::StrCat(" (", absl::StrJoin(std::move(pairs), ", "), ") ");
+  return absl::StrCat(" (", absl::StrJoin(pairs, ", "), ") ");
 }
 
 }  // namespace privacy_sandbox::server_common::log
