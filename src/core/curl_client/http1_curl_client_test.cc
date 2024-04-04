@@ -58,21 +58,24 @@ class MockCurlWrapper : public NiceMock<Http1CurlWrapper> {
               (const HttpRequest&));
 };
 
+constexpr uint64_t kThreadCount = 4;
+constexpr uint64_t kQueueCap = 10;
+
 class Http1CurlClientTest : public ::testing::Test {
  protected:
   Http1CurlClientTest()
-      : cpu_async_executor_(/*thread_count=*/4,
-                            /*queue_cap=*/10),
-        io_async_executor_(/*thread_count=*/4,
-                           /*queue_cap=*/10),
+      : cpu_async_executor_(kThreadCount, kQueueCap),
+        io_async_executor_(kThreadCount, kQueueCap),
         wrapper_(std::make_shared<MockCurlWrapper>()) {
     auto provider = std::make_unique<MockCurlWrapperProvider>();
     provider_ = provider.get();
+    constexpr uint64_t delay_duration_ms = 1UL;
+    constexpr size_t maximum_allowed_retry_count = 10;
     subject_.emplace(
         &cpu_async_executor_, &io_async_executor_, std::move(provider),
         common::RetryStrategyOptions(common::RetryStrategyType::Exponential,
-                                     /*time_duration_ms=*/1UL,
-                                     /*total_retries=*/10));
+                                     delay_duration_ms,
+                                     maximum_allowed_retry_count));
     ON_CALL(*provider_, MakeWrapper).WillByDefault(Return(wrapper_));
   }
 
