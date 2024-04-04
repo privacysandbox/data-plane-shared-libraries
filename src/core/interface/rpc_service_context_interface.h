@@ -19,6 +19,8 @@
 
 #include <functional>
 
+#include "src/public/core/interface/execution_result.h"
+
 namespace google::scp::core {
 /**
  * @brief The interface for RPC service contexts. A RPC service context stands

@@ -17,11 +17,15 @@
 #ifndef CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_
 #define CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_
 
-#include "src/core/interface/http_request_route_resolver_interface.h"
-#include "src/core/interface/http_types.h"
-#include "src/core/interface/service_interface.h"
+#include "src/public/core/interface/execution_result.h"
+
+#include "async_context.h"
+#include "http_request_route_resolver_interface.h"
+#include "http_types.h"
+#include "service_interface.h"
 
 namespace google::scp::core {
+
 /**
  * @brief Abstraction to implement routing HTTP requests to an endpoint.
  */
@@ -43,6 +47,7 @@ class HttpRequestRouterInterface : public ServiceInterface {
   virtual ExecutionResult RouteRequest(
       AsyncContext<HttpRequest, HttpResponse>& context) noexcept = 0;
 };
+
 }  // namespace google::scp::core
 
 #endif  // CORE_INTERFACE_HTTP_REQUEST_ROUTER_INTERFACE_H_

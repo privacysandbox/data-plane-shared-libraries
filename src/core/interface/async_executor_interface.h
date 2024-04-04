@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "absl/functional/any_invocable.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "service_interface.h"
 #include "type_def.h"
