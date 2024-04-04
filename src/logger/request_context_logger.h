@@ -111,7 +111,7 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   PS_LOG_INTERNAL_CONDITION(condition)                                    \
   PS_LOGGING_INTERNAL_LOG##severity(request_context).InternalStream()
 
-// The `switch` ensures that this expansion is the begnning of a statement.
+// The `switch` ensures that this expansion is the beginning of a statement.
 //
 // The tenary evaluates to either
 //   (void)0;
