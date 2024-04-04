@@ -47,7 +47,7 @@ template <typename TMetadata>
 void RegisterHostApi(Config<TMetadata>& config) {
   {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
   config.RegisterFunctionBinding(
-    std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+    std::make_unique<FunctionBindingObjectV2<TMetadata>>(FunctionBindingObjectV2<TMetadata>{
         .function_name = "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}",
         .function = {{$rpc.Name}}FunctionBinding<TMetadata>,
     }));
