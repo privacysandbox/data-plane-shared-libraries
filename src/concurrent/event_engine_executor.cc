@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "src/concurrent/event_engine_executor.h"
+#include "event_engine_executor.h"
 
 #include <utility>
 
