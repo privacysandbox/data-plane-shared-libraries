@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/http_types.h"
@@ -38,7 +39,7 @@ struct PartitionMetadata {
                     PartitionAddressUri partition_address_uri)
       : partition_id(partition_id),
         partition_type(partition_type),
-        partition_address_uri(partition_address_uri) {}
+        partition_address_uri(std::move(partition_address_uri)) {}
 
   PartitionId Id() const { return partition_id; }
 
