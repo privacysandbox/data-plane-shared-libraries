@@ -29,6 +29,8 @@
 #include <openssl/hmac.h>
 #include <openssl/sha.h>
 
+#include "src/public/core/interface/execution_result.h"
+
 #include "../error_codes.h"
 
 using boost::algorithm::find_nth;

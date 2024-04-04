@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "src/core/common/time_provider/time_provider.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "async_executor_utils.h"
 #include "error_codes.h"

@@ -20,6 +20,8 @@
 #include <thread>
 #include <utility>
 
+#include "src/public/core/interface/execution_result.h"
+
 #include "async_executor_utils.h"
 #include "error_codes.h"
 #include "typedef.h"

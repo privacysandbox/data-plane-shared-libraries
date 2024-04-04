@@ -46,6 +46,7 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/common/aws/aws_utils.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
 #include "src/util/status_macro/status_macros.h"
 

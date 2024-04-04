@@ -18,7 +18,11 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_blob_storage_client_provider",
-    srcs = [":aws_blob_storage_client_provider_srcs"],
+    srcs = [
+        "aws_blob_storage_client_provider.cc",
+        "aws_blob_storage_client_provider.h",
+        "aws_blob_storage_client_utils.h",
+    ],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
         "//src/core/utils:core_utils",
@@ -26,6 +30,7 @@ cc_library(
         "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/common/aws:aws_utils",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface/blob_storage_client:type_def",
         "//src/util/status_macro:status_macros",
         "@aws_sdk_cpp//:core",
@@ -40,15 +45,6 @@ exports_files([
     "aws_blob_storage_client_provider.cc",
     "aws_blob_storage_client_utils.h",
 ])
-
-filegroup(
-    name = "aws_blob_storage_client_provider_srcs",
-    srcs = [
-        ":aws_blob_storage_client_provider.cc",
-        ":aws_blob_storage_client_provider.h",
-        ":aws_blob_storage_client_utils.h",
-    ],
-)
 
 cc_test(
     name = "aws_blob_storage_client_provider_test",
@@ -68,6 +64,7 @@ cc_test(
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
         "@com_google_absl//absl/synchronization",

@@ -24,7 +24,6 @@
 
 #include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/kms_client_provider/mock/aws/mock_kms_client.h"
-#include "src/public/core/interface/execution_result.h"
 
 using Aws::InitAPI;
 using Aws::SDKOptions;
@@ -40,9 +39,6 @@ using crypto::tink::Aead;
 using crypto::tink::util::StatusOr;
 using google::scp::core::Byte;
 using google::scp::core::BytesBuffer;
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::mock::MockKMSClient;
 using ::testing::StrEq;
 

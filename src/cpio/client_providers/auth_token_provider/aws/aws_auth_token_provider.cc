@@ -24,6 +24,7 @@
 
 #include "absl/functional/bind_front.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;

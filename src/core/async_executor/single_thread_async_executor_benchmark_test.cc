@@ -20,6 +20,7 @@
 
 #include "src/core/async_executor/single_thread_async_executor.h"
 #include "src/core/common/time_provider/time_provider.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;

@@ -36,10 +36,6 @@
 namespace privacy_sandbox::server_common {
 namespace {
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-
 class KeyFetcherManagerTest : public ::testing::Test {
  protected:
   KeyFetcherManagerTest() {

@@ -29,6 +29,7 @@
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/client_providers/role_credentials_provider/aws/sts_error_converter.h"
 #include "src/cpio/common/aws/aws_utils.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/util/status_macro/status_macros.h"
 
 #include "error_codes.h"

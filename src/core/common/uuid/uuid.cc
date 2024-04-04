@@ -26,6 +26,7 @@
 #include "absl/random/random.h"
 #include "absl/strings/ascii.h"
 #include "absl/strings/str_cat.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/util/duration.h"
 
 #include "error_codes.h"

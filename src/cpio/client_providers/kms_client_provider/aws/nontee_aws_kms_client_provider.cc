@@ -28,6 +28,7 @@
 #include "src/core/utils/base64.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "src/cpio/common/aws/aws_utils.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
 #include "aws_kms_aead.h"

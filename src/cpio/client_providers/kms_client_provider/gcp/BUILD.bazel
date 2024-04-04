@@ -28,6 +28,7 @@ cc_library(
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@com_github_googleapis_google_cloud_cpp//:kms",
@@ -49,6 +50,7 @@ cc_library(
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@com_github_googleapis_google_cloud_cpp//:kms",
@@ -57,20 +59,6 @@ cc_library(
         "@tink_cc",
     ],
 )
-
-exports_files([
-    "error_codes.h",
-    "gcp_key_management_service_client.cc",
-    "gcp_key_management_service_client.h",
-    "gcp_kms_aead.cc",
-    "gcp_kms_aead.h",
-    "gcp_kms_client_provider.cc",
-    "gcp_kms_client_provider.h",
-    "nontee_gcp_kms_provider.cc",
-    "tee_gcp_kms_client_provider_utils.cc",
-    "tee_gcp_kms_client_provider_utils.h",
-    "tee_gcp_kms_provider.cc",
-])
 
 filegroup(
     name = "gcp_kms_client_provider_srcs",
@@ -106,8 +94,7 @@ filegroup(
 cc_test(
     name = "gcp_kms_aead_test",
     size = "small",
-    srcs =
-        ["gcp_kms_aead_test.cc"],
+    srcs = ["gcp_kms_aead_test.cc"],
     deps = [
         ":nontee_gcp_kms_client_provider",
         "//src/core/interface",
@@ -121,14 +108,14 @@ cc_test(
 cc_test(
     name = "gcp_kms_client_provider_test",
     size = "small",
-    srcs =
-        ["gcp_kms_client_provider_test.cc"],
+    srcs = ["gcp_kms_client_provider_test.cc"],
     deps = [
         ":nontee_gcp_kms_client_provider",
         "//src/core/interface",
         "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/gcp:gcp_kms_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_github_googleapis_google_cloud_cpp//:kms",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -138,8 +125,7 @@ cc_test(
 cc_test(
     name = "tee_gcp_kms_client_provider_utils_test",
     size = "small",
-    srcs =
-        ["tee_gcp_kms_client_provider_utils_test.cc"],
+    srcs = ["tee_gcp_kms_client_provider_utils_test.cc"],
     deps = [
         ":tee_gcp_kms_client_provider",
         "@com_google_googletest//:gtest_main",

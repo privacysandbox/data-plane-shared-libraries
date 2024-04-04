@@ -23,6 +23,7 @@
 #include <openssl/base64.h>
 
 #include "absl/strings/str_cat.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

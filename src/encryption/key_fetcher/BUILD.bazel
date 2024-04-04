@@ -25,6 +25,7 @@ cc_library(
         "//src/encryption/key_fetcher/interface:public_key_fetcher_interface",
         "//src/logger:request_context_logger",
         "//src/metric:key_fetch",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface/public_key_client",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/random",
@@ -42,6 +43,7 @@ cc_library(
         "//src/encryption/key_fetcher/interface:private_key_fetcher_interface",
         "//src/logger:request_context_logger",
         "//src/metric:key_fetch",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface/crypto_client",
         "//src/public/cpio/proto/crypto_service/v1:crypto_service_cc_proto",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -95,6 +97,7 @@ cc_test(
     srcs = ["public_key_fetcher_test.cc"],
     deps = [
         ":public_key_fetcher",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],
@@ -106,6 +109,7 @@ cc_test(
     srcs = ["private_key_fetcher_test.cc"],
     deps = [
         ":private_key_fetcher",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest",
         "@com_google_googletest//:gtest_main",
     ],

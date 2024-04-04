@@ -30,6 +30,7 @@ cc_library(
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
         "//src/core/interface",
+        "//src/public/core/interface:execution_result",
         "@aws_sdk_cpp//:sts",
         "@com_google_absl//absl/functional:bind_front",
     ],

@@ -30,6 +30,7 @@
 #include "src/core/common/operation_dispatcher/error_codes.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/streaming_context.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;

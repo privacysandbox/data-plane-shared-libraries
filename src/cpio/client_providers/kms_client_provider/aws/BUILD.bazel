@@ -102,13 +102,13 @@ pkg_tar(
 cc_library(
     name = "nontee_aws_kms_client_provider",
     srcs = [
-        ":aws_kms_aead.cc",
-        ":nontee_aws_kms_client_provider.cc",
+        "aws_kms_aead.cc",
+        "nontee_aws_kms_client_provider.cc",
     ],
     hdrs = [
-        ":aws_kms_aead.h",
-        ":nontee_aws_kms_client_provider.h",
-        ":nontee_error_codes.h",
+        "aws_kms_aead.h",
+        "nontee_aws_kms_client_provider.h",
+        "nontee_error_codes.h",
     ],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
@@ -118,6 +118,7 @@ cc_library(
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/common/aws:aws_utils",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@aws_sdk_cpp//:kms",
@@ -128,13 +129,13 @@ cc_library(
 cc_library(
     name = "tee_aws_kms_client_provider",
     srcs = [
-        ":tee_aws_kms_client_provider.cc",
-        ":tee_aws_kms_client_provider_utils.cc",
+        "tee_aws_kms_client_provider.cc",
+        "tee_aws_kms_client_provider_utils.cc",
     ],
     hdrs = [
-        ":tee_aws_kms_client_provider.h",
-        ":tee_aws_kms_client_provider_utils.h",
-        ":tee_error_codes.h",
+        "tee_aws_kms_client_provider.h",
+        "tee_aws_kms_client_provider_utils.h",
+        "tee_error_codes.h",
     ],
     defines = [
         'AWS_NITRO_ENCLAVES_CLI_PATH=\\"{path}{filename}\\"'.format(
@@ -204,6 +205,7 @@ cc_test(
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -220,6 +222,7 @@ cc_test(
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -229,14 +232,12 @@ cc_test(
 cc_test(
     name = "aws_kms_aead_test",
     size = "small",
-    srcs =
-        ["aws_kms_aead_test.cc"],
+    srcs = ["aws_kms_aead_test.cc"],
     deps = [
         ":nontee_aws_kms_client_provider",
         "//src/core/interface",
         "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
-        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )

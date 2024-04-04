@@ -18,6 +18,8 @@
 #include <string_view>
 #include <utility>
 
+#include "src/public/core/interface/execution_result.h"
+
 #include "http1_curl_wrapper.h"
 
 using google::scp::core::common::RetryStrategy;

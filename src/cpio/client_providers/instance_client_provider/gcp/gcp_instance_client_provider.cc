@@ -34,6 +34,7 @@
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/common/cpio_utils.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "gcp_instance_client_utils.h"

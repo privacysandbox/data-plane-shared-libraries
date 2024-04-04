@@ -29,6 +29,7 @@
 #include "absl/strings/str_split.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/utils/base64.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

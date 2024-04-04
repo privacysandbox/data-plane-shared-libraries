@@ -21,6 +21,7 @@
 #include "src/core/interface/http_client_interface.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::HttpClientInterface;

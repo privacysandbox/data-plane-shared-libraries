@@ -20,6 +20,7 @@
 #include <utility>
 
 #include "oneapi/tbb/concurrent_queue.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

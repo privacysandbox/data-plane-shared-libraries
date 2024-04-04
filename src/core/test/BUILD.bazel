@@ -33,6 +33,7 @@ cc_test(
     srcs = ["service_interface_test.cc"],
     deps = [
         "//src/core/interface",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest_main",
     ],
 )

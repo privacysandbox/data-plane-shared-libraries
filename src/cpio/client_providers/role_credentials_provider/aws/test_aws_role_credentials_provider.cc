@@ -28,8 +28,6 @@
 
 using Aws::Client::ClientConfiguration;
 using google::scp::core::AsyncExecutorInterface;
-using google::scp::core::ExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::common::test::CreateTestClientConfiguration;
 
 namespace google::scp::cpio::client_providers {

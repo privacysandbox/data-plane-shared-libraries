@@ -24,6 +24,7 @@
 
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/test/scp_test_base.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;

@@ -18,6 +18,8 @@
 
 #include <memory>
 
+#include "src/public/core/interface/execution_result.h"
+
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::common::RetryStrategy;
 using google::scp::core::common::RetryStrategyType;
