@@ -25,26 +25,67 @@ namespace privacy_sandbox::server_common::log {
 
 namespace {
 
+using ::testing::AllOf;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 
-TEST_F(LogTest, Stderr) {
+TEST_F(LogTest, VlogToStderr) {
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
-TEST_F(LogTest, StderrAndConsent) {
+TEST_F(LogTest, WarningToStderr) {
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, ErrorToStderr) {
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, VlogToStderrAndConsent) {
   tc.is_consented_ = true;
-  EXPECT_CALL(tc.consent_sink_,
-              Send(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent))))
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
-TEST_F(LogTest, StderrAndDebugResponse) {
+TEST_F(LogTest, WarningToStderrAndConsent) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kWarning))))
+      .Times(1);
+
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, ErrorToStderrAndConsent) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kError))))
+      .Times(1);
+
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, VlogStderrAndDebugResponse) {
   tc.is_debug_response_ = true;
   EXPECT_CALL(tc.debug_response_sink_,
               Send(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent))))
@@ -54,7 +95,31 @@ TEST_F(LogTest, StderrAndDebugResponse) {
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
-TEST_F(LogTest, StderrAndConsentAndDebugResponse) {
+TEST_F(LogTest, WarningStderrAndDebugResponse) {
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.debug_response_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kWarning))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, ErrorStderrAndDebugResponse) {
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.debug_response_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kError))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, VlogStderrAndConsentAndDebugResponse) {
   tc.is_consented_ = true;
   EXPECT_CALL(tc.consent_sink_,
               Send(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent))))
@@ -65,6 +130,42 @@ TEST_F(LogTest, StderrAndConsentAndDebugResponse) {
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, WarningStderrAndConsentAndDebugResponse) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kWarning))))
+      .Times(1);
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.debug_response_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kWarning))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, ErrorStderrAndConsentAndDebugResponse) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kError))))
+      .Times(1);
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.debug_response_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kError))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 

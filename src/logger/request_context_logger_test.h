@@ -82,6 +82,8 @@ MATCHER_P(LogEntryHas, value, "") {
   return absl::StrContains(arg.text_message(), value);
 }
 
+MATCHER_P(LogEntrySeverity, value, "") { return arg.log_severity() == value; }
+
 inline std::string Crash() {
   CHECK(false) << "  This should not be called";
   return "";

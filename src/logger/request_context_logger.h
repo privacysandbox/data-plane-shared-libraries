@@ -100,6 +100,14 @@ class PSLogMessage : public absl::log_internal::LogMessage {
             ps_logging_internal_verbose_level),                                \
         ps_logging_internal_context)                                           \
         .WithVerbosity(ps_logging_internal_verbose_level)
+
+#define PS_LOG_INTERNAL(severity, request_context)                             \
+  switch (::privacy_sandbox::server_common::log::                              \
+              RequestContext& ps_logging_internal_context = (request_context); \
+          0)                                                                   \
+  default:                                                                     \
+    PS_LOG_INTERNAL_LOG_IF_IMPL(_##severity, true, ps_logging_internal_context)
+
 #else
 #define PS_VLOG_INTERNAL(verbose_level, request_context)                       \
   switch (::privacy_sandbox::server_common::log::                              \
@@ -110,6 +118,15 @@ class PSLogMessage : public absl::log_internal::LogMessage {
                           ps_logging_internal_verbose_level) &&                \
                           ps_logging_internal_context.is_consented())          \
         .ToSinkOnly(ps_logging_internal_context.ConsentedSink())
+
+#define PS_LOG_INTERNAL(severity, request_context)                             \
+  switch (::privacy_sandbox::server_common::log::                              \
+              RequestContext& ps_logging_internal_context = (request_context); \
+          0)                                                                   \
+  default:                                                                     \
+    ABSL_LOG_IF(severity, ps_logging_internal_context.is_consented())          \
+        .ToSinkOnly(ps_logging_internal_context.ConsentedSink())
+
 #endif
 
 #define PS_LOG_INTERNAL_LOG_IF_IMPL(severity, condition, request_context) \
@@ -131,25 +148,31 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   default:                                   \
     !(condition) ? (void)0 : ::absl::log_internal::Voidify()&&
 
-#define PS_LOGGING_INTERNAL_LOG_INFO(request_context)      \
-  ::privacy_sandbox::server_common::log::PSLogMessage(     \
-      __FILE__, __LINE__, ::absl ::LogSeverity ::kInfo)    \
-      .ToSinkAlsoIf((request_context).is_consented(),      \
-                    (request_context).ConsentedSink())     \
-      .ToSinkAlsoIf((request_context).is_debug_response(), \
+#define PS_LOGGING_INTERNAL_LOG_SEVERITY(request_context, absl_log_severity) \
+  ::privacy_sandbox::server_common::log::PSLogMessage(__FILE__, __LINE__,    \
+                                                      absl_log_severity)     \
+      .ToSinkAlsoIf((request_context).is_consented(),                        \
+                    (request_context).ConsentedSink())                       \
+      .ToSinkAlsoIf((request_context).is_debug_response(),                   \
                     (request_context).DebugResponseSink())
+
+#define PS_LOGGING_INTERNAL_LOG_INFO(request_context) \
+  PS_LOGGING_INTERNAL_LOG_SEVERITY(request_context, ::absl::LogSeverity::kInfo)
+
+#define PS_LOGGING_INTERNAL_LOG_WARNING(request_context) \
+  PS_LOGGING_INTERNAL_LOG_SEVERITY(request_context,      \
+                                   ::absl::LogSeverity::kWarning)
+
+#define PS_LOGGING_INTERNAL_LOG_ERROR(request_context) \
+  PS_LOGGING_INTERNAL_LOG_SEVERITY(request_context, ::absl::LogSeverity::kError)
 
 #define PS_VLOG_CONTEXT_INTERNAL(verbose_level, request_context) \
   PS_VLOG_INTERNAL(verbose_level, request_context)               \
       << ps_logging_internal_context.ContextStr()
 
-// Same as ABSL_LOG, just log with extra request_context.ContextStr()
-#define PS_LOG(severity, request_context)                                      \
-  switch (::privacy_sandbox::server_common::log::                              \
-              RequestContext& ps_logging_internal_context = (request_context); \
-          0)                                                                   \
-  default:                                                                     \
-    ABSL_LOG(severity) << ps_logging_internal_context.ContextStr()
+#define PS_LOG(severity, request_context)    \
+  PS_LOG_INTERNAL(severity, request_context) \
+      << ps_logging_internal_context.ContextStr()
 
 #define PS_VLOG_NO_CONTEXT_INTERNAL(verbose_level)                     \
   PS_VLOG_INTERNAL(                                                    \
