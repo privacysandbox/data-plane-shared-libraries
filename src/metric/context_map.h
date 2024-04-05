@@ -149,12 +149,20 @@ inline auto* GetContextMap(
     CHECK(config != std::nullopt) << "cannot be null at initialization";
     absl::Status config_status = config->CheckMetricConfig(definition_list);
     ABSL_LOG_IF(WARNING, !config_status.ok()) << config_status;
-    double total_weight = absl::c_accumulate(
+    const double total_weight = absl::c_accumulate(
         definition_list, 0.0,
         [&config](double total, const DefinitionName* definition) {
-          return total += config->GetMetricConfig(definition->name_).ok()
-                              ? definition->privacy_budget_weight_copy_
-                              : 0;
+          double privacy_budget_weight = 0;
+          if (absl::StatusOr<telemetry::MetricConfig> metric_config =
+                  config->GetMetricConfig(definition->name_);
+              metric_config.ok()) {
+            if (metric_config->has_privacy_budget_weight()) {
+              privacy_budget_weight = metric_config->privacy_budget_weight();
+            } else {
+              privacy_budget_weight = definition->privacy_budget_weight_copy_;
+            }
+          }
+          return total += privacy_budget_weight;
         });
     budget.epsilon /= total_weight;
     return new ContextMap<T, definition_list, MetricRouter>(
