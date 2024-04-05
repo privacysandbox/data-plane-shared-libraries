@@ -286,10 +286,10 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
             "@com_github_grpc_grpc//:grpc++",
-            "//src/util/status_macro:status_util",
-            "//src/roma/config",
-            "//src/roma/interface",
-            "//src/roma/roma_service:romav8_proto_utils",
+            Label("//src/util/status_macro:status_util"),
+            Label("//src/roma/config"),
+            Label("//src/roma/interface"),
+            Label("//src/roma/roma_service:romav8_proto_utils"),
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
@@ -303,7 +303,7 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             "@com_google_absl//absl/strings",
             "@com_google_absl//absl/synchronization",
             "@com_google_googletest//:gtest_main",
-            "//src/roma/roma_service",
+            Label("//src/roma/roma_service"),
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
@@ -390,7 +390,7 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         ],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
-            "//src/roma/roma_service:romav8_app_service",
+            Label("//src/roma/roma_service:romav8_app_service"),
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
         ],
