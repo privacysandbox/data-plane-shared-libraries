@@ -29,6 +29,7 @@ using google::scp::core::HttpRequest;
 using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::cpio::client_providers {
+
 // In integration test, localstack API_GATEWAY doesn't support signed request.
 ExecutionResult SignHttpRequestUsingV4Signer(
     std::shared_ptr<core::HttpRequest>& http_request,
@@ -36,4 +37,5 @@ ExecutionResult SignHttpRequestUsingV4Signer(
     std::string_view security_token, std::string_view region) noexcept {
   return SuccessExecutionResult();
 }
+
 }  // namespace google::scp::cpio::client_providers

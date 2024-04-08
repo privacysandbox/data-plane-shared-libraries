@@ -26,6 +26,7 @@
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::client_providers {
+
 /*! @copydoc AwsPrivateKeyFetcherProvider
  */
 class TestAwsPrivateKeyFetcherProvider : public AwsPrivateKeyFetcherProvider {
@@ -49,6 +50,7 @@ class TestAwsPrivateKeyFetcherProvider : public AwsPrivateKeyFetcherProvider {
       std::string_view security_token,
       std::string_view region) noexcept override;
 };
+
 }  // namespace google::scp::cpio::client_providers
 
 #endif  // CPIO_CLIENT_PROVIDERS_PRIVATE_KEY_FETCHER_PROVIDER_AWS_TEST_AWS_PRIVATE_KEY_FETCHER_PROVIDER_H_
