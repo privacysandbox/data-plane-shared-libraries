@@ -23,3 +23,11 @@ cc_binary(
         "@v8//:v8_icu",
     ],
 )
+
+cc_binary(
+    name = "v8_shell",
+    srcs = ["v8_shell.cc"],
+    deps = [
+        "@v8//:v8_icu",
+    ],
+)
