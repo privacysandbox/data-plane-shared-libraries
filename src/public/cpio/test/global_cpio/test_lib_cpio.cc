@@ -25,8 +25,6 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/test/global_cpio/test_cpio_options.h"
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::TestLibCpioProvider;
 

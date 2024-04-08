@@ -35,6 +35,7 @@ cc_library(
         "//src/public/cpio/interface:cpio.h",
     ],
     deps = [
+        ":test_cpio_options",
         "//src/core/interface",
         "//src/core/logger",
         "//src/core/logger/log_providers",

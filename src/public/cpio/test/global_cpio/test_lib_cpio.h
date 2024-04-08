@@ -17,8 +17,6 @@
 #ifndef SCP_CPIO_TEST_LIB_CPIO_H_
 #define SCP_CPIO_TEST_LIB_CPIO_H_
 
-#include "src/public/core/interface/execution_result.h"
-
 #include "test_cpio_options.h"
 
 namespace google::scp::cpio {
