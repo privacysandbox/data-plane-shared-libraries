@@ -39,6 +39,7 @@ build:cpp_nowarn --per_file_copt=src/public/cpio/adapters/crypto_client/crypto_c
 
 # Disabled due to `comms` and `Pointable` being deprecated in sandboxed_api
 build:cpp_nowarn --per_file_copt=src/roma/logging/logging_test\.cc@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/roma/tools/v8_cli/roma_shell\.cc@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/experimental/kevinbnaughton/roma_grpc/.*@-Wno-deprecated-declarations
 
 # Disabled due to necessary macro collision introduced in src/roma/sandbox/js_engine/v8_engine/v8.console.h

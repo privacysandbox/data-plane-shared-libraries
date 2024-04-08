@@ -31,3 +31,15 @@ cc_binary(
         "@v8//:v8_icu",
     ],
 )
+
+cc_binary(
+    name = "roma_shell",
+    srcs = ["roma_shell.cc"],
+    deps = [
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings",
+    ],
+)
