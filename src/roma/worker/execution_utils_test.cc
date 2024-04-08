@@ -19,10 +19,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <v8-context.h>
-#include <v8-initialization.h>
-#include <v8-isolate.h>
-
 #include <linux/limits.h>
 
 #include <memory>
@@ -32,6 +28,9 @@
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
+#include "include/v8-context.h"
+#include "include/v8-initialization.h"
+#include "include/v8-isolate.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/public/core/test_execution_result_matchers.h"
 #include "src/roma/wasm/deserializer.h"

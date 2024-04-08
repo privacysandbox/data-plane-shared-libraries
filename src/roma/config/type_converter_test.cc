@@ -26,11 +26,10 @@
 #include <string>
 #include <vector>
 
-#include <libplatform/libplatform.h>
-
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
+#include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/util/process_util.h"

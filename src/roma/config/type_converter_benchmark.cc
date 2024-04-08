@@ -25,12 +25,12 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
-#include <libplatform/libplatform.h>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"

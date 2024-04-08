@@ -22,22 +22,20 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <v8-context.h>
-#include <v8-initialization.h>
-#include <v8-isolate.h>
-#include <v8-local-handle.h>
-#include <v8-primitive.h>
-#include <v8-script.h>
-
 #include <linux/limits.h>
 
 #include <memory>
 #include <string>
 
-#include <libplatform/libplatform.h>
-
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
+#include "include/libplatform/libplatform.h"
+#include "include/v8-context.h"
+#include "include/v8-initialization.h"
+#include "include/v8-isolate.h"
+#include "include/v8-local-handle.h"
+#include "include/v8-primitive.h"
+#include "include/v8-script.h"
 #include "src/util/process_util.h"
 
 using ::testing::StrEq;
