@@ -46,8 +46,6 @@ created and used following this pattern:
 1. [src/public/cpio/test](/src/public/cpio/test): public visible targets to help with integration
    tests.
 1. [src/public/cpio/examples](/src/public/cpio/examples): example codes for different clients.
-1. [src/public/cpio/examples/deploy](/src/public/cpio/examples/deploy): example script to deploy
-   binary to Nitro Enclave.
 1. [src/public/cpio/adapters](/src/public/cpio/adapters),
    [src/public/cpio/core](/src/public/cpio/core), [src/cpio](/src/cpio) and [src/core](/src/core):
    implementations. The targets there are not public visible.
