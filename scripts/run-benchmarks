@@ -105,4 +105,4 @@ for tgt in "${targets[@]}"; do
     | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc"
 done
 
-"${TOOLS_DIR}"/normalize-dist || true
+"${TOOLS_DIR}"/normalize-dist
