@@ -25,6 +25,7 @@
 
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/base/nullability.h"
 #include "google/cloud/options.h"
 #include "google/cloud/status_or.h"
 #include "google/cloud/storage/client.h"
@@ -923,9 +924,9 @@ GcpCloudStorageFactory::CreateClient(
 absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
-    InstanceClientProviderInterface* instance_client,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client,
+    absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept {
   auto provider = std::make_unique<GcpBlobStorageClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);

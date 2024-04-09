@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/service_interface.h"
@@ -86,7 +87,7 @@ class AuthTokenProviderFactory {
    * @return std::shared_ptr<AuthTokenProviderInterface> created
    * AuthTokenProvider.
    */
-  static std::unique_ptr<AuthTokenProviderInterface> Create(
+  static absl::Nonnull<std::unique_ptr<AuthTokenProviderInterface>> Create(
       absl::Nonnull<core::HttpClientInterface*> http1_client);
 };
 }  // namespace google::scp::cpio::client_providers

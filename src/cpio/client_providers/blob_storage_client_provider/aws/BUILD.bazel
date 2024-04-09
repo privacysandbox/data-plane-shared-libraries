@@ -35,6 +35,7 @@ cc_library(
         "//src/util/status_macro:status_macros",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
     ],

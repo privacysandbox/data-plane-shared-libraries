@@ -25,6 +25,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -157,8 +158,9 @@ const auto& GetRequiredFieldsForResourceTags() {
 namespace google::scp::cpio::client_providers {
 
 GcpInstanceClientProvider::GcpInstanceClientProvider(
-    AuthTokenProviderInterface* auth_token_provider,
-    HttpClientInterface* http1_client, HttpClientInterface* http2_client)
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<HttpClientInterface*> http1_client,
+    absl::Nonnull<HttpClientInterface*> http2_client)
     : http1_client_(http1_client),
       http2_client_(http2_client),
       auth_token_provider_(auth_token_provider),
@@ -866,12 +868,13 @@ void GcpInstanceClientProvider::OnListInstanceDetailsCallback(
   get_instance_details_context.Finish(SuccessExecutionResult());
 }
 
-std::unique_ptr<InstanceClientProviderInterface>
+absl::Nonnull<std::unique_ptr<InstanceClientProviderInterface>>
 InstanceClientProviderFactory::Create(
-    AuthTokenProviderInterface* auth_token_provider,
-    HttpClientInterface* http1_client, HttpClientInterface* http2_client,
-    AsyncExecutorInterface* async_executor,
-    AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<HttpClientInterface*> http1_client,
+    absl::Nonnull<HttpClientInterface*> http2_client,
+    absl::Nonnull<AsyncExecutorInterface*> /*async_executor*/,
+    absl::Nonnull<AsyncExecutorInterface*> /*io_async_executor*/) {
   return std::make_unique<GcpInstanceClientProvider>(
       auth_token_provider, http1_client, http2_client);
 }

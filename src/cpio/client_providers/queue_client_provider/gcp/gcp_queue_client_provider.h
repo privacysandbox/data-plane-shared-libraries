@@ -23,6 +23,7 @@
 
 #include <google/pubsub/v1/pubsub.grpc.pb.h>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -82,10 +83,10 @@ class GcpQueueClientProvider : public QueueClientProviderInterface {
 
   explicit GcpQueueClientProvider(
       QueueClientOptions queue_client_options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
-      std::shared_ptr<GcpPubSubStubFactory> pubsub_stub_factory =
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
+      absl::Nonnull<std::shared_ptr<GcpPubSubStubFactory>> pubsub_stub_factory =
           std::make_shared<GcpPubSubStubFactory>())
       : queue_name_(std::move(queue_client_options.queue_name)),
         project_id_(std::move(queue_client_options.project_id)),

@@ -47,7 +47,6 @@ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::protobuf::Any;
 using google::scp::core::AsyncContext;
-using google::scp::core ::AsyncExecutorInterface;
 using google::scp::core::AsyncOperation;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
@@ -98,40 +97,6 @@ class MetricClientProviderTest : public ::testing::Test {
 
   MockAsyncExecutor mock_async_executor_;
 };
-
-TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsNotOKWithBatchRecording) {
-  auto client = std::make_unique<MockMetricClientWithOverrides>(
-      nullptr, CreateMetricBatchingOptions(true));
-  EXPECT_FALSE(client->Init().ok());
-}
-
-TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsOKWithoutBatchRecording) {
-  auto client = std::make_unique<MockMetricClientWithOverrides>(
-      nullptr, CreateMetricBatchingOptions(false));
-
-  AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      CreatePutMetricsRequest(kMetricNamespace),
-      [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
-
-  absl::BlockingCounter batch_push_called_count(2);
-  client->metrics_batch_push_mock =
-      [&](const std::shared_ptr<std::vector<core::AsyncContext<
-              cmrt::sdk::metric_service::v1::PutMetricsRequest,
-              cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
-              metric_requests_vector) noexcept {
-        EXPECT_EQ(metric_requests_vector->size(), 1);
-        batch_push_called_count.DecrementCount();
-        return SuccessExecutionResult();
-      };
-
-  ASSERT_TRUE(client->Init().ok());
-  ASSERT_TRUE(client->Run().ok());
-  EXPECT_TRUE(client->PutMetrics(context).ok());
-  EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
-  EXPECT_TRUE(client->PutMetrics(context).ok());
-  EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
-  batch_push_called_count.Wait();
-}
 
 TEST_F(MetricClientProviderTest,
        FailsWhenEnableBatchRecordingWithoutNamespace) {

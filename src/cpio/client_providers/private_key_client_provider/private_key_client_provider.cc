@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"
@@ -344,12 +345,13 @@ void PrivateKeyClientProvider::OnDecryptCallback(
   }
 }
 
-std::unique_ptr<PrivateKeyClientProviderInterface>
+absl::Nonnull<std::unique_ptr<PrivateKeyClientProviderInterface>>
 PrivateKeyClientProviderFactory::Create(
-    PrivateKeyClientOptions options, core::HttpClientInterface* http_client,
-    RoleCredentialsProviderInterface* role_credentials_provider,
-    AuthTokenProviderInterface* auth_token_provider,
-    core::AsyncExecutorInterface* io_async_executor) {
+    PrivateKeyClientOptions options,
+    absl::Nonnull<core::HttpClientInterface*> http_client,
+    absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) {
   return std::make_unique<PrivateKeyClientProvider>(
       std::move(options),
       PrivateKeyFetcherProviderFactory::Create(

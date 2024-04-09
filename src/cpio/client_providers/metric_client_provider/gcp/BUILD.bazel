@@ -33,6 +33,7 @@ cc_library(
         "//src/public/cpio/interface/metric_client:type_def",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],

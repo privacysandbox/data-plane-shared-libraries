@@ -34,6 +34,7 @@ cc_library(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_absl//absl/synchronization",

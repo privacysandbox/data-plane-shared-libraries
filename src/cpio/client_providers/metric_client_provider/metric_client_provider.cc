@@ -69,12 +69,6 @@ absl::Status MetricClientProvider::Init() noexcept {
               "Invalid namespace.");
     return absl::InvalidArgumentError("Namespace not set.");
   }
-
-  if (is_batch_recording_enable && !async_executor_) {
-    return absl::InvalidArgumentError(
-        "Batch recording enabled but async executor unavailable.");
-  }
-
   return absl::OkStatus();
 }
 

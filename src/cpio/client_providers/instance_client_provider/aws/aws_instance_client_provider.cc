@@ -24,6 +24,7 @@
 #include <aws/ec2/model/DescribeTagsRequest.h>
 #include <nlohmann/json.hpp>
 
+#include "absl/base/nullability.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/functional/bind_front.h"
 #include "absl/strings/substitute.h"
@@ -531,12 +532,13 @@ ExecutionResultOr<std::unique_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(
   return std::make_unique<EC2Client>(std::move(client_config));
 }
 
-std::unique_ptr<InstanceClientProviderInterface>
+absl::Nonnull<std::unique_ptr<InstanceClientProviderInterface>>
 InstanceClientProviderFactory::Create(
-    AuthTokenProviderInterface* auth_token_provider,
-    HttpClientInterface* http1_client, HttpClientInterface* http2_client,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<HttpClientInterface*> http1_client,
+    absl::Nonnull<HttpClientInterface*> /*http2_client*/,
+    absl::Nonnull<AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<AsyncExecutorInterface*> io_async_executor) {
   return std::make_unique<AwsInstanceClientProvider>(
       auth_token_provider, http1_client, cpu_async_executor, io_async_executor);
 }

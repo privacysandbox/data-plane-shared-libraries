@@ -25,6 +25,7 @@
 #include <aws/monitoring/CloudWatchErrors.h>
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "src/core/async_executor/aws/aws_async_executor.h"
 #include "src/core/common/uuid/uuid.h"
@@ -254,9 +255,9 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
 std::unique_ptr<MetricClientProviderInterface>
 MetricClientProviderFactory::Create(
     MetricClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* async_executor,
-    AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<AsyncExecutorInterface*> async_executor,
+    absl::Nonnull<AsyncExecutorInterface*> io_async_executor) {
   return std::make_unique<AwsMetricClientProvider>(
       std::move(options), instance_client_provider, async_executor,
       io_async_executor);

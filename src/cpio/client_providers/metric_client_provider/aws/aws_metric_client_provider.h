@@ -25,6 +25,7 @@
 #include <aws/monitoring/CloudWatchClient.h>
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/message_router_interface.h"
@@ -52,12 +53,13 @@ class AwsMetricClientProvider : public MetricClientProvider {
    */
   explicit AwsMetricClientProvider(
       MetricClientOptions metric_client_options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
-      : MetricClientProvider(async_executor, instance_client_provider,
+      : MetricClientProvider(async_executor,
                              std::move(metric_batching_options)),
+        instance_client_provider_(instance_client_provider),
         io_async_executor_(io_async_executor),
         region_(std::move(metric_client_options).region) {}
 
@@ -100,6 +102,9 @@ class AwsMetricClientProvider : public MetricClientProvider {
       const Aws::CloudWatch::Model::PutMetricDataOutcome& outcome,
       const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept
       ABSL_LOCKS_EXCLUDED(sync_mutex_);
+
+  /// Instance client provider to fetch cloud metadata.
+  InstanceClientProviderInterface* instance_client_provider_;
 
   /// An instance of the IO async executor.
   core::AsyncExecutorInterface* io_async_executor_;

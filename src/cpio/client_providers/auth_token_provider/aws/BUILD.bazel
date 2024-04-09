@@ -29,6 +29,7 @@ cc_library(
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface:type_def",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/functional:bind_front",
     ],
 )

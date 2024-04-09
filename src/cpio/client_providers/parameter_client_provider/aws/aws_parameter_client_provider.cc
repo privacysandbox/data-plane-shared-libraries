@@ -146,9 +146,9 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
 absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* /*cpu_async_executor*/,
-    core::AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<core::AsyncExecutorInterface*> /*cpu_async_executor*/,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) {
   auto provider = std::make_unique<AwsParameterClientProvider>(
       std::move(options), instance_client_provider, io_async_executor);
   PS_RETURN_IF_ERROR(provider->Init());

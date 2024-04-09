@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/any.pb.h"
@@ -41,14 +42,12 @@ class MetricClientProvider : public MetricClientProviderInterface {
   virtual ~MetricClientProvider() = default;
 
   explicit MetricClientProvider(
-      core::AsyncExecutorInterface* async_executor,
-      InstanceClientProviderInterface* instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
       : async_executor_(async_executor),
         metric_batching_options_(std::move(metric_batching_options)),
         is_batch_recording_enable(
             metric_batching_options_.enable_batch_recording),
-        instance_client_provider_(instance_client_provider),
         is_running_(false),
         active_push_count_(0),
         number_metrics_in_vector_(0) {}
@@ -112,9 +111,6 @@ class MetricClientProvider : public MetricClientProviderInterface {
 
   /// Whether metric client enables batch recording.
   bool is_batch_recording_enable;
-
-  /// Instance client provider to fetch cloud metadata.
-  InstanceClientProviderInterface* instance_client_provider_;
 
   /// The vector stores the metric record requests received. Any changes to this
   /// vector should be thread-safe.

@@ -21,6 +21,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
@@ -31,9 +32,9 @@ namespace google::scp::cpio::client_providers::mock {
 class MockMetricClientWithOverrides : public MetricClientProvider {
  public:
   explicit MockMetricClientWithOverrides(
-      core::AsyncExecutorInterface* async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
       MetricBatchingOptions metric_batching_options)
-      : MetricClientProvider(async_executor, &instance_client_provider_,
+      : MetricClientProvider(async_executor,
                              std::move(metric_batching_options)) {}
 
   std::function<core::ExecutionResult(
@@ -106,9 +107,6 @@ class MockMetricClientWithOverrides : public MetricClientProvider {
     }
     return core::SuccessExecutionResult();
   }
-
- private:
-  MockInstanceClientProvider instance_client_provider_;
 };
 }  // namespace google::scp::cpio::client_providers::mock
 

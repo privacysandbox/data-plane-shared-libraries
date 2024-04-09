@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/base/nullability.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "src/core/interface/http_client_interface.h"
@@ -30,9 +31,10 @@
 namespace google::scp::cpio::client_providers {
 class GcpInstanceClientProvider : public InstanceClientProviderInterface {
  public:
-  GcpInstanceClientProvider(AuthTokenProviderInterface* auth_token_provider,
-                            core::HttpClientInterface* http1_client,
-                            core::HttpClientInterface* http2_client);
+  GcpInstanceClientProvider(
+      absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+      absl::Nonnull<core::HttpClientInterface*> http1_client,
+      absl::Nonnull<core::HttpClientInterface*> http2_client);
 
   absl::Status GetCurrentInstanceResourceName(
       core::AsyncContext<cmrt::sdk::instance_service::v1::

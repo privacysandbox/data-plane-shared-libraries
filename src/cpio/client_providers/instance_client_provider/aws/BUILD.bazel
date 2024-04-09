@@ -38,6 +38,7 @@ cc_library(
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:ec2",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings:str_format",

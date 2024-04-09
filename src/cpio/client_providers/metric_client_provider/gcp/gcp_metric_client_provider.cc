@@ -19,6 +19,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "google/cloud/future.h"
 #include "google/cloud/monitoring/metric_client.h"
@@ -199,9 +200,9 @@ void GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback(
 std::unique_ptr<MetricClientProviderInterface>
 MetricClientProviderFactory::Create(
     MetricClientOptions /*options*/,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* async_executor,
-    AsyncExecutorInterface* /*io_async_executor*/) {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<AsyncExecutorInterface*> async_executor,
+    absl::Nonnull<AsyncExecutorInterface*> /*io_async_executor*/) {
   return std::make_unique<GcpMetricClientProvider>(instance_client_provider,
                                                    async_executor);
 }
