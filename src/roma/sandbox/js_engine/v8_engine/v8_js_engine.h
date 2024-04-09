@@ -46,8 +46,11 @@ class V8JsEngine : public JsEngine {
  public:
   V8JsEngine(std::unique_ptr<V8IsolateFunctionBinding>
                  isolate_function_binding = nullptr,
+             bool skip_v8_cleanup = false,
              const JsEngineResourceConstraints& v8_resource_constraints =
                  JsEngineResourceConstraints());
+
+  ~V8JsEngine() override;
 
   void Run() override;
 
@@ -233,6 +236,7 @@ class V8JsEngine : public JsEngine {
   V8Console* console(v8::Isolate* isolate) ABSL_LOCKS_EXCLUDED(console_mutex_);
   std::unique_ptr<V8Console> console_ ABSL_GUARDED_BY(console_mutex_);
   absl::Mutex console_mutex_;
+  const bool skip_v8_cleanup_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 

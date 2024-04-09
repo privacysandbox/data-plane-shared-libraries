@@ -61,6 +61,7 @@ struct V8WorkerEngineParams {
   size_t max_wasm_memory_number_of_pages;
   bool require_preload = true;
   size_t compilation_context_cache_size;
+  bool skip_v8_cleanup = false;
 };
 
 // the pointer of the data shared sandbox2::Buffer which is used to share
@@ -85,11 +86,9 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
       std::move(native_function_invoker), params.server_address);
 
   auto v8_engine = std::make_unique<V8JsEngine>(
-      std::move(isolate_function_binding), params.resource_constraints);
-
-  auto one_time_setup = GetEngineOneTimeSetup(params);
-  v8_engine->OneTimeSetup(one_time_setup);
-
+      std::move(isolate_function_binding), params.skip_v8_cleanup,
+      params.resource_constraints);
+  v8_engine->OneTimeSetup(GetEngineOneTimeSetup(params));
   return std::make_unique<Worker>(std::move(v8_engine), params.require_preload);
 }
 
@@ -117,7 +116,7 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   resource_constraints.maximum_heap_size_in_mb =
       static_cast<size_t>(init_params->js_engine_maximum_heap_size_mb());
 
-  V8WorkerEngineParams v8_params{
+  V8WorkerEngineParams v8_params = {
       .native_js_function_comms_fd = init_params->native_js_function_comms_fd(),
       .native_js_function_names = std::move(native_js_function_names),
       .rpc_method_names = std::move(rpc_method_names),
@@ -125,7 +124,9 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       .resource_constraints = resource_constraints,
       .max_wasm_memory_number_of_pages = static_cast<size_t>(
           init_params->js_engine_max_wasm_memory_number_of_pages()),
-      .require_preload = init_params->require_code_preload_for_execution()};
+      .require_preload = init_params->require_code_preload_for_execution(),
+      .skip_v8_cleanup = init_params->skip_v8_cleanup(),
+  };
 
   worker_ = CreateWorker(v8_params);
 

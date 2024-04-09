@@ -164,10 +164,12 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
 V8JsEngine::V8JsEngine(
     std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
+    const bool skip_v8_cleanup,
     const JsEngineResourceConstraints& v8_resource_constraints)
     : isolate_function_binding_(std::move(isolate_function_binding)),
       v8_resource_constraints_(v8_resource_constraints),
-      execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()) {
+      execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()),
+      skip_v8_cleanup_(skip_v8_cleanup) {
   if (isolate_function_binding_) {
     isolate_function_binding_->AddExternalReferences(external_references_);
   }
@@ -182,6 +184,13 @@ void V8JsEngine::Stop() {
     execution_watchdog_->Stop();
   }
   DisposeIsolate();
+}
+
+V8JsEngine::~V8JsEngine() {
+  if (!skip_v8_cleanup_) {
+    v8::V8::Dispose();
+    v8::V8::DisposePlatform();
+  }
 }
 
 void V8JsEngine::OneTimeSetup(
