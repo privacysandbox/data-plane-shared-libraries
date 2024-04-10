@@ -187,6 +187,7 @@ void V8JsEngine::Stop() {
 }
 
 V8JsEngine::~V8JsEngine() {
+  Stop();
   if (!skip_v8_cleanup_) {
     v8::V8::Dispose();
     v8::V8::DisposePlatform();
