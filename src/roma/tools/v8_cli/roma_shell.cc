@@ -145,6 +145,7 @@ void Execute(RomaService<>* roma_service,
   std::string result;
   absl::Notification execute_finished;
   LOG(INFO) << "Calling Execute...";
+  privacy_sandbox::server_common::Stopwatch timer;
   CHECK(roma_service
             ->Execute(
                 std::make_unique<InvocationStrRequest<>>(execution_object),
@@ -162,6 +163,9 @@ void Execute(RomaService<>* roma_service,
                 })
             .ok());
   execute_finished.WaitForNotificationWithTimeout(kRequestTimeout);
+  std::cout << "> execute duration: "
+            << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
+            << std::endl;
 }
 
 // The read-eval-execute loop of the shell.
