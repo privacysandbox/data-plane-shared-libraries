@@ -326,5 +326,6 @@ int main(int argc, char* argv[]) {
   benchmark::RunSpecifiedBenchmarks();
   benchmark::Shutdown();
   v8::V8::Dispose();
+  v8::V8::DisposePlatform();
   return 0;
 }

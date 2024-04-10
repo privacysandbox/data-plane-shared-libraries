@@ -47,6 +47,11 @@ class ExecutionWatchdogTest : public ::testing::Test {
     v8::V8::Initialize();
   }
 
+  static void TearDownTestSuite() {
+    v8::V8::Dispose();
+    v8::V8::DisposePlatform();
+  }
+
   void SetUp() override {
     create_params_.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
