@@ -27,6 +27,7 @@
 #include "absl/types/span.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
+#include "src/util/duration.h"
 
 using google::scp::roma::CodeObject;
 using google::scp::roma::InvocationStrRequest;
@@ -106,6 +107,7 @@ void Load(RomaService<>* roma_service, std::string_view version_str,
 
   absl::Notification load_finished;
   LOG(INFO) << "Calling LoadCodeObj...";
+  privacy_sandbox::server_common::Stopwatch timer;
   CHECK(
       roma_service
           ->LoadCodeObj(std::make_unique<CodeObject>(code_object),
@@ -120,6 +122,9 @@ void Load(RomaService<>* roma_service, std::string_view version_str,
                         })
           .ok());
   load_finished.WaitForNotification();
+  std::cout << "> load duration: "
+            << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
+            << std::endl;
 }
 
 void Execute(RomaService<>* roma_service,
