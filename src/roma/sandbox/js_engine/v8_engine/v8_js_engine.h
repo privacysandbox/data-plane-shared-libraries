@@ -140,9 +140,6 @@ class V8JsEngine : public JsEngine {
   virtual std::unique_ptr<V8IsolateWrapper> CreateIsolate(
       const v8::StartupData& startup_data = {nullptr, 0});
 
-  /// @brief Dispose v8 isolate.
-  virtual void DisposeIsolate();
-
   /**
    * @brief Start timing the execution running in the isolate with watchdog.
    *

@@ -183,7 +183,7 @@ void V8JsEngine::Stop() {
   if (execution_watchdog_) {
     execution_watchdog_->Stop();
   }
-  DisposeIsolate();
+  isolate_wrapper_ = nullptr;
 }
 
 V8JsEngine::~V8JsEngine() {
@@ -367,8 +367,6 @@ V8Console* V8JsEngine::console(v8::Isolate* isolate)
 
   return console_.get();
 }
-
-void V8JsEngine::DisposeIsolate() { isolate_wrapper_ = nullptr; }
 
 void V8JsEngine::StartWatchdogTimer(
     v8::Isolate* isolate,
