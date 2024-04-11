@@ -186,6 +186,7 @@ roma_host_api_cc_library(
     roma_host_api = test_service_host_api,
     tags = [
         "noasan",
+        "notsan-aarch64",
     ],
     visibility = ["//visibility:public"],
     deps = [
