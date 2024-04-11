@@ -23,6 +23,7 @@ cc_library(
     deps = [
         "//src/public/core/interface:errors",
         "//src/public/cpio/interface/blob_storage_client",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/container:node_hash_set",
         "@com_google_absl//absl/flags:flag",

@@ -94,6 +94,15 @@ class CliBlobStorage final {
   absl::Status PutBlob(std::string_view bucket_name, std::string_view blob_name,
                        std::string_view blob_data);
 
+  /**
+   * @brief Calls DeleteBlob on the BlobStorageClient.
+   *
+   * @param bucket_name The name of the bucket of the blob to be deleted.
+   * @param blob_name The name of the blob to delete.
+   */
+  absl::Status DeleteBlob(std::string_view bucket_name,
+                          std::string_view blob_name);
+
   static constexpr std::string_view kClientName = "blob";
 
  private:

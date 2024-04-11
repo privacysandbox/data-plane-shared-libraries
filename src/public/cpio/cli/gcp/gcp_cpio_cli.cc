@@ -49,11 +49,11 @@ Clients:
 - blob                      CPIO blob storage client.
   Commands:
   - get                     Gets a blob from Cloud Storage. rpc GetBlob.
-    [--blob_paths]            One or more fully qualified GCS path to the blob in the
+    [--blob_paths]            One or more fully qualified GCS paths to the blob in the
                               format of `gs://<bucket_name>/<file_path_inside_bucket>`.
 
   - list                    Lists all blobs from Cloud Storage. rpc ListBlobsMetadata.
-    [--blob_paths]            One or more fully qualified GCS path to the blob in the
+    [--blob_paths]            One or more fully qualified GCS paths to the blob in the
                               format of `gs://<bucket_name>/<file_path_inside_bucket>`.
                               Each --blob_paths will invoke ListBlobsMetadata separately.
     [--exclude_directories]   (Optional) Defaults to `false`. If true, exclude
@@ -64,7 +64,13 @@ Clients:
                               format of `gs://<bucket_name>/<file_path_inside_bucket>`.
     [--blob_data]             String data of the blob to upload to Cloud Storage.
 
+  - delete                  Deletes blobs in Cloud Storage. rpc DeleteBlob.
+    [--blob_paths]            One or more fully qualified GCS paths to the blob in the
+                              format of `gs://<bucket_name>/<file_path_inside_bucket>`.
+
   Examples:
+    Please provide --project and --region with each request.
+
     (1) Retrieve a single blob from GCS.
     - gcp_cpio_cli blob get \
       --blob_paths gs://example_bucket/example_blob.txt
@@ -90,6 +96,11 @@ Clients:
     - gcp_cpio_cli blob put \
       --blob_paths gs://example_bucket/example_blob.txt \
       --blob_data "example data"
+
+    (6) Delete two blobs in GCS.
+    - gcp_cpio_cli blob delete \
+      --blob_paths gs://example_bucket/example_blob.txt \
+      --blob_paths gs://example_bucket/example_blob_2.txt
 
 Try --help to see detailed available clients, client commands, and flag descriptions.
 )";

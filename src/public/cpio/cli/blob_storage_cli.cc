@@ -30,6 +30,7 @@
 #include "absl/synchronization/notification.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
+#include "src/util/status_macro/status_macros.h"
 
 ABSL_FLAG(std::vector<std::string>, blob_paths, std::vector<std::string>({}),
           "List of blob paths in the format of "
@@ -44,6 +45,8 @@ ABSL_FLAG(std::string, blob_data, "",
 namespace google::scp::cpio::cli {
 
 namespace {
+using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest;
+using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse;
 using google::cmrt::sdk::blob_storage_service::v1::GetBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::GetBlobResponse;
 using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest;
@@ -59,15 +62,16 @@ using google::scp::cpio::BlobStorageClientInterface;
 constexpr std::string_view kBlobClientRpcGet = "get";
 constexpr std::string_view kBlobClientRpcList = "list";
 constexpr std::string_view kBlobClientRpcPut = "put";
+constexpr std::string_view kBlobClientRpcDelete = "delete";
 const absl::NoDestructor<absl::node_hash_set<std::string_view>>
     kSupportedBlobCommands({
         kBlobClientRpcGet,
         kBlobClientRpcList,
         kBlobClientRpcPut,
+        kBlobClientRpcDelete,
     });
 const absl::NoDestructor<std::basic_regex<char>> blob_path_regex(std::regex{
-    "(s3://|gs://)([a-z0-9_.-]+)/?(.+)?", std::regex::optimize});
-
+    "(s3|gs)://([a-z0-9_.-]+)/?(.+)?", std::regex::optimize});
 }  // namespace
 
 absl::StatusOr<std::vector<std::pair<std::string, std::string>>>
@@ -113,23 +117,25 @@ absl::Status CliBlobStorage::RunCli(std::string_view command) {
   bool exclude_directories = absl::GetFlag(FLAGS_exclude_directories);
   std::string data = absl::GetFlag(FLAGS_blob_data);
 
-  for (auto bucket_and_blob : buckets_and_blobs) {
+  for (const auto& bucket_and_blob : buckets_and_blobs) {
     std::cout << "bucket_name: [" << bucket_and_blob.first << "] blob_name: ["
               << bucket_and_blob.second << "]" << std::endl;
-    absl::Status result;
     if (command == kBlobClientRpcGet) {
-      result = GetBlob(bucket_and_blob.first, bucket_and_blob.second);
+      PS_RETURN_IF_ERROR(
+          GetBlob(bucket_and_blob.first, bucket_and_blob.second));
     } else if (command == kBlobClientRpcList) {
-      result = ListBlobs(bucket_and_blob.first, bucket_and_blob.second,
-                         exclude_directories);
+      PS_RETURN_IF_ERROR(ListBlobs(
+          bucket_and_blob.first, bucket_and_blob.second, exclude_directories));
     } else if (command == kBlobClientRpcPut) {
       std::cout << "blob_data: [" << data << "]" << std::endl;
-      result = PutBlob(bucket_and_blob.first, bucket_and_blob.second, data);
-    }
-    if (!result.ok()) {
-      return result;
+      PS_RETURN_IF_ERROR(
+          PutBlob(bucket_and_blob.first, bucket_and_blob.second, data));
+    } else if (command == kBlobClientRpcDelete) {
+      PS_RETURN_IF_ERROR(
+          DeleteBlob(bucket_and_blob.first, bucket_and_blob.second));
     }
   }
+
   return absl::OkStatus();
 }
 
@@ -143,7 +149,7 @@ absl::Status CliBlobStorage::GetBlob(std::string_view bucket_name,
   get_blob_request->mutable_blob_metadata()->set_blob_name(blob_name);
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context(
-      std::move(get_blob_request), [&result, &finished](auto& context) {
+      get_blob_request, [&result, &finished](auto& context) {
         if (context.result.Successful()) {
           std::cout << "Got blob:\n"
                     << context.response->DebugString() << std::endl;
@@ -155,18 +161,9 @@ absl::Status CliBlobStorage::GetBlob(std::string_view bucket_name,
         finished.Notify();
       });
 
-  if (absl::Status get_blob_error =
-          blob_storage_client_->GetBlob(get_blob_context);
-      !get_blob_error.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Getting blob failed: ", get_blob_error));
-  }
+  PS_RETURN_IF_ERROR(blob_storage_client_->GetBlob(get_blob_context));
   finished.WaitForNotification();
-  if (!result.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Getting blob failed asynchronously: ", result));
-  }
-  return absl::OkStatus();
+  return result;
 }
 
 absl::Status CliBlobStorage::ListBlobs(std::string_view bucket_name,
@@ -187,8 +184,7 @@ absl::Status CliBlobStorage::ListBlobs(std::string_view bucket_name,
 
   AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
       list_blobs_metadata_context(
-          std::move(list_blobs_metadata_request),
-          [&result, &finished](auto& context) {
+          list_blobs_metadata_request, [&result, &finished](auto& context) {
             if (context.result.Successful()) {
               std::cout << "Listed blobs:\n"
                         << context.response->DebugString() << std::endl;
@@ -228,7 +224,7 @@ absl::Status CliBlobStorage::PutBlob(std::string_view bucket_name,
   put_blob_request->mutable_blob()->set_data(blob_data);
 
   AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
-      std::move(put_blob_request),
+      put_blob_request,
       [&result, &finished, &bucket_name, &blob_name](auto& context) {
         if (context.result.Successful()) {
           std::cout << "Uploaded (put) blob: " << bucket_name << "/"
@@ -241,17 +237,36 @@ absl::Status CliBlobStorage::PutBlob(std::string_view bucket_name,
         finished.Notify();
       });
 
-  if (absl::Status put_blob_error =
-          blob_storage_client_->PutBlob(put_blob_context);
-      !put_blob_error.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Put blob failed: ", put_blob_error));
-  }
+  PS_RETURN_IF_ERROR(blob_storage_client_->PutBlob(put_blob_context));
   finished.WaitForNotification();
-  if (!result.ok()) {
-    return absl::InternalError(
-        absl::StrCat("Put blob failed asynchronously: ", result));
-  }
-  return absl::OkStatus();
+  return result;
+}
+
+absl::Status CliBlobStorage::DeleteBlob(std::string_view bucket_name,
+                                        std::string_view blob_name) {
+  absl::Status result;
+  absl::Notification finished;
+
+  auto delete_blob_request = std::make_shared<DeleteBlobRequest>();
+  delete_blob_request->mutable_blob_metadata()->set_bucket_name(bucket_name);
+  delete_blob_request->mutable_blob_metadata()->set_blob_name(blob_name);
+
+  AsyncContext<DeleteBlobRequest, DeleteBlobResponse> delete_blob_context(
+      delete_blob_request,
+      [&result, &finished, &bucket_name, &blob_name](auto& context) {
+        if (context.result.Successful()) {
+          std::cout << "Deleted blob: " << bucket_name << "/" << blob_name
+                    << std::endl;
+          result = absl::OkStatus();
+        } else {
+          result =
+              absl::InternalError(GetErrorMessage(context.result.status_code));
+        }
+        finished.Notify();
+      });
+
+  PS_RETURN_IF_ERROR(blob_storage_client_->DeleteBlob(delete_blob_context));
+  finished.WaitForNotification();
+  return result;
 }
 }  // namespace google::scp::cpio::cli
