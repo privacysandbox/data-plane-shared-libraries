@@ -56,18 +56,3 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
-
-cc_library(
-    name = "test_aws_private_key_fetcher_provider",
-    srcs = [
-        "test_aws_private_key_fetcher_provider.cc",
-        # Need to include the production src here,
-        # otherwise, it will fail with duplicate definition for test server.
-        ":aws_private_key_fetcher_provider_srcs",
-    ],
-    hdrs = ["test_aws_private_key_fetcher_provider.h"],
-    deps = [
-        ":aws_private_key_fetcher_provider",
-        "//src/core/http2_client",
-    ],
-)
