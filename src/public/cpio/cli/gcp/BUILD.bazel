@@ -35,6 +35,13 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 # --region "${REGION}" \
 # --blob_paths "${BLOB_PATH}" \
 # --exclude_directories
+# Call PutBlob
+# bazel-bin/src/public/cpio/cli/gcp/gcp_cpio_cli \
+# blob put \
+# --project_id "${PROJECT_ID}" \
+# --region "${REGION}" \
+# --blob_paths "${BLOB_PATH}" \
+# --blob_data "example data"
 cc_binary(
     name = "gcp_cpio_cli",
     srcs = ["gcp_cpio_cli.cc"],

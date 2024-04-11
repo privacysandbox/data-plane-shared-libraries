@@ -34,10 +34,12 @@
 ABSL_FLAG(std::vector<std::string>, blob_paths, std::vector<std::string>({}),
           "List of blob paths in the format of "
           "`gs://<bucket_name>/<file_path_inside_bucket>` for GCP GCS or "
-          "`s3://<bucket_name>/<file_path_inside_bucket>` for AWS S3.");
+          "`s3://<bucket_name>/<file_path_inside_bucket>` for AWS S3");
 ABSL_FLAG(bool, exclude_directories, false,
           "Optional. Defaults to `false`. If true, exclude blobs that are "
-          "directories in `cli blob list`.");
+          "directories in `cli blob list`");
+ABSL_FLAG(std::string, blob_data, "",
+          "Blob data to upload with `cli blob put`");
 
 namespace google::scp::cpio::cli {
 
@@ -46,6 +48,8 @@ using google::cmrt::sdk::blob_storage_service::v1::GetBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::GetBlobResponse;
 using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest;
 using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataResponse;
+using google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest;
+using google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse;
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::errors::GetErrorMessage;
@@ -54,10 +58,12 @@ using google::scp::cpio::BlobStorageClientInterface;
 
 constexpr std::string_view kBlobClientRpcGet = "get";
 constexpr std::string_view kBlobClientRpcList = "list";
+constexpr std::string_view kBlobClientRpcPut = "put";
 const absl::NoDestructor<absl::node_hash_set<std::string_view>>
     kSupportedBlobCommands({
         kBlobClientRpcGet,
         kBlobClientRpcList,
+        kBlobClientRpcPut,
     });
 const absl::NoDestructor<std::basic_regex<char>> blob_path_regex(std::regex{
     "(s3://|gs://)([a-z0-9_.-]+)/?(.+)?", std::regex::optimize});
@@ -105,6 +111,7 @@ absl::Status CliBlobStorage::RunCli(std::string_view command) {
       *buckets_and_blobs_result;
 
   bool exclude_directories = absl::GetFlag(FLAGS_exclude_directories);
+  std::string data = absl::GetFlag(FLAGS_blob_data);
 
   for (auto bucket_and_blob : buckets_and_blobs) {
     std::cout << "bucket_name: [" << bucket_and_blob.first << "] blob_name: ["
@@ -115,6 +122,9 @@ absl::Status CliBlobStorage::RunCli(std::string_view command) {
     } else if (command == kBlobClientRpcList) {
       result = ListBlobs(bucket_and_blob.first, bucket_and_blob.second,
                          exclude_directories);
+    } else if (command == kBlobClientRpcPut) {
+      std::cout << "blob_data: [" << data << "]" << std::endl;
+      result = PutBlob(bucket_and_blob.first, bucket_and_blob.second, data);
     }
     if (!result.ok()) {
       return result;
@@ -200,6 +210,47 @@ absl::Status CliBlobStorage::ListBlobs(std::string_view bucket_name,
   if (!result.ok()) {
     return absl::InternalError(
         absl::StrCat("Listing blobs failed asynchronously: ", result));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status CliBlobStorage::PutBlob(std::string_view bucket_name,
+                                     std::string_view blob_name,
+                                     std::string_view blob_data) {
+  absl::Status result;
+  absl::Notification finished;
+
+  auto put_blob_request = std::make_shared<PutBlobRequest>();
+  put_blob_request->mutable_blob()->mutable_metadata()->set_bucket_name(
+      bucket_name);
+  put_blob_request->mutable_blob()->mutable_metadata()->set_blob_name(
+      blob_name);
+  put_blob_request->mutable_blob()->set_data(blob_data);
+
+  AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context(
+      std::move(put_blob_request),
+      [&result, &finished, &bucket_name, &blob_name](auto& context) {
+        if (context.result.Successful()) {
+          std::cout << "Uploaded (put) blob: " << bucket_name << "/"
+                    << blob_name << std::endl;
+          result = absl::OkStatus();
+        } else {
+          result =
+              absl::InternalError(GetErrorMessage(context.result.status_code));
+        }
+        finished.Notify();
+      });
+
+  if (absl::Status put_blob_error =
+          blob_storage_client_->PutBlob(put_blob_context);
+      !put_blob_error.ok()) {
+    return absl::InternalError(
+        absl::StrCat("Put blob failed: ", put_blob_error));
+  }
+  finished.WaitForNotification();
+  if (!result.ok()) {
+    return absl::InternalError(
+        absl::StrCat("Put blob failed asynchronously: ", result));
   }
   return absl::OkStatus();
 }

@@ -84,6 +84,16 @@ class CliBlobStorage final {
   absl::Status ListBlobs(std::string_view bucket_name,
                          std::string_view blob_name, bool exclude_directories);
 
+  /**
+   * @brief Calls PutBlob on the BlobStorageClient.
+   *
+   * @param bucket_name The name of the bucket of the blob.
+   * @param blob_name The name of the blob to put data at.
+   * @param blob_data The string data of the blob.
+   */
+  absl::Status PutBlob(std::string_view bucket_name, std::string_view blob_name,
+                       std::string_view blob_data);
+
   static constexpr std::string_view kClientName = "blob";
 
  private:

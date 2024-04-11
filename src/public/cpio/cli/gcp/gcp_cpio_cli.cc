@@ -59,6 +59,11 @@ Clients:
     [--exclude_directories]   (Optional) Defaults to `false`. If true, exclude
                               blobs that are directories in ListBlobsMetadata response.
 
+  - put                     Puts / uploads a blob to Cloud Storage. rpc PutBlob.
+    [--blob_paths]            Only one fully qualified GCS path to the blob in the
+                              format of `gs://<bucket_name>/<file_path_inside_bucket>`.
+    [--blob_data]             String data of the blob to upload to Cloud Storage.
+
   Examples:
     (1) Retrieve a single blob from GCS.
     - gcp_cpio_cli blob get \
@@ -80,6 +85,11 @@ Clients:
       --exclude_directories
     The expected return value of `gs://example_bucket` will not contain
     `gs://example_bucket/more_blobs_directory` and any of its blob contents.
+
+    (5) Puts a blob to GCS with string text "example data".
+    - gcp_cpio_cli blob put \
+      --blob_paths gs://example_bucket/example_blob.txt \
+      --blob_data "example data"
 
 Try --help to see detailed available clients, client commands, and flag descriptions.
 )";
