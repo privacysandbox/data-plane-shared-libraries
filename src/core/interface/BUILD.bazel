@@ -16,9 +16,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "async_executor_interface",
-    hdrs = [
-        "async_executor_interface.h",
-    ],
+    hdrs = ["async_executor_interface.h"],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
         ":service_interface",
@@ -30,30 +28,15 @@ cc_library(
 
 cc_library(
     name = "interface",
+    srcs = ["initializable_interface.h"],
     hdrs = [
-        "authorization_proxy_interface.h",
-        "authorization_service_interface.h",
         "blob_storage_provider_interface.h",
         "config_provider_interface.h",
         "configuration_keys.h",
         "credentials_provider_interface.h",
         "http_client_interface.h",
-        "http_request_response_auth_interceptor_interface.h",
-        "http_request_route_resolver_interface.h",
-        "http_request_router_interface.h",
-        "http_server_interface.h",
         "http_types.h",
-        "initializable_interface.h",
         "message_router_interface.h",
-        "network_service_interface.h",
-        "partition_interface.h",
-        "partition_lease_manager_interface.h",
-        "partition_manager_interface.h",
-        "partition_namespace_interface.h",
-        "partition_types.h",
-        "rpc_service_context_interface.h",
-        "token_fetcher_interface.h",
-        "traffic_forwarder_interface.h",
     ],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
@@ -72,9 +55,7 @@ cc_library(
 
 cc_library(
     name = "service_interface",
-    hdrs = [
-        "service_interface.h",
-    ],
+    hdrs = ["service_interface.h"],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/public/core/interface:execution_result",
@@ -83,9 +64,7 @@ cc_library(
 
 cc_library(
     name = "async_context",
-    hdrs = [
-        "async_context.h",
-    ],
+    hdrs = ["async_context.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":async_executor_interface",
@@ -97,9 +76,7 @@ cc_library(
 
 cc_library(
     name = "streaming_context",
-    hdrs = [
-        "streaming_context.h",
-    ],
+    hdrs = ["streaming_context.h"],
     deps = [
         ":async_context",
         "//src/core/common/concurrent_queue",
@@ -112,9 +89,7 @@ cc_library(
 
 cc_library(
     name = "type_def",
-    hdrs = [
-        "type_def.h",
-    ],
+    hdrs = ["type_def.h"],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/core/common/proto:common_cc_proto",
@@ -123,12 +98,8 @@ cc_library(
 
 cc_library(
     name = "errors",
-    srcs = [
-        "errors.cc",
-    ],
-    hdrs = [
-        "errors.h",
-    ],
+    srcs = ["errors.cc"],
+    hdrs = ["errors.h"],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/public/core/interface:execution_result",
