@@ -268,6 +268,7 @@ class RomaService {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
     const auto& rpc_method_names = config_.GetRpcMethodNames();
+    const auto& v8_flags = config_.GetV8Flags();
     std::string server_address = native_function_server_addresses_.empty()
                                      ? ""
                                      : native_function_server_addresses_[0];
@@ -293,7 +294,8 @@ class RomaService {
           /*sandbox_request_response_shared_buffer_size_mb=*/
           config_.sandbox_request_response_shared_buffer_size_mb,
           /*enable_sandbox_sharing_request_response_with_buffer_only=*/
-          config_.enable_sandbox_sharing_request_response_with_buffer_only);
+          config_.enable_sandbox_sharing_request_response_with_buffer_only,
+          /*v8_flags=*/v8_flags);
       PS_RETURN_IF_ERROR(workers_.back().Init());
       PS_RETURN_IF_ERROR(workers_.back().Run());
     }

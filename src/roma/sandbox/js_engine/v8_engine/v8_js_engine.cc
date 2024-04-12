@@ -56,6 +56,7 @@ using google::scp::roma::proto::RpcWrapper;
 using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::
     kInputParsingMetricJsEngineDuration;
+using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupV8FlagsKey;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::constants::kMaxNumberOfWasm32BitMemPages;
 using google::scp::roma::sandbox::constants::kMinLogLevel;
@@ -209,14 +210,23 @@ void V8JsEngine::OneTimeSetup(
   v8::V8::InitializeICUDefaultLocation(my_path->data());
   v8::V8::InitializeExternalStartupData(my_path->data());
 
+  std::string v8_flags;
+  if (const auto it = config.find(kJsEngineOneTimeSetupV8FlagsKey);
+      it != config.end() && !it->second.empty()) {
+    v8_flags = it->second;
+  }
+
   // Set the max number of WASM memory pages
   if (max_wasm_memory_number_of_pages != 0) {
     const size_t page_count = std::min(max_wasm_memory_number_of_pages,
                                        kMaxNumberOfWasm32BitMemPages);
     const auto flag_value =
-        absl::StrCat(kWasmMemPagesV8PlatformFlag, page_count);
-    v8::V8::SetFlagsFromString(flag_value.c_str());
+        absl::StrCat(" ", kWasmMemPagesV8PlatformFlag, page_count);
+    absl::StrAppend(&v8_flags, flag_value);
   }
+
+  v8::V8::SetFlagsFromString(v8_flags.c_str());
+
   static const v8::Platform* v8_platform = [] {
     std::unique_ptr<v8::Platform> v8_platform =
         v8::platform::NewDefaultPlatform();

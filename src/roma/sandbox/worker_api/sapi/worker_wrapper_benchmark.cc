@@ -54,6 +54,7 @@ constexpr size_t kBufferSize = 1 * 1024 * 1024 /* 1Mib */;
   init_params.set_request_and_response_data_buffer_fd(fd);
   init_params.set_request_and_response_data_buffer_size_bytes(kBufferSize);
   init_params.set_skip_v8_cleanup(true);
+  init_params.mutable_v8_flags()->Clear();
   return init_params;
 }
 

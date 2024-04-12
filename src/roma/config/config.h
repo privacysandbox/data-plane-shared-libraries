@@ -222,6 +222,10 @@ class Config {
     logging_func_ = std::move(logging_func);
   }
 
+  void SetV8Flags(const std::vector<std::string>& flags) { v8_flags_ = flags; }
+
+  const std::vector<std::string>& GetV8Flags() const { return v8_flags_; }
+
   const LogCallback& GetLoggingFunction() const { return logging_func_; }
 
   /**
@@ -281,6 +285,7 @@ class Config {
   std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
       factories_;
   std::vector<std::string> rpc_method_names_;
+  std::vector<std::string> v8_flags_;
 
   using CallbackService =
       privacy_sandbox::server_common::JSCallbackService::AsyncService;

@@ -67,6 +67,16 @@ TEST(SandboxedServiceTest, InitStop) {
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
+TEST(SandboxedServiceTest, CanSetV8FlagsFromConfig) {
+  Config config;
+  config.SetV8Flags({"--turbofan"});
+  config.number_of_workers = 2;
+
+  RomaService roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
 TEST(SandboxedServiceTest,
      ShouldFailToInitializeIfVirtualMemoryCapIsTooLittle) {
   Config config;

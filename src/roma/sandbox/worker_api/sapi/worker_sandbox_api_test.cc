@@ -42,7 +42,7 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   WorkerSandboxApi sandbox_api(
       false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
       {} /*native_js_function_names*/, {} /*rpc_method_names*/,
-      "" /*server_address*/, 0, 0, 0, 0, 0, false);
+      "" /*server_address*/, 0, 0, 0, 0, 0, false, {} /*v8_flags*/);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -75,7 +75,7 @@ TEST(WorkerSandboxApiTest,
       false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
       {} /*native_js_function_names*/, {} /*rpc_method_names*/,
       "" /*server_address*/, 100 /*max_worker_virtual_memory_mb*/, 0, 0, 0, 0,
-      false);
+      false, {} /*v8_flags*/);
 
   // Initializing the sandbox fail as we're giving a max of 100MB of virtual
   // space address for v8 and the sandbox.
@@ -88,10 +88,10 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   int fds[2];
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
-  WorkerSandboxApi sandbox_api(false /*require_preload*/,
-                               fds[1] /*native_js_function_comms_fd*/,
-                               {"my_great_func"}, {} /*rpc_method_names*/,
-                               "" /*server_address*/, 0, 0, 0, 0, 0, false);
+  WorkerSandboxApi sandbox_api(
+      false /*require_preload*/, fds[1] /*native_js_function_comms_fd*/,
+      {"my_great_func"}, {} /*rpc_method_names*/, "" /*server_address*/, 0, 0,
+      0, 0, 0, false, {} /*v8_flags*/);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -138,7 +138,8 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
       const std::vector<std::string>& native_js_function_names)
       : WorkerSandboxApi(require_preload, native_js_function_comms_fd,
                          native_js_function_names, {} /*rpc_method_names*/,
-                         "" /*server_address*/, 0, 0, 0, 0, 0, false) {}
+                         "" /*server_address*/, 0, 0, 0, 0, 0, false,
+                         {} /*v8_flags*/) {}
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }
 };

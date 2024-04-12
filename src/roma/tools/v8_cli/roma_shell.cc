@@ -55,6 +55,7 @@ Usage: exit
 )";
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
+constexpr std::string_view kFlagPrefix = "--";
 
 ABSL_FLAG(uint16_t, num_workers, 1, "Number of Roma workers");
 ABSL_FLAG(bool, verbose, false, "Log all messages from shell");
@@ -169,8 +170,14 @@ void Execute(RomaService<>* roma_service,
 }
 
 // The read-eval-execute loop of the shell.
-void RunShell() {
+void RunShell(const std::vector<std::string>& v8_flags) {
+  std::vector<std::string> formatted_v8_flags;
+  std::transform(
+      v8_flags.begin(), v8_flags.end(), formatted_v8_flags.begin(),
+      [](const std::string& s) { return absl::StrCat(kFlagPrefix, s); });
   RomaService<>::Config config;
+  config.SetV8Flags(formatted_v8_flags);
+
   LOG(INFO) << "Roma config set to " << absl::GetFlag(FLAGS_num_workers)
             << " workers.";
   config.number_of_workers = absl::GetFlag(FLAGS_num_workers);
@@ -213,11 +220,21 @@ int main(int argc, char* argv[]) {
   absl::SetProgramUsageMessage(
       "Opens a shell to allow for basic usage of the RomaService client to "
       "load and execute UDFs.");
+
+  std::vector<std::string> v8_flags;
+  for (int i = 1; i < argc; i++) {
+    if (!absl::StartsWith(argv[i], "--num_workers") &&
+        !absl::StartsWith(argv[i], "--verbose")) {
+      v8_flags.push_back(argv[i] + kFlagPrefix.length());
+    }
+  }
+  absl::SetFlag(&FLAGS_undefok, v8_flags);
+
   absl::ParseCommandLine(argc, argv);
   absl::SetStderrThreshold(absl::GetFlag(FLAGS_verbose)
                                ? absl::LogSeverity::kInfo
                                : absl::LogSeverity::kWarning);
-  RunShell();
+  RunShell(v8_flags);
 
   return 0;
 }
