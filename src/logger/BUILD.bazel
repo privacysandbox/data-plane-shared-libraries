@@ -79,6 +79,7 @@ cc_library(
         ":logger_cc_proto",
         ":request_context_logger",
         "//src/util/status_macro:source_location",
+        "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:globals",

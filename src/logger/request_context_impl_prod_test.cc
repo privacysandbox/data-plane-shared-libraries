@@ -41,8 +41,34 @@ TEST_F(ConsentedLogTest, LogConsented) {
   EXPECT_THAT(LogWithCapturedStderr(
                   [this]() { PS_VLOG(kMaxV, *test_instance_) << kLogContent; }),
               IsEmpty());
-  EXPECT_THAT(ReadSs(),
+  std::string log_str = ReadSs();
+  EXPECT_THAT(log_str,
               ContainsRegex(absl::StrCat("\\(id: 1234\\)[ \t]+", kLogContent)));
+
+  EXPECT_THAT(log_str, ContainsRegex("severity_text[ \t:]+INFO"));
+}
+
+TEST_F(ConsentedLogTest, LogSeverityWarn) {
+  test_instance_ = std::make_unique<ContextImpl>(
+      absl::btree_map<std::string, std::string>{}, matched_token_);
+  SetServerTokenForTestOnly(kServerToken);
+
+  EXPECT_THAT(LogWithCapturedStderr([this]() {
+                PS_LOG(WARNING, *test_instance_) << kLogContent;
+              }),
+              IsEmpty());
+  EXPECT_THAT(ReadSs(), ContainsRegex("severity_text[ \t:]+WARN"));
+}
+
+TEST_F(ConsentedLogTest, LogSeverityError) {
+  test_instance_ = std::make_unique<ContextImpl>(
+      absl::btree_map<std::string, std::string>{}, matched_token_);
+  SetServerTokenForTestOnly(kServerToken);
+
+  EXPECT_THAT(LogWithCapturedStderr(
+                  [this]() { PS_LOG(ERROR, *test_instance_) << kLogContent; }),
+              IsEmpty());
+  EXPECT_THAT(ReadSs(), ContainsRegex("severity_text[ \t:]+ERROR"));
 }
 
 TEST_F(DebugResponseTest, NotLoggedInProd) {

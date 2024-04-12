@@ -58,6 +58,8 @@ ABSL_CONST_INIT inline opentelemetry::logs::Logger* logger_private = nullptr;
 std::string FormatContext(
     const absl::btree_map<std::string, std::string>& context_map);
 
+opentelemetry::logs ::Severity ToOtelSeverity(absl::LogSeverity);
+
 class ContextImpl final : public PSLogContext {
  public:
   ContextImpl(
@@ -101,7 +103,8 @@ class ContextImpl final : public PSLogContext {
 
     void Send(const absl::LogEntry& entry) override {
       logger_private->EmitLogRecord(
-          entry.text_message_with_prefix_and_newline_c_str());
+          entry.text_message_with_prefix_and_newline_c_str(),
+          ToOtelSeverity(entry.log_severity()));
     }
 
     void Flush() override {}
@@ -142,17 +145,6 @@ class ContextImpl final : public PSLogContext {
   DebugResponseSinkImpl debug_response_sink_;
 };
 
-// OpenTelemetry log sink
-class OtelSinkImpl : public absl::LogSink {
- public:
-  OtelSinkImpl() = default;
-  void Send(const absl::LogEntry& entry) override {
-    logger_private->EmitLogRecord(
-        entry.text_message_with_prefix_and_newline_c_str());
-  }
-  void Flush() override {}
-};
-
 // Defines SafePathContext class to always log to otel for safe code path
 class SafePathContext : public PSLogContext {
  public:
@@ -173,6 +165,18 @@ class SafePathContext : public PSLogContext {
   friend class SafePathLogTest;
 
  private:
+  // OpenTelemetry log sink
+  class OtelSinkImpl : public absl::LogSink {
+   public:
+    OtelSinkImpl() = default;
+    void Send(const absl::LogEntry& entry) override {
+      logger_private->EmitLogRecord(
+          entry.text_message_with_prefix_and_newline_c_str(),
+          ToOtelSeverity(entry.log_severity()));
+    }
+    void Flush() override {}
+  };
+
   OtelSinkImpl otel_sink_;
 };
 
