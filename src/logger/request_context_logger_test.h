@@ -39,7 +39,7 @@ class LogSinkMock : public absl::LogSink {
   MOCK_METHOD(void, Flush, (), (override));
 };
 
-class TestContext : public RequestContext {
+class TestContext : public PSLogContext {
  public:
   // implement interface
   std::string_view ContextStr() const override { return context_str_; }
