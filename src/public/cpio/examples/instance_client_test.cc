@@ -96,15 +96,6 @@ int main(int argc, char* argv[]) {
               << GetErrorMessage(result.status_code) << std::endl;
   }
   auto instance_client = InstanceClientFactory::Create();
-  if (absl::Status error = instance_client->Init(); !error.ok()) {
-    std::cout << "Cannot init instance client!" << error << std::endl;
-    return 0;
-  }
-  if (absl::Status error = instance_client->Run(); !error.ok()) {
-    std::cout << "Cannot run instance client!" << error << std::endl;
-    return 0;
-  }
-
   absl::Notification finished;
   if (absl::Status error = instance_client->GetCurrentInstanceResourceName(
           GetCurrentInstanceResourceNameRequest(),
@@ -115,11 +106,6 @@ int main(int argc, char* argv[]) {
               << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
-
-  if (absl::Status error = instance_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop instance client!" << error << std::endl;
-  }
-
   result = Cpio::ShutdownCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to shutdown CPIO: "

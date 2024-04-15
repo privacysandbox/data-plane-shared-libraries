@@ -37,9 +37,9 @@ class InstanceClientInterface {
  public:
   virtual ~InstanceClientInterface() = default;
 
-  virtual absl::Status Init() noexcept = 0;
-  virtual absl::Status Run() noexcept = 0;
-  virtual absl::Status Stop() noexcept = 0;
+  [[deprecated]] virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Gets the resource name for the instance where the code is running

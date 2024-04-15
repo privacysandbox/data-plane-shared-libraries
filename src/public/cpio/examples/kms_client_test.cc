@@ -59,15 +59,6 @@ int main(int argc, char* argv[]) {
   KmsClientOptions kms_client_options;
 
   auto kms_client = KmsClientFactory::Create(std::move(kms_client_options));
-  if (absl::Status error = kms_client->Init(); !error.ok()) {
-    std::cout << "Cannot init kms client!" << error << std::endl;
-    return 0;
-  }
-  if (absl::Status error = kms_client->Run(); !error.ok()) {
-    std::cout << "Cannot run kms client!" << error << std::endl;
-    return 0;
-  }
-
   std::cout << "Run kms client successfully!" << std::endl;
 
   auto request = std::make_shared<DecryptRequest>();
@@ -89,11 +80,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Decrypt failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
-
-  if (absl::Status error = kms_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop kms client!" << error << std::endl;
-  }
-
   result = Cpio::ShutdownCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to shutdown CPIO: "

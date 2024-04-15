@@ -69,15 +69,6 @@ int main(int argc, char* argv[]) {
                                            .region = std::string{kRegion}}};
   TestLibCpio::InitCpio(cpio_options);
   auto instance_client = InstanceClientFactory::Create();
-  if (absl::Status error = instance_client->Init(); !error.ok()) {
-    std::cout << "Cannot init instance client!" << error << std::endl;
-    return 0;
-  }
-  if (absl::Status error = instance_client->Run(); !error.ok()) {
-    std::cout << "Cannot run instance client!" << error << std::endl;
-    return 0;
-  }
-
   absl::Notification finished;
   if (absl::Status error = instance_client->GetCurrentInstanceResourceName(
           GetCurrentInstanceResourceNameRequest(),
@@ -88,9 +79,5 @@ int main(int argc, char* argv[]) {
               << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
-
-  if (absl::Status error = instance_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop instance client!" << error << std::endl;
-  }
   TestLibCpio::ShutdownCpio(cpio_options);
 }

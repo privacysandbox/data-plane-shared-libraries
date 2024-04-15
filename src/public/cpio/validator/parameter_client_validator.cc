@@ -51,11 +51,6 @@ void RunGetParameterValidator(std::string_view name,
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
-
-  if (absl::Status error = parameter_client->Run(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
   absl::Notification finished;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(
@@ -79,8 +74,5 @@ void RunGetParameterValidator(std::string_view name,
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
   }
   finished.WaitForNotification();
-  if (absl::Status error = parameter_client->Stop(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-  }
 }
 };  // namespace google::scp::cpio::validator

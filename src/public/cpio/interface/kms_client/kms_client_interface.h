@@ -38,9 +38,9 @@ class KmsClientInterface {
  public:
   virtual ~KmsClientInterface() = default;
 
-  virtual absl::Status Init() noexcept = 0;
-  virtual absl::Status Run() noexcept = 0;
-  virtual absl::Status Stop() noexcept = 0;
+  [[deprecated]] virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Decrypts some data.

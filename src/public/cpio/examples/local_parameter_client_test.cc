@@ -52,11 +52,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Cannot init parameter client!" << error << std::endl;
     return 0;
   }
-  if (absl::Status error = parameter_client->Run(); !error.ok()) {
-    std::cout << "Cannot run parameter client!" << error << std::endl;
-    return 0;
-  }
-
   absl::Notification finished;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(kTestParameterName);
@@ -76,9 +71,5 @@ int main(int argc, char* argv[]) {
     std::cout << "GetParameter failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-
-  if (absl::Status error = parameter_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop parameter client!" << error << std::endl;
-  }
   TestLibCpio::ShutdownCpio(cpio_options);
 }

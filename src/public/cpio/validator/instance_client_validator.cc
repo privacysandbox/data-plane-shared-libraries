@@ -83,15 +83,6 @@ void RunGetTagsByResourceNameValidator(
     return;
   }
   auto instance_client = InstanceClientFactory::Create();
-  if (absl::Status error = instance_client->Init(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
-  if (absl::Status error = instance_client->Run(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
-
   absl::Notification finished;
   GetTagsByResourceNameRequest get_tags_request;
   get_tags_request.set_resource_name(
@@ -104,22 +95,10 @@ void RunGetTagsByResourceNameValidator(
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
   }
   finished.WaitForNotification();
-
-  if (absl::Status error = instance_client->Stop(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-  }
 }
 
 void RunGetCurrentInstanceResourceNameValidator(std::string_view name) {
   auto instance_client = InstanceClientFactory::Create();
-  if (absl::Status error = instance_client->Init(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
-  if (absl::Status error = instance_client->Run(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
   absl::Notification finished;
   if (absl::Status error = instance_client->GetCurrentInstanceResourceName(
           GetCurrentInstanceResourceNameRequest(),
@@ -129,10 +108,6 @@ void RunGetCurrentInstanceResourceNameValidator(std::string_view name) {
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
   }
   finished.WaitForNotification();
-
-  if (absl::Status error = instance_client->Stop(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-  }
 }
 
 };  // namespace google::scp::cpio::validator

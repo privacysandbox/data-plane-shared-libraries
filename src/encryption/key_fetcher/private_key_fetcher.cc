@@ -83,12 +83,6 @@ PrivateKeyFetcher::PrivateKeyFetcher(
     absl::Duration ttl)
     : private_key_client_(std::move(private_key_client)), ttl_(ttl) {}
 
-PrivateKeyFetcher::~PrivateKeyFetcher() {
-  if (const absl::Status error = private_key_client_->Stop(); !error.ok()) {
-    PS_VLOG(1) << error;
-  }
-}
-
 absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   PS_VLOG(3) << "Refreshing private keys...";
 
@@ -200,12 +194,6 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
 
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
-  if (const absl::Status error = private_key_client->Init(); !error.ok()) {
-    PS_VLOG(1) << "Failed to initialize private key client.";
-  }
-  if (const absl::Status error = private_key_client->Run(); !error.ok()) {
-    PS_VLOG(1) << "Failed to run private key client.";
-  }
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
                                              key_ttl);
 }

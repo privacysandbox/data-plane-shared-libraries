@@ -51,10 +51,7 @@ void RunListBlobsMetadataValidator(
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
-  if (absl::Status error = blob_storage_client->Run(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
+
   // ListBlobsMetadata.
   absl::Notification finished;
   google::scp::core::ExecutionResult result;
@@ -83,9 +80,6 @@ void RunListBlobsMetadataValidator(
     std::cout << "[ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
-  if (absl::Status error = blob_storage_client->Stop(); !error.ok()) {
-    std::cout << " [ FAILURE ] " << name << " " << error << std::endl;
-  }
 }
 
 void RunGetBlobValidator(std::string_view name,
@@ -103,10 +97,6 @@ void RunGetBlobValidator(std::string_view name,
   auto blob_storage_client =
       google::scp::cpio::BlobStorageClientFactory::Create();
   if (absl::Status error = blob_storage_client->Init(); !error.ok()) {
-    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
-    return;
-  }
-  if (absl::Status error = blob_storage_client->Run(); !error.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
@@ -134,9 +124,6 @@ void RunGetBlobValidator(std::string_view name,
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
-  }
-  if (absl::Status error = blob_storage_client->Stop(); !error.ok()) {
-    std::cout << " [ FAILURE ] " << name << " " << error << std::endl;
   }
 }
 }  // namespace google::scp::cpio::validator

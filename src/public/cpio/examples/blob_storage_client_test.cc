@@ -74,10 +74,6 @@ int main(int argc, char* argv[]) {
   if (absl::Status error = blob_storage_client->Init(); !error.ok()) {
     std::cerr << "Failed to Init BlobStorageClient: " << error << std::endl;
   }
-  if (absl::Status error = blob_storage_client->Run(); !error.ok()) {
-    std::cerr << "Failed to Run BlobStorageClient: " << error << std::endl;
-  }
-
   {
     // PutBlob.
     auto data = "some data string";

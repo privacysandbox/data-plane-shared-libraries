@@ -43,8 +43,7 @@ class PrivateKeyFetcher final : public PrivateKeyFetcherInterface {
           private_key_client,
       absl::Duration ttl);
 
-  // Stops and terminates any resources used by the fetcher.
-  ~PrivateKeyFetcher();
+  ~PrivateKeyFetcher() override = default;
 
   // Blocking.
   // Calls the Private Key Service to fetch and store the private keys.

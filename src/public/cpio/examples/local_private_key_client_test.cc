@@ -75,15 +75,6 @@ int main(int argc, char* argv[]) {
 
   auto private_key_client =
       PrivateKeyClientFactory::Create(std::move(private_key_client_options));
-  if (absl::Status error = private_key_client->Init(); !error.ok()) {
-    std::cout << "Cannot init private key client!" << error << std::endl;
-    return 0;
-  }
-  if (absl::Status error = private_key_client->Run(); !error.ok()) {
-    std::cout << "Cannot run private key client!" << error << std::endl;
-    return 0;
-  }
-
   std::cout << "Run private key client successfully!" << std::endl;
 
   ListPrivateKeysRequest request;
@@ -104,9 +95,5 @@ int main(int argc, char* argv[]) {
     std::cout << "ListPrivateKeys failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
-
-  if (absl::Status error = private_key_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop private key client!" << error << std::endl;
-  }
   TestLibCpio::ShutdownCpio(cpio_options);
 }

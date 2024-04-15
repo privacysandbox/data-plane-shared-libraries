@@ -42,8 +42,7 @@ class PublicKeyFetcher final : public PublicKeyFetcherInterface {
                    std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
                        public_key_clients);
 
-  // Stops and terminates any resources used by the fetcher.
-  ~PublicKeyFetcher();
+  ~PublicKeyFetcher() override = default;
 
   // Blocking.
   // Calls the Public Key Service to refresh the fetcher's list of the latest

@@ -43,18 +43,6 @@ class CliBlobStorage final {
       std::cerr << "Failed to Init BlobStorageClient: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
-
-    if (absl::Status error = blob_storage_client_->Run(); !error.ok()) {
-      std::cerr << "Failed to Run BlobStorageClient: " << error << std::endl;
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  ~CliBlobStorage() {
-    if (absl::Status error = blob_storage_client_->Stop(); !error.ok()) {
-      std::cout << "Cannot stop Blob Storage client!" << error << std::endl;
-      exit(EXIT_FAILURE);
-    }
   }
 
   /**

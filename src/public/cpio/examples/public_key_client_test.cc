@@ -57,15 +57,6 @@ int main(int argc, char* argv[]) {
 
   auto public_key_client =
       PublicKeyClientFactory::Create(std::move(public_key_client_options));
-  if (absl::Status error = public_key_client->Init(); !error.ok()) {
-    std::cout << "Cannot init public key client!" << error << std::endl;
-    return 0;
-  }
-  if (absl::Status error = public_key_client->Run(); !error.ok()) {
-    std::cout << "Cannot run public key client!" << error << std::endl;
-    return 0;
-  }
-
   std::cout << "Run public key client successfully!" << std::endl;
 
   ListPublicKeysRequest request;
@@ -86,11 +77,6 @@ int main(int argc, char* argv[]) {
     std::cout << "ListPublicKeys failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
-
-  if (absl::Status error = public_key_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop public key client!" << error << std::endl;
-  }
-
   result = Cpio::ShutdownCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to shutdown CPIO: "

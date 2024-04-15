@@ -67,12 +67,6 @@ PublicKeyFetcher::PublicKeyFetcher(
         public_key_clients)
     : public_key_clients_(std::move(public_key_clients)) {}
 
-PublicKeyFetcher::~PublicKeyFetcher() {
-  for (const auto& [cloud_platform, public_key_client] : public_key_clients_) {
-    public_key_client->Stop().IgnoreError();
-  }
-}
-
 /**
  * Makes a blocking call to fetch the public keys using public key clients
  * for each provided platform.
@@ -185,15 +179,6 @@ std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
 
     std::unique_ptr<PublicKeyClientInterface> public_key_client =
         google::scp::cpio::PublicKeyClientFactory::Create(std::move(options));
-
-    if (const absl::Status error = public_key_client->Init(); !error.ok()) {
-      PS_VLOG(1) << "Failed to initialize public key client.";
-    }
-
-    if (const absl::Status error = public_key_client->Run(); !error.ok()) {
-      PS_VLOG(1) << "Failed to run public key client.";
-    }
-
     public_key_clients[cloud_platform] = std::move(public_key_client);
   }
 

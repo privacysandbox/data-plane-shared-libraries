@@ -165,15 +165,6 @@ int main(int argc, char* argv[]) {
 
   auto crypto_client =
       CryptoClientFactory::Create(std::move(crypto_client_options));
-  if (absl::Status error = crypto_client->Init(); !error.ok()) {
-    std::cout << "Cannot init crypto client!" << error << std::endl;
-    return 0;
-  }
-  if (absl::Status error = crypto_client->Run(); !error.ok()) {
-    std::cout << "Cannot run crypto client!" << error << std::endl;
-    return 0;
-  }
-
   std::cout << "Run crypto client successfully!" << std::endl;
 
   absl::Notification finished;
@@ -189,11 +180,6 @@ int main(int argc, char* argv[]) {
                                      std::ref(finished), crypto_client.get()))
       .IgnoreError();
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
-
-  if (absl::Status error = crypto_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop crypto client!" << error << std::endl;
-  }
-
   result = Cpio::ShutdownCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to shutdown CPIO: "
