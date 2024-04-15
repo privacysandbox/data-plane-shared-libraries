@@ -39,9 +39,7 @@ absl::Status MetricClient::Init() noexcept {
   return metric_client_provider_->Init();
 }
 
-absl::Status MetricClient::Run() noexcept {
-  return metric_client_provider_->Run();
-}
+absl::Status MetricClient::Run() noexcept { return absl::OkStatus(); }
 
 absl::Status MetricClient::Stop() noexcept { return absl::OkStatus(); }
 

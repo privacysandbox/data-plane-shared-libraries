@@ -63,7 +63,7 @@ class AwsMetricClientProvider : public MetricClientProvider {
         io_async_executor_(io_async_executor),
         region_(std::move(metric_client_options).region) {}
 
-  absl::Status Run() noexcept override;
+  absl::Status Init() noexcept override;
 
  protected:
   core::ExecutionResult MetricsBatchPush(

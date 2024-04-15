@@ -64,8 +64,8 @@ constexpr size_t kGcpTimeSeriesSizeLimit = 200;
 
 namespace google::scp::cpio::client_providers {
 
-absl::Status GcpMetricClientProvider::Run() noexcept {
-  if (absl::Status error = MetricClientProvider::Run(); !error.ok()) {
+absl::Status GcpMetricClientProvider::Init() noexcept {
+  if (absl::Status error = MetricClientProvider::Init(); !error.ok()) {
     SCP_ERROR(kGcpMetricClientProvider, kZeroUuid, error,
               "Failed to initialize MetricClientProvider");
     return error;

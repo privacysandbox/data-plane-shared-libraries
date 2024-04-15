@@ -57,11 +57,6 @@ int main(int argc, char* argv[]) {
     std::cout << "Cannot init metric client!" << error << std::endl;
     return 0;
   }
-  if (absl::Status error = metric_client->Run(); !error.ok()) {
-    std::cout << "Cannot run metric client!" << error << std::endl;
-    return 0;
-  }
-
   auto request = std::make_shared<PutMetricsRequest>();
   request->set_metric_namespace("test");
   auto metric = request->add_metrics();

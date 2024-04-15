@@ -38,7 +38,6 @@ TEST(AwsMetricClientProviderTest, InitGetsRegionFromInstanceClient) {
   AwsMetricClientProvider client(MetricClientOptions{}, &instance_client_mock,
                                  &async_executor_mock, &io_async_executor_mock);
   ASSERT_TRUE(client.Init().ok());
-  ASSERT_TRUE(client.Run().ok());
 }
 
 TEST(AwsMetricClientProviderTest, InitGetsRegionFromOptions) {
@@ -54,7 +53,6 @@ TEST(AwsMetricClientProviderTest, InitGetsRegionFromOptions) {
                                  &instance_client_mock, &async_executor_mock,
                                  &io_async_executor_mock);
   ASSERT_TRUE(client.Init().ok());
-  ASSERT_TRUE(client.Run().ok());
 }
 
 TEST(AwsMetricClientProviderTest, InitFailedToFetchRegion) {
@@ -66,8 +64,7 @@ TEST(AwsMetricClientProviderTest, InitFailedToFetchRegion) {
   // Empty region set.
   AwsMetricClientProvider client(MetricClientOptions{}, &instance_client_mock,
                                  &async_executor_mock, &io_async_executor_mock);
-  ASSERT_TRUE(client.Init().ok());
-  EXPECT_FALSE(client.Run().ok());
+  ASSERT_FALSE(client.Init().ok());
 }
 }  // namespace
 }  // namespace google::scp::cpio::client_providers

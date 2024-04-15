@@ -90,8 +90,8 @@ ClientConfiguration AwsMetricClientProvider::GetClientConfig(
   return client_config;
 }
 
-absl::Status AwsMetricClientProvider::Run() noexcept {
-  if (absl::Status error = MetricClientProvider::Run(); !error.ok()) {
+absl::Status AwsMetricClientProvider::Init() noexcept {
+  if (absl::Status error = MetricClientProvider::Init(); !error.ok()) {
     SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, error,
               "Failed to initialize MetricClientProvider");
     return error;

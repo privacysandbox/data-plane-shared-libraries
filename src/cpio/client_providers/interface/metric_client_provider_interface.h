@@ -66,7 +66,6 @@ class MetricClientProviderInterface {
   virtual ~MetricClientProviderInterface() = default;
 
   virtual absl::Status Init() noexcept = 0;
-  virtual absl::Status Run() noexcept = 0;
 
   /**
    * @brief Records custom metrics on Cloud.
