@@ -23,7 +23,7 @@
 
 namespace privacy_sandbox::server_common::log {
 
-using ::opentelemetry::logs::Severity;
+using OtelSeverity = ::opentelemetry::logs::Severity;
 
 std::string FormatContext(
     const absl::btree_map<std::string, std::string>& context_map) {
@@ -43,13 +43,14 @@ std::string FormatContext(
   return absl::StrCat(" (", absl::StrJoin(pairs, ", "), ") ");
 }
 
-Severity ToOtelSeverity(absl::LogSeverity severity) {
-  static const absl::NoDestructor<absl::btree_map<absl::LogSeverity, Severity>>
+OtelSeverity ToOtelSeverity(absl::LogSeverity severity) {
+  static const absl::NoDestructor<
+      absl::btree_map<absl::LogSeverity, OtelSeverity>>
       m({
-          {absl::LogSeverity::kInfo, Severity::kInfo},
-          {absl::LogSeverity::kWarning, Severity::kWarn},
-          {absl::LogSeverity::kError, Severity::kError},
-          {absl::LogSeverity::kFatal, Severity::kFatal},
+          {absl::LogSeverity::kInfo, OtelSeverity::kInfo},
+          {absl::LogSeverity::kWarning, OtelSeverity::kWarn},
+          {absl::LogSeverity::kError, OtelSeverity::kError},
+          {absl::LogSeverity::kFatal, OtelSeverity::kFatal},
       });
   return m->at(severity);
 }

@@ -58,7 +58,7 @@ ABSL_CONST_INIT inline opentelemetry::logs::Logger* logger_private = nullptr;
 std::string FormatContext(
     const absl::btree_map<std::string, std::string>& context_map);
 
-opentelemetry::logs ::Severity ToOtelSeverity(absl::LogSeverity);
+opentelemetry::logs::Severity ToOtelSeverity(absl::LogSeverity);
 
 class ContextImpl final : public PSLogContext {
  public:
