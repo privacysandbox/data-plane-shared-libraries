@@ -42,6 +42,7 @@ source "${TOOLS_DIR}"/builder.sh
 declare -a targets
 declare -a benchmark_args=(
   "--benchmark_out_format=json"
+  "--benchmark_counters_tabular=true"
 )
 
 while [[ $# -gt 0 ]]; do
