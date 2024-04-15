@@ -43,26 +43,6 @@ constexpr std::string_view kWebAssemblyTag = "WebAssembly";
 constexpr std::string_view kInstanceTag = "Instance";
 constexpr std::string_view kRegisteredWasmExports = "RomaRegisteredWasmExports";
 
-absl::Status RunJs(absl::Nonnull<v8::Isolate*> isolate,
-                   std::string_view js_code) {
-  v8::Local<v8::Context> context(isolate->GetCurrentContext());
-  auto src = v8::String::NewFromUtf8(isolate, js_code.data(),
-                                     v8::NewStringType::kNormal, js_code.size())
-                 .ToLocalChecked();
-  v8::Local<v8::Script> script;
-  if (!v8::Script::Compile(context, src).ToLocal(&script)) {
-    return absl::InvalidArgumentError(
-        "Failed to compile JavaScript code object.");
-  }
-  v8::Local<v8::Value> script_result;
-  if (!script->Run(context).ToLocal(&script_result)) {
-    return absl::InvalidArgumentError("Failed to run JavaScript code object.");
-  }
-  return absl::OkStatus();
-}
-
-constexpr std::string_view kPerformanceNowJs =
-    "const performance = { now: () => Date.now() };";
 }  // namespace
 
 absl::Status ExecutionUtils::CompileRunJS(
@@ -71,13 +51,6 @@ absl::Status ExecutionUtils::CompileRunJS(
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
-
-  for (auto src : {kPerformanceNowJs}) {
-    if (auto result = RunJs(isolate, src); !result.ok()) {
-      err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-      return result;
-    }
-  }
 
   v8::Local<v8::String> js_source =
       v8::String::NewFromUtf8(isolate, js.data(), v8::NewStringType::kNormal,

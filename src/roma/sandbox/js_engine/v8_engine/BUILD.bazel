@@ -15,6 +15,22 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
+    name = "performance_now",
+    srcs = select({
+        "//:non_prod_build": ["performance_now_nonprod.cc"],
+        "//conditions:default": ["performance_now_prod.cc"],
+    }),
+    hdrs = [
+        "performance_now.h",
+    ],
+    deps = [
+        "//src/util:duration",
+        "@com_google_absl//absl/time",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "v8_isolate_wrapper",
     hdrs = ["v8_isolate_wrapper.h"],
     deps = [
@@ -27,6 +43,7 @@ cc_library(
     srcs = ["v8_isolate_function_binding.cc"],
     hdrs = ["v8_isolate_function_binding.h"],
     deps = [
+        ":performance_now",
         ":v8_isolate_wrapper",
         "//src/roma/config",
         "//src/roma/logging",
@@ -36,6 +53,7 @@ cc_library(
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/native_function_binding",
         "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
+        "//src/util:duration",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:flat_hash_map",

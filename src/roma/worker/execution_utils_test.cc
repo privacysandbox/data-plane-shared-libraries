@@ -340,24 +340,6 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithNamespacedHandler) {
   EXPECT_THAT(output, StrEq("3"));
 }
 
-TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
-  const RunCodeArguments code_obj = {
-      .handler_name = "Handler",
-      .js =
-          R"(
-        function Handler() {
-          // Date.now overriden to always return the same number.
-          Date.now = () => 1672531200000;
-          return performance.now() === Date.now();
-        }
-      )",
-  };
-  std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
-  EXPECT_THAT(output, StrEq("true"));
-}
-
 TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
   const RunCodeArguments code_obj = {
       .handler_name = "Predicate",
