@@ -34,6 +34,9 @@ TEST_F(LogTest, NothingIfNotConsented) {
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
       IsEmpty());
   EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      IsEmpty());
+  EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
       IsEmpty());
   EXPECT_THAT(
@@ -43,6 +46,9 @@ TEST_F(LogTest, NothingIfNotConsented) {
   tc.is_debug_response_ = true;
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
       IsEmpty());
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
@@ -73,6 +79,29 @@ TEST_F(LogTest, VlogOnlyConsentSinkIfConsented) {
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      IsEmpty());
+}
+
+TEST_F(LogTest, InfoOnlyConsentSinkIfConsented) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      IsEmpty());
+
+  // is_debug_response_ doesn't do anything
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
       IsEmpty());
 }
 
@@ -140,6 +169,7 @@ TEST_F(LogTest, SkipStreamingIfNotLog) {
   // will not hit Crash(), because no logger is logging
   tc.is_consented_ = false;
   PS_VLOG(kMaxV, tc) << Crash();
+  PS_LOG(INFO, tc) << Crash();
   PS_LOG(WARNING, tc) << Crash();
   PS_LOG(ERROR, tc) << Crash();
 }
@@ -147,6 +177,15 @@ TEST_F(LogTest, SkipStreamingIfNotLog) {
 TEST_F(LogTest, NoContext) {
   std::string log =
       LogWithCapturedStderr([]() { PS_VLOG(kMaxV) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(INFO) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(WARNING) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(ERROR) << kLogContent; });
   EXPECT_THAT(log, IsEmpty());
 }
 

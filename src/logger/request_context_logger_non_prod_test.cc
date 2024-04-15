@@ -35,6 +35,12 @@ TEST_F(LogTest, VlogToStderr) {
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
+TEST_F(LogTest, InfoToStderr) {
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
 TEST_F(LogTest, WarningToStderr) {
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
@@ -56,6 +62,19 @@ TEST_F(LogTest, VlogToStderrAndConsent) {
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, InfoToStderrAndConsent) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
@@ -95,6 +114,18 @@ TEST_F(LogTest, VlogStderrAndDebugResponse) {
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
+TEST_F(LogTest, InfoStderrAndDebugResponse) {
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.debug_response_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
 TEST_F(LogTest, WarningStderrAndDebugResponse) {
   tc.is_debug_response_ = true;
   EXPECT_CALL(
@@ -130,6 +161,24 @@ TEST_F(LogTest, VlogStderrAndConsentAndDebugResponse) {
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+}
+
+TEST_F(LogTest, InfoStderrAndConsentAndDebugResponse) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.debug_response_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
@@ -193,6 +242,15 @@ TEST_F(LogTest, NoContext) {
 
   log = LogWithCapturedStderr([]() { PS_VLOG(kMaxV + 1) << kLogContent; });
   EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(INFO) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
+
+  log = LogWithCapturedStderr([]() { PS_LOG(WARNING) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
+
+  log = LogWithCapturedStderr([]() { PS_LOG(ERROR) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
 }
 
 }  // namespace

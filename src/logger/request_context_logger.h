@@ -170,13 +170,19 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   PS_VLOG_INTERNAL(verbose_level, ps_log_context)               \
       << ps_logging_internal_context.ContextStr()
 
-#define PS_LOG(severity, ps_log_context)    \
-  PS_LOG_INTERNAL(severity, ps_log_context) \
+#define PS_LOG_CONTEXT_INTERNAL(severity, ps_log_context) \
+  PS_LOG_INTERNAL(severity, ps_log_context)               \
       << ps_logging_internal_context.ContextStr()
 
 #define PS_VLOG_NO_CONTEXT_INTERNAL(verbose_level)                     \
   PS_VLOG_INTERNAL(                                                    \
       verbose_level,                                                   \
+      const_cast<::privacy_sandbox::server_common::log::NoOpContext&>( \
+          ::privacy_sandbox::server_common::log::kNoOpContext))
+
+#define PS_LOG_NO_CONTEXT_INTERNAL(severity)                           \
+  PS_LOG_INTERNAL(                                                     \
+      severity,                                                        \
       const_cast<::privacy_sandbox::server_common::log::NoOpContext&>( \
           ::privacy_sandbox::server_common::log::kNoOpContext))
 
@@ -191,5 +197,10 @@ class PSLogMessage : public absl::log_internal::LogMessage {
               PS_VLOG_NO_CONTEXT_INTERNAL)           \
   (__VA_ARGS__)
 #define GET_PS_VLOG(_1, _2, NAME, ...) NAME
+
+#define PS_LOG(...)                                                            \
+  GET_PS_LOG(__VA_ARGS__, PS_LOG_CONTEXT_INTERNAL, PS_LOG_NO_CONTEXT_INTERNAL) \
+  (__VA_ARGS__)
+#define GET_PS_LOG(_1, _2, NAME, ...) NAME
 
 #endif  // LOGGER_REQUEST_CONTEXT_LOGGER_H_
