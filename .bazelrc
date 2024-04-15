@@ -45,6 +45,7 @@ build:cpp_nowarn --per_file_copt=src/experimental/kevinbnaughton/roma_grpc/.*@-W
 # Disabled due to necessary macro collision introduced in src/roma/sandbox/js_engine/v8_engine/v8.console.h
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker/v8_engine_worker_test\.cc@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/js_engine/v8_engine/.*@-Wno-macro-redefined
+build:cpp_nowarn --per_file_copt=src/roma/benchmark/proto_serde_benchmark\.cc@-Wno-macro-redefined
 
 build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
 build:clang-tidy --output_groups=report

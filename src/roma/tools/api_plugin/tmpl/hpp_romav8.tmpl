@@ -60,6 +60,8 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
         code_version);
   }
 
+  constexpr std::string_view GetRomaJsCode() { return roma_app_jscode; }
+
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
   {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}

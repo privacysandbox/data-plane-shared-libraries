@@ -58,6 +58,28 @@ constexpr std::string_view kCodePrimeSieve = R"(
 )";
 constexpr std::string_view kHandlerNamePrimeSieve = "sieve";
 
+constexpr std::string_view kCodeSerializeProtobuf = R"(
+    function SerializeFunc() {
+      const start_time = performance.now();
+      TestServerPb.ObjectToProtoBytes_TestMethodRequest({input: "Hello World"});
+      const end_time = performance.now();
+      return end_time - start_time;
+    };
+)";
+constexpr std::string_view kHandlerNameSerializeProtobuf = "SerializeFunc";
+
+constexpr std::string_view kCodeDeserializeProtobuf = R"(
+    const serializedRequest = TestServerPb.ObjectToProtoBytes_TestMethodRequest({input: "Hello World"});
+
+    function DeserializeFunc() {
+      const start_time = performance.now();
+      TestServerPb.ProtoBytesToObject_TestMethodRequest(serializedRequest);
+      const end_time = performance.now();
+      return end_time - start_time;
+    };
+)";
+constexpr std::string_view kHandlerNameDeserializeProtobuf = "DeserializeFunc";
+
 // This code was fetched from this publicly available URL on 2023-10-16:
 // https://storage.googleapis.com/buyer-bas-dev/generateBid.js
 constexpr std::string_view kCodeGoogleAdManagerGenerateBid = R"(

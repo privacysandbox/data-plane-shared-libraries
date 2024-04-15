@@ -57,6 +57,8 @@ class RomaV8AppService {
     }
   }
 
+  RomaService* GetRomaService() { return roma_service_.get(); }
+
   /*
    * Args:
    *   notification --
