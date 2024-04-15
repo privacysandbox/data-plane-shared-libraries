@@ -92,11 +92,12 @@ absl::Status MetricClientProvider::Run() noexcept {
   return absl::OkStatus();
 }
 
-absl::Status MetricClientProvider::Stop() noexcept {
+MetricClientProvider::~MetricClientProvider() {
   absl::MutexLock lock(&sync_mutex_);
   is_running_ = false;
-  if (is_batch_recording_enable) {
+  if (is_batch_recording_enable && current_cancellation_callback_) {
     current_cancellation_callback_();
+
     // To push the remaining metrics in the vector.
     RunMetricsBatchPush();
   }
@@ -105,7 +106,6 @@ absl::Status MetricClientProvider::Stop() noexcept {
     return active_push_count_ == 0;
   };
   sync_mutex_.Await(absl::Condition(&condition_fn));
-  return absl::OkStatus();
 }
 
 absl::Status MetricClientProvider::PutMetrics(

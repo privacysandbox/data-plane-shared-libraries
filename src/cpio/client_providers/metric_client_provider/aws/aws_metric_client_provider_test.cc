@@ -39,7 +39,6 @@ TEST(AwsMetricClientProviderTest, InitGetsRegionFromInstanceClient) {
                                  &async_executor_mock, &io_async_executor_mock);
   ASSERT_TRUE(client.Init().ok());
   ASSERT_TRUE(client.Run().ok());
-  EXPECT_TRUE(client.Stop().ok());
 }
 
 TEST(AwsMetricClientProviderTest, InitGetsRegionFromOptions) {
@@ -56,7 +55,6 @@ TEST(AwsMetricClientProviderTest, InitGetsRegionFromOptions) {
                                  &io_async_executor_mock);
   ASSERT_TRUE(client.Init().ok());
   ASSERT_TRUE(client.Run().ok());
-  EXPECT_TRUE(client.Stop().ok());
 }
 
 TEST(AwsMetricClientProviderTest, InitFailedToFetchRegion) {

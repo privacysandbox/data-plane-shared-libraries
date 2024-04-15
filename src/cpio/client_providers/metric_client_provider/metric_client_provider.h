@@ -39,8 +39,6 @@ namespace google::scp::cpio::client_providers {
  */
 class MetricClientProvider : public MetricClientProviderInterface {
  public:
-  virtual ~MetricClientProvider() = default;
-
   explicit MetricClientProvider(
       absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
@@ -52,11 +50,11 @@ class MetricClientProvider : public MetricClientProviderInterface {
         active_push_count_(0),
         number_metrics_in_vector_(0) {}
 
+  ~MetricClientProvider() override;
+
   absl::Status Init() noexcept override;
 
   absl::Status Run() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
-
-  absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
   absl::Status PutMetrics(
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,

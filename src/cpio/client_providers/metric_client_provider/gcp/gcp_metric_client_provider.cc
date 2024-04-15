@@ -153,14 +153,14 @@ ExecutionResult GcpMetricClientProvider::MetricsBatchPush(
     // vector is empty.
     if (time_series_request.time_series().size() == kGcpTimeSeriesSizeLimit ||
         context_vector->empty()) {
-      metric_client.AsyncCreateTimeSeries(time_series_request)
-          .then(absl::bind_front(
-              &GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback, this,
-              *requests_vector));
       {
         absl::MutexLock lock(&sync_mutex_);
         active_push_count_++;
       }
+      metric_client.AsyncCreateTimeSeries(time_series_request)
+          .then(absl::bind_front(
+              &GcpMetricClientProvider::OnAsyncCreateTimeSeriesCallback, this,
+              *requests_vector));
 
       // Clear requests_vector and protobuf repeated field.
       time_series_request.mutable_time_series()->Clear();

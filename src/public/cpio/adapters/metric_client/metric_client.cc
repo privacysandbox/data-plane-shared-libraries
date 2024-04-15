@@ -43,9 +43,7 @@ absl::Status MetricClient::Run() noexcept {
   return metric_client_provider_->Run();
 }
 
-absl::Status MetricClient::Stop() noexcept {
-  return metric_client_provider_->Stop();
-}
+absl::Status MetricClient::Stop() noexcept { return absl::OkStatus(); }
 
 absl::Status MetricClient::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse> context) noexcept {

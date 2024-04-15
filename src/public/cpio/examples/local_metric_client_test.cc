@@ -83,9 +83,5 @@ int main(int argc, char* argv[]) {
     std::cout << "PutMetrics failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(100));
-
-  if (absl::Status error = metric_client->Stop(); !error.ok()) {
-    std::cout << "Cannot stop metric client!" << error << std::endl;
-  }
   TestLibCpio::ShutdownCpio(cpio_options);
 }

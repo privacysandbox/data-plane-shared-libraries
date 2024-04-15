@@ -117,7 +117,6 @@ TEST_F(MetricClientProviderTest,
   ASSERT_TRUE(client->Init().ok());
   ASSERT_TRUE(client->Run().ok());
   EXPECT_FALSE(client->PutMetrics(context).ok());
-  EXPECT_TRUE(client->Stop().ok());
 }
 
 TEST_F(MetricClientProviderTest, FailsWhenNoMetricInRequest) {
@@ -133,7 +132,6 @@ TEST_F(MetricClientProviderTest, FailsWhenNoMetricInRequest) {
   ASSERT_TRUE(client->Init().ok());
   ASSERT_TRUE(client->Run().ok());
   EXPECT_FALSE(client->PutMetrics(context).ok());
-  EXPECT_TRUE(client->Stop().ok());
 }
 
 TEST_F(MetricClientProviderTest, FailedWithoutRunning) {
@@ -318,7 +316,6 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
 
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
   batch_push_called_count.Wait();
-  EXPECT_TRUE(client->Stop().ok());
 }
 
 }  // namespace
