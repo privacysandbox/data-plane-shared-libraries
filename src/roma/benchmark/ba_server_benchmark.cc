@@ -81,11 +81,8 @@ void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
       // .input = { std::make_shared(my_input_value_one) },
   };
 
-  std::vector<DispatchRequest> batch;
   const int batch_size = state.range(0);
-  for (int i = 0; i < batch_size; ++i) {
-    batch.push_back(request);
-  }
+  std::vector<DispatchRequest> batch(batch_size, request);
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
