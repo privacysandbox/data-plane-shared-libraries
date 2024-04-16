@@ -40,6 +40,22 @@ inline bool PS_VLOG_IS_ON(int verbose_level,
   return verbose_level <= max_verbosity;
 }
 
+// Set to true to always log to OTel in non_prod. Calling first time sets
+// `always_log_otel`, after first time `log_otel` is ignored.
+inline bool AlwaysLogOtel(std::optional<bool> log_otel = std::nullopt) {
+  static bool always_log_otel = [log_otel]() {
+    if (log_otel == std::nullopt) {
+      fprintf(stderr,
+              "Info: always_log_otel is not set, only consented is logged to "
+              "OTel.\n");
+      return false;
+    } else {
+      return *log_otel;
+    }
+  }();
+  return always_log_otel;
+}
+
 // Used by `PS_VLOG`, to provide the context of how to log a request.
 class PSLogContext {
  protected:
@@ -148,10 +164,11 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   default:                                   \
     !(condition) ? (void)0 : ::absl::log_internal::Voidify()&&
 
+// This must only be used in non_prod.
 #define PS_LOGGING_INTERNAL_LOG_SEVERITY(ps_log_context, absl_log_severity) \
   ::privacy_sandbox::server_common::log::PSLogMessage(__FILE__, __LINE__,   \
                                                       absl_log_severity)    \
-      .ToSinkAlsoIf((ps_log_context).is_consented(),                        \
+      .ToSinkAlsoIf((ps_log_context).is_consented() || AlwaysLogOtel(),     \
                     (ps_log_context).ConsentedSink())                       \
       .ToSinkAlsoIf((ps_log_context).is_debug_response(),                   \
                     (ps_log_context).DebugResponseSink())
