@@ -44,8 +44,18 @@ using google::scp::roma::DefaultMetadata;
 using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::benchmark::kCodeHelloWorld;
+using google::scp::roma::benchmark::kCodeJetstreamCryptoAes;
+using google::scp::roma::benchmark::kCodeJetstreamDeltaBlue;
+using google::scp::roma::benchmark::kCodeJetstreamNavierStokes;
+using google::scp::roma::benchmark::kCodeJetstreamSplay;
+using google::scp::roma::benchmark::kCodeJetstreamUniPoker;
 using google::scp::roma::benchmark::kCodePrimeSieve;
 using google::scp::roma::benchmark::kHandlerNameHelloWorld;
+using google::scp::roma::benchmark::kHandlerNameJetstreamCryptoAes;
+using google::scp::roma::benchmark::kHandlerNameJetstreamDeltaBlue;
+using google::scp::roma::benchmark::kHandlerNameJetstreamNavierStokes;
+using google::scp::roma::benchmark::kHandlerNameJetstreamSplay;
+using google::scp::roma::benchmark::kHandlerNameJetstreamUniPoker;
 using google::scp::roma::benchmark::kHandlerNamePrimeSieve;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
@@ -165,12 +175,56 @@ void BM_LoadCodeObjPrimeSieve(benchmark::State& state) {
   LoadCodeBenchmark(state, kCodePrimeSieve);
 }
 
+void BM_LoadCodeObjJetstreamUniPoker(benchmark::State& state) {
+  LoadCodeBenchmark(state, kCodeJetstreamUniPoker);
+}
+
+void BM_LoadCodeObjJetstreamSplay(benchmark::State& state) {
+  LoadCodeBenchmark(state, kCodeJetstreamSplay);
+}
+
+void BM_LoadCodeObjJetstreamDeltaBlue(benchmark::State& state) {
+  LoadCodeBenchmark(state, kCodeJetstreamDeltaBlue);
+}
+
+void BM_LoadCodeObjJetstreamCryptoAes(benchmark::State& state) {
+  LoadCodeBenchmark(state, kCodeJetstreamCryptoAes);
+}
+
+void BM_LoadCodeObjJetstreamNavierStokes(benchmark::State& state) {
+  LoadCodeBenchmark(state, kCodeJetstreamNavierStokes);
+}
+
 void BM_ExecuteCodeObjHelloWorld(benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeHelloWorld, kHandlerNameHelloWorld);
 }
 
 void BM_ExecuteCodeObjPrimeSieve(benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodePrimeSieve, kHandlerNamePrimeSieve);
+}
+
+void BM_ExecuteCodeObjJetstreamUniPoker(benchmark::State& state) {
+  ExecuteCodeBenchmark(state, kCodeJetstreamUniPoker,
+                       kHandlerNameJetstreamUniPoker);
+}
+
+void BM_ExecuteCodeObjJetstreamSplay(benchmark::State& state) {
+  ExecuteCodeBenchmark(state, kCodeJetstreamSplay, kHandlerNameJetstreamSplay);
+}
+
+void BM_ExecuteCodeObjJetstreamDeltaBlue(benchmark::State& state) {
+  ExecuteCodeBenchmark(state, kCodeJetstreamDeltaBlue,
+                       kHandlerNameJetstreamDeltaBlue);
+}
+
+void BM_ExecuteCodeObjJetstreamCryptoAes(benchmark::State& state) {
+  ExecuteCodeBenchmark(state, kCodeJetstreamCryptoAes,
+                       kHandlerNameJetstreamCryptoAes);
+}
+
+void BM_ExecuteCodeObjJetstreamNavierStokes(benchmark::State& state) {
+  ExecuteCodeBenchmark(state, kCodeJetstreamNavierStokes,
+                       kHandlerNameJetstreamNavierStokes);
 }
 
 BENCHMARK(BM_LoadCodeObjHelloWorld)
@@ -181,11 +235,51 @@ BENCHMARK(BM_LoadCodeObjPrimeSieve)
     ->DenseRange(0, kOptimizerCombos.size() - 1)
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadCodeObjJetstreamUniPoker)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadCodeObjJetstreamSplay)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadCodeObjJetstreamDeltaBlue)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadCodeObjJetstreamCryptoAes)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadCodeObjJetstreamNavierStokes)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteCodeObjHelloWorld)
     ->DenseRange(0, kOptimizerCombos.size() - 1)
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteCodeObjPrimeSieve)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteCodeObjJetstreamUniPoker)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteCodeObjJetstreamSplay)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteCodeObjJetstreamDeltaBlue)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteCodeObjJetstreamCryptoAes)
+    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->Setup(SetupWithV8Flags)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteCodeObjJetstreamNavierStokes)
     ->DenseRange(0, kOptimizerCombos.size() - 1)
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
