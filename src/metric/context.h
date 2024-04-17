@@ -48,14 +48,14 @@ One context will be created for one request, used to log metric. It will use
 request is not decrypted.
 
 To log metric call one of the `Log***<definition>(value)`, definition is a
-definition that is in `L`.
+definition that is in `definition_list`.
 
 Examples:
 LogUpDownCounter<kSafeCounter>(1);
 LogUpDownCounter<kSafePartitionedCounter>({{"buyer_1", 1}, {"buyer_2", 1}});
 
-To initialize, `L` is the list of Definition* that can be logged. `U` is the
-thread-safe metric_router implementing following 2 templated methods:
+To initialize, `definition_list` is the list of Definition* that can be logged.
+`U` is the thread-safe metric_router implementing following 2 templated methods:
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(const Definition<T, privacy, instrument>& definition,
                        T value,
@@ -65,8 +65,8 @@ thread-safe metric_router implementing following 2 templated methods:
                          T value,
                          std::string_view partition);
 */
-template <const absl::Span<const DefinitionName* const>& L, typename U,
-          bool safe_metric_only = false>
+template <const absl::Span<const DefinitionName* const>& definition_list,
+          typename U, bool safe_metric_only = false>
 class Context {
  public:
   // Constructed here only, `is_debug`=true will log everything as safe.
@@ -301,7 +301,7 @@ class Context {
     static_assert(
         std::is_same_v<DefinitionType, Definition<T, definition.type_privacy,
                                                   definition.type_instrument>>);
-    static_assert(IsInList(definition, L));
+    static_assert(IsInList(definition, definition_list));
     if constexpr (safe_metric_only) {
       static_assert(definition.type_privacy == Privacy::kNonImpacting);
     }
