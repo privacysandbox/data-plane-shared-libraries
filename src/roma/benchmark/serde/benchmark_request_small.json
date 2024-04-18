@@ -1,0 +1,15 @@
+{
+  "id": "small",
+  "tags": ["tag1", "tag2", "tag3"],
+  "nested_objects": [
+    {
+      "count": 1,
+      "values": [1.0]
+    },
+    {
+      "count": 2,
+      "values": [2.0, 2.1]
+    }
+  ],
+  "text_data": "small_test"
+}

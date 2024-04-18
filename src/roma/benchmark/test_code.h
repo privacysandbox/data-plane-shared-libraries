@@ -17,6 +17,9 @@
 // This file has code that will be executed as part of benchmarking for both
 // KV and BA servers.
 
+#ifndef ROMA_BENCHMARK_TEST_CODE_H_
+#define ROMA_BENCHMARK_TEST_CODE_H_
+
 #include <string_view>
 
 namespace google::scp::roma::benchmark {
@@ -59,26 +62,26 @@ constexpr std::string_view kCodePrimeSieve = R"(
 constexpr std::string_view kHandlerNamePrimeSieve = "sieve";
 
 constexpr std::string_view kCodeSerializeProtobuf = R"(
-    function SerializeFunc() {
+    function SerializeFunc(req) {
       const start_time = performance.now();
-      TestServerPb.ObjectToProtoBytes_TestMethodRequest({input: "Hello World"});
+      BenchmarkServerPb.ObjectToProtoBytes_BenchmarkRequest(req);
       const end_time = performance.now();
       return end_time - start_time;
     };
 )";
-constexpr std::string_view kHandlerNameSerializeProtobuf = "SerializeFunc";
+constexpr std::string_view kHandlerNameSerializeFunc = "SerializeFunc";
 
 constexpr std::string_view kCodeDeserializeProtobuf = R"(
-    const serializedRequest = TestServerPb.ObjectToProtoBytes_TestMethodRequest({input: "Hello World"});
+    function DeserializeFunc(req) {
+      const serializedRequest = BenchmarkServerPb.ObjectToProtoBytes_BenchmarkRequest(req);
 
-    function DeserializeFunc() {
       const start_time = performance.now();
-      TestServerPb.ProtoBytesToObject_TestMethodRequest(serializedRequest);
+      BenchmarkServerPb.ProtoBytesToObject_BenchmarkRequest(serializedRequest);
       const end_time = performance.now();
       return end_time - start_time;
     };
 )";
-constexpr std::string_view kHandlerNameDeserializeProtobuf = "DeserializeFunc";
+constexpr std::string_view kHandlerNameDeserializeFunc = "DeserializeFunc";
 
 // This code was fetched from this publicly available URL on 2023-10-16:
 // https://storage.googleapis.com/buyer-bas-dev/generateBid.js
@@ -94,3 +97,5 @@ constexpr std::string_view kHandlerNameGoogleAdManagerGenerateBid =
     "generateBid";
 
 }  // namespace google::scp::roma::benchmark
+
+#endif  // ROMA_BENCHMARK_TEST_CODE_H_
