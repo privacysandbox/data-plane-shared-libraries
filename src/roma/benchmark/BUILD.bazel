@@ -58,7 +58,7 @@ cc_library(
 cc_library(
     name = "test_code",
     hdrs = ["test_code.h"],
-    visibility = ["//src/roma/benchmark/serde:__subpackages__"],
+    visibility = ["//src/roma/benchmark:__subpackages__"],
 )
 
 cc_binary(
@@ -108,19 +108,6 @@ cc_binary(
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
-        "//src/roma/roma_service",
-        "@com_google_absl//absl/strings",
-        "@google_benchmark//:benchmark",
-    ],
-)
-
-cc_binary(
-    name = "v8_compiler_benchmark",
-    srcs = ["v8_compiler_benchmark.cc"],
-    deps = [
-        ":test_code",
-        "//src/core/test/utils",
-        "//src/roma/interface",
         "//src/roma/roma_service",
         "@com_google_absl//absl/strings",
         "@google_benchmark//:benchmark",

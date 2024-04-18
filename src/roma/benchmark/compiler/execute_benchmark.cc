@@ -31,12 +31,13 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
+#include "src/roma/benchmark/compiler/compiler_utils.h"
 #include "src/roma/benchmark/test_code.h"
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 
-namespace {
+namespace google::scp::roma::benchmark::compiler {
 
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
@@ -59,17 +60,6 @@ using google::scp::roma::benchmark::kHandlerNameJetstreamUniPoker;
 using google::scp::roma::benchmark::kHandlerNamePrimeSieve;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
-constexpr auto kTimeout = absl::Seconds(10);
-
-std::vector<std::vector<std::string>> CreateOptimizerCombinations();
-const std::vector<std::string> kOptimizerOpts = {
-    "--turbofan",
-    "--maglev",
-    "--turboshaft",
-};
-const std::vector<std::vector<std::string>> kOptimizerCombos =
-    CreateOptimizerCombinations();
-
 std::unique_ptr<RomaService<>> roma_service;
 
 void DoSetup(typename RomaService<>::Config config) {
@@ -77,7 +67,7 @@ void DoSetup(typename RomaService<>::Config config) {
   CHECK_OK(roma_service->Init());
 }
 
-void DoTeardown(const benchmark::State& state) {
+void DoTeardown(const ::benchmark::State& state) {
   CHECK_OK(roma_service->Stop());
   roma_service.reset();
 }
@@ -100,16 +90,7 @@ void LoadCodeObj(std::string_view code) {
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
-void LoadCodeBenchmark(benchmark::State& state, std::string_view code) {
-  for (auto _ : state) {
-    LoadCodeObj(code);
-  }
-
-  std::string label = absl::StrJoin(kOptimizerCombos[state.range(0)], " ");
-  state.SetLabel(label.empty() ? "default" : label);
-}
-
-void ExecuteCodeBenchmark(benchmark::State& state, std::string_view code,
+void ExecuteCodeBenchmark(::benchmark::State& state, std::string_view code,
                           std::string_view handler) {
   LoadCodeObj(code);
   for (auto _ : state) {
@@ -135,7 +116,7 @@ void ExecuteCodeBenchmark(benchmark::State& state, std::string_view code,
   state.SetLabel(label.empty() ? "default" : label);
 }
 
-void SetupWithV8Flags(const benchmark::State& state) {
+void SetupWithV8Flags(const ::benchmark::State& state) {
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
   config.SetV8Flags(kOptimizerCombos[state.range(0)]);
@@ -143,118 +124,38 @@ void SetupWithV8Flags(const benchmark::State& state) {
   DoSetup(std::move(config));
 }
 
-void CreateOptimizerCombinationsHelper(
-    const std::vector<std::string>& curr_combination, int index,
-    std::vector<std::vector<std::string>>& combinations) {
-  if (index == kOptimizerOpts.size()) {
-    if (curr_combination.empty()) {
-      combinations.push_back({"--no-turbofan"});
-    } else {
-      combinations.push_back(curr_combination);
-    }
-    return;
-  }
-
-  CreateOptimizerCombinationsHelper(curr_combination, index + 1, combinations);
-  std::vector<std::string> new_combination = curr_combination;
-  new_combination.push_back(kOptimizerOpts[index]);
-  CreateOptimizerCombinationsHelper(new_combination, index + 1, combinations);
-}
-
-std::vector<std::vector<std::string>> CreateOptimizerCombinations() {
-  std::vector<std::vector<std::string>> optimizer_combos;
-  CreateOptimizerCombinationsHelper({}, 0, optimizer_combos);
-  return optimizer_combos;
-}
-
-void BM_LoadCodeObjHelloWorld(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodeHelloWorld);
-}
-
-void BM_LoadCodeObjPrimeSieve(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodePrimeSieve);
-}
-
-void BM_LoadCodeObjJetstreamUniPoker(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodeJetstreamUniPoker);
-}
-
-void BM_LoadCodeObjJetstreamSplay(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodeJetstreamSplay);
-}
-
-void BM_LoadCodeObjJetstreamDeltaBlue(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodeJetstreamDeltaBlue);
-}
-
-void BM_LoadCodeObjJetstreamCryptoAes(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodeJetstreamCryptoAes);
-}
-
-void BM_LoadCodeObjJetstreamNavierStokes(benchmark::State& state) {
-  LoadCodeBenchmark(state, kCodeJetstreamNavierStokes);
-}
-
-void BM_ExecuteCodeObjHelloWorld(benchmark::State& state) {
+void BM_ExecuteCodeObjHelloWorld(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeHelloWorld, kHandlerNameHelloWorld);
 }
 
-void BM_ExecuteCodeObjPrimeSieve(benchmark::State& state) {
+void BM_ExecuteCodeObjPrimeSieve(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodePrimeSieve, kHandlerNamePrimeSieve);
 }
 
-void BM_ExecuteCodeObjJetstreamUniPoker(benchmark::State& state) {
+void BM_ExecuteCodeObjJetstreamUniPoker(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeJetstreamUniPoker,
                        kHandlerNameJetstreamUniPoker);
 }
 
-void BM_ExecuteCodeObjJetstreamSplay(benchmark::State& state) {
+void BM_ExecuteCodeObjJetstreamSplay(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeJetstreamSplay, kHandlerNameJetstreamSplay);
 }
 
-void BM_ExecuteCodeObjJetstreamDeltaBlue(benchmark::State& state) {
+void BM_ExecuteCodeObjJetstreamDeltaBlue(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeJetstreamDeltaBlue,
                        kHandlerNameJetstreamDeltaBlue);
 }
 
-void BM_ExecuteCodeObjJetstreamCryptoAes(benchmark::State& state) {
+void BM_ExecuteCodeObjJetstreamCryptoAes(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeJetstreamCryptoAes,
                        kHandlerNameJetstreamCryptoAes);
 }
 
-void BM_ExecuteCodeObjJetstreamNavierStokes(benchmark::State& state) {
+void BM_ExecuteCodeObjJetstreamNavierStokes(::benchmark::State& state) {
   ExecuteCodeBenchmark(state, kCodeJetstreamNavierStokes,
                        kHandlerNameJetstreamNavierStokes);
 }
 
-BENCHMARK(BM_LoadCodeObjHelloWorld)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadCodeObjPrimeSieve)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadCodeObjJetstreamUniPoker)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadCodeObjJetstreamSplay)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadCodeObjJetstreamDeltaBlue)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadCodeObjJetstreamCryptoAes)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadCodeObjJetstreamNavierStokes)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
-    ->Setup(SetupWithV8Flags)
-    ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteCodeObjHelloWorld)
     ->DenseRange(0, kOptimizerCombos.size() - 1)
     ->Setup(SetupWithV8Flags)
@@ -284,7 +185,7 @@ BENCHMARK(BM_ExecuteCodeObjJetstreamNavierStokes)
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 
-}  // namespace
+}  // namespace google::scp::roma::benchmark::compiler
 
 // Run the benchmark
 BENCHMARK_MAIN();
