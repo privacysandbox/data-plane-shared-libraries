@@ -21,7 +21,7 @@
 #include "src/logger/request_context_logger.h"
 #include "src/logger/request_context_logger_test.h"
 
-namespace privacy_sandbox::server_common::log {
+namespace privacy_sandbox::test {
 
 namespace {
 using ::testing::AllOf;
@@ -30,7 +30,7 @@ using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 
 TEST_F(LogTest, NothingIfNotConsented) {
-  AlwaysLogOtel(true);
+  server_common::log::AlwaysLogOtel(true);
 
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
@@ -61,4 +61,4 @@ TEST_F(LogTest, NothingIfNotConsented) {
 }
 
 }  // namespace
-}  // namespace privacy_sandbox::server_common::log
+}  // namespace privacy_sandbox::test

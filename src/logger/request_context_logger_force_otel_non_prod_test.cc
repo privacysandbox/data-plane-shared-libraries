@@ -21,7 +21,7 @@
 #include "src/logger/request_context_logger.h"
 #include "src/logger/request_context_logger_test.h"
 
-namespace privacy_sandbox::server_common::log {
+namespace privacy_sandbox::test {
 
 namespace {
 
@@ -30,7 +30,7 @@ using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 
 TEST_F(LogTest, VlogToStderrAndOtel) {
-  AlwaysLogOtel(true);
+  server_common::log::AlwaysLogOtel(true);
 
   EXPECT_CALL(
       tc.consent_sink_,
@@ -44,7 +44,7 @@ TEST_F(LogTest, VlogToStderrAndOtel) {
 }
 
 TEST_F(LogTest, InfoToStderrAndOtel) {
-  AlwaysLogOtel(true);
+  server_common::log::AlwaysLogOtel(true);
 
   EXPECT_CALL(
       tc.consent_sink_,
@@ -58,7 +58,7 @@ TEST_F(LogTest, InfoToStderrAndOtel) {
 }
 
 TEST_F(LogTest, WarningToStderrAndOtel) {
-  AlwaysLogOtel(true);
+  server_common::log::AlwaysLogOtel(true);
 
   EXPECT_CALL(
       tc.consent_sink_,
@@ -72,7 +72,7 @@ TEST_F(LogTest, WarningToStderrAndOtel) {
 }
 
 TEST_F(LogTest, ErrorToStderrAndOtel) {
-  AlwaysLogOtel(true);
+  server_common::log::AlwaysLogOtel(true);
 
   EXPECT_CALL(
       tc.consent_sink_,
@@ -86,4 +86,4 @@ TEST_F(LogTest, ErrorToStderrAndOtel) {
 }
 
 }  // namespace
-}  // namespace privacy_sandbox::server_common::log
+}  // namespace privacy_sandbox::test

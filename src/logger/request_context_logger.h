@@ -168,8 +168,10 @@ class PSLogMessage : public absl::log_internal::LogMessage {
 #define PS_LOGGING_INTERNAL_LOG_SEVERITY(ps_log_context, absl_log_severity) \
   ::privacy_sandbox::server_common::log::PSLogMessage(__FILE__, __LINE__,   \
                                                       absl_log_severity)    \
-      .ToSinkAlsoIf((ps_log_context).is_consented() || AlwaysLogOtel(),     \
-                    (ps_log_context).ConsentedSink())                       \
+      .ToSinkAlsoIf(                                                        \
+          (ps_log_context).is_consented() ||                                \
+              ::privacy_sandbox::server_common::log::AlwaysLogOtel(),       \
+          (ps_log_context).ConsentedSink())                                 \
       .ToSinkAlsoIf((ps_log_context).is_debug_response(),                   \
                     (ps_log_context).DebugResponseSink())
 

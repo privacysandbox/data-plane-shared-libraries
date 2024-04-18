@@ -37,7 +37,7 @@ namespace logs_api = opentelemetry::logs;
 namespace logs_sdk = opentelemetry::sdk::logs;
 namespace logs_exporter = opentelemetry::exporter::logs;
 
-class ConsentedLogTest : public LogTest {
+class ConsentedLogTest : public test::LogTest {
  protected:
   void SetUp() override {
     // initialize max verbosity = kMaxV
