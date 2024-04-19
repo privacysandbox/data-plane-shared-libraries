@@ -20,6 +20,7 @@ cc_library(
     name = "public_key_fetcher_interface",
     hdrs = ["public_key_fetcher_interface.h"],
     deps = [
+        "//src/logger:request_context_logger",
         "//src/public/core/interface:cloud_platform",
         "//src/public/cpio/interface/public_key_client",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -32,6 +33,7 @@ cc_library(
     name = "private_key_fetcher_interface",
     hdrs = ["private_key_fetcher_interface.h"],
     deps = [
+        "//src/logger:request_context_logger",
         "//src/public/cpio/interface/private_key_client",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",

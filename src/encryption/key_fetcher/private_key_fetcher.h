@@ -41,7 +41,10 @@ class PrivateKeyFetcher final : public PrivateKeyFetcherInterface {
   PrivateKeyFetcher(
       std::unique_ptr<google::scp::cpio::PrivateKeyClientInterface>
           private_key_client,
-      absl::Duration ttl);
+      absl::Duration ttl,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 
   ~PrivateKeyFetcher() override = default;
 
@@ -68,6 +71,9 @@ class PrivateKeyFetcher final : public PrivateKeyFetcherInterface {
 
   // TTL of cached PrivateKey entries in private_keys_map_.
   absl::Duration ttl_;
+
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context_;
 };
 
 }  // namespace privacy_sandbox::server_common

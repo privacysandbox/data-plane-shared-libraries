@@ -37,10 +37,14 @@ namespace privacy_sandbox::server_common {
 class PublicKeyFetcher final : public PublicKeyFetcherInterface {
  public:
   // Initializes an instance of PublicKeyFetcher.
-  PublicKeyFetcher(absl::flat_hash_map<
-                   CloudPlatform,
-                   std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
-                       public_key_clients);
+  PublicKeyFetcher(
+      absl::flat_hash_map<
+          CloudPlatform,
+          std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+          public_key_clients,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 
   ~PublicKeyFetcher() override = default;
 
@@ -76,6 +80,9 @@ class PublicKeyFetcher final : public PublicKeyFetcherInterface {
 
   // BitGen for randomly choosing a public key to return in GetKey().
   absl::BitGen bitgen_;
+
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context_;
 };
 
 }  // namespace privacy_sandbox::server_common

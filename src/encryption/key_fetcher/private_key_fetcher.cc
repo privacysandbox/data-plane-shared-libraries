@@ -31,7 +31,6 @@
 #include "src/core/interface/errors.h"
 #include "src/core/interface/type_def.h"
 #include "src/encryption/key_fetcher/key_fetcher_utils.h"
-#include "src/logger/request_context_logger.h"
 #include "src/metric/key_fetch.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
@@ -62,11 +61,12 @@ constexpr std::string_view kKeyFetchFailMessage =
 
 absl::Status HandleFailure(
     const google::protobuf::RepeatedPtrField<std::string>& key_ids,
-    google::scp::core::StatusCode status_code) noexcept {
+    google::scp::core::StatusCode status_code,
+    privacy_sandbox::server_common::log::PSLogContext& log_context) noexcept {
   std::string key_ids_str = absl::StrJoin(key_ids, ", ");
   const std::string error = absl::Substitute(kKeyFetchFailMessage, key_ids_str,
                                              GetErrorMessage(status_code));
-  PS_VLOG(1) << error;
+  PS_VLOG(1, log_context) << error;
   return absl::UnavailableError(error);
 }
 
@@ -80,11 +80,14 @@ absl::Time ProtoToAbslDuration(const google::protobuf::Timestamp& timestamp) {
 PrivateKeyFetcher::PrivateKeyFetcher(
     std::unique_ptr<google::scp::cpio::PrivateKeyClientInterface>
         private_key_client,
-    absl::Duration ttl)
-    : private_key_client_(std::move(private_key_client)), ttl_(ttl) {}
+    absl::Duration ttl,
+    privacy_sandbox::server_common::log::PSLogContext& log_context)
+    : private_key_client_(std::move(private_key_client)),
+      ttl_(ttl),
+      log_context_(log_context) {}
 
 absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
-  PS_VLOG(3) << "Refreshing private keys...";
+  PS_VLOG(3, log_context_) << "Refreshing private keys...";
 
   ListPrivateKeysRequest request;
   request.set_max_age_seconds(ToInt64Seconds(ttl_));
@@ -134,7 +137,7 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
         };
         private_keys_map_.insert_or_assign(ohttp_key_id, std::move(key));
         ++num_priv_keys_added;
-        PS_VLOG(2) << absl::StrCat(
+        PS_VLOG(2, log_context_) << absl::StrCat(
             "Caching private key: (KMS id: ", private_key.key_id(),
             ", OHTTP ID: ", ohttp_key_id, " )");
       }
@@ -142,7 +145,8 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     } else {
       KeyFetchResultCounter::IncrementPrivateKeyFetchAsyncFailureCount();
       KeyFetchResultCounter::SetNumPrivateKeysParsed(0);
-      HandleFailure(request.key_ids(), result.status_code).IgnoreError();
+      HandleFailure(request.key_ids(), result.status_code, log_context_)
+          .IgnoreError();
     }
     fetch_notify.Notify();
   };
@@ -155,13 +159,14 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                                          error.message()));
   }
 
-  PS_VLOG(3) << "Private key fetch pending...";
+  PS_VLOG(3, log_context_) << "Private key fetch pending...";
   fetch_notify.WaitForNotification();
 
   absl::MutexLock lock(&mutex_);
   // Clean up keys that have been stored in the cache for longer than the ttl.
   absl::Time cutoff_time = absl::Now() - ttl_;
-  PS_VLOG(3) << "Cleaning up private keys with cutoff time: " << cutoff_time;
+  PS_VLOG(3, log_context_) << "Cleaning up private keys with cutoff time: "
+                           << cutoff_time;
   for (auto it = private_keys_map_.cbegin(); it != private_keys_map_.cend();) {
     if (it->second.creation_time < cutoff_time) {
       private_keys_map_.erase(it++);
@@ -187,7 +192,8 @@ std::optional<PrivateKey> PrivateKeyFetcher::GetKey(
 std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
     const PrivateKeyVendingEndpoint& primary_endpoint,
     const std::vector<PrivateKeyVendingEndpoint>& secondary_endpoints,
-    absl::Duration key_ttl) {
+    absl::Duration key_ttl,
+    privacy_sandbox::server_common::log::PSLogContext& log_context) {
   PrivateKeyClientOptions options;
   options.primary_private_key_vending_endpoint = primary_endpoint;
   options.secondary_private_key_vending_endpoints = secondary_endpoints;
@@ -195,7 +201,7 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
-                                             key_ttl);
+                                             key_ttl, log_context);
 }
 
 }  // namespace privacy_sandbox::server_common

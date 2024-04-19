@@ -30,7 +30,6 @@
 #include "absl/synchronization/mutex.h"
 #include "src/core/interface/errors.h"
 #include "src/encryption/key_fetcher/key_fetcher_utils.h"
-#include "src/logger/request_context_logger.h"
 #include "src/metric/key_fetch.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
@@ -64,8 +63,10 @@ PublicKeyFetcher::PublicKeyFetcher(
     absl::flat_hash_map<
         CloudPlatform,
         std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
-        public_key_clients)
-    : public_key_clients_(std::move(public_key_clients)) {}
+        public_key_clients,
+    privacy_sandbox::server_common::log::PSLogContext& log_context)
+    : public_key_clients_(std::move(public_key_clients)),
+      log_context_(log_context) {}
 
 /**
  * Makes a blocking call to fetch the public keys using public key clients
@@ -75,62 +76,61 @@ PublicKeyFetcher::PublicKeyFetcher(
  * attempting to fetch keys from each platform.
  */
 absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
-  PS_VLOG(3) << "Refreshing public keys...";
+  PS_VLOG(3, log_context_) << "Refreshing public keys...";
   absl::BlockingCounter all_fetches_done(public_key_clients_.size());
 
   for (const auto& [cloud_platform, public_key_client] : public_key_clients_) {
-    if (const absl::Status error =
-            public_key_client->ListPublicKeys(
-                ListPublicKeysRequest(),
-                [this, &all_fetches_done, platform = cloud_platform](
-                    ExecutionResult execution_result,
-                    ListPublicKeysResponse response) {
-                  PS_VLOG(3) << "List public keys call finished.";
+    if (const absl::Status error = public_key_client->ListPublicKeys(
+            ListPublicKeysRequest(),
+            [this, &all_fetches_done, platform = cloud_platform](
+                ExecutionResult execution_result,
+                ListPublicKeysResponse response) {
+              PS_VLOG(3, log_context_) << "List public keys call finished.";
 
-                  if (execution_result.Successful()) {
-                    const size_t num_public_keys =
-                        response.public_keys().size();
-                    {
-                      absl::MutexLock lock(&mutex_);
-                      std::vector<PublicKey> platform_public_keys;
-                      platform_public_keys.reserve(num_public_keys);
-                      for (const auto& key : response.public_keys()) {
-                        PublicKey copy;
-                        copy.set_key_id(ToOhttpKeyId(key.key_id()));
-                        copy.set_public_key(key.public_key());
-                        platform_public_keys.push_back(std::move(copy));
-                      }
-                      public_keys_[platform] = std::move(platform_public_keys);
-                    }
-
-                    KeyFetchResultCounter::SetNumPublicKeysParsed(
-                        platform, num_public_keys);
-                    KeyFetchResultCounter::SetNumPublicKeysCached(
-                        platform, num_public_keys);
-                    PS_VLOG(3) << absl::Substitute(
-                        kKeyFetchSuccessMessage,
-                        absl::StrJoin(GetKeyIds(platform), ", "),
-                        TimeUtil::ToString(response.expiration_time()));
-                    PS_VLOG(3)
-                        << "Public key refresh flow completed successfully. ";
-                  } else {
-                    KeyFetchResultCounter::
-                        IncrementPublicKeyFetchAsyncFailureCount();
-                    KeyFetchResultCounter::SetNumPublicKeysParsed(platform, 0);
-                    {
-                      absl::MutexLock lock(&mutex_);
-                      KeyFetchResultCounter::SetNumPublicKeysCached(
-                          platform, public_keys_[platform].size());
-                    }
-                    PS_VLOG(1) << absl::Substitute(
-                        kKeyFetchFailMessage,
-                        GetErrorMessage(execution_result.status_code));
+              if (execution_result.Successful()) {
+                const size_t num_public_keys = response.public_keys().size();
+                {
+                  absl::MutexLock lock(&mutex_);
+                  std::vector<PublicKey> platform_public_keys;
+                  platform_public_keys.reserve(num_public_keys);
+                  for (const auto& key : response.public_keys()) {
+                    PublicKey copy;
+                    copy.set_key_id(ToOhttpKeyId(key.key_id()));
+                    copy.set_public_key(key.public_key());
+                    platform_public_keys.push_back(std::move(copy));
                   }
+                  public_keys_[platform] = std::move(platform_public_keys);
+                }
 
-                  all_fetches_done.DecrementCount();
-                });
+                KeyFetchResultCounter::SetNumPublicKeysParsed(platform,
+                                                              num_public_keys);
+                KeyFetchResultCounter::SetNumPublicKeysCached(platform,
+                                                              num_public_keys);
+                PS_VLOG(3, log_context_) << absl::Substitute(
+                    kKeyFetchSuccessMessage,
+                    absl::StrJoin(GetKeyIds(platform), ", "),
+                    TimeUtil::ToString(response.expiration_time()));
+                PS_VLOG(3, log_context_)
+                    << "Public key refresh flow completed successfully. ";
+              } else {
+                KeyFetchResultCounter::
+                    IncrementPublicKeyFetchAsyncFailureCount();
+                KeyFetchResultCounter::SetNumPublicKeysParsed(platform, 0);
+                {
+                  absl::MutexLock lock(&mutex_);
+                  KeyFetchResultCounter::SetNumPublicKeysCached(
+                      platform, public_keys_[platform].size());
+                }
+                PS_VLOG(1, log_context_) << absl::Substitute(
+                    kKeyFetchFailMessage,
+                    GetErrorMessage(execution_result.status_code));
+              }
+
+              all_fetches_done.DecrementCount();
+            });
         !error.ok()) {
-      PS_VLOG(1) << absl::Substitute(kKeyFetchFailMessage, error.message());
+      PS_VLOG(1, log_context_)
+          << absl::Substitute(kKeyFetchFailMessage, error.message());
       all_fetches_done.DecrementCount();
     }
   }
@@ -167,7 +167,8 @@ std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
     const absl::flat_hash_map<
         CloudPlatform,
         std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>>&
-        per_platform_endpoints) {
+        per_platform_endpoints,
+    privacy_sandbox::server_common::log::PSLogContext& log_context) {
   absl::flat_hash_map<
       CloudPlatform,
       std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
@@ -182,7 +183,8 @@ std::unique_ptr<PublicKeyFetcherInterface> PublicKeyFetcherFactory::Create(
     public_key_clients[cloud_platform] = std::move(public_key_client);
   }
 
-  return std::make_unique<PublicKeyFetcher>(std::move(public_key_clients));
+  return std::make_unique<PublicKeyFetcher>(std::move(public_key_clients),
+                                            log_context);
 }
 
 }  // namespace privacy_sandbox::server_common
