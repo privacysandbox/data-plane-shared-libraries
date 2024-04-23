@@ -1,0 +1,56 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_files")
+load("//src/cpio/documentation:cpio_docs.bzl", "cpio_docs", "templates_dir")
+
+doc_protos = [
+    ("//src/public/cpio/proto/blob_storage_service/v1", "blob_storage_service"),
+    ("//src/public/cpio/proto/metric_service/v1", "metric_service"),
+    ("//src/public/cpio/proto/queue_service/v1", "queue_service"),
+    ("//src/public/cpio/proto/public_key_service/v1", "public_key_service"),
+    ("//src/public/cpio/proto/kms_service/v1", "kms_service"),
+    ("//src/public/cpio/proto", "detailed_execution_result"),
+    ("//src/public/cpio/proto/instance_service/v1", "instance_service"),
+    ("//src/public/cpio/proto/crypto_service/v1", "crypto_service"),
+    ("//src/public/cpio/proto/private_key_service/v1", "private_key_service"),
+    ("//src/public/cpio/proto/auto_scaling_service/v1", "auto_scaling_service"),
+    ("//src/public/cpio/proto/parameter_service/v1", "parameter_service"),
+    ("//src/core/common/proto", "common"),
+    ("//src/public/cpio/validator/proto", "validator_config"),
+]
+
+write_source_files(
+    name = "generate_docs",
+    files = {
+        "{}.md".format(proto).replace("_", "-"): ":cpio_protobuf_{}_md".format(proto)
+        for _, proto in doc_protos
+    },
+)
+
+[
+    cpio_docs(
+        name = "cpio_protobuf_{}_md".format(proto),
+        options = {
+            "@google_privacysandbox_servers_common//src/cpio/documentation:proto_gen_md": [
+                "{}/tmpl/protobuf_markdown.tmpl,{}-protobuf.md".format(templates_dir, proto),
+            ],
+        },
+        output_mode = "NO_PREFIX",
+        protos = [
+            "{}:{}_proto".format(pkg, proto),
+        ],
+    )
+    for pkg, proto in doc_protos
+]

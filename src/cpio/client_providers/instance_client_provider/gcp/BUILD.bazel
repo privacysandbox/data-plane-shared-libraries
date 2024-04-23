@@ -1,0 +1,115 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+exports_files([
+    "gcp_instance_client_provider.h",
+    "gcp_instance_client_provider.cc",
+    "gcp_instance_client_utils.cc",
+    "gcp_instance_client_utils.h",
+    "error_codes.h",
+])
+
+filegroup(
+    name = "gcp_instance_client_provider_srcs",
+    srcs = [
+        ":error_codes.h",
+        ":gcp_instance_client_provider.cc",
+        ":gcp_instance_client_provider.h",
+        ":gcp_instance_client_utils.cc",
+        ":gcp_instance_client_utils.h",
+    ],
+)
+
+cc_library(
+    name = "gcp_instance_client_provider",
+    srcs = [
+        "gcp_instance_client_provider.cc",
+        "gcp_instance_client_utils.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "gcp_instance_client_provider.h",
+        "gcp_instance_client_utils.h",
+    ],
+    deps = [
+        "//src/core/http2_client",
+        "//src/core/interface",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common:cpio_utils",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_absl//absl/synchronization",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_test(
+    name = "gcp_instance_client_provider_test",
+    size = "small",
+    srcs =
+        [
+            "gcp_instance_client_provider_test.cc",
+        ],
+    deps = [
+        ":gcp_instance_client_provider",
+        "//src/core/curl_client/mock:mock_curl_client",
+        "//src/core/interface",
+        "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gcp_instance_client_utils_test",
+    size = "small",
+    srcs =
+        [
+            "gcp_instance_client_utils_test.cc",
+        ],
+    deps = [
+        ":gcp_instance_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_gcp_instance_client_provider",
+    srcs = [
+        "test_gcp_instance_client_provider.cc",
+    ],
+    hdrs = [
+        "test_gcp_instance_client_provider.h",
+    ],
+    deps = [
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/test/global_cpio:test_cpio_options",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)

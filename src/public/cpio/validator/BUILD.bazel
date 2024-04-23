@@ -1,0 +1,321 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+pkg_files(
+    name = "init_server_enclave_execs",
+    srcs = [
+        ":init_server_enclave",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "init_server_enclave_tar",
+    srcs = [
+        ":init_server_enclave_execs",
+    ],
+)
+
+alias(
+    name = "greeter_server",
+    actual = "@com_github_grpc_grpc//examples/cpp/helloworld:greeter_server",
+)
+
+alias(
+    name = "greeter_client",
+    actual = "@com_github_grpc_grpc//examples/cpp/helloworld:greeter_client",
+)
+
+proto_descriptor_set(
+    name = "helloworld_descriptor_set",
+    visibility = ["//visibility:public"],
+    deps = ["@com_github_grpc_grpc//examples/protos:helloworld_proto"],
+)
+
+pkg_files(
+    name = "greeter_server_execs",
+    srcs = [
+        ":greeter_client",
+        ":greeter_server",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "greeter_server_tar",
+    srcs = [
+        ":greeter_server_execs",
+    ],
+)
+
+LINK_OPTS = [
+    # Tell LD to look in the working directory of the executable for SO
+    # files to link
+    "-Wl,-rpath,'$$ORIGIN'",
+]
+
+pkg_files(
+    name = "validator_config_files",
+    srcs = [
+        ":validator_config.txtpb",
+    ],
+    attributes = pkg_attributes(mode = "0444"),
+    prefix = "/etc",
+)
+
+pkg_tar(
+    name = "validator_config_tar",
+    srcs = [
+        ":validator_config_files",
+    ],
+)
+
+cc_library(
+    name = "blob_storage_client_validator",
+    srcs = ["blob_storage_client_validator.cc"],
+    hdrs = ["blob_storage_client_validator.h"],
+    deps = [
+        "//src/core/interface:async_context",
+        "//src/public/core/interface:errors",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface/blob_storage_client",
+        "//src/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
+        "//src/public/cpio/validator/proto:validator_config_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "instance_client_validator",
+    srcs = ["instance_client_validator.cc"],
+    hdrs = ["instance_client_validator.h"],
+    deps = [
+        "//src/public/core/interface:errors",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface/instance_client",
+        "//src/public/cpio/interface/instance_client:type_def",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/validator/proto:validator_config_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "parameter_client_validator",
+    srcs = ["parameter_client_validator.cc"],
+    hdrs = ["parameter_client_validator.h"],
+    deps = [
+        "//src/public/core/interface:errors",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface/parameter_client",
+        "//src/public/cpio/interface/parameter_client:type_def",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/public/cpio/validator/proto:validator_config_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "queue_client_validator",
+    srcs = ["queue_client_validator.cc"],
+    hdrs = ["queue_client_validator.h"],
+    deps = [
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/queue_client_provider:queue_client_provider_select",
+        "//src/public/core/interface:errors",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+        "//src/public/cpio/validator/proto:validator_config_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "key_fetcher_validator",
+    srcs = ["key_fetcher_validator.cc"],
+    hdrs = ["key_fetcher_validator.h"],
+    deps = [
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_select",
+        "//src/public/core/interface:errors",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/public/cpio/validator/proto:validator_config_cc_proto",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_binary(
+    name = "validation",
+    srcs = ["validation.cc"],
+    linkopts = LINK_OPTS,
+    deps = [
+        ":blob_storage_client_validator",
+        ":instance_client_validator",
+        ":key_fetcher_validator",
+        ":parameter_client_validator",
+        ":queue_client_validator",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/interface:cpio",
+        "//src/public/cpio/validator/proto:validator_config_cc_proto",
+        "@com_google_absl//absl/base:log_severity",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:flags",
+        "@com_google_absl//absl/log:globals",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+pkg_files(
+    name = "enclaves_validator_execs",
+    srcs = [
+        ":validation",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "enclaves_validator_tar",
+    srcs = [
+        ":enclaves_validator_execs",
+    ],
+)
+
+write_file(
+    name = "resolv_conf",
+    out = "resolv_override.conf",
+    content = ["""
+; use-vc forces use of TCP for DNS resolutions.
+; See https://man7.org/linux/man-pages/man5/resolv.conf.5.html
+options use-vc timeout:2 attempts:5
+search ec2.internal
+nameserver 10.0.0.2
+"""],
+)
+
+pkg_files(
+    name = "resolv_conf_files",
+    srcs = [
+        ":resolv_conf",
+    ],
+    attributes = pkg_attributes(mode = "0444"),
+    prefix = "/etc",
+)
+
+pkg_tar(
+    name = "resolv_conf_tar",
+    srcs = [
+        ":resolv_conf_files",
+    ],
+)
+
+pkg_files(
+    name = "kmstool_enclave_execs",
+    srcs = [
+        "//src/cpio/client_providers/kms_client_provider/aws:kms_cli",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "kmstool_enclave_tar",
+    srcs = [
+        ":kmstool_enclave_execs",
+    ],
+)
+
+[
+    genrule(
+        name = "grpcurl_{}_file".format(arch),
+        srcs = ["@grpcurl_{}//file".format(arch)],
+        outs = ["grpcurl_{}".format(arch)],
+        cmd = "tar -xf $(location @grpcurl_{arch}//file) --to-stdout >$(@D)/grpcurl_{arch}".format(arch = arch),
+    )
+    for arch in [
+        "x86_64",
+        "aarch64",
+    ]
+]
+
+pkg_files(
+    name = "grpcurl_files",
+    srcs = select({
+        "@platforms//cpu:aarch64": [":grpcurl_aarch64"],
+        "@platforms//cpu:x86_64": [":grpcurl_x86_64"],
+    }),
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/usr/bin",
+)
+
+pkg_tar(
+    name = "grpcurl_tar",
+    srcs = [
+        ":grpcurl_files",
+    ],
+)
+
+oci_image(
+    name = "aws_nitro_enclaves_validator_image",
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
+        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
+    }),
+    cmd = [
+        "/server/bin/init_server_enclave",
+    ],
+    entrypoint = ["/bin/bash"],
+    tars = [
+        ":init_server_enclave_tar",
+        "//src/aws/proxy:libnsm_and_proxify_tar",
+        ":grpcurl_tar",
+        ":kmstool_enclave_tar",
+        ":resolv_conf_tar",
+        ":validator_config_tar",
+        ":enclaves_validator_tar",
+        ":greeter_server_tar",
+    ],
+)
+
+oci_tarball(
+    name = "aws_nitro_enclaves_validator_tarball",
+    image = ":aws_nitro_enclaves_validator_image",
+    repo_tags = ["bazel/src/public/cpio/validator:aws_nitro_enclaves_validator"],
+)

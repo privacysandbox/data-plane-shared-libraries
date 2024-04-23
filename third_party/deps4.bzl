@@ -23,8 +23,12 @@ load(
     "rules_closure_toolchains",
 )
 load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
-load("@io_bazel_rules_docker//repositories:go_repositories.bzl", "go_deps")
 load("@rules_buf//gazelle/buf:repositories.bzl", "gazelle_buf_dependencies")
+load("//:deps.bzl", "buf_deps", "go_dependencies")
+
+def _go_deps():
+    # gazelle:repository_macro deps.bzl%go_dependencies
+    go_dependencies()
 
 def _aws_nitro_kms_repos():
     nsm_crate_repositories()
@@ -43,8 +47,11 @@ def _aws_nitro_kms_repos():
 
 def deps4():
     container_deps()
-    go_deps()
     gazelle_buf_dependencies()
     rules_closure_dependencies()
     rules_closure_toolchains()
     _aws_nitro_kms_repos()
+    _go_deps()
+
+    # gazelle:repository_macro deps.bzl%buf_deps
+    buf_deps()

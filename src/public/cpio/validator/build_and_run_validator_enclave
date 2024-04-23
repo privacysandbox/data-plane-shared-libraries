@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o pipefail
+set -o errexit
+
+declare -i SAVE_EIF=0
+declare -i DEBUG_MODE=0
+
+function usage() {
+  declare -r -i exitval=${1-1}
+  cat >&2 << USAGE
+usage:
+  $0 <options>
+    --docker-image-uri <string>   Docker image uri (from tarfile)
+    --validator-conf <file>       Validator config text proto file with path
+    --save-eif                    Whether the created eif should be cached for
+                                  subsequent use. Default: false
+    --debug                       Whether the validator should be run in debug
+                                  mode. Default: false
+USAGE
+  # shellcheck disable=SC2086
+  exit "${exitval}"
+}
+
+trap cleanup EXIT
+function cleanup() {
+  local -r -i status=$?
+  if [[ -f ${ENCLAVE_NAME}.eif ]] && [[ ${SAVE_EIF} -eq 0 ]]; then
+    rm -f "${ENCLAVE_NAME}".eif
+  fi
+  if ! nitro-cli terminate-enclave --enclave-name "${ENCLAVE_NAME}" >/dev/null; then
+    printf "error: Unable to terminate enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
+  fi
+  exit "${status}"
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --docker-image-uri)
+      DOCKER_IMAGE_URI="$2"
+      shift 2 || usage
+      ;;
+    --validator-conf)
+      VALIDATOR_CONFIG_PATH="$2"
+      shift 2 || usage
+      ;;
+    --save-eif)
+      SAVE_EIF=1
+      shift
+      ;;
+    --debug)
+      DEBUG_MODE=1
+      shift
+      ;;
+    -h | --help) usage 0 ;;
+    *) usage ;;
+  esac
+done
+
+: "${DOCKER_IMAGE_URI?"--docker-image-uri not specified"}"
+: "${VALIDATOR_CONFIG_PATH?"--validator-conf not specified"}"
+
+if ! [[ -f ${VALIDATOR_CONFIG_PATH} ]]; then
+  echo "Validator config text proto not found!"
+  usage 0
+fi
+
+VALIDATOR_HASH=$({ cat "${VALIDATOR_CONFIG_PATH}"; } | sha256sum | cut --delimiter=" " --fields=1)
+readonly VALIDATOR_HASH
+declare -r ENCLAVE_NAME=cpio_validator_"${VALIDATOR_HASH}"
+
+if ! [[ -f ${ENCLAVE_NAME}.eif ]]; then
+  CONTAINER_NAME=$(mktemp --dry-run cpio-validator-XXX)
+  docker create --name "${CONTAINER_NAME}" "${DOCKER_IMAGE_URI}" >/dev/null
+  docker cp "${VALIDATOR_CONFIG_PATH}" "${CONTAINER_NAME}":/etc/validator_config.txtpb
+  if [[ ${DEBUG_MODE} -eq 1 ]]; then
+    readonly INIT_SERVER_ENCLAVE_TMPFILE="$(mktemp)"
+    docker cp "${CONTAINER_NAME}":/server/bin/init_server_enclave \
+      "${INIT_SERVER_ENCLAVE_TMPFILE}"
+    sed -i \
+      's#/proxify -- /server/bin/validation#/proxify -- /server/bin/validation --stderrthreshold=0#g' \
+      "${INIT_SERVER_ENCLAVE_TMPFILE}"
+    docker cp "${INIT_SERVER_ENCLAVE_TMPFILE}" \
+      "${CONTAINER_NAME}":/server/bin/init_server_enclave
+  fi
+  docker commit "${CONTAINER_NAME}" "${DOCKER_IMAGE_URI}" >/dev/null
+  docker rm "${CONTAINER_NAME}" >/dev/null
+  nitro-cli build-enclave --docker-uri "${DOCKER_IMAGE_URI}" --output-file "${ENCLAVE_NAME}".eif >/dev/null
+fi
+
+if ! nitro-cli run-enclave --cpu-count 2 --memory 1500 --eif-path "${ENCLAVE_NAME}".eif \
+  --enclave-name "${ENCLAVE_NAME}" --enclave-cid 10 --debug-mode >/dev/null; then
+  printf "error: Unable to run enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
+fi
+
+# Wait for greeter server to start up inside the enclave
+sleep 2
+
+# Check the response with grpcurl.
+set +o errexit
+declare -a -r DOCKER_RUN_ARGS=(
+  --rm
+  --interactive
+  --tty
+  --network host
+  --entrypoint /bin/grpcurl
+)
+declare -a -r GRPCURL_ARGS=(
+  -plaintext
+  -d '{"name": "world"}'
+  127.0.0.1:50051
+  helloworld.Greeter/SayHello
+)
+GRPC_OUTPUT="$(docker run "${DOCKER_RUN_ARGS[@]}" "${DOCKER_IMAGE_URI}" "${GRPCURL_ARGS[@]}" \
+  | tr -d '[:space:]'
+)"
+readonly GRPC_OUTPUT
+set -o errexit
+declare -r EXPECTED_GRPC_OUTPUT='{"message":"Helloworld"}'
+declare -r GREETER_TEST="Greeter server test outside TEE."
+if [[ ${EXPECTED_GRPC_OUTPUT} == "${GRPC_OUTPUT}" ]]; then
+  printf "[ %s ] %s\n" SUCCESS "${GREETER_TEST}"
+else
+  printf "[ %s ] %s\n" FAILURE "${GREETER_TEST}"
+fi;
+
+if [[ ${DEBUG_MODE} -eq 1 ]]; then
+  if ! nitro-cli console --enclave-name "${ENCLAVE_NAME}"; then
+    printf "error: Unable to read from console of enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
+  fi
+elif ! nitro-cli console --enclave-name "${ENCLAVE_NAME}" | grep -E '^\[ (SUCCESS|FAILURE)'; then
+  printf "error: Unable to read from console of enclave %s\n" "${ENCLAVE_NAME}" &>/dev/stderr
+fi;

@@ -14,7 +14,7 @@
 
 """Expose dependencies for this WORKSPACE."""
 
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 """Initialize the shared control plane repository."""
@@ -22,6 +22,13 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 EMSCRIPTEN_VER = "3.1.41"
 
 def cpp_dependencies():
+    maybe(
+        http_archive,
+        name = "rules_cc",
+        sha256 = "2037875b9a4456dce4a79d112a8ae885bbc4aad968e6587dca6e64f3a0900cdf",
+        strip_prefix = "rules_cc-0.0.9",
+        urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.0.9/rules_cc-0.0.9.tar.gz"],
+    )
     maybe(
         http_archive,
         name = "bazel_skylib",
@@ -33,14 +40,33 @@ def cpp_dependencies():
     )
     maybe(
         http_archive,
+        name = "rules_pkg",
+        sha256 = "8f9ee2dc10c1ae514ee599a8b42ed99fa262b757058f65ad3c384289ff70c4b8",
+        urls = [
+            "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
+            "https://github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
+        ],
+    )
+    maybe(
+        http_archive,
         name = "curl",
         build_file = Label("//third_party:curl.BUILD"),
-        sha256 = "cdb38b72e36bc5d33d5b8810f8018ece1baa29a8f215b4495e495ded82bbf3c7",
-        strip_prefix = "curl-7.88.1",
+        sha256 = "05fc17ff25b793a437a0906e0484b82172a9f4de02be5ed447e0cab8c3475add",
+        strip_prefix = "curl-8.5.0",
         urls = [
-            "https://curl.haxx.se/download/curl-7.88.1.tar.gz",
-            "https://github.com/curl/curl/releases/download/curl-7_88_1/curl-7.88.1.tar.gz",
+            "https://curl.haxx.se/download/curl-8.5.0.tar.gz",
+            "https://github.com/curl/curl/releases/download/curl-8_5_0/curl-8.5.0.tar.gz",
         ],
+    )
+    http_file(
+        name = "grpcurl_aarch64",
+        url = "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_arm64.tar.gz",
+        sha256 = "1303f4c1c6667f31b80efbe483875c749c94c8cb0d8b631bd64179f0b140714d",
+    )
+    http_file(
+        name = "grpcurl_x86_64",
+        url = "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_x86_64.tar.gz",
+        sha256 = "a422d1e8ad854a305c0dd53f2f2053da242211d3d1810e7addb40a041e309516",
     )
     maybe(
         http_archive,
@@ -122,4 +148,15 @@ def cpp_dependencies():
         sha256 = "293eb67df598f44b23a07e247fc81107029eff7cd3b38d4ff531e32bf8a951eb",
         strip_prefix = "emsdk-{ver}/bazel".format(ver = EMSCRIPTEN_VER),
         url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/{ver}.zip".format(ver = EMSCRIPTEN_VER),
+    )
+    maybe(
+        http_archive,
+        name = "bazel_clang_tidy",
+        patch_args = ["-p1"],
+        patches = ["//third_party:bazel_clang_tidy.patch"],
+        sha256 = "352aeb57ad7ed53ff6e02344885de426421fb6fd7a3890b04d14768d759eb598",
+        strip_prefix = "bazel_clang_tidy-4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39",
+        urls = [
+            "https://github.com/erenon/bazel_clang_tidy/archive/4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39.zip",
+        ],
     )

@@ -74,7 +74,8 @@ function buildozer_filter() {
 # run the tests using a bazel-debian docker container
 function container_run_test() {
   declare -r FUNCTEST_REPO_NAME=google_privacysandbox_servers_common
-  declare -r FUNCTEST_REPO_PATH=/src/repos/data_plane_shared
+  #declare -r FUNCTEST_REPO_PATH=/src/repos/data_plane_shared
+  declare -r FUNCTEST_REPO_PATH=../..
   buildozer_filter "set path ${FUNCTEST_REPO_PATH} ${FUNCTEST_REPO_NAME}" -:"${FUNCTEST_REPO_NAME}" \
     <"${TEST_REPO}"/WORKSPACE \
     >"${WORKSPACE_TMPFILE}"
@@ -82,11 +83,12 @@ function container_run_test() {
   # when overriding WORKSPACE_MOUNT, we also need to set CBUILD_IMAGE as the new
   # WORKSPACE_MOUNT value will cause get-builder-image-tagged to fail
   # shellcheck disable=SC2034
-  local -r -x CBUILD_IMAGE="$("${TOOLS_DIR}"/get-builder-image-tagged --image build-debian)"
+  #local -r -x CBUILD_IMAGE="$("${TOOLS_DIR}"/get-builder-image-tagged --image build-debian)"
   # shellcheck disable=SC2034
-  local -r -x WORKSPACE_MOUNT="${TEST_REPO}"
-  export EXTRA_DOCKER_RUN_ARGS="${EXTRA_DOCKER_RUN_ARGS} --volume ${REPO_ROOT}:${FUNCTEST_REPO_PATH} --volume ${WORKSPACE_TMPFILE}:/src/workspace/WORKSPACE"
-  "${TOOLS_DIR}"/bazel-debian build "${TARGETS[@]}"
+  #local -r -x WORKSPACE_MOUNT="${TEST_REPO}"
+  #export EXTRA_DOCKER_RUN_ARGS="${EXTRA_DOCKER_RUN_ARGS} --volume ${REPO_ROOT}:${FUNCTEST_REPO_PATH} --volume ${WORKSPACE_TMPFILE}:/src/workspace/WORKSPACE"
+  export EXTRA_DOCKER_RUN_ARGS+=" --volume ${WORKSPACE_TMPFILE}:/src/workspace/WORKSPACE"
+  bash -x "${TOOLS_DIR}"/bazel-debian build "${TARGETS[@]}"
 }
 
 # run the tests using bazel, if installed

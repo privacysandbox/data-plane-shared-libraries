@@ -1,0 +1,98 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "execution_utils",
+    srcs = [
+        "execution_utils.cc",
+    ],
+    hdrs = [
+        "execution_utils.h",
+    ],
+    visibility = [
+        "//src/roma/sandbox/js_engine:__subpackages__",
+    ],
+    deps = [
+        "//src/core/interface",
+        "//src/core/interface:type_def",
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/wasm:deserializer",
+        "//src/roma/wasm:serializer",
+        "//src/roma/wasm:wasm_types",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
+    name = "execution_watchdog",
+    srcs = ["execution_watchdog.cc"],
+    hdrs = ["execution_watchdog.h"],
+    visibility = [
+        "//src/roma/sandbox/js_engine:__subpackages__",
+    ],
+    deps = [
+        "//src/util:duration",
+        "@com_google_absl//absl/synchronization",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_test(
+    name = "execution_utils_test",
+    size = "small",
+    srcs = ["execution_utils_test.cc"],
+    data = [
+        "//src/roma/testing/cpp_wasm_list_of_string_in_list_of_string_out_example",
+        "//src/roma/testing/cpp_wasm_string_in_string_out_example",
+        "//src/roma/testing/rust_wasm_list_of_string_in_list_of_string_out_example",
+        "//src/roma/testing/rust_wasm_string_in_string_out_example",
+    ],
+    tags = [
+        "noasan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+        "notsan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+        "noubsan",  # TODO(b/316966959) - Support sanitizers for standalone wasm.
+    ],
+    deps = [
+        ":execution_utils",
+        "//src/core/test/utils",
+        "//src/roma/wasm:deserializer",
+        "//src/roma/wasm:wasm_testing",
+        "//src/roma/wasm:wasm_types",
+        "//src/util:process_util",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "execution_watchdog_test",
+    size = "small",
+    srcs = ["execution_watchdog_test.cc"],
+    deps = [
+        ":execution_watchdog",
+        "//src/util:process_util",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

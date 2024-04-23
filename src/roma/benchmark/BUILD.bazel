@@ -1,0 +1,126 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_library(
+    name = "fake_ba_server",
+    srcs = ["fake_ba_server.cc"],
+    hdrs = ["fake_ba_server.h"],
+    deps = [
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_library(
+    name = "fake_kv_server",
+    srcs = ["fake_kv_server.cc"],
+    hdrs = ["fake_kv_server.h"],
+    deps = [
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_library(
+    name = "benchmark",
+    srcs = ["roma_benchmark.cc"],
+    hdrs = ["roma_benchmark.h"],
+    deps = [
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
+        "//src/util/status_macro:status_macros",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_library(
+    name = "test_code",
+    hdrs = ["test_code.h"],
+)
+
+cc_binary(
+    name = "benchmark_suite_test",
+    srcs = ["benchmark_suite_test.cc"],
+    deps = [
+        ":benchmark",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/roma/sandbox/constants",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
+    name = "fake_kv_server_test",
+    size = "small",
+    srcs = ["fake_kv_server_test.cc"],
+    tags = [
+        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
+    deps = [
+        ":fake_kv_server",
+        "//src/core/test/utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_binary(
+    name = "logging_benchmark",
+    srcs = ["logging_benchmark.cc"],
+    deps = [
+        "//src/core/test/utils",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/strings",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
+    name = "kv_server_udf_benchmark_test",
+    srcs = ["kv_server_udf_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    deps = [
+        ":fake_kv_server",
+        ":test_code",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
+    name = "ba_server_benchmark",
+    srcs = ["ba_server_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    deps = [
+        ":fake_ba_server",
+        ":test_code",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@google_benchmark//:benchmark",
+    ],
+)

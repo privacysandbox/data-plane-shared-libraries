@@ -1,17 +1,19 @@
 workspace(name = "google_privacysandbox_test_import")
 
-local_repository(
-    name = "google_privacysandbox_servers_common",
-    path = "../..",
-)
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 http_archive(
     name = "rules_python",
-    sha256 = "8c8fe44ef0a9afc256d1e75ad5f448bb59b81aba149b8958f02f7b3a98f5d9b4",
-    strip_prefix = "rules_python-0.13.0",
-    url = "https://github.com/bazelbuild/rules_python/archive/refs/tags/0.13.0.tar.gz",
+    sha256 = "0a8003b044294d7840ac7d9d73eef05d6ceb682d7516781a4ec62eeb34702578",
+    strip_prefix = "rules_python-0.24.0",
+    urls = [
+        "https://github.com/bazelbuild/rules_python/releases/download/0.24.0/rules_python-0.24.0.tar.gz",
+    ],
+)
+
+local_repository(
+    name = "google_privacysandbox_servers_common",
+    path = "../..",
 )
 
 load(

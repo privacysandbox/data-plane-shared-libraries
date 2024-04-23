@@ -1,0 +1,109 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "aws_instance_client_provider",
+    srcs = [
+        ":aws_instance_client_provider_srcs",
+    ],
+    deps = [
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/common/concurrent_map",
+        "//src/core/common/uuid",
+        "//src/core/interface",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common:cpio_utils",
+        "//src/cpio/common/aws:aws_utils",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "@aws_sdk_cpp//:core",
+        "@aws_sdk_cpp//:ec2",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/strings:str_format",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+exports_files([
+    "aws_instance_client_provider.h",
+    "aws_instance_client_provider.cc",
+    "ec2_error_converter.h",
+    "ec2_error_converter.cc",
+    "error_codes.h",
+])
+
+filegroup(
+    name = "aws_instance_client_provider_srcs",
+    srcs = [
+        ":aws_instance_client_provider.cc",
+        ":aws_instance_client_provider.h",
+        ":aws_instance_client_utils.cc",
+        ":aws_instance_client_utils.h",
+        ":ec2_error_converter.cc",
+        ":ec2_error_converter.h",
+        ":error_codes.h",
+    ],
+)
+
+cc_test(
+    name = "ec2_error_converter_test",
+    size = "small",
+    srcs =
+        ["ec2_error_converter_test.cc"],
+    deps = [
+        ":aws_instance_client_provider",
+        "//src/core/interface",
+        "//src/cpio/common/aws:aws_utils",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "aws_instance_client_utils_test",
+    size = "small",
+    srcs =
+        ["aws_instance_client_utils_test.cc"],
+    deps = [
+        ":aws_instance_client_provider",
+        "//src/core/curl_client/mock:mock_curl_client",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_aws_instance_client_provider",
+    srcs = [
+        "test_aws_instance_client_provider.cc",
+    ],
+    hdrs = ["test_aws_instance_client_provider.h"],
+    deps = [
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
+        "//src/public/cpio/test/global_cpio:test_cpio_options",
+        "@com_google_absl//absl/strings:str_format",
+    ],
+)

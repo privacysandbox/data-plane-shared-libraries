@@ -1,0 +1,55 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "blob_storage_provider_aws",
+    srcs = ["aws_s3.cc"],
+    hdrs = [
+        "aws_s3.h",
+        "aws_s3_utils.h",
+    ],
+    deps = [
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/blob_storage_provider/common:blob_storage_provider_common",
+        "//src/core/common/global_logger",
+        "//src/core/interface",
+        "//src/core/utils:core_utils",
+        "@aws_sdk_cpp//:core",
+        "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/functional:bind_front",
+    ],
+)
+
+cc_test(
+    name = "aws_s3_test",
+    size = "small",
+    srcs = [
+        "aws_s3_test.cc",
+        "aws_s3_utils_test.cc",
+    ],
+    deps = [
+        ":blob_storage_provider_aws",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/blob_storage_provider/common:blob_storage_provider_common",
+        "//src/core/blob_storage_provider/mock:blob_storage_provider_mock",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

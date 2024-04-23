@@ -5,7 +5,7 @@
 Use the existing shell script to build proxy:
 
 ```shell
-scripts/build_proxy
+scripts/build-proxy
 ```
 
 ## Run proxy

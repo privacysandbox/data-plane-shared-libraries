@@ -15,8 +15,23 @@
 
 # Run benchmarks
 set -o errexit
-set -o xtrace
 set -o pipefail
+
+function usage() {
+  local -r -i exitval=${1-1}
+  cat &>/dev/stderr <<USAGE
+usage:
+  ${BASH_SOURCE[0]} <options>
+    --verbose                       Enable xtrace verbose output
+    --target <name>                 Name of a benchmark target to run. Can be specified multiple times.
+    --benchmark_time_unit <unit>    Specify benchmark units
+
+environment variables (all optional):
+    WORKSPACE                    Set the path to the workspace (repo root)
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
 
 SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
 readonly SCRIPT_DIR
@@ -24,17 +39,56 @@ readonly TOOLS_DIR="${SCRIPT_DIR}"/../builders/tools
 # shellcheck disable=SC1090
 source "${TOOLS_DIR}"/builder.sh
 
-declare -a -r targets=(
-  //scp/cc/aws/proxy/test:benchmark_test
-  //scp/cc/core/common/uuid/test:uuid_benchmark
-  //scp/cc/roma/benchmark/test:ba_server_benchmark
-  //scp/cc/roma/benchmark/test:kv_server_udf_benchmark_test
-  //scp/cc/roma/config/test:type_converter_benchmark
-  //scp/cc/roma/sandbox/dispatcher/test:dispatcher_benchmark
-  //scp/cc/roma/sandbox/worker_api/sapi/test:worker_wrapper_benchmark
-  # TODO: b/303250465 - Turn this back on once the segfault is fixed.
-  # //scp/cc/roma/benchmark/test:benchmark_suite_test
+declare -a targets
+declare -a benchmark_args=(
+  "--benchmark_out_format=json"
 )
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose)
+      VERBOSE=1
+      shift
+      ;;
+    --target)
+      targets+=("$2")
+      shift 2 || usage
+      ;;
+    --benchmark_time_unit)
+      benchmark_args+=("--benchmark_time_unit=$2")
+      shift 2 || usage
+      ;;
+    -h | --help) usage 0 ;;
+    *) usage ;;
+  esac
+done
+
+if [[ ${VERBOSE} -eq 1 ]]; then
+  set -o xtrace
+fi
+
+# TODO: b/326459539 - Normalize benchmark target names
+# JSON output files for each benchmark and the metrics that're in perfgate are
+# named after the build target, so changing the build target will lose history
+# if not preserved. To remedy this, add a map from "json_file_names" to
+# "perfgate_benchmark_name" in https://source.corp.google.com/piper///depot/google3/chrome/privacy_sandbox/kiwi_air_force/perfgate/backfill_placer_data.sh;l=44.
+# IMPORTANT: When changing target names, please change all other occurances.
+if [[ ${#targets[@]} -eq 0 ]]; then
+  targets+=(
+    //src/aws/proxy:benchmark_test
+    //src/core/common/uuid:uuid_benchmark
+    //src/roma/benchmark:ba_server_benchmark
+    //src/roma/benchmark:kv_server_udf_benchmark_test
+    # TODO: b/328056518 - Turn this back on once v8 upgrade is complete.
+    # //src/roma/config:type_converter_benchmark
+    //src/roma/sandbox/dispatcher:dispatcher_benchmark
+    //src/roma/sandbox/worker_api/sapi:worker_wrapper_benchmark
+    # TODO: Enable logging benchmark after reducing volume of log output.
+    # //src/roma/benchmark:logging_benchmark
+    # TODO: b/303250465 - Turn this back on once the segfault is fixed.
+    # //src/roma/benchmark:benchmark_suite_test
+  )
+fi
 
 mkdir -p "${WORKSPACE}"/dist/benchmarks
 
@@ -46,7 +100,8 @@ for tgt in "${targets[@]}"; do
     "${tgt}" \
     -- \
     --benchmark_out="/src/workspace/dist/benchmarks/${out_fname}" \
-    --benchmark_out_format=json 2>&1 \
+    "${benchmark_args[@]}" \
+    2>/dev/null \
     | grep -Fv sandbox2.cc
 done
 

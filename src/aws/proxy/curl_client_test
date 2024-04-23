@@ -1,0 +1,99 @@
+#!/bin/bash
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This file, simulates what an application would do inside enclave. Here we use
+# curl to access www.google.com, though preloaded library and proxy.
+
+set -o errexit
+set -o nounset
+set -o pipefail
+
+readonly proxy_path="$1"
+readonly preload_path="$2"
+readonly proxify_path="$3"
+
+if [[ ! -x ${proxy_path} ]]; then
+  printf "Proxy: %s is not accessible\n" "${proxy_path}"
+  exit 1
+fi
+
+if [[ ! -f ${preload_path} ]]; then
+  printf "Preload lib: %s is not accessible" "${preload_path}"
+  exit 1
+fi
+
+declare -r -i -x PROXY_PARENT_PORT=8888
+declare -r -x RES_OPTIONS="use-vc"
+# Use loopback address 1 as proxy address
+declare -r -i -x PROXY_PARENT_CID=1
+
+# Run the proxy, get pid.
+"${proxy_path}" --port ${PROXY_PARENT_PORT} &
+declare -i -r PROXY_PID=$!
+sleep 1
+
+function _cleanup() {
+  declare -r -i _status=$?
+  if [[ -v PROXY_PID ]]; then
+    kill ${PROXY_PID}
+  fi
+  exit ${_status}
+}
+trap _cleanup EXIT
+
+# Test preload.
+function test_preload_google_com() {
+  printf "Test preload with google.com.\n"
+  # TODO: change this to not depend on google.com
+  preload_len=$(LD_PRELOAD="${preload_path}" curl -s https://www.google.com | wc -c)
+  readonly preload_len
+  if [[ ${preload_len} -lt 4096 ]]; then
+    printf "Failed: test_preload_google_com: preload lib google.com returned less than 4KiB.\n"
+    exit 1
+  fi
+}
+test_preload_google_com
+
+# Test proxify.
+function test_proxify_google_com() {
+  printf "Test proxify with google.com.\n"
+  proxify_len=$("${proxify_path}" -- curl -s https://www.google.com | wc -c)
+  readonly proxify_len
+  if [[ ${proxify_len} -lt 4096 ]]; then
+    printf "Failed: test_proxify_google_com: proxify google.com returned less than 4KiB.\n"
+    exit 1
+  fi
+}
+test_proxify_google_com
+
+function test_proxify_timeout_random_unresponsive_ip() {
+  printf "Test proxify timeout with unresponsive IP address.\n"
+  # SECONDS is a special bash variable used for timing.
+  SECONDS=0
+
+  # https://www.rfc-editor.org/rfc/rfc5737#section-3
+  # Using 203.0.113.0.
+  declare -r random_ip="203.0.113.0"
+  # Timeout set to 20s, --max-time set to 10. Proxify should continue to timeout for the whole 20 seconds, instead of the 10 second max time.
+  set +o errexit
+  timeout 20s "${proxify_path}" -- curl -s --max-time 10 "${random_ip}"
+  set -o errexit
+  declare -r -i duration=$SECONDS
+  if [[ ${duration} -lt 20 ]]; then
+    printf "Failed: test_proxify_timeout_random_ip: proxify did not timeout as expected.\n"
+    exit 1
+  fi
+}
+test_proxify_timeout_random_unresponsive_ip

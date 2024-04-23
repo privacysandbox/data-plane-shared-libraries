@@ -1,0 +1,106 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "gcp_blob_storage_client_provider",
+    srcs = [":gcp_blob_storage_client_provider_srcs"],
+    deps = [
+        "//src/core/common/time_provider",
+        "//src/core/interface:async_context",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/blob_storage_client_provider/common:blob_storage_provider_common",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common/gcp:gcp_utils",
+        "@com_github_googleapis_google_cloud_cpp//:storage",
+    ],
+)
+
+exports_files([
+    "gcp_blob_storage_client_provider.h",
+    "gcp_blob_storage_client_provider.cc",
+    "gcp_blob_storage_client_utils.h",
+])
+
+filegroup(
+    name = "gcp_blob_storage_client_provider_srcs",
+    srcs = [
+        ":gcp_blob_storage_client_provider.cc",
+        ":gcp_blob_storage_client_provider.h",
+        ":gcp_blob_storage_client_utils.h",
+    ],
+)
+
+cc_test(
+    name = "gcp_blob_storage_client_provider_test",
+    size = "small",
+    srcs = [
+        "gcp_blob_storage_client_provider_test.cc",
+    ],
+    deps = [
+        ":gcp_blob_storage_client_provider",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_github_googleapis_google_cloud_cpp//:storage",
+        "@com_github_googleapis_google_cloud_cpp//google/cloud/storage:storage_client_testing",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "gcp_blob_storage_client_provider_stream_test",
+    size = "small",
+    srcs = [
+        "gcp_blob_storage_client_provider_stream_test.cc",
+    ],
+    # This test case appears to depend on GCP implementation details.
+    # It checks how many calls GCP internal libraries make to the user defined
+    # `StorageConnection::UploadChunk` method.
+    deps = [
+        ":gcp_blob_storage_client_provider",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "//src/public/cpio/test/global_cpio:test_lib_cpio",
+        "@com_github_googleapis_google_cloud_cpp//:storage",
+        "@com_github_googleapis_google_cloud_cpp//google/cloud/storage:storage_client_testing",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_gcp_blob_storage_client_provider",
+    srcs = [
+        "test_gcp_blob_storage_client_provider.cc",
+        ":gcp_blob_storage_client_provider_srcs",
+    ],
+    hdrs = [
+        "test_gcp_blob_storage_client_provider.h",
+    ],
+    deps = [
+        ":gcp_blob_storage_client_provider",
+        "//src/public/cpio/test/blob_storage_client:test_gcp_blob_storage_client_options",
+    ],
+)

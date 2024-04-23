@@ -23,10 +23,10 @@
 
 #include "absl/functional/bind_front.h"
 #include "absl/log/check.h"
-#include "cpio/client_providers/global_cpio/src/global_cpio.h"
-#include "cpio/client_providers/interface/auth_token_provider_interface.h"
-#include "cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "public/cpio/interface/kms_client/type_def.h"
+#include "src/cpio/client_providers/global_cpio/src/global_cpio.h"
+#include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
+#include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
+#include "src/public/cpio/interface/kms_client/type_def.h"
 
 #include "error_codes.h"
 

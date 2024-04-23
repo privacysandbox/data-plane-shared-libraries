@@ -1,0 +1,120 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "interface",
+    hdrs = [
+        "async_executor_interface.h",
+        "authorization_proxy_interface.h",
+        "authorization_service_interface.h",
+        "blob_storage_provider_interface.h",
+        "config_provider_interface.h",
+        "configuration_keys.h",
+        "credentials_provider_interface.h",
+        "dependency_injection_service_interface.h",
+        "http_client_interface.h",
+        "http_request_response_auth_interceptor_interface.h",
+        "http_request_route_resolver_interface.h",
+        "http_request_router_interface.h",
+        "http_server_interface.h",
+        "http_types.h",
+        "initializable_interface.h",
+        "message_router_interface.h",
+        "network_service_interface.h",
+        "partition_interface.h",
+        "partition_lease_manager_interface.h",
+        "partition_manager_interface.h",
+        "partition_namespace_interface.h",
+        "partition_types.h",
+        "rpc_service_context_interface.h",
+        "token_fetcher_interface.h",
+        "traffic_forwarder_interface.h",
+    ],
+    visibility = ["//src:scp_internal_pkg"],
+    deps = [
+        ":async_context",
+        ":service_interface",
+        ":streaming_context",
+        "//src/core/common/concurrent_map",
+        "//src/core/common/proto:common_cc_proto",
+        "//src/core/common/streaming_context:streaming_context_errors",
+        "//src/core/common/uuid",
+        "@com_google_absl//absl/container:btree",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/functional:any_invocable",
+    ],
+)
+
+cc_library(
+    name = "service_interface",
+    hdrs = [
+        "service_interface.h",
+    ],
+    visibility = ["//src:scp_internal_pkg"],
+    deps = [
+    ],
+)
+
+cc_library(
+    name = "async_context",
+    hdrs = [
+        "async_context.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/core/common/global_logger",
+        "//src/core/common/uuid",
+    ],
+)
+
+cc_library(
+    name = "streaming_context",
+    hdrs = [
+        "streaming_context.h",
+    ],
+    deps = [
+        ":async_context",
+        "//src/core/common/concurrent_queue",
+        "//src/core/common/global_logger",
+        "//src/core/common/uuid",
+    ],
+)
+
+cc_library(
+    name = "type_def",
+    hdrs = [
+        "type_def.h",
+    ],
+    visibility = ["//src:scp_internal_pkg"],
+    deps = [
+        "//src/core/common/proto:common_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "errors",
+    srcs = [
+        "errors.cc",
+    ],
+    hdrs = [
+        "errors.h",
+    ],
+    visibility = ["//src:scp_internal_pkg"],
+    deps = [
+        "//src/public/core/interface:execution_result",
+        "@com_google_absl//absl/container:flat_hash_map",
+    ],
+)

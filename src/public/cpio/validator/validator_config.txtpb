@@ -1,0 +1,90 @@
+# proto-file: src/public/cpio/validator/proto/validator_config.proto
+# proto-message: ValidatorConfig
+
+test_cases {
+  name: "DnsConfig.LocalDnsAccess"
+  dns_config {
+    host: "127.0.0.1"
+    port: 80
+  }
+}
+test_cases {
+  name: "HttpConfig.GoogleHttpAccess"
+  http_config {
+    request_method: "GET"
+    request_url: "http://www.google.com"
+  }
+}
+test_cases {
+  name: "HttpConfig.AwsMetadataHttpAccess"
+  http_config {
+    request_method: "PUT"
+    request_url: "http://169.254.169.254/latest/api/token"
+    request_headers {
+      key: "X-aws-ec2-metadata-token-ttl-seconds"
+      value: "21600"
+    }
+  }
+}
+test_cases {
+  name: "GetBlobConfig.CpioValidatorTestBucket.BlobName10"
+  get_blob_config {
+    bucket_name: "cpio-validator-test-bucket"
+    blob_name: "blob_name_10"
+  }
+}
+test_cases {
+  name: "ListBlobsMetadataConfig.CpioValidatorTestBucket"
+  list_blobs_metadata_config {
+    bucket_name: "cpio-validator-test-bucket"
+  }
+}
+test_cases {
+  name: "ListBlobsMetadataConfig.CpioValidatorTestBucket1"
+  list_blobs_metadata_config {
+    bucket_name: "cpio-validator-test-bucket-1"
+  }
+}
+test_cases {
+  name: "GetParameterConfig.CpioValidatorTestParameter"
+  get_parameter_config {
+    parameter_name: "cpio-validator-test-parameter"
+  }
+}
+test_cases {
+  name: "GetParameterConfig.CpioValidatorTestParameter10"
+  get_parameter_config {
+    parameter_name: "cpio-validator-test-parameter-10"
+  }
+}
+test_cases {
+  name: "GetTagsByResourceNameConfig"
+  get_tags_by_resource_name_config {
+    resource_name: "arn:aws:ec2:us-east-1:031246179129:instance/i-0a2074b040c741cf1"
+  }
+}
+test_cases {
+  name: "GetCurrentInstanceResourceNameConfig"
+  get_current_instance_resource_name_config {
+  }
+}
+test_cases {
+  name: "EnqueueMessageConfig.CpioValidatorTestMessage"
+  enqueue_message_config {
+    message_body: "cpio-validator-test-message"
+  }
+}
+test_cases {
+  name: "GetTopMessageConfig"
+  get_top_message_config {
+  }
+}
+test_cases {
+  name: "FetchPrivateKeyConfig"
+  fetch_private_key_config {
+    key_id: "2400000000000000"
+    private_key_vending_service_endpoint: "https://privatekeyservice-a.pa-1.aws.privacysandboxservices.com/v1alpha/encryptionKeys"
+    service_region: "us-east-1"
+    account_identity: "arn:aws:iam::221820322062:role/mp-primary-staging_031246179129_coordinator_assume_role"
+  }
+}
