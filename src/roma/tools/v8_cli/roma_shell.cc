@@ -173,7 +173,7 @@ void Execute(RomaService<>* roma_service,
 void RunShell(const std::vector<std::string>& v8_flags) {
   std::vector<std::string> formatted_v8_flags;
   std::transform(
-      v8_flags.begin(), v8_flags.end(), formatted_v8_flags.begin(),
+      v8_flags.begin(), v8_flags.end(), std::back_inserter(formatted_v8_flags),
       [](const std::string& s) { return absl::StrCat(kFlagPrefix, s); });
   RomaService<>::Config config;
   config.SetV8Flags(formatted_v8_flags);
