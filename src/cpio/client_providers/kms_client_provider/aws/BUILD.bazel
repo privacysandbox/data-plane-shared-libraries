@@ -164,19 +164,6 @@ cc_library(
     ],
 )
 
-exports_files([
-    "aws_kms_aead.h",
-    "aws_kms_aead.cc",
-    "nontee_aws_kms_client_provider.h",
-    "nontee_aws_kms_client_provider.cc",
-    "nontee_error_codes.h",
-    "tee_aws_kms_client_provider.h",
-    "tee_aws_kms_client_provider.cc",
-    "tee_aws_kms_client_provider_utils.h",
-    "tee_aws_kms_client_provider_utils.cc",
-    "tee_error_codes.h",
-])
-
 cc_binary(
     name = "true",
     srcs = ["true_main.cc"],
