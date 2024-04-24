@@ -33,5 +33,5 @@ void RunGetTagsByResourceNameValidator(
     const google::scp::cpio::validator::proto::GetTagsByResourceNameConfig&
         get_tags_by_resource_name_config);
 
-};      // namespace google::scp::cpio::validator
+};  // namespace google::scp::cpio::validator
 #endif  // PUBLIC_CPIO_VALIDATOR_INSTANCE_CLIENT_VALIDATOR_H_

@@ -97,5 +97,5 @@ class CliBlobStorage final {
   std::unique_ptr<google::scp::cpio::BlobStorageClientInterface>
       blob_storage_client_;
 };
-};      // namespace google::scp::cpio::cli
+};  // namespace google::scp::cpio::cli
 #endif  // PUBLIC_CPIO_CLI_BLOB_STORAGE_CLI_H_

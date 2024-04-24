@@ -291,8 +291,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
 }
 
 void ProxyBridge::AcceptInboundConnection(Socket sock) {
-  LOG(INFO) << "[" << connection_id_ << "]"
-            << "Accepted inbound connection.";
+  LOG(INFO) << "[" << connection_id_ << "]" << "Accepted inbound connection.";
   // Cancel the async_wait on errors
   error_code ec;
   client_sock_.cancel(ec);

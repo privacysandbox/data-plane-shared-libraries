@@ -36,8 +36,7 @@ void ExecutionWatchDog::Run() {
   absl::MutexLock lock(&mutex_);
   execution_watchdog_thread_ =
       std::thread(&ExecutionWatchDog::WaitForTimeout, this);
-  mutex_.Await(absl::Condition(
-      +[](bool* b) { return *b; }, &is_running_));
+  mutex_.Await(absl::Condition(+[](bool* b) { return *b; }, &is_running_));
 }
 
 void ExecutionWatchDog::Stop() {
