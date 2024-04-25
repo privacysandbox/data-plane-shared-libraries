@@ -9,6 +9,7 @@ ExtraArgs:
 
 Checks: >
     -*,
+    abseil-*,
     bugprone-*,
     -bugprone-narrowing-conversions,
     -bugprone-exception-escape,
