@@ -50,6 +50,7 @@ class V8Console : public v8::debug::ConsoleDelegate {
  public:
   explicit V8Console(absl::Nonnull<v8::Isolate*> isolate,
                      LogFunctionHandler handle_log_func_);
+  ~V8Console() override = default;
 
   void SetIds(std::string_view uuid, std::string_view id);
   void SetMinLogLevel(absl::LogSeverity severity);
