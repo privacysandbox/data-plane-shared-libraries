@@ -66,6 +66,33 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 
+TEST(WorkerSandboxApiTest, WorkerReturnsInformativeThrowMessageThroughSandbox) {
+  WorkerSandboxApi sandbox_api(
+      false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
+      {} /*native_js_function_names*/, {} /*rpc_method_names*/,
+      "" /*server_address*/, 0, 0, 0, 0, 0, false, {} /*v8_flags*/);
+
+  ASSERT_TRUE(sandbox_api.Init().ok());
+
+  ASSERT_TRUE(sandbox_api.Run().ok());
+
+  ::worker_api::WorkerParamsProto params_proto;
+  params_proto.set_code(
+      R"js(function cool_func() { throw new Error("Throw check!") })js");
+  (*params_proto.mutable_metadata())[kRequestType] = kRequestTypeJavascript;
+  (*params_proto.mutable_metadata())[kHandlerName] = "cool_func";
+  (*params_proto.mutable_metadata())[kCodeVersion] = "1";
+  (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
+
+  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
+      sandbox_api.RunCode(params_proto);
+  ASSERT_TRUE(!result_pair.first.ok());
+  EXPECT_THAT(result_pair.first.message(),
+              StrEq("Execution failed; Error when invoking the handler. "
+                    "Uncaught Error: Throw check!"));
+  EXPECT_TRUE(sandbox_api.Stop().ok());
+}
+
 TEST(WorkerSandboxApiTest,
      StartingTheSandboxShouldFailIfNotEnoughMemoryInRlimitForV8) {
   // Since this is limiting the virtual memory space in a machine with swap and

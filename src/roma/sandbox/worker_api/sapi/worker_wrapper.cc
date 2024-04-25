@@ -105,7 +105,8 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
     // If we fail to stop the previous worker then log but keep going because
     // we'll be recreating it momentarily.
     if (status != SapiStatusCode::kOk) {
-      ROMA_VLOG(1) << SapiStatusCodeToAbslStatus(static_cast<int>(status));
+      ROMA_VLOG(1) << SapiStatusCodeToAbslStatus(
+          static_cast<int>(status), "Failed to stop previous worker");
     }
   }
 
@@ -198,6 +199,7 @@ SapiStatusCode RunCode(worker_api::WorkerParamsProto* params) {
       std::move(js_duration).value();
 
   if (!response_or.ok()) {
+    params->set_error_message(std::string(response_or.status().message()));
     return SapiStatusCode::kExecutionFailed;
   }
 
@@ -278,7 +280,8 @@ SapiStatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
     return SapiStatusCode::kCouldNotDeserializeRunData;
   }
 
-  if (const auto result = RunCode(&params); result != SapiStatusCode::kOk) {
+  const auto result = RunCode(&params);
+  if (result != SapiStatusCode::kOk && params.error_message().empty()) {
     return result;
   }
 
@@ -335,7 +338,7 @@ SapiStatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully executed the request";
-  return SapiStatusCode::kOk;
+  return result;
 }
 
 SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
@@ -354,8 +357,8 @@ SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully received the request data";
-  auto result = RunCode(&params);
-  if (result != SapiStatusCode::kOk) {
+  const auto result = RunCode(&params);
+  if (result != SapiStatusCode::kOk && params.error_message().empty()) {
     return result;
   }
 

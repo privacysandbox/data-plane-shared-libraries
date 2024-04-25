@@ -297,9 +297,12 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
       output_serialized_size_ptr.PtrAfter());
 
   if (!status_or.ok()) {
-    return WrapResultWithRetry(absl::InternalError(
-        "Sandbox worker crashed during execution of request."));
-  } else if (*status_or != SapiStatusCode::kOk) {
+    std::string err_msg = "Sandbox worker crashed during execution of request.";
+    return WrapResultWithRetry(absl::InternalError(err_msg));
+  } else if (*status_or != SapiStatusCode::kOk &&
+             // If execution failed then the output may contain forwardable
+             // error message.
+             *status_or != SapiStatusCode::kExecutionFailed) {
     return WrapResultWithNoRetry(
         SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
   }
@@ -325,6 +328,10 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
 
   params = std::move(out_params);
 
+  if (*status_or != SapiStatusCode::kOk) {
+    return WrapResultWithNoRetry(SapiStatusCodeToAbslStatus(
+        static_cast<int>(*status_or), params.error_message()));
+  }
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
@@ -357,7 +364,10 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
   if (!status_or.ok()) {
     return WrapResultWithRetry(absl::InternalError(
         "Sandbox worker crashed during execution of request."));
-  } else if (*status_or != SapiStatusCode::kOk) {
+  } else if (*status_or != SapiStatusCode::kOk &&
+             // If execution failed then the output may contain forwardable
+             // error message.
+             *status_or != SapiStatusCode::kExecutionFailed) {
     return WrapResultWithNoRetry(
         SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
   }
@@ -374,6 +384,10 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
 
   params = std::move(out_params);
 
+  if (*status_or != SapiStatusCode::kOk) {
+    return WrapResultWithNoRetry(SapiStatusCodeToAbslStatus(
+        static_cast<int>(*status_or), params.error_message()));
+  }
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
