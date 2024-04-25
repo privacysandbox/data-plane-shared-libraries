@@ -59,6 +59,10 @@ int main(int argc, char* argv[]) {
   KmsClientOptions kms_client_options;
 
   auto kms_client = KmsClientFactory::Create(std::move(kms_client_options));
+  if (const absl::Status error = kms_client->Init(); !error.ok()) {
+    std::cout << "Cannot init kms client!" << error << std::endl;
+    return 0;
+  }
   std::cout << "Run kms client successfully!" << std::endl;
 
   auto request = std::make_shared<DecryptRequest>();

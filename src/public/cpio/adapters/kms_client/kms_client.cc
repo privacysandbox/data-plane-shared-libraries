@@ -23,16 +23,26 @@
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "src/public/cpio/proto/kms_service/v1/kms_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;
 using google::scp::core::AsyncContext;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::KmsClientProviderFactory;
+using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
 namespace google::scp::cpio {
 
-absl::Status KmsClient::Init() noexcept { return absl::OkStatus(); }
+absl::Status KmsClient::Init() noexcept {
+  PS_ASSIGN_OR_RETURN(
+      RoleCredentialsProviderInterface * role_credentials_provider,
+      GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider());
+  kms_client_provider_ = KmsClientProviderFactory::Create(
+      role_credentials_provider,
+      &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
+  return absl::OkStatus();
+}
 
 absl::Status KmsClient::Run() noexcept { return absl::OkStatus(); }
 
@@ -45,8 +55,6 @@ absl::Status KmsClient::Decrypt(
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
     KmsClientOptions /*options*/) {
-  return std::make_unique<KmsClient>(KmsClientProviderFactory::Create(
-      &GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider(),
-      &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor()));
+  return std::make_unique<KmsClient>();
 }
 }  // namespace google::scp::cpio

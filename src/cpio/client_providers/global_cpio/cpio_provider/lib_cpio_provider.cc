@@ -23,6 +23,7 @@
 #include "absl/log/check.h"
 #include "absl/memory/memory.h"
 #include "absl/status/statusor.h"
+#include "absl/synchronization/mutex.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/errors.h"
@@ -58,16 +59,10 @@ LibCpioProvider::LibCpioProvider(CpioOptions options)
   }
 }
 
-absl::Status LibCpioProvider::Init() {
+void LibCpioProvider::Init() {
   instance_client_provider_ = InstanceClientProviderFactory::Create(
       auth_token_provider_.get(), &http1_client_, &http2_client_,
       &cpu_async_executor_, &io_async_executor_);
-  PS_ASSIGN_OR_RETURN(role_credentials_provider_,
-                      RoleCredentialsProviderFactory::Create(
-                          RoleCredentialsProviderOptions{.region = region_},
-                          instance_client_provider_.get(), &cpu_async_executor_,
-                          &io_async_executor_));
-  return absl::OkStatus();
 }
 
 LibCpioProvider::~LibCpioProvider() {
@@ -103,10 +98,19 @@ LibCpioProvider::GetInstanceClientProvider() noexcept {
   return *instance_client_provider_;
 }
 
-RoleCredentialsProviderInterface&
+absl::StatusOr<RoleCredentialsProviderInterface*>
 LibCpioProvider::GetRoleCredentialsProvider() noexcept {
-  CHECK(role_credentials_provider_) << "Init not called.";
-  return *role_credentials_provider_;
+  // TODO(b/337035410): Initialize in role_credentials_provider in Init and
+  // return ref here.
+  absl::MutexLock lock(&mutex_);
+  if (!role_credentials_provider_) {
+    PS_ASSIGN_OR_RETURN(role_credentials_provider_,
+                        RoleCredentialsProviderFactory::Create(
+                            RoleCredentialsProviderOptions{.region = region_},
+                            &GetInstanceClientProvider(), &cpu_async_executor_,
+                            &io_async_executor_));
+  }
+  return role_credentials_provider_.get();
 }
 
 AuthTokenProviderInterface& LibCpioProvider::GetAuthTokenProvider() noexcept {
@@ -124,7 +128,7 @@ absl::StatusOr<std::unique_ptr<CpioProviderInterface>> LibCpioProvider::Create(
   // Using `new` to access a non-public constructor.
   auto cpio_provider =
       absl::WrapUnique(new LibCpioProvider(std::move(options)));
-  PS_RETURN_IF_ERROR(cpio_provider->Init());
+  cpio_provider->Init();
   return cpio_provider;
 }
 

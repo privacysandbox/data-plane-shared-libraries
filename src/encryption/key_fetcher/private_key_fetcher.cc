@@ -200,6 +200,9 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
 
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
+  if (!private_key_client->Init().ok()) {
+    PS_VLOG(1) << "Failed to initialize private key client.";
+  }
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
                                              key_ttl, log_context);
 }

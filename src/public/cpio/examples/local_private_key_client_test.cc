@@ -75,6 +75,10 @@ int main(int argc, char* argv[]) {
 
   auto private_key_client =
       PrivateKeyClientFactory::Create(std::move(private_key_client_options));
+  if (const absl::Status error = private_key_client->Init(); !error.ok()) {
+    std::cout << "Cannot init private key client!" << error << std::endl;
+    return 0;
+  }
   std::cout << "Run private key client successfully!" << std::endl;
 
   ListPrivateKeysRequest request;

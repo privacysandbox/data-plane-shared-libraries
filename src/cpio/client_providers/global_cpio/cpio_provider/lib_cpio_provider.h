@@ -21,8 +21,9 @@
 #include <string>
 #include <utility>
 
-#include "absl/status/status.h"
+#include "absl/base/thread_annotations.h"
 #include "absl/status/statusor.h"
+#include "absl/synchronization/mutex.h"
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/curl_client/http1_curl_client.h"
 #include "src/core/http2_client/http2_client.h"
@@ -59,8 +60,8 @@ class LibCpioProvider : public CpioProviderInterface {
   InstanceClientProviderInterface& GetInstanceClientProvider() noexcept
       override;
 
-  RoleCredentialsProviderInterface& GetRoleCredentialsProvider() noexcept
-      override;
+  absl::StatusOr<RoleCredentialsProviderInterface*>
+  GetRoleCredentialsProvider() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
 
   AuthTokenProviderInterface& GetAuthTokenProvider() noexcept override;
 
@@ -69,7 +70,7 @@ class LibCpioProvider : public CpioProviderInterface {
   const std::string& GetRegion() noexcept override;
 
  private:
-  absl::Status Init();
+  void Init();
 
   /// Global CPIO options.
   std::string project_id_;
@@ -90,7 +91,11 @@ class LibCpioProvider : public CpioProviderInterface {
   /// Global instance client provider to fetch cloud metadata.
   std::unique_ptr<InstanceClientProviderInterface> instance_client_provider_;
   /// Global role credential provider.
-  std::unique_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;
+  std::unique_ptr<RoleCredentialsProviderInterface> role_credentials_provider_
+      ABSL_GUARDED_BY(mutex_);
+  // TODO(b/337035410): Init role_credentials_provider_ in private Init method
+  // and remove lock.
+  absl::Mutex mutex_;
 };
 }  // namespace google::scp::cpio::client_providers
 

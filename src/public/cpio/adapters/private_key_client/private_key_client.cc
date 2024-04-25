@@ -35,7 +35,17 @@ using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
 namespace google::scp::cpio {
-absl::Status PrivateKeyClient::Init() noexcept { return absl::OkStatus(); }
+absl::Status PrivateKeyClient::Init() noexcept {
+  PS_ASSIGN_OR_RETURN(
+      RoleCredentialsProviderInterface * role_credentials_provider,
+      GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider());
+  private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
+      options_, &GlobalCpio::GetGlobalCpio().GetHttpClient(),
+      role_credentials_provider,
+      &GlobalCpio::GetGlobalCpio().GetAuthTokenProvider(),
+      &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
+  return absl::OkStatus();
+}
 
 absl::Status PrivateKeyClient::Run() noexcept { return absl::OkStatus(); }
 
@@ -52,11 +62,6 @@ absl::Status PrivateKeyClient::ListPrivateKeys(
 
 std::unique_ptr<PrivateKeyClientInterface> PrivateKeyClientFactory::Create(
     PrivateKeyClientOptions options) {
-  return std::make_unique<PrivateKeyClient>(
-      PrivateKeyClientProviderFactory::Create(
-          std::move(options), &GlobalCpio::GetGlobalCpio().GetHttpClient(),
-          &GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider(),
-          &GlobalCpio::GetGlobalCpio().GetAuthTokenProvider(),
-          &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor()));
+  return std::make_unique<PrivateKeyClient>(std::move(options));
 }
 }  // namespace google::scp::cpio

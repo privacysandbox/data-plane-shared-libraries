@@ -35,12 +35,7 @@ namespace google::scp::cpio {
  */
 class KmsClient : public KmsClientInterface {
  public:
-  explicit KmsClient(
-      absl::Nonnull<
-          std::unique_ptr<client_providers::KmsClientProviderInterface>>
-          kms_client_provider)
-      : kms_client_provider_(std::move(kms_client_provider)) {}
-
+  // TODO(b/337035410): Pass provider in constructor and deprecate Init method.
   ~KmsClient() override = default;
 
   absl::Status Init() noexcept override;

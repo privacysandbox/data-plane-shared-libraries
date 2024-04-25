@@ -32,13 +32,11 @@ namespace google::scp::cpio {
  */
 class PrivateKeyClient : public PrivateKeyClientInterface {
  public:
-  explicit PrivateKeyClient(
-      absl::Nonnull<
-          std::unique_ptr<client_providers::PrivateKeyClientProviderInterface>>
-          private_key_client_provider)
-      : private_key_client_provider_(std::move(private_key_client_provider)) {}
+  // TODO(b/337035410): Pass provider in constructor and deprecate Init method.
+  explicit PrivateKeyClient(PrivateKeyClientOptions options)
+      : options_(std::move(options)) {}
 
-  virtual ~PrivateKeyClient() = default;
+  ~PrivateKeyClient() override = default;
 
   absl::Status Init() noexcept override;
 
@@ -54,6 +52,9 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
  protected:
   std::unique_ptr<client_providers::PrivateKeyClientProviderInterface>
       private_key_client_provider_;
+
+ private:
+  PrivateKeyClientOptions options_;
 };
 }  // namespace google::scp::cpio
 

@@ -39,7 +39,7 @@ class PrivateKeyClientInterface {
  public:
   virtual ~PrivateKeyClientInterface() = default;
 
-  [[deprecated]] virtual absl::Status Init() noexcept = 0;
+  virtual absl::Status Init() noexcept = 0;
   [[deprecated]] virtual absl::Status Run() noexcept = 0;
   [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 

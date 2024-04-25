@@ -78,9 +78,15 @@ void RunFetchPrivateKeyValidator(
               << std::endl;
     return;
   }
+  auto role_credentials_provider = cpio.GetRoleCredentialsProvider();
+  if (!role_credentials_provider.ok()) {
+    std::cout << "[ FAILURE ] " << role_credentials_provider.status()
+              << std::endl;
+    return;
+  }
   auto key_fetcher =
       google::scp::cpio::client_providers::PrivateKeyFetcherProviderFactory::
-          Create(&cpio.GetHttp1Client(), &cpio.GetRoleCredentialsProvider(),
+          Create(&cpio.GetHttp1Client(), *role_credentials_provider,
                  &cpio.GetAuthTokenProvider());
   if (google::scp::core::ExecutionResult result = key_fetcher->Init();
       !result.Successful()) {
