@@ -69,6 +69,14 @@ constexpr std::string_view kCodeSerializeProtobuf = R"(
       return end_time - start_time;
     };
 )";
+constexpr std::string_view kCodeSerializeJson = R"(
+    function SerializeFunc(req) {
+      const start_time = performance.now();
+      JSON.stringify(req);
+      const end_time = performance.now();
+      return end_time - start_time;
+    };
+)";
 constexpr std::string_view kHandlerNameSerializeFunc = "SerializeFunc";
 
 constexpr std::string_view kCodeDeserializeProtobuf = R"(
@@ -77,6 +85,16 @@ constexpr std::string_view kCodeDeserializeProtobuf = R"(
 
       const start_time = performance.now();
       BenchmarkServerPb.ProtoBytesToObject_BenchmarkRequest(serializedRequest);
+      const end_time = performance.now();
+      return end_time - start_time;
+    };
+)";
+constexpr std::string_view kCodeDeserializeJson = R"(
+    function DeserializeFunc(req) {
+      const serializedRequest = JSON.stringify(req);
+
+      const start_time = performance.now();
+      JSON.parse(serializedRequest);
       const end_time = performance.now();
       return end_time - start_time;
     };
