@@ -61,9 +61,10 @@ constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
  * @brief The template parameter, TMetadata, needs to be default assignable and
  * movable.
  */
-template <typename TMetadata = google::scp::roma::DefaultMetadata>
+template <typename T = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
+  using TMetadata = T;
   using Config = Config<TMetadata>;
 
   explicit RomaService(Config config = Config()) : config_(std::move(config)) {}

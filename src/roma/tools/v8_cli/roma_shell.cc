@@ -175,15 +175,23 @@ void RunShell(const std::vector<std::string>& v8_flags) {
   std::transform(
       v8_flags.begin(), v8_flags.end(), std::back_inserter(formatted_v8_flags),
       [](const std::string& s) { return absl::StrCat(kFlagPrefix, s); });
-  RomaService<>::Config config;
+  using RomaService = RomaService<>;
+  RomaService::Config config;
   config.SetV8Flags(formatted_v8_flags);
+  auto logging_fn = [](absl::LogSeverity severity,
+                       const RomaService::TMetadata& metadata,
+                       std::string_view msg) {
+    std::cerr << "console: [" << absl::LogSeverityName(severity) << "] " << msg
+              << std::endl;
+  };
+  config.SetLoggingFunction(std::move(logging_fn));
 
   LOG(INFO) << "Roma config set to " << absl::GetFlag(FLAGS_num_workers)
             << " workers.";
   config.number_of_workers = absl::GetFlag(FLAGS_num_workers);
 
   LOG(INFO) << "Initializing RomaService...";
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
+  auto roma_service = std::make_unique<RomaService>(std::move(config));
   CHECK(roma_service->Init().ok());
   LOG(INFO) << "RomaService Initialization successful.";
 

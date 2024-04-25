@@ -61,9 +61,11 @@ struct JsEngineResourceConstraints {
   size_t maximum_heap_size_in_mb = 0;
 };
 
-template <typename TMetadata = DefaultMetadata>
+template <typename T = DefaultMetadata>
 class Config {
  public:
+  using TMetadata = T;
+
   Config()
       : factories_(std::make_unique<
                    std::vector<grpc_server::FactoryFunction<TMetadata>>>()),
