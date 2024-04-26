@@ -32,6 +32,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/roma/benchmark/serde/benchmark_service.pb.h"
 #include "src/roma/benchmark/test_code.h"
 #include "src/roma/config/config.h"
