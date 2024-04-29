@@ -60,5 +60,20 @@ TEST_F(LogTest, NothingIfNotConsented) {
       IsEmpty());
 }
 
+TEST_F(LogTest, NoContext) {
+  std::string log =
+      LogWithCapturedStderr([]() { PS_VLOG(kMaxV) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(INFO) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(WARNING) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(ERROR) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::test

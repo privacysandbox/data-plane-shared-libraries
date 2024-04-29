@@ -85,5 +85,26 @@ TEST_F(LogTest, ErrorToStderrAndOtel) {
       HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
 }
 
+TEST_F(LogTest, NoContext) {
+  server_common::log::AlwaysLogOtel(true);
+
+  // no OTel log for LOG without context
+  std::string log =
+      LogWithCapturedStderr([]() { PS_VLOG(kMaxV) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
+
+  log = LogWithCapturedStderr([]() { PS_VLOG(kMaxV + 1) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(INFO) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
+
+  log = LogWithCapturedStderr([]() { PS_LOG(WARNING) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
+
+  log = LogWithCapturedStderr([]() { PS_LOG(ERROR) << kLogContent; });
+  EXPECT_THAT(log, HasSubstr(kLogContent));
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::test

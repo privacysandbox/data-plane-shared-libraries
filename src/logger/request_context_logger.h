@@ -170,7 +170,8 @@ class PSLogMessage : public absl::log_internal::LogMessage {
                                                       absl_log_severity)    \
       .ToSinkAlsoIf(                                                        \
           (ps_log_context).is_consented() ||                                \
-              ::privacy_sandbox::server_common::log::AlwaysLogOtel(),       \
+              ::privacy_sandbox::server_common::log::AlwaysLogOtel() &&     \
+                  (ps_log_context).ConsentedSink() != nullptr,              \
           (ps_log_context).ConsentedSink())                                 \
       .ToSinkAlsoIf((ps_log_context).is_debug_response(),                   \
                     (ps_log_context).DebugResponseSink())
