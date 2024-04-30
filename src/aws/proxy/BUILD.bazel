@@ -572,6 +572,7 @@ cc_test(
 cc_test(
     name = "client_session_pool_test",
     size = "medium",
+    timeout = "long",
     srcs = ["client_session_pool_test.cc"],
     tags = ["noasan"],  # TODO(b/315002386) - Fix ASAN errors in this test.
     deps = [
