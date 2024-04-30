@@ -72,7 +72,8 @@ TEST(SandboxedServiceTest, InitStop) {
 
 TEST(SandboxedServiceTest, CanSetV8FlagsFromConfig) {
   Config config;
-  config.SetV8Flags({"--turbofan"});
+  std::vector<std::string>& v8_flags = config.SetV8Flags();
+  v8_flags.push_back("--no-turbofan");
   config.number_of_workers = 2;
 
   RomaService roma_service(std::move(config));

@@ -177,7 +177,8 @@ void RunShell(const std::vector<std::string>& v8_flags) {
       [](const std::string& s) { return absl::StrCat(kFlagPrefix, s); });
   using RomaService = RomaService<>;
   RomaService::Config config;
-  config.SetV8Flags(formatted_v8_flags);
+  std::vector<std::string>& config_flags = config.SetV8Flags();
+  config_flags = formatted_v8_flags;
   auto logging_fn = [](absl::LogSeverity severity,
                        const RomaService::TMetadata& metadata,
                        std::string_view msg) {
@@ -229,9 +230,12 @@ int main(int argc, char* argv[]) {
       "load and execute UDFs.");
 
   std::vector<std::string> v8_flags;
+  absl::flat_hash_set<std::string> processed_flags;
   for (int i = 1; i < argc; i++) {
-    if (!absl::StartsWith(argv[i], "--num_workers") &&
+    if (!processed_flags.contains(argv[i]) &&
+        !absl::StartsWith(argv[i], "--num_workers") &&
         !absl::StartsWith(argv[i], "--verbose")) {
+      processed_flags.insert(argv[i]);
       v8_flags.push_back(argv[i] + kFlagPrefix.length());
     }
   }

@@ -95,14 +95,35 @@ void LoadCodeBenchmark(::benchmark::State& state, std::string_view code) {
     LoadCodeObj(code);
   }
 
-  std::string label = absl::StrJoin(kOptimizerCombos[state.range(0)], " ");
+  std::string label;
+  if (state.range(0) == kOptimizerCombos.size()) {
+    label = "--no-turbofan";
+  } else {
+    if (kOptimizerCombos[state.range(0)].enable_turbofan) {
+      label += "--turbofan ";
+    }
+    if (kOptimizerCombos[state.range(0)].enable_maglev) {
+      label += "--maglev ";
+    }
+    if (kOptimizerCombos[state.range(0)].enable_turboshaft) {
+      label += "--turboshaft ";
+    }
+  }
   state.SetLabel(label.empty() ? "default" : label);
 }
 
 void SetupWithV8Flags(const ::benchmark::State& state) {
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
-  config.SetV8Flags(kOptimizerCombos[state.range(0)]);
+  // Benchmarks run with range [0, kOptimizerCombos.size()] to be used as
+  // indices into kOptimizerCombos. kOptimizerCombos.size() is an invalid index
+  // used as a special case to run --no-turbofan.
+  if (state.range(0) == kOptimizerCombos.size()) {
+    std::vector<std::string>& v8_flags = config.SetV8Flags();
+    v8_flags.push_back("--no-turbofan");
+  } else {
+    config.ConfigureV8Compilers(kOptimizerCombos[state.range(0)]);
+  }
 
   DoSetup(std::move(config));
 }
@@ -136,31 +157,31 @@ void BM_LoadCodeObjJetstreamNavierStokes(::benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadCodeObjHelloWorld)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadCodeObjPrimeSieve)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadCodeObjJetstreamUniPoker)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadCodeObjJetstreamSplay)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadCodeObjJetstreamDeltaBlue)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadCodeObjJetstreamCryptoAes)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadCodeObjJetstreamNavierStokes)
-    ->DenseRange(0, kOptimizerCombos.size() - 1)
+    ->DenseRange(0, kOptimizerCombos.size())
     ->Setup(SetupWithV8Flags)
     ->Teardown(DoTeardown);
 
