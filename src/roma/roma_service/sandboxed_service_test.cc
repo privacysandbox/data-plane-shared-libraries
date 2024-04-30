@@ -51,6 +51,9 @@
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
+using ::testing::AnyOf;
+using ::testing::DoubleNear;
+using ::testing::Gt;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
@@ -1481,13 +1484,14 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification execute_finished;
     // Should not timeout since we only sleep for 9 sec but the timeout is 10
     // sec.
+    constexpr int kTimeoutInMs = 9000;
     auto execution_obj =
         std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
             .id = "foo",
             .version_string = "v1",
             .handler_name = "Handler",
             .tags = {{std::string(kTimeoutDurationTag), "10000ms"}},
-            .input = {R"("9000")"},
+            .input = {absl::StrCat("\"", kTimeoutInMs, "\"")},
         });
 
     EXPECT_TRUE(roma_service
@@ -1502,14 +1506,16 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
                     .ok());
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30)));
-  }
 
-  auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
-  // Should have elapsed more than 9sec.
-  EXPECT_GE(elapsed_time_ms, 9000);
-  // But less than 10.
-  EXPECT_LE(elapsed_time_ms, 10000);
-  EXPECT_THAT(result, StrEq(R"("Hello world!")"));
+    auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
+    // Should have elapsed more than 9sec.
+    EXPECT_THAT(elapsed_time_ms,
+                AnyOf(DoubleNear(kTimeoutInMs, /*max_abs_error=*/10),
+                      Gt(kTimeoutInMs)));
+    // But less than 10.
+    EXPECT_LT(elapsed_time_ms, 10000);
+    EXPECT_THAT(result, StrEq(R"("Hello world!")"));
+  }
 
   result = "";
   timer.Reset();
@@ -1538,12 +1544,13 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30)));
   }
 
-  elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
+  auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
   // Should have elapsed more than 10sec since that's our
   // timeout.
-  EXPECT_GE(elapsed_time_ms, 10000);
+  EXPECT_THAT(elapsed_time_ms,
+              AnyOf(DoubleNear(10000, /*max_abs_error=*/10), Gt(10000)));
   // But less than 11
-  EXPECT_LE(elapsed_time_ms, 11000);
+  EXPECT_LT(elapsed_time_ms, 11000);
   EXPECT_THAT(result, IsEmpty());
 
   EXPECT_TRUE(roma_service.Stop().ok());
