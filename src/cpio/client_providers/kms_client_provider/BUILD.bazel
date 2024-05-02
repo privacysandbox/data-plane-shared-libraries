@@ -31,7 +31,7 @@ cc_library(
                     "//src/cpio/client_providers/kms_client_provider/azure:azure_kms_client_provider",
                 ],
                 "//src/public/cpio/interface:azure_cpio_lib_outside_tee": [
-                    "//src/cpio/client_providers/azure_client_provider/azure:azure_kms_client_provider",
+                    "//src/cpio/client_providers/kms_client_provider/azure:azure_kms_client_provider",
                 ],
                 "//src/public/cpio/interface:gcp_cpio_lib_inside_tee": [
                     "//src/cpio/client_providers/kms_client_provider/gcp:tee_gcp_kms_client_provider",

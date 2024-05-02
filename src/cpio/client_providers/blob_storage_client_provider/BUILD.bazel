@@ -25,7 +25,7 @@ cc_library(
                 "//src/cpio/client_providers/blob_storage_client_provider/aws:aws_blob_storage_client_provider",
             ],
             "//:azure_platform": [
-                "//src/cpio/client_providers/blob_storage_client_provider/gcp:gcp_blob_storage_client_provider",
+                "//src/cpio/client_providers/blob_storage_client_provider/azure:azure_blob_storage_client_provider",
             ],
             "//:gcp_platform": [
                 "//src/cpio/client_providers/blob_storage_client_provider/gcp:gcp_blob_storage_client_provider",

@@ -32,7 +32,9 @@ filegroup(
 cc_library(
     name = "azure_instance_client_provider",
     srcs = [
-        "azure_instance_client_provider.cc",
+        "azure_instance_client_provider.cc"
+    ],
+    hdrs = [
         "azure_instance_client_provider.h",
     ],
     deps = [

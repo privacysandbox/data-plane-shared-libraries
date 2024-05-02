@@ -144,6 +144,7 @@ InstanceClientProviderFactory::Create(
     HttpClientInterface* http1_client, HttpClientInterface* http2_client,
     AsyncExecutorInterface* async_executor,
     AsyncExecutorInterface* io_async_executor) {
+  std::cout << "Returning Azure Instance Client Provider";
   return std::make_unique<AzureInstanceClientProvider>();
 }
 
