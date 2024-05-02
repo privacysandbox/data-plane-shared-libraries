@@ -206,7 +206,7 @@ void RunShell(const std::vector<std::string>& v8_flags) {
     std::vector<std::string> tokens = absl::StrSplit(line, " ");
 
     if (tokens[0] == "exit") {
-      (void)roma_service->Stop();
+      roma_service->Stop().IgnoreError();
       break;
     } else if (tokens[0] == "load" && tokens.size() > 1) {
       Load(roma_service.get(), tokens[1], tokens.size() > 2 ? tokens[2] : "");

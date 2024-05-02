@@ -53,7 +53,7 @@ class RomaV8AppService {
 
   virtual ~RomaV8AppService() {
     if (roma_service_) {
-      (void)roma_service_->Stop();
+      roma_service_->Stop().IgnoreError();
     }
   }
 
