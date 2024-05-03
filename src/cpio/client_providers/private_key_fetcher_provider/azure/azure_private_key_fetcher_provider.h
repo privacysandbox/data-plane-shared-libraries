@@ -39,8 +39,9 @@ class AzurePrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
    * @param auth_token_provider auth token provider.
    * service.
    */
-  AzurePrivateKeyFetcherProvider(core::HttpClientInterface* http_client,
-                               AuthTokenProviderInterface* auth_token_provider)
+  AzurePrivateKeyFetcherProvider(
+      core::HttpClientInterface* http_client,
+      AuthTokenProviderInterface* auth_token_provider)
       : PrivateKeyFetcherProvider(http_client),
         auth_token_provider_(auth_token_provider) {}
 

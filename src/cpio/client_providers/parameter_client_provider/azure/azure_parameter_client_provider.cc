@@ -23,10 +23,10 @@
 
 #include "absl/log/check.h"
 #include "absl/strings/str_format.h"
-#include "src/core/common/uuid/uuid.h"
-#include "src/core/interface/async_context.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
 #include "google/cloud/secretmanager/secret_manager_connection.h"
+#include "src/core/common/uuid/uuid.h"
+#include "src/core/interface/async_context.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 

@@ -30,8 +30,6 @@ SnpType getSnpType() {
   return SnpType::NONE;
 }
 
-bool hasSnp() {
-  return getSnpType() != SnpType::NONE;
-}
+bool hasSnp() { return getSnpType() != SnpType::NONE; }
 
 }  // namespace google::scp::azure::attestation

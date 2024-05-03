@@ -131,7 +131,6 @@ BlobStorageClientProviderFactory::Create(
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<AzureBlobStorageClientProvider>(
-    options, instance_client, cpu_async_executor, io_async_executor
-  );
+      options, instance_client, cpu_async_executor, io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

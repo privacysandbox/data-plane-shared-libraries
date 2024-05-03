@@ -17,9 +17,9 @@
 #ifndef CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_AZURE_ERROR_CODES_H_
 #define CPIO_CLIENT_PROVIDERS_AUTH_TOKEN_PROVIDER_SRC_AZURE_ERROR_CODES_H_
 
+#include "src/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/error_codes.h"
-#include "src/core/interface/errors.h"
 
 namespace google::scp::core::errors {
 

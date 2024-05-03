@@ -71,7 +71,6 @@ class AzureInstanceClientProvider : public InstanceClientProviderInterface {
       std::string_view resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&
           instance_details) noexcept override;
-
 };
 }  // namespace google::scp::cpio::client_providers
 

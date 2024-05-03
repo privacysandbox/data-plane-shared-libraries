@@ -231,7 +231,8 @@ std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
   CHECK(provider.ok()) << "failed to get auth tokeb provider";
   auth_token_provider = *provider;
 
-  return std::make_unique<AzureKmsClientProvider>(http_client, auth_token_provider);
+  return std::make_unique<AzureKmsClientProvider>(http_client,
+                                                  auth_token_provider);
 }
 #endif
 }  // namespace google::scp::cpio::client_providers

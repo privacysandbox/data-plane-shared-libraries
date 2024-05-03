@@ -66,7 +66,7 @@ class AzureAuthTokenProvider : public AuthTokenProviderInterface {
           http_client_context) noexcept;
 
   /// HttpClient for issuing HTTP actions.
-  core::HttpClientInterface*  http_client_;
+  core::HttpClientInterface* http_client_;
   std::string get_token_url_;
 };
 }  // namespace google::scp::cpio::client_providers

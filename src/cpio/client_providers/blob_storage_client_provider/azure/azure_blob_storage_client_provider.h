@@ -35,14 +35,14 @@ namespace google::scp::cpio::client_providers {
 
 /*! @copydoc BlobStorageClientProviderInterface
  */
-class AzureBlobStorageClientProvider : public BlobStorageClientProviderInterface {
+class AzureBlobStorageClientProvider
+    : public BlobStorageClientProviderInterface {
  public:
   explicit AzureBlobStorageClientProvider(
       BlobStorageClientOptions options,
       InstanceClientProviderInterface* instance_client,
       core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor)
-      {}
+      core::AsyncExecutorInterface* io_async_executor) {}
 
   core::ExecutionResult Init() noexcept override;
   core::ExecutionResult Run() noexcept override;

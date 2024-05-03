@@ -27,8 +27,8 @@
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
-#include "src/core/utils/base64.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/core/utils/base64.h"
 #include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
@@ -89,13 +89,13 @@ namespace google::scp::cpio::client_providers {
 AzureAuthTokenProvider::AzureAuthTokenProvider(
     absl::Nonnull<HttpClientInterface*> http_client)
     : http_client_(http_client), get_token_url_() {
-      const char* value_from_env = std::getenv(kGetTokenUrlEnvVar);
-      if (value_from_env) {
-        get_token_url_ = value_from_env;
-      } else {
-        get_token_url_ = kDefaultGetTokenUrl;
-      }
-    }
+  const char* value_from_env = std::getenv(kGetTokenUrlEnvVar);
+  if (value_from_env) {
+    get_token_url_ = value_from_env;
+  } else {
+    get_token_url_ = kDefaultGetTokenUrl;
+  }
+}
 
 ExecutionResult AzureAuthTokenProvider::Init() noexcept {
   if (!http_client_) {
