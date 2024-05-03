@@ -39,4 +39,3 @@ filegroup(
         ":no_op_initializer.h",
     ],
 )
-
