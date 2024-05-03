@@ -222,7 +222,7 @@ std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
   // being changed.
   auto cpio_ = &GlobalCpio::GetGlobalCpio();
   HttpClientInterface* http_client;
-  auto client = cpio_->GetHttpClient(); 
+  auto client = cpio_->GetHttpClient();
   CHECK(client.ok()) << "failed to get http client";
   http_client = *client;
 
