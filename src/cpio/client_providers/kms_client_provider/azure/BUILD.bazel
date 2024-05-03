@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -26,9 +26,9 @@ cc_library(
     ],
     deps = [
         "//src/azure:attestation",
-        "//src/core/common/uuid:uuid",
+        "//src/core/common/uuid",
+        "//src/core/interface",
         "//src/core/interface:async_context",
-        "//src/core/interface:interface",
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
@@ -66,8 +66,8 @@ cc_test(
         ["azure_kms_client_provider_test.cc"],
     deps = [
         "//src/core/curl_client/mock:mock_curl_client",
-        "//src/core/interface:interface",
-        "//src/core/test/utils:utils",
+        "//src/core/interface",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//src/cpio/client_providers/kms_client_provider/azure:azure_kms_client_provider",
         "//src/public/core/test/interface:execution_result_matchers",

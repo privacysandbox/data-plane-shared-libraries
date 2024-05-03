@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -49,7 +49,7 @@ cc_test(
         ],
     deps = [
         "//src/core/curl_client/mock:mock_curl_client",
-        "//src/core/interface:interface",
+        "//src/core/interface",
         "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//src/cpio/client_providers/instance_client_provider/azure:azure_instance_client_provider",
         "//src/public/core/test/interface:execution_result_matchers",

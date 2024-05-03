@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
@@ -53,9 +53,9 @@ cc_test(
     srcs = ["azure_parameter_client_provider_test.cc"],
     deps = [
         "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface",
         "//src/core/interface:async_context",
-        "//src/core/interface:interface",
-        "//src/core/test/utils:utils",
+        "//src/core/test/utils",
         "//src/cpio/client_providers/parameter_client_provider/azure:azure_parameter_client_provider",
         "//src/public/core/test/interface:execution_result_matchers",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager_mocks",

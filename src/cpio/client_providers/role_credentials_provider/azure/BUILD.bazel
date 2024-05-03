@@ -23,7 +23,7 @@ cc_library(
         "//src/cpio/client_providers/role_credentials_provider/azure:azure_role_credentials_provider_srcs",
     ],
     deps = [
-        "//src/core/interface:interface",
+        "//src/core/interface",
         "//src/cpio/client_providers/instance_client_provider/azure:azure_instance_client_provider",
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:type_def",
