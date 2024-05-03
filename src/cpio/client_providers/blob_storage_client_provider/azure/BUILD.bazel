@@ -42,4 +42,3 @@ filegroup(
         ":azure_blob_storage_client_provider.h",
     ],
 )
-
