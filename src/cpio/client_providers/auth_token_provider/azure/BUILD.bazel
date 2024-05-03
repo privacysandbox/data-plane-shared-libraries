@@ -58,7 +58,7 @@ cc_test(
         "//src/core/interface",
         "//src/core/test/utils",
         "//src/cpio/client_providers/auth_token_provider/azure:azure_auth_token_provider",
-        "//src/public/core/test/interface:execution_result_matchers",
+        "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
