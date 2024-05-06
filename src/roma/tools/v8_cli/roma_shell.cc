@@ -191,8 +191,8 @@ void RunShell(const std::vector<std::string>& v8_flags) {
   config.number_of_workers = absl::GetFlag(FLAGS_num_workers);
 
   LOG(INFO) << "Initializing RomaService...";
-  auto roma_service = std::make_unique<RomaService>(std::move(config));
-  CHECK(roma_service->Init().ok());
+  RomaService roma_service(std::move(config));
+  CHECK_OK(roma_service.Init());
   LOG(INFO) << "RomaService Initialization successful.";
 
   std::cout << kCommandsMessage << std::endl;
@@ -206,13 +206,12 @@ void RunShell(const std::vector<std::string>& v8_flags) {
     std::vector<std::string> tokens = absl::StrSplit(line, " ");
 
     if (tokens[0] == "exit") {
-      roma_service->Stop().IgnoreError();
+      roma_service.Stop().IgnoreError();
       break;
     } else if (tokens[0] == "load" && tokens.size() > 1) {
-      Load(roma_service.get(), tokens[1], tokens.size() > 2 ? tokens[2] : "");
+      Load(&roma_service, tokens[1], tokens.size() > 2 ? tokens[2] : "");
     } else if (tokens[0] == "execute" && tokens.size() > 2) {
-      Execute(roma_service.get(),
-              absl::Span(tokens.data() + 1, tokens.size() - 1));
+      Execute(&roma_service, absl::Span(tokens.data() + 1, tokens.size() - 1));
     } else if (tokens[0] == "help") {
       std::cout << kCommandsMessage << std::endl;
     } else {

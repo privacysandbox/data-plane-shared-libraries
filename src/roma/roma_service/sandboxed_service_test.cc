@@ -133,9 +133,8 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
       "TestHostServer.NativeMethod",
       privacysandbox::test_host_server::NativeMethodHandler<std::string>());
 
-  auto roma_service =
-      std::make_unique<RomaService<std::string>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<std::string> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   std::string result;
@@ -162,11 +161,11 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
       )JS_CODE",
     });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -185,14 +184,14 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
             .input = {request_bytes},
         });
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     EXPECT_TRUE(resp.ok());
-                                     if (resp.ok()) {
-                                       result = std::move(resp->resp);
-                                     }
-                                     execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    if (resp.ok()) {
+                                      result = std::move(resp->resp);
+                                    }
+                                    execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -212,7 +211,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
 
   EXPECT_THAT(response.output(), StrEq("Hello World. From NativeMethod"));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 

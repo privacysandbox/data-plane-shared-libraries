@@ -199,8 +199,8 @@ converters for every odd type in Roma.
                                                 15 /*maximum_heap_size_in_mb*/);
 
     // Init Roma with above config.
-    auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-    auto status = roma_service->Init();
+    RomaService<> roma_service(std::move(config));
+    auto status = roma_service.Init();
     ```
 
 1. Roma needs the code object to be loaded before it can process an invocation request. Roma caches
@@ -218,8 +218,8 @@ converters for every odd type in Roma.
     }
     )JS_CODE";
 
-    status = roma_service->LoadCodeObj(
-        move(code_obj), [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+    status = roma_service.LoadCodeObj(
+        move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
           // define a callback function for response handling.
         });
     ```
@@ -235,8 +235,8 @@ converters for every odd type in Roma.
     execution_obj->handler_name = "Handler";
     execution_obj->input.push_back("\"Foobar\"");
 
-    status = roma_service->Execute(move(execution_obj),
-                          [&](unique_ptr<absl::StatusOr<ResponseObject>> resp) {
+    status = roma_service.Execute(move(execution_obj),
+                          [&](absl::StatusOr<ResponseObject> resp) {
                             // define a callback function for response handling.
                           });
 
@@ -250,7 +250,7 @@ converters for every odd type in Roma.
     // Here we use the same execution object, but these could be different objects
     // with different inputs, for example.
     vector<InvocationStrRequest<>> batch(5 /*batch size*/, execution_obj);
-    status = roma_service->BatchExecute(
+    status = roma_service.BatchExecute(
         batch, [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
           // define a callback function for response handling.
         });
@@ -259,5 +259,5 @@ converters for every odd type in Roma.
 1. Stop Roma
 
     ```cpp
-    status = roma_service->Stop();
+    status = roma_service.Stop();
     ```
