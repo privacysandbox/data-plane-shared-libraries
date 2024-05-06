@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "cpio/client_providers/private_key_fetcher_provider/src/azure/azure_private_key_fetcher_provider_utils.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/azure/azure_private_key_fetcher_provider_utils.h"
 
 #include <gtest/gtest.h>
 
-#include "core/interface/http_types.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "src/core/interface/http_types.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
 using google::scp::core::HttpMethod;

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpio/client_providers/kms_client_provider/src/azure/azure_kms_client_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/azure/azure_kms_client_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -23,12 +23,12 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/synchronization/notification.h"
-#include "core/curl_client/mock/mock_curl_client.h"
-#include "core/interface/async_context.h"
-#include "core/utils/base64.h"
-#include "cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
-#include "cpio/client_providers/kms_client_provider/src/azure/error_codes.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "src/core/curl_client/mock/mock_curl_client.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/utils/base64.h"
+#include "src/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/azure/error_codes.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
 using google::cmrt::sdk::kms_service::v1::DecryptResponse;

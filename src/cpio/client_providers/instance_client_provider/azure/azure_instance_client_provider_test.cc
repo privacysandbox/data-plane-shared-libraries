@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "cpio/client_providers/instance_client_provider/src/azure/azure_instance_client_provider.h"
+#include "src/cpio/client_providers/instance_client_provider/azure/azure_instance_client_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -22,7 +22,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
-#include "public/core/test/interface/execution_result_matchers.h"
+#include "src/public/core/test_execution_result_matchers.h"
 
 using google::cmrt::sdk::instance_service::v1::
     GetCurrentInstanceResourceNameRequest;

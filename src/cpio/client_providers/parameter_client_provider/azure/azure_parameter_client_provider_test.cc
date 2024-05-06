@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "cpio/client_providers/parameter_client_provider/src/azure/azure_parameter_client_provider.h"
+#include "src/cpio/client_providers/parameter_client_provider/azure/azure_parameter_client_provider.h"
 
 #include <gtest/gtest.h>
 
@@ -22,12 +22,12 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "core/async_executor/mock/mock_async_executor.h"
-#include "core/interface/async_context.h"
-#include "cpio/client_providers/parameter_client_provider/src/azure/error_codes.h"
-#include "public/core/interface/execution_result.h"
-#include "public/core/test/interface/execution_result_matchers.h"
-#include "public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/parameter_client_provider/azure/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/core/test_execution_result_matchers.h"
+#include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
