@@ -25,11 +25,9 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/core/async_executor",
         "//src/core/interface",
         "//src/core/interface:type_def",
         "//src/core/os/linux:system_resource_info_provider_linux",
-        "//src/public/core/interface:execution_result",
         "//src/roma/logging",
         "//src/roma/native_function_grpc_server",
         "//src/roma/native_function_grpc_server:request_handlers",

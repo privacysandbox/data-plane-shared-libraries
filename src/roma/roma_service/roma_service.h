@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -27,10 +28,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/async_executor/async_executor.h"
-#include "src/core/interface/service_interface.h"
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
@@ -139,7 +137,7 @@ class RomaService {
     native_function_binding_handler_->Run();
 
     // TODO: Make max_pending_requests configurable
-    dispatcher_ = std::make_unique<class Dispatcher>(
+    dispatcher_.emplace(
         absl::MakeSpan(workers_),
         concurrency * worker_queue_cap /*max_pending_requests*/);
     ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
@@ -167,9 +165,8 @@ class RomaService {
   void SetupNativeFunctionGrpcServer() {
     native_function_server_addresses_ = {
         absl::StrCat("unix:", std::tmpnam(nullptr), ".sock")};
-    native_function_server_ =
-        std::make_unique<grpc_server::NativeFunctionGrpcServer<TMetadata>>(
-            &metadata_storage_, native_function_server_addresses_);
+    native_function_server_.emplace(&metadata_storage_,
+                                    native_function_server_addresses_);
 
     config_.RegisterService(
         std::make_unique<grpc_server::AsyncLoggingService>(),
@@ -231,10 +228,9 @@ class RomaService {
       remote_fds.push_back(fd_pair[1]);
     }
 
-    native_function_binding_handler_ =
-        std::make_unique<NativeFunctionHandlerSapiIpc<TMetadata>>(
-            &native_function_binding_table_, &metadata_storage_, local_fds,
-            remote_fds);
+    native_function_binding_handler_.emplace(&native_function_binding_table_,
+                                             &metadata_storage_, local_fds,
+                                             remote_fds);
 
     NativeFunctionBindingSetup setup{
         .remote_file_descriptors = std::move(remote_fds),
@@ -453,12 +449,12 @@ class RomaService {
       native_function_binding_table_;
   // Map of invocation request uuid to associated metadata.
   MetadataStorage<TMetadata> metadata_storage_;
-  std::shared_ptr<
+  std::optional<
       native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
       native_function_binding_handler_;
-  std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
+  std::optional<dispatcher::Dispatcher> dispatcher_;
   std::vector<std::string> native_function_server_addresses_;
-  std::unique_ptr<grpc_server::NativeFunctionGrpcServer<TMetadata>>
+  std::optional<grpc_server::NativeFunctionGrpcServer<TMetadata>>
       native_function_server_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service
