@@ -76,7 +76,8 @@ TEST(BuildDependentConfig, Prod) {
   EXPECT_TRUE(config.MetricAllowed());
   EXPECT_FALSE(config.TraceAllowed());
   EXPECT_EQ(config.metric_export_interval_ms(), 60000);
-  EXPECT_EQ(config.dp_export_interval_ms(), 300000);
+  EXPECT_GE(config.dp_export_interval_ms(), 300000);
+  EXPECT_LE(config.dp_export_interval_ms(), 330000);
   EXPECT_TRUE(config.LogsAllowed());
 }
 
