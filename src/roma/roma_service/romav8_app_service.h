@@ -39,17 +39,17 @@ class RomaV8AppService {
       google::scp::roma::sandbox::roma_service::RomaService<TMetadata>;
   using Config = google::scp::roma::Config<TMetadata>;
 
-  RomaV8AppService(Config config, std::string_view code_id)
-      : code_id_(code_id) {
-    roma_service_ = std::make_unique<RomaService>(std::move(config));
-  }
+  explicit RomaV8AppService(Config config, std::string_view code_id)
+      : roma_service_(std::make_unique<RomaService>(std::move(config))),
+        code_id_(code_id) {}
 
-  RomaV8AppService(RomaV8AppService&& other) : code_id_(other.code_id_) {
-    roma_service_ = std::move(other.roma_service_);
-  }
+  // RomaV8AppService is movable.
+  RomaV8AppService(RomaV8AppService&&) = default;
+  RomaV8AppService& operator=(RomaV8AppService&&) = default;
 
-  RomaV8AppService& operator=(RomaV8AppService&& other) = delete;
-  RomaV8AppService(const RomaV8AppService& other) = delete;
+  // RomaV8AppService is not copyable.
+  RomaV8AppService(const RomaV8AppService&) = delete;
+  RomaV8AppService& operator=(const RomaV8AppService&) = delete;
 
   virtual ~RomaV8AppService() {
     if (roma_service_) {
