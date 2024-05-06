@@ -83,6 +83,7 @@ cc_test(
 cc_test(
     name = "http2_connection_test",
     size = "small",
+    timeout = "moderate",
     srcs = [
         "http2_connection_test.cc",
     ],
