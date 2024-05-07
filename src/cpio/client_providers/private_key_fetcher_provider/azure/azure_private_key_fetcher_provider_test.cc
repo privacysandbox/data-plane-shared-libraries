@@ -26,7 +26,7 @@
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/src/error_codes.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
@@ -72,11 +72,8 @@ namespace google::scp::cpio::client_providers::test {
 class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AzurePrivateKeyFetcherProviderTest()
-      : http_client_(std::make_shared<MockHttpClient>()),
-        credentials_provider_(std::make_shared<MockAuthTokenProvider>()),
-        azure_private_key_fetcher_provider_(
-            std::make_unique<AzurePrivateKeyFetcherProvider>(
-                http_client_, credentials_provider_)) {
+      : azure_private_key_fetcher_provider_(std::in_place, 
+                &http_client_, &credentials_provider_) {
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Run());
 
@@ -96,17 +93,17 @@ class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
   }
 
   void MockRequest(const std::string& uri) {
-    http_client_->request_mock = HttpRequest();
-    http_client_->request_mock.path = std::make_shared<std::string>(uri);
+    http_client_.request_mock = HttpRequest();
+    http_client_.request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(const std::string& str) {
-    http_client_->response_mock = HttpResponse();
-    http_client_->response_mock.body = BytesBuffer(str);
+    http_client_.response_mock = HttpResponse();
+    http_client_.response_mock.body = BytesBuffer(str);
   }
 
   void MockGetSessionToken() {
-    EXPECT_CALL(*credentials_provider_, GetSessionToken)
+    EXPECT_CALL(credentials_provider_, GetSessionToken)
         .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                    GetSessionTokenResponse>& context) {
           context.result = SuccessExecutionResult();
@@ -118,26 +115,23 @@ class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
         });
   }
 
-  std::shared_ptr<MockHttpClient> http_client_;
-  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
-  std::unique_ptr<AzurePrivateKeyFetcherProvider>
-      azure_private_key_fetcher_provider_;
+  MockHttpClient http_client_;
+  MockAuthTokenProvider credentials_provider_;
+  std::optional<AzurePrivateKeyFetcherProvider> azure_private_key_fetcher_provider_;
   std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingHttpClient) {
-  azure_private_key_fetcher_provider_ =
-      std::make_unique<AzurePrivateKeyFetcherProvider>(nullptr,
-                                                       credentials_provider_);
+  azure_private_key_fetcher_provider_.emplace(nullptr, &credentials_provider_);
 
-  EXPECT_THAT(azure_private_key_fetcher_provider_->Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND)));
+  EXPECT_THAT(
+      azure_private_key_fetcher_provider_->Init(),
+      ResultIs(FailureExecutionResult(
+          SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND)));
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
-  azure_private_key_fetcher_provider_ =
-      std::make_unique<AzurePrivateKeyFetcherProvider>(http_client_, nullptr);
+  azure_private_key_fetcher_provider_.emplace(&http_client_, nullptr);
 
   EXPECT_THAT(
       azure_private_key_fetcher_provider_->Init(),
@@ -153,6 +147,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, SignHttpRequest) {
       [&](AsyncContext<PrivateKeyFetchingRequest, HttpRequest>& context) {
         EXPECT_SUCCESS(context.result);
         const auto& signed_request_ = *context.response;
+        EXPECT_EQ(signed_request_.method, HttpMethod::POST);
         condition.Notify();
         return SuccessExecutionResult();
       });
@@ -163,7 +158,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, SignHttpRequest) {
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToGetCredentials) {
-  EXPECT_CALL(*credentials_provider_, GetSessionToken)
+  EXPECT_CALL(credentials_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -232,7 +227,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, FetchPrivateKey) {
 TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToFetchPrivateKey) {
   MockGetSessionToken();
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
-  http_client_->http_get_result_mock = result;
+  http_client_.http_get_result_mock = result;
 
   absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(

@@ -74,10 +74,8 @@ namespace google::scp::cpio::client_providers::test {
 class AzureAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
   AzureAuthTokenProviderTest()
-      : http_client_(std::make_shared<MockCurlClient>()),
-        authorizer_provider_(
-            std::make_unique<AzureAuthTokenProvider>(http_client_)) {
-    authorizer_provider_->Init();
+      : authorizer_provider_(&http_client_) {
+    authorizer_provider_.Init();
   }
 
   std::string GetResponseBody() { return GetParam(); }
@@ -85,13 +83,13 @@ class AzureAuthTokenProviderTest : public testing::TestWithParam<std::string> {
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       fetch_token_context_;
 
-  std::shared_ptr<MockCurlClient> http_client_;
-  std::unique_ptr<AzureAuthTokenProvider> authorizer_provider_;
+  MockCurlClient http_client_;
+  AzureAuthTokenProvider authorizer_provider_;
 };
 
 TEST_F(AzureAuthTokenProviderTest,
        GetSessionTokenSuccessWithValidTokenAndExpireTime) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::GET);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kDefaultGetTokenUrl)));
@@ -125,14 +123,14 @@ TEST_F(AzureAuthTokenProviderTest,
               std::chrono::seconds(kTokenTtlInSecondHeaderValue));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();
 }
 
 TEST_F(AzureAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -143,7 +141,7 @@ TEST_F(AzureAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
     EXPECT_THAT(context.result, ResultIs(FailureExecutionResult(SC_UNKNOWN)));
     finished.Notify();
   };
-  EXPECT_THAT(authorizer_provider_->GetSessionToken(fetch_token_context_),
+  EXPECT_THAT(authorizer_provider_.GetSessionToken(fetch_token_context_),
               IsSuccessful());
 
   finished.WaitForNotification();

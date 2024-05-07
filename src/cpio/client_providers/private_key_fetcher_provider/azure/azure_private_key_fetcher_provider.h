@@ -96,7 +96,7 @@ class AzurePrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
           get_session_token) noexcept;
 
   // Auth token provider.
-  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
+  AuthTokenProviderInterface* auth_token_provider_;
 };
 }  // namespace google::scp::cpio::client_providers
 

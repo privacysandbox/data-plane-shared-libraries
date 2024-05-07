@@ -66,16 +66,14 @@ namespace google::scp::cpio::client_providers::test {
 class AzureKmsClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    http_client_ = std::make_shared<MockCurlClient>();
-    credentials_provider_ = std::make_shared<MockAuthTokenProvider>();
-    client_ = std::make_unique<AzureKmsClientProvider>(http_client_,
-                                                       credentials_provider_);
+    client_ = std::make_unique<AzureKmsClientProvider>(&http_client_,
+                                                       &credentials_provider_);
   }
 
   void TearDown() override {}
 
   void MockGetSessionToken() {
-    EXPECT_CALL(*credentials_provider_, GetSessionToken)
+    EXPECT_CALL(credentials_provider_, GetSessionToken)
         .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                    GetSessionTokenResponse>& context) {
           context.result = SuccessExecutionResult();
@@ -87,9 +85,9 @@ class AzureKmsClientProviderTest : public ::testing::Test {
         });
   }
 
-  std::shared_ptr<MockCurlClient> http_client_;
+  MockCurlClient http_client_;
   std::unique_ptr<AzureKmsClientProvider> client_;
-  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
+  MockAuthTokenProvider credentials_provider_;
 };
 
 TEST_F(AzureKmsClientProviderTest, NullKeyId) {
@@ -187,7 +185,7 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
 
   MockGetSessionToken();
 
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::POST);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kKmsUnwrapPath)));
@@ -227,7 +225,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
 
   MockGetSessionToken();
 
-  EXPECT_CALL(*http_client_, PerformRequest).WillOnce([](auto& http_context) {
+  EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = FailureExecutionResult(SC_UNKNOWN);
     http_context.Finish();
     return SuccessExecutionResult();
@@ -253,7 +251,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToGetAuthToken) {
   kms_decrpyt_request->set_account_identity(kServiceAccount);
   kms_decrpyt_request->set_gcp_wip_provider(kWipProvider);
 
-  EXPECT_CALL(*credentials_provider_, GetSessionToken)
+  EXPECT_CALL(credentials_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
