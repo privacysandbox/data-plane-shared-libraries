@@ -19,7 +19,9 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
+#include <utility>
 
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
@@ -69,6 +71,7 @@ constexpr char kBearerTokenPrefix[] = "Bearer ";
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
+
 class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AzurePrivateKeyFetcherProviderTest()

@@ -18,6 +18,9 @@
 
 #include <gtest/gtest.h>
 
+#include <memory>
+#include <string>
+
 #include "src/core/interface/http_types.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
