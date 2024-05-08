@@ -72,8 +72,8 @@ namespace google::scp::cpio::client_providers::test {
 class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AzurePrivateKeyFetcherProviderTest()
-      : azure_private_key_fetcher_provider_(std::in_place,
-                &http_client_, &credentials_provider_) {
+      : azure_private_key_fetcher_provider_(std::in_place, &http_client_,
+                                            &credentials_provider_) {
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Run());
 
@@ -117,17 +117,17 @@ class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
 
   MockHttpClient http_client_;
   MockAuthTokenProvider credentials_provider_;
-  std::optional<AzurePrivateKeyFetcherProvider> azure_private_key_fetcher_provider_;
+  std::optional<AzurePrivateKeyFetcherProvider>
+      azure_private_key_fetcher_provider_;
   std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingHttpClient) {
   azure_private_key_fetcher_provider_.emplace(nullptr, &credentials_provider_);
 
-  EXPECT_THAT(
-      azure_private_key_fetcher_provider_->Init(),
-      ResultIs(FailureExecutionResult(
-          SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND)));
+  EXPECT_THAT(azure_private_key_fetcher_provider_->Init(),
+              ResultIs(FailureExecutionResult(
+                  SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND)));
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingCredentialsProvider) {

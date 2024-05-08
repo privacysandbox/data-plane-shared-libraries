@@ -73,8 +73,7 @@ namespace google::scp::cpio::client_providers::test {
 
 class AzureAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
-  AzureAuthTokenProviderTest()
-      : authorizer_provider_(&http_client_) {
+  AzureAuthTokenProviderTest() : authorizer_provider_(&http_client_) {
     authorizer_provider_.Init();
   }
 
