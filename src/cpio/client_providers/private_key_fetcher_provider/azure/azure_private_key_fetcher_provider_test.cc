@@ -72,7 +72,7 @@ namespace google::scp::cpio::client_providers::test {
 class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AzurePrivateKeyFetcherProviderTest()
-      : azure_private_key_fetcher_provider_(std::in_place, 
+      : azure_private_key_fetcher_provider_(std::in_place,
                 &http_client_, &credentials_provider_) {
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Run());
