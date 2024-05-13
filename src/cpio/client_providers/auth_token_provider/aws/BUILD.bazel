@@ -34,12 +34,6 @@ cc_library(
     ],
 )
 
-exports_files([
-    "error_codes.h",
-    "aws_auth_token_provider.h",
-    "aws_auth_token_provider.cc",
-])
-
 cc_test(
     name = "aws_auth_token_provider_test",
     size = "small",

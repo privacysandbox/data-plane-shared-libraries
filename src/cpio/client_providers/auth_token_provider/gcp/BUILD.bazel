@@ -18,11 +18,26 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_auth_token_provider",
-    srcs = [
-        "error_codes.h",
-        "gcp_auth_token_provider.cc",
-        "gcp_auth_token_provider.h",
+    srcs = ["gcp_auth_token_provider.cc"],
+    hdrs = ["gcp_auth_token_provider.h"],
+    deps = [
+        ":error_codes",
+        "//src/core/interface",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:type_def",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:lib",
     ],
+)
+
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
     deps = [
         "//src/core/interface",
         "//src/core/utils:core_utils",
@@ -37,17 +52,12 @@ cc_library(
     ],
 )
 
-exports_files([
-    "gcp_auth_token_provider.h",
-    "gcp_auth_token_provider.cc",
-    "error_codes.h",
-])
-
 cc_test(
     name = "gcp_auth_token_provider_test",
     size = "small",
     srcs = ["gcp_auth_token_provider_test.cc"],
     deps = [
+        ":error_codes",
         ":gcp_auth_token_provider",
         "//src/core/curl_client/mock:mock_curl_client",
         "//src/core/interface",

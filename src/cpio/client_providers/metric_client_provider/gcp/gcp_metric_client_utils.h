@@ -22,10 +22,9 @@
 #include "google/cloud/future.h"
 #include "google/cloud/monitoring/metric_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/cpio/client_providers/metric_client_provider/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
-
-#include "error_codes.h"
 
 namespace google::scp::cpio::client_providers {
 
