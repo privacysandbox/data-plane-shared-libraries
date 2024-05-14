@@ -107,6 +107,38 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeThrowMessageThroughSandbox) {
   EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 
+TEST(WorkerSandboxApiTest, WorkerReturnsInformativeMessageForMissingParam) {
+  WorkerSandboxApi sandbox_api(
+      /*require_preload=*/false, /*native_js_function_comms_fd=*/-1,
+      /*native_js_function_names=*/{}, /*rpc_method_names=*/{},
+      /*server_address=*/"", /*max_worker_virtual_memory_mb=*/0,
+      /*js_engine_initial_heap_size_mb=*/0,
+      /*js_engine_maximum_heap_size_mb=*/0,
+      /*js_engine_max_wasm_memory_number_of_pages=*/0,
+      /*sandbox_request_response_shared_buffer_size_mb=*/0,
+      /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
+      /*v8_flags=*/{});
+
+  ASSERT_TRUE(sandbox_api.Init().ok());
+
+  ASSERT_TRUE(sandbox_api.Run().ok());
+
+  ::worker_api::WorkerParamsProto params_proto;
+  params_proto.set_code(R"js(function cool_func() { return config.name; })js");
+  (*params_proto.mutable_metadata())[kRequestType] = kRequestTypeJavascript;
+  (*params_proto.mutable_metadata())[kHandlerName] = "cool_func";
+  (*params_proto.mutable_metadata())[kCodeVersion] = "1";
+  (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionExecute;
+
+  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
+      sandbox_api.RunCode(params_proto);
+  ASSERT_TRUE(!result_pair.first.ok());
+  EXPECT_THAT(result_pair.first.message(),
+              HasSubstr("Execution failed; Error when invoking the handler. "
+                        "Uncaught ReferenceError: config is not defined"));
+  EXPECT_TRUE(sandbox_api.Stop().ok());
+}
+
 TEST(WorkerSandboxApiTest,
      StartingTheSandboxShouldFailIfNotEnoughMemoryInRlimitForV8) {
   // Since this is limiting the virtual memory space in a machine with swap and
