@@ -37,17 +37,6 @@ cc_library(
     ],
 )
 
-filegroup(
-    name = "aws_parameter_client_provider_srcs",
-    srcs = [
-        ":aws_parameter_client_provider.cc",
-        ":aws_parameter_client_provider.h",
-        ":error_codes.h",
-        ":ssm_error_converter.cc",
-        ":ssm_error_converter.h",
-    ],
-)
-
 cc_library(
     name = "error_codes",
     hdrs = ["error_codes.h"],

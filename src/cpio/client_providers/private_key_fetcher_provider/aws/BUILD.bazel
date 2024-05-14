@@ -16,9 +16,11 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "aws_private_key_fetcher_provider",
-    srcs = [":aws_private_key_fetcher_provider_srcs"],
+    srcs = ["aws_private_key_fetcher_provider.cc"],
+    hdrs = ["aws_private_key_fetcher_provider.h"],
     visibility = ["//src:scp_internal_pkg"],
     deps = [
+        ":error_codes",
         "//src/core/http2_client",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
@@ -29,12 +31,13 @@ cc_library(
     ],
 )
 
-filegroup(
-    name = "aws_private_key_fetcher_provider_srcs",
-    srcs = [
-        ":aws_private_key_fetcher_provider.cc",
-        ":aws_private_key_fetcher_provider.h",
-        ":error_codes.h",
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
+    deps = [
+        "//src/core/interface:errors",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:cpio_errors",
     ],
 )
 
@@ -44,10 +47,9 @@ cc_test(
     srcs = ["aws_private_key_fetcher_provider_test.cc"],
     deps = [
         ":aws_private_key_fetcher_provider",
-        "//src/core/async_executor/mock:core_async_executor_mock",
+        ":error_codes",
         "//src/core/http2_client/mock:http2_client_mock",
-        "//src/core/interface",
-        "//src/core/test/utils",
+        "//src/core/interface:async_context",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/core/interface:execution_result",

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "tee_gcp_kms_client_provider_utils.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/tee_gcp_kms_client_provider_utils.h"
 
 #include <string_view>
 
