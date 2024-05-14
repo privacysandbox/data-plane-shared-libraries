@@ -37,6 +37,16 @@ cc_library(
 )
 
 cc_library(
+    name = "cpu_profiler_isolate_wrapper",
+    hdrs = ["cpu_profiler_isolate_wrapper.h"],
+    deps = [
+        ":v8_isolate_wrapper",
+        "//src/core/common/uuid",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "v8_isolate_function_binding",
     srcs = ["v8_isolate_function_binding.cc"],
     hdrs = ["v8_isolate_function_binding.h"],
@@ -102,6 +112,7 @@ cc_library(
         "//src/roma/sandbox/worker_api/sapi:__pkg__",
     ],
     deps = [
+        ":cpu_profiler_isolate_wrapper",
         ":snapshot_compilation_context",
         ":v8_console",
         ":v8_isolate_function_binding",

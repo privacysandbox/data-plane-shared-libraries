@@ -39,6 +39,7 @@
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/js_engine/v8_engine/cpu_profiler_isolate_wrapper.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 #include "src/roma/worker/execution_utils.h"
 #include "src/util/duration.h"
@@ -165,12 +166,13 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
 V8JsEngine::V8JsEngine(
     std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
-    const bool skip_v8_cleanup,
+    const bool skip_v8_cleanup, const bool enable_cpu_profiler,
     const JsEngineResourceConstraints& v8_resource_constraints)
     : isolate_function_binding_(std::move(isolate_function_binding)),
       v8_resource_constraints_(v8_resource_constraints),
       execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()),
-      skip_v8_cleanup_(skip_v8_cleanup) {
+      skip_v8_cleanup_(skip_v8_cleanup),
+      enable_cpu_profiler_(enable_cpu_profiler) {
   if (isolate_function_binding_) {
     isolate_function_binding_->AddExternalReferences(external_references_);
   }
@@ -358,7 +360,8 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   }
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
   v8::debug::SetConsoleDelegate(isolate, console(isolate));
-  return std::make_unique<V8IsolateWrapper>(isolate, std::move(allocator));
+  return V8IsolateFactory::Create(isolate, std::move(allocator),
+                                  enable_cpu_profiler_);
 }
 
 V8Console* V8JsEngine::console(v8::Isolate* isolate)

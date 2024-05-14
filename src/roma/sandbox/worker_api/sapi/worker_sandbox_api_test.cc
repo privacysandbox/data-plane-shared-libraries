@@ -49,8 +49,8 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/
-      {});
+      /*v8_flags=*/{},
+      /*enable_cpu_profiler=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -84,7 +84,7 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeThrowMessageThroughSandbox) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{});
+      /*v8_flags=*/{}, /*enable_cpu_profiler=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -117,7 +117,7 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeMessageForMissingParam) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{});
+      /*v8_flags=*/{}, /*enable_cpu_profiler=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -153,7 +153,7 @@ TEST(WorkerSandboxApiTest,
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{});
+      /*v8_flags=*/{}, /*enable_cpu_profiler=*/false);
 
   // Initializing the sandbox fail as we're giving a max of 100MB of virtual
   // space address for v8 and the sandbox.
@@ -175,7 +175,7 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{});
+      /*v8_flags=*/{}, /*enable_cpu_profiler=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -230,7 +230,7 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
             /*js_engine_max_wasm_memory_number_of_pages=*/0,
             /*sandbox_request_response_shared_buffer_size_mb=*/0,
             /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-            /*v8_flags=*/{}) {}
+            /*v8_flags=*/{}, /*enable_cpu_profiler=*/false) {}
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }
 };

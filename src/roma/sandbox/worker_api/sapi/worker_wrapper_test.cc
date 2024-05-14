@@ -61,6 +61,7 @@ static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
   init_params.set_request_and_response_data_buffer_size_bytes(kBufferSize);
   init_params.set_skip_v8_cleanup(true);
   init_params.mutable_v8_flags()->Clear();
+  init_params.set_enable_cpu_profiler(false);
   return init_params;
 }
 

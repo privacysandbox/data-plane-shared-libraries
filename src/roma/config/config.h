@@ -125,6 +125,10 @@ class Config {
    */
   bool enable_native_function_grpc_server = false;
 
+  /* @brief Enable V8's Sample-based CPU profiler.
+   */
+  bool enable_cpu_profiler = false;
+
   /**
    * @brief Function that can be set to overwrite the default memory check
    * threshold. If this function returns a value that is equal to or smaller

@@ -292,7 +292,8 @@ class RomaService {
           config_.sandbox_request_response_shared_buffer_size_mb,
           /*enable_sandbox_sharing_request_response_with_buffer_only=*/
           config_.enable_sandbox_sharing_request_response_with_buffer_only,
-          /*v8_flags=*/v8_flags);
+          /*v8_flags=*/v8_flags,
+          /*enable_cpu_profiler=*/config_.enable_cpu_profiler);
       PS_RETURN_IF_ERROR(workers_.back().Init());
       PS_RETURN_IF_ERROR(workers_.back().Run());
     }
