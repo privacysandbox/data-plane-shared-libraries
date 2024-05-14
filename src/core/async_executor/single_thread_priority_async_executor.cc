@@ -69,7 +69,7 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
   absl::Duration wait_timeout_duration = absl::InfiniteDuration();
   while (true) {
     std::shared_ptr<AsyncTask> top;
-    const Timestamp current_timestamp =
+    Timestamp current_timestamp =
         TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks();
     {
       absl::MutexLock lock(&mutex_);
@@ -99,6 +99,8 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
 
       next_scheduled_task_timestamp_ = queue_.top()->GetExecutionTimestamp();
       wait_timeout_duration = absl::ZeroDuration();
+      current_timestamp =
+          TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks();
       if (current_timestamp < next_scheduled_task_timestamp_) {
         wait_timeout_duration = absl::Nanoseconds(
             next_scheduled_task_timestamp_ - current_timestamp);
