@@ -67,7 +67,7 @@ class V8EngineWorkerTest : public ::testing::Test {
 };
 
 TEST_F(V8EngineWorkerTest, CanRunJsCode) {
-  Worker worker(CreateEngine(), false /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/false);
   worker.Run();
 
   constexpr std::string_view js_code =
@@ -90,7 +90,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
-  Worker worker(CreateEngine(), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
 
   // Load v1
@@ -148,7 +148,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
-  Worker worker(CreateEngine(), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
 
   // Load v1
@@ -236,7 +236,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
-  Worker worker(CreateEngine(), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
 
   // Load v1
@@ -332,7 +332,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
-  Worker worker(CreateEngine(), false /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/false);
   worker.Run();
 
   auto js_code = R"""(
@@ -360,7 +360,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
 }
 
 TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
-  Worker worker(CreateEngine(), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
   std::vector<std::string_view> input;
 

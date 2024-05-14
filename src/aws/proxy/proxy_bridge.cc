@@ -270,7 +270,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
             cancel_signal_.slot(),
             [self = shared_from_this()](const error_code& ec, Socket sock) {
               if (ec.failed()) {
-                self->StopWaitingInbound(false /* client error */);
+                self->StopWaitingInbound(/*client_error=*/false);
                 return;
               }
               self->AcceptInboundConnection(std::move(sock));

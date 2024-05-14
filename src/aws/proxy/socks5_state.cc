@@ -298,10 +298,10 @@ bool Socks5State::ConnectionSucceed() {
   std::vector<uint8_t> resp;
   switch (state_) {
     case HandshakeState::kWaitConnect:
-      resp = CreateResp(false /* is_bind */);
+      resp = CreateResp(/*is_bind=*/false);
       break;
     case HandshakeState::kWaitAccept:
-      resp = CreateResp(true /* is_bind */);
+      resp = CreateResp(/*is_bind=*/true);
       break;
     default:
       state_ = HandshakeState::kFail;
