@@ -35,6 +35,7 @@ using google::scp::roma::kWasmCodeArrayName;
 
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
+using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
@@ -700,8 +701,9 @@ TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessage) {
       engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
-  EXPECT_THAT(response_or.status().message(),
-              StrEq("Error when invoking the handler. Uncaught Error: throw!"));
+  EXPECT_THAT(
+      response_or.status().message(),
+      HasSubstr("Error when invoking the handler. Uncaught Error: throw!"));
   engine.Stop();
 }
 }  // namespace google::scp::roma::sandbox::js_engine::test

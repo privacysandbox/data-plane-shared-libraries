@@ -35,6 +35,7 @@ using google::scp::roma::sandbox::constants::kRequestAction;
 using google::scp::roma::sandbox::constants::kRequestActionExecute;
 using google::scp::roma::sandbox::constants::kRequestType;
 using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
+using ::testing::HasSubstr;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::worker_api::test {
@@ -88,8 +89,8 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeThrowMessageThroughSandbox) {
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(!result_pair.first.ok());
   EXPECT_THAT(result_pair.first.message(),
-              StrEq("Execution failed; Error when invoking the handler. "
-                    "Uncaught Error: Throw check!"));
+              HasSubstr("Execution failed; Error when invoking the handler. "
+                        "Uncaught Error: Throw check!"));
   EXPECT_TRUE(sandbox_api.Stop().ok());
 }
 

@@ -127,7 +127,8 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
   EXPECT_CALL(
       log, Log(absl::LogSeverity::kError, _,
                AllOf(HasSubstr(absl::StrCat("Uncaught Error: ", input)),
-                     HasSubstr("at ErrorFunction"), HasSubstr("at Handler"))));
+                     HasSubstr("at ErrorFunction"), HasSubstr("at Handler"))))
+      .Times(2);
   log.StartCapturingLogs();
 
   {
