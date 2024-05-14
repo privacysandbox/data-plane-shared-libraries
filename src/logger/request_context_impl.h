@@ -51,6 +51,22 @@ inline std::string_view ServerToken(
   return *server_token;
 }
 
+inline void LogWithPSLog(
+    absl::LogSeverity severity,
+    privacy_sandbox::server_common::log::PSLogContext& log_context,
+    std::string_view msg) {
+  switch (severity) {
+    case absl::LogSeverity::kInfo:
+      PS_LOG(INFO, log_context) << msg;
+      break;
+    case absl::LogSeverity::kWarning:
+      PS_LOG(WARNING, log_context) << msg;
+      break;
+    default:
+      PS_LOG(ERROR, log_context) << msg;
+  }
+}
+
 ABSL_CONST_INIT inline opentelemetry::logs::Logger* logger_private = nullptr;
 
 // Utility method to format the context provided as key/value pair into a
