@@ -234,8 +234,8 @@ class RomaService {
 
     NativeFunctionBindingSetup setup{
         .remote_file_descriptors = std::move(remote_fds),
-        .local_file_descriptors = local_fds,
-        .js_function_names = function_names,
+        .local_file_descriptors = std::move(local_fds),
+        .js_function_names = std::move(function_names),
     };
     return setup;
   }
