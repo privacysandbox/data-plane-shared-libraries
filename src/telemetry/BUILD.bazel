@@ -133,6 +133,7 @@ cc_library(
         ],
         ":local_otel_export_otlp": [
             "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
+            "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_log_record_exporter",
             "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
         ],
     }),
