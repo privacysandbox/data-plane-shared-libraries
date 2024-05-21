@@ -65,7 +65,7 @@ struct V8WorkerEngineParams {
   size_t compilation_context_cache_size;
   bool skip_v8_cleanup = false;
   std::vector<std::string> v8_flags;
-  bool enable_cpu_profiler = false;
+  bool enable_profilers = false;
 };
 
 // the pointer of the data shared sandbox2::Buffer which is used to share
@@ -95,7 +95,7 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
 
   auto v8_engine = std::make_unique<V8JsEngine>(
       std::move(isolate_function_binding), params.skip_v8_cleanup,
-      params.enable_cpu_profiler, params.resource_constraints);
+      params.enable_profilers, params.resource_constraints);
   v8_engine->OneTimeSetup(GetEngineOneTimeSetup(params));
   return std::make_unique<Worker>(std::move(v8_engine), params.require_preload);
 }
@@ -139,7 +139,7 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       .require_preload = init_params->require_code_preload_for_execution(),
       .skip_v8_cleanup = init_params->skip_v8_cleanup(),
       .v8_flags = std::move(v8_flags),
-      .enable_cpu_profiler = init_params->enable_cpu_profiler(),
+      .enable_profilers = init_params->enable_profilers(),
   };
 
   worker_ = CreateWorker(v8_params);

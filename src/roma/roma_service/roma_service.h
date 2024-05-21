@@ -293,7 +293,7 @@ class RomaService {
           /*enable_sandbox_sharing_request_response_with_buffer_only=*/
           config_.enable_sandbox_sharing_request_response_with_buffer_only,
           /*v8_flags=*/v8_flags,
-          /*enable_cpu_profiler=*/config_.enable_cpu_profiler);
+          /*enable_profilers=*/config_.enable_profilers);
       PS_RETURN_IF_ERROR(workers_.back().Init());
       PS_RETURN_IF_ERROR(workers_.back().Run());
     }

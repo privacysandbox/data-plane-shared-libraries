@@ -74,7 +74,7 @@ class WorkerSandboxApi {
    * the default value of 1MB will be used.
    * @param v8_flags List of flags to pass into v8. (Ex. {"--FLAG_1",
    * "--FLAG_2"})
-   * @param enable_cpu_profiler Enable the V8 CPU Profiler
+   * @param enable_profilers Enable the V8 CPU and Heap Profilers
    */
   WorkerSandboxApi(
       bool require_preload, int native_js_function_comms_fd,
@@ -86,7 +86,7 @@ class WorkerSandboxApi {
       size_t js_engine_max_wasm_memory_number_of_pages,
       size_t sandbox_request_response_shared_buffer_size_mb,
       bool enable_sandbox_sharing_request_response_with_buffer_only,
-      const std::vector<std::string>& v8_flags, bool enable_cpu_profiler);
+      const std::vector<std::string>& v8_flags, bool enable_profilers);
 
   absl::Status Init();
 
@@ -277,7 +277,7 @@ class WorkerSandboxApi {
   size_t request_and_response_data_buffer_size_bytes_;
   const bool enable_sandbox_sharing_request_response_with_buffer_only_;
   std::vector<std::string> v8_flags_;
-  const bool enable_cpu_profiler_;
+  const bool enable_profilers_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

@@ -125,9 +125,9 @@ class Config {
    */
   bool enable_native_function_grpc_server = false;
 
-  /* @brief Enable V8's Sample-based CPU profiler.
+  /* @brief Enable V8's Heap and Sample-based CPU profiler.
    */
-  bool enable_cpu_profiler = false;
+  bool enable_profilers = false;
 
   /**
    * @brief Function that can be set to overwrite the default memory check

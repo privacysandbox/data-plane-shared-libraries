@@ -58,6 +58,6 @@ message WorkerInitParamsProto {
   // List of flags to pass into v8. (Ex. {"--FLAG_1", "--FLAG_2"}
   repeated string v8_flags = 14;
 
-  // Enable V8's Sample-based CPU Profiler
-  bool enable_cpu_profiler = 15;
+  // Enable V8's Heap and Sample-based CPU Profiler
+  bool enable_profilers = 15;
 }

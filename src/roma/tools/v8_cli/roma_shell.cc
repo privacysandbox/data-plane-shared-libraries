@@ -187,7 +187,7 @@ void RunShell(const std::vector<std::string>& v8_flags) {
               << std::endl;
   };
   config.SetLoggingFunction(std::move(logging_fn));
-  config.enable_cpu_profiler = true;
+  config.enable_profilers = true;
 
   LOG(INFO) << "Roma config set to " << absl::GetFlag(FLAGS_num_workers)
             << " workers.";

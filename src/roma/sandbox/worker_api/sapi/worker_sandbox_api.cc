@@ -70,7 +70,7 @@ WorkerSandboxApi::WorkerSandboxApi(
     size_t js_engine_max_wasm_memory_number_of_pages,
     size_t sandbox_request_response_shared_buffer_size_mb,
     bool enable_sandbox_sharing_request_response_with_buffer_only,
-    const std::vector<std::string>& v8_flags, bool enable_cpu_profiler)
+    const std::vector<std::string>& v8_flags, bool enable_profilers)
     : require_preload_(require_preload),
       native_js_function_comms_fd_(native_js_function_comms_fd),
       native_js_function_names_(native_js_function_names),
@@ -84,7 +84,7 @@ WorkerSandboxApi::WorkerSandboxApi(
       enable_sandbox_sharing_request_response_with_buffer_only_(
           enable_sandbox_sharing_request_response_with_buffer_only),
       v8_flags_(v8_flags),
-      enable_cpu_profiler_(enable_cpu_profiler) {
+      enable_profilers_(enable_profilers) {
   // create a sandbox2 buffer
   request_and_response_data_buffer_size_bytes_ =
       sandbox_request_response_shared_buffer_size_mb > 0
@@ -183,7 +183,7 @@ absl::Status WorkerSandboxApi::Init() {
       request_and_response_data_buffer_size_bytes_);
   worker_init_params.mutable_v8_flags()->Assign(v8_flags_.begin(),
                                                 v8_flags_.end());
-  worker_init_params.set_enable_cpu_profiler(enable_cpu_profiler_);
+  worker_init_params.set_enable_profilers(enable_profilers_);
 
   const auto serialized_size = worker_init_params.ByteSizeLong();
   std::vector<char> serialized_data(serialized_size);

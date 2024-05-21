@@ -21,16 +21,18 @@
 #include <string>
 #include <utility>
 
+#include "absl/log/log.h"
 #include "include/v8-profiler.h"
 #include "include/v8.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/roma/sandbox/js_engine/v8_engine/heap_snapshot_parser.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_wrapper.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
-class CpuProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
+class ProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
  public:
-  CpuProfilerIsolateWrapperImpl(
+  ProfilerIsolateWrapperImpl(
       absl::Nonnull<v8::Isolate*> isolate,
       std::unique_ptr<v8::ArrayBuffer::Allocator> allocator)
       : V8IsolateWrapper(),
@@ -40,16 +42,16 @@ class CpuProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
     StartProfiling();
   }
 
-  ~CpuProfilerIsolateWrapperImpl() override {
+  ~ProfilerIsolateWrapperImpl() override {
     StopProfiling();
     // Isolates are only deleted this way and not with Free().
     isolate_->Dispose();
   }
 
   // Not copyable or moveable.
-  CpuProfilerIsolateWrapperImpl(const CpuProfilerIsolateWrapperImpl&) = delete;
-  CpuProfilerIsolateWrapperImpl& operator=(
-      const CpuProfilerIsolateWrapperImpl&) = delete;
+  ProfilerIsolateWrapperImpl(const ProfilerIsolateWrapperImpl&) = delete;
+  ProfilerIsolateWrapperImpl& operator=(const ProfilerIsolateWrapperImpl&) =
+      delete;
 
   v8::Isolate* isolate() override { return isolate_; }
 
@@ -65,17 +67,17 @@ class CpuProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
     bool record_samples = true;
     cpu_profiler_->StartProfiling(cpu_profile_name_.Get(isolate_),
                                   record_samples);
+    bool track_allocations = true;
+    isolate_->GetHeapProfiler()->StartTrackingHeapObjects(track_allocations);
   }
 
   void StopProfiling() {
     v8::HandleScope handle_scope(isolate_);
     auto profile =
         cpu_profiler_->StopProfiling(cpu_profile_name_.Get(isolate_));
-    std::cout << "Number of Samples: " << profile->GetSamplesCount()
-              << std::endl;
-    std::cout << "Total Execution Time: "
-              << profile->GetEndTime() - profile->GetStartTime() << " us"
-              << std::endl;
+    LOG(INFO) << "Number of Samples: " << profile->GetSamplesCount();
+    LOG(INFO) << "Total Execution Time: "
+              << profile->GetEndTime() - profile->GetStartTime() << " us";
 
     if (profile->GetSamplesCount() > 1) {
       int totalInterval = 0;
@@ -86,27 +88,39 @@ class CpuProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
       }
 
       double averageInterval = totalInterval / (profile->GetSamplesCount() - 1);
-      std::cout << "Average Sampling Interval: " << averageInterval << " us"
-                << std::endl;
+      LOG(INFO) << "Average Sampling Interval: " << averageInterval << " us";
     } else {
-      std::cout << "Not enough samples to calculate interval." << std::endl;
+      LOG(INFO) << "Not enough samples to calculate interval.";
     }
 
     auto hitCounts = GetFunctionCounts(profile);
     AnalyzeProfileNode(hitCounts, profile->GetTopDownRoot());
     cpu_profiler_->Dispose();
+
+    auto heap_profiler = isolate_->GetHeapProfiler();
+    const v8::HeapSnapshot* snapshot = heap_profiler->TakeHeapSnapshot();
+
+    std::string output;
+    HeapSnapshotParser parser(output);
+    snapshot->Serialize(&parser, v8::HeapSnapshot::SerializationFormat::kJSON);
+    LOG(INFO) << "Heap Snapshot: ";
+    LOG(INFO) << output;
+
+    heap_profiler->StopTrackingHeapObjects();
   }
 
   void AnalyzeProfileNode(
       absl::flat_hash_map<std::string, int>& function_counts,
       const v8::CpuProfileNode* node, int depth = 0) {
     // Indentation for visual clarity
-    for (int i = 0; i < depth; ++i) std::cout << "  ";
+    for (int i = 0; i < depth; ++i) {
+      LOG(INFO) << "  ";
+    }
 
     std::string functionName =
         *v8::String::Utf8Value(isolate_, node->GetFunctionName());
     int hitCount = function_counts[functionName];
-    std::cout << functionName << " (Hit count: " << hitCount << ")\n";
+    LOG(INFO) << functionName << " (Hit count: " << hitCount << ")";
 
     // Recursively analyze child nodes
     for (int i = 0; i < node->GetChildrenCount(); ++i) {
@@ -150,10 +164,10 @@ class V8IsolateFactory {
   static absl::Nonnull<std::unique_ptr<V8IsolateWrapper>> Create(
       absl::Nonnull<v8::Isolate*> isolate,
       absl::Nonnull<std::unique_ptr<v8::ArrayBuffer::Allocator>> allocator,
-      bool enable_cpu_profiler) {
-    if (enable_cpu_profiler) {
-      return std::make_unique<CpuProfilerIsolateWrapperImpl>(
-          isolate, std::move(allocator));
+      bool enable_profilers) {
+    if (enable_profilers) {
+      return std::make_unique<ProfilerIsolateWrapperImpl>(isolate,
+                                                          std::move(allocator));
     }
     return std::make_unique<V8IsolateWrapperImpl>(isolate,
                                                   std::move(allocator));
