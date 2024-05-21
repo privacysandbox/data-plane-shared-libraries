@@ -1,0 +1,94 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "metric_client_provider_select",
+    deps = select(
+        {
+            "//:aws_platform": [
+                "//src/cpio/client_providers/metric_client_provider/aws:aws_metric_client_provider",
+            ],
+            "//:gcp_platform": [
+                "//src/cpio/client_providers/metric_client_provider/gcp:gcp_metric_client_provider",
+            ],
+        },
+        no_match_error = "Please build for AWS or GCP",
+    ),
+)
+
+cc_library(
+    name = "metric_client_provider",
+    srcs = [
+        "metric_client_provider.cc",
+        "metric_client_utils.cc",
+    ],
+    hdrs = [
+        "error_codes.h",
+        "metric_client_provider.h",
+        "metric_client_utils.h",
+    ],
+    deps = [
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/metric_client:metric_client_interface",
+        "//src/public/cpio/interface/metric_client:type_def",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "//src/public/cpio/utils/metric_aggregation/interface:type_def",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "metric_client_provider_test",
+    size = "small",
+    srcs = ["metric_client_provider_test.cc"],
+    deps = [
+        ":metric_client_provider",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface",
+        "//src/core/message_router",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/metric_client_provider/mock:metric_client_provider_mock",
+        "//src/cpio/common/aws:aws_utils",
+        "//src/public/core:test_execution_result_matchers",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "metric_client_utils_test",
+    size = "small",
+    srcs = ["metric_client_utils_test.cc"],
+    deps = [
+        ":metric_client_provider",
+        "//src/core/interface",
+        "//src/public/core:test_execution_result_matchers",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

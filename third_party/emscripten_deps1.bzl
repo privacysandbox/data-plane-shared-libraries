@@ -14,31 +14,5 @@
 
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
 
-EMSCRIPTEN_LINKOPTS = [
-    # Enable embind
-    "--bind",
-    # no main function
-    "--no-entry",
-    # optimization
-    "-O3",
-    # Do not use closure. We probably want to use closure eventually.
-    "--closure=0",
-    "-s MODULARIZE=1",
-    "-s EXPORT_NAME=wasmModule",
-    # Disable the filesystem.
-    "-s FILESYSTEM=0",
-    # Use environment with fewer "extra" features.
-    "-s ENVIRONMENT=shell",
-]
-
-STANDALONE_WASM_LINKOPTS = [
-    "-Oz",
-    "-DNDEBUG",
-    "-sEXPORTED_FUNCTIONS=\"['_Handler']\"",
-    "-Wl",
-    "--no-entry",
-    "-s STANDALONE_WASM",
-]
-
 def emscripten_deps1():
     emsdk_deps()

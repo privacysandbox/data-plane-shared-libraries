@@ -14,6 +14,7 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains")
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -28,14 +29,16 @@ load("@google_privacysandbox_servers_common//build_defs/cc/shared:sandboxed_api.
 load("@google_privacysandbox_servers_common//build_defs/shared:rpm.bzl", "rpm")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
-load("@rules_pkg//:deps.bzl", "rules_pkg_dependencies")
+load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
+load("@rules_oci//oci:repositories.bzl", "LATEST_CRANE_VERSION", "oci_register_toolchains")
+load("@rules_pkg//pkg:deps.bzl", "rules_pkg_dependencies")
 load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
 load("//third_party:emscripten_deps2.bzl", "emscripten_deps2")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
 
-def buf_dependencies():
+def _buf_deps():
     # rules_buf (https://docs.buf.build/build-systems/bazel)
     maybe(
         http_archive,
@@ -45,7 +48,16 @@ def buf_dependencies():
         urls = ["https://github.com/bufbuild/rules_buf/archive/refs/tags/v0.1.1.zip"],
     )
 
-def quiche_dependencies():
+def _proto_deps():
+    maybe(
+        http_archive,
+        name = "rules_proto_grpc",
+        sha256 = "9ba7299c5eb6ec45b6b9a0ceb9916d0ab96789ac8218269322f0124c0c0d24e2",
+        strip_prefix = "rules_proto_grpc-4.5.0",
+        urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/releases/download/4.5.0/rules_proto_grpc-4.5.0.tar.gz"],
+    )
+
+def _quiche_deps():
     maybe(
         http_archive,
         name = "com_github_google_quiche",
@@ -73,20 +85,23 @@ def quiche_dependencies():
 def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
+    aspect_bazel_lib_dependencies()
+    aspect_bazel_lib_register_toolchains()
+    go_rules_dependencies()
+    go_register_toolchains(version = go_toolchains_version)
     rpm()
     grpc_deps()
     scp_sdk_dependencies2()
     bazel_skylib_workspace()
-    go_rules_dependencies()
-    go_register_toolchains(version = go_toolchains_version)
     gazelle_dependencies()
     rules_pkg_dependencies()
     import_v8()
     sandboxed_api()
     google_benchmark()
     swift_rules_dependencies()
-    quiche_dependencies()
-    buf_dependencies()
+    _quiche_deps()
+    _proto_deps()
+    _buf_deps()
     boost_deps()
     rules_rust_dependencies()
     rust_register_toolchains(
@@ -98,3 +113,8 @@ def deps2(
     crate_universe_dependencies()
     rules_fuzzing_dependencies()
     emscripten_deps2()
+    rules_oci_dependencies()
+    oci_register_toolchains(
+        name = "oci",
+        crane_version = LATEST_CRANE_VERSION,
+    )

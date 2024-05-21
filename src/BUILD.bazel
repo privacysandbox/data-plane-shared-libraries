@@ -12,4 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+package(default_visibility = ["//visibility:public"])
+
 exports_files(["buf.yaml"])
+
+package_group(
+    name = "scp_internal_pkg",
+    packages = [
+        "//src/aws/...",
+        "//src/azure/...",
+        "//src/core/...",
+        "//src/cpio/...",
+        "//src/public/...",
+        "//src/roma/...",
+    ],
+)

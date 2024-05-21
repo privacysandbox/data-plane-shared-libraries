@@ -1,0 +1,65 @@
+# Portions Copyright (c) Microsoft Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "azure_auth_token_provider",
+    srcs = [
+        "//src/cpio/client_providers/auth_token_provider/azure:azure_auth_token_provider_srcs",
+    ],
+    deps = [
+        "//src/core/interface",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface:type_def",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+exports_files([
+    "azure_auth_token_provider.h",
+    "azure_auth_token_provider.cc",
+    "error_codes.h",
+])
+
+filegroup(
+    name = "azure_auth_token_provider_srcs",
+    srcs = [
+        ":azure_auth_token_provider.cc",
+        ":azure_auth_token_provider.h",
+        ":error_codes.h",
+    ],
+)
+
+cc_test(
+    name = "azure_auth_token_provider_test",
+    size = "small",
+    srcs = glob(["*.cc"]),
+    deps = [
+        "//src/core/curl_client/mock:mock_curl_client",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/auth_token_provider/azure:azure_auth_token_provider",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

@@ -1,0 +1,50 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     https://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package worker_api;
+
+message WorkerInitParamsProto {
+  // DEPRECATED. The worker factory JS engine type. The only currently supported
+  // JS engine type is V8.
+  int32 worker_factory_js_engine = 1 [deprecated = true];
+  // Whether code preloading is required for execution.
+  bool require_code_preload_for_execution = 2;
+  reserved 3;
+
+  // A file descriptor which is used for the native function invocation from the
+  // sandbox.
+  int32 native_js_function_comms_fd = 4;
+
+  // A list of function names. These are the names by which function will be
+  // called from JS.
+  repeated string native_js_function_names = 5;
+
+  int32 js_engine_initial_heap_size_mb = 6;
+  int32 js_engine_maximum_heap_size_mb = 7;
+
+  int32 js_engine_max_wasm_memory_number_of_pages = 8;
+
+  // A file descriptor which is used to create the sandbox2::Buffer
+  // inside the sandboxee. This buffer is used to receive requests and send
+  // responses.
+  int32 request_and_response_data_buffer_fd = 9;
+
+  // The capacity size of the Buffer in bytes.
+  uint64 request_and_response_data_buffer_size_bytes = 10;
+
+  // Address of Host gRPC Server
+  string server_address = 11;
+}

@@ -16,6 +16,9 @@ load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 def aws_nitro_kms_repos():
+    """
+    Import AWS Nitro KMS repositories
+    """
     maybe(
         http_archive,
         name = "nitrokmscli_aws_lc",
@@ -117,4 +120,24 @@ def aws_nitro_kms_repos():
         urls = [
             "https://github.com/awslabs/aws-c-auth/archive/refs/tags/v0.6.22.zip",
         ],
+    )
+
+    maybe(
+        http_archive,
+        name = "json_c",
+        build_file = Label("//third_party/json-c:json_c.BUILD"),
+        sha256 = "471e9eb1dad4fd2e4fec571d8415993e66a89f23a5b052f1ba11b54db90252de",
+        strip_prefix = "json-c-json-c-0.17-20230812",
+        urls = [
+            "https://github.com/json-c/json-c/archive/refs/tags/json-c-0.17-20230812.zip",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "aws-nitro-enclaves-nsm-api",
+        build_file = Label("//third_party/aws-nsm:aws_nitro_enclaves_nsm_api.BUILD"),
+        sha256 = "8150bb1e9e757f24ff35b19c10b924e2d96ed2a81f98efe05048c50e2e0804e6",
+        strip_prefix = "aws-nitro-enclaves-nsm-api-0.4.0",
+        urls = ["https://github.com/aws/aws-nitro-enclaves-nsm-api/archive/refs/tags/v0.4.0.zip"],
     )

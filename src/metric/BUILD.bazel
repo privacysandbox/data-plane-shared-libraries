@@ -1,0 +1,188 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "definition",
+    hdrs = [
+        "definition.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_test(
+    name = "definition_test",
+    timeout = "short",
+    srcs = ["definition_test.cc"],
+    deps = [
+        ":definition",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "metric_router",
+    srcs = ["metric_router.cc"],
+    hdrs = ["metric_router.h"],
+    deps = [
+        ":definition",
+        ":dp",
+        "//src/telemetry/flag:telemetry_flag",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@io_opentelemetry_cpp//sdk/src/metrics",
+    ],
+)
+
+cc_test(
+    name = "metric_router_test",
+    timeout = "short",
+    srcs = ["metric_router_test.cc"],
+    deps = [
+        ":metric_router",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+        "@io_opentelemetry_cpp//api",
+        "@io_opentelemetry_cpp//exporters/ostream:ostream_metric_exporter",
+        "@io_opentelemetry_cpp//sdk/src/metrics",
+    ],
+)
+
+cc_library(
+    name = "context",
+    hdrs = [
+        "context.h",
+    ],
+    deps = [
+        ":definition",
+        "//src/telemetry/flag:telemetry_flag",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "context_test",
+    timeout = "short",
+    srcs = ["context_test.h"] +
+           select({
+               "//:non_prod_build": ["context_nonprod_test.cc"],
+               "//conditions:default": ["context_test.cc"],
+           }),
+    deps = [
+        ":context",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "context_map",
+    hdrs = [
+        "context_map.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":context",
+        ":metric_router",
+        "//src/telemetry/flag:telemetry_flag",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "context_map_test",
+    timeout = "short",
+    srcs = ["context_map_test.cc"],
+    deps = [
+        ":context_map",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "dp",
+    hdrs = [
+        "dp.h",
+    ],
+    deps = [
+        ":definition",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_cc_differential_privacy//algorithms:bounded-sum",
+    ],
+)
+
+cc_test(
+    name = "dp_test",
+    timeout = "short",
+    srcs = ["dp_test.cc"],
+    deps = [
+        ":dp",
+        "//src/telemetry/flag:telemetry_flag",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "key_fetch",
+    hdrs = [
+        "key_fetch.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/public/core/interface:cloud_platform",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_test(
+    name = "key_fetch_test",
+    timeout = "short",
+    srcs = ["key_fetch_test.cc"],
+    deps = [
+        ":key_fetch",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

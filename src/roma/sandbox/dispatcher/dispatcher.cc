@@ -1,0 +1,177 @@
+/*
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include "dispatcher.h"
+
+#include <chrono>
+#include <memory>
+#include <string>
+#include <thread>
+#include <utility>
+#include <vector>
+
+#include "src/roma/logging/logging.h"
+#include "src/roma/sandbox/constants/constants.h"
+#include "src/util/duration.h"
+#include "src/util/protoutil.h"
+
+namespace google::scp::roma::sandbox::dispatcher {
+using google::scp::roma::sandbox::constants::kRequestId;
+using google::scp::roma::sandbox::worker_api::WorkerSandboxApi;
+
+Dispatcher::~Dispatcher() {
+  // Wait for per-worker queues to empty to ensure cleanup runs.
+  auto fn = [&] {
+    mu_.AssertReaderHeld();
+    for (const auto& queue : per_worker_requests_) {
+      if (!queue.empty()) {
+        return false;
+      }
+    }
+    return true;
+  };
+  {
+    absl::MutexLock l(&mu_);
+    mu_.Await(absl::Condition(&fn));
+    requests_ = {};
+    kill_consumers_ = true;
+  }
+  for (std::thread& consumer : consumers_) {
+    consumer.join();
+  }
+}
+
+absl::Status Dispatcher::Load(
+    CodeObject code_object,
+    absl::AnyInvocable<void(absl::StatusOr<ResponseObject>) &&> callback) {
+  PS_RETURN_IF_ERROR(AssertRequestIsValid(code_object));
+  ::worker_api::WorkerParamsProto param =
+      RequestToProto(std::move(code_object));
+  const int n_workers = workers_.size();
+  if (n_workers == 1) {
+    absl::MutexLock l(&mu_);
+    per_worker_requests_.front().push(Request{
+        .param = param,
+        .callback =
+            [callback = std::move(callback)](auto response) mutable {
+              std::move(callback)(std::move(response));
+            },
+    });
+    params_.push_back(std::move(param));
+  } else {
+    auto* const mu = new absl::Mutex;
+    auto* const counter = new int(0);
+    auto* const shared_callback = new decltype(callback)(std::move(callback));
+    absl::MutexLock l(&mu_);
+    for (auto& queue : per_worker_requests_) {
+      queue.push(Request{
+          .param = param,
+          .callback =
+              [=](auto response) {
+                const int count = [=] {
+                  absl::MutexLock l(mu);
+                  return ++(*counter);
+                }();
+                if (count == 1) {
+                  // Assume success or failure of later loads will match first.
+                  std::move (*shared_callback)(std::move(response));
+                  delete shared_callback;
+                } else if (count == n_workers) {
+                  // This block is guaranteed to run and to only run once
+                  // because every one of the `n_workers` `Request::callback`s
+                  // created by this load request is guaranteed to run.
+                  delete mu;
+                  delete counter;
+                }
+              },
+      });
+    }
+    params_.push_back(std::move(param));
+  }
+  return absl::OkStatus();
+}
+
+void Dispatcher::ConsumerImpl(int i) {
+  while (true) {
+    Request request;
+    {
+      auto fn = [&] {
+        mu_.AssertReaderHeld();
+        return kill_consumers_ || !per_worker_requests_[i].empty() ||
+               !requests_.empty();
+      };
+      absl::MutexLock l(&mu_);
+      mu_.Await(absl::Condition(&fn));
+      if (kill_consumers_) {
+        break;
+      }
+
+      // Prioritize loading over executing.
+      if (!per_worker_requests_[i].empty()) {
+        request = std::move(per_worker_requests_[i].front());
+        per_worker_requests_[i].pop();
+      } else {
+        request = std::move(requests_.front());
+        requests_.pop();
+      }
+    }
+    privacy_sandbox::server_common::Stopwatch stopwatch;
+    if (auto [error, retry_status] = workers_[i].RunCode(request.param);
+        !error.ok()) {
+      LOG(ERROR) << "The worker " << i << " execute the request failed due to "
+                 << error;
+      if (retry_status == WorkerSandboxApi::RetryStatus::kRetry) {
+        // This means that the worker crashed and the request could be retried,
+        // however, we need to reload the worker with the cached code.
+        std::vector<::worker_api::WorkerParamsProto> params;
+        {
+          absl::MutexLock l(&mu_);
+          params = params_;
+        }
+        for (::worker_api::WorkerParamsProto& param : params) {
+          if (auto [status, _] = workers_[i].RunCode(param); !status.ok()) {
+            LOG(ERROR) << "Reloading the worker cache failed with " << status;
+            break;
+          }
+        }
+        ROMA_VLOG(1)
+            << "Successfully reload all cached code objects to the worker"
+            << index;
+      }
+      std::move(request).callback(std::move(error));
+    } else {
+      absl::Duration run_code_duration = stopwatch.GetElapsedTime();
+      ResponseObject response;
+      response.metrics.reserve(1 + request.param.metrics_size());
+      response.metrics[roma::sandbox::constants::
+                           kExecutionMetricSandboxedJsEngineCallDuration] =
+          std::move(run_code_duration);
+      for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
+        absl::StatusOr<absl::Duration> duration =
+            privacy_sandbox::server_common::DecodeGoogleApiProto(
+                proto_duration);
+        if (!duration.ok()) {
+          std::move(request).callback(std::move(duration).status());
+        }
+        response.metrics[std::move(key)] = std::move(duration).value();
+      }
+      response.id = std::move((*request.param.mutable_metadata())[kRequestId]);
+      response.resp = std::move(*request.param.mutable_response());
+      std::move(request).callback(std::move(response));
+    }
+  }
+}
+}  // namespace google::scp::roma::sandbox::dispatcher

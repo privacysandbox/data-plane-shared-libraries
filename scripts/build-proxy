@@ -1,0 +1,114 @@
+#!/bin/bash
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o pipefail
+set -o errexit
+export TZ=Etc/UTC
+export PS4='+\t $(basename ${BASH_SOURCE[0]}):${LINENO} ' # xtrace prompt
+
+declare -i VERBOSE=0
+
+trap _cleanup EXIT
+function _cleanup() {
+  declare -r -i STATUS=$?
+  if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+    sleep 5s
+  fi
+  exit ${STATUS}
+}
+
+function usage() {
+  local -r -i exitval=${1-1}
+  cat &>/dev/stderr <<USAGE
+usage:
+  ${BASH_SOURCE[0]} <options>
+    --verbose                    Enable verbose output
+
+environment variables (all optional):
+    WORKSPACE                    Set the path to the workspace (repo root)
+    BAZEL_STARTUP_ARGS           Additional startup arguments to pass to bazel invocations
+    BAZEL_EXTRA_ARGS             Additional command arguments to pass to bazel invocations
+    EXTRA_DOCKER_RUN_ARGS        Additional arguments to pass to docker run invocations
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+SCRIPT_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly SCRIPT_DIR
+readonly TOOLS_DIR="${SCRIPT_DIR}"/../builders/tools
+# shellcheck disable=SC1090
+source "${TOOLS_DIR}"/builder.sh
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose)
+      VERBOSE=1
+      shift
+      ;;
+    -h | --help) usage 0 ;;
+    *) usage ;;
+  esac
+done
+
+export CBUILD_ARGS
+if [[ ${VERBOSE} -eq 1 ]]; then
+  set -o xtrace
+  CBUILD_ARGS="${CBUILD_ARGS} --verbose"
+fi
+
+declare -a -r builder_commands=(
+  builder::cbuild_debian
+  builder::cbuild_al2
+  builder::cbuild_al2023
+)
+
+ARCH=$("${TOOLS_DIR}"/get-architecture)
+readonly ARCH
+
+function collect_logs() {
+  app="$1"
+  filename="$2"
+  printf 'collecting bazel logs [%s]...\n' "${filename}" &>/dev/stderr
+  "${WORKSPACE}"/builders/tools/"${app}" run //:collect-test-logs -- --zip-filename "${filename}" --path-filter src/aws/proxy
+}
+
+function build_proxy() {
+  printf "==== building proxy ====\n"
+
+  CBUILD_ARGS="${CBUILD_ARGS} --seccomp-unconfined"
+  local build_cmd
+  for build_cmd in "${builder_commands[@]}"; do
+    printf "==== builder: %s ====\n" "${build_cmd}"
+    local target_dist="${build_cmd//builder::cbuild_}"
+    "${build_cmd}" "
+set -o errexit
+# remove any existing test logs
+bazel ${BAZEL_STARTUP_ARGS} info ${BAZEL_EXTRA_ARGS} bazel-testlogs 2>/dev/null | xargs rm -rf
+if [[ ${build_cmd} != builder::cbuild_al2 ]]; then
+  # these tests don't compile on amazonlinux2 due to lack of <filesystem> header
+  bazel ${BAZEL_STARTUP_ARGS} test --config=run_all_tests ${BAZEL_EXTRA_ARGS} //src/aws/proxy:all
+fi
+bazel ${BAZEL_STARTUP_ARGS} run ${BAZEL_EXTRA_ARGS} //production/packaging/aws:copy_to_dist ${target_dist} ${ARCH}
+    "
+    printf "copied proxy artifacts for %s\n" "${target_dist}"
+    if [[ ${build_cmd} != builder::cbuild_al2 ]]; then
+      local build_app=bazel-${target_dist/al2/amazonlinux2}
+      collect_logs "${build_app}" "proxy-${target_dist}-${ARCH}-test-logs.zip"
+    fi
+  done
+}
+
+build_proxy

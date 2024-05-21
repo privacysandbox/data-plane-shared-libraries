@@ -1,0 +1,100 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "gcp_metric_client_provider",
+    srcs = [
+        ":gcp_metric_client_provider_srcs",
+    ],
+    deps = [
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/client_providers/metric_client_provider",
+        "//src/cpio/common/gcp:gcp_utils",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/metric_client:type_def",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+exports_files([
+    "gcp_metric_client_provider.h",
+    "gcp_metric_client_provider.cc",
+    "gcp_metric_client_utils.h",
+    "gcp_metric_client_utils.cc",
+    "error_codes.h",
+])
+
+filegroup(
+    name = "gcp_metric_client_provider_srcs",
+    srcs = [
+        ":error_codes.h",
+        ":gcp_metric_client_provider.cc",
+        ":gcp_metric_client_provider.h",
+        ":gcp_metric_client_utils.cc",
+        ":gcp_metric_client_utils.h",
+    ],
+)
+
+cc_test(
+    name = "gcp_metric_client_provider_test",
+    size = "small",
+    srcs = [
+        "gcp_metric_client_provider_test.cc",
+    ],
+    deps = [
+        ":gcp_metric_client_provider",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/cpio/client_providers/metric_client_provider",
+        "//src/cpio/client_providers/metric_client_provider/mock/gcp:gcp_metric_client_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_github_googleapis_google_cloud_cpp//:monitoring_mocks",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "gcp_metric_client_utils_test",
+    size = "small",
+    srcs = [
+        "gcp_metric_client_utils_test.cc",
+    ],
+    deps = [
+        ":gcp_metric_client_provider",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/metric_client_provider",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)

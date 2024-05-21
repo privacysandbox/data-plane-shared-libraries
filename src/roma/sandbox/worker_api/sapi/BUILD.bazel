@@ -1,0 +1,181 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@com_google_sandboxed_api//sandboxed_api/bazel:proto.bzl", "sapi_proto_library")
+load("@com_google_sandboxed_api//sandboxed_api/bazel:sapi.bzl", "sapi_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+proto_library(
+    name = "worker_api_proto",
+    srcs = [
+        "worker_init_params.proto",
+        "worker_params.proto",
+    ],
+    deps = ["@com_google_protobuf//:duration_proto"],
+)
+
+sapi_proto_library(
+    name = "worker_params_proto",
+    srcs = ["worker_params.proto"],
+    visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
+    deps = [
+        "@com_google_protobuf//:duration_proto",
+    ],
+    alwayslink = 1,
+)
+
+sapi_proto_library(
+    name = "worker_init_params_proto",
+    srcs = ["worker_init_params.proto"],
+    alwayslink = 1,
+)
+
+cc_library(
+    name = "error_codes",
+    srcs = ["error_codes.cc"],
+    hdrs = ["error_codes.h"],
+    deps = [
+        "//src/roma/config",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
+    name = "worker_wrapper",
+    srcs = ["worker_wrapper.cc"],
+    hdrs = ["worker_wrapper.h"],
+    copts = [
+        "-Wno-deprecated-declarations",
+    ],
+    deps = [
+        ":error_codes",
+        ":worker_init_params_cc_proto",
+        ":worker_params_cc_proto",
+        "//src/roma/config",
+        "//src/roma/logging",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/native_function_binding:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/worker",
+        "//src/util:protoutil",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
+    ],
+)
+
+sapi_library(
+    name = "worker_wrapper-sapi",
+    hdrs = ["worker_wrapper.h"],
+    functions = [
+        "InitFromSerializedData",
+        "Run",
+        "RunCodeFromSerializedData",
+        "RunCodeFromBuffer",
+        "Stop",
+    ],
+    generator_version = 1,
+    input_files = ["worker_wrapper.cc"],
+    lib = ":worker_wrapper",
+    lib_name = "WorkerWrapper",
+    namespace = "google::scp::roma::sandbox::worker_api",
+    tags = [
+        "noasan",
+    ],
+    deps = [
+        ":worker_init_params_cc_proto",
+        ":worker_params_cc_proto",
+        "//src/core/interface",
+    ],
+)
+
+cc_library(
+    name = "worker_sandbox_api",
+    srcs = ["worker_sandbox_api.cc"],
+    hdrs = ["worker_sandbox_api.h"],
+    visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
+    deps = [
+        ":error_codes",
+        ":worker_init_params_cc_proto",
+        ":worker_params_cc_proto",
+        ":worker_wrapper-sapi",
+        "//src/core/interface",
+        "//src/roma/logging",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/worker",
+        "@com_google_absl//absl/status",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
+    ],
+)
+
+buf_lint_test(
+    name = "worker_api_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":worker_api_proto"],
+)
+
+cc_test(
+    name = "worker_sandbox_api_test",
+    size = "small",
+    srcs = ["worker_sandbox_api_test.cc"],
+    # Run with TCMalloc in this test to make sure that everything works with
+    # the allocator that we'll be using in benchmarks and production.
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = [
+        # This test has a translation unit too big for the debug ASAN build,
+        # run it in optimized mode:
+        "asanopt",
+        "noasan",
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
+    deps = [
+        ":error_codes",
+        ":worker_sandbox_api",
+        "//src/core/test/utils",
+        "//src/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "worker_wrapper_benchmark",
+    timeout = "eternal",
+    srcs = ["worker_wrapper_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = ["manual"],
+    deps = [
+        ":worker_init_params_cc_proto",
+        ":worker_wrapper",
+        "//src/core/test/utils",
+        "//src/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_test(
+    name = "worker_wrapper_test",
+    size = "medium",
+    srcs = ["worker_wrapper_test.cc"],
+    deps = [
+        ":worker_init_params_cc_proto",
+        ":worker_wrapper",
+        "//src/core/test/utils",
+        "//src/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

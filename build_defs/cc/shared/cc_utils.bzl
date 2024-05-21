@@ -37,17 +37,6 @@ def cc_utils():
 
     maybe(
         http_archive,
-        name = "curl",
-        build_file = Label("//build_defs/cc/shared/build_targets:curl.BUILD"),
-        sha256 = "ff3e80c1ca6a068428726cd7dd19037a47cc538ce58ef61c59587191039b2ca6",
-        strip_prefix = "curl-7.49.1",
-        urls = [
-            "https://mirror.bazel.build/curl.haxx.se/download/curl-7.49.1.tar.gz",
-        ],
-    )
-
-    maybe(
-        http_archive,
         name = "rules_fuzzing",
         sha256 = "a5734cb42b1b69395c57e0bbd32ade394d5c3d6afbfe782b24816a96da24660d",
         strip_prefix = "rules_fuzzing-0.1.1",

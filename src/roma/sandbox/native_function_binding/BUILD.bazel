@@ -1,0 +1,128 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     https://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+package(default_visibility = [
+    "//src/roma/native_function_grpc_server:__subpackages__",
+    "//src/roma/roma_service:__subpackages__",
+    "//src/roma/sandbox/js_engine/v8_engine:__subpackages__",
+    "//src/roma/sandbox/worker_api/sapi:__subpackages__",
+])
+
+proto_library(
+    name = "rpc_wrapper_proto",
+    srcs = ["rpc_wrapper.proto"],
+    deps = ["//src/roma/interface:function_binding_io_proto"],
+)
+
+cc_proto_library(
+    name = "rpc_wrapper_cc_proto",
+    deps = [":rpc_wrapper_proto"],
+)
+
+cc_library(
+    name = "native_function_binding",
+    hdrs = ["native_function_invoker.h"],
+    deps = [
+        "//src/roma/interface:function_binding_io_cc_proto",
+        "@com_google_absl//absl/status",
+    ],
+)
+
+cc_library(
+    name = "native_function_invoker_sapi_ipc",
+    srcs = ["native_function_invoker_sapi_ipc.cc"],
+    hdrs = ["native_function_invoker_sapi_ipc.h"],
+    deps = [
+        ":native_function_binding",
+        ":rpc_wrapper_cc_proto",
+        "//src/roma/interface:function_binding_io_cc_proto",
+        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/status",
+        "@com_google_sandboxed_api//sandboxed_api:sapi",
+        "@com_google_sandboxed_api//sandboxed_api:vars",
+    ],
+)
+
+cc_library(
+    name = "native_function_table",
+    hdrs = [
+        "native_function_table.h",
+    ],
+    deps = [
+        "//src/roma/config",
+        "//src/roma/interface:function_binding_io_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "native_function_handler_sapi_ipc",
+    hdrs = [
+        "native_function_handler_sapi_ipc.h",
+    ],
+    deps = [
+        ":native_function_table",
+        ":rpc_wrapper_cc_proto",
+        "//src/core/interface",
+        "//src/roma/config",
+        "//src/roma/interface:function_binding_io_cc_proto",
+        "//src/roma/logging",
+        "//src/roma/metadata_storage",
+        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_sandboxed_api//sandboxed_api:sapi",
+        "@com_google_sandboxed_api//sandboxed_api:vars",
+    ],
+)
+
+cc_test(
+    name = "native_function_handler_sapi_ipc_test",
+    size = "small",
+    srcs = ["native_function_handler_sapi_ipc_test.cc"],
+    deps = [
+        ":native_function_handler_sapi_ipc",
+        "//src/core/test/utils",
+        "//src/roma/sandbox/constants",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "native_function_invoker_sapi_ipc_test",
+    size = "small",
+    srcs = ["native_function_invoker_sapi_ipc_test.cc"],
+    deps = [
+        ":native_function_invoker_sapi_ipc",
+        "//src/core/test/utils",
+        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "native_function_table_test",
+    size = "small",
+    srcs = ["native_function_table_test.cc"],
+    deps = [
+        ":native_function_handler_sapi_ipc",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

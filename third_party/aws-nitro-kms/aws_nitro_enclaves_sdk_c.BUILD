@@ -59,7 +59,7 @@ cc_library(
         "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
-        "@google_privacysandbox_servers_common//scp/cc/cpio/client_providers/kms_client_provider/src/aws:libnsm_so",
+        "@google_privacysandbox_servers_common//src/cpio/client_providers/kms_client_provider/aws:libnsm_so",
         "@json_c",
         "@nitrokmscli_aws_c_auth//:aws_c_auth",
         "@nitrokmscli_aws_c_common//:aws_c_common",

@@ -1,8 +1,8 @@
 diff --git a/BUILD b/BUILD
-index ac3bfa4616..180ac8379c 100644
+index 29af922edc..1ce64a417e 100644
 --- a/BUILD
 +++ b/BUILD
-@@ -1832,6 +1832,7 @@ grpc_cc_library(
+@@ -1831,6 +1831,7 @@ grpc_cc_library(
          "//src/core:tsi/transport_security_grpc.cc",
      ],
      hdrs = [
@@ -11,17 +11,30 @@ index ac3bfa4616..180ac8379c 100644
          "//src/core:tsi/transport_security_grpc.h",
          "//src/core:tsi/transport_security_interface.h",
 diff --git a/bazel/grpc_deps.bzl b/bazel/grpc_deps.bzl
-index 9f02b3f8e3..fd8e5424eb 100644
+index 4740bbd98e..3ee8c15eeb 100644
 --- a/bazel/grpc_deps.bzl
 +++ b/bazel/grpc_deps.bzl
-@@ -252,6 +252,7 @@ def grpc_deps():
+@@ -263,17 +263,11 @@ def grpc_deps():
+     if "com_google_protobuf" not in native.existing_rules():
+         http_archive(
+             name = "com_google_protobuf",
+-            sha256 = "70f480fe9cb0c6829dbf6be3c388103313aacb65de667b86d981bbc9eaedb905",
+-            strip_prefix = "protobuf-7f94235e552599141950d7a4a3eaf93bc87d1b22",
++            sha256 = "3ae7a8f2181be28e5d694617c2b85c6561ba6a16bfcdc9db8e3a95077cab8815",
++            strip_prefix = "protobuf-25.3",
+             urls = [
+-                # https://github.com/protocolbuffers/protobuf/commits/v25.0
+-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/protocolbuffers/protobuf/archive/7f94235e552599141950d7a4a3eaf93bc87d1b22.tar.gz",
+-                "https://github.com/protocolbuffers/protobuf/archive/7f94235e552599141950d7a4a3eaf93bc87d1b22.tar.gz",
++                "https://github.com/protocolbuffers/protobuf/releases/download/v25.3/protobuf-25.3.zip",
              ],
-             patches = [
-                 "@com_github_grpc_grpc//third_party:protobuf.patch",
-+                "@com_github_grpc_grpc//third_party:protobuf_tensorflow.patch",
-             ],
-             patch_args = ["-p1"],
+-            patches = [
+-                "@com_github_grpc_grpc//third_party:protobuf.patch",
+-            ],
+-            patch_args = ["-p1"],
          )
+ 
+     if "com_google_googletest" not in native.existing_rules():
 diff --git a/examples/cpp/helloworld/BUILD b/examples/cpp/helloworld/BUILD
 index 463dd6f495..94e2f02ca5 100644
 --- a/examples/cpp/helloworld/BUILD
@@ -35,59 +48,3 @@ index 463dd6f495..94e2f02ca5 100644
  licenses(["notice"])
  
  cc_binary(
-diff --git a/third_party/protobuf_tensorflow.patch b/third_party/protobuf_tensorflow.patch
-new file mode 100644
-index 0000000000..255c0599f4
---- /dev/null
-+++ b/third_party/protobuf_tensorflow.patch
-@@ -0,0 +1,50 @@
-+diff --git a/protobuf.bzl b/protobuf.bzl
-+index d96eeb4c9..188637b0c 100644
-+--- a/protobuf.bzl
-++++ b/protobuf.bzl
-+@@ -272,6 +272,9 @@ _proto_gen = rule(
-+     implementation = _proto_gen_impl,
-+ )
-+ 
-++# tensorflow still depends directly on proto_gen this as of mid-July 2023
-++proto_gen = _proto_gen
-++
-+ def _internal_gen_well_known_protos_java_impl(ctx):
-+     args = ctx.actions.args()
-+ 
-+diff --git a/src/google/protobuf/arena.cc b/src/google/protobuf/arena.cc
-+index 6577a3669..015a1667f 100644
-+--- a/src/google/protobuf/arena.cc
-++++ b/src/google/protobuf/arena.cc
-+@@ -40,6 +40,7 @@
-+ #include <vector>
-+ 
-+ #include "absl/base/attributes.h"
-++#include "absl/container/internal/layout.h"
-+ #include "absl/synchronization/mutex.h"
-+ #include "google/protobuf/arena_allocation_policy.h"
-+ #include "google/protobuf/arenaz_sampler.h"
-+diff --git a/src/google/protobuf/io/BUILD.bazel b/src/google/protobuf/io/BUILD.bazel
-+index 8f39625c2..0e8b185be 100644
-+--- a/src/google/protobuf/io/BUILD.bazel
-++++ b/src/google/protobuf/io/BUILD.bazel
-+@@ -30,6 +30,7 @@ cc_library(
-+         "//src/google/protobuf/stubs:lite",
-+         "@com_google_absl//absl/log:absl_check",
-+         "@com_google_absl//absl/log:absl_log",
-++        "@com_google_absl//absl/strings",
-+         "@com_google_absl//absl/strings:internal",
-+     ],
-+ )
-+diff --git a/src/google/protobuf/io/printer.h b/src/google/protobuf/io/printer.h
-+index 2e59ba05f..ea90f8ead 100644
-+--- a/src/google/protobuf/io/printer.h
-++++ b/src/google/protobuf/io/printer.h
-+@@ -50,6 +50,7 @@
-+ #include "absl/functional/function_ref.h"
-+ #include "absl/log/absl_check.h"
-+ #include "absl/meta/type_traits.h"
-++#include "absl/strings/str_cat.h"
-+ #include "absl/strings/str_format.h"
-+ #include "absl/strings/string_view.h"
-+ #include "absl/types/optional.h"

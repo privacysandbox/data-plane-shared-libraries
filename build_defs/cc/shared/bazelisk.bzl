@@ -20,7 +20,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 # defined in io_bazel_rules_docker are used for future go toolchains)
 
 def bazelisk():
-    # Needed for build containers which must execute bazel commands (e.g. //scp/cc/aws/proxy).
+    # Needed for build containers which must execute bazel commands (e.g. //src/aws/proxy).
     maybe(
         http_file,
         name = "bazelisk",

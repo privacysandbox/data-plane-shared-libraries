@@ -18,8 +18,9 @@ exclude: (?x)^(
   bazel-(bin|out|testlogs|workspace)/.*|
   .bazel_output/.*|
   builders/.*|
-  (third_party|scp)/.*\.patch|
-  version.txt
+  (third_party|src)/.*\.patch|
+  version.txt|
+  docs/cpio/protobuf/.*\.md
   )$
 
 fail_fast: true
@@ -49,26 +50,23 @@ repos:
   rev: 3.0.0
   hooks:
   - id: script-must-not-have-extension
-    exclude: ^(scp/.*\.sh)$
+    exclude: ^(src/.*\.sh)$
   - id: script-must-have-extension
   - id: require-ascii
   - id: shellcheck
     exclude: (?x)^(
       build_defs/aws/.*|
-      scp/cc/public/cpio/build_deps/.*|
-      scp/cc/public/tools/.*|
-      scp/cc/tools/.*|
       .*experimental/.*|
       .*internal/.*
       )$
 
 - repo: https://github.com/bufbuild/buf
-  rev: v1.28.1
+  rev: v1.29.0
   hooks:
   - id: buf-format
 
 - repo: https://github.com/pre-commit/mirrors-clang-format
-  rev: v17.0.5
+  rev: v17.0.6
   hooks:
   - id: clang-format
     types_or:
@@ -99,19 +97,37 @@ repos:
     types_or:
     - text
 
+  - id: terraform-fmt
+    name: terraform fmt
+    description: Run terraform via docker to format Terraform files
+    language: script
+    pass_filenames: false
+    entry: builders/tools/terraform fmt -write=true -recursive .
+    types_or:
+    - terraform
+
 - repo: https://github.com/pre-commit/mirrors-prettier
   rev: v3.1.0
   hooks:
   - id: prettier
-    name: prettier markdown
+    name: prettier markdown and javascript
     types_or:
     - markdown
+    - javascript
 
 - repo: https://github.com/DavidAnson/markdownlint-cli2
-  rev: v0.11.0
+  rev: v0.12.1
   hooks:
   - id: markdownlint-cli2
     name: lint markdown
+
+- repo: https://github.com/tcort/markdown-link-check
+  rev: v3.11.2
+  hooks:
+    - id: markdown-link-check
+      args:
+      - -c
+      - .markdown-link-check.json
 
 - repo: local
   hooks:
@@ -140,6 +156,30 @@ repos:
     - c
     args:
     - --filter=-build/c++11,+build/c++17,-build/header_guard,-build/include_order,+build/include_what_you_use,-build/include_subdir,-readability/casting,-readability/todo,-runtime/references
-    - --exclude=scp/cc/aws/proxy/src/preload.h
-    - --exclude=scp/cc/aws/proxy/src/socks5_state.cc
+    - --exclude=src/aws/proxy/preload.h
+    - --exclude=src/aws/proxy/socks5_state.cc
     - --quiet
+
+- repo: https://github.com/tekwizely/pre-commit-golang
+  rev: v1.0.0-rc.1
+  hooks:
+  - id: go-fmt
+    name: go format
+
+- repo: https://github.com/psf/black
+  rev: 24.2.0
+  hooks:
+  - id: black
+    name: black python formatter
+
+- repo: https://github.com/pylint-dev/pylint
+  rev: v3.1.0
+  hooks:
+  - id: pylint
+    types:
+    - python
+    args:
+    - -rn
+    - -sn
+    - --rcfile=.pylintrc
+    - --fail-on=I

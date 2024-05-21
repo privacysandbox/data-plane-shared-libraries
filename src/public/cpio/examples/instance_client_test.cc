@@ -1,0 +1,137 @@
+// Copyright 2022 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+#include <chrono>
+#include <functional>
+#include <iostream>
+#include <memory>
+#include <string>
+
+#include "absl/functional/bind_front.h"
+#include "absl/synchronization/notification.h"
+#include "src/public/core/interface/errors.h"
+#include "src/public/core/interface/execution_result.h"
+#include "src/public/cpio/interface/cpio.h"
+#include "src/public/cpio/interface/instance_client/instance_client_interface.h"
+#include "src/public/cpio/interface/type_def.h"
+#include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
+
+using google::cmrt::sdk::instance_service::v1::
+    GetCurrentInstanceResourceNameRequest;
+using google::cmrt::sdk::instance_service::v1::
+    GetCurrentInstanceResourceNameResponse;
+using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
+using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
+using google::scp::core::AsyncContext;
+using google::scp::core::ExecutionResult;
+using google::scp::core::GetErrorMessage;
+using google::scp::core::SuccessExecutionResult;
+using google::scp::cpio::Cpio;
+using google::scp::cpio::CpioOptions;
+using google::scp::cpio::InstanceClientFactory;
+using google::scp::cpio::InstanceClientInterface;
+using google::scp::cpio::InstanceClientOptions;
+using google::scp::cpio::LogOption;
+
+void GetTagsByResourceNameCallback(
+    absl::Notification& finished, ExecutionResult result,
+    GetTagsByResourceNameResponse get_tags_response) {
+  if (!result.Successful()) {
+    std::cout << "GetTagsByResourceName failed: "
+              << GetErrorMessage(result.status_code) << std::endl;
+  } else {
+    std::cout << "GetTagsByResourceName succeeded, and the tags are: "
+              << std::endl;
+    for (const auto& tag : get_tags_response.tags()) {
+      std::cout << tag.first << " : " << tag.second << std::endl;
+    }
+  }
+  finished.Notify();
+}
+
+void GetCurrentInstanceResourceNameCallback(
+    InstanceClientInterface* instance_client, absl::Notification& finished,
+    ExecutionResult result,
+    GetCurrentInstanceResourceNameResponse get_resource_name_response) {
+  if (!result.Successful()) {
+    std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
+              << std::endl;
+    return;
+  }
+
+  std::cout << "GetCurrentInstanceResourceName succeeded, and the "
+               "instance resource name is: "
+            << get_resource_name_response.instance_resource_name() << std::endl;
+
+  GetTagsByResourceNameRequest get_tags_request;
+  get_tags_request.set_resource_name(
+      get_resource_name_response.instance_resource_name());
+  result = instance_client->GetTagsByResourceName(
+      std::move(get_tags_request),
+      absl::bind_front(GetTagsByResourceNameCallback, std::ref(finished)));
+  if (!result.Successful()) {
+    std::cout << "GetTagsByResourceName failed immediately!"
+              << GetErrorMessage(result.status_code) << std::endl;
+  }
+}
+
+int main(int argc, char* argv[]) {
+  CpioOptions cpio_options;
+  cpio_options.log_option = LogOption::kConsoleLog;
+  auto result = Cpio::InitCpio(cpio_options);
+  if (!result.Successful()) {
+    std::cout << "Failed to initialize CPIO: "
+              << GetErrorMessage(result.status_code) << std::endl;
+  }
+
+  InstanceClientOptions instance_client_options;
+  auto instance_client =
+      InstanceClientFactory::Create(std::move(instance_client_options));
+  result = instance_client->Init();
+  if (!result.Successful()) {
+    std::cout << "Cannot init instance client!"
+              << GetErrorMessage(result.status_code) << std::endl;
+    return 0;
+  }
+  result = instance_client->Run();
+  if (!result.Successful()) {
+    std::cout << "Cannot run instance client!"
+              << GetErrorMessage(result.status_code) << std::endl;
+    return 0;
+  }
+
+  absl::Notification finished;
+  result = instance_client->GetCurrentInstanceResourceName(
+      GetCurrentInstanceResourceNameRequest(),
+      absl::bind_front(GetCurrentInstanceResourceNameCallback,
+                       instance_client.get(), std::ref(finished)));
+
+  if (!result.Successful()) {
+    std::cout << "GetCurrentInstanceResourceName failed immediately: "
+              << GetErrorMessage(result.status_code) << std::endl;
+  }
+  finished.WaitForNotificationWithTimeout(absl::Seconds(3));
+
+  result = instance_client->Stop();
+  if (!result.Successful()) {
+    std::cout << "Cannot stop instance client!"
+              << GetErrorMessage(result.status_code) << std::endl;
+  }
+
+  result = Cpio::ShutdownCpio(cpio_options);
+  if (!result.Successful()) {
+    std::cout << "Failed to shutdown CPIO: "
+              << GetErrorMessage(result.status_code) << std::endl;
+  }
+}

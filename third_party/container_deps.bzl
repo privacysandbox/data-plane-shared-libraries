@@ -13,14 +13,15 @@
 # limitations under the License.
 
 load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
+load("@rules_oci//oci:pull.bzl", "oci_pull")
 
 def container_deps():
     images = {
         "runtime-debian-debug-nonroot": {
             "arch_hashes": {
                 # cc-debian11:debug-nonroot
-                "amd64": "7caec0c1274f808d29492012a5c3f57331c7f44d5e9e83acf5819eb2e3ae14dc",
-                "arm64": "f17be941beeaa468ef03fc986cd525fe61e7550affc12fbd4160ec9e1dac9c1d",
+                "amd64": "72b9108b17a4ef0398998d45cbc14af2f3270af374fc2aa2c74823c6c7054fac",
+                "arm64": "623676598d55f93ff93ea3b9d95f3cb5a379eca66dfcf9b2734f2cc3e5f34666",
             },
             "registry": "gcr.io",
             "repository": "distroless/cc-debian11",
@@ -29,8 +30,8 @@ def container_deps():
             # debug build so we can use 'sh'. Root, for gcp coordinators
             # auth to work
             "arch_hashes": {
-                "amd64": "6865ad48467c89c3c3524d4c426f52ad12d9ab7dec31fad31fae69da40eb6445",
-                "arm64": "3c399c24b13bfef7e38257831b1bb05cbddbbc4d0327df87a21b6fbbb2480bc9",
+                "amd64": "d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548",
+                "arm64": "6449313a9a80b2758f505c81462c492da87f76954d319f2adb55401177798cce",
             },
             "registry": "gcr.io",
             "repository": "distroless/cc-debian11",
@@ -39,8 +40,8 @@ def container_deps():
         "runtime-ubuntu-fulldist-debug-root": {
             # Ubuntu 20.04
             "arch_hashes": {
-                "amd64": "218bb51abbd1864df8be26166f847547b3851a89999ca7bfceb85ca9b5d2e95d",
-                "arm64": "a80d11b67ef30474bcccab048020ee25aee659c4caaca70794867deba5d392b6",
+                "amd64": "81bba8d1dde7fc1883b6e95cd46d6c9f4874374f2b360c8db82620b33f6b5ca1",
+                "arm64": "ca165754e2f953a4f686409b1eb5855212f42a252462c9c50bbc3077f3b9a654",
             },
             "registry": "docker.io",
             "repository": "library/ubuntu",
@@ -48,8 +49,18 @@ def container_deps():
     }
 
     [
+        oci_pull(
+            name = "{}-{}".format(img_name, arch),
+            digest = "sha256:" + hash,
+            image = "{}/{}".format(image["registry"], image["repository"]),
+        )
+        for img_name, image in images.items()
+        for arch, hash in image["arch_hashes"].items()
+    ]
+
+    [
         container_pull(
-            name = img_name + "-" + arch,
+            name = "{}-{}-docker".format(img_name, arch),
             digest = "sha256:" + hash,
             registry = image["registry"],
             repository = image["repository"],

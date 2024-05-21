@@ -1,0 +1,128 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+
+cc_library(
+    name = "duration",
+    srcs = ["duration.cc"],
+    hdrs = ["duration.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_test(
+    name = "duration_test",
+    size = "small",
+    srcs = ["duration_test.cc"],
+    deps = [
+        ":duration",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "protoutil",
+    srcs = ["protoutil.cc"],
+    hdrs = ["protoutil.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "read_system",
+    srcs = ["read_system.cc"],
+    hdrs = ["read_system.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_test(
+    name = "read_system_test",
+    size = "small",
+    srcs = ["read_system_test.cc"],
+    deps = [
+        ":read_system",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "protoutil_test",
+    size = "small",
+    srcs = ["protoutil_test.cc"],
+    deps = [
+        ":protoutil",
+        "//src/core/test/utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "rlimit_core_config",
+    srcs = ["rlimit_core_config.cc"],
+    hdrs = ["rlimit_core_config.h"],
+    visibility = ["//visibility:public"],
+    deps = ["@com_google_absl//absl/log"],
+)
+
+cc_binary(
+    name = "core_dump_generator",
+    srcs = ["core_dump_generator.cc"],
+)
+
+cc_test(
+    name = "rlimit_core_config_test",
+    size = "small",
+    srcs = ["rlimit_core_config_test.cc"],
+    data = [":core_dump_generator"],
+    tags = [
+        "noasan",
+        "nomsan",
+        "notsan",
+    ],
+    deps = [
+        ":rlimit_core_config",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "process_util",
+    srcs = ["process_util.cc"],
+    hdrs = ["process_util.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+    ],
+)

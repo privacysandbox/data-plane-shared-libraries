@@ -7,6 +7,8 @@ build --@io_bazel_rules_docker//transitions:enable=false
 build --config=cpp
 build --config=roma_sandboxed
 build --config=otel
+# Disable ICU linking for googleurl.
+build --@com_google_googleurl//build_config:system_icu=0
 
 test --test_output=errors
 
@@ -20,50 +22,58 @@ build:cpp --copt=-Werror=return-type
 build:cpp --copt=-Werror=thread-safety-analysis
 build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
+build:cpp --per_file_copt=src/roma/roma_service/.*@-fconstexpr-steps=1271242
+
+build:cpp_nowarn --copt=-Werror
+build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
+build:cpp_nowarn --per_file_copt=src/.*_test\.cc@-Wno-unused-variable
+build:cpp_nowarn --per_file_copt=src/(metric|telemetry)/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/gcp/.*@-Wno-deprecated-declarations
+
+build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
+build:clang-tidy --output_groups=report
+build:clang-tidy --@bazel_clang_tidy//:clang_tidy_config=//:clang_tidy_config
 
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
 
 try-import %workspace%/builders/.coverage.bazelrc
 
+# Common settings for all sanitizers.
 build:sanitizers_common --keep_going
 build:sanitizers_common --cache_test_results=no
 build:sanitizers_common --build_tests_only
 
+# Common settings for the address sanitizer.
+build:asan_common --config=sanitizers_common
+build:asan_common --copt=-fsanitize=address
+build:asan_common --copt=-DADDRESS_SANITIZER
+build:asan_common --copt=-O1
+build:asan_common --copt=-fno-omit-frame-pointer
+build:asan_common --linkopt=-fsanitize=address
+build:asan_common --linkopt=-fuse-ld=lld
+build:asan_common --test_tag_filters=-noasan
+# TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
+# ZLib library that we depend on.
+build:asan_common --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
+
 # Address sanitizer, set action_env to segregate cache entries
-build:asan --config=sanitizers_common
+build:asan --config=asan_common
 build:asan --action_env=PRIVACY_SANDBOX_SERVERS_ASAN=1
 build:asan --strip=never
 build:asan --compilation_mode=dbg
-build:asan --copt=-fsanitize=address
-build:asan --copt=-DADDRESS_SANITIZER
-build:asan --copt=-O1
 build:asan --copt=-g
-build:asan --copt=-fno-omit-frame-pointer
-build:asan --linkopt=-fsanitize=address
-build:asan --linkopt=-fuse-ld=lld
 build:asan --test_tag_filters=-noasan
-# TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
-# ZLib library that we depend on.
-build:asan --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
 
 # Address sanitizer, optimized build.
 # Sometimes the asan config above produces translation units that are too large
 # for Clang to process (because of SAPI).  For just those tests we use this
 # config: this has worse debugging properties but it at least lets us run the
 # sanitizer.
-build:asanopt --config=sanitizers_common
+build:asanopt --config=asan_common
 build:asanopt --action_env=PRIVACY_SANDBOX_SERVERS_ASANOPT=1
-build:asanopt --copt=-fsanitize=address
-build:asanopt --copt=-DADDRESS_SANITIZER
-build:asanopt --copt=-O1
-build:asanopt --copt=-fno-omit-frame-pointer
-build:asanopt --linkopt=-fsanitize=address
-build:asanopt --linkopt=-fuse-ld=lld
 build:asanopt --test_tag_filters=asanopt
-# TODO(b/293876281): Re-enable ODR violation checking once it's fixed in the
-# ZLib library that we depend on.
-build:asanopt --action_env=ASAN_OPTIONS=detect_leaks=1:color=always:detect_odr_violation=0
 
 # Thread sanitizer
 build:tsan --config=sanitizers_common
@@ -77,6 +87,9 @@ build:tsan --copt=-O1
 build:tsan --copt=-fno-omit-frame-pointer
 build:tsan --linkopt=-fsanitize=thread
 build:tsan --test_tag_filters=-notsan
+# Note that this flag *overwrites* others and so it needs to have both
+# exclusions in it.  (E.g. the setting in build:tsan is lost.)
+test:tsan-aarch64 --test_tag_filters=-notsan-aarch64,-notsan
 
 # Memory sanitizer
 build:msan --config=sanitizers_common
@@ -87,15 +100,17 @@ build:msan --copt=-DADDRESS_SANITIZER
 build:msan --copt=-O1
 build:msan --copt=-fno-omit-frame-pointer
 build:msan --linkopt=-fsanitize=memory
+build:msan --test_tag_filters=-nomsan
 
 # Undefined Behavior sanitizer
 build:ubsan --config=sanitizers_common
 build:ubsan --action_env=PRIVACY_SANDBOX_SERVERS_UBSAN=1
 build:ubsan --strip=never
 build:ubsan --copt=-fsanitize=undefined
+build:ubsan --per_file_copt=external/.*\.cc@-fno-sanitize=undefined
 build:ubsan --copt=-O1
 build:ubsan --copt=-fno-omit-frame-pointer
-build:ubsan --per_file_copt=//scp/cc/roma/sandbox/worker_api/sapi/.*@-DUNDEFINED_BEHAVIOR_SANITIZER
+build:ubsan --per_file_copt=//src/roma/sandbox/worker_api/.*@-DUNDEFINED_BEHAVIOR_SANITIZER
 build:ubsan --linkopt=-lubsan
 build:ubsan --test_tag_filters=-noubsan
 

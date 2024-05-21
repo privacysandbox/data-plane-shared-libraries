@@ -1,0 +1,100 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "dispatcher",
+    srcs = ["dispatcher.cc"],
+    hdrs = ["dispatcher.h"],
+    visibility = [
+        "//src/roma/roma_service:__subpackages__",
+    ],
+    deps = [
+        ":request_converter",
+        ":request_validator",
+        "//src/core/async_executor",
+        "//src/core/interface",
+        "//src/core/interface:type_def",
+        "//src/roma/interface",
+        "//src/roma/logging",
+        "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/worker_api/sapi:worker_sandbox_api",
+        "//src/util:duration",
+        "//src/util:protoutil",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "request_converter",
+    srcs = ["request_converter.cc"],
+    hdrs = ["request_converter.h"],
+    deps = [
+        "//src/roma/interface",
+        "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/worker_api/sapi:worker_params_cc_proto",
+    ],
+)
+
+cc_library(
+    name = "request_validator",
+    srcs = ["request_validator.cc"],
+    hdrs = ["request_validator.h"],
+    deps = [
+        "//src/roma/interface",
+        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/status",
+    ],
+)
+
+cc_test(
+    name = "dispatcher_test",
+    size = "small",
+    srcs = ["dispatcher_test.cc"],
+    tags = [
+        "asanopt",
+        "noasan",  # TODO(b/293876281) - Fix ASAN errors in this test.
+        "notsan-aarch64",  # TODO(b/307540489) - Fix TSAN errors in this test. Fails on aarch64.
+    ],
+    deps = [
+        ":dispatcher",
+        "//src/core/async_executor",
+        "//src/core/test/utils",
+        "//src/roma/interface",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "dispatcher_benchmark",
+    timeout = "eternal",
+    srcs = ["dispatcher_benchmark.cc"],
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = ["manual"],
+    deps = [
+        ":dispatcher",
+        "//src/core/async_executor",
+        "//src/core/test/utils",
+        "//src/roma/interface",
+        "@google_benchmark//:benchmark",
+    ],
+)

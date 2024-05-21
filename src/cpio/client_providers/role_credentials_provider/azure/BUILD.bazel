@@ -1,0 +1,44 @@
+# Portions Copyright (c) Microsoft Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "azure_role_credentials_provider",
+    srcs = [
+        "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
+        "//src/cpio/client_providers/role_credentials_provider/azure:azure_role_credentials_provider_srcs",
+    ],
+    deps = [
+        "//src/core/interface",
+        "//src/cpio/client_providers/instance_client_provider/azure:azure_instance_client_provider",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:type_def",
+    ],
+)
+
+exports_files([
+    "azure_role_credentials_provider.h",
+    "azure_role_credentials_provider.cc",
+])
+
+filegroup(
+    name = "azure_role_credentials_provider_srcs",
+    srcs = [
+        ":azure_role_credentials_provider.cc",
+        ":azure_role_credentials_provider.h",
+    ],
+)

@@ -1,0 +1,62 @@
+diff --git a/BUILD.bazel b/BUILD.bazel
+index 0a4b73b..9d72da4 100644
+--- a/BUILD.bazel
++++ b/BUILD.bazel
+@@ -38,6 +38,57 @@ pkg_files(
+     prefix = "bin/",
+ )
+ 
++filegroup(
++    name = "js_core",
++    srcs = [
++        "asserts.js",
++        "debug.js",
++        "map.js",
++        "message.js",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++filegroup(
++    name = "js_core_test",
++    srcs = [
++        "debug_test.js",
++        "maps_test.js",
++        "message_test.js",
++        "proto3_test.js",
++        "test_bootstrap.js",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++filegroup(
++    name = "js_binary",
++    srcs = [
++        "binary/arith.js",
++        "binary/constants.js",
++        "binary/decoder.js",
++        "binary/encoder.js",
++        "binary/reader.js",
++        "binary/utils.js",
++        "binary/writer.js",
++    ],
++    visibility = ["//visibility:public"],
++)
++
++filegroup(
++    name = "js_binary_test",
++    srcs = [
++        "binary/arith_test.js",
++        "binary/decoder_test.js",
++        "binary/message_test.js",
++        "binary/proto_test.js",
++        "binary/reader_test.js",
++        "binary/utils_test.js",
++        "binary/writer_test.js",
++    ],
++    visibility = ["//visibility:public"],
++)
++
+ pkg_files(
+     name = "dist_files",
+     srcs = glob([

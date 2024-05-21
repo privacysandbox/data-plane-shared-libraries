@@ -1,0 +1,94 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package google.scp.cpio.validator.proto;
+
+message ValidatorConfig {
+  repeated TestCase test_cases = 1;
+}
+
+message TestCase {
+  // User provided (preferrably unique) name for the test case.
+  string name = 1;
+
+  oneof client_config {
+    DnsConfig dns_config = 11;
+    HttpConfig http_config = 12;
+    GetTagsByResourceNameConfig get_tags_by_resource_name_config = 2;
+    GetCurrentInstanceResourceNameConfig get_current_instance_resource_name_config = 3;
+    GetBlobConfig get_blob_config = 4;
+    ListBlobsMetadataConfig list_blobs_metadata_config = 5;
+    GetParameterConfig get_parameter_config = 6;
+    EnqueueMessageConfig enqueue_message_config = 7;
+    GetTopMessageConfig get_top_message_config = 8;
+    FetchPrivateKeyConfig fetch_private_key_config = 9;
+  }
+
+  reserved 10;
+}
+
+message DnsConfig {
+  // Host name check DNS configuration. (e.g. "192.168.0.1").
+  string host = 1;
+  // Port to check for DNS configuration. (e.g. 80).
+  uint32 port = 2;
+}
+
+message HttpConfig {
+  // The request method. Options: `"GET"`, `"POST"`, `"PUT"`.
+  string request_method = 1;
+
+  // The scheme (http, https), the host name, the path and the query
+  // portion of the URL that was requested.
+  // Example: `"http://example.com/some/info?color=red"` or `"http://google.com"`.
+  // Must be within the VPC environment to succeed.
+  string request_url = 2;
+
+  // Request headers to be added into the request.
+  map<string, string> request_headers = 3;
+}
+
+message GetTagsByResourceNameConfig {
+  string resource_name = 1;
+}
+
+message GetCurrentInstanceResourceNameConfig {}
+
+message GetBlobConfig {
+  string bucket_name = 1;
+  string blob_name = 2;
+}
+
+message ListBlobsMetadataConfig {
+  string bucket_name = 1;
+}
+
+message GetParameterConfig {
+  string parameter_name = 1;
+}
+
+message EnqueueMessageConfig {
+  string message_body = 1;
+}
+
+message GetTopMessageConfig {}
+
+message FetchPrivateKeyConfig {
+  string key_id = 1;
+  string private_key_vending_service_endpoint = 2;
+  string service_region = 3;
+  string account_identity = 4;
+}

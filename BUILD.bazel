@@ -25,7 +25,7 @@ string_flag(
         "gcp",
         "local",
     ],
-    visibility = ["//scp/cc:__subpackages__"],
+    visibility = ["//src:__subpackages__"],
 )
 
 config_setting(
@@ -69,7 +69,7 @@ string_flag(
         "gcp",
         "local",
     ],
-    visibility = ["//scp/cc:__subpackages__"],
+    visibility = ["//src:__subpackages__"],
 )
 
 config_setting(
@@ -155,4 +155,20 @@ gazelle_binary(
 gazelle(
     name = "gazelle",
     gazelle = ":gazelle-buf",
+)
+
+gazelle(
+    name = "update-buf-deps",
+    args = [
+        "-from_file=buf.work.yaml",
+        "-to_macro=deps.bzl%buf_deps",
+        "-prune",
+    ],
+    command = "update-repos",
+    gazelle = ":gazelle-buf",
+)
+
+filegroup(
+    name = "clang_tidy_config",
+    srcs = [".clang-tidy"],
 )

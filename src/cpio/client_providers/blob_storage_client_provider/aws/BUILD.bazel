@@ -1,0 +1,91 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "aws_blob_storage_client_provider",
+    srcs = [":aws_blob_storage_client_provider_srcs"],
+    deps = [
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/blob_storage_client_provider/common:blob_storage_provider_common",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/common/aws:aws_utils",
+        "//src/public/cpio/interface/blob_storage_client:type_def",
+        "@aws_sdk_cpp//:core",
+        "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/functional:bind_front",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+exports_files([
+    "aws_blob_storage_client_provider.h",
+    "aws_blob_storage_client_provider.cc",
+    "aws_blob_storage_client_utils.h",
+])
+
+filegroup(
+    name = "aws_blob_storage_client_provider_srcs",
+    srcs = [
+        ":aws_blob_storage_client_provider.cc",
+        ":aws_blob_storage_client_provider.h",
+        ":aws_blob_storage_client_utils.h",
+    ],
+)
+
+cc_test(
+    name = "aws_blob_storage_client_provider_test",
+    size = "small",
+    srcs = [
+        "aws_blob_storage_client_provider_stream_test.cc",
+        "aws_blob_storage_client_provider_test.cc",
+        "aws_blob_storage_client_utils_test.cc",
+        "mock_s3_client.h",
+    ],
+    deps = [
+        ":aws_blob_storage_client_provider",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/async_executor/mock:core_async_executor_mock",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
+        "//src/public/core:test_execution_result_matchers",
+        "@aws_sdk_cpp//:core",
+        "@aws_sdk_cpp//:s3",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "test_aws_blob_storage_client_provider",
+    srcs = [
+        "test_aws_blob_storage_client_provider.cc",
+        ":aws_blob_storage_client_provider_srcs",
+    ],
+    hdrs = [
+        "test_aws_blob_storage_client_provider.h",
+    ],
+    deps = [
+        ":aws_blob_storage_client_provider",
+        "//src/cpio/common/aws:test_aws_utils",
+        "//src/public/cpio/test/blob_storage_client:test_aws_blob_storage_client_options",
+    ],
+)
