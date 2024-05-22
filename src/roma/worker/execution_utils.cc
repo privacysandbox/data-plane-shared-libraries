@@ -24,6 +24,7 @@
 #include <vector>
 
 #include "absl/strings/str_split.h"
+#include "src/util/status_macro/status_builder.h"
 #include "src/util/status_macro/status_macros.h"
 
 using google::scp::roma::wasm::RomaWasmListOfStringRepresentation;
@@ -46,7 +47,7 @@ constexpr std::string_view kRegisteredWasmExports = "RomaRegisteredWasmExports";
 }  // namespace
 
 absl::Status ExecutionUtils::CompileRunJS(
-    std::string_view js, std::string& err_msg,
+    std::string_view js,
     absl::Nullable<v8::Local<v8::UnboundScript>*> unbound_script) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
@@ -58,9 +59,10 @@ absl::Status ExecutionUtils::CompileRunJS(
           .ToLocalChecked();
   v8::Local<v8::Script> script;
   if (!v8::Script::Compile(context, js_source).ToLocal(&script)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InvalidArgumentError(
-        "Failed to compile JavaScript code object.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InvalidArgumentError("Failed to compile JavaScript code object"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   if (unbound_script) {
@@ -69,16 +71,17 @@ absl::Status ExecutionUtils::CompileRunJS(
 
   v8::Local<v8::Value> script_result;
   if (!script->Run(context).ToLocal(&script_result)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InvalidArgumentError("Failed to run JavaScript code object.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InvalidArgumentError("Failed to run JavaScript code object"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   return absl::OkStatus();
 }
 
 absl::Status ExecutionUtils::GetJsHandler(std::string_view handler_name,
-                                          v8::Local<v8::Value>& handler,
-                                          std::string& err_msg) {
+                                          v8::Local<v8::Value>& handler) {
   if (handler_name.empty()) {
     return absl::InvalidArgumentError("Handler name cannot be empty");
   }
@@ -95,21 +98,24 @@ absl::Status ExecutionUtils::GetJsHandler(std::string_view handler_name,
     // If there is no handler function, or if it is not a function,
     // bail out
     if (!ctx->Get(context, local_name).ToLocal(&handler)) {
-      err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-      return absl::InvalidArgumentError("Invalid handler function");
+      privacy_sandbox::server_common::StatusBuilder builder(
+          absl::InvalidArgumentError("Invalid handler function"));
+      builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+      return builder;
     }
     (void)handler->ToObject(context).ToLocal(&ctx);
   }
   if (!handler->IsFunction()) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::NotFoundError("Failed to get valid function handler.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::NotFoundError("Failed to get valid function handler"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   return absl::OkStatus();
 }
 
-absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
-                                            std::string& err_msg) {
+absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::HandleScope handle_scope(isolate);
   v8::TryCatch try_catch(isolate);
@@ -121,8 +127,10 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
           reinterpret_cast<const unsigned char*>(wasm.data()), wasm.length()));
   v8::Local<v8::WasmModuleObject> wasm_module;
   if (!module_maybe.ToLocal(&wasm_module)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InvalidArgumentError("Failed to compile wasm object.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InvalidArgumentError("Failed to compile wasm object"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   v8::Local<v8::Value> web_assembly;
@@ -133,8 +141,10 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
                                          kWebAssemblyTag.size())
                      .ToLocalChecked())
            .ToLocal(&web_assembly)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InternalError("Failed to create wasm assembly.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InternalError("Failed to create wasm assembly"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   v8::Local<v8::Value> wasm_instance;
@@ -144,8 +154,10 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
                                                   kInstanceTag.size())
                               .ToLocalChecked())
            .ToLocal(&wasm_instance)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InternalError("Failed to create wasm instance.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InternalError("Failed to create wasm instance"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   auto wasm_imports = ExecutionUtils::GenerateWasmImports(isolate);
@@ -155,8 +167,10 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
   if (!wasm_instance.As<v8::Object>()
            ->CallAsConstructor(context, 2, instance_args)
            .ToLocal(&wasm_construct)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InternalError("Failed to create wasm construct.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InternalError("Failed to create wasm construct"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   v8::Local<v8::Value> wasm_exports;
@@ -166,8 +180,10 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
                                                   kExportsTag.size())
                               .ToLocalChecked())
            .ToLocal(&wasm_exports)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InternalError("Failed to create wasm exports.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InternalError("Failed to create wasm exports"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   // Register wasm_exports object in context.
@@ -179,16 +195,17 @@ absl::Status ExecutionUtils::CompileRunWASM(std::string_view wasm,
                      .ToLocalChecked(),
                  wasm_exports)
            .ToChecked()) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InternalError("Failed to register wasm objects in context.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InternalError("Failed to register wasm objects in context"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   return absl::OkStatus();
 }
 
 absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
-                                            v8::Local<v8::Value>& handler,
-                                            std::string& err_msg) {
+                                            v8::Local<v8::Value>& handler) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -202,8 +219,10 @@ absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
                                          kRegisteredWasmExports.size())
                      .ToLocalChecked())
            .ToLocal(&wasm_exports)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::NotFoundError("Failed to retrieve wasm exports.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::NotFoundError("Failed to retrieve wasm exports"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   // Fetch out the handler name from code object.
@@ -217,8 +236,10 @@ absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
            ->Get(context, local_name)
            .ToLocal(&handler) ||
       !handler->IsFunction()) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return absl::InvalidArgumentError("Failed to get valid function handler.");
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InvalidArgumentError("Failed to get valid function handler"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
   return absl::OkStatus();
@@ -226,8 +247,7 @@ absl::Status ExecutionUtils::GetWasmHandler(std::string_view handler_name,
 
 absl::Status ExecutionUtils::CreateUnboundScript(
     v8::Global<v8::UnboundScript>& unbound_script,
-    absl::Nonnull<v8::Isolate*> isolate, std::string_view js,
-    std::string& err_msg) {
+    absl::Nonnull<v8::Isolate*> isolate, std::string_view js) {
   v8::Isolate::Scope isolate_scope(isolate);
   v8::HandleScope handle_scope(isolate);
 
@@ -235,8 +255,7 @@ absl::Status ExecutionUtils::CreateUnboundScript(
   v8::Context::Scope context_scope(context);
 
   v8::Local<v8::UnboundScript> local_unbound_script;
-  PS_RETURN_IF_ERROR(
-      ExecutionUtils::CompileRunJS(js, err_msg, &local_unbound_script));
+  PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js, &local_unbound_script));
 
   // Store unbound_script_ in a Global handle in isolate.
   unbound_script.Reset(isolate, local_unbound_script);
@@ -244,9 +263,8 @@ absl::Status ExecutionUtils::CreateUnboundScript(
   return absl::OkStatus();
 }
 
-bool ExecutionUtils::BindUnboundScript(
-    const v8::Global<v8::UnboundScript>& global_unbound_script,
-    std::string& err_msg) {
+absl::Status ExecutionUtils::BindUnboundScript(
+    const v8::Global<v8::UnboundScript>& global_unbound_script) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
@@ -258,11 +276,13 @@ bool ExecutionUtils::BindUnboundScript(
   v8::Local<v8::Value> script_result;
   if (!unbound_script->BindToCurrentContext()->Run(context).ToLocal(
           &script_result)) {
-    err_msg = ExecutionUtils::DescribeError(isolate, &try_catch);
-    return false;
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InvalidArgumentError("Failed to bind unbound script"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
   }
 
-  return true;
+  return absl::OkStatus();
 }
 
 v8::Local<v8::Value> ExecutionUtils::GetWasmMemoryObject(
@@ -581,9 +601,8 @@ v8::Local<v8::Value> ExecutionUtils::ReadFromWasmMemory(
   return ret_val;
 }
 
-bool ExecutionUtils::V8PromiseHandler(absl::Nonnull<v8::Isolate*> isolate,
-                                      v8::Local<v8::Value>& result,
-                                      std::string& err_msg) {
+absl::Status ExecutionUtils::V8PromiseHandler(
+    absl::Nonnull<v8::Isolate*> isolate, v8::Local<v8::Value>& result) {
   // We don't need a callback handler for now. The default handler will wrap
   // the successful result of Promise::kFulfilled and the exception message of
   // Promise::kRejected.
@@ -598,13 +617,15 @@ bool ExecutionUtils::V8PromiseHandler(absl::Nonnull<v8::Isolate*> isolate,
     // Extract the exception message from a rejected promise.
     const v8::Local<v8::Message> message =
         v8::Exception::CreateMessage(isolate, promise->Result());
-    err_msg = ExecutionUtils::ExtractMessage(isolate, message);
+    privacy_sandbox::server_common::StatusBuilder builder(absl::InternalError(
+        "The code object async function execution failed."));
+    builder << ExecutionUtils::ExtractMessage(isolate, message);
     promise->MarkAsHandled();
-    return false;
+    return builder;
   }
 
   result = promise->Result();
-  return true;
+  return absl::OkStatus();
 }
 
 }  // namespace google::scp::roma::worker

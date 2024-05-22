@@ -2067,5 +2067,40 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
+TEST(SandboxedServiceTest, CompilationFailureReturnsDetailedError) {
+  Config config;
+  config.number_of_workers = 1;
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::string result;
+
+  // Load v1
+  {
+    absl::Notification load_finished;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Since 'apples' is not defined, the statement 'console.log(apples)'
+        // should cause a compilation error.
+        .js = R"JS_CODE(console.log(apples)
+function Handler(input) { return "version 1"; }
+    )JS_CODE",
+    });
+
+    EXPECT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_EQ(resp.status().code(),
+                                             absl::StatusCode::kInternal);
+                                   EXPECT_THAT(
+                                       resp.status().message(),
+                                       HasSubstr("Uncaught ReferenceError: "
+                                                 "apples is not defined"));
+                                 })
+                    .ok());
+  }
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
 }  // namespace
 }  // namespace google::scp::roma::test
