@@ -148,8 +148,12 @@ TEST(WasmTest, ReportsWasmStacktrace) {
                 std::move(execution_obj),
                 [&](absl::StatusOr<ResponseObject> resp) {
                   EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
-                  EXPECT_THAT(resp.status().message(),
-                              HasSubstr("Uncaught RuntimeError: unreachable"));
+                  EXPECT_THAT(
+                      resp.status().message(),
+                      // Since abort() causes the code to terminate
+                      // unexpectedly, it throws a runtime error: unreachable.
+                      // https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Control_flow/unreachable
+                      HasSubstr("Uncaught RuntimeError: unreachable"));
                   execute_finished.Notify();
                 })
             .ok());

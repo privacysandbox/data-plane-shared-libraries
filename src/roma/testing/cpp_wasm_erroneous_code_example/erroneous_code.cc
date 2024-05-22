@@ -16,7 +16,4 @@
 
 // Extern C to avoid name mangling of the Handler, so we can get a predictable
 // name
-extern "C" int Handler() {
-  abort();
-  return 0;
-}
+extern "C" int Handler() { abort(); }
