@@ -23,7 +23,7 @@ using ::testing::IsEmpty;
 using ::testing::StrEq;
 
 TEST_F(ConsentedLogTest, LogNotConsented) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       mismatched_token_);
   SetServerTokenForTestOnly(kServerToken);
@@ -34,7 +34,7 @@ TEST_F(ConsentedLogTest, LogNotConsented) {
 }
 
 TEST_F(ConsentedLogTest, LogConsented) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       matched_token_);
   SetServerTokenForTestOnly(kServerToken);
@@ -49,7 +49,7 @@ TEST_F(ConsentedLogTest, LogConsented) {
 }
 
 TEST_F(ConsentedLogTest, LogSeverityWarn) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly(kServerToken);
 
@@ -61,7 +61,7 @@ TEST_F(ConsentedLogTest, LogSeverityWarn) {
 }
 
 TEST_F(ConsentedLogTest, LogSeverityError) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly(kServerToken);
 
@@ -73,7 +73,7 @@ TEST_F(ConsentedLogTest, LogSeverityError) {
 
 TEST_F(DebugResponseTest, NotLoggedInProd) {
   // mismatched_token_ doesn't log
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       mismatched_token_, [this]() {
         accessed_debug_info_ = true;
@@ -84,7 +84,7 @@ TEST_F(DebugResponseTest, NotLoggedInProd) {
   EXPECT_FALSE(accessed_debug_info_);
 
   // matched_token_ doesn't log
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}}, matched_token_,
       [this]() {
         accessed_debug_info_ = true;
@@ -97,7 +97,7 @@ TEST_F(DebugResponseTest, NotLoggedInProd) {
   EXPECT_FALSE(accessed_debug_info_);
 
   // debug_info turned on, but doesn't log
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       debug_info_config_, [this]() {
         accessed_debug_info_ = true;
@@ -105,6 +105,23 @@ TEST_F(DebugResponseTest, NotLoggedInProd) {
       });
   SetServerTokenForTestOnly(kServerToken);
   PS_VLOG(kMaxV, *test_instance_) << kLogContent;
+  EXPECT_FALSE(accessed_debug_info_);
+}
+
+TEST_F(DebugResponseTest, EventMessage) {
+  // debug_info turned on, but doesn't store EventMessage
+  {
+    auto test_instance_event_message =
+        std::make_unique<ContextImpl<LogContext>>(
+            absl::btree_map<std::string, std::string>{{"id", "1234"}},
+            debug_info_config_, [this]() {
+              accessed_debug_info_ = true;
+              return &debug_info_;
+            });
+    test_instance_event_message->event_message().set_adtech_debug_id(
+        "test adtech id");
+    EXPECT_FALSE(accessed_debug_info_);
+  }
   EXPECT_FALSE(accessed_debug_info_);
 }
 
@@ -130,9 +147,9 @@ TEST_F(ConsentedLogTest, NotConsented) {
   EXPECT_FALSE(ContextImpl({}, ConsentedDebugConfiguration()).is_consented());
 
   // no client token
-  test_instance_ =
-      std::make_unique<ContextImpl>(absl::btree_map<std::string, std::string>{},
-                                    ConsentedDebugConfiguration());
+  test_instance_ = std::make_unique<ContextImpl<>>(
+      absl::btree_map<std::string, std::string>{},
+      ConsentedDebugConfiguration());
   SetServerTokenForTestOnly(kServerToken);
   EXPECT_FALSE(test_instance_->is_consented());
 
@@ -141,45 +158,45 @@ TEST_F(ConsentedLogTest, NotConsented) {
     is_consented: true
     token: ""
   )pb");
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, empty_client_token);
   SetServerTokenForTestOnly("");
   EXPECT_FALSE(test_instance_->is_consented());
 
   // empty client token, valid server token
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, empty_client_token);
   SetServerTokenForTestOnly(kServerToken);
   EXPECT_FALSE(test_instance_->is_consented());
 
   // valid client token, empty server token
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly("");
   EXPECT_FALSE(test_instance_->is_consented());
 
   // mismatch
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, mismatched_token_);
   SetServerTokenForTestOnly(kServerToken);
   EXPECT_FALSE(test_instance_->is_consented());
 }
 
 TEST_F(ConsentedLogTest, ConsentRevocation) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly(kServerToken);
   EXPECT_TRUE(test_instance_->is_consented());
 
   matched_token_.set_is_consented(false);
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly(kServerToken);
   EXPECT_FALSE(test_instance_->is_consented());
 }
 
 TEST_F(ConsentedLogTest, Update) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly(kServerToken);
   EXPECT_TRUE(test_instance_->is_consented());
@@ -192,7 +209,7 @@ TEST_F(ConsentedLogTest, Update) {
 }
 
 TEST_F(ConsentedLogTest, LogWithDynamicSeverities) {
-  test_instance_ = std::make_unique<ContextImpl>(
+  test_instance_ = std::make_unique<ContextImpl<>>(
       absl::btree_map<std::string, std::string>{}, matched_token_);
   SetServerTokenForTestOnly(kServerToken);
 

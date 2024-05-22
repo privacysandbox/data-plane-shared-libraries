@@ -80,7 +80,7 @@ class ConsentedLogTest : public test::LogTest {
   }
 
   std::unique_ptr<logs_api::LoggerProvider> logger_;
-  std::unique_ptr<ContextImpl> test_instance_;
+  std::unique_ptr<ContextImpl<>> test_instance_;
   ConsentedDebugConfiguration matched_token_, mismatched_token_;
 
   const std::string_view kServerToken = "server_tok";
