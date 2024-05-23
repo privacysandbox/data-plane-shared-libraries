@@ -76,6 +76,17 @@ std::string FormatContext(
 
 opentelemetry::logs::Severity ToOtelSeverity(absl::LogSeverity);
 
+void AddEventMessage(const ::google::protobuf::Message& msg,
+                     absl::AnyInvocable<DebugInfo*()>& debug_info);
+
+bool IsProd();
+
+// EventMessageProvider has following interface:
+// 1. ::google::protobuf::Message Get()
+//  this return the proto message to export
+// 2. void Set (const T& field)
+//  this sets one of its field
+template <typename EventMessageProvider = std::nullptr_t>
 class ContextImpl final : public PSLogContext {
  public:
   ContextImpl(
@@ -107,6 +118,23 @@ class ContextImpl final : public PSLogContext {
     consented_sink.client_debug_token_ =
         debug_config.is_consented() ? debug_config.token() : "";
     debug_response_sink_.should_log_ = debug_config.is_debug_info_in_response();
+  }
+
+  template <typename T>
+  void SetEventMessageField(const T& field) {
+    if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
+      if (is_debug_response() && !IsProd()) {
+        provider_.Set(field);
+      }
+    }
+  }
+
+  void ExportEventMessage() {
+    if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
+      if (is_debug_response()) {
+        AddEventMessage(provider_.Get(), debug_response_sink_.debug_info_);
+      }
+    }
   }
 
  private:
@@ -159,6 +187,7 @@ class ContextImpl final : public PSLogContext {
   std::string context_;
   ConsentedSinkImpl consented_sink;
   DebugResponseSinkImpl debug_response_sink_;
+  EventMessageProvider provider_;
 };
 
 // Defines SafePathContext class to always log to otel for safe code path
