@@ -108,7 +108,6 @@ alias(
         name = "request_context_impl_{}".format(flavor),
         srcs = [
             "request_context_impl.cc",
-            "request_context_impl_{}.cc".format(flavor),
         ],
         hdrs = ["request_context_impl.h"],
         deps = [

@@ -76,10 +76,6 @@ std::string FormatContext(
 
 opentelemetry::logs::Severity ToOtelSeverity(absl::LogSeverity);
 
-void AddEventMessage(const ::google::protobuf::Message& msg,
-                     absl::AnyInvocable<DebugInfo*()> debug_info);
-
-template <typename EventMessageT = std::nullptr_t>
 class ContextImpl final : public PSLogContext {
  public:
   ContextImpl(
@@ -92,14 +88,6 @@ class ContextImpl final : public PSLogContext {
   }
 
   // note: base class PSLogContext has no virtual destructor!
-  virtual ~ContextImpl() {
-    if constexpr (std::is_same_v<std::nullptr_t, EventMessageT>) {
-      return;
-    } else {
-      AddEventMessage(event_message_,
-                      std::move(debug_response_sink_.debug_info_));
-    }
-  }
 
   std::string_view ContextStr() const override { return context_; }
 
@@ -120,8 +108,6 @@ class ContextImpl final : public PSLogContext {
         debug_config.is_consented() ? debug_config.token() : "";
     debug_response_sink_.should_log_ = debug_config.is_debug_info_in_response();
   }
-
-  EventMessageT& event_message() { return event_message_; }
 
  private:
   friend class ConsentedLogTest;
@@ -173,7 +159,6 @@ class ContextImpl final : public PSLogContext {
   std::string context_;
   ConsentedSinkImpl consented_sink;
   DebugResponseSinkImpl debug_response_sink_;
-  EventMessageT event_message_;
 };
 
 // Defines SafePathContext class to always log to otel for safe code path

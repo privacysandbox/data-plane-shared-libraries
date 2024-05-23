@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "src/core/test/utils/proto_test_utils.h"
 #include "src/logger/request_context_impl_test.h"
 
 namespace privacy_sandbox::server_common::log {
 namespace {
 
-using google::scp::core::test::EqualsProto;
 using ::testing::ContainsRegex;
 using ::testing::IsEmpty;
 
 TEST_F(ConsentedLogTest, LogNotConsented) {
-  test_instance_ = std::make_unique<ContextImpl<>>(
+  test_instance_ = std::make_unique<ContextImpl>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       mismatched_token_);
   SetServerTokenForTestOnly(kServerToken);
@@ -35,7 +33,7 @@ TEST_F(ConsentedLogTest, LogNotConsented) {
 }
 
 TEST_F(ConsentedLogTest, LogConsented) {
-  test_instance_ = std::make_unique<ContextImpl<>>(
+  test_instance_ = std::make_unique<ContextImpl>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       matched_token_);
   SetServerTokenForTestOnly(kServerToken);
@@ -48,7 +46,7 @@ TEST_F(ConsentedLogTest, LogConsented) {
 
 TEST_F(DebugResponseTest, NotLoggedIfNotSet) {
   // mismatched_token_ does not log debug info
-  test_instance_ = std::make_unique<ContextImpl<>>(
+  test_instance_ = std::make_unique<ContextImpl>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       mismatched_token_, [this]() {
         accessed_debug_info_ = true;
@@ -59,7 +57,7 @@ TEST_F(DebugResponseTest, NotLoggedIfNotSet) {
   EXPECT_FALSE(accessed_debug_info_);
 
   // matched_token_ does not log debug info
-  test_instance_ = std::make_unique<ContextImpl<>>(
+  test_instance_ = std::make_unique<ContextImpl>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}}, matched_token_,
       [this]() {
         accessed_debug_info_ = true;
@@ -72,7 +70,7 @@ TEST_F(DebugResponseTest, NotLoggedIfNotSet) {
 
 TEST_F(DebugResponseTest, LoggedIfSet) {
   // debug_info turned on, then log
-  test_instance_ = std::make_unique<ContextImpl<>>(
+  test_instance_ = std::make_unique<ContextImpl>(
       absl::btree_map<std::string, std::string>{{"id", "1234"}},
       debug_info_config_, [this]() {
         accessed_debug_info_ = true;
@@ -103,28 +101,6 @@ TEST_F(DebugResponseTest, LoggedIfSet) {
   PS_VLOG(kMaxV, *test_instance_) << kLogContent;
   EXPECT_THAT(debug_info_.logs(), ElementsAre(ContainsRegex(absl::StrCat(
                                       "\\(id: 1234\\)[ \t]+", kLogContent))));
-}
-
-TEST_F(DebugResponseTest, EventMessage) {
-  // debug_info turned on, it will store EventMessage
-  LogContext blob;
-  blob.set_adtech_debug_id("test id");
-  blob.set_generation_id("12345");
-  {
-    auto test_instance_event_message =
-        std::make_unique<ContextImpl<LogContext>>(
-            absl::btree_map<std::string, std::string>{{"id", "1234"}},
-            debug_info_config_, [this]() {
-              accessed_debug_info_ = true;
-              return &debug_info_;
-            });
-    test_instance_event_message->event_message() = blob;
-    EXPECT_FALSE(accessed_debug_info_);
-  }
-  EXPECT_TRUE(accessed_debug_info_);
-  LogContext unpacked_blob;
-  debug_info_.event_message().UnpackTo(&unpacked_blob);
-  EXPECT_THAT(blob, EqualsProto(unpacked_blob));
 }
 
 TEST_F(SafePathLogTest, LogMessage) {
