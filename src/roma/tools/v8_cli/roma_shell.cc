@@ -135,10 +135,12 @@ void Execute(RomaService<>* roma_service,
   std::vector<std::string> input;
   std::transform(tokens.begin() + 2, tokens.end(), std::back_inserter(input),
                  [](std::string s) { return absl::StrCat("\"", s, "\""); });
-  InvocationStrRequest<> execution_object = {.id = uuid_str,
-                                             .version_string = tokens[0],
-                                             .handler_name = tokens[1],
-                                             .input = input};
+  InvocationStrRequest<> execution_object = {
+      .id = uuid_str,
+      .version_string = tokens[0],
+      .handler_name = tokens[1],
+      .input = input,
+  };
   LOG(INFO) << "ExecutionObject:\nid: " << execution_object.id
             << "\nversion_string: " << execution_object.version_string
             << "\nhandler_name: " << execution_object.handler_name
@@ -171,14 +173,13 @@ void Execute(RomaService<>* roma_service,
 
 // The read-eval-execute loop of the shell.
 void RunShell(const std::vector<std::string>& v8_flags) {
-  std::vector<std::string> formatted_v8_flags;
-  std::transform(
-      v8_flags.begin(), v8_flags.end(), std::back_inserter(formatted_v8_flags),
-      [](const std::string& s) { return absl::StrCat(kFlagPrefix, s); });
   using RomaService = RomaService<>;
   RomaService::Config config;
-  std::vector<std::string>& config_flags = config.SetV8Flags();
-  config_flags = formatted_v8_flags;
+  config.SetV8Flags() = v8_flags;
+  LOG(INFO) << "V8 flags: "
+            << (config.GetV8Flags().empty()
+                    ? "<none>"
+                    : absl::StrJoin(config.GetV8Flags(), " "));
   auto logging_fn = [](absl::LogSeverity severity,
                        const RomaService::TMetadata& metadata,
                        std::string_view msg) {
@@ -227,19 +228,30 @@ int main(int argc, char* argv[]) {
   absl::InitializeLog();
   absl::SetProgramUsageMessage(
       "Opens a shell to allow for basic usage of the RomaService client to "
-      "load and execute UDFs.");
+      "load and execute UDFs. V8 flags are recognized. V8 flags with an "
+      "associated value must be specified using the form --flag=value eg. "
+      "--initial-heap-size=50.");
 
   std::vector<std::string> v8_flags;
+  // Sanitized V8 flags to be passed to the RomaService.
+  std::vector<std::string> sanitized_v8_flags;
   absl::flat_hash_set<std::string> processed_flags;
   for (int i = 1; i < argc; i++) {
-    if (!processed_flags.contains(argv[i]) &&
-        !absl::StartsWith(argv[i], "--num_workers") &&
-        !absl::StartsWith(argv[i], "--verbose")) {
-      processed_flags.insert(argv[i]);
-      v8_flags.push_back(argv[i] + kFlagPrefix.length());
+    std::string_view flag = argv[i];
+    std::string_view flag_clean = flag;
+    if (const size_t eq_pos = flag_clean.find('='); eq_pos != flag_clean.npos) {
+      flag_clean.remove_suffix(flag_clean.size() - eq_pos);
+    }
+    flag_clean.remove_prefix(kFlagPrefix.size());
+    if (!processed_flags.contains(flag_clean) &&
+        !absl::StartsWith(flag, "--num_workers") &&
+        !absl::StartsWith(flag, "--verbose")) {
+      processed_flags.insert(std::string(flag_clean));
+      sanitized_v8_flags.push_back(std::string(flag_clean));
+      v8_flags.push_back(std::string(flag));
     }
   }
-  absl::SetFlag(&FLAGS_undefok, v8_flags);
+  absl::SetFlag(&FLAGS_undefok, sanitized_v8_flags);
 
   absl::ParseCommandLine(argc, argv);
   absl::SetStderrThreshold(absl::GetFlag(FLAGS_verbose)
