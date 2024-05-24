@@ -706,4 +706,22 @@ TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessage) {
       HasSubstr("Error when invoking the handler. Uncaught Error: throw!"));
   engine.Stop();
 }
+
+TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessageTopLevelThrow) {
+  V8JsEngine engine = CreateEngine();
+  engine.Run();
+
+  constexpr std::string_view js_code = R"JS_CODE(
+      throw new Error("top-level throw!");
+    )JS_CODE";
+  const auto response_or =
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{});
+
+  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInvalidArgument);
+  EXPECT_THAT(response_or.status().message(),
+              HasSubstr("Failed to run JavaScript code object; line 2: "
+                        "Uncaught Error: top-level throw!"));
+  engine.Stop();
+}
+
 }  // namespace google::scp::roma::sandbox::js_engine::test
