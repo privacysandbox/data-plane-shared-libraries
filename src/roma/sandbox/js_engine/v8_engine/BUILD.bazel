@@ -20,9 +20,7 @@ cc_library(
         "//:non_prod_build": ["performance_now_nonprod.cc"],
         "//conditions:default": ["performance_now_prod.cc"],
     }),
-    hdrs = [
-        "performance_now.h",
-    ],
+    hdrs = ["performance_now.h"],
     deps = [
         "//src/util:duration",
         "@com_google_absl//absl/time",
@@ -82,9 +80,7 @@ cc_library(
 
 cc_library(
     name = "snapshot_compilation_context",
-    hdrs = [
-        "snapshot_compilation_context.h",
-    ],
+    hdrs = ["snapshot_compilation_context.h"],
     deps = [
         ":v8_isolate_wrapper",
         "//src/roma/sandbox/js_engine",
@@ -95,9 +91,7 @@ cc_library(
 cc_library(
     name = "v8_js_engine",
     srcs = ["v8_js_engine.cc"],
-    hdrs = [
-        "v8_js_engine.h",
-    ],
+    hdrs = ["v8_js_engine.h"],
     copts = [
         "-Wno-macro-redefined",  # v8 and absl define redundant log macros
         "-Wno-unused-variable",
@@ -183,7 +177,7 @@ cc_test(
 cc_test(
     name = "v8_basic",
     size = "small",
-    srcs = ["v8_basic.cc"],
+    srcs = ["v8_basic_test.cc"],
     deps = [
         "//src/util:process_util",
         "@com_google_absl//absl/log:check",
