@@ -67,7 +67,7 @@ TEST_F(V8JsEngineTest, CanRunJsCode) {
       R"("vec input 2")",
   };
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "hello_js", input, /*metadata=*/{});
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
   EXPECT_THAT(response_string,
@@ -100,7 +100,7 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseExplicitly) {
       }
     )JS_CODE";
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{});
 
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
@@ -134,7 +134,7 @@ TEST_F(V8JsEngineTest, CanRunAsyncJsCodeReturningPromiseImplicitly) {
       }
     )JS_CODE";
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{});
 
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
@@ -169,7 +169,7 @@ TEST_F(V8JsEngineTest, CanHandlePromiseRejectionInAsyncJs) {
     )JS_CODE";
 
   EXPECT_EQ(
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{})
           .status()
           .code(),
       absl::StatusCode::kInternal);
@@ -186,7 +186,7 @@ TEST_F(V8JsEngineTest, CanHandleCompilationFailures) {
       R"("vec input 2")",
   };
   const auto response_or =
-      engine.CompileAndRunJs(invalid_js, "hello_js", input, {} /*metadata*/);
+      engine.CompileAndRunJs(invalid_js, "hello_js", input, /*metadata=*/{});
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInvalidArgument);
   engine.Stop();
@@ -207,7 +207,7 @@ TEST_F(V8JsEngineTest, CanRunCodeRequestWithJsonInput) {
       R"({"value":2})",
   };
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "Handler", input, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "Handler", input, /*metadata=*/{});
 
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
@@ -230,7 +230,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputIsBadJsonInput) {
       R"({"value":2})",
   };
   EXPECT_EQ(
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{})
           .status()
           .code(),
       absl::StatusCode::kInternal);
@@ -254,7 +254,7 @@ TEST_F(V8JsEngineTest, ShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
 
   // Empty handler
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "", input, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "", input, /*metadata=*/{});
 
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
@@ -279,7 +279,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfInputCannotBeParsed) {
   };
 
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "hello_js", input, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "hello_js", input, /*metadata=*/{});
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   engine.Stop();
@@ -300,7 +300,7 @@ TEST_F(V8JsEngineTest, ShouldFailIfHandlerIsNotFound) {
       R"("vec input 2")",
   };
   EXPECT_EQ(
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/)
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{})
           .status()
           .code(),
       absl::StatusCode::kNotFound);
@@ -318,7 +318,7 @@ TEST_F(V8JsEngineTest, CanRunWasmCode) {
       reinterpret_cast<const char*>(wasm_bin.data()), wasm_bin.size());
   std::vector<std::string_view> input = {R"("Some input string")"};
   const auto response_or =
-      engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
+      engine.CompileAndRunWasm(wasm_code, "Handler", input, /*metadata=*/{});
 
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
@@ -339,7 +339,7 @@ TEST_F(V8JsEngineTest, WasmShouldSucceedWithEmptyResponseIfHandlerNameIsEmpty) {
   std::vector<std::string_view> input = {R"("Some input string")"};
   // Empty handler
   const auto response_or =
-      engine.CompileAndRunWasm(wasm_code, "", input, {} /*metadata*/);
+      engine.CompileAndRunWasm(wasm_code, "", input, /*metadata=*/{});
 
   ASSERT_TRUE(response_or.ok());
   std::string_view response_string = response_or->execution_response.response;
@@ -359,7 +359,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfInputCannotBeParsed) {
   // Bad input
   std::vector<std::string_view> input = {R"("Some input string)"};
   const auto response_or =
-      engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
+      engine.CompileAndRunWasm(wasm_code, "Handler", input, /*metadata=*/{});
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   engine.Stop();
@@ -380,7 +380,7 @@ TEST_F(V8JsEngineTest, WasmShouldFailIfBadWasm) {
   // Bad input
   std::vector<std::string_view> input = {R"("Some input string")"};
   const auto response_or =
-      engine.CompileAndRunWasm(wasm_code, "Handler", input, {} /*metadata*/);
+      engine.CompileAndRunWasm(wasm_code, "Handler", input, /*metadata=*/{});
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInvalidArgument);
   engine.Stop();
@@ -698,7 +698,7 @@ TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessage) {
       }
     )JS_CODE";
   const auto response_or =
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
+      engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{});
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
   EXPECT_THAT(
