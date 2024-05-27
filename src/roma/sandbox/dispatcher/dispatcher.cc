@@ -159,18 +159,23 @@ void Dispatcher::ConsumerImpl(int i) {
       response.metrics[roma::sandbox::constants::
                            kExecutionMetricSandboxedJsEngineCallDuration] =
           std::move(run_code_duration);
-      for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
-        absl::StatusOr<absl::Duration> duration =
-            privacy_sandbox::server_common::DecodeGoogleApiProto(
-                proto_duration);
-        if (!duration.ok()) {
-          std::move(request).callback(std::move(duration).status());
+      absl::Status status = [&] {
+        for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
+          PS_ASSIGN_OR_RETURN(
+              response.metrics[std::move(key)],
+              privacy_sandbox::server_common::DecodeGoogleApiProto(
+                  proto_duration));
         }
-        response.metrics[std::move(key)] = std::move(duration).value();
+        return absl::OkStatus();
+      }();
+      if (!status.ok()) {
+        std::move(request).callback(std::move(status));
+      } else {
+        response.id =
+            std::move((*request.param.mutable_metadata())[kRequestId]);
+        response.resp = std::move(*request.param.mutable_response());
+        std::move(request).callback(std::move(response));
       }
-      response.id = std::move((*request.param.mutable_metadata())[kRequestId]);
-      response.resp = std::move(*request.param.mutable_response());
-      std::move(request).callback(std::move(response));
     }
   }
 }
