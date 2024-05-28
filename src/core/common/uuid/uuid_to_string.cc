@@ -94,7 +94,9 @@ std::string ToStringFn(
     AppendHex((uuid.high >> shift) & 0xFF, uuid_string);
     switch (shift) {
       case 32:
+        [[fallthrough]];
       case 16:
+        [[fallthrough]];
       case 0:
         absl::StrAppend(&uuid_string, "-");
         break;

@@ -79,6 +79,7 @@ FailureExecutionResult SqsErrorConverter::ConvertSqsError(
           SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO);
       break;
     case SQSErrors::INTERNAL_FAILURE:
+      [[fallthrough]];
     default:
       failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   }

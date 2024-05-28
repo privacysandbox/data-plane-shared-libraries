@@ -59,8 +59,9 @@ class GcpCloudStorageUtils {
       case google::cloud::StatusCode::kAborted:
         [[fallthrough]];
       case google::cloud::StatusCode::kFailedPrecondition:
-      // TODO: If kAlreadyExists can apply to blobs, then convert to
-      // BLOB_PATH_EXISTS
+        // TODO: If kAlreadyExists can apply to blobs, then convert to
+        // BLOB_PATH_EXISTS
+        [[fallthrough]];
       case google::cloud::StatusCode::kAlreadyExists:
         return core::RetryExecutionResult(
             errors::SC_BLOB_STORAGE_PROVIDER_RETRIABLE_ERROR);
