@@ -95,7 +95,9 @@ ExecutionResult FromString(std::string_view uuid_string, Uuid& uuid) noexcept {
     uuid.high |= (ReadHex(uuid_string, offset) << shift);
     switch (shift) {
       case 32:
+        [[fallthrough]];
       case 16:
+        [[fallthrough]];
       case 0:
         offset += 3;
         break;
