@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
-#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
+#define CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
 
 #include <cstdlib>
 #include <memory>
@@ -27,6 +27,8 @@
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/azure/azure_private_key_fetcher_provider_utils.h"
+#include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider_utils.h"
 
 namespace google::scp::cpio::client_providers {
 
@@ -35,8 +37,8 @@ namespace google::scp::cpio::client_providers {
 class AzureKmsClientProvider : public KmsClientProviderInterface {
  public:
   explicit AzureKmsClientProvider(
-      core::HttpClientInterface* http_client,
-      AuthTokenProviderInterface* auth_token_provider)
+      const std::shared_ptr<core::HttpClientInterface>& http_client,
+      const std::shared_ptr<AuthTokenProviderInterface>& auth_token_provider)
       : http_client_(http_client),
         auth_token_provider_(auth_token_provider),
         unwrap_url_() {}
@@ -52,7 +54,6 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
                          cmrt::sdk::kms_service::v1::DecryptResponse>&
           decrypt_context) noexcept override;
 
- private:
   /**
    * @brief Callback to pass token for decryption.
    *
@@ -79,15 +80,17 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
       core::AsyncContext<cmrt::sdk::kms_service::v1::DecryptRequest,
                          cmrt::sdk::kms_service::v1::DecryptResponse>&
           decrypt_context,
+      std::shared_ptr<EvpPkeyWrapper> ephemeral_private_key,
       core::AsyncContext<core::HttpRequest, core::HttpResponse>&
-          http_client_context) noexcept;
+          http_client_context
+      ) noexcept;
 
-  core::HttpClientInterface* http_client_;
+  std::shared_ptr<core::HttpClientInterface> http_client_;
   // Auth token provider.
-  AuthTokenProviderInterface* auth_token_provider_;
+  std::shared_ptr<AuthTokenProviderInterface> auth_token_provider_;
 
   std::string unwrap_url_;
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_KMS_CLIENT_PROVIDER_SRC_AZURE_AZURE_KMS_CLIENT_PROVIDER_H_
