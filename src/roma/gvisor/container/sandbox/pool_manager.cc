@@ -16,11 +16,15 @@
 
 #include <fcntl.h> /* Definition of O_* constants */
 #include <stdio.h>
+#include <string.h>
 #include <sys/mount.h>
+#include <sys/socket.h>
 #include <sys/syscall.h>
+#include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <filesystem>
@@ -42,6 +46,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include "src/util/status_macro/status_macros.h"
 
 namespace privacy_sandbox::server_common::gvisor {
@@ -128,26 +133,8 @@ struct WorkerArgs {
   absl::Span<const std::string> mounts;
   std::string_view pivot_root_dir;
   int* response_pipe;
+  int comms_fd;
 };
-
-std::vector<const char*> GetWorkerArgv(WorkerArgs* worker_args,
-                                       std::string_view response_pipe) {
-  std::vector<const char*> argv_vec(3, nullptr);
-  argv_vec[0] = worker_args->prog_path.data();
-  argv_vec[1] = response_pipe.data();
-  return argv_vec;
-}
-
-absl::StatusOr<std::string> SetupWorkerComms(WorkerArgs* worker_args) {
-  if (::dup2(worker_args->request_pipe[0], STDIN_FILENO) < 0) {
-    return absl::ErrnoToStatus(errno, "Failed to dup2 request pipe");
-  }
-  if (int response_pipe_dup = ::dup(worker_args->response_pipe[1]);
-      response_pipe_dup > -1) {
-    return absl::StrCat(response_pipe_dup);
-  }
-  return absl::ErrnoToStatus(errno, "Failed to dup response pipe");
-}
 
 int RunWorker(void* worker_arg) {
   WorkerArgs* worker_args = static_cast<WorkerArgs*>(worker_arg);
@@ -168,10 +155,21 @@ int RunWorker(void* worker_arg) {
   CHECK_OK(MountToDir(worker_args->pivot_root_dir, worker_args->mounts));
   CHECK_OK(SetupPivotRoot(worker_args->pivot_root_dir, worker_args->mounts,
                           worker_args->prog_path));
-  absl::StatusOr<std::string> response_pipe = SetupWorkerComms(worker_args);
-  CHECK(response_pipe.ok()) << response_pipe.status().message();
-  std::vector<const char*> argv =
-      GetWorkerArgv(worker_args, *std::move(response_pipe));
+  PCHECK(::dup2(worker_args->request_pipe[0], STDIN_FILENO) > -1)
+      << "Failed to dup2 request pipe";
+  const std::string response_pipe = [worker_args] {
+    const int response_pipe = ::dup(worker_args->response_pipe[1]);
+    PCHECK(response_pipe > -1) << "Failed to dup reponse pipe";
+    return absl::StrCat(response_pipe);
+  }();
+  const std::string comms_fd = [worker_args] {
+    const int comms_fd = ::dup(worker_args->comms_fd);
+    PCHECK(comms_fd > -1) << "Failed to dup comms fd";
+    return absl::StrCat(comms_fd);
+  }();
+  const std::vector<const char*> argv = {worker_args->prog_path.data(),
+                                         response_pipe.c_str(),
+                                         comms_fd.c_str(), nullptr};
   ::execve(worker_args->prog_path.data(), const_cast<char* const*>(argv.data()),
            nullptr);
   PLOG(ERROR) << "Failed to run '" << absl::StrJoin(argv, " ") << "'";
@@ -231,6 +229,11 @@ absl::Status ClearWorkerQueue(std::queue<WorkerInfo>& worker_queue) {
           errno, absl::StrCat("Failed to close in_pipe in destructor ",
                               worker_info.in_pipe));
     }
+    if (::close(worker_info.comms_fd) < 0) {
+      return absl::ErrnoToStatus(
+          errno, absl::StrCat("Failed to close comms socket ",
+                              worker_info.comms_fd, " on parent."));
+    }
   }
   return absl::OkStatus();
 }
@@ -238,10 +241,11 @@ absl::Status ClearWorkerQueue(std::queue<WorkerInfo>& worker_queue) {
 
 RomaGvisorPoolManager::RomaGvisorPoolManager(
     int worker_pool_size, absl::Span<const std::string> mounts,
-    std::string_view prog_dir)
+    std::string_view prog_dir, std::string_view callback_socket)
     : worker_pool_size_(worker_pool_size),
       mounts_(mounts),
-      prog_dir_(prog_dir) {}
+      prog_dir_(prog_dir),
+      callback_socket_(callback_socket) {}
 
 RomaGvisorPoolManager::~RomaGvisorPoolManager() {
   if (absl::Status status = ClearWorkerMap(); !status.ok()) {
@@ -275,6 +279,19 @@ absl::StatusOr<std::string> RomaGvisorPoolManager::LoadBinary(
   return std::string(code_token);
 }
 
+namespace {
+int ConnectToNamedSocketOrDie(std::string_view name) {
+  sockaddr_un sa;
+  ::memset(&sa, 0, sizeof(sa));
+  sa.sun_family = AF_UNIX;
+  ::strncpy(sa.sun_path, name.data(), sizeof(sa.sun_path));
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  PCHECK(fd != -1);
+  PCHECK(::connect(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)) == 0);
+  return fd;
+}
+}  // namespace
+
 absl::StatusOr<WorkerInfo> RomaGvisorPoolManager::CreateAndRunWorker(
     std::string_view prog_path) {
   char tmp_file[] = "/tmp/roma_app_server_XXXXXX";
@@ -287,8 +304,10 @@ absl::StatusOr<WorkerInfo> RomaGvisorPoolManager::CreateAndRunWorker(
   if (::pipe2(response_pipe, O_CLOEXEC) < 0) {
     return absl::ErrnoToStatus(errno, "Failed to create response pipe");
   }
+  const int comms_fd = ConnectToNamedSocketOrDie(callback_socket_);
   WorkerArgs worker_args = {
-      &request_pipe[0], prog_path, mounts_, pivot_root_dir, &response_pipe[0],
+      &request_pipe[0], prog_path,         mounts_,
+      pivot_root_dir,   &response_pipe[0], comms_fd,
   };
   char stack[kStackSize];
   pid_t pid = ::clone(RunWorker, stack + kStackSize,
@@ -313,6 +332,7 @@ absl::StatusOr<WorkerInfo> RomaGvisorPoolManager::CreateAndRunWorker(
       .in_pipe = request_pipe[1],
       .out_pipe = response_pipe[0],
       .pivot_root_dir = std::move(pivot_root_dir),
+      .comms_fd = comms_fd,
   };
 }
 
@@ -376,7 +396,26 @@ RomaGvisorPoolManager::SendRequestAndGetResponseFromWorker(
   if (code_token.empty()) {
     return absl::InvalidArgumentError("Expected non-empty code token");
   }
-  PS_ASSIGN_OR_RETURN(WorkerInfo worker_info, GetWorker(code_token));
+  PS_ASSIGN_OR_RETURN(const WorkerInfo worker_info, GetWorker(code_token));
+  Uuid uuid;
+
+  // TODO(gathuru): Set uuid from request args.
+  uuid.set_uuid("my_key");
+  if (!google::protobuf::util::SerializeDelimitedToFileDescriptor(
+          uuid, worker_info.comms_fd)) {
+    return absl::InternalError("Failed to send uuid to callback server.");
+  }
+  {
+    Ack ack;
+    google::protobuf::io::FileInputStream input(worker_info.comms_fd);
+    CHECK(google::protobuf::util::ParseDelimitedFromZeroCopyStream(&ack, &input,
+                                                                   nullptr));
+  }
+  if (::close(worker_info.comms_fd) < 0) {
+    return absl::ErrnoToStatus(
+        errno, absl::StrCat("Failed to close comms socket ",
+                            worker_info.comms_fd, " on parent."));
+  }
   if (::write(worker_info.in_pipe, serialized_bin_request.data(),
               serialized_bin_request.size()) < 0) {
     return absl::ErrnoToStatus(errno, "Failed to write to worker");

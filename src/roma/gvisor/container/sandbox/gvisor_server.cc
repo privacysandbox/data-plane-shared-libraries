@@ -31,10 +31,12 @@
 ABSL_FLAG(std::string, server_socket, "/sockdir/abcd.sock",
           "Server socket for reaching Roma app API");
 ABSL_FLAG(std::vector<std::string>, libs,
-          std::vector<std::string>({"/lib", "/lib64"}),
+          std::vector<std::string>({"/lib", "/lib64", "/hostsockdir"}),
           "Mounts containing dependencies needed by the binary");
 ABSL_FLAG(int, worker_pool_size, 10,
           "Size of pool of workers responsible for executing the binaries");
+ABSL_FLAG(std::string, callback_socket, "/hostsockdir/xyzw.sock",
+          "Server socket for reaching host callback server");
 
 int main(int argc, char* argv[]) {
   std::vector<char*> args = absl::ParseCommandLine(argc, argv);
@@ -51,8 +53,9 @@ int main(int argc, char* argv[]) {
 
   std::vector<std::string> mounts = absl::GetFlag(FLAGS_libs);
   mounts.push_back(prog_dir);
+  const std::string callback_socket = absl::GetFlag(FLAGS_callback_socket);
   privacy_sandbox::server_common::gvisor::RomaGvisorPoolManager pool_manager(
-      absl::GetFlag(FLAGS_worker_pool_size), mounts, prog_dir);
+      absl::GetFlag(FLAGS_worker_pool_size), mounts, prog_dir, callback_socket);
   privacy_sandbox::server_common::gvisor::RomaGvisorGrpcServer grpc_server;
   grpc_server.Run(server_socket, &pool_manager);
   std::filesystem::remove_all(prog_dir);

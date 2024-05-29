@@ -17,6 +17,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -89,32 +90,38 @@ absl::StatusOr<ExecuteBinaryResponse> RomaLocal::ExecuteBinary(
 absl::StatusOr<std::unique_ptr<RomaLocal>> RomaLocal::Create(Config config) {
   ConfigInternal config_internal;
   PS_ASSIGN_OR_RETURN(std::string socket_pwd, CreateUniqueSocketName());
+  PS_ASSIGN_OR_RETURN(std::string callback_socket, CreateUniqueSocketName());
   const std::filesystem::path server_path =
       config_internal.roma_container_dir /
       config_internal.roma_container_root_dir /
       config_internal.roma_server_path;
   std::string socket_path_flag =
       absl::StrCat("--", config_internal.socket_flag_name, "=", socket_pwd);
-  std::string lib_mount_flag =
-      absl::StrCat("--", config_internal.lib_mounts_flag_name, "=",
-                   config_internal.lib_mounts_flag_value);
+  std::string lib_mount_flag = absl::StrCat(
+      "--", config_internal.lib_mounts_flag_name, "=",
+      config_internal.lib_mounts_flag_value, ",",
+      std::filesystem::path(callback_socket).parent_path().c_str());
   std::string num_workers_flag =
       absl::StrCat("--", config_internal.worker_pool_size_flag_name, "=",
                    config.num_workers);
+  const std::string callback_socket_flag =
+      absl::StrCat("--callback_socket=", callback_socket);
   std::vector<const char*> run_local_server = {
-      server_path.c_str(),
-      socket_path_flag.c_str(),
-      lib_mount_flag.c_str(),
-      num_workers_flag.c_str(),
-      nullptr,
+      server_path.c_str(),          socket_path_flag.c_str(),
+      lib_mount_flag.c_str(),       num_workers_flag.c_str(),
+      callback_socket_flag.c_str(), nullptr,
   };
   auto channel = grpc::CreateChannel(absl::StrCat("unix://", socket_pwd),
                                      grpc::InsecureChannelCredentials());
+  auto handler = std::make_unique<NativeFunctionHandler>(
+      std::move(config.function_bindings), std::move(callback_socket));
+  // TODO(gathuru): Store and delete metadata in Execute like Roma v8
+  PS_RETURN_IF_ERROR(handler->StoreMetadata("my_key", {/*empty map*/}));
   PS_ASSIGN_OR_RETURN(pid_t pid, RunLocalServer(run_local_server, channel));
   RomaClient roma_client(channel);
   // Note that since RomaLocal's constructor is private, we have to use new.
-  return absl::WrapUnique(
-      new RomaLocal(std::move(config), pid, std::move(roma_client),
-                    std::filesystem::path(socket_pwd).parent_path()));
+  return absl::WrapUnique(new RomaLocal(
+      std::move(config), pid, std::move(roma_client),
+      std::filesystem::path(socket_pwd).parent_path(), std::move(handler)));
 }
 }  // namespace privacy_sandbox::server_common::gvisor

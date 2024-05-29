@@ -19,6 +19,7 @@ cc_library(
     srcs = ["pool_manager.cc"],
     hdrs = ["pool_manager.h"],
     deps = [
+        "//src/roma/gvisor/host:uuid_cc_proto",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/base:dynamic_annotations",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -29,6 +30,7 @@ cc_library(
         "@com_google_absl//absl/strings:cord",
         "@com_google_absl//absl/time",
         "@com_google_absl//absl/types:span",
+        "@com_google_protobuf//:protobuf",
     ],
 )
 

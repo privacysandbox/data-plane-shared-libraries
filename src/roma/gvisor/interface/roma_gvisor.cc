@@ -18,6 +18,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -97,7 +98,8 @@ absl::Status WriteToFile(const std::filesystem::path& file_path,
 
 absl::Status ModifyContainerConfigJson(
     const Config* roma_config, const ConfigInternal* roma_config_internal,
-    const std::filesystem::path& socket_pwd) {
+    const std::filesystem::path& socket_pwd,
+    std::filesystem::path callback_socket) {
   const std::filesystem::path config_file_loc =
       roma_config_internal->roma_container_dir / kConfigJson;
   // Read the existing config.json file.
@@ -116,7 +118,14 @@ absl::Status ModifyContainerConfigJson(
       {"type", "bind"},
       {"source", socket_dir.c_str()},
       {"options", nlohmann::json{"rbind", "rprivate"}}};
-  config_nlohmann_json["mounts"] = nlohmann::json::array({sock_dir_mount});
+  std::filesystem::path callback_socket_dir = callback_socket.parent_path();
+  nlohmann::json callback_sock_dir_mount = {
+      {"destination", callback_socket_dir.c_str()},
+      {"type", "bind"},
+      {"source", callback_socket_dir.c_str()},
+      {"options", nlohmann::json{"rbind", "rprivate"}}};
+  config_nlohmann_json["mounts"] =
+      nlohmann::json::array({sock_dir_mount, callback_sock_dir_mount});
   // Add args to startup gVisor server.
   config_nlohmann_json["process"]["args"] = {
       roma_config_internal->roma_server_path.c_str(),
@@ -124,9 +133,11 @@ absl::Status ModifyContainerConfigJson(
       absl::StrCat("--", roma_config_internal->socket_flag_name, "=",
                    socket_pwd.c_str()),
       absl::StrCat("--", roma_config_internal->lib_mounts_flag_name, "=",
-                   roma_config_internal->lib_mounts_flag_value),
+                   roma_config_internal->lib_mounts_flag_value, ",",
+                   callback_socket.parent_path().c_str()),
       absl::StrCat("--", roma_config_internal->worker_pool_size_flag_name, "=",
-                   roma_config->num_workers)};
+                   roma_config->num_workers),
+      absl::StrCat("--callback_socket=", callback_socket.c_str())};
   return WriteToFile(config_file_loc, config_nlohmann_json.dump());
 }
 
@@ -240,17 +251,23 @@ absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(Config config) {
   PS_RETURN_IF_ERROR(PreCheckRomaContainerDir(&config_internal));
   PS_ASSIGN_OR_RETURN(const std::filesystem::path socket_pwd,
                       CreateUniqueSocketName());
-  PS_RETURN_IF_ERROR(
-      ModifyContainerConfigJson(&config, &config_internal, socket_pwd));
+  PS_ASSIGN_OR_RETURN(std::string callback_socket, CreateUniqueSocketName());
+  PS_RETURN_IF_ERROR(ModifyContainerConfigJson(&config, &config_internal,
+                                               socket_pwd, callback_socket));
   std::shared_ptr<grpc::Channel> channel =
       grpc::CreateChannel(absl::StrCat("unix://", socket_pwd.c_str()),
                           grpc::InsecureChannelCredentials());
+  auto handler = std::make_unique<NativeFunctionHandler>(
+      std::move(config.function_bindings), std::move(callback_socket));
+  // TODO(gathuru): Store and delete metadata in Execute like Roma v8
+  PS_RETURN_IF_ERROR(handler->StoreMetadata("my_key", {/*empty map*/}));
   PS_ASSIGN_OR_RETURN(pid_t pid, RunGvisorContainer(&config, &config_internal,
                                                     socket_pwd, channel));
   RomaClient roma_client(channel);
   // Note that since RomaGvisor's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaGvisor(
       std::move(config), std::move(config_internal), pid,
-      std::move(roma_client), std::filesystem::path(socket_pwd).parent_path()));
+      std::move(roma_client), std::filesystem::path(socket_pwd).parent_path(),
+      std::move(handler)));
 }
 }  // namespace privacy_sandbox::server_common::gvisor

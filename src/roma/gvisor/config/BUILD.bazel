@@ -46,5 +46,6 @@ cc_library(
     visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = [
         ":utils",
+        "//src/roma/config",
     ],
 )

@@ -20,7 +20,9 @@
 #include <filesystem>
 #include <string>
 #include <thread>
+#include <vector>
 
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/config/utils.h"
 
 namespace privacy_sandbox::server_common::gvisor {
@@ -28,6 +30,8 @@ struct Config {
   int num_workers = std::thread::hardware_concurrency();
 
   std::string roma_container_name = "roma_server";
+
+  std::vector<google::scp::roma::FunctionBindingObjectV2<>> function_bindings;
 };
 
 struct ConfigInternal {

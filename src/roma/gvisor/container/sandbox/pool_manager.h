@@ -30,6 +30,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/cord.h"
 #include "absl/types/span.h"
+#include "src/roma/gvisor/host/uuid.pb.h"
 
 namespace privacy_sandbox::server_common::gvisor {
 
@@ -38,13 +39,15 @@ struct WorkerInfo {
   int in_pipe;
   int out_pipe;
   std::string pivot_root_dir;
+  int comms_fd;
 };
 
 class RomaGvisorPoolManager final {
  public:
   explicit RomaGvisorPoolManager(int worker_pool_size,
                                  absl::Span<const std::string> mounts,
-                                 std::string_view prog_dir);
+                                 std::string_view prog_dir,
+                                 std::string_view callback_socket);
 
   ~RomaGvisorPoolManager();
 
@@ -65,6 +68,7 @@ class RomaGvisorPoolManager final {
   absl::Mutex worker_map_mu_;
   absl::flat_hash_map<std::string, std::queue<WorkerInfo>> worker_map_
       ABSL_GUARDED_BY(worker_map_mu_);
+  std::string_view callback_socket_;
 
   absl::Status PopulateWorkerQueue(std::string_view code_token,
                                    std::string_view prog_path, int num_workers)

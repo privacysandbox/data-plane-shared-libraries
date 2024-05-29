@@ -24,10 +24,13 @@
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_cat.h"
+#include "google/protobuf/util/delimited_message_util.h"
+#include "src/roma/gvisor/host/callback.pb.h"
 #include "src/roma/gvisor/udf/roma_binary.pb.h"
 
 using privacy_sandbox::server_common::gvisor::BinaryRequest;
 using privacy_sandbox::server_common::gvisor::BinaryResponse;
+using privacy_sandbox::server_common::gvisor::Callback;
 
 // Find all prime numbers less than this:
 constexpr int kPrimeCount = 100'000;
@@ -58,12 +61,25 @@ void RunPrimeSieve(BinaryResponse& bin_response) {
   }
 }
 
+void RunEchoCallback(int comms_fd) {
+  Callback callback;
+  callback.set_function_name("example");
+  CHECK(google::protobuf::util::SerializeDelimitedToFileDescriptor(callback,
+                                                                   comms_fd));
+  google::protobuf::io::FileInputStream input(comms_fd);
+  CHECK(google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+      &callback, &input, nullptr));
+}
+
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  if (argc < 2) {
+  if (argc < 3) {
     LOG(ERROR) << "Not enough arguments!";
     return -1;
   }
+  int comms_fd;
+  CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
+      << "Conversion of comms file descriptor string to int failed";
 
   BinaryRequest bin_request;
   bin_request.ParseFromFileDescriptor(STDIN_FILENO);
@@ -78,9 +94,18 @@ int main(int argc, char* argv[]) {
     case BinaryRequest::FUNCTION_PRIME_SIEVE:
       RunPrimeSieve(bin_response);
       break;
+    case BinaryRequest::FUNCTION_CALLBACK:
+      RunEchoCallback(comms_fd);
+      break;
+    case BinaryRequest::TEN_CALLBACK_INVOCATIONS:
+      for (int i = 0; i < 10; ++i) {
+        RunEchoCallback(comms_fd);
+      }
+      break;
     default:
       abort();
   }
+  PCHECK(::close(comms_fd) == 0);
 
   bin_response.SerializeToFileDescriptor(write_fd);
   close(write_fd);

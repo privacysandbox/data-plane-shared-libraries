@@ -81,9 +81,11 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":roma_binary_cc_proto",
+        "//src/roma/gvisor/host:callback_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
     ],
 )

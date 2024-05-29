@@ -1,0 +1,82 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+cc_library(
+    name = "native_function_handler",
+    hdrs = [
+        "native_function_handler.h",
+    ],
+    visibility = ["//src/roma/gvisor:__subpackages__"],
+    deps = [
+        ":callback_cc_proto",
+        ":uuid_cc_proto",
+        "//src/core/interface",
+        "//src/roma/config",
+        "//src/roma/interface:function_binding_io_cc_proto",
+        "//src/roma/metadata_storage",
+        "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/native_function_binding:native_function_table",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/log:absl_log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+proto_library(
+    name = "callback_proto",
+    srcs = ["callback.proto"],
+    visibility = ["//visibility:public"],
+    deps = ["//src/roma/interface:function_binding_io_proto"],
+)
+
+buf_lint_test(
+    name = "callback_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":callback_proto"],
+)
+
+cc_proto_library(
+    name = "callback_cc_proto",
+    visibility = ["//visibility:public"],
+    deps = [":callback_proto"],
+)
+
+proto_library(
+    name = "uuid_proto",
+    srcs = ["uuid.proto"],
+    visibility = ["//src/roma/gvisor:__subpackages__"],
+    deps = ["//src/roma/interface:function_binding_io_proto"],
+)
+
+buf_lint_test(
+    name = "uuid_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":uuid_proto"],
+)
+
+cc_proto_library(
+    name = "uuid_cc_proto",
+    visibility = ["//src/roma/gvisor:__subpackages__"],
+    deps = [":uuid_proto"],
+)
