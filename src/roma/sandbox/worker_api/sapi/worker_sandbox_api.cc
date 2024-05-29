@@ -45,6 +45,9 @@ using google::scp::roma::sandbox::constants::kBadFd;
 namespace google::scp::roma::sandbox::worker_api {
 
 namespace {
+constexpr std::string_view kWarmupCode = " ";
+constexpr std::string_view kWarmupRequestId = "warmup";
+constexpr std::string_view kWarmupCodeVersion = "vWarmup";
 
 std::pair<absl::Status, WorkerSandboxApi::RetryStatus> WrapResultWithNoRetry(
     absl::Status result) {
@@ -210,6 +213,23 @@ absl::Status WorkerSandboxApi::Init() {
   return absl::OkStatus();
 }
 
+void WorkerSandboxApi::WarmUpSandbox() {
+  using google::scp::roma::sandbox::constants::kCodeVersion;
+  using google::scp::roma::sandbox::constants::kRequestAction;
+  using google::scp::roma::sandbox::constants::kRequestActionLoad;
+  using google::scp::roma::sandbox::constants::kRequestId;
+  using google::scp::roma::sandbox::constants::kRequestType;
+  using google::scp::roma::sandbox::constants::kRequestTypeJavascript;
+
+  ::worker_api::WorkerParamsProto params_proto;
+  params_proto.set_code(kWarmupCode);
+  (*params_proto.mutable_metadata())[kRequestType] = kRequestTypeJavascript;
+  (*params_proto.mutable_metadata())[kCodeVersion] = kWarmupCodeVersion;
+  (*params_proto.mutable_metadata())[kRequestId] = kWarmupRequestId;
+  (*params_proto.mutable_metadata())[kRequestAction] = kRequestActionLoad;
+  (void)RunCode(params_proto);
+}
+
 absl::Status WorkerSandboxApi::Run() {
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
     return absl::FailedPreconditionError(
@@ -225,6 +245,7 @@ absl::Status WorkerSandboxApi::Run() {
     return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
   }
 
+  WarmUpSandbox();
   return absl::OkStatus();
 }
 

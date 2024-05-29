@@ -112,6 +112,11 @@ class WorkerSandboxApi {
   std::pair<absl::Status, RetryStatus> InternalRunCodeBufferShareOnly(
       ::worker_api::WorkerParamsProto& params);
 
+  /**
+   *  @brief Warm up SAPI Sandbox and V8 by running one-space-char code.
+   */
+  void WarmUpSandbox();
+
   void CreateWorkerSapiSandbox();
 
   // Transfer the local FD into sandboxee and return the remote FD.
