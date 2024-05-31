@@ -116,7 +116,7 @@ void Load(RomaService<>* roma_service, std::string_view version_str,
                           if (resp.ok()) {
                             LOG(INFO) << "LoadCodeObj successful!";
                           } else {
-                            std::cerr << "> load unsucessful with status: "
+                            std::cerr << "> load unsuccessful with status: "
                                       << resp.status() << std::endl;
                           }
                           load_finished.Notify();
@@ -159,7 +159,7 @@ void Execute(RomaService<>* roma_service,
                     result = std::move(resp->resp);
                     std::cout << "> " << result << std::endl;
                   } else {
-                    std::cerr << "> unsucessful with status: " << resp.status()
+                    std::cerr << "> unsuccessful with status: " << resp.status()
                               << std::endl;
                   }
                   execute_finished.Notify();
