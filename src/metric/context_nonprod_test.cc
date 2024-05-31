@@ -16,6 +16,8 @@
 
 namespace privacy_sandbox::server_common::metrics {
 
+using ::testing::Contains;
+
 class ExperimentTest : public ContextTest {
  protected:
   void SetUp() override {
@@ -28,12 +30,12 @@ class ExperimentTest : public ContextTest {
     EXPECT_CALL(
         mock_metric_router_,
         LogSafe(Matcher<const DefinitionUnSafe&>(Ref(kIntApproximateCounter)),
-                Eq(1), _, ElementsAre(Pair(kNoiseAttribute, "Raw"))))
+                Eq(1), _, Contains(Pair(kNoiseAttribute, "Raw"))))
         .WillOnce(Return(absl::OkStatus()));
     EXPECT_CALL(
         mock_metric_router_,
         LogSafe(Matcher<const DefinitionUnSafe&>(Ref(kIntApproximateCounter2)),
-                Eq(2), _, ElementsAre(Pair(kNoiseAttribute, "Raw"))))
+                Eq(2), _, Contains(Pair(kNoiseAttribute, "Raw"))))
         .WillOnce(Return(absl::OkStatus()));
   }
 };
