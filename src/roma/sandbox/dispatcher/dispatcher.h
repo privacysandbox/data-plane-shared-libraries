@@ -35,7 +35,7 @@
 #include "request_validator.h"
 
 namespace google::scp::roma::sandbox::dispatcher {
-class Dispatcher {
+class Dispatcher final {
  public:
   // Starts a thread for each worker.
   Dispatcher(absl::Span<worker_api::WorkerSandboxApi> workers,
