@@ -111,41 +111,47 @@ struct DifferentialPrivacy {
 // `T` can be int or double
 // Examples to create `Definition` of different `Privacy` and `Instrument`
 //
+// * UpDownCounter (non-impacting and impacting)
 // Definition<int, Privacy::kNonImpacting, Instrument::kUpDownCounter>
-// d1(/*name*/ "d1", /*description*/ "d11");
-//
-// Use kEmptyPublicPartition for non-public partition.
-// std::string_view public_partitions[] = {"buyer_1", "buyer_2"};
-// Definition<int, Privacy::kNonImpacting, Instrument::kPartitionedCounter> d2(
-//     /*name*/ "d2", /*description*/ "d21" /*partition_type*/ "buyer_name",
-//     /*public_partitions*/ public_partitions);
-//
-// double histogram_boundaries[] = {1, 2};
-// Definition<int, Privacy::kNonImpacting, Instrument::kHistogram> d3(
-//     /*name*/ "d3", /*description*/ "d31", /*histogram_boundaries*/ hb);
-//
-// Definition<int, Privacy::kNonImpacting, Instrument::kGauge> d4(/*name*/
-// "d4", /*description*/"d41");
+// d1(/*name=*/"d1", /*description==*/"d11");
 //
 // Definition<int, Privacy::kImpacting, Instrument::kUpDownCounter> d5(
-//     /*name*/ "d5", /*description*/ "d51", /*upper_bound*/ 9, /*lower_bound*/
+//     /*name=*/"d5", /*description=*/"d51", /*upper_bound=*/9, /*lower_bound=*/
 //     1);
 //
+// * PartitionedCounter (non-impacting and impacting)
+//   -- use kEmptyPublicPartition for non-public partition.
+// std::string_view public_partitions[] = {"buyer_1", "buyer_2"};
+// Definition<int, Privacy::kNonImpacting, Instrument::kPartitionedCounter> d2(
+//     /*name=*/"d2", /*description=*/"d21" /*partition_type=*/"buyer_name",
+//     /*public_partitions=*/public_partitions);
+//
 // Definition<int, Privacy::kImpacting, Instrument::kPartitionedCounter> d6(
-//     /*name*/ "d6", /*description*/ "d61", /*partition_type*/ "buyer_name",
-//     /*max_partitions_contributed*/ 2,
-//     /*public_partitions*/ public_partitions,
-//     /*upper_bound*/ 9,
-//     /*lower_bound*/ 1);
+//     /*name=*/"d6", /*description=*/"d61", /*partition_type=*/"buyer_name",
+//     /*max_partitions_contributed=*/2,
+//     /*public_partitions=*/public_partitions,
+//     /*upper_bound=*/9,
+//     /*lower_bound=*/1);
+//
+// * Histogram (non-impacting and impacting)
+// double histogram_boundaries[] = {1, 2};
+// Definition<int, Privacy::kNonImpacting, Instrument::kHistogram> d3(
+//     /*name=*/"d3", /*description=*/"d31", /*histogram_boundaries=*/hb);
 //
 // Definition<int, Privacy::kImpacting, Instrument::kHistogram> d7(
-//     /*name*/ "d7", /*description*/ "d71", /*histogram_boundaries*/ hb);
+//     /*name=*/"d7", /*description=*/"d71", /*histogram_boundaries=*/hb,
+//     /*upper_bound=*/9, /*lower_bound=*/0);
 //
-// Their pointers should then be added into a list, which defines the list of
-// metrics the server can log. A Span of the list is used to initialize
+// * Gauge (non-impacting only)
+// Definition<int, Privacy::kNonImpacting, Instrument::kGauge> d4(/*name=*/"d4",
+// /*description*/"d41");
+//
+// The definition pointers should then be added into a list, which defines the
+// list of metrics the server can log. A Span of the list is used to initialize
 // 'Context'. For example:
-// const DefinitionName* metric_list[] = {&d1, &d2, &d3, &d4, &d5, &d6, &d7};
-// absl::Span<const DefinitionName* const> metric_list_span = metric_list;
+//   const DefinitionName* metric_list[] = {&d1, &d2, &d3, &d4, &d5, &d6, &d7};
+//   absl::Span<const DefinitionName* const> metric_list_span = metric_list;
+//
 template <typename T, Privacy privacy, Instrument instrument>
 struct Definition : DefinitionName,
                     internal::Partitioned,
