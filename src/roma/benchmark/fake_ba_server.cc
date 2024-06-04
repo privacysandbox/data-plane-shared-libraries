@@ -25,6 +25,7 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/roma_service/roma_service.h"
 
 namespace google::scp::roma::benchmark {
 namespace {

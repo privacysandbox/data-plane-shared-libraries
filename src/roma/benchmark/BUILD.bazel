@@ -67,7 +67,6 @@ cc_binary(
     deps = [
         ":benchmark",
         "//src/roma/interface",
-        "//src/roma/roma_service",
         "//src/roma/sandbox/constants",
         "@google_benchmark//:benchmark",
     ],
@@ -124,8 +123,7 @@ cc_binary(
     deps = [
         ":fake_kv_server",
         ":test_code",
-        "//src/roma/interface",
-        "//src/roma/roma_service",
+        "//src/roma/config",
         "//src/roma/wasm:wasm_testing",
         "@google_benchmark//:benchmark",
     ],
@@ -138,8 +136,7 @@ cc_binary(
     deps = [
         ":fake_ba_server",
         ":test_code",
-        "//src/roma/interface",
-        "//src/roma/roma_service",
+        "//src/roma/config",
         "@google_benchmark//:benchmark",
     ],
 )

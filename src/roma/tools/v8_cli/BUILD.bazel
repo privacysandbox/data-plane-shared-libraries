@@ -40,6 +40,7 @@ cc_binary(
         "//src/roma/roma_service",
         "//src/util:duration",
         "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
     ],
