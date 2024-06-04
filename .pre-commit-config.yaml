@@ -183,3 +183,11 @@ repos:
     - -sn
     - --rcfile=.pylintrc
     - --fail-on=I
+
+- repo: local
+  hooks:
+    - id: enforce-no-linking-experimental-or-internal
+      name: enforce-no-linking-experimental-or-internal
+      description: Ensure all code in src/experimental and google_internal has default_testonly=True
+      language: script
+      entry: scripts/ensure-experimental-and-internal-not-linked
