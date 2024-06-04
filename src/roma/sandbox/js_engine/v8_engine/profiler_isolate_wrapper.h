@@ -42,8 +42,55 @@ class ProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
     StartProfiling();
   }
 
+  std::string StopProfiling() {
+    v8::HandleScope handle_scope(isolate_);
+    auto profile =
+        cpu_profiler_->StopProfiling(cpu_profile_name_.Get(isolate_));
+
+    std::string profiler_output = "Heap and CPU Profiler Output\n\n";
+    absl::StrAppend(&profiler_output,
+                    "Number of Samples: ", profile->GetSamplesCount(), "\n");
+    absl::StrAppend(&profiler_output, "Total Execution Time: ",
+                    profile->GetEndTime() - profile->GetStartTime(), " us\n");
+
+    if (profile->GetSamplesCount() > 1) {
+      int totalInterval = 0;
+      for (int i = 1; i < profile->GetSamplesCount(); i++) {
+        int currentTimestamp = profile->GetSampleTimestamp(i);
+        int previousTimestamp = profile->GetSampleTimestamp(i - 1);
+        totalInterval += currentTimestamp - previousTimestamp;
+      }
+
+      double averageInterval = totalInterval / (profile->GetSamplesCount() - 1);
+      absl::StrAppend(&profiler_output,
+                      "Average Sampling Interval: ", averageInterval, " us\n");
+    } else {
+      absl::StrAppend(
+          &profiler_output,
+          "Not enough samples to calculate average sampling interval.\n\n");
+    }
+
+    auto hitCounts = GetFunctionCounts(profile);
+    absl::StrAppend(&profiler_output, "Stack Trace with Hit Counts: \n");
+    std::string profile_nodes =
+        AnalyzeProfileNode(hitCounts, profile->GetTopDownRoot());
+    absl::StrAppend(&profiler_output, profile_nodes, "\n");
+    cpu_profiler_->Dispose();
+
+    auto heap_profiler = isolate_->GetHeapProfiler();
+    const v8::HeapSnapshot* snapshot = heap_profiler->TakeHeapSnapshot();
+
+    std::string heap_output;
+    HeapSnapshotParser parser(heap_output);
+    snapshot->Serialize(&parser, v8::HeapSnapshot::SerializationFormat::kJSON);
+    absl::StrAppend(&profiler_output, "Heap Snapshot: \n");
+    absl::StrAppend(&profiler_output, heap_output, "\n");
+
+    heap_profiler->StopTrackingHeapObjects();
+    return profiler_output;
+  }
+
   ~ProfilerIsolateWrapperImpl() override {
-    StopProfiling();
     // Isolates are only deleted this way and not with Free().
     isolate_->Dispose();
   }
@@ -71,61 +118,23 @@ class ProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
     isolate_->GetHeapProfiler()->StartTrackingHeapObjects(track_allocations);
   }
 
-  void StopProfiling() {
-    v8::HandleScope handle_scope(isolate_);
-    auto profile =
-        cpu_profiler_->StopProfiling(cpu_profile_name_.Get(isolate_));
-    LOG(INFO) << "Number of Samples: " << profile->GetSamplesCount();
-    LOG(INFO) << "Total Execution Time: "
-              << profile->GetEndTime() - profile->GetStartTime() << " us";
-
-    if (profile->GetSamplesCount() > 1) {
-      int totalInterval = 0;
-      for (int i = 1; i < profile->GetSamplesCount(); i++) {
-        int currentTimestamp = profile->GetSampleTimestamp(i);
-        int previousTimestamp = profile->GetSampleTimestamp(i - 1);
-        totalInterval += currentTimestamp - previousTimestamp;
-      }
-
-      double averageInterval = totalInterval / (profile->GetSamplesCount() - 1);
-      LOG(INFO) << "Average Sampling Interval: " << averageInterval << " us";
-    } else {
-      LOG(INFO) << "Not enough samples to calculate interval.";
-    }
-
-    auto hitCounts = GetFunctionCounts(profile);
-    AnalyzeProfileNode(hitCounts, profile->GetTopDownRoot());
-    cpu_profiler_->Dispose();
-
-    auto heap_profiler = isolate_->GetHeapProfiler();
-    const v8::HeapSnapshot* snapshot = heap_profiler->TakeHeapSnapshot();
-
-    std::string output;
-    HeapSnapshotParser parser(output);
-    snapshot->Serialize(&parser, v8::HeapSnapshot::SerializationFormat::kJSON);
-    LOG(INFO) << "Heap Snapshot: ";
-    LOG(INFO) << output;
-
-    heap_profiler->StopTrackingHeapObjects();
-  }
-
-  void AnalyzeProfileNode(
+  std::string AnalyzeProfileNode(
       absl::flat_hash_map<std::string, int>& function_counts,
       const v8::CpuProfileNode* node, int depth = 0) {
     // Indentation for visual clarity
-    for (int i = 0; i < depth; ++i) {
-      LOG(INFO) << "  ";
-    }
+    std::string line(2 * depth, ' ');
 
     std::string functionName =
         *v8::String::Utf8Value(isolate_, node->GetFunctionName());
     int hitCount = function_counts[functionName];
-    LOG(INFO) << functionName << " (Hit count: " << hitCount << ")";
+    absl::StrAppend(&line, functionName, " (Hit count: ", hitCount, ")\n");
 
     // Recursively analyze child nodes
     for (int i = 0; i < node->GetChildrenCount(); ++i) {
-      AnalyzeProfileNode(function_counts, node->GetChild(i), depth + 1);
+      absl::StrAppend(&line, AnalyzeProfileNode(function_counts,
+                                                node->GetChild(i), depth + 1));
     }
+    return line;
   }
 
   absl::flat_hash_map<std::string, int> GetFunctionCounts(

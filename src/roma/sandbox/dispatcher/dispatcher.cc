@@ -174,6 +174,8 @@ void Dispatcher::ConsumerImpl(int i) {
         response.id =
             std::move((*request.param.mutable_metadata())[kRequestId]);
         response.resp = std::move(*request.param.mutable_response());
+        response.profiler_output =
+            std::move(*request.param.mutable_profiler_output());
         std::move(request).callback(std::move(response));
       }
     }

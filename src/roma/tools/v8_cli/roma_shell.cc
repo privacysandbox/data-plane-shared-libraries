@@ -39,13 +39,33 @@ constexpr std::string_view kCommandsMessage =
 Shell Commands:
 
 load - Load a User Defined Function (UDF)
-Usage: load [VERSION_STR] [PATH_TO_UDF]
+Usage: load <version> <path to udf>
     Note: If PATH_TO_UDF is omitted, the UDF will be read from the command line.
 Example: load v1 src/roma/tools/v8_cli/sample.js
 
 execute - Execute a User Defined Function (UDF)
-Usage: Execute [VERSION_STR] [UDF_NAME] [UDF_INPUT_ARGS]
+Usage: execute <version> <udf name> [args...]
 Example: execute v1 HandleFunc foo bar
+
+help - Display all shell commands
+Usage: help
+
+exit - Exit the tool
+Usage: exit
+)";
+
+constexpr std::string_view kCommandsWithProfilerMessage =
+    R"(
+Shell Commands:
+
+load - Load a User Defined Function (UDF)
+Usage: load <version> <path to udf>
+    Note: If path to udf is omitted, the UDF will be read from the command line.
+Example: load v1 src/roma/tools/v8_cli/sample.js
+
+execute - Execute a User Defined Function (UDF)
+Usage: execute <profiler output file> <version> <udf name> [args...]
+Example: execute foo/bar/profiler_output.txt v1 HandleFunc foo bar
 
 help - Display all shell commands
 Usage: help
@@ -59,6 +79,7 @@ constexpr std::string_view kFlagPrefix = "--";
 
 ABSL_FLAG(uint16_t, num_workers, 1, "Number of Roma workers");
 ABSL_FLAG(bool, verbose, false, "Log all messages from shell");
+ABSL_FLAG(bool, enable_profilers, false, "Enable V8 CPU and Heap Profilers");
 
 // Get UDF from command line or input file if specified
 std::string GetUDF(std::string_view udf_file_path) {
@@ -129,6 +150,7 @@ void Load(RomaService<>* roma_service, std::string_view version_str,
 }
 
 void Execute(RomaService<>* roma_service,
+             std::string_view profiler_output_filename,
              absl::Span<const std::string> tokens) {
   auto uuid = google::scp::core::common::Uuid::GenerateUuid();
   std::string uuid_str = google::scp::core::common::ToString(uuid);
@@ -149,22 +171,43 @@ void Execute(RomaService<>* roma_service,
   absl::Notification execute_finished;
   LOG(INFO) << "Calling Execute...";
   privacy_sandbox::server_common::Stopwatch timer;
-  CHECK(roma_service
-            ->Execute(
-                std::make_unique<InvocationStrRequest<>>(execution_object),
-                [&result,
-                 &execute_finished](absl::StatusOr<ResponseObject> resp) {
-                  if (resp.ok()) {
-                    LOG(INFO) << "Execute successful!";
-                    result = std::move(resp->resp);
-                    std::cout << "> " << result << std::endl;
-                  } else {
-                    std::cerr << "> unsuccessful with status: " << resp.status()
-                              << std::endl;
+  CHECK(
+      roma_service
+          ->Execute(
+              std::make_unique<InvocationStrRequest<>>(execution_object),
+              [&result, profiler_output_filename,
+               &execute_finished](absl::StatusOr<ResponseObject> resp) {
+                if (resp.ok()) {
+                  LOG(INFO) << "Execute successful!";
+                  result = std::move(resp->resp);
+                  std::cout << "> " << result << std::endl;
+
+                  if (absl::GetFlag(FLAGS_enable_profilers) &&
+                      !resp->profiler_output.empty() &&
+                      !profiler_output_filename.empty()) {
+                    std::filesystem::path pathObj(profiler_output_filename);
+                    std::filesystem::create_directories(pathObj.parent_path());
+
+                    if (std::ofstream outfile{
+                            std::string(profiler_output_filename),
+                            std::ios::app};
+                        outfile.is_open()) {
+                      LOG(INFO) << "Writing profiler output to "
+                                << profiler_output_filename;
+                      outfile << resp->profiler_output << std::endl;
+                      outfile.close();
+                    } else {
+                      std::cerr << "> Unable to write profiler output to file "
+                                << profiler_output_filename << std::endl;
+                    }
                   }
-                  execute_finished.Notify();
-                })
-            .ok());
+                } else {
+                  std::cerr << "> unsuccessful with status: " << resp.status()
+                            << std::endl;
+                }
+                execute_finished.Notify();
+              })
+          .ok());
   execute_finished.WaitForNotificationWithTimeout(kRequestTimeout);
   std::cout << "> execute duration: "
             << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
@@ -187,7 +230,8 @@ void RunShell(const std::vector<std::string>& v8_flags) {
               << std::endl;
   };
   config.SetLoggingFunction(std::move(logging_fn));
-  config.enable_profilers = true;
+  bool enable_profilers = absl::GetFlag(FLAGS_enable_profilers);
+  config.enable_profilers = enable_profilers;
 
   LOG(INFO) << "Roma config set to " << absl::GetFlag(FLAGS_num_workers)
             << " workers.";
@@ -198,7 +242,9 @@ void RunShell(const std::vector<std::string>& v8_flags) {
   CHECK_OK(roma_service.Init());
   LOG(INFO) << "RomaService Initialization successful.";
 
-  std::cout << kCommandsMessage << std::endl;
+  std::string_view commands_msg =
+      enable_profilers ? kCommandsWithProfilerMessage : kCommandsMessage;
+  std::cout << commands_msg << std::endl;
   while (true) {
     std::cerr << "> ";
     std::string line;
@@ -208,15 +254,22 @@ void RunShell(const std::vector<std::string>& v8_flags) {
 
     std::vector<std::string> tokens = absl::StrSplit(line, " ");
 
+    // If --enable_profilers, tokens should include extra entry for
+    // profiler_output_filename, therefore absl::Span for Roma args needs to be
+    // additionally offset.
+    int profiler_offset = enable_profilers ? 1 : 0;
     if (tokens[0] == "exit") {
       roma_service.Stop().IgnoreError();
       break;
     } else if (tokens[0] == "load" && tokens.size() > 1) {
       Load(&roma_service, tokens[1], tokens.size() > 2 ? tokens[2] : "");
-    } else if (tokens[0] == "execute" && tokens.size() > 2) {
-      Execute(&roma_service, absl::Span(tokens.data() + 1, tokens.size() - 1));
+    } else if (tokens[0] == "execute" && tokens.size() > 2 + profiler_offset) {
+      std::string profiler_output_filename = enable_profilers ? tokens[1] : "";
+      Execute(&roma_service, profiler_output_filename,
+              absl::Span(tokens.data() + 1 + profiler_offset,
+                         tokens.size() - 1 - profiler_offset));
     } else if (tokens[0] == "help") {
-      std::cout << kCommandsMessage << std::endl;
+      std::cout << commands_msg << std::endl;
     } else {
       std::cout << "Warning: unknown command " << tokens[0] << "." << std::endl;
       std::cout << "Try help for options." << std::endl;
@@ -246,7 +299,8 @@ int main(int argc, char* argv[]) {
     flag_clean.remove_prefix(kFlagPrefix.size());
     if (!processed_flags.contains(flag_clean) &&
         !absl::StartsWith(flag, "--num_workers") &&
-        !absl::StartsWith(flag, "--verbose")) {
+        !absl::StartsWith(flag, "--verbose") &&
+        !absl::StartsWith(flag, "--enable_profilers")) {
       processed_flags.insert(std::string(flag_clean));
       sanitized_v8_flags.push_back(std::string(flag_clean));
       v8_flags.push_back(std::string(flag));

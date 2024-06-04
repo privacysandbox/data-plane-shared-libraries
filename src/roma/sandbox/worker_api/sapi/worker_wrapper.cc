@@ -215,6 +215,7 @@ SapiStatusCode RunCode(worker_api::WorkerParamsProto* params) {
   }
 
   params->set_response(std::move(response_or.value().response));
+  params->set_profiler_output(std::move(response_or.value().profiler_output));
   return SapiStatusCode::kOk;
 }
 

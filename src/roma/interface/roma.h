@@ -126,6 +126,8 @@ struct ResponseObject {
   std::string id;
   // The response of the execution.
   std::string resp;
+  // the output from V8's Heap and Sample-based CPU profiler
+  std::string profiler_output;
   // Execution metrics. Any key should be checked for existence.
   absl::flat_hash_map<std::string, absl::Duration> metrics;
 };

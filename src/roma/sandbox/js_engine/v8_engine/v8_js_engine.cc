@@ -787,6 +787,11 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
   StopWatchdogTimer();
   if (status_or_response.ok()) {
     execution_response.execution_response = status_or_response.value();
+    if (enable_profilers_) {
+      execution_response.execution_response.profiler_output =
+          static_cast<ProfilerIsolateWrapperImpl*>(curr_comp_ctx->isolate.get())
+              ->StopProfiling();
+    }
     return execution_response;
   }
   // Return timeout error if the watchdog called isolate terminate.
