@@ -25,7 +25,6 @@
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/helloworld.pb.h"
-#include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
 
 using ::testing::ElementsAreArray;
