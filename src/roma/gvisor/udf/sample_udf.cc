@@ -97,7 +97,7 @@ int main(int argc, char* argv[]) {
     case BinaryRequest::FUNCTION_CALLBACK:
       RunEchoCallback(comms_fd);
       break;
-    case BinaryRequest::TEN_CALLBACK_INVOCATIONS:
+    case BinaryRequest::FUNCTION_TEN_CALLBACK_INVOCATIONS:
       for (int i = 0; i < 10; ++i) {
         RunEchoCallback(comms_fd);
       }

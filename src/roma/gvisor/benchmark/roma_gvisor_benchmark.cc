@@ -163,7 +163,7 @@ std::string GetFunctionTypeStr(BinaryRequest::Function func_type) {
       return R"(udf:"Prime Sieve")";
     case BinaryRequest::FUNCTION_CALLBACK:
       return R"(udf:"Callback hook")";
-    case BinaryRequest::TEN_CALLBACK_INVOCATIONS:
+    case BinaryRequest::FUNCTION_TEN_CALLBACK_INVOCATIONS:
       return R"(udf:"Ten callback invocations")";
     default:
       return "udf:Unknown";
@@ -359,11 +359,12 @@ BENCHMARK(BM_ExecuteBinarySyncUnaryGrpc)
             (int)Mode::kModeLocal,
         },
         {
-            BinaryRequest::FUNCTION_HELLO_WORLD,      // Generic "Hello, world!"
-            BinaryRequest::FUNCTION_PRIME_SIEVE,      // Sieve of primes
-            BinaryRequest::FUNCTION_CALLBACK,         // Generic callback hook
-            BinaryRequest::TEN_CALLBACK_INVOCATIONS,  // Ten invocations of
-                                                      // generic callback hook
+            BinaryRequest::FUNCTION_HELLO_WORLD,  // Generic "Hello, world!"
+            BinaryRequest::FUNCTION_PRIME_SIEVE,  // Sieve of primes
+            BinaryRequest::FUNCTION_CALLBACK,     // Generic callback hook
+            BinaryRequest::
+                FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of
+                                                    // generic callback hook
         },
         {
             0, 1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
