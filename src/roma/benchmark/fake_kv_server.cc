@@ -75,7 +75,7 @@ std::string FakeKvServer::ExecuteCode(std::vector<std::string> keys) {
       }));
   CHECK(notification.WaitForNotificationWithTimeout(kExecuteCodeTimeout))
       << "ExecuteCode failed, timeout exceeded.";
-  CHECK_OK(response_status) << response_status;
+  CHECK_OK(response_status);
   return result;
 }
 
