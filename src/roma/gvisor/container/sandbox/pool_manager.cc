@@ -405,12 +405,6 @@ RomaGvisorPoolManager::SendRequestAndGetResponseFromWorker(
           uuid, worker_info.comms_fd)) {
     return absl::InternalError("Failed to send uuid to callback server.");
   }
-  {
-    Ack ack;
-    google::protobuf::io::FileInputStream input(worker_info.comms_fd);
-    CHECK(google::protobuf::util::ParseDelimitedFromZeroCopyStream(&ack, &input,
-                                                                   nullptr));
-  }
   if (::close(worker_info.comms_fd) < 0) {
     return absl::ErrnoToStatus(
         errno, absl::StrCat("Failed to close comms socket ",

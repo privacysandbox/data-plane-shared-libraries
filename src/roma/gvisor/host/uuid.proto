@@ -18,7 +18,3 @@ package privacy_sandbox.server_common.gvisor;
 message Uuid {
   string uuid = 1;
 }
-
-// TODO(gathuru): Remove. It shouldn't be necessary to wait for callback handler
-// to receive the uuid before unblocking the udf.
-message Ack {}

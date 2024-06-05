@@ -131,19 +131,16 @@ class NativeFunctionHandler {
   void HandlerImpl(int fd) {
     absl::Cleanup cleanup = [fd] { ::close(fd); };
     Uuid uuid;
-    if (google::protobuf::io::FileInputStream input(fd);
-        !google::protobuf::util::ParseDelimitedFromZeroCopyStream(&uuid, &input,
+    google::protobuf::io::FileInputStream input(fd);
+    if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(&uuid, &input,
                                                                   nullptr)) {
       return;
     }
-    CHECK(
-        google::protobuf::util::SerializeDelimitedToFileDescriptor(Ack{}, fd));
     while (true) {
       Callback callback;
 
       // This unblocks once a call is issued from the other side
-      if (google::protobuf::io::FileInputStream input(fd);
-          !google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+      if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(
               &callback, &input, nullptr)) {
         return;
       }
