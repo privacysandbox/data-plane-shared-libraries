@@ -43,10 +43,10 @@ FakeKvServer::FakeKvServer(Config<> config) {
   roma_service_ =
       std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
           std::move(config));
-  CHECK(roma_service_->Init().ok());
+  CHECK_OK(roma_service_->Init());
 }
 
-FakeKvServer::~FakeKvServer() { CHECK(roma_service_->Stop().ok()); }
+FakeKvServer::~FakeKvServer() { CHECK_OK(roma_service_->Stop()); }
 
 std::string FakeKvServer::ExecuteCode(std::vector<std::string> keys) {
   CHECK(handler_name_ != "")

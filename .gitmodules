@@ -1,4 +1,0 @@
-[submodule "build-system"]
-	path = builders
-	url = https://github.com/privacysandbox/build-system
-	branch = release-0.65.1
