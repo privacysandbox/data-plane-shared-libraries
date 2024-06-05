@@ -19,6 +19,7 @@
 #include <iostream>
 #include <vector>
 
+#include "absl/container/flat_hash_set.h"
 #include "absl/log/check.h"
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
@@ -71,6 +72,27 @@ void RunEchoCallback(int comms_fd) {
       &callback, &input, nullptr));
 }
 
+void RunConcurrentEchoCallback(int comms_fd) {
+  const absl::flat_hash_set<std::string> send_ids{"a", "b", "c", "d", "e", "f"};
+  for (const std::string& id : send_ids) {
+    Callback callback;
+    callback.set_function_name("example");
+    callback.set_id(id);
+    CHECK(google::protobuf::util::SerializeDelimitedToFileDescriptor(callback,
+                                                                     comms_fd));
+  }
+  absl::flat_hash_set<std::string> recv_ids;
+  recv_ids.reserve(send_ids.size());
+  google::protobuf::io::FileInputStream input(comms_fd);
+  for (int i = 0; i < send_ids.size(); ++i) {
+    Callback callback;
+    CHECK(google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+        &callback, &input, nullptr));
+    CHECK(send_ids.contains(callback.id()));
+    CHECK(recv_ids.insert(std::move(*callback.mutable_id())).second);
+  }
+}
+
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
   if (argc < 3) {
@@ -101,6 +123,9 @@ int main(int argc, char* argv[]) {
       for (int i = 0; i < 10; ++i) {
         RunEchoCallback(comms_fd);
       }
+      break;
+    case BinaryRequest::FUNCTION_CONCURRENT_CALLBACKS:
+      RunConcurrentEchoCallback(comms_fd);
       break;
     default:
       abort();

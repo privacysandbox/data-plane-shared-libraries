@@ -39,6 +39,7 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/host/callback.pb.h"
@@ -129,13 +130,19 @@ class NativeFunctionHandler {
 
  private:
   void HandlerImpl(int fd) {
-    absl::Cleanup cleanup = [fd] { ::close(fd); };
+    absl::Cleanup cleanup_fd = [fd] { ::close(fd); };
     Uuid uuid;
     google::protobuf::io::FileInputStream input(fd);
     if (!google::protobuf::util::ParseDelimitedFromZeroCopyStream(&uuid, &input,
                                                                   nullptr)) {
       return;
     }
+    absl::Mutex mu;
+    int outstanding_threads = 0;  // Guarded by mu.
+    absl::Cleanup cleanup_threads = [&mu, &outstanding_threads] {
+      auto fn = [&] { return outstanding_threads == 0; };
+      mu.Await(absl::Condition(&fn));
+    };
     while (true) {
       Callback callback;
 
@@ -144,38 +151,52 @@ class NativeFunctionHandler {
               &callback, &input, nullptr)) {
         return;
       }
-      auto& io_proto = *callback.mutable_io_proto();
-
-      // Get function name
-      if (const std::string& function_name = callback.function_name();
-          !function_name.empty()) {
-        if (auto reader = ScopedValueReader<TMetadata>::Create(
-                metadata_storage_.GetMetadataMap(), uuid.uuid());
-            !reader.ok()) {
-          // If mutex can't be found, add errors to the proto to return
-          io_proto.mutable_errors()->Add(std::string(kCouldNotFindMutex));
-          LOG(ERROR) << kCouldNotFindMutex;
-        } else if (auto value = reader->Get(); !value.ok()) {
-          // If metadata can't be found, add errors to the proto to return
-          io_proto.mutable_errors()->Add(std::string(kCouldNotFindMetadata));
-          LOG(ERROR) << kCouldNotFindMetadata;
-        } else if (google::scp::roma::FunctionBindingPayload<TMetadata> wrapper{
-                       io_proto,
-                       **value,
-                   };
-                   !function_table_.Call(function_name, wrapper).ok()) {
-          // If execution failed, add errors to the proto to return
-          io_proto.mutable_errors()->Add(
-              std::string(kFailedNativeHandlerExecution));
-          LOG(ERROR) << kFailedNativeHandlerExecution;
-        }
-      } else {
-        // If we can't find the function, add errors to the proto to return
-        io_proto.mutable_errors()->Add(std::string(kCouldNotFindFunctionName));
-        LOG(ERROR) << kCouldNotFindFunctionName;
+      {
+        absl::MutexLock lock(&mu);
+        outstanding_threads++;
       }
-      google::protobuf::util::SerializeDelimitedToFileDescriptor(callback, fd);
+      std::thread(&NativeFunctionHandler::RunCallback, this,
+                  std::move(callback), uuid.uuid(), fd, &mu,
+                  &outstanding_threads)
+          .detach();
     }
+  }
+
+  void RunCallback(Callback callback, std::string_view uuid, int fd,
+                   absl::Mutex* mu, int* outstanding_threads) {
+    auto& io_proto = *callback.mutable_io_proto();
+
+    // Get function name
+    if (const std::string& function_name = callback.function_name();
+        !function_name.empty()) {
+      if (auto reader = ScopedValueReader<TMetadata>::Create(
+              metadata_storage_.GetMetadataMap(), uuid);
+          !reader.ok()) {
+        // If mutex can't be found, add errors to the proto to return
+        io_proto.mutable_errors()->Add(std::string(kCouldNotFindMutex));
+        LOG(ERROR) << kCouldNotFindMutex;
+      } else if (auto value = reader->Get(); !value.ok()) {
+        // If metadata can't be found, add errors to the proto to return
+        io_proto.mutable_errors()->Add(std::string(kCouldNotFindMetadata));
+        LOG(ERROR) << kCouldNotFindMetadata;
+      } else if (google::scp::roma::FunctionBindingPayload<TMetadata> wrapper{
+                     io_proto,
+                     **value,
+                 };
+                 !function_table_.Call(function_name, wrapper).ok()) {
+        // If execution failed, add errors to the proto to return
+        io_proto.mutable_errors()->Add(
+            std::string(kFailedNativeHandlerExecution));
+        LOG(ERROR) << kFailedNativeHandlerExecution;
+      }
+    } else {
+      // If we can't find the function, add errors to the proto to return
+      io_proto.mutable_errors()->Add(std::string(kCouldNotFindFunctionName));
+      LOG(ERROR) << kCouldNotFindFunctionName;
+    }
+    absl::MutexLock lock(mu);
+    google::protobuf::util::SerializeDelimitedToFileDescriptor(callback, fd);
+    (*outstanding_threads)--;
   }
 
   absl::Mutex stop_mutex_;
