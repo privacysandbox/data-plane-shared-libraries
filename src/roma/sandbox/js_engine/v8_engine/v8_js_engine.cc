@@ -208,7 +208,7 @@ void V8JsEngine::OneTimeSetup(
   }
   absl::StatusOr<std::string> my_path =
       privacy_sandbox::server_common::GetExePath();
-  CHECK_OK(my_path) << my_path.status();
+  CHECK_OK(my_path);
   v8::V8::InitializeICUDefaultLocation(my_path->data());
   v8::V8::InitializeExternalStartupData(my_path->data());
 
