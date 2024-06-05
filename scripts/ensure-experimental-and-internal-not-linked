@@ -42,7 +42,7 @@ There were BUILD files in ${directory}... which have not been tagged with defaul
 ${output}
 In order to fix this run the following commands:
 buildozer 'set default_testonly True' ${directory}...:__pkg__
-buildozer 'comment code\ in\ ${directory}\ may\ only\ be\ used\ for\ testing' ${directory}/...:__pkg__
+buildozer 'comment code\ in\ ${directory}\ may\ only\ be\ used\ by\ targets\ setting\ testonly=True' ${directory}/...:__pkg__
 EOF
     exit 1
   fi
