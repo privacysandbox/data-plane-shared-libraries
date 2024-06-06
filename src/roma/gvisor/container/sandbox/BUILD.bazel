@@ -36,8 +36,10 @@ cc_library(
 
 cc_library(
     name = "grpc_server",
+    srcs = ["grpc_server.cc"],
     hdrs = ["grpc_server.h"],
     deps = [
+        "//src/roma/gvisor/container/sandbox:pool_manager",
         "//src/roma/gvisor/interface:roma_api_grpc_proto",
         "//src/util/status_macro:status_util",
         "@com_github_grpc_grpc//:grpc++",
