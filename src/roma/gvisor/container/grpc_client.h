@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_
-#define SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_
+#ifndef SRC_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_
+#define SRC_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_
 
 #include <memory>
 
@@ -44,4 +44,4 @@ class RomaClient {
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 
-#endif  // SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_
+#endif  // SRC_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_

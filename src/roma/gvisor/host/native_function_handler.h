@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_NATIVE_FUNCTION_HANDLER_H_
-#define SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_NATIVE_FUNCTION_HANDLER_H_
+#ifndef SRC_ROMA_GVISOR_HOST_NATIVE_FUNCTION_HANDLER_H_
+#define SRC_ROMA_GVISOR_HOST_NATIVE_FUNCTION_HANDLER_H_
 
 #include <stdlib.h>
 #include <string.h>
@@ -213,4 +213,4 @@ class NativeFunctionHandler {
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 
-#endif  // SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_NATIVE_FUNCTION_HANDLER_H_
+#endif  // SRC_ROMA_GVISOR_HOST_NATIVE_FUNCTION_HANDLER_H_

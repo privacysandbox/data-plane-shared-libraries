@@ -14,6 +14,9 @@
  * limitations under the License.
  */
 
+#ifndef SRC_ROMA_GVISOR_CONTAINER_SANDBOX_GRPC_SERVER_H_
+#define SRC_ROMA_GVISOR_CONTAINER_SANDBOX_GRPC_SERVER_H_
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -154,3 +157,5 @@ class RomaGvisorGrpcServer final {
 };
 
 }  // namespace privacy_sandbox::server_common::gvisor
+
+#endif  // SRC_ROMA_GVISOR_CONTAINER_SANDBOX_GRPC_SERVER_H_

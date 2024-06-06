@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONFIG_CONFIG_H_
-#define SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONFIG_CONFIG_H_
+#ifndef SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
+#define SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
 
 #include <filesystem>
 #include <string>
@@ -56,4 +56,4 @@ struct ConfigInternal {
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 
-#endif  // SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONFIG_CONFIG_H_
+#endif  // SRC_ROMA_GVISOR_CONFIG_CONFIG_H_

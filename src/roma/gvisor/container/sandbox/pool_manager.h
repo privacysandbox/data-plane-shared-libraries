@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONTAINER_POOL_MANAGER_H_
-#define SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONTAINER_POOL_MANAGER_H_
+#ifndef SRC_ROMA_GVISOR_CONTAINER_SANDBOX_POOL_MANAGER_H_
+#define SRC_ROMA_GVISOR_CONTAINER_SANDBOX_POOL_MANAGER_H_
 
 #include <filesystem>
 #include <queue>
@@ -88,4 +88,4 @@ class RomaGvisorPoolManager final {
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 
-#endif  // SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_CONTAINER_POOL_MANAGER_H_
+#endif  // SRC_ROMA_GVISOR_CONTAINER_SANDBOX_POOL_MANAGER_H_

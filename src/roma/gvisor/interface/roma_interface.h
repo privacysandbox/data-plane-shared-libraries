@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
-#define SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
+#ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
+#define SRC_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
 
 #include "absl/status/statusor.h"
 #include "src/roma/gvisor/interface/roma_api.pb.h"
@@ -36,4 +36,4 @@ class RomaInterface {
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 
-#endif  // SRC_EXPERIMENTAL_ASHRUTI_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
+#endif  // SRC_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
