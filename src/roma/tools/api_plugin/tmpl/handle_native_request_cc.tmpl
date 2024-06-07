@@ -59,9 +59,9 @@ namespace {{$svcopts.CppNamespace}} {
 template <typename TMetadata>
 void {{$rpc.Name}}FunctionBinding(google::scp::roma::FunctionBindingPayload<TMetadata>& wrapper) {
   {{$reqType}} request;
-  CHECK(Decode(wrapper.io_proto.input_string(), request).ok());
+  CHECK_OK(Decode(wrapper.io_proto.input_string(), request));
   auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(wrapper.metadata, request);
-  CHECK(status.ok()) << status;
+  CHECK_OK(status);
   wrapper.io_proto.set_output_string(*Encode(response_payload));
 }
 
@@ -80,7 +80,7 @@ class {{$rpc.Name}}Handler
 
   std::pair<TResponse*, grpc::Status> ProcessRequest(const TMetadata& metadata) {
     {{$reqType}} request;
-    CHECK(Decode(request_.request_payload(), request).ok());
+    CHECK_OK(Decode(request_.request_payload(), request));
     auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(metadata, request);
     *response_.mutable_response_payload() = std::move(*Encode(response_payload));
     return std::make_pair(&response_, privacy_sandbox::server_common::FromAbslStatus(status));

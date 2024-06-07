@@ -113,7 +113,7 @@ void RunRomaJsBenchmark(::benchmark::State& state, std::string_view code,
         });
     CHECK_OK(app_svc.GetRomaService()->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
+          CHECK_OK(resp);
           result = std::move(resp->resp);
           execute_finished.Notify();
         }));

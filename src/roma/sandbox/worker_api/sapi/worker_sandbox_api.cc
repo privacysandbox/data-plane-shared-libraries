@@ -95,8 +95,8 @@ WorkerSandboxApi::WorkerSandboxApi(
           : kDefaultBufferSizeInMb * kMB;
   auto buffer = sandbox2::Buffer::CreateWithSize(
       request_and_response_data_buffer_size_bytes_);
-  CHECK(buffer.ok()) << "Create Buffer with size failed with "
-                     << buffer.status().message();
+  CHECK_OK(buffer) << "Create Buffer with size failed with "
+                   << buffer.status().message();
   sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
 }
 

@@ -49,7 +49,7 @@ namespace google::scp::cpio::test {
 class BlobStorageClientTest : public ::testing::Test {
  protected:
   BlobStorageClientTest() {
-    CHECK(client_.Init().ok()) << "client_ initialization unsuccessful";
+    CHECK_OK(client_.Init()) << "client_ initialization unsuccessful";
   }
 
   MockBlobStorageClientWithOverrides client_;

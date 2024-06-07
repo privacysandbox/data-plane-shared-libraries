@@ -55,8 +55,8 @@ std::vector<WorkerSandboxApi> Workers(int num_workers) {
         /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
         /*v8_flags=*/std::vector<std::string>(),
         /*enable_profilers=*/false);
-    CHECK(workers.back().Init().ok());
-    CHECK(workers.back().Run().ok());
+    CHECK_OK(workers.back().Init());
+    CHECK_OK(workers.back().Run());
   }
   return workers;
 }
@@ -66,7 +66,7 @@ void BM_Dispatch(benchmark::State& state) {
   std::vector<WorkerSandboxApi> workers = Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
 

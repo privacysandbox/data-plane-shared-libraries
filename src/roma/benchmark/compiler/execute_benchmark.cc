@@ -75,18 +75,17 @@ void DoTeardown(const ::benchmark::State& state) {
 void LoadCodeObj(std::string_view code) {
   absl::Notification load_finished;
 
-  absl::Status load_status = roma_service->LoadCodeObj(
+  CHECK_OK(roma_service->LoadCodeObj(
       std::make_unique<CodeObject>(CodeObject{
           .id = "foo",
           .version_string = "v1",
           .js = std::string(code),
       }),
       [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
-        CHECK(resp.ok());
+        CHECK_OK(resp);
         load_finished.Notify();
-      });
+      }));
 
-  CHECK(load_status.ok()) << load_status;
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
@@ -102,13 +101,12 @@ void ExecuteCodeBenchmark(::benchmark::State& state, std::string_view code,
             .version_string = "v1",
             .handler_name = std::string(handler),
         });
-    auto execution_status = roma_service->Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
-          execute_finished.Notify();
-        });
+    CHECK_OK(roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     CHECK_OK(resp);
+                                     execute_finished.Notify();
+                                   }));
 
-    CHECK(execution_status.ok()) << execution_status;
     CHECK(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   }
 

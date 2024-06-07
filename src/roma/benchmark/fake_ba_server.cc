@@ -42,7 +42,7 @@ FakeBaServer::FakeBaServer(DispatchConfig config) {
   roma_service_ =
       std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
           std::move(config));
-  CHECK(roma_service_->Init().ok());
+  CHECK_OK(roma_service_->Init());
 }
 
 FakeBaServer::~FakeBaServer() { CHECK_OK(roma_service_->Stop()); }

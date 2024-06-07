@@ -53,8 +53,8 @@ std::vector<worker_api::WorkerSandboxApi> Workers(int num_workers) {
         /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
         /*v8_flags=*/std::vector<std::string>(),
         /*enable_profilers=*/false);
-    CHECK(workers.back().Init().ok());
-    CHECK(workers.back().Run().ok());
+    CHECK_OK(workers.back().Init());
+    CHECK_OK(workers.back().Run());
   }
   return workers;
 }
@@ -65,7 +65,7 @@ TEST(DispatcherTest, CanRunCode) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -76,13 +76,11 @@ TEST(DispatcherTest, CanRunCode) {
       .js = R"(function test(input) { return input + " Some string"; })",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   InvocationStrRequest<> execute_request{
@@ -92,15 +90,12 @@ TEST(DispatcherTest, CanRunCode) {
       .input = {R"("Hello")"},
   };
   absl::Notification done_executing;
-  ASSERT_TRUE(dispatcher
-                  .Invoke(std::move(execute_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            EXPECT_THAT(resp->resp,
-                                        StrEq(R"("Hello Some string")"));
-                            done_executing.Notify();
-                          })
-                  .ok());
+  CHECK_OK(dispatcher.Invoke(
+      std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+        CHECK_OK(resp);
+        EXPECT_THAT(resp->resp, StrEq(R"("Hello Some string")"));
+        done_executing.Notify();
+      }));
   done_executing.WaitForNotification();
 }
 
@@ -109,7 +104,7 @@ TEST(DispatcherTest, CanRunCodeMultipleWorkers) {
       Workers(/*num_workers=*/3);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -120,13 +115,11 @@ TEST(DispatcherTest, CanRunCodeMultipleWorkers) {
       .js = R"(function test(input) { return input + " Some string"; })",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   absl::BlockingCounter counter(10);
@@ -137,15 +130,12 @@ TEST(DispatcherTest, CanRunCodeMultipleWorkers) {
         .handler_name = "test",
         .input = {R"("Hello")"},
     };
-    ASSERT_TRUE(dispatcher
-                    .Invoke(std::move(execute_request),
-                            [&](absl::StatusOr<ResponseObject> resp) {
-                              EXPECT_TRUE(resp.ok());
-                              EXPECT_THAT(resp->resp,
-                                          StrEq(R"("Hello Some string")"));
-                              counter.DecrementCount();
-                            })
-                    .ok());
+    CHECK_OK(dispatcher.Invoke(
+        std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+          CHECK_OK(resp);
+          EXPECT_THAT(resp->resp, StrEq(R"("Hello Some string")"));
+          counter.DecrementCount();
+        }));
   }
   counter.Wait();
 }
@@ -155,7 +145,7 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -166,13 +156,11 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
       .js = "function test(input) { return input + \" Some string\"; }",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   constexpr std::string_view kInputStrView{R"("Hello")"};
@@ -183,15 +171,12 @@ TEST(DispatcherTest, CanRunStringViewInputCode) {
       .input = {kInputStrView},
   };
   absl::Notification done_executing;
-  ASSERT_TRUE(dispatcher
-                  .Invoke(std::move(execute_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            EXPECT_THAT(resp->resp,
-                                        StrEq(R"("Hello Some string")"));
-                            done_executing.Notify();
-                          })
-                  .ok());
+  CHECK_OK(dispatcher.Invoke(
+      std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+        CHECK_OK(resp);
+        EXPECT_THAT(resp->resp, StrEq(R"("Hello Some string")"));
+        done_executing.Notify();
+      }));
   done_executing.WaitForNotification();
 }
 
@@ -200,7 +185,7 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -212,14 +197,12 @@ TEST(DispatcherTest, CanHandleCodeFailures) {
       .js = "function test(input) { ",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_bad_js_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          // That didn't work
-                          EXPECT_FALSE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_bad_js_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             // That didn't work
+                             EXPECT_FALSE(resp.ok());
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 }
 
@@ -228,7 +211,7 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -240,13 +223,11 @@ TEST(DispatcherTest, CanHandleExecuteWithoutLoadFailure) {
       .input = {R"("Hello")"},
   };
   absl::Notification done_executing;
-  ASSERT_TRUE(dispatcher
-                  .Invoke(std::move(execute_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_FALSE(resp.ok());
-                            done_executing.Notify();
-                          })
-                  .ok());
+  CHECK_OK(dispatcher.Invoke(std::move(execute_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_FALSE(resp.ok());
+                               done_executing.Notify();
+                             }));
   done_executing.WaitForNotification();
 }
 
@@ -255,7 +236,7 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
   std::vector<worker_api::WorkerSandboxApi> workers = Workers(kNumberOfWorkers);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/100);
@@ -266,13 +247,11 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
       .js = R"(test = (s) => s + " Some string";)",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   absl::Mutex execution_count_mu;
@@ -288,17 +267,15 @@ TEST(DispatcherTest, BroadcastShouldUpdateAllWorkers) {
         .handler_name = "test",
         .input = {absl::StrCat("\"Hello", i, "\"")},
     };
-    ASSERT_TRUE(dispatcher
-                    .Invoke(std::move(execute_request),
-                            [&, i](absl::StatusOr<ResponseObject> resp) {
-                              EXPECT_TRUE(resp.ok());
-                              EXPECT_THAT(resp->resp,
-                                          absl::StrCat(R"("Hello)", i,
-                                                       R"( Some string")"));
-                              absl::MutexLock lock(&execution_count_mu);
-                              execution_count++;
-                            })
-                    .ok());
+    CHECK_OK(dispatcher.Invoke(std::move(execute_request),
+                               [&, i](absl::StatusOr<ResponseObject> resp) {
+                                 CHECK_OK(resp);
+                                 EXPECT_THAT(resp->resp,
+                                             absl::StrCat(R"("Hello)", i,
+                                                          R"( Some string")"));
+                                 absl::MutexLock lock(&execution_count_mu);
+                                 execution_count++;
+                               }));
   }
 
   {
@@ -316,7 +293,7 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
       Workers(/*num_workers=*/5);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/100);
@@ -328,13 +305,11 @@ TEST(DispatcherTest, BroadcastShouldExitGracefullyIfThereAreErrorsWithTheCode) {
       .js = "function test(s) { return",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_bad_js_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_FALSE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_bad_js_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             EXPECT_FALSE(resp.ok());
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 }
 
@@ -344,7 +319,7 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/1);
@@ -369,13 +344,11 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
   )""",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   InvocationStrRequest<> execute_request = {
@@ -384,13 +357,10 @@ TEST(DispatcherTest, DispatchBatchShouldFailIfQueuesAreFull) {
       .handler_name = "takes_long",
   };
   absl::Notification finished_batch;
-  ASSERT_TRUE(dispatcher
-                  .Invoke(execute_request,
-                          [&finished_batch](auto response) {
-                            EXPECT_TRUE(response.ok());
-                            finished_batch.Notify();
-                          })
-                  .ok());
+  CHECK_OK(dispatcher.Invoke(execute_request, [&finished_batch](auto response) {
+    CHECK_OK(response);
+    finished_batch.Notify();
+  }));
 
   // This next few `Invoke`s may or may not fail depending on whether the single
   // worker has picked the first request off of the queue.
@@ -410,7 +380,7 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -422,13 +392,11 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
         .js = R"(test = (s) => s + " Some string";)",
     };
     absl::Notification done_loading;
-    ASSERT_TRUE(dispatcher
-                    .Load(std::move(load_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            done_loading.Notify();
-                          })
-                    .ok());
+    CHECK_OK(dispatcher.Load(std::move(load_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               CHECK_OK(resp);
+                               done_loading.Notify();
+                             }));
     done_loading.WaitForNotification();
   }
 
@@ -440,15 +408,12 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
         .input = {R"("Hello")"},
     };
     absl::Notification done_executing;
-    ASSERT_TRUE(dispatcher
-                    .Invoke(std::move(execute_request),
-                            [&](absl::StatusOr<ResponseObject> resp) {
-                              EXPECT_TRUE(resp.ok());
-                              EXPECT_THAT(resp->resp,
-                                          StrEq(R"("Hello Some string")"));
-                              done_executing.Notify();
-                            })
-                    .ok());
+    CHECK_OK(dispatcher.Invoke(
+        std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+          CHECK_OK(resp);
+          EXPECT_THAT(resp->resp, StrEq(R"("Hello Some string")"));
+          done_executing.Notify();
+        }));
     done_executing.WaitForNotification();
   }
 
@@ -467,15 +432,13 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
     };
 
     absl::Notification done_executing;
-    ASSERT_TRUE(dispatcher
-                    .Invoke(std::move(execute_request),
-                            [&](absl::StatusOr<ResponseObject> resp) {
-                              // This execution should fail since the worker
-                              // has died
-                              EXPECT_FALSE(resp.ok());
-                              done_executing.Notify();
-                            })
-                    .ok());
+    CHECK_OK(dispatcher.Invoke(std::move(execute_request),
+                               [&](absl::StatusOr<ResponseObject> resp) {
+                                 // This execution should fail since the worker
+                                 // has died
+                                 EXPECT_FALSE(resp.ok());
+                                 done_executing.Notify();
+                               }));
     done_executing.WaitForNotification();
   }
 
@@ -489,17 +452,13 @@ TEST(DispatcherTest, ShouldBeAbleToExecutePreviouslyLoadedCodeAfterCrash) {
     };
 
     absl::Notification done_executing;
-    ASSERT_TRUE(
-        dispatcher
-            .Invoke(std::move(execute_request),
-                    [&](absl::StatusOr<ResponseObject> resp) {
-                      EXPECT_TRUE(resp.ok());
-                      EXPECT_THAT(
-                          resp->resp,
-                          StrEq(R"("Hello after restart :) Some string")"));
-                      done_executing.Notify();
-                    })
-            .ok());
+    CHECK_OK(dispatcher.Invoke(
+        std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+          CHECK_OK(resp);
+          EXPECT_THAT(resp->resp,
+                      StrEq(R"("Hello after restart :) Some string")"));
+          done_executing.Notify();
+        }));
     done_executing.WaitForNotification();
   }
 }
@@ -509,7 +468,7 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -521,13 +480,11 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
         .js = R"(test = (s) => s + " Some string 1";)",
     };
     absl::Notification done_loading;
-    ASSERT_TRUE(dispatcher
-                    .Load(std::move(load_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            done_loading.Notify();
-                          })
-                    .ok());
+    CHECK_OK(dispatcher.Load(std::move(load_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               CHECK_OK(resp);
+                               done_loading.Notify();
+                             }));
     done_loading.WaitForNotification();
   }
 
@@ -538,13 +495,11 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
         .js = R"(test = (s) => s + " Some string 2";)",
     };
     absl::Notification done_loading;
-    ASSERT_TRUE(dispatcher
-                    .Load(std::move(load_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            done_loading.Notify();
-                          })
-                    .ok());
+    CHECK_OK(dispatcher.Load(std::move(load_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               CHECK_OK(resp);
+                               done_loading.Notify();
+                             }));
     done_loading.WaitForNotification();
   }
 
@@ -560,16 +515,14 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
     };
 
     absl::Notification done_executing;
-    ASSERT_TRUE(dispatcher
-                    .Invoke(std::move(execute_request),
-                            [&](absl::StatusOr<ResponseObject> resp) {
-                              // This request failed but it should have caused
-                              // the restart of the worker so subsequent
-                              // requests should work.
-                              EXPECT_FALSE(resp.ok());
-                              done_executing.Notify();
-                            })
-                    .ok());
+    CHECK_OK(dispatcher.Invoke(std::move(execute_request),
+                               [&](absl::StatusOr<ResponseObject> resp) {
+                                 // This request failed but it should have
+                                 // caused the restart of the worker so
+                                 // subsequent requests should work.
+                                 EXPECT_FALSE(resp.ok());
+                                 done_executing.Notify();
+                               }));
     done_executing.WaitForNotification();
   }
 
@@ -585,16 +538,12 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
       };
 
       absl::Notification done_executing;
-      ASSERT_TRUE(dispatcher
-                      .Invoke(std::move(execute_request),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                EXPECT_THAT(
-                                    resp->resp,
-                                    StrEq(R"("Hello 1 Some string 1")"));
-                                done_executing.Notify();
-                              })
-                      .ok());
+      CHECK_OK(dispatcher.Invoke(
+          std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+            CHECK_OK(resp);
+            EXPECT_THAT(resp->resp, StrEq(R"("Hello 1 Some string 1")"));
+            done_executing.Notify();
+          }));
       done_executing.WaitForNotification();
     }
     {
@@ -606,16 +555,12 @@ TEST(DispatcherTest, ShouldRecoverFromWorkerCrashWithMultipleCodeVersions) {
       };
 
       absl::Notification done_executing;
-      ASSERT_TRUE(dispatcher
-                      .Invoke(std::move(execute_request),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                EXPECT_THAT(
-                                    resp->resp,
-                                    StrEq(R"("Hello 2 Some string 2")"));
-                                done_executing.Notify();
-                              })
-                      .ok());
+      CHECK_OK(dispatcher.Invoke(
+          std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+            CHECK_OK(resp);
+            EXPECT_THAT(resp->resp, StrEq(R"("Hello 2 Some string 2")"));
+            done_executing.Notify();
+          }));
       done_executing.WaitForNotification();
     }
   }
@@ -626,7 +571,7 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -638,13 +583,11 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
         .js = R"(test = (s) => s + " Some string 1";)",
     };
     absl::Notification done_loading;
-    ASSERT_TRUE(dispatcher
-                    .Load(std::move(load_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            done_loading.Notify();
-                          })
-                    .ok());
+    CHECK_OK(dispatcher.Load(std::move(load_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               CHECK_OK(resp);
+                               done_loading.Notify();
+                             }));
     done_loading.WaitForNotification();
   }
 
@@ -655,13 +598,11 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
         .js = R"(test = (s) => s + " Some string 2";)",
     };
     absl::Notification done_loading;
-    ASSERT_TRUE(dispatcher
-                    .Load(std::move(load_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            done_loading.Notify();
-                          })
-                    .ok());
+    CHECK_OK(dispatcher.Load(std::move(load_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               CHECK_OK(resp);
+                               done_loading.Notify();
+                             }));
     done_loading.WaitForNotification();
   }
 
@@ -676,18 +617,16 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
         .js = R"(test = (s) => s + " Some string 3";)",
     };
     absl::Notification done_loading;
-    ASSERT_TRUE(dispatcher
-                    .Load(std::move(load_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            if (i == 0) {
-                              // Failed
-                              EXPECT_FALSE(resp.ok());
-                            } else {
-                              EXPECT_TRUE(resp.ok());
-                            }
-                            done_loading.Notify();
-                          })
-                    .ok());
+    CHECK_OK(dispatcher.Load(std::move(load_request),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               if (i == 0) {
+                                 // Failed
+                                 EXPECT_FALSE(resp.ok());
+                               } else {
+                                 CHECK_OK(resp);
+                               }
+                               done_loading.Notify();
+                             }));
     done_loading.WaitForNotification();
   }
 
@@ -702,15 +641,12 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
       };
 
       absl::Notification done_executing;
-      ASSERT_TRUE(dispatcher
-                      .Invoke(std::move(execute_request),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                EXPECT_THAT(resp->resp,
-                                            StrEq("\"Hello 1 Some string 1\""));
-                                done_executing.Notify();
-                              })
-                      .ok());
+      CHECK_OK(dispatcher.Invoke(
+          std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+            CHECK_OK(resp);
+            EXPECT_THAT(resp->resp, StrEq("\"Hello 1 Some string 1\""));
+            done_executing.Notify();
+          }));
       done_executing.WaitForNotification();
     }
     {
@@ -722,15 +658,12 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
       };
 
       absl::Notification done_executing;
-      ASSERT_TRUE(dispatcher
-                      .Invoke(std::move(execute_request),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                EXPECT_THAT(resp->resp,
-                                            StrEq("\"Hello 2 Some string 2\""));
-                                done_executing.Notify();
-                              })
-                      .ok());
+      CHECK_OK(dispatcher.Invoke(
+          std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+            CHECK_OK(resp);
+            EXPECT_THAT(resp->resp, StrEq("\"Hello 2 Some string 2\""));
+            done_executing.Notify();
+          }));
       done_executing.WaitForNotification();
     }
     {
@@ -742,16 +675,12 @@ TEST(DispatcherTest, ShouldBeAbleToLoadMoreVersionsAfterWorkerCrash) {
       };
 
       absl::Notification done_executing;
-      ASSERT_TRUE(dispatcher
-                      .Invoke(std::move(execute_request),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                EXPECT_THAT(
-                                    resp->resp,
-                                    StrEq(R"("Hello 3 Some string 3")"));
-                                done_executing.Notify();
-                              })
-                      .ok());
+      CHECK_OK(dispatcher.Invoke(
+          std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+            CHECK_OK(resp);
+            EXPECT_THAT(resp->resp, StrEq(R"("Hello 3 Some string 3")"));
+            done_executing.Notify();
+          }));
       done_executing.WaitForNotification();
     }
   }
@@ -762,7 +691,7 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/10);
@@ -773,13 +702,11 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
       .js = "function test(input) { return input + \" Some string\"; }",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   InvocationStrViewRequest<> execute_request{
@@ -790,15 +717,12 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
       .treat_input_as_byte_str = true,
   };
   absl::Notification done_executing;
-  ASSERT_TRUE(dispatcher
-                  .Invoke(std::move(execute_request),
-                          [&](absl::StatusOr<ResponseObject> resp) {
-                            EXPECT_TRUE(resp.ok());
-                            EXPECT_THAT(resp->resp,
-                                        StrEq(R"("Hello" Some string)"));
-                            done_executing.Notify();
-                          })
-                  .ok());
+  CHECK_OK(dispatcher.Invoke(
+      std::move(execute_request), [&](absl::StatusOr<ResponseObject> resp) {
+        CHECK_OK(resp);
+        EXPECT_THAT(resp->resp, StrEq(R"("Hello" Some string)"));
+        done_executing.Notify();
+      }));
   done_executing.WaitForNotification();
 }
 
@@ -807,7 +731,7 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
       Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (worker_api::WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
   Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/1);
@@ -820,13 +744,11 @@ TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
           "string\"; }",
   };
   absl::Notification done_loading;
-  ASSERT_TRUE(dispatcher
-                  .Load(std::move(load_request),
-                        [&](absl::StatusOr<ResponseObject> resp) {
-                          EXPECT_TRUE(resp.ok());
-                          done_loading.Notify();
-                        })
-                  .ok());
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
   done_loading.WaitForNotification();
 
   // Multiple inputs with treat_input_as_byte_str as true.

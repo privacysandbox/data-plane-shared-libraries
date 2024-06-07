@@ -82,11 +82,11 @@ void LoadCodeObj(std::string_view code) {
           .js = std::string(code),
       }),
       [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
-        CHECK(resp.ok());
+        CHECK_OK(resp);
         load_finished.Notify();
       });
 
-  CHECK(load_status.ok()) << load_status;
+  CHECK_OK(load_status);
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
