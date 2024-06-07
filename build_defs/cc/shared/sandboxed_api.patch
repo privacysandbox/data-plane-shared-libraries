@@ -1,8 +1,8 @@
 diff --git a/sandboxed_api/bazel/sapi.bzl b/sandboxed_api/bazel/sapi.bzl
-index 51f47a8..04c139f 100644
+index 386c32b..1de05ad 100644
 --- a/sandboxed_api/bazel/sapi.bzl
 +++ b/sandboxed_api/bazel/sapi.bzl
-@@ -323,7 +322,7 @@ def sapi_library(
+@@ -323,7 +323,7 @@ def sapi_library(
      else:
          lib_hdrs += [generated_header]
 
@@ -11,7 +11,7 @@ index 51f47a8..04c139f 100644
 
      # Library that contains generated interface and sandboxed binary as a data
      # dependency. Add this as a dependency instead of original library.
-@@ -339,9 +338,9 @@ def sapi_library(
+@@ -339,9 +339,9 @@ def sapi_library(
                  "@com_google_absl//absl/base:core_headers",
                  "@com_google_absl//absl/status",
                  "@com_google_absl//absl/status:statusor",
@@ -24,7 +24,7 @@ index 51f47a8..04c139f 100644
              ] + deps +
              ([":" + name + "_embed"] if embed else []) +
              (default_deps if add_default_deps else []),
-@@ -359,7 +358,7 @@ def sapi_library(
+@@ -359,7 +359,7 @@ def sapi_library(
          malloc = malloc,
          deps = [
              ":" + name + ".lib",
@@ -33,3 +33,33 @@ index 51f47a8..04c139f 100644
          ],
          copts = default_copts,
          **common
+diff --git a/sandboxed_api/sandbox2/monitor_base.cc b/sandboxed_api/sandbox2/monitor_base.cc
+index 76978c9..25e78ab 100644
+--- a/sandboxed_api/sandbox2/monitor_base.cc
++++ b/sandboxed_api/sandbox2/monitor_base.cc
+@@ -406,9 +406,9 @@ bool MonitorBase::StackTraceCollectionPossible() const {
+       executor_->libunwind_recursion_depth() <= 1) {
+     return true;
+   }
+-  LOG(ERROR) << "Cannot collect stack trace. Unwind pid "
+-             << executor_->libunwind_sbox_for_pid_ << ", namespace "
+-             << policy_->GetNamespaceOrNull();
++  LOG(INFO) << "Cannot collect stack trace. Unwind pid "
++            << executor_->libunwind_sbox_for_pid_ << ", namespace "
++            << policy_->GetNamespaceOrNull();
+   return false;
+ }
+
+diff --git a/sandboxed_api/sandbox2/sandbox2.cc b/sandboxed_api/sandbox2/sandbox2.cc
+index 95071ab..5c701f0 100644
+--- a/sandboxed_api/sandbox2/sandbox2.cc
++++ b/sandboxed_api/sandbox2/sandbox2.cc
+@@ -109,7 +109,7 @@ void Sandbox2::Launch() {
+
+   // This is a technical limitation in our stack trace collection
+   // functionality.
+-  LOG_IF(WARNING, !policy_->GetNamespace())
++  LOG_IF(INFO, !policy_->GetNamespace())
+       << "Using policy without namespaces, disabling stack traces on crash";
+
+   monitor_ = CreateMonitor();
