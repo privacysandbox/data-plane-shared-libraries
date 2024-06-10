@@ -52,12 +52,34 @@ message RomaServiceAnnotation {
   string name = 1;
   string code_id = 2;
   string description = 3;
+  // Each namespace can only have a single Roma Host api
   string cpp_namespace = 4;
   string romav8_app_name = 5;
+  // Include paths for all cpp_host_process_callback defined on
+  // RomaFunctionAnnotation. For example, if the below cpp_host_process_callback
+  // was defined in `foo/bar/foobar_native_functions.h`,
+  // cpp_host_process_callback_includes would contain
+  // `foo/bar/foobar_native_functions.h`.
+  repeated string cpp_host_process_callback_includes = 6;
 }
 
 message RomaFunctionAnnotation {
   string description = 1;
+  // The fully-qualified name of the C++ function invoked for this rpc.
+  // This function is invoked with metadata and a RPC request message.
+  // For example, if the specified string is "::some_namespace::MyFunction",
+  // and the function is associated with `rpc TestMethod(TestMethodRequest)
+  // returns (TestMethodResponse)`, the expected callback function's signature
+  // would be:
+  // ```
+  // namespace some_namespace {
+  // TMetadata is the metadata type passed as a template parameter to Roma
+  // std::pair<TestMethodResponse, absl::Status> MyFunction(
+  //    const TMetadata& metadata, const TestMethodRequest&) {
+  //    ...
+  // }  // namespace some_namespace
+  // ```
+  string cpp_host_process_callback = 2;
 }
 
 message RomaFieldAnnotation {

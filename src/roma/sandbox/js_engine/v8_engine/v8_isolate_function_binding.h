@@ -25,8 +25,8 @@
 #include <grpcpp/grpcpp.h>
 
 #include "include/v8.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.grpc.pb.h"
-#include "src/roma/native_function_grpc_server/proto/test_service.pb.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
+#include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
@@ -39,6 +39,7 @@ class V8IsolateFunctionBinding {
    */
   V8IsolateFunctionBinding(
       const std::vector<std::string>& function_names,
+      const std::vector<std::string>& rpc_method_names,
       std::unique_ptr<native_function_binding::NativeFunctionInvoker>
           function_invoker,
       std::string_view server_address);
@@ -49,9 +50,11 @@ class V8IsolateFunctionBinding {
 
   void BindFunction(
       v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template, void* binding_ref,
+      v8::Local<v8::ObjectTemplate>& global_object_template, void* binding,
       void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
-      std::string_view function_name);
+      std::string_view function_name,
+      absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>&
+          child_templates);
 
   // Returns success
   bool BindFunctions(v8::Isolate* isolate,
@@ -67,12 +70,16 @@ class V8IsolateFunctionBinding {
   struct Binding {
     std::string function_name;
     V8IsolateFunctionBinding* instance;
+    void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
   };
   std::vector<Binding> binding_references_;
   std::string invocation_req_uuid_;
   std::string invocation_req_id_;
 
   static void GlobalV8FunctionCallback(
+      const v8::FunctionCallbackInfo<v8::Value>& info);
+
+  static void GrpcServerCallback(
       const v8::FunctionCallbackInfo<v8::Value>& info);
 
   static bool NativeFieldsToProto(const Binding& binding,
@@ -83,7 +90,8 @@ class V8IsolateFunctionBinding {
   std::unique_ptr<native_function_binding::NativeFunctionInvoker>
       function_invoker_;
   std::shared_ptr<grpc::Channel> grpc_channel_;
-  std::unique_ptr<privacy_sandbox::server_common::TestService::Stub> stub_;
+  std::unique_ptr<privacy_sandbox::server_common::JSCallbackService::Stub>
+      stub_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 

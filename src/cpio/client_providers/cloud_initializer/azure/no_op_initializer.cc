@@ -24,18 +24,6 @@ using google::scp::core::ExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult NoOpInitializer::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult NoOpInitializer::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult NoOpInitializer::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 void NoOpInitializer::InitCloud() noexcept {}
 
 void NoOpInitializer::ShutdownCloud() noexcept {}

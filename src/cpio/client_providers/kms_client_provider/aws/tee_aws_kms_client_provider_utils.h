@@ -32,7 +32,7 @@ namespace google::scp::cpio::client_providers::utils {
  * the command to run and args[i > 0] are arguments.
  * @return the standard output.
  */
-absl::StatusOr<std::string> Exec(absl::Span<char* const> args) noexcept;
+absl::StatusOr<std::string> Exec(absl::Span<const char* const> args) noexcept;
 
 }  // namespace google::scp::cpio::client_providers::utils
 

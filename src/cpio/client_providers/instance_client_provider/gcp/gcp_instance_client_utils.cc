@@ -68,10 +68,13 @@ namespace google::scp::cpio::client_providers {
 ExecutionResultOr<std::string> GcpInstanceClientUtils::GetCurrentProjectId(
     InstanceClientProviderInterface& instance_client) noexcept {
   std::string instance_resource_name;
-  RETURN_AND_LOG_IF_FAILURE(instance_client.GetCurrentInstanceResourceNameSync(
-                                instance_resource_name),
-                            kGcpInstanceClientUtils, kZeroUuid,
-                            "Failed getting instance resource name.");
+  if (absl::Status error = instance_client.GetCurrentInstanceResourceNameSync(
+          instance_resource_name);
+      !error.ok()) {
+    SCP_ERROR(kGcpInstanceClientUtils, kZeroUuid, error,
+              "Failed getting instance resource name.");
+    return FailureExecutionResult(SC_UNKNOWN);
+  }
 
   auto project_id_or =
       ParseProjectIdFromInstanceResourceName(instance_resource_name);

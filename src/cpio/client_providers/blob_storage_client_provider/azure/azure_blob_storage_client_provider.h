@@ -44,39 +44,35 @@ class AzureBlobStorageClientProvider
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor) {}
 
-  core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult GetBlob(
+  absl::Status GetBlob(
       core::AsyncContext<cmrt::sdk::blob_storage_service::v1::GetBlobRequest,
                          cmrt::sdk::blob_storage_service::v1::GetBlobResponse>&
           get_blob_context) noexcept override;
 
-  core::ExecutionResult GetBlobStream(
+  absl::Status GetBlobStream(
       core::ConsumerStreamingContext<
           cmrt::sdk::blob_storage_service::v1::GetBlobStreamRequest,
           cmrt::sdk::blob_storage_service::v1::GetBlobStreamResponse>&
           get_blob_stream_context) noexcept override;
 
-  core::ExecutionResult ListBlobsMetadata(
+  absl::Status ListBlobsMetadata(
       core::AsyncContext<
           cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest,
           cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataResponse>&
           list_blobs_context) noexcept override;
 
-  core::ExecutionResult PutBlob(
+  absl::Status PutBlob(
       core::AsyncContext<cmrt::sdk::blob_storage_service::v1::PutBlobRequest,
                          cmrt::sdk::blob_storage_service::v1::PutBlobResponse>&
           put_blob_context) noexcept override;
 
-  core::ExecutionResult PutBlobStream(
+  absl::Status PutBlobStream(
       core::ProducerStreamingContext<
           cmrt::sdk::blob_storage_service::v1::PutBlobStreamRequest,
           cmrt::sdk::blob_storage_service::v1::PutBlobStreamResponse>&
           put_blob_stream_context) noexcept override;
 
-  core::ExecutionResult DeleteBlob(
+  absl::Status DeleteBlob(
       core::AsyncContext<
           cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest,
           cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse>&

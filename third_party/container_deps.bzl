@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_pull")
 load("@rules_oci//oci:pull.bzl", "oci_pull")
 
 def container_deps():
@@ -38,10 +37,10 @@ def container_deps():
         },
         # Non-distroless; only for debugging purposes
         "runtime-ubuntu-fulldist-debug-root": {
-            # Ubuntu 20.04
+            # Ubuntu 20.04 ubuntu:focal-20240216
             "arch_hashes": {
-                "amd64": "81bba8d1dde7fc1883b6e95cd46d6c9f4874374f2b360c8db82620b33f6b5ca1",
-                "arm64": "ca165754e2f953a4f686409b1eb5855212f42a252462c9c50bbc3077f3b9a654",
+                "amd64": "48c35f3de33487442af224ed4aabac19fd9bfbd91ee90e9471d412706b20ba73",
+                "arm64": "4aa61d4985265be6d872cc214016f2f91a77b1c925dab5ce502db2edc4a7e5af",
             },
             "registry": "docker.io",
             "repository": "library/ubuntu",
@@ -53,17 +52,6 @@ def container_deps():
             name = "{}-{}".format(img_name, arch),
             digest = "sha256:" + hash,
             image = "{}/{}".format(image["registry"], image["repository"]),
-        )
-        for img_name, image in images.items()
-        for arch, hash in image["arch_hashes"].items()
-    ]
-
-    [
-        container_pull(
-            name = "{}-{}-docker".format(img_name, arch),
-            digest = "sha256:" + hash,
-            registry = image["registry"],
-            repository = image["repository"],
         )
         for img_name, image in images.items()
         for arch, hash in image["arch_hashes"].items()

@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/parameter_client_provider_interface.h"
@@ -31,9 +32,8 @@ namespace google::scp::cpio {
  */
 class ParameterClient : public ParameterClientInterface {
  public:
-  explicit ParameterClient(
-      const std::shared_ptr<ParameterClientOptions>& options)
-      : options_(options) {}
+  explicit ParameterClient(ParameterClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~ParameterClient() = default;
 
@@ -49,12 +49,12 @@ class ParameterClient : public ParameterClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual core::ExecutionResult CreateParameterClientProvider() noexcept;
+  virtual absl::Status CreateParameterClientProvider() noexcept;
   std::unique_ptr<client_providers::ParameterClientProviderInterface>
       parameter_client_provider_;
 
  private:
-  std::shared_ptr<ParameterClientOptions> options_;
+  ParameterClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio

@@ -57,17 +57,6 @@ static constexpr char kAzureParameterClientProvider[] =
     "AzureParameterClientProvider";
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult AzureParameterClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureParameterClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureParameterClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
 
 std::shared_ptr<SecretManagerServiceClient>
 AzureParameterClientProvider::GetSecretManagerClient() noexcept {
@@ -75,7 +64,7 @@ AzureParameterClientProvider::GetSecretManagerClient() noexcept {
       MakeSecretManagerServiceConnection());
 }
 
-ExecutionResult AzureParameterClientProvider::GetParameter(
+absl::Status AzureParameterClientProvider::GetParameter(
     AsyncContext<GetParameterRequest, GetParameterResponse>&
         get_parameter_context) noexcept {
   get_parameter_context.response = std::make_shared<GetParameterResponse>();
@@ -93,7 +82,9 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
                       execution_result, "Failed due to an empty parameter.");
     get_parameter_context.result = execution_result;
     get_parameter_context.Finish();
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   if (parameter_name.size() <= prefix.size() ||
@@ -105,7 +96,8 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
                       "Request does not have expected prefix.");
     get_parameter_context.result = execution_result;
     get_parameter_context.Finish();
-    return execution_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   // Example value: "BUYER_FRONTEND_PORT"
@@ -120,7 +112,7 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
     get_parameter_context.response->set_parameter_value(value_from_env);
     get_parameter_context.result = SuccessExecutionResult();
     get_parameter_context.Finish();
-    return SuccessExecutionResult();
+    return absl::OkStatus();
   } else {
     auto execution_result = FailureExecutionResult(
         SC_AZURE_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND);
@@ -130,12 +122,11 @@ ExecutionResult AzureParameterClientProvider::GetParameter(
                       get_parameter_context.request->parameter_name().c_str());
     get_parameter_context.result = execution_result;
     get_parameter_context.Finish();
-    return execution_result;
+    return absl::OkStatus();
   }
 }
 
-#ifndef TEST_CPIO
-std::unique_ptr<ParameterClientProviderInterface>
+absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
@@ -143,5 +134,4 @@ ParameterClientProviderFactory::Create(
     core::AsyncExecutorInterface* io_async_executor) {
   return std::make_unique<AzureParameterClientProvider>();
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

@@ -65,14 +65,9 @@ namespace google::scp::cpio::client_providers::test {
 class AzureInstanceClientProviderTest : public testing::Test {
  protected:
   AzureInstanceClientProviderTest()
-      : instance_provider_(std::make_unique<AzureInstanceClientProvider>()) {
-    EXPECT_SUCCESS(instance_provider_->Init());
-    EXPECT_SUCCESS(instance_provider_->Run());
-  }
+      : instance_provider_(std::make_unique<AzureInstanceClientProvider>()) {}
 
-  ~AzureInstanceClientProviderTest() {
-    EXPECT_SUCCESS(instance_provider_->Stop());
-  }
+  ~AzureInstanceClientProviderTest() {}
 
   std::unique_ptr<AzureInstanceClientProvider> instance_provider_;
 };
@@ -80,9 +75,10 @@ class AzureInstanceClientProviderTest : public testing::Test {
 TEST_F(AzureInstanceClientProviderTest,
        GetCurrentInstanceResourceNameSyncNotImplemented) {
   std::string resource_name;
-  EXPECT_THAT(
-      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name),
-      ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+
+  EXPECT_FALSE(
+      instance_provider_->GetCurrentInstanceResourceNameSync(resource_name)
+          .ok());
 }
 
 TEST_F(AzureInstanceClientProviderTest, GetCurrentInstanceResourceName) {
@@ -100,16 +96,16 @@ TEST_F(AzureInstanceClientProviderTest, GetCurrentInstanceResourceName) {
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetCurrentInstanceResourceName(context),
-              IsSuccessful());
+  EXPECT_TRUE(instance_provider_->GetCurrentInstanceResourceName(context).ok());
   done.WaitForNotification();
 }
 
 TEST_F(AzureInstanceClientProviderTest, GetInstanceDetailsSyncNotImplemented) {
   InstanceDetails details;
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceNameSync(
-                  kInstanceResourceName, details),
-              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(
+      instance_provider_
+          ->GetInstanceDetailsByResourceNameSync(kInstanceResourceName, details)
+          .ok());
 }
 
 TEST_F(AzureInstanceClientProviderTest, GetInstanceDetailsSuccess) {
@@ -133,8 +129,8 @@ TEST_F(AzureInstanceClientProviderTest, GetInstanceDetailsSuccess) {
             done.Notify();
           });
 
-  EXPECT_THAT(instance_provider_->GetInstanceDetailsByResourceName(context),
-              IsSuccessful());
+  EXPECT_TRUE(
+      instance_provider_->GetInstanceDetailsByResourceName(context).ok());
   done.WaitForNotification();
 }
 
@@ -144,8 +140,7 @@ TEST_F(AzureInstanceClientProviderTest, GetTagsByResourceNameNotImplemented) {
               [&](AsyncContext<GetTagsByResourceNameRequest,
                                GetTagsByResourceNameResponse>& context) {});
 
-  EXPECT_THAT(instance_provider_->GetTagsByResourceName(context),
-              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(instance_provider_->GetTagsByResourceName(context).ok());
 }
 
 }  // namespace google::scp::cpio::client_providers::test

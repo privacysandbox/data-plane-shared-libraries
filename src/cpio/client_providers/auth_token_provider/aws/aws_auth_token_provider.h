@@ -31,13 +31,8 @@ namespace google::scp::cpio::client_providers {
  */
 class AwsAuthTokenProvider : public AuthTokenProviderInterface {
  public:
-  explicit AwsAuthTokenProvider(core::HttpClientInterface* http_client);
-
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
+  explicit AwsAuthTokenProvider(
+      absl::Nonnull<core::HttpClientInterface*> http_client);
 
   core::ExecutionResult GetSessionToken(
       core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&

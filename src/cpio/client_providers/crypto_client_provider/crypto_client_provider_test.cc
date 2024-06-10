@@ -86,15 +86,7 @@ constexpr std::string_view kDecryptedPrivateKeyForAes128Gcm =
 
 class CryptoClientProviderTest : public ScpTestBase {
  protected:
-  void SetUp() override {
-    auto options = std::make_shared<CryptoClientOptions>();
-    client_ = std::make_unique<CryptoClientProvider>(options);
-
-    EXPECT_SUCCESS(client_->Init());
-    EXPECT_SUCCESS(client_->Run());
-  }
-
-  void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
+  void SetUp() override { client_.emplace(CryptoClientOptions()); }
 
   AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>
   CreateHpkeEncryptContext(bool is_bidirectional,
@@ -134,8 +126,8 @@ class CryptoClientProviderTest : public ScpTestBase {
               ciphertext, context.request->is_bidirectional(),
               context.response->secret(), decrypt_private_key_result,
               exporter_context, hpke_params_from_request, hpke_params_config);
-          EXPECT_EQ(client_->HpkeDecrypt(decrypt_context),
-                    decrypt_private_key_result);
+          EXPECT_EQ(client_->HpkeDecrypt(decrypt_context).ok(),
+                    decrypt_private_key_result.Successful());
         });
   }
 
@@ -217,13 +209,13 @@ class CryptoClientProviderTest : public ScpTestBase {
         [&](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {});
   }
 
-  std::unique_ptr<CryptoClientProvider> client_;
+  std::optional<CryptoClientProvider> client_;
 };
 
 TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptSuccessForOneDirection) {
   auto encrypt_context = CreateHpkeEncryptContext(false /*is_bidirectional*/,
                                                   SuccessExecutionResult());
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest,
@@ -233,34 +225,34 @@ TEST_F(CryptoClientProviderTest,
   auto encrypt_context = CreateHpkeEncryptContext(
       false /*is_bidirectional*/, SuccessExecutionResult(),
       "" /*exporter_context*/, hpke_params_from_request);
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest,
        HpkeEncryptAndDecryptSuccessForConfigHpkeParams) {
-  auto options = std::make_shared<CryptoClientOptions>();
-  options->hpke_params.set_kem(HpkeKem::DHKEM_X25519_HKDF_SHA256);
-  options->hpke_params.set_kdf(HpkeKdf::HKDF_SHA256);
-  options->hpke_params.set_aead(HpkeAead::AES_128_GCM);
-  client_ = std::make_unique<CryptoClientProvider>(options);
+  CryptoClientOptions options;
+  options.hpke_params.set_kem(HpkeKem::DHKEM_X25519_HKDF_SHA256);
+  options.hpke_params.set_kdf(HpkeKdf::HKDF_SHA256);
+  options.hpke_params.set_aead(HpkeAead::AES_128_GCM);
+  client_.emplace(options);
 
   auto encrypt_context = CreateHpkeEncryptContext(
       false /*is_bidirectional*/, SuccessExecutionResult(),
-      "" /*exporter_context*/, HpkeParams(), options->hpke_params);
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+      "" /*exporter_context*/, HpkeParams(), options.hpke_params);
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptSuccessForTwoDirection) {
   auto encrypt_context = CreateHpkeEncryptContext(true /*is_bidirectional*/,
                                                   SuccessExecutionResult());
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest, HpkeEncryptAndDecryptWithInputExportContext) {
   std::string exporter_context = "custom exporter";
   auto encrypt_context = CreateHpkeEncryptContext(
       true /*is_bidirectional*/, SuccessExecutionResult(), exporter_context);
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest, CannotCreateKeyset) {
@@ -268,36 +260,36 @@ TEST_F(CryptoClientProviderTest, CannotCreateKeyset) {
       false /*is_bidirectional*/,
       FailureExecutionResult(
           SC_CRYPTO_CLIENT_PROVIDER_CANNOT_CREATE_KEYSET_HANDLE));
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest, FailedToDecodePrivateKey) {
   auto encrypt_context = CreateHpkeEncryptContext(
       false /*is_bidirectional*/,
       FailureExecutionResult(SC_CORE_UTILS_INVALID_BASE64_ENCODING_LENGTH));
-  EXPECT_SUCCESS(client_->HpkeEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->HpkeEncrypt(encrypt_context).ok());
 }
 
 TEST_F(CryptoClientProviderTest, AeadEncryptAndDecryptSuccessFor128Secret) {
   auto encrypt_context = CreateAeadEncryptContext(kSecret128);
-  EXPECT_SUCCESS(client_->AeadEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->AeadEncrypt(encrypt_context).ok());
   EXPECT_SUCCESS(encrypt_context.result);
   auto ciphertext = encrypt_context.response->encrypted_data().ciphertext();
 
   auto decrypt_context = CreateAeadDecryptContext(kSecret128, ciphertext);
-  EXPECT_SUCCESS(client_->AeadDecrypt(decrypt_context));
+  EXPECT_TRUE(client_->AeadDecrypt(decrypt_context).ok());
   EXPECT_SUCCESS(decrypt_context.result);
   EXPECT_EQ(decrypt_context.response->payload(), kPayload);
 }
 
 TEST_F(CryptoClientProviderTest, AeadEncryptAndDecryptSuccessFor256Secret) {
   auto encrypt_context = CreateAeadEncryptContext(kSecret256);
-  EXPECT_SUCCESS(client_->AeadEncrypt(encrypt_context));
+  EXPECT_TRUE(client_->AeadEncrypt(encrypt_context).ok());
   EXPECT_SUCCESS(encrypt_context.result);
   auto ciphertext = encrypt_context.response->encrypted_data().ciphertext();
 
   auto decrypt_context = CreateAeadDecryptContext(kSecret256, ciphertext);
-  EXPECT_SUCCESS(client_->AeadDecrypt(decrypt_context));
+  EXPECT_TRUE(client_->AeadDecrypt(decrypt_context).ok());
   EXPECT_SUCCESS(decrypt_context.result);
   EXPECT_EQ(decrypt_context.response->payload(), kPayload);
 }
@@ -306,13 +298,9 @@ TEST_F(CryptoClientProviderTest, CannotCreateAeadDueToInvalidSecret) {
   SecretData invalid_secret(4, 'x');
   std::string secret_str(invalid_secret.begin(), invalid_secret.end());
   auto encrypt_context = CreateAeadEncryptContext(secret_str);
-  EXPECT_THAT(client_->AeadEncrypt(encrypt_context),
-              ResultIs(FailureExecutionResult(
-                  SC_CRYPTO_CLIENT_PROVIDER_CREATE_AEAD_FAILED)));
+  EXPECT_FALSE(client_->AeadEncrypt(encrypt_context).ok());
 
   auto decrypt_context = CreateAeadDecryptContext(secret_str, kPayload);
-  EXPECT_THAT(client_->AeadDecrypt(decrypt_context),
-              ResultIs(FailureExecutionResult(
-                  SC_CRYPTO_CLIENT_PROVIDER_CREATE_AEAD_FAILED)));
+  EXPECT_FALSE(client_->AeadDecrypt(decrypt_context).ok());
 }
 }  // namespace google::scp::cpio::client_providers::test

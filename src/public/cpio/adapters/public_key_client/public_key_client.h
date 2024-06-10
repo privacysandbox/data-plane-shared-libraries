@@ -18,6 +18,7 @@
 #define PUBLIC_CPIO_ADAPTERS_PUBLIC_KEY_CLIENT_PUBLIC_KEY_CLIENT_H_
 
 #include <memory>
+#include <utility>
 
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/public_key_client_provider_interface.h"
@@ -30,9 +31,8 @@ namespace google::scp::cpio {
  */
 class PublicKeyClient : public PublicKeyClientInterface {
  public:
-  explicit PublicKeyClient(
-      const std::shared_ptr<PublicKeyClientOptions>& options)
-      : options_(options) {}
+  explicit PublicKeyClient(PublicKeyClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~PublicKeyClient() = default;
 
@@ -48,11 +48,11 @@ class PublicKeyClient : public PublicKeyClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual core::ExecutionResult CreatePublicKeyClientProvider() noexcept;
+  virtual absl::Status CreatePublicKeyClientProvider() noexcept;
 
   std::unique_ptr<client_providers::PublicKeyClientProviderInterface>
       public_key_client_provider_;
-  std::shared_ptr<PublicKeyClientOptions> options_;
+  PublicKeyClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio

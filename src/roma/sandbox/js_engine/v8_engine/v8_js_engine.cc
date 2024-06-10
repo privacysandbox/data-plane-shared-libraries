@@ -96,21 +96,15 @@ std::shared_ptr<std::string> GetCodeFromContext(
   return code;
 }
 
-std::vector<std::string> GetErrors(v8::Isolate* isolate,
-                                   v8::TryCatch& try_catch,
-                                   std::string_view top_level_error) {
-  std::vector<std::string> errors = {
-      std::string(top_level_error),
-  };
-  if (try_catch.HasCaught()) {
-    if (std::string error_msg;
-        !try_catch.Message().IsEmpty() &&
-        TypeConverter<std::string>::FromV8(isolate, try_catch.Message()->Get(),
-                                           &error_msg)) {
-      errors.push_back(std::move(error_msg));
-    }
+std::string GetError(v8::Isolate* isolate, v8::TryCatch& try_catch,
+                     std::string_view top_level_error) {
+  if (std::string error_msg;
+      try_catch.HasCaught() && !try_catch.Message().IsEmpty() &&
+      TypeConverter<std::string>::FromV8(isolate, try_catch.Message()->Get(),
+                                         &error_msg)) {
+    return absl::StrCat(top_level_error, " ", error_msg);
   }
-  return errors;
+  return std::string(top_level_error);
 }
 
 std::string GetStackTrace(v8::Isolate* isolate, v8::TryCatch& try_catch,
@@ -227,11 +221,12 @@ absl::Status V8JsEngine::FormatAndLogError(v8::Isolate* isolate,
                                            v8::Local<v8::Context> context,
                                            std::string_view top_level_error,
                                            LogOptions log_options) {
-  std::vector<std::string> errors =
-      GetErrors(isolate, try_catch, top_level_error);
-  errors.push_back(GetStackTrace(isolate, try_catch, context));
-  HandleLog("ROMA_ERROR", absl::StrJoin(errors, "\n"), std::move(log_options));
-  return absl::InternalError(top_level_error);
+  std::string err_msg = GetError(isolate, try_catch, top_level_error);
+  (void)HandleLog(
+      "ROMA_ERROR",
+      absl::StrCat(err_msg, "\n", GetStackTrace(isolate, try_catch, context)),
+      std::move(log_options));
+  return absl::InternalError(std::move(err_msg));
 }
 
 absl::Status V8JsEngine::HandleLog(std::string_view function_name,

@@ -33,6 +33,13 @@ def _bazel_deps():
         strip_prefix = "rules_oci-1.7.4",
         url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.7.4/rules_oci-v1.7.4.tar.gz",
     )
+    maybe(
+        http_archive,
+        name = "container_structure_test",
+        sha256 = "978db1ed0f802120fb0308b08b5c1e38ea81377944cc7a2fb727529815e4ed09",
+        strip_prefix = "container-structure-test-1.17.0",
+        urls = ["https://github.com/GoogleContainerTools/container-structure-test/archive/v1.17.0.zip"],
+    )
 
 def _absl_deps():
     maybe(

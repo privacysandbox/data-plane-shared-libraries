@@ -1,0 +1,64 @@
+// Copyright 2023 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacy_sandbox.server_common;
+
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
+// For faster allocations of sub-messages.
+option cc_enable_arenas = true;
+
+service MultiService {
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Multi Server',
+    description: 'Multi Server',
+    cpp_namespace: 'privacysandbox::multi_server',
+    romav8_app_name: 'MultiServer',
+    cpp_host_process_callback_includes: [
+      'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
+    ],
+  };
+
+  rpc TestMethod1(TestMethod1Request) returns (TestMethod1Response) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacysandbox::multi_server::HandleTestMethod1',
+    };
+  };
+
+  rpc TestMethod2(TestMethod2Request) returns (TestMethod2Response) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacysandbox::multi_server::HandleTestMethod2',
+    };
+  };
+}
+
+message TestMethod1Request {
+  string input = 1;
+  int32 processing_delay_ms = 2;
+}
+
+message TestMethod1Response {
+  string output = 1;
+}
+
+message TestMethod2Request {
+  string input = 1;
+  int32 processing_delay_ms = 2;
+}
+
+message TestMethod2Response {
+  string output = 1;
+}

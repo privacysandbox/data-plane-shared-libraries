@@ -47,6 +47,7 @@
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/util/status_macro/status_macros.h"
 
 using Aws::MakeShared;
 using Aws::String;
@@ -199,11 +200,7 @@ ClientConfiguration AwsBlobStorageClientProvider::CreateClientConfiguration(
   return common::CreateClientConfiguration(std::string(region));
 }
 
-ExecutionResult AwsBlobStorageClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
+absl::Status AwsBlobStorageClientProvider::Init() noexcept {
   std::string region_code;
   if (!region_code_.empty()) {
     region_code = region_code_;
@@ -213,7 +210,8 @@ ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
     if (!region_code_or.Successful()) {
       SCP_ERROR(kAwsS3Provider, kZeroUuid, region_code_or.result(),
                 "Failed to get region code for current instance");
-      return region_code_or.result();
+      return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+          region_code_or.result().status_code));
     }
     region_code = *region_code_or;
   }
@@ -222,20 +220,21 @@ ExecutionResult AwsBlobStorageClientProvider::Run() noexcept {
   if (!client_or.Successful()) {
     SCP_ERROR(kAwsS3Provider, kZeroUuid, client_or.result(),
               "Failed creating AWS S3 client.");
-    return client_or.result();
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        client_or.result().status_code));
   }
   s3_client_ = *std::move(client_or);
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsBlobStorageClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsBlobStorageClientProvider::GetBlob(
+absl::Status AwsBlobStorageClientProvider::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) noexcept {
   const auto& request = *get_blob_context.request;
-  RETURN_IF_FAILURE(ValidateGetBlobRequest(get_blob_context));
+  if (const ExecutionResult result = ValidateGetBlobRequest(get_blob_context);
+      !result.Successful()) {
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(result.status_code));
+  }
 
   std::optional<std::string> range;
   if (request.has_byte_range()) {
@@ -251,7 +250,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlob(
                        get_blob_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsBlobStorageClientProvider::OnGetObjectCallback(
@@ -294,10 +293,15 @@ void AwsBlobStorageClientProvider::OnGetObjectCallback(
                 AsyncPriority::High);
 }
 
-ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
+absl::Status AwsBlobStorageClientProvider::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>&
         get_blob_stream_context) noexcept {
-  RETURN_IF_FAILURE(ValidateGetBlobRequest(get_blob_stream_context));
+  if (const ExecutionResult result =
+          ValidateGetBlobRequest(get_blob_stream_context);
+      !result.Successful()) {
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(result.status_code));
+  }
   const auto& request = *get_blob_stream_context.request;
 
   auto tracker = std::make_shared<GetBlobStreamTracker>();
@@ -336,7 +340,7 @@ ExecutionResult AwsBlobStorageClientProvider::GetBlobStream(
                        this, get_blob_stream_context, tracker),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
@@ -476,7 +480,7 @@ void AwsBlobStorageClientProvider::OnGetObjectStreamCallback(
       nullptr);
 }
 
-ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
+absl::Status AwsBlobStorageClientProvider::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
         list_blobs_context) noexcept {
   const auto& request = *list_blobs_context.request;
@@ -486,7 +490,9 @@ ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
     SCP_ERROR_CONTEXT(kAwsS3Provider, list_blobs_context, execution_result,
                       "List blobs metadata request failed. Bucket name empty.");
     list_blobs_context.Finish(execution_result);
-    return list_blobs_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
   if (request.has_max_page_size() &&
       request.max_page_size() > kListBlobsMetadataMaxResults) {
@@ -497,7 +503,9 @@ ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
         "List blobs metadata request failed. Max page size cannot be "
         "greater than 1000.");
     list_blobs_context.Finish(execution_result);
-    return list_blobs_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
   String bucket_name(list_blobs_context.request->blob_metadata().bucket_name());
 
@@ -525,7 +533,7 @@ ExecutionResult AwsBlobStorageClientProvider::ListBlobsMetadata(
           list_blobs_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
@@ -570,7 +578,7 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
                 *cpu_async_executor_, AsyncPriority::High);
 }
 
-ExecutionResult AwsBlobStorageClientProvider::PutBlob(
+absl::Status AwsBlobStorageClientProvider::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) noexcept {
   const auto& request = *put_blob_context.request;
   if (request.blob().metadata().bucket_name().empty() ||
@@ -582,7 +590,9 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
                       "Put blob request failed. Ensure that bucket name, blob "
                       "name, and data are present.");
     put_blob_context.Finish(execution_result);
-    return put_blob_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   String bucket_name(request.blob().metadata().bucket_name());
@@ -596,7 +606,8 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
                                       request.blob().data());
       !md5_result.Successful()) {
     put_blob_context.Finish(md5_result);
-    return put_blob_context.result;
+    return absl::UnknownError(
+        google::scp::core::errors::GetErrorMessage(md5_result.status_code));
   }
 
   auto input_data = Aws::MakeShared<Aws::StringStream>(
@@ -613,7 +624,7 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlob(
                        put_blob_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsBlobStorageClientProvider::OnPutObjectCallback(
@@ -639,7 +650,7 @@ void AwsBlobStorageClientProvider::OnPutObjectCallback(
                 AsyncPriority::High);
 }
 
-ExecutionResult AwsBlobStorageClientProvider::PutBlobStream(
+absl::Status AwsBlobStorageClientProvider::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context) noexcept {
   const auto& request = *put_blob_stream_context.request;
@@ -653,7 +664,9 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlobStream(
         "Put blob stream request failed. Ensure that bucket name, blob "
         "name, and data are present.");
     put_blob_stream_context.Finish(execution_result);
-    return put_blob_stream_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   CreateMultipartUploadRequest create_request;
@@ -667,7 +680,7 @@ ExecutionResult AwsBlobStorageClientProvider::PutBlobStream(
           put_blob_stream_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsBlobStorageClientProvider::OnCreateMultipartUploadCallback(
@@ -1059,7 +1072,7 @@ void AwsBlobStorageClientProvider::OnAbortMultipartUploadCallback(
                          AsyncPriority::High);
 }
 
-ExecutionResult AwsBlobStorageClientProvider::DeleteBlob(
+absl::Status AwsBlobStorageClientProvider::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
         delete_blob_context) noexcept {
   const auto& request = *delete_blob_context.request;
@@ -1071,7 +1084,9 @@ ExecutionResult AwsBlobStorageClientProvider::DeleteBlob(
         kAwsS3Provider, delete_blob_context, execution_result,
         "Delete blob request failed. Missing bucket or blob name.");
     delete_blob_context.Finish(execution_result);
-    return delete_blob_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
   String bucket_name(request.blob_metadata().bucket_name());
   String blob_name(request.blob_metadata().blob_name());
@@ -1086,7 +1101,7 @@ ExecutionResult AwsBlobStorageClientProvider::DeleteBlob(
                        this, delete_blob_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsBlobStorageClientProvider::OnDeleteObjectCallback(
@@ -1122,14 +1137,16 @@ ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
   return std::make_shared<S3Client>(std::move(client_config));
 }
 
-std::unique_ptr<BlobStorageClientProviderInterface>
+absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
     InstanceClientProviderInterface* instance_client,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<AwsBlobStorageClientProvider>(
+  auto provider = std::make_unique<AwsBlobStorageClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

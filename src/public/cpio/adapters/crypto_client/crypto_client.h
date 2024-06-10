@@ -18,7 +18,9 @@
 #define PUBLIC_CPIO_ADAPTERS_CRYPTO_CLIENT_CRYPTO_CLIENT_H_
 
 #include <memory>
+#include <utility>
 
+#include "src/cpio/client_providers/crypto_client_provider/crypto_client_provider.h"
 #include "src/cpio/client_providers/interface/crypto_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
@@ -29,7 +31,10 @@ namespace google::scp::cpio {
  */
 class CryptoClient : public CryptoClientInterface {
  public:
-  explicit CryptoClient(const std::shared_ptr<CryptoClientOptions>& options);
+  explicit CryptoClient(CryptoClientOptions options)
+      : crypto_client_provider_(
+            std::make_unique<client_providers::CryptoClientProvider>(
+                std::move(options))) {}
 
   virtual ~CryptoClient() = default;
 
@@ -60,9 +65,9 @@ class CryptoClient : public CryptoClientInterface {
           callback) noexcept override;
 
  protected:
-  std::shared_ptr<client_providers::CryptoClientProviderInterface>
+  // Must be a pointer so it can be replaced with a mock.
+  std::unique_ptr<client_providers::CryptoClientProviderInterface>
       crypto_client_provider_;
-  std::shared_ptr<CryptoClientOptions> options_;
 };
 }  // namespace google::scp::cpio
 

@@ -55,25 +55,13 @@ inline constexpr char kServiceTagValue[] = "azure_service";
 
 AzureInstanceClientProvider::AzureInstanceClientProvider() {}
 
-ExecutionResult AzureInstanceClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureInstanceClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureInstanceClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+absl::Status AzureInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   // Not implemented.
-  return FailureExecutionResult(SC_UNKNOWN);
+  return absl::UnimplementedError("");
 }
 
-ExecutionResult AzureInstanceClientProvider::GetCurrentInstanceResourceName(
+absl::Status AzureInstanceClientProvider::GetCurrentInstanceResourceName(
     AsyncContext<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context) noexcept {
@@ -84,26 +72,25 @@ ExecutionResult AzureInstanceClientProvider::GetCurrentInstanceResourceName(
       kResourceNameValue);
   get_resource_name_context.result = SuccessExecutionResult();
   get_resource_name_context.Finish();
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureInstanceClientProvider::GetTagsByResourceName(
+absl::Status AzureInstanceClientProvider::GetTagsByResourceName(
     AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>&
         get_tags_context) noexcept {
   // Not implemented.
-  return FailureExecutionResult(SC_UNKNOWN);
+  return absl::UnimplementedError("");
 }
 
-ExecutionResult
-AzureInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+absl::Status AzureInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     std::string_view resource_name,
     cmrt::sdk::instance_service::v1::InstanceDetails&
         instance_details) noexcept {
   // Not implemented.
-  return FailureExecutionResult(SC_UNKNOWN);
+  return absl::UnimplementedError("");
 }
 
-ExecutionResult AzureInstanceClientProvider::GetInstanceDetailsByResourceName(
+absl::Status AzureInstanceClientProvider::GetInstanceDetailsByResourceName(
     AsyncContext<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>&
         get_instance_details_context) noexcept {
@@ -127,15 +114,15 @@ ExecutionResult AzureInstanceClientProvider::GetInstanceDetailsByResourceName(
       instance_details;
   get_instance_details_context.result = SuccessExecutionResult();
   get_instance_details_context.Finish();
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureInstanceClientProvider::ListInstanceDetailsByEnvironment(
+absl::Status AzureInstanceClientProvider::ListInstanceDetailsByEnvironment(
     AsyncContext<ListInstanceDetailsByEnvironmentRequest,
                  ListInstanceDetailsByEnvironmentResponse>&
         get_instance_details_context) noexcept {
   // Not implemented.
-  return FailureExecutionResult(SC_UNKNOWN);
+  return absl::UnimplementedError("");
 }
 
 std::unique_ptr<InstanceClientProviderInterface>

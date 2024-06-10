@@ -51,11 +51,11 @@ def cpp_dependencies():
         http_archive,
         name = "curl",
         build_file = Label("//third_party:curl.BUILD"),
-        sha256 = "05fc17ff25b793a437a0906e0484b82172a9f4de02be5ed447e0cab8c3475add",
-        strip_prefix = "curl-8.5.0",
+        sha256 = "9c6db808160015f30f3c656c0dec125feb9dc00753596bf858a272b5dd8dc398",
+        strip_prefix = "curl-8.6.0",
         urls = [
-            "https://curl.haxx.se/download/curl-8.5.0.tar.gz",
-            "https://github.com/curl/curl/releases/download/curl-8_5_0/curl-8.5.0.tar.gz",
+            "https://curl.haxx.se/download/curl-8.6.0.tar.gz",
+            "https://github.com/curl/curl/releases/download/curl-8_6_0/curl-8.6.0.tar.gz",
         ],
     )
     http_file(
@@ -67,6 +67,16 @@ def cpp_dependencies():
         name = "grpcurl_x86_64",
         url = "https://github.com/fullstorydev/grpcurl/releases/download/v1.8.9/grpcurl_1.8.9_linux_x86_64.tar.gz",
         sha256 = "a422d1e8ad854a305c0dd53f2f2053da242211d3d1810e7addb40a041e309516",
+    )
+    http_file(
+        # ca_certificates for amd64 and aarch64 are the same.
+        # Retrived from https://github.com/GoogleContainerTools/distroless/blob/f55b2b343481f52ef3bde34c8a2f3631a40a36c1/debian_archives.bzl
+        name = "ca_certificates_deb",
+        urls = [
+            "https://snapshot-cloudflare.debian.org/archive/debian/20240210T223313Z/pool/main/c/ca-certificates/ca-certificates_20230311_all.deb",
+            "https://snapshot.debian.org/archive/debian/20240210T223313Z/pool/main/c/ca-certificates/ca-certificates_20230311_all.deb",
+        ],
+        sha256 = "5308b9bd88eebe2a48be3168cb3d87677aaec5da9c63ad0cf561a29b8219115c",
     )
     maybe(
         http_archive,

@@ -25,6 +25,8 @@
 #include "absl/status/statusor.h"
 #include "google/protobuf/any.pb.h"
 #include "src/core/async_executor/async_executor.h"
+#include "src/core/curl_client/http1_curl_client.h"
+#include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/message_router_interface.h"
@@ -42,8 +44,7 @@ namespace google::scp::cpio::client_providers {
  */
 class LibCpioProvider : public CpioProviderInterface {
  public:
-  explicit LibCpioProvider(CpioOptions options)
-      : cpio_options_(std::move(options)), cloud_initializer_(nullptr) {}
+  explicit LibCpioProvider(CpioOptions options);
 
   virtual ~LibCpioProvider() = default;
 
@@ -53,24 +54,21 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::ExecutionResult Stop() noexcept override;
 
-  absl::StatusOr<core::AsyncExecutorInterface*> GetCpuAsyncExecutor() noexcept
+  core::AsyncExecutorInterface& GetCpuAsyncExecutor() noexcept override;
+
+  core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept override;
+
+  core::HttpClientInterface& GetHttpClient() noexcept override;
+
+  core::HttpClientInterface& GetHttp1Client() noexcept override;
+
+  InstanceClientProviderInterface& GetInstanceClientProvider() noexcept
       override;
-
-  absl::StatusOr<core::AsyncExecutorInterface*> GetIoAsyncExecutor() noexcept
-      override;
-
-  absl::StatusOr<core::HttpClientInterface*> GetHttpClient() noexcept override;
-
-  absl::StatusOr<core::HttpClientInterface*> GetHttp1Client() noexcept override;
-
-  absl::StatusOr<InstanceClientProviderInterface*>
-  GetInstanceClientProvider() noexcept override;
 
   absl::StatusOr<RoleCredentialsProviderInterface*>
   GetRoleCredentialsProvider() noexcept override;
 
-  absl::StatusOr<AuthTokenProviderInterface*> GetAuthTokenProvider() noexcept
-      override;
+  AuthTokenProviderInterface& GetAuthTokenProvider() noexcept override;
 
   const std::string& GetProjectId() noexcept override;
 
@@ -78,14 +76,16 @@ class LibCpioProvider : public CpioProviderInterface {
 
  protected:
   /// Global CPIO options.
-  CpioOptions cpio_options_;
+  std::string project_id_;
+  std::string region_;
   /// Global cloud initializer.
   std::unique_ptr<CloudInitializerInterface> cloud_initializer_;
   /// Global async executors.
   std::unique_ptr<core::AsyncExecutorInterface> cpu_async_executor_,
       io_async_executor_;
   /// Global http clients.
-  std::unique_ptr<core::HttpClientInterface> http1_client_, http2_client_;
+  std::unique_ptr<core::Http1CurlClient> http1_client_;
+  std::unique_ptr<core::HttpClient> http2_client_;
   /// Global instance client provider to fetch cloud metadata.
   std::unique_ptr<InstanceClientProviderInterface> instance_client_provider_;
   /// Global role credential provider.
@@ -94,8 +94,9 @@ class LibCpioProvider : public CpioProviderInterface {
   std::unique_ptr<AuthTokenProviderInterface> auth_token_provider_;
 
  private:
-  virtual std::unique_ptr<RoleCredentialsProviderInterface>
+  virtual absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
   CreateRoleCredentialsProvider(
+      RoleCredentialsProviderOptions options,
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor) noexcept;

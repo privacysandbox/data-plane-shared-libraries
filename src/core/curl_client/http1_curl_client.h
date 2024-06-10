@@ -54,10 +54,6 @@ class Http1CurlClient : public HttpClientInterface {
                                        kDefaultRetryStrategyDelayInMs,
                                        kDefaultRetryStrategyMaxRetries));
 
-  ExecutionResult Init() noexcept override;
-  ExecutionResult Run() noexcept override;
-  ExecutionResult Stop() noexcept override;
-
   ExecutionResult PerformRequest(
       AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept override;
 

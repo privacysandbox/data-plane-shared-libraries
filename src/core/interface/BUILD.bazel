@@ -48,7 +48,6 @@ cc_library(
         ":async_context",
         ":service_interface",
         ":streaming_context",
-        "//src/core/common/concurrent_map",
         "//src/core/common/proto:common_cc_proto",
         "//src/core/common/streaming_context:streaming_context_errors",
         "//src/core/common/uuid",

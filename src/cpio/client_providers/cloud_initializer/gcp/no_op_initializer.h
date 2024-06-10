@@ -25,12 +25,6 @@ namespace google::scp::cpio::client_providers {
  */
 class NoOpInitializer : public CloudInitializerInterface {
  public:
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   void InitCloud() noexcept override;
 
   void ShutdownCloud() noexcept override;

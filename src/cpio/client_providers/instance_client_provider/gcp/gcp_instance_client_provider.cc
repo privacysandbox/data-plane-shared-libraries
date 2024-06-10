@@ -168,64 +168,64 @@ GcpInstanceClientProvider::GcpInstanceClientProvider(
       http_uri_instance_zone_(
           std::make_shared<std::string>(kURIForInstanceZone)) {}
 
-ExecutionResult GcpInstanceClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpInstanceClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpInstanceClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+absl::Status GcpInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   GetCurrentInstanceResourceNameRequest request;
   GetCurrentInstanceResourceNameResponse response;
-  auto execution_result =
-      CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
-                             GetCurrentInstanceResourceNameResponse>(
-          absl::bind_front(
-              &GcpInstanceClientProvider::GetCurrentInstanceResourceName, this),
-          request, response);
-
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kGcpInstanceClientProvider, kZeroUuid, execution_result,
+  if (absl::Status error =
+          CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
+                                 GetCurrentInstanceResourceNameResponse>(
+              absl::bind_front(
+                  &GcpInstanceClientProvider::GetCurrentInstanceResourceName,
+                  this),
+              std::move(request), response);
+      !error.ok()) {
+    SCP_ERROR(kGcpInstanceClientProvider, kZeroUuid, error,
               "Failed to run async function GetCurrentInstanceResourceName for "
               "current instance resource name");
-    return execution_result;
+    return error;
   }
 
   resource_name = std::move(*response.mutable_instance_resource_name());
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult GcpInstanceClientProvider::GetCurrentInstanceResourceName(
+absl::Status GcpInstanceClientProvider::GetCurrentInstanceResourceName(
     AsyncContext<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context) noexcept {
   auto instance_resource_name_tracker =
       std::make_shared<InstanceResourceNameTracker>();
 
-  auto execution_result = MakeHttpRequestsForInstanceResourceName(
-      get_resource_name_context, http_uri_project_id_,
-      instance_resource_name_tracker, ResourceType::kProjectId);
-  RETURN_IF_FAILURE(execution_result);
+  if (ExecutionResult execution_result =
+          MakeHttpRequestsForInstanceResourceName(
+              get_resource_name_context, http_uri_project_id_,
+              instance_resource_name_tracker, ResourceType::kProjectId);
+      !execution_result.Successful()) {
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
+  }
 
-  execution_result = MakeHttpRequestsForInstanceResourceName(
-      get_resource_name_context, http_uri_instance_zone_,
-      instance_resource_name_tracker, ResourceType::kZone);
-  RETURN_IF_FAILURE(execution_result);
+  if (ExecutionResult execution_result =
+          MakeHttpRequestsForInstanceResourceName(
+              get_resource_name_context, http_uri_instance_zone_,
+              instance_resource_name_tracker, ResourceType::kZone);
+      !execution_result.Successful()) {
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
+  }
 
-  execution_result = MakeHttpRequestsForInstanceResourceName(
-      get_resource_name_context, http_uri_instance_id_,
-      instance_resource_name_tracker, ResourceType::kInstanceId);
-  RETURN_IF_FAILURE(execution_result);
+  if (ExecutionResult execution_result =
+          MakeHttpRequestsForInstanceResourceName(
+              get_resource_name_context, http_uri_instance_id_,
+              instance_resource_name_tracker, ResourceType::kInstanceId);
+      !execution_result.Successful()) {
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
+  }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 ExecutionResult
@@ -354,7 +354,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
   }
 }
 
-ExecutionResult GcpInstanceClientProvider::GetTagsByResourceName(
+absl::Status GcpInstanceClientProvider::GetTagsByResourceName(
     AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>&
         get_tags_context) noexcept {
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
@@ -365,19 +365,20 @@ ExecutionResult GcpInstanceClientProvider::GetTagsByResourceName(
               this, get_tags_context),
           get_tags_context);
 
-  auto execution_result =
-      auth_token_provider_->GetSessionToken(get_token_context);
-  if (!execution_result.Successful()) {
+  if (ExecutionResult execution_result =
+          auth_token_provider_->GetSessionToken(get_token_context);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kGcpInstanceClientProvider, get_tags_context,
                       execution_result,
                       "Failed to get the tags for resource %s",
                       get_tags_context.request->resource_name().c_str());
     get_tags_context.Finish(execution_result);
 
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpInstanceClientProvider::OnGetSessionTokenForTagsCallback(
@@ -504,50 +505,50 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
   get_tags_context.Finish(SuccessExecutionResult());
 }
 
-ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+absl::Status GcpInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     std::string_view resource_name,
     cmrt::sdk::instance_service::v1::InstanceDetails&
         instance_details) noexcept {
   GetInstanceDetailsByResourceNameRequest request;
   request.set_instance_resource_name(resource_name);
   GetInstanceDetailsByResourceNameResponse response;
-  auto execution_result =
-      CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
-                             GetInstanceDetailsByResourceNameResponse>(
-          absl::bind_front(
-              &GcpInstanceClientProvider::GetInstanceDetailsByResourceName,
-              this),
-          request, response);
-
-  if (!execution_result.Successful()) {
+  if (absl::Status error =
+          CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
+                                 GetInstanceDetailsByResourceNameResponse>(
+              absl::bind_front(
+                  &GcpInstanceClientProvider::GetInstanceDetailsByResourceName,
+                  this),
+              request, response);
+      !error.ok()) {
     SCP_ERROR(
-        kGcpInstanceClientProvider, kZeroUuid, execution_result,
+        kGcpInstanceClientProvider, kZeroUuid, error,
         "Failed to run async function GetInstanceDetailsByResourceName for "
         "resource %s",
         request.instance_resource_name().c_str());
-    return execution_result;
+    return error;
   }
 
   instance_details = std::move(*response.mutable_instance_details());
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceName(
+absl::Status GcpInstanceClientProvider::GetInstanceDetailsByResourceName(
     AsyncContext<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>&
         get_instance_details_context) noexcept {
-  auto execution_result =
-      GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
-          get_instance_details_context.request->instance_resource_name());
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result =
+          GcpInstanceClientUtils::ValidateInstanceResourceNameFormat(
+              get_instance_details_context.request->instance_resource_name());
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kGcpInstanceClientProvider, get_instance_details_context,
         execution_result,
         "Failed to parse instance resource ID from instance resource name %s",
         get_instance_details_context.request->instance_resource_name().c_str());
     get_instance_details_context.Finish(execution_result);
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
@@ -558,20 +559,21 @@ ExecutionResult GcpInstanceClientProvider::GetInstanceDetailsByResourceName(
                            this, get_instance_details_context),
           get_instance_details_context);
 
-  execution_result = auth_token_provider_->GetSessionToken(get_token_context);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result =
+          auth_token_provider_->GetSessionToken(get_token_context);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kGcpInstanceClientProvider, get_instance_details_context,
         execution_result,
-        "Failed to perform http request to get the details "
-        "of instance %s",
+        "Failed to perform http request to get the details of instance %s",
         get_instance_details_context.request->instance_resource_name().c_str());
     get_instance_details_context.Finish(execution_result);
 
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpInstanceClientProvider::OnGetSessionTokenForInstanceDetailsCallback(
@@ -716,13 +718,13 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
   get_instance_details_context.Finish(SuccessExecutionResult());
 }
 
-ExecutionResult GcpInstanceClientProvider::ListInstanceDetailsByEnvironment(
+absl::Status GcpInstanceClientProvider::ListInstanceDetailsByEnvironment(
     AsyncContext<ListInstanceDetailsByEnvironmentRequest,
                  ListInstanceDetailsByEnvironmentResponse>&
         get_instance_details_context) noexcept {
   if (get_instance_details_context.request->environment().empty() ||
       get_instance_details_context.request->project_id().empty()) {
-    auto result = FailureExecutionResult(
+    const ExecutionResult result = FailureExecutionResult(
         core::errors::SC_GCP_INSTANCE_CLIENT_INSTANCE_INVALID_ARGUMENTS);
     SCP_ERROR_CONTEXT(
         kGcpInstanceClientProvider, get_instance_details_context, result,
@@ -730,7 +732,8 @@ ExecutionResult GcpInstanceClientProvider::ListInstanceDetailsByEnvironment(
         get_instance_details_context.request->environment().c_str(),
         get_instance_details_context.request->project_id().c_str());
     get_instance_details_context.Finish(result);
-    return result;
+    return absl::UnknownError(
+        google::scp::core::errors::GetErrorMessage(result.status_code));
   }
   AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>
       get_token_context(
@@ -739,9 +742,9 @@ ExecutionResult GcpInstanceClientProvider::ListInstanceDetailsByEnvironment(
                                OnGetSessionTokenForListInstanceDetailsCallback,
                            this, get_instance_details_context),
           get_instance_details_context);
-  auto execution_result =
-      auth_token_provider_->GetSessionToken(get_token_context);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result =
+          auth_token_provider_->GetSessionToken(get_token_context);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kGcpInstanceClientProvider, get_instance_details_context,
         execution_result,
@@ -749,9 +752,10 @@ ExecutionResult GcpInstanceClientProvider::ListInstanceDetailsByEnvironment(
         "for environment %s",
         get_instance_details_context.request->environment().c_str());
     get_instance_details_context.Finish(execution_result);
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpInstanceClientProvider::OnGetSessionTokenForListInstanceDetailsCallback(

@@ -67,8 +67,8 @@ class MessageRouterInterface : public ServiceInterface {
    * @param action the action function for the specific request.
    * @return ExecutionResult the result of the subscription.
    */
-  virtual ExecutionResult Subscribe(const RequestTypeId& request_type,
-                                    const AsyncAction& action) noexcept = 0;
+  virtual ExecutionResult Subscribe(RequestTypeId request_type,
+                                    AsyncAction action) noexcept = 0;
 };
 }  // namespace google::scp::core
 

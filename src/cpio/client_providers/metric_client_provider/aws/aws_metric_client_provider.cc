@@ -87,12 +87,11 @@ void AwsMetricClientProvider::CreateClientConfiguration(
   client_config.maxConnections = kCloudwatchMaxConcurrentConnections;
 }
 
-ExecutionResult AwsMetricClientProvider::Run() noexcept {
-  auto execution_result = MetricClientProvider::Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, execution_result,
+absl::Status AwsMetricClientProvider::Run() noexcept {
+  if (absl::Status error = MetricClientProvider::Run(); !error.ok()) {
+    SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, error,
               "Failed to initialize MetricClientProvider");
-    return execution_result;
+    return error;
   }
 
   auto region_code_or =
@@ -101,7 +100,8 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
   if (!region_code_or.Successful()) {
     SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, region_code_or.result(),
               "Failed to get region code for current instance");
-    return region_code_or.result();
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        region_code_or.result().status_code));
   }
 
   SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
@@ -112,7 +112,7 @@ ExecutionResult AwsMetricClientProvider::Run() noexcept {
 
   cloud_watch_client_.emplace(std::move(client_config));
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
@@ -186,7 +186,10 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
           absl::bind_front(
               &AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
               context_chunk));
-      active_push_count_++;
+      {
+        absl::MutexLock l(&sync_mutex_);
+        active_push_count_++;
+      }
 
       // Resets all chunks.
       chunk_size = 0;
@@ -209,6 +212,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
         request_chunk,
         absl::bind_front(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback,
                          this, context_chunk));
+    absl::MutexLock l(&sync_mutex_);
     active_push_count_++;
   }
 
@@ -221,7 +225,10 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
     const CloudWatchClient*, const PutMetricDataRequest&,
     const PutMetricDataOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
-  active_push_count_--;
+  {
+    absl::MutexLock l(&sync_mutex_);
+    active_push_count_--;
+  }
   if (outcome.IsSuccess()) {
     for (auto& record_metric_context : metric_requests_vector) {
       record_metric_context.response = std::make_shared<PutMetricsResponse>();
@@ -244,7 +251,8 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
   return;
 }
 
-std::unique_ptr<MetricClientInterface> MetricClientProviderFactory::Create(
+std::unique_ptr<MetricClientProviderInterface>
+MetricClientProviderFactory::Create(
     MetricClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
     AsyncExecutorInterface* async_executor,

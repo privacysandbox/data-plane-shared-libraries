@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
@@ -108,11 +109,18 @@ cc_test(
         ":roma_service",
         "//src/core/test/utils",
         "//src/roma/interface",
-        "//src/roma/native_function_grpc_server:request_handlers",
+        "//src/roma/native_function_grpc_server:test_request_handlers",
+        "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/util:duration",
+        "//src/util/status_macro:status_util",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
+        "@nlohmann_json//:lib",
     ],
 )
 
@@ -145,6 +153,13 @@ proto_library(
     srcs = ["helloworld.proto"],
 )
 
+buf_lint_test(
+    name = "helloworld_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":helloworld_proto"],
+)
+
 cc_proto_library(
     name = "helloworld_cc_proto",
     deps = [":helloworld_proto"],
@@ -156,6 +171,10 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":roma_service",
+        "//src/roma/native_function_grpc_server:interface",
+        "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],
@@ -167,6 +186,7 @@ cc_test(
     srcs = ["romav8_app_service_test.cc"],
     tags = [
         "noasan",
+        "notsan-aarch64",
     ],
     deps = [
         ":helloworld_cc_proto",

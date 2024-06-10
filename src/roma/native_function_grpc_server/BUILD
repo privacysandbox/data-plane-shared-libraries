@@ -19,6 +19,7 @@ cc_library(
     hdrs = ["interface.h"],
     visibility = [
         "//src/roma/config:__subpackages__",
+        "//src/roma/roma_service:__subpackages__",
         "//src/roma/sandbox/js_engine/v8_engine:__subpackages__",
     ],
     deps = [
@@ -35,6 +36,19 @@ cc_library(
         ":interface",
         "//src/roma/native_function_grpc_server/proto:logging_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:logging_service_grpc_proto",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/log",
+    ],
+)
+
+cc_library(
+    name = "test_request_handlers",
+    hdrs = ["test_request_handlers.h"],
+    visibility = ["//src/roma/roma_service:__subpackages__"],
+    deps = [
+        ":interface",
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_grpc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
@@ -68,12 +82,14 @@ cc_test(
         ":grpc_logging_client",
         ":grpc_multi_client",
     ],
-    tags = ["notsan"],
     deps = [
         ":native_function_grpc_server",
         ":request_handlers",
+        ":test_request_handlers",
         "//src/core/test/utils",
         "//src/roma/config",
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_grpc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "@com_google_absl//absl/log:scoped_mock_log",
@@ -137,8 +153,8 @@ cc_binary(
     deps = [
         ":interface",
         "//src/roma/logging",
-        "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
-        "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:multi_service_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/container:node_hash_set",
         "@com_google_absl//absl/flags:flag",

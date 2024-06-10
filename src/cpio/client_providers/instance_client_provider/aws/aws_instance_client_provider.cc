@@ -121,18 +121,6 @@ const auto& GetRequiredFieldsForInstanceDynamicData() {
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult AwsInstanceClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsInstanceClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsInstanceClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResultOr<std::shared_ptr<EC2Client>>
 AwsInstanceClientProvider::GetEC2ClientByRegion(
     std::string_view region) noexcept {
@@ -159,46 +147,48 @@ AwsInstanceClientProvider::GetEC2ClientByRegion(
     return FailureExecutionResult(SC_AWS_INSTANCE_CLIENT_INVALID_REGION_CODE);
   }
 
-  std::shared_ptr<EC2Client> ec2_client;
-  if (ec2_clients_list_.Find(target_region, ec2_client).Successful()) {
-    return ec2_client;
+  {
+    absl::MutexLock l(&mu_);
+    if (const auto it = ec2_clients_list_.find(target_region);
+        it != ec2_clients_list_.end()) {
+      return it->second;
+    }
   }
 
-  auto ec2_client_or =
-      ec2_factory_.CreateClient(target_region, io_async_executor_);
-  RETURN_IF_FAILURE(ec2_client_or.result());
+  ASSIGN_OR_RETURN(
+      std::shared_ptr<EC2Client> ec2_client,
+      ec2_factory_.CreateClient(target_region, io_async_executor_));
 
-  ec2_client = std::move(*ec2_client_or);
-  ec2_clients_list_.Insert(std::make_pair(std::move(target_region), ec2_client),
-                           ec2_client);
-
+  absl::MutexLock l(&mu_);
+  ec2_clients_list_[std::move(target_region)] = ec2_client;
   return ec2_client;
 }
 
-ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+absl::Status AwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   GetCurrentInstanceResourceNameRequest request;
   GetCurrentInstanceResourceNameResponse response;
-  auto execution_result =
-      CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
-                             GetCurrentInstanceResourceNameResponse>(
-          absl::bind_front(
-              &AwsInstanceClientProvider::GetCurrentInstanceResourceName, this),
-          request, response);
+  if (absl::Status error =
+          CpioUtils::AsyncToSync<GetCurrentInstanceResourceNameRequest,
+                                 GetCurrentInstanceResourceNameResponse>(
+              absl::bind_front(
+                  &AwsInstanceClientProvider::GetCurrentInstanceResourceName,
+                  this),
+              std::move(request), response);
 
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kAwsInstanceClientProvider, kZeroUuid, execution_result,
+      !error.ok()) {
+    SCP_ERROR(kAwsInstanceClientProvider, kZeroUuid, error,
               "Failed to run async function GetCurrentInstanceResourceName for "
               "current instance resource name");
-    return execution_result;
+    return error;
   }
 
   resource_name = std::move(*response.mutable_instance_resource_name());
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
+absl::Status AwsInstanceClientProvider::GetCurrentInstanceResourceName(
     AsyncContext<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>&
         get_resource_name_context) noexcept {
@@ -209,18 +199,19 @@ ExecutionResult AwsInstanceClientProvider::GetCurrentInstanceResourceName(
               &AwsInstanceClientProvider::OnGetSessionTokenCallback, this,
               get_resource_name_context),
           get_resource_name_context);
-  auto execution_result =
-      auth_token_provider_->GetSessionToken(get_token_context);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result =
+          auth_token_provider_->GetSessionToken(get_token_context);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_resource_name_context,
                       execution_result,
                       "Failed to get the session token for current instance.");
     get_resource_name_context.Finish(execution_result);
 
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsInstanceClientProvider::OnGetSessionTokenCallback(
@@ -320,48 +311,48 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
   get_resource_name_context.Finish(SuccessExecutionResult());
 }
 
-ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
+absl::Status AwsInstanceClientProvider::GetInstanceDetailsByResourceNameSync(
     std::string_view resource_name,
     InstanceDetails& instance_details) noexcept {
   GetInstanceDetailsByResourceNameRequest request;
   request.set_instance_resource_name(resource_name);
   GetInstanceDetailsByResourceNameResponse response;
-  auto execution_result =
-      CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
-                             GetInstanceDetailsByResourceNameResponse>(
-          absl::bind_front(
-              &AwsInstanceClientProvider::GetInstanceDetailsByResourceName,
-              this),
-          request, response);
-
-  if (!execution_result.Successful()) {
-    SCP_ERROR(
-        kAwsInstanceClientProvider, kZeroUuid, execution_result,
-        "Failed to run async function GetInstanceDetailsByResourceName for "
-        "resource %s",
-        request.instance_resource_name().c_str());
-    return execution_result;
+  if (absl::Status error =
+          CpioUtils::AsyncToSync<GetInstanceDetailsByResourceNameRequest,
+                                 GetInstanceDetailsByResourceNameResponse>(
+              absl::bind_front(
+                  &AwsInstanceClientProvider::GetInstanceDetailsByResourceName,
+                  this),
+              request, response);
+      !error.ok()) {
+    SCP_ERROR(kAwsInstanceClientProvider, kZeroUuid, error,
+              "Failed to run async function GetInstanceDetailsByResourceName "
+              "for resource %s",
+              request.instance_resource_name().c_str());
+    return error;
   }
 
   instance_details = std::move(*response.mutable_instance_details());
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
+absl::Status AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
     AsyncContext<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>&
         get_details_context) noexcept {
   AwsResourceNameDetails details;
-  auto execution_result = AwsInstanceClientUtils::GetResourceNameDetails(
-      get_details_context.request->instance_resource_name(), details);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result =
+          AwsInstanceClientUtils::GetResourceNameDetails(
+              get_details_context.request->instance_resource_name(), details);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(
         kAwsInstanceClientProvider, get_details_context, execution_result,
         "Get tags request failed due to invalid resource name %s",
         get_details_context.request->instance_resource_name().c_str());
     get_details_context.Finish(execution_result);
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   auto ec2_client_or = GetEC2ClientByRegion(details.region);
@@ -371,7 +362,8 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
         "Get tags request failed to create EC2Client for resource name %s",
         get_details_context.request->instance_resource_name().c_str());
     get_details_context.Finish(ec2_client_or.result());
-    return ec2_client_or.result();
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        ec2_client_or.result().status_code));
   }
 
   DescribeInstancesRequest request;
@@ -384,7 +376,7 @@ ExecutionResult AwsInstanceClientProvider::GetInstanceDetailsByResourceName(
               &AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback,
               this, get_details_context));
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
@@ -445,19 +437,21 @@ void AwsInstanceClientProvider::OnDescribeInstancesAsyncCallback(
                 *cpu_async_executor_);
 }
 
-ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
+absl::Status AwsInstanceClientProvider::GetTagsByResourceName(
     AsyncContext<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>&
         get_tags_context) noexcept {
   AwsResourceNameDetails details;
-  auto execution_result = AwsInstanceClientUtils::GetResourceNameDetails(
-      get_tags_context.request->resource_name(), details);
-  if (!execution_result.Successful()) {
+  if (const ExecutionResult execution_result =
+          AwsInstanceClientUtils::GetResourceNameDetails(
+              get_tags_context.request->resource_name(), details);
+      !execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_tags_context,
                       execution_result,
                       "Get tags request failed due to invalid resource name %s",
                       get_tags_context.request->resource_name().c_str());
     get_tags_context.Finish(execution_result);
-    return execution_result;
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
   }
 
   auto ec2_client_or = GetEC2ClientByRegion(details.region);
@@ -467,7 +461,8 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
         "Get tags request failed to create EC2Client for resource name %s",
         get_tags_context.request->resource_name().c_str());
     get_tags_context.Finish(ec2_client_or.result());
-    return ec2_client_or.result();
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        ec2_client_or.result().status_code));
   }
 
   DescribeTagsRequest request;
@@ -482,7 +477,7 @@ ExecutionResult AwsInstanceClientProvider::GetTagsByResourceName(
           request, absl::bind_front(
                        &AwsInstanceClientProvider::OnDescribeTagsAsyncCallback,
                        this, get_tags_context));
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
@@ -513,7 +508,7 @@ void AwsInstanceClientProvider::OnDescribeTagsAsyncCallback(
                 *cpu_async_executor_);
 }
 
-ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
+absl::Status AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
     AsyncContext<ListInstanceDetailsByEnvironmentRequest,
                  ListInstanceDetailsByEnvironmentResponse>&
         get_instance_details_context) noexcept {
@@ -522,7 +517,8 @@ ExecutionResult AwsInstanceClientProvider::ListInstanceDetailsByEnvironment(
   SCP_ERROR_CONTEXT(kAwsInstanceClientProvider, get_instance_details_context,
                     result, "Not implemented");
   get_instance_details_context.Finish(result);
-  return result;
+  return absl::UnimplementedError(
+      google::scp::core::errors::GetErrorMessage(result.status_code));
 }
 
 ExecutionResultOr<std::unique_ptr<EC2Client>> AwsEC2ClientFactory::CreateClient(

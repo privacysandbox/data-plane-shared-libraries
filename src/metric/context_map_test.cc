@@ -49,9 +49,7 @@ class TestMetricRouter {
     return absl::OkStatus();
   }
 
-  const telemetry::BuildDependentConfig& metric_config() const {
-    return metric_config_;
-  }
+  telemetry::BuildDependentConfig& metric_config() { return metric_config_; }
 
   telemetry::TelemetryConfig config_proto_;
   telemetry::BuildDependentConfig metric_config_;
@@ -100,6 +98,24 @@ TEST_F(ContextMapTest, CheckListOrderHistogram) {
   EXPECT_DEATH((ContextMap<Foo, wrong_order_histogram_span, TestMetricRouter>(
                    std::make_unique<TestMetricRouter>())),
                HasSubstr("kHistogram histogram"));
+}
+
+constexpr std::string_view kDefaultBuyers[] = {"buyer_1", "buyer_2"};
+constexpr Definition<int, Privacy::kImpacting, Instrument::kPartitionedCounter>
+    metric_1("m_1", "", "partition_type", 1, kDefaultBuyers, 1, 0);
+constexpr const DefinitionName* list[] = {&metric_1, &kIntExactCounter};
+constexpr absl::Span<const DefinitionName* const> list_span = list;
+
+TEST_F(ContextMapTest, CheckDropNoisyValuesProbability) {
+  telemetry::TelemetryConfig config_proto;
+  auto metric_config_1 = config_proto.add_metric();
+  metric_config_1->set_name("m_1");
+  metric_config_1->set_drop_noisy_values_probability(1.0);
+  telemetry::BuildDependentConfig config(config_proto);
+  constexpr PrivacyBudget budget{/*epsilon*/ 5};
+
+  EXPECT_DEATH((GetContextMap<Foo, list_span>(config, nullptr, "", "", budget)),
+               HasSubstr("m_1 drop_noisy_values_probability is out of range"));
 }
 
 TEST_F(ContextMapTest, OnlyCreateOneSafeMetric) {

@@ -14,10 +14,10 @@
 
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@rules_proto_grpc//:defs.bzl", "proto_plugin")
-load("//src/roma/tools/api_plugin:internal/roma_app_api.bzl", "get_all_app_api_plugins", "template_dir_name")
+load("//src/roma/tools/api_plugin:internal/roma_api.bzl", "get_all_roma_api_plugins", "template_dir_name")
 
 go_library(
-    name = "app_api_plugin_lib",
+    name = "roma_api_plugin_lib",
     srcs = [
         "app_api.go",
         "protoc_template_plugin.go",
@@ -37,9 +37,9 @@ go_library(
 )
 
 go_binary(
-    name = "app_api_plugin",
+    name = "roma_api_plugin",
     embed = [
-        ":app_api_plugin_lib",
+        ":roma_api_plugin_lib",
     ],
 )
 
@@ -52,5 +52,5 @@ go_binary(
         tool = plugin.tool,
         visibility = ["//visibility:public"],
     )
-    for plugin in get_all_app_api_plugins()
+    for plugin in get_all_roma_api_plugins()
 ]

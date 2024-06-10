@@ -44,8 +44,6 @@ using google::scp::core::SuccessExecutionResult;
 using google::scp::core::Uri;
 using google::scp::core::errors::
     SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN;
-using google::scp::core::errors::
-    SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::MockCurlClient;
 using google::scp::core::test::ResultIs;
@@ -73,9 +71,7 @@ namespace google::scp::cpio::client_providers::test {
 
 class AzureAuthTokenProviderTest : public testing::TestWithParam<std::string> {
  protected:
-  AzureAuthTokenProviderTest() : authorizer_provider_(&http_client_) {
-    authorizer_provider_.Init();
-  }
+  AzureAuthTokenProviderTest() : authorizer_provider_(&http_client_) {}
 
   std::string GetResponseBody() { return GetParam(); }
 
@@ -146,12 +142,4 @@ TEST_F(AzureAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
   finished.WaitForNotification();
 }
 
-TEST_F(AzureAuthTokenProviderTest, NullHttpClientProvider) {
-  auto auth_token_provider = std::make_shared<AzureAuthTokenProvider>(nullptr);
-
-  EXPECT_THAT(
-      auth_token_provider->Init(),
-      ResultIs(FailureExecutionResult(
-          SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED)));
-}
 }  // namespace google::scp::cpio::client_providers::test

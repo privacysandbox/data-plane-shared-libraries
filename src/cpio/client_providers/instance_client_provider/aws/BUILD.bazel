@@ -23,7 +23,6 @@ cc_library(
     ],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
-        "//src/core/common/concurrent_map",
         "//src/core/common/uuid",
         "//src/core/interface",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
@@ -98,12 +97,7 @@ cc_library(
     ],
     hdrs = ["test_aws_instance_client_provider.h"],
     deps = [
-        "//src/core/interface",
-        "//src/core/interface:async_context",
         "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
-        "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
-        "//src/public/cpio/test/global_cpio:test_cpio_options",
         "@com_google_absl//absl/strings:str_format",
     ],
 )

@@ -26,24 +26,12 @@ namespace google::scp::cpio::client_providers::mock {
 
 class MockRoleCredentialsProvider : public RoleCredentialsProviderInterface {
  public:
-  core::ExecutionResult Init() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Run() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Stop() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult GetRoleCredentials(
+  absl::Status GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_credentials_context) noexcept override {
     if (fail_credentials) {
       get_credentials_context.Finish(core::FailureExecutionResult(SC_UNKNOWN));
-      return core::FailureExecutionResult(SC_UNKNOWN);
+      return absl::UnknownError("");
     }
 
     get_credentials_context.response =
@@ -55,7 +43,7 @@ class MockRoleCredentialsProvider : public RoleCredentialsProviderInterface {
     get_credentials_context.response->security_token =
         std::make_shared<std::string>("security_token");
     get_credentials_context.Finish(core::SuccessExecutionResult());
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
   bool fail_credentials = false;

@@ -47,8 +47,6 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN;
-using google::scp::core::errors::
-    SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED;
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::PadBase64Encoding;
 using nlohmann::json;
@@ -95,34 +93,6 @@ AzureAuthTokenProvider::AzureAuthTokenProvider(
   } else {
     get_token_url_ = kDefaultGetTokenUrl;
   }
-}
-
-ExecutionResult AzureAuthTokenProvider::Init() noexcept {
-  if (!http_client_) {
-    auto execution_result = FailureExecutionResult(
-        SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED);
-    SCP_ERROR(kAzureAuthTokenProvider, kZeroUuid, execution_result,
-              "Http client cannot be nullptr.");
-    return execution_result;
-  }
-
-  // Temporary workaround to configure the IDP URL.
-  const char* value_from_env = std::getenv(kGetTokenUrlEnvVar);
-  if (value_from_env) {
-    get_token_url_ = value_from_env;
-  } else {
-    get_token_url_ = kDefaultGetTokenUrl;
-  }
-
-  return SuccessExecutionResult();
-};
-
-ExecutionResult AzureAuthTokenProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureAuthTokenProvider::Stop() noexcept {
-  return SuccessExecutionResult();
 }
 
 ExecutionResult AzureAuthTokenProvider::GetSessionToken(

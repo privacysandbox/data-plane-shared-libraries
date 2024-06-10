@@ -26,26 +26,22 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockCryptoClientProvider : public CryptoClientProviderInterface {
  public:
-  MOCK_METHOD(core::ExecutionResult, Init, (), (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (override, noexcept));
-
-  MOCK_METHOD(core::ExecutionResult, HpkeEncrypt,
+  MOCK_METHOD(absl::Status, HpkeEncrypt,
               ((core::AsyncContext<
                   cmrt::sdk::crypto_service::v1::HpkeEncryptRequest,
                   cmrt::sdk::crypto_service::v1::HpkeEncryptResponse>&)),
               (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, HpkeDecrypt,
+  MOCK_METHOD(absl::Status, HpkeDecrypt,
               ((core::AsyncContext<
                   cmrt::sdk::crypto_service::v1::HpkeDecryptRequest,
                   cmrt::sdk::crypto_service::v1::HpkeDecryptResponse>&)),
               (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, AeadEncrypt,
+  MOCK_METHOD(absl::Status, AeadEncrypt,
               ((core::AsyncContext<
                   cmrt::sdk::crypto_service::v1::AeadEncryptRequest,
                   cmrt::sdk::crypto_service::v1::AeadEncryptResponse>&)),
               (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, AeadDecrypt,
+  MOCK_METHOD(absl::Status, AeadDecrypt,
               ((core::AsyncContext<
                   cmrt::sdk::crypto_service::v1::AeadDecryptRequest,
                   cmrt::sdk::crypto_service::v1::AeadDecryptResponse>&)),

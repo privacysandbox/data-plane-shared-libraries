@@ -14,6 +14,7 @@
 #include "message_router.h"
 
 #include <memory>
+#include <utility>
 
 #include "google/protobuf/any.pb.h"
 #include "src/public/core/interface/execution_result.h"
@@ -38,25 +39,30 @@ ExecutionResult MessageRouter::Stop() noexcept {
 
 void MessageRouter::OnMessageReceived(
     const std::shared_ptr<AsyncContext<Any, Any>>& context) noexcept {
-  AsyncAction action;
-  auto result = actions_.Find(context->request->type_url(), action);
-  if (!result) {
-    auto failure_result = FailureExecutionResult(
-        errors::SC_MESSAGE_ROUTER_REQUEST_NOT_SUBSCRIBED);
-    context->Finish(failure_result);
+  std::optional<AsyncAction> action;
+  {
+    absl::MutexLock l(&mu_);
+    if (const auto it = actions_.find(context->request->type_url());
+        it != actions_.end()) {
+      action = it->second;
+    }
+  }
+  if (!action.has_value()) {
+    context->Finish(FailureExecutionResult(
+        errors::SC_MESSAGE_ROUTER_REQUEST_NOT_SUBSCRIBED));
   } else {
-    action(*context);
+    (*action)(*context);
   }
 }
 
-ExecutionResult MessageRouter::Subscribe(const std::string& request_type,
-                                         const AsyncAction& action) noexcept {
-  AsyncAction existing_action;
-  auto result = actions_.Insert({request_type, action}, existing_action);
-  if (!result) {
+ExecutionResult MessageRouter::Subscribe(std::string request_type,
+                                         AsyncAction action) noexcept {
+  absl::MutexLock l(&mu_);
+  if (!actions_.try_emplace(std::move(request_type), std::move(action))
+           .second) {
     return FailureExecutionResult(
         errors::SC_MESSAGE_ROUTER_REQUEST_ALREADY_SUBSCRIBED);
   }
-  return result;
+  return SuccessExecutionResult();
 }
 }  // namespace google::scp::core

@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
@@ -292,6 +293,17 @@ pkg_tar(
     ],
 )
 
+genrule(
+    name = "ca_certificates_file",
+    srcs = ["@ca_certificates_deb//file"],
+    outs = ["ca_certificates.tar"],
+    cmd = """
+dpkg -i $(location @ca_certificates_deb//file)
+tar -cf $(@D)/ca_certificates.tar /etc/ssl
+""",
+    visibility = ["//visibility:public"],
+)
+
 oci_image(
     name = "aws_nitro_enclaves_validator_image",
     base = select({
@@ -311,6 +323,7 @@ oci_image(
         ":validator_config_tar",
         ":enclaves_validator_tar",
         ":greeter_server_tar",
+        ":ca_certificates.tar",
     ],
 )
 
@@ -318,4 +331,36 @@ oci_tarball(
     name = "aws_nitro_enclaves_validator_tarball",
     image = ":aws_nitro_enclaves_validator_image",
     repo_tags = ["bazel/src/public/cpio/validator:aws_nitro_enclaves_validator"],
+)
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":aws_nitro_enclaves_validator_tarball",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat << EOF > '$@'
+readonly target_dir=dist/aws
+mkdir -p \\$${target_dir}
+readonly enclaves_image="\\$${target_dir}/aws_nitro_enclaves_validator.tar"
+cp $(execpath :aws_nitro_enclaves_validator_tarball) "\\$${enclaves_image}"
+builders/tools/normalize-dist
+EOF""",
+    executable = True,
+    local = True,
+    message = "copying aws artifacts to dist directory",
+)
+
+container_structure_test(
+    name = "ubuntu_version_test",
+    configs = ["testdata/version.yaml"],
+    image = ":aws_nitro_enclaves_validator_image",
+    tags = ["noasan"],
+)
+
+container_structure_test(
+    name = "structure_test",
+    configs = ["testdata/structure.yaml"],
+    image = ":aws_nitro_enclaves_validator_image",
+    tags = ["noasan"],
 )

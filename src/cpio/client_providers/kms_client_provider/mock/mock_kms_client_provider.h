@@ -29,20 +29,7 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockKmsClientProvider : public KmsClientProviderInterface {
  public:
-  MockKmsClientProvider() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-  }
-
-  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, Decrypt,
+  MOCK_METHOD(absl::Status, Decrypt,
               ((core::AsyncContext<
                   google::cmrt::sdk::kms_service::v1::DecryptRequest,
                   google::cmrt::sdk::kms_service::v1::DecryptResponse>&)),

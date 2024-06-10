@@ -54,5 +54,12 @@ namespace internal::cpio_log {
       return nullptr;
   }
 }
+std::string_view GetErrorMessage(const absl::Status& status) {
+  return status.message();
+}
+
+std::string_view GetErrorMessage(const ExecutionResult& result) {
+  return errors::GetErrorMessage(result.status_code);
+}
 }  // namespace internal::cpio_log
 }  // namespace google::scp::core::common

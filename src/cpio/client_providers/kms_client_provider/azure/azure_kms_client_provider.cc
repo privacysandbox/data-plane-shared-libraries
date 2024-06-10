@@ -72,19 +72,7 @@ constexpr char kAzureKmsUnwrapUrlEnvVar[] = "AZURE_BA_PARAM_KMS_UNWRAP_URL";
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
 
-ExecutionResult AzureKmsClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureKmsClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureKmsClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureKmsClientProvider::Decrypt(
+absl::Status AzureKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
         decrypt_context) noexcept {
   auto get_credentials_request = std::make_shared<GetSessionTokenRequest>();
@@ -96,7 +84,18 @@ ExecutionResult AzureKmsClientProvider::Decrypt(
               this, decrypt_context),
           decrypt_context);
 
-  return auth_token_provider_->GetSessionToken(get_token_context);
+  if (ExecutionResult execution_result =
+          auth_token_provider_->GetSessionToken(get_token_context);
+      !execution_result.Successful()) {
+    SCP_ERROR_CONTEXT(kAzureKmsClientProvider, decrypt_context,
+                      execution_result, "Failed to get the session token.");
+    decrypt_context.Finish(execution_result);
+
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code));
+  }
+
+  return absl::OkStatus();
 }
 
 void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
@@ -211,7 +210,6 @@ void AzureKmsClientProvider::OnDecryptCallback(
   decrypt_context.Finish();
 }
 
-#ifndef TEST_CPIO
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     KmsClientOptions options,
     RoleCredentialsProviderInterface* role_credentials_provider,
@@ -221,18 +219,11 @@ std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
   // parameter. This is to prevent the existing GCP and AWS implementations from
   // being changed.
   auto cpio_ = &GlobalCpio::GetGlobalCpio();
-  HttpClientInterface* http_client;
-  auto client = cpio_->GetHttpClient();
-  CHECK(client.ok()) << "failed to get http client";
-  http_client = *client;
+  auto http_client = &cpio_->GetHttpClient();
 
-  AuthTokenProviderInterface* auth_token_provider;
-  auto provider = cpio_->GetAuthTokenProvider();
-  CHECK(provider.ok()) << "failed to get auth tokeb provider";
-  auth_token_provider = *provider;
+  auto auth_token_provider = &cpio_->GetAuthTokenProvider();
 
   return std::make_unique<AzureKmsClientProvider>(http_client,
                                                   auth_token_provider);
 }
-#endif
 }  // namespace google::scp::cpio::client_providers

@@ -22,7 +22,6 @@ load(
     "rules_closure_dependencies",
     "rules_closure_toolchains",
 )
-load("@io_bazel_rules_docker//repositories:deps.bzl", container_deps = "deps")
 load("@rules_buf//gazelle/buf:repositories.bzl", "gazelle_buf_dependencies")
 load("//:deps.bzl", "buf_deps", "go_dependencies")
 
@@ -46,7 +45,6 @@ def _aws_nitro_kms_repos():
     )
 
 def deps4():
-    container_deps()
     gazelle_buf_dependencies()
     rules_closure_dependencies()
     rules_closure_toolchains()

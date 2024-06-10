@@ -26,20 +26,7 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockParameterClientProvider : public ParameterClientProviderInterface {
  public:
-  MockParameterClientProvider() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-  }
-
-  MOCK_METHOD(core::ExecutionResult, Init, (), (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (override, noexcept));
-
-  MOCK_METHOD(core::ExecutionResult, GetParameter,
+  MOCK_METHOD(absl::Status, GetParameter,
               ((core::AsyncContext<
                   cmrt::sdk::parameter_service::v1::GetParameterRequest,
                   cmrt::sdk::parameter_service::v1::GetParameterResponse>&)),

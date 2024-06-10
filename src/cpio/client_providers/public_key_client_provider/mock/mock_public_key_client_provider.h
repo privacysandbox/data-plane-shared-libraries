@@ -26,20 +26,7 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockPublicKeyClientProvider : public PublicKeyClientProviderInterface {
  public:
-  MockPublicKeyClientProvider() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-  }
-
-  MOCK_METHOD(core::ExecutionResult, Init, (), (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (override, noexcept));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (override, noexcept));
-
-  MOCK_METHOD(core::ExecutionResult, ListPublicKeys,
+  MOCK_METHOD(absl::Status, ListPublicKeys,
               ((core::AsyncContext<
                   cmrt::sdk::public_key_service::v1::ListPublicKeysRequest,
                   cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>&)),

@@ -17,33 +17,30 @@
 #ifndef PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
 #define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_MOCK_METRIC_CLIENT_WITH_OVERRIDES_H_
 
+#include <gtest/gtest.h>
+
 #include <memory>
+#include <utility>
 
 #include "src/core/async_executor/mock/mock_async_executor.h"
 #include "src/core/message_router/message_router.h"
+#include "src/cpio/client_providers/metric_client_provider/mock/mock_metric_client_provider.h"
 #include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/mock/metric_client/mock_metric_client.h"
 
 namespace google::scp::cpio::mock {
 class MockMetricClientWithOverrides : public MetricClient {
  public:
-  MockMetricClientWithOverrides(
-      const std::shared_ptr<MetricClientOptions>& options)
-      : MetricClient(options) {}
+  explicit MockMetricClientWithOverrides(MetricClientOptions options)
+      : MetricClient(std::move(options)) {}
 
-  core::ExecutionResult create_metric_client_provider_result =
-      core::SuccessExecutionResult();
-
-  core::ExecutionResult CreateMetricClientProvider() noexcept override {
-    if (create_metric_client_provider_result.Successful()) {
-      metric_client_provider_ = std::make_unique<MockMetricClient>();
-      return create_metric_client_provider_result;
-    }
-    return create_metric_client_provider_result;
+  void CreateMetricClientProvider() noexcept override {
+    metric_client_provider_ = std::make_unique<
+        testing::NiceMock<client_providers::mock::MockMetricClientProvider>>();
   }
 
-  MockMetricClient& GetMetricClientProvider() {
-    return dynamic_cast<MockMetricClient&>(*metric_client_provider_);
+  client_providers::mock::MockMetricClientProvider& GetMetricClientProvider() {
+    return dynamic_cast<client_providers::mock::MockMetricClientProvider&>(
+        *metric_client_provider_);
   }
 };
 }  // namespace google::scp::cpio::mock

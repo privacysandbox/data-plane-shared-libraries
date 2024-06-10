@@ -38,10 +38,10 @@
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/instance_client_provider/gcp/gcp_instance_client_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "gcp_blob_storage_client_utils.h"
 
@@ -135,7 +135,7 @@ uint64_t GetMaxPageSize(const ListBlobsMetadataRequest& list_blobs_request) {
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
+absl::Status GcpBlobStorageClientProvider::Init() noexcept {
   // Try to get project_id from options, otherwise get project_id from running
   // instance_client.
   BlobStorageClientOptions options = options_;
@@ -147,7 +147,8 @@ ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
       SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid,
                 project_id_or.result(),
                 "Failed to get project ID for current instance");
-      return project_id_or.result();
+      return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+          project_id_or.result().status_code));
     }
     options.project_id = std::move(*project_id_or);
   }
@@ -156,21 +157,14 @@ ExecutionResult GcpBlobStorageClientProvider::Init() noexcept {
   if (!client_or.Successful()) {
     SCP_ERROR(kGcpBlobStorageClientProvider, kZeroUuid, client_or.result(),
               "Failed creating Google Cloud Storage client.");
-    return client_or.result();
+    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+        client_or.result().status_code));
   }
   cloud_storage_client_shared_ = std::move(*client_or);
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult GcpBlobStorageClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpBlobStorageClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpBlobStorageClientProvider::GetBlob(
+absl::Status GcpBlobStorageClientProvider::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) noexcept {
   const auto& request = *get_blob_context.request;
   if (request.blob_metadata().bucket_name().empty() ||
@@ -181,7 +175,9 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlob(
                       execution_result,
                       "Get blob request is missing bucket or blob name");
     get_blob_context.Finish(execution_result);
-    return get_blob_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
   if (request.has_byte_range() && request.byte_range().begin_byte_index() >
                                       request.byte_range().end_byte_index()) {
@@ -192,7 +188,9 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlob(
         "Get blob request provides begin_byte_index that is larger "
         "than end_byte_index");
     get_blob_context.Finish(execution_result);
-    return get_blob_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
@@ -203,9 +201,10 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlob(
                       schedule_result,
                       "Get blob request failed to be scheduled");
     get_blob_context.Finish(schedule_result);
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpBlobStorageClientProvider::GetBlobInternal(
@@ -259,7 +258,7 @@ void GcpBlobStorageClientProvider::GetBlobInternal(
                 *cpu_async_executor_);
 }
 
-ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
+absl::Status GcpBlobStorageClientProvider::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>&
         get_blob_stream_context) noexcept {
   const auto& request = *get_blob_stream_context.request;
@@ -271,7 +270,9 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
                       execution_result,
                       "Get blob stream request is missing bucket or blob name");
     get_blob_stream_context.Finish(execution_result);
-    return get_blob_stream_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
   if (request.has_byte_range() && request.byte_range().begin_byte_index() >
                                       request.byte_range().end_byte_index()) {
@@ -283,7 +284,9 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
         "Get blob stream request provides begin_byte_index that is larger "
         "than end_byte_index");
     get_blob_stream_context.Finish(execution_result);
-    return get_blob_stream_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
@@ -296,9 +299,10 @@ ExecutionResult GcpBlobStorageClientProvider::GetBlobStream(
                       schedule_result,
                       "Get blob stream request failed to be scheduled");
     get_blob_stream_context.Finish(schedule_result);
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpBlobStorageClientProvider::GetBlobStreamInternal(
@@ -463,7 +467,7 @@ GetBlobStreamResponse GcpBlobStorageClientProvider::ReadNextPortion(
   return response;
 }
 
-ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
+absl::Status GcpBlobStorageClientProvider::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
         list_blobs_context) noexcept {
   const auto& request = *list_blobs_context.request;
@@ -474,7 +478,9 @@ ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
                       execution_result,
                       "List blobs metadata request failed. Bucket name empty.");
     list_blobs_context.Finish(execution_result);
-    return list_blobs_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
   if (request.has_max_page_size() && request.max_page_size() > 1000) {
     list_blobs_context.result =
@@ -484,7 +490,9 @@ ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
         list_blobs_context.result,
         "List blobs metadata request failed. Max page size cannot be "
         "greater than 1000.");
-    return list_blobs_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            list_blobs_context.result.status_code));
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
@@ -497,9 +505,10 @@ ExecutionResult GcpBlobStorageClientProvider::ListBlobsMetadata(
                       schedule_result,
                       "List blobs metadata request failed to be scheduled");
     list_blobs_context.Finish(schedule_result);
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpBlobStorageClientProvider::ListBlobsMetadataInternal(
@@ -569,7 +578,7 @@ void GcpBlobStorageClientProvider::ListBlobsMetadataInternal(
                 *cpu_async_executor_);
 }
 
-ExecutionResult GcpBlobStorageClientProvider::PutBlob(
+absl::Status GcpBlobStorageClientProvider::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) noexcept {
   const auto& request = *put_blob_context.request;
   if (request.blob().metadata().bucket_name().empty() ||
@@ -581,7 +590,9 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlob(
                       put_blob_context.result,
                       "Put blob request failed. Ensure that bucket name, blob "
                       "name, and data are present.");
-    return put_blob_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            put_blob_context.result.status_code));
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
@@ -592,9 +603,10 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlob(
                       schedule_result,
                       "Put blob request failed to be scheduled");
     put_blob_context.Finish(schedule_result);
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpBlobStorageClientProvider::PutBlobInternal(
@@ -624,7 +636,7 @@ void GcpBlobStorageClientProvider::PutBlobInternal(
                 *cpu_async_executor_);
 }
 
-ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
+absl::Status GcpBlobStorageClientProvider::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context) noexcept {
   const auto& request = *put_blob_stream_context.request;
@@ -639,7 +651,9 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
         "Put blob stream request failed. Ensure that bucket name, blob "
         "name, and data are present.");
     put_blob_stream_context.Finish(execution_result);
-    return put_blob_stream_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            put_blob_stream_context.result.status_code));
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
@@ -652,9 +666,10 @@ ExecutionResult GcpBlobStorageClientProvider::PutBlobStream(
                       schedule_result,
                       "Put blob stream request failed to be scheduled");
     put_blob_stream_context.Finish(schedule_result);
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpBlobStorageClientProvider::InitPutBlobStream(
@@ -824,7 +839,7 @@ void GcpBlobStorageClientProvider::PutBlobStreamInternal(
   }
 }
 
-ExecutionResult GcpBlobStorageClientProvider::DeleteBlob(
+absl::Status GcpBlobStorageClientProvider::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
         delete_blob_context) noexcept {
   const auto& request = *delete_blob_context.request;
@@ -836,7 +851,9 @@ ExecutionResult GcpBlobStorageClientProvider::DeleteBlob(
         kGcpBlobStorageClientProvider, delete_blob_context, execution_result,
         "Delete blob request failed. Missing bucket or blob name.");
     delete_blob_context.Finish(execution_result);
-    return delete_blob_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   if (auto schedule_result = io_async_executor_->Schedule(
@@ -849,9 +866,10 @@ ExecutionResult GcpBlobStorageClientProvider::DeleteBlob(
                       schedule_result,
                       "Delete blob request failed to be scheduled");
     delete_blob_context.Finish(schedule_result);
-    return schedule_result;
+    return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+        schedule_result.status_code));
   }
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void GcpBlobStorageClientProvider::DeleteBlobInternal(
@@ -896,14 +914,16 @@ GcpCloudStorageFactory::CreateClient(
   return std::make_unique<Client>(CreateClientOptions(std::move(options)));
 }
 
-std::unique_ptr<BlobStorageClientProviderInterface>
+absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
     InstanceClientProviderInterface* instance_client,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<GcpBlobStorageClientProvider>(
+  auto provider = std::make_unique<GcpBlobStorageClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

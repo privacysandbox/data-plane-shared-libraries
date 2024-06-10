@@ -39,7 +39,6 @@ cc_test(
         "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider:kms_client_provider_select",
         "//src/public/core:test_execution_result_matchers",
-        "//src/public/cpio/core:lib_cpio_mock",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/interface/kms_client",

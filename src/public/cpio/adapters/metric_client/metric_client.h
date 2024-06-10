@@ -18,6 +18,7 @@
 #define PUBLIC_CPIO_ADAPTERS_METRIC_CLIENT_METRIC_CLIENT_H_
 
 #include <memory>
+#include <utility>
 
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/metric_client_provider_interface.h"
@@ -30,8 +31,8 @@ namespace google::scp::cpio {
  */
 class MetricClient : public MetricClientInterface {
  public:
-  explicit MetricClient(const std::shared_ptr<MetricClientOptions>& options)
-      : options_(options) {}
+  explicit MetricClient(MetricClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~MetricClient() = default;
 
@@ -48,12 +49,13 @@ class MetricClient : public MetricClientInterface {
           context) noexcept override;
 
  protected:
-  std::unique_ptr<MetricClientInterface> metric_client_provider_;
+  std::unique_ptr<client_providers::MetricClientProviderInterface>
+      metric_client_provider_;
 
  private:
-  virtual core::ExecutionResult CreateMetricClientProvider() noexcept;
+  virtual void CreateMetricClientProvider() noexcept;
 
-  std::shared_ptr<MetricClientOptions> options_;
+  MetricClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio

@@ -18,14 +18,8 @@
 
 #include <string>
 #include <string_view>
-#include <vector>
 
 #include "absl/strings/substitute.h"
-#include "src/public/core/interface/execution_result.h"
-
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
 
 namespace {
 constexpr std::string_view kAwsResourceNameFormat =
@@ -34,13 +28,12 @@ constexpr std::string_view kAwsResourceNameFormat =
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult
-TestAwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
+absl::Status TestAwsInstanceClientProvider::GetCurrentInstanceResourceNameSync(
     std::string& resource_name) noexcept {
   resource_name =
       absl::Substitute(kAwsResourceNameFormat, test_options_.region,
                        test_options_.project_id, test_options_.instance_id);
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 }  // namespace google::scp::cpio::client_providers

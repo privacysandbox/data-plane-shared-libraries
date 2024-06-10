@@ -22,7 +22,6 @@
 #include <utility>
 #include <vector>
 
-#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"
@@ -45,7 +44,6 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpClientInterface;
 using google::scp::core::SuccessExecutionResult;
 using google::scp::core::Uri;
-using google::scp::core::common::ConcurrentMap;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_PRIVATE_KEY_CLIENT_PROVIDER_UNMATCHED_ENDPOINTS_SPLITS;
@@ -56,28 +54,7 @@ constexpr std::string_view kPrivateKeyClientProvider =
 }
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult PrivateKeyClientProvider::Init() noexcept {
-  endpoint_list_.push_back(
-      private_key_client_options_.primary_private_key_vending_endpoint);
-  for (const auto& endpoint :
-       private_key_client_options_.secondary_private_key_vending_endpoints) {
-    if (!endpoint.private_key_vending_service_endpoint.empty())
-      endpoint_list_.push_back(endpoint);
-  }
-  endpoint_count_ = endpoint_list_.size();
-
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PrivateKeyClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PrivateKeyClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
+absl::Status PrivateKeyClientProvider::ListPrivateKeys(
     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
         list_private_keys_context) noexcept {
   auto list_keys_status = std::make_shared<ListPrivateKeysStatus>();
@@ -134,12 +111,13 @@ ExecutionResult PrivateKeyClientProvider::ListPrivateKeys(
           list_private_keys_context.Finish(execution_result);
         }
 
-        return execution_result;
+        return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
       }
     }
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
@@ -156,22 +134,11 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
   list_keys_status->fetching_call_returned_count.fetch_add(1);
   auto execution_result = fetch_private_key_context.result;
   if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
-    ExecutionResult out;
-    if (auto insert_result =
-            list_keys_status->result_list[uri_index]
-                .fetch_result_key_id_map.Insert(
-                    std::make_pair(*fetch_private_key_context.request->key_id,
-                                   execution_result),
-                    out);
-        !insert_result.Successful()) {
-      auto got_failure = false;
-      if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
-                                                                true)) {
-        SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          insert_result, "Failed to insert fetch result");
-        list_private_keys_context.Finish(insert_result);
-      }
-      return;
+    {
+      absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
+      list_keys_status->result_list[uri_index]
+          .fetch_result_key_id_map[*fetch_private_key_context.request->key_id] =
+          execution_result;
     }
     // For ListByKeyId, store the key IDs no matter the fetching failed or not.
     absl::MutexLock lock(&list_keys_status->set_mutex);
@@ -230,40 +197,32 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
                   list_private_keys_context, std::placeholders::_1,
                   list_keys_status, encryption_key, uri_index),
         list_private_keys_context);
-    execution_result = kms_client_provider_->Decrypt(decrypt_context);
-
-    if (!execution_result.Successful()) {
+    if (absl::Status error = kms_client_provider_->Decrypt(decrypt_context);
+        !error.ok()) {
       auto got_failure = false;
       if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
                                                                 true)) {
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          execution_result, "Failed to send decrypt request.");
-        list_private_keys_context.Finish(execution_result);
+                          error, "Failed to send decrypt request.");
+        list_private_keys_context.Finish(FailureExecutionResult(SC_UNKNOWN));
       }
       return;
     }
   }
 }
 
-ExecutionResult InsertDecryptResult(
-    ConcurrentMap<std::string, DecryptResult>& decrypt_result_key_id_map,
-    EncryptionKey encryption_key, ExecutionResult result,
-    std::string plaintext) {
+namespace {
+DecryptResult MakeDecryptResult(EncryptionKey encryption_key,
+                                ExecutionResult result, std::string plaintext) {
   DecryptResult decrypt_result;
   decrypt_result.decrypt_result = std::move(result);
   decrypt_result.encryption_key = std::move(encryption_key);
   if (!plaintext.empty()) {
     decrypt_result.plaintext = std::move(plaintext);
   }
-
-  DecryptResult out;
-  RETURN_AND_LOG_IF_FAILURE(
-      decrypt_result_key_id_map.Insert(
-          std::make_pair(*decrypt_result.encryption_key.key_id, decrypt_result),
-          out),
-      kPrivateKeyClientProvider, kZeroUuid, "Failed to insert decrypt result");
-  return SuccessExecutionResult();
+  return decrypt_result;
 }
+}  // namespace
 
 void PrivateKeyClientProvider::OnDecryptCallback(
     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
@@ -282,19 +241,14 @@ void PrivateKeyClientProvider::OnDecryptCallback(
     if (decrypt_context.result.Successful()) {
       plaintext = std::move(*decrypt_context.response->mutable_plaintext());
     }
-    if (auto insert_result = InsertDecryptResult(
-            list_keys_status->result_list[uri_index].decrypt_result_key_id_map,
-            *encryption_key, std::move(decrypt_context.result),
-            std::move(plaintext));
-        !insert_result.Successful()) {
-      auto got_failure = false;
-      if (list_keys_status->got_failure.compare_exchange_strong(got_failure,
-                                                                true)) {
-        SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
-                          insert_result, "Failed to insert decrypt result.");
-        list_private_keys_context.Finish(insert_result);
-      }
-      return;
+    {
+      DecryptResult decrypt_result =
+          MakeDecryptResult(*encryption_key, std::move(decrypt_context.result),
+                            std::move(plaintext));
+      absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
+      list_keys_status->result_list[uri_index]
+          .decrypt_result_key_id_map[*decrypt_result.encryption_key.key_id] =
+          std::move(decrypt_result);
     }
     finished_key_split_count_prev =
         list_keys_status->finished_key_split_count.fetch_add(1);
@@ -315,8 +269,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
       std::vector<DecryptResult> success_decrypt_result;
       if (single_party_key.has_value()) {
         // If contains single party key, ignore the fetch and decrypt results.
-        success_decrypt_result.emplace_back(
-            std::move(single_party_key.value()));
+        success_decrypt_result.push_back(std::move(single_party_key.value()));
       } else {
         // If doesn't contain single party key, validate every fetch and
         // decrypt results.
@@ -332,13 +285,19 @@ void PrivateKeyClientProvider::OnDecryptCallback(
         }
         // Key splits returned from each endpoint should match the endpoint
         // count.
+        success_decrypt_result.reserve(endpoint_count_);
         for (int i = 0; i < endpoint_count_; ++i) {
-          DecryptResult decrypt_result;
-          auto find_result =
-              list_keys_status->result_list[i].decrypt_result_key_id_map.Find(
-                  key_id, decrypt_result);
-          if (!find_result.Successful() ||
-              decrypt_result.encryption_key.key_data.size() !=
+          std::optional<DecryptResult> decrypt_result;
+          {
+            auto& result = list_keys_status->result_list[i];
+            absl::MutexLock l(&result.mu);
+            if (auto it = result.decrypt_result_key_id_map.find(key_id);
+                it != result.decrypt_result_key_id_map.end()) {
+              decrypt_result = it->second;
+            }
+          }
+          if (!decrypt_result.has_value() ||
+              decrypt_result->encryption_key.key_data.size() !=
                   endpoint_count_) {
             if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
               list_private_keys_context.Finish(FailureExecutionResult(
@@ -363,7 +322,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
               break;
             }
           }
-          success_decrypt_result.emplace_back(decrypt_result);
+          success_decrypt_result.push_back(*std::move(decrypt_result));
         }
       }
       if (all_splits_are_available) {

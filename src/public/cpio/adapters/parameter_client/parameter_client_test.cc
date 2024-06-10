@@ -46,7 +46,7 @@ using google::scp::cpio::mock::MockParameterClientWithOverrides;
 namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
  protected:
-  ParameterClientTest() : client_(std::make_shared<ParameterClientOptions>()) {
+  ParameterClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }
@@ -62,7 +62,7 @@ TEST_F(ParameterClientTest, GetParameterSuccess) {
                         context) {
         context.response = std::make_shared<GetParameterResponse>();
         context.Finish(SuccessExecutionResult());
-        return SuccessExecutionResult();
+        return absl::OkStatus();
       });
 
   absl::Notification finished;
@@ -81,7 +81,7 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
       .WillOnce([=](AsyncContext<GetParameterRequest, GetParameterResponse>&
                         context) {
         context.Finish(FailureExecutionResult(SC_UNKNOWN));
-        return FailureExecutionResult(SC_UNKNOWN);
+        return absl::UnknownError("");
       });
 
   absl::Notification finished;
@@ -94,11 +94,5 @@ TEST_F(ParameterClientTest, GetParameterFailure) {
           }),
       ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   finished.WaitForNotification();
-}
-
-TEST_F(ParameterClientTest, FailureToCreateParameterClientProvider) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_.create_parameter_client_provider_result = failure;
-  EXPECT_EQ(client_.Init(), failure);
 }
 }  // namespace google::scp::cpio::test

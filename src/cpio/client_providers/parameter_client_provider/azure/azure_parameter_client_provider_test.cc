@@ -57,12 +57,10 @@ class AzureParameterClientProviderTest : public ::testing::Test {
   void SetUp() override {
     client_ = std::make_unique<AzureParameterClientProvider>();
 
-    EXPECT_SUCCESS(client_->Init());
-    EXPECT_SUCCESS(client_->Run());
     SetParameter(kTestParameterName, kTestValue);
   }
 
-  void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
+  void TearDown() override {}
 
   void SetParameter(const std::string& parameter_name,
                     const std::string& parameter_value) {
@@ -86,7 +84,7 @@ TEST_F(AzureParameterClientProviderTest, SucceedToFetchParameter) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -98,11 +96,16 @@ TEST_F(AzureParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
   request->set_parameter_name(parameter_with_prefix);
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
-      [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
+      [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {
+        EXPECT_THAT(
+            context.result,
+            ResultIs(FailureExecutionResult(
+                SC_AZURE_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND)));
+        condition.Notify();
+      });
 
-  EXPECT_THAT(client_->GetParameter(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND)));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
+  condition.WaitForNotification();
 }
 
 TEST_F(AzureParameterClientProviderTest, FailedWithInvalidParameterName) {
@@ -113,9 +116,7 @@ TEST_F(AzureParameterClientProviderTest, FailedWithInvalidParameterName) {
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
 
-  EXPECT_THAT(client_->GetParameter(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME)));
+  EXPECT_FALSE(client_->GetParameter(context).ok());
 }
 
 TEST_F(AzureParameterClientProviderTest, FailedToFetchParameterEmptyInput) {
@@ -126,8 +127,6 @@ TEST_F(AzureParameterClientProviderTest, FailedToFetchParameterEmptyInput) {
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
 
-  EXPECT_THAT(client_->GetParameter(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AZURE_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME)));
+  EXPECT_FALSE(client_->GetParameter(context).ok());
 }
 }  // namespace google::scp::cpio::test

@@ -23,13 +23,7 @@ namespace google::scp::cpio::client_providers {
 
 class AzureRoleCredentialsProvider : public RoleCredentialsProviderInterface {
  public:
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult GetRoleCredentials(
+  absl::Status GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_credentials_context) noexcept override;
 };

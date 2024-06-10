@@ -76,61 +76,50 @@ using google::scp::core::utils::Base64Encode;
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult AzureBlobStorageClientProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureBlobStorageClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureBlobStorageClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AzureBlobStorageClientProvider::GetBlob(
+absl::Status AzureBlobStorageClientProvider::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) noexcept {
   const auto& request = *get_blob_context.request;
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureBlobStorageClientProvider::GetBlobStream(
+absl::Status AzureBlobStorageClientProvider::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>&
         get_blob_stream_context) noexcept {
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureBlobStorageClientProvider::ListBlobsMetadata(
+absl::Status AzureBlobStorageClientProvider::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
         list_blobs_context) noexcept {
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureBlobStorageClientProvider::PutBlob(
+absl::Status AzureBlobStorageClientProvider::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) noexcept {
   const auto& request = *put_blob_context.request;
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureBlobStorageClientProvider::PutBlobStream(
+absl::Status AzureBlobStorageClientProvider::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context) noexcept {
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AzureBlobStorageClientProvider::DeleteBlob(
+absl::Status AzureBlobStorageClientProvider::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
         delete_blob_context) noexcept {
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-std::unique_ptr<BlobStorageClientProviderInterface>
+absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
     InstanceClientProviderInterface* instance_client,
     core::AsyncExecutorInterface* cpu_async_executor,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<AzureBlobStorageClientProvider>(
-      options, instance_client, cpu_async_executor, io_async_executor);
+      std::move(options), instance_client, cpu_async_executor,
+      io_async_executor);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -37,9 +37,7 @@ TEST(LibCpioProviderTest, AsyncExecutorCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  auto async_executor = lib_cpio_provider->GetCpuAsyncExecutor();
-  ASSERT_TRUE(async_executor.ok());
-  ASSERT_THAT(*async_executor, NotNull());
+  lib_cpio_provider->GetCpuAsyncExecutor();
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
@@ -47,9 +45,7 @@ TEST(LibCpioProviderTest, IOAsyncExecutorCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  auto io_async_executor = lib_cpio_provider->GetIoAsyncExecutor();
-  ASSERT_TRUE(io_async_executor.ok());
-  ASSERT_THAT(*io_async_executor, NotNull());
+  lib_cpio_provider->GetIoAsyncExecutor();
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
@@ -57,9 +53,7 @@ TEST(LibCpioProviderTest, Http2ClientCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  auto http2_client = lib_cpio_provider->GetHttpClient();
-  ASSERT_TRUE(http2_client.ok());
-  ASSERT_THAT(*http2_client, NotNull());
+  lib_cpio_provider->GetHttpClient();
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
@@ -67,9 +61,7 @@ TEST(LibCpioProviderTest, Http1ClientCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  auto http1_client = lib_cpio_provider->GetHttp1Client();
-  ASSERT_TRUE(http1_client.ok());
-  ASSERT_THAT(*http1_client, NotNull());
+  lib_cpio_provider->GetHttp1Client();
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 
@@ -88,9 +80,7 @@ TEST(LibCpioProviderTest, AuthTokenProviderCreated) {
   auto lib_cpio_provider = std::make_unique<MockLibCpioProviderWithOverrides>();
   ASSERT_SUCCESS(lib_cpio_provider->Init());
   ASSERT_SUCCESS(lib_cpio_provider->Run());
-  auto auth_token_provider = lib_cpio_provider->GetAuthTokenProvider();
-  ASSERT_TRUE(auth_token_provider.ok());
-  ASSERT_THAT(*auth_token_provider, NotNull());
+  lib_cpio_provider->GetAuthTokenProvider();
   EXPECT_SUCCESS(lib_cpio_provider->Stop());
 }
 }  // namespace google::scp::cpio::test

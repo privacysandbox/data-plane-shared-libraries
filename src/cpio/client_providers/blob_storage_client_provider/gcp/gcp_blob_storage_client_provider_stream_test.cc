@@ -36,8 +36,6 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/gcp/gcp_blob_storage_client_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/public/core/test_execution_result_matchers.h"
-#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 using google::cloud::Status;
 using google::cloud::StatusOr;
@@ -90,8 +88,6 @@ using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
 using google::scp::core::utils::Base64Encode;
 using google::scp::core::utils::CalculateMd5Hash;
-using google::scp::cpio::TestCpioOptions;
-using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::GcpBlobStorageClientProvider;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
 using testing::ByMove;
@@ -152,12 +148,7 @@ class GcpBlobStorageClientProviderStreamTest : public testing::Test {
       finish_called_ = true;
     };
 
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Init());
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Run());
-  }
-
-  ~GcpBlobStorageClientProviderStreamTest() {
-    EXPECT_SUCCESS(gcp_cloud_storage_client_->Stop());
+    EXPECT_TRUE(gcp_cloud_storage_client_->Init().ok());
   }
 
   MockInstanceClientProvider instance_client_;
@@ -300,9 +291,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
     }
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -361,9 +351,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
     }
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -423,9 +412,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
     }
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -457,9 +445,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -491,9 +478,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -623,9 +609,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStream) {
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -665,9 +650,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -700,9 +684,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -741,9 +724,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -784,9 +766,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   {
     absl::MutexLock l(&finish_called_mu_);
@@ -827,9 +808,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   std::this_thread::sleep_for(
       std::chrono::microseconds(kStreamKeepAliveMicrosCount));
@@ -867,9 +847,8 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamFailsIfCancelled) {
     finish_called_ = true;
   };
 
-  EXPECT_THAT(
-      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_),
-      IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   absl::MutexLock l(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
@@ -880,14 +859,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
   // In order to test the "no message" path, we must have real async executors.
   AsyncExecutor cpu_async_executor(1, 5);
   AsyncExecutor io_async_executor(1, 5);
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
-  EXPECT_SUCCESS(cpu_async_executor.Init());
-  EXPECT_SUCCESS(io_async_executor.Init());
-  EXPECT_SUCCESS(cpu_async_executor.Run());
-  EXPECT_SUCCESS(io_async_executor.Run());
-
   MockInstanceClientProvider instance_client;
   instance_client.instance_resource_name = kInstanceResourceName;
   std::shared_ptr<MockClient> mock_client =
@@ -905,8 +876,7 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
           Return(ByMove(std::make_unique<google::cloud::storage::Client>(
               ClientFromMock(mock_client)))));
 
-  EXPECT_SUCCESS(gcp_cloud_storage_client.Init());
-  EXPECT_SUCCESS(gcp_cloud_storage_client.Run());
+  EXPECT_TRUE(gcp_cloud_storage_client.Init().ok());
 
   put_blob_stream_context.request = std::make_unique<PutBlobStreamRequest>();
   put_blob_stream_context.request->mutable_blob_portion()
@@ -934,8 +904,8 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
     finished.Notify();
   };
 
-  EXPECT_THAT(gcp_cloud_storage_client.PutBlobStream(put_blob_stream_context),
-              IsSuccessful());
+  EXPECT_TRUE(
+      gcp_cloud_storage_client.PutBlobStream(put_blob_stream_context).ok());
   // After this point, the client is waiting for the context to be done, which
   // it is not.
 
@@ -954,10 +924,6 @@ TEST(GcpBlobStorageClientProviderStreamTestII,
   put_blob_stream_context.MarkDone();
 
   finished.WaitForNotification();
-  EXPECT_SUCCESS(gcp_cloud_storage_client.Stop());
-  EXPECT_SUCCESS(io_async_executor.Stop());
-  EXPECT_SUCCESS(cpu_async_executor.Stop());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
 }
 
 }  // namespace

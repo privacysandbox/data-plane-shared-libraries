@@ -44,6 +44,7 @@ class ContextMap {
       : metric_router_(std::move(metric_router)),
         safe_metric_(SafeContextT::GetContext(metric_router_.get())) {
     CHECK_OK(CheckListOrder());
+    CHECK_OK(CheckDropNoisyValuesProbability());
   }
 
   ~ContextMap() = default;
@@ -101,6 +102,22 @@ class ContextMap {
                           definition->public_partitions_copy_.end())) {
         return absl::InvalidArgumentError(absl::StrCat(
             definition->name_, " public partitions is out of order"));
+      }
+    }
+    return absl::OkStatus();
+  }
+
+  absl::Status CheckDropNoisyValuesProbability() {
+    for (auto* definition : L) {
+      absl::StatusOr<telemetry::MetricConfig> config =
+          metric_config().GetMetricConfig(definition->name_);
+      if (config.ok() && config->has_drop_noisy_values_probability()) {
+        if ((config->drop_noisy_values_probability() < 0.0) ||
+            (config->drop_noisy_values_probability() >= 1.0)) {
+          return absl::InvalidArgumentError(
+              absl::StrCat(definition->name_,
+                           " drop_noisy_values_probability is out of range"));
+        }
       }
     }
     return absl::OkStatus();

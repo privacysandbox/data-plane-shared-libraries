@@ -100,6 +100,20 @@ cc_binary(
 )
 
 cc_binary(
+    name = "host_api_grpc_benchmark",
+    srcs = ["host_api_grpc_benchmark.cc"],
+    deps = [
+        "//src/core/test/utils",
+        "//src/roma/interface",
+        "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
+        "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/strings",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
     name = "kv_server_udf_benchmark_test",
     srcs = ["kv_server_udf_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",

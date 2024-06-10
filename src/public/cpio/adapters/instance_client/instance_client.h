@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -31,8 +32,8 @@ namespace google::scp::cpio {
  */
 class InstanceClient : public InstanceClientInterface {
  public:
-  explicit InstanceClient(const std::shared_ptr<InstanceClientOptions>& options)
-      : options_(options) {}
+  explicit InstanceClient(InstanceClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~InstanceClient() = default;
 
@@ -69,12 +70,12 @@ class InstanceClient : public InstanceClientInterface {
           callback) noexcept override;
 
  protected:
-  virtual core::ExecutionResult CreateInstanceClientProvider() noexcept;
+  virtual void CreateInstanceClientProvider() noexcept;
 
   client_providers::InstanceClientProviderInterface* instance_client_provider_;
 
  private:
-  std::shared_ptr<InstanceClientOptions> options_;
+  InstanceClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio

@@ -57,6 +57,8 @@ class WorkerSandboxApi {
    * function calls through the sandbox.
    * @param native_js_function_names The names of the functions that should be
    * registered to be available in JS.
+   * @param rpc_method_names The names of the rpc methods for registered
+   * services. Will allow clients to invoke services via gRPC in UDF
    * @param server_address The address of the gRPC server in the host process
    * for native function calls.
    * @param max_worker_virtual_memory_mb The maximum amount of virtual memory in
@@ -74,6 +76,7 @@ class WorkerSandboxApi {
   WorkerSandboxApi(
       bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names,
+      const std::vector<std::string>& rpc_method_names,
       const std::string& server_address, size_t max_worker_virtual_memory_mb,
       size_t js_engine_initial_heap_size_mb,
       size_t js_engine_maximum_heap_size_mb,
@@ -192,6 +195,7 @@ class WorkerSandboxApi {
               .AllowSyscall(__NR_prctl)
               .AllowSyscall(__NR_uname)
               .AllowSyscall(__NR_pkey_alloc)
+              .AllowSyscall(__NR_pkey_mprotect)
               .AllowSyscall(__NR_madvise)
               .AllowSyscall(__NR_ioctl)
               .AllowSyscall(__NR_prlimit64)
@@ -255,6 +259,7 @@ class WorkerSandboxApi {
   bool require_preload_;
   int native_js_function_comms_fd_;
   std::vector<std::string> native_js_function_names_;
+  std::vector<std::string> rpc_method_names_;
   std::string server_address_;
   size_t max_worker_virtual_memory_mb_;
   size_t js_engine_initial_heap_size_mb_;

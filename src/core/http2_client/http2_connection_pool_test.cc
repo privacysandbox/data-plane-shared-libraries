@@ -35,18 +35,9 @@ class HttpConnectionPoolTest : public testing::Test {
  protected:
   void SetUp() override {
     connection_pool_.emplace(&async_executor_, num_connections_per_host_);
-
-    EXPECT_SUCCESS(async_executor_.Init());
-    EXPECT_SUCCESS(connection_pool_->Init());
-
-    EXPECT_SUCCESS(async_executor_.Run());
-    EXPECT_SUCCESS(connection_pool_->Run());
   }
 
-  void TearDown() override {
-    EXPECT_SUCCESS(connection_pool_->Stop());
-    EXPECT_SUCCESS(async_executor_.Stop());
-  }
+  void TearDown() override { EXPECT_SUCCESS(connection_pool_->Stop()); }
 
   MockAsyncExecutor async_executor_;
   std::optional<MockHttpConnectionPool> connection_pool_;

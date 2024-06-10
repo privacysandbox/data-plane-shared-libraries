@@ -31,6 +31,7 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest;
 using google::cmrt::sdk::public_key_service::v1::ListPublicKeysResponse;
@@ -51,68 +52,45 @@ constexpr std::string_view kPublicKeyClient = "PublicKeyClient";
 }  // namespace
 
 namespace google::scp::cpio {
-ExecutionResult PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
+absl::Status PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-  HttpClientInterface* http_client;
-  if (auto client = cpio_->GetHttpClient(); !client.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
-              "Failed to get http client.");
-    return execution_result;
-  } else {
-    http_client = *client;
-  }
-  public_key_client_provider_ =
-      PublicKeyClientProviderFactory::Create(*options_, http_client);
-  return SuccessExecutionResult();
+  PS_ASSIGN_OR_RETURN(public_key_client_provider_,
+                      PublicKeyClientProviderFactory::Create(
+                          options_, &cpio_->GetHttpClient()));
+  return absl::OkStatus();
 }
 
 ExecutionResult PublicKeyClient::Init() noexcept {
-  auto execution_result = CreatePublicKeyClientProvider();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
+  if (absl::Status error = CreatePublicKeyClientProvider(); !error.ok()) {
+    SCP_ERROR(kPublicKeyClient, kZeroUuid, error,
               "Failed to create PublicKeyClientProvider.");
-    return ConvertToPublicExecutionResult(execution_result);
+    return FailureExecutionResult(SC_UNKNOWN);
   }
-
-  execution_result = public_key_client_provider_->Init();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
-              "Failed to initialize PublicKeyClientProvider.");
-  }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 ExecutionResult PublicKeyClient::Run() noexcept {
-  auto execution_result = public_key_client_provider_->Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
-              "Failed to run PublicKeyClientProvider.");
-  }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 ExecutionResult PublicKeyClient::Stop() noexcept {
-  auto execution_result = public_key_client_provider_->Stop();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, execution_result,
-              "Failed to stop PublicKeyClientProvider.");
-  }
-  return ConvertToPublicExecutionResult(execution_result);
+  return SuccessExecutionResult();
 }
 
 core::ExecutionResult PublicKeyClient::ListPublicKeys(
     ListPublicKeysRequest request,
     Callback<ListPublicKeysResponse> callback) noexcept {
   return Execute<ListPublicKeysRequest, ListPublicKeysResponse>(
-      absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
-                       public_key_client_provider_.get()),
-      request, callback);
+             absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
+                              public_key_client_provider_.get()),
+             request, callback)
+                 .ok()
+             ? SuccessExecutionResult()
+             : FailureExecutionResult(SC_UNKNOWN);
 }
 
 std::unique_ptr<PublicKeyClientInterface> PublicKeyClientFactory::Create(
     PublicKeyClientOptions options) {
-  return std::make_unique<PublicKeyClient>(
-      std::make_shared<PublicKeyClientOptions>(std::move(options)));
+  return std::make_unique<PublicKeyClient>(std::move(options));
 }
 }  // namespace google::scp::cpio

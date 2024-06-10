@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <tink/aead.h>
 
@@ -37,23 +38,17 @@ class GcpKmsAeadProvider;
 class GcpKmsClientProvider : public KmsClientProviderInterface {
  public:
   explicit GcpKmsClientProvider(
-      const std::shared_ptr<GcpKmsAeadProvider>& aead_provider =
-          std::make_shared<GcpKmsAeadProvider>())
-      : aead_provider_(aead_provider) {}
+      absl::Nonnull<std::unique_ptr<GcpKmsAeadProvider>> aead_provider =
+          std::make_unique<GcpKmsAeadProvider>())
+      : aead_provider_(std::move(aead_provider)) {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult Decrypt(
+  absl::Status Decrypt(
       core::AsyncContext<cmrt::sdk::kms_service::v1::DecryptRequest,
                          cmrt::sdk::kms_service::v1::DecryptResponse>&
           decrypt_context) noexcept override;
 
  private:
-  std::shared_ptr<GcpKmsAeadProvider> aead_provider_;
+  std::unique_ptr<GcpKmsAeadProvider> aead_provider_;
 };
 
 /// Provides GcpKmsAead.

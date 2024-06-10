@@ -29,6 +29,7 @@
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/client_providers/role_credentials_provider/aws/sts_error_converter.h"
 #include "src/cpio/common/aws/aws_utils.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "error_codes.h"
 
@@ -62,36 +63,21 @@ ClientConfiguration AwsRoleCredentialsProvider::CreateClientConfiguration(
   return common::CreateClientConfiguration(std::string(region));
 }
 
-ExecutionResult AwsRoleCredentialsProvider::Init() noexcept {
-  return SuccessExecutionResult();
-};
-
-ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
-  if (!instance_client_provider_) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
-    SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, execution_result,
-              "InstanceClientProvider cannot be null.");
-    return execution_result;
+absl::Status AwsRoleCredentialsProvider::Init() noexcept {
+  ClientConfiguration client_config;
+  if (!region_code_.empty()) {
+    client_config = CreateClientConfiguration(region_code_);
+  } else {
+    auto region_code_or = AwsInstanceClientUtils::GetCurrentRegionCode(
+        *instance_client_provider_);
+    if (!region_code_or.Successful()) {
+      SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, region_code_or.result(),
+                "Failed to get region code for current instance");
+      return absl::InternalError(
+          core::errors::GetErrorMessage(region_code_or.result().status_code));
+    }
+    client_config = CreateClientConfiguration(*region_code_or);
   }
-
-  if (!cpu_async_executor_ || !io_async_executor_) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_ROLE_CREDENTIALS_PROVIDER_INITIALIZATION_FAILED);
-    SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, execution_result,
-              "AsyncExecutor cannot be null.");
-    return execution_result;
-  }
-
-  auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
-  if (!region_code_or.Successful()) {
-    SCP_ERROR(kAwsRoleCredentialsProvider, kZeroUuid, region_code_or.result(),
-              "Failed to get region code for current instance");
-    return region_code_or.result();
-  }
-
-  auto client_config = CreateClientConfiguration(*region_code_or);
   client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
   sts_client_ = std::make_shared<STSClient>(std::move(client_config));
@@ -100,14 +86,10 @@ ExecutionResult AwsRoleCredentialsProvider::Run() noexcept {
       TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks());
   session_name_ = std::make_shared<std::string>(timestamp);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsRoleCredentialsProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsRoleCredentialsProvider::GetRoleCredentials(
+absl::Status AwsRoleCredentialsProvider::GetRoleCredentials(
     AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
         get_credentials_context) noexcept {
   AssumeRoleRequest sts_request;
@@ -121,7 +103,7 @@ ExecutionResult AwsRoleCredentialsProvider::GetRoleCredentials(
           get_credentials_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
@@ -171,13 +153,16 @@ void AwsRoleCredentialsProvider::OnGetRoleCredentialsCallback(
   get_credentials_context.Finish(SuccessExecutionResult());
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 RoleCredentialsProviderFactory::Create(
     RoleCredentialsProviderOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
-  return std::make_unique<AwsRoleCredentialsProvider>(
-      instance_client_provider, cpu_async_executor, io_async_executor);
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept {
+  auto provider = std::make_unique<AwsRoleCredentialsProvider>(
+      std::move(options), instance_client_provider, cpu_async_executor,
+      io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

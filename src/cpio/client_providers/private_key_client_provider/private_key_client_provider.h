@@ -48,17 +48,21 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
       core::HttpClientInterface* http_client,
       std::unique_ptr<PrivateKeyFetcherProviderInterface> private_key_fetcher,
       std::unique_ptr<KmsClientProviderInterface> kms_client)
-      : private_key_client_options_(std::move(private_key_client_options)),
-        private_key_fetcher_(std::move(private_key_fetcher)),
-        kms_client_provider_(std::move(kms_client)) {}
+      : private_key_fetcher_(std::move(private_key_fetcher)),
+        kms_client_provider_(std::move(kms_client)) {
+    endpoint_list_.reserve(1 +
+                           private_key_client_options
+                               .secondary_private_key_vending_endpoints.size());
+    endpoint_list_.push_back(std::move(
+        private_key_client_options.primary_private_key_vending_endpoint));
+    for (auto& endpoint :
+         private_key_client_options.secondary_private_key_vending_endpoints) {
+      endpoint_list_.push_back(std::move(endpoint));
+    }
+    endpoint_count_ = endpoint_list_.size();
+  }
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult ListPrivateKeys(
+  absl::Status ListPrivateKeys(
       core::AsyncContext<
           cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest,
           cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>&

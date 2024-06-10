@@ -79,6 +79,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/core/common/uuid:uuid_benchmark
     //src/roma/benchmark:ba_server_benchmark
     //src/roma/benchmark:kv_server_udf_benchmark_test
+    //src/roma/benchmark:host_api_grpc_benchmark
     # TODO: b/328056518 - Turn this back on once v8 upgrade is complete.
     # //src/roma/config:type_converter_benchmark
     //src/roma/sandbox/dispatcher:dispatcher_benchmark
@@ -105,4 +106,4 @@ for tgt in "${targets[@]}"; do
     | grep -Fv sandbox2.cc
 done
 
-"${TOOLS_DIR}"/normalize-dist
+"${TOOLS_DIR}"/normalize-dist || true

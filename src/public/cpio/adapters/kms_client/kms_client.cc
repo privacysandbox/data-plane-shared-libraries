@@ -56,54 +56,24 @@ ExecutionResult KmsClient::Init() noexcept {
   } else {
     role_credentials_provider = *provider;
   }
-  AsyncExecutorInterface* io_async_executor;
-  if (auto executor = cpio_->GetIoAsyncExecutor(); !executor.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to get IOAsyncExecutor.");
-    return execution_result;
-  } else {
-    io_async_executor = *executor;
-  }
   kms_client_provider_ = KmsClientProviderFactory::Create(
-      *options_, role_credentials_provider, io_async_executor);
-  auto execution_result = kms_client_provider_->Init();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to initialize KmsClientProvider.");
-    return execution_result;
-  }
+      options_, role_credentials_provider, &cpio_->GetIoAsyncExecutor());
   return SuccessExecutionResult();
 }
 
-ExecutionResult KmsClient::Run() noexcept {
-  auto execution_result = kms_client_provider_->Run();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to run KmsClientProvider.");
-    return execution_result;
-  }
-  return SuccessExecutionResult();
-}
+ExecutionResult KmsClient::Run() noexcept { return SuccessExecutionResult(); }
 
-ExecutionResult KmsClient::Stop() noexcept {
-  auto execution_result = kms_client_provider_->Stop();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to stop KmsClientProvider.");
-    return execution_result;
-  }
-  return SuccessExecutionResult();
-}
+ExecutionResult KmsClient::Stop() noexcept { return SuccessExecutionResult(); }
 
 ExecutionResult KmsClient::Decrypt(
     AsyncContext<DecryptRequest, DecryptResponse> decrypt_context) noexcept {
-  return kms_client_provider_->Decrypt(decrypt_context);
+  return kms_client_provider_->Decrypt(decrypt_context).ok()
+             ? SuccessExecutionResult()
+             : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
     KmsClientOptions options) {
-  return std::make_unique<KmsClient>(
-      std::make_shared<KmsClientOptions>(std::move(options)));
+  return std::make_unique<KmsClient>(std::move(options));
 }
 }  // namespace google::scp::cpio

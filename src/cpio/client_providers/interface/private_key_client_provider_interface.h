@@ -32,7 +32,7 @@ namespace google::scp::cpio::client_providers {
 /**
  * @brief Interface responsible for fetching private keys.
  */
-class PrivateKeyClientProviderInterface : public core::ServiceInterface {
+class PrivateKeyClientProviderInterface {
  public:
   virtual ~PrivateKeyClientProviderInterface() = default;
   /**
@@ -41,7 +41,7 @@ class PrivateKeyClientProviderInterface : public core::ServiceInterface {
    * @param context context of the operation.
    * @return ExecutionResult result of the operation.
    */
-  virtual core::ExecutionResult ListPrivateKeys(
+  virtual absl::Status ListPrivateKeys(
       core::AsyncContext<
           cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest,
           cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>&

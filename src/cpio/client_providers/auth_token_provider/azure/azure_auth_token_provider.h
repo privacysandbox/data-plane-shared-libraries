@@ -35,12 +35,6 @@ class AzureAuthTokenProvider : public AuthTokenProviderInterface {
   explicit AzureAuthTokenProvider(
       absl::Nonnull<core::HttpClientInterface*> http_client);
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   core::ExecutionResult GetSessionToken(
       core::AsyncContext<GetSessionTokenRequest, GetSessionTokenResponse>&
           get_role_credentials_context) noexcept override;

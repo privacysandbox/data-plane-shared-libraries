@@ -43,13 +43,9 @@ class PublicKeyClientProvider : public PublicKeyClientProviderInterface {
       : http_client_(http_client),
         public_key_client_options_(std::move(public_key_client_options)) {}
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult ListPublicKeys(
+  absl::Status ListPublicKeys(
       core::AsyncContext<
           cmrt::sdk::public_key_service::v1::ListPublicKeysRequest,
           cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>&

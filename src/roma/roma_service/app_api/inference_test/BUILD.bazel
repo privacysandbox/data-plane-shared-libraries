@@ -1,0 +1,110 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load(
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
+    "js_proto_library",
+    "roma_app_api_cc_library",
+    "roma_sdk",
+    "roma_service_js_library",
+)
+
+proto_library(
+    name = "inference_proto",
+    srcs = ["inference.proto"],
+    deps = [
+        "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
+    ],
+)
+
+buf_lint_test(
+    name = "inference_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":inference_proto"],
+)
+
+cc_proto_library(
+    name = "inference_cc_proto",
+    deps = [":inference_proto"],
+)
+
+inference_api = declare_roma_api(
+    cc_protos = [":inference_cc_proto"],
+    proto_basename = "inference",
+    protos = [":inference_proto"],
+)
+
+js_proto_library(
+    name = "inference_js_proto_lib",
+    roma_api = inference_api,
+)
+
+roma_service_js_library(
+    name = "inference_js_library",
+    roma_app_api = inference_api,
+    deps = [":inference_js_proto_lib"],
+)
+
+closure_js_binary(
+    name = "inference_js",
+    compilation_level = "SIMPLE_OPTIMIZATIONS",
+    debug = False,
+    formatting = "PRETTY_PRINT",
+    language = "ECMASCRIPT_NEXT",
+    deps = [
+        ":inference_js_library",
+    ],
+)
+
+roma_app_api_cc_library(
+    name = "inference_roma_api",
+    js_library = ":inference_js",
+    roma_app_api = inference_api,
+    tags = [
+        "noasan",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+roma_sdk(
+    name = "inference_sdk",
+    srcs = [
+        ":inference_js",
+    ],
+    app_api_cc_library = ":inference_roma_api",
+    js_library = ":inference_js_library",
+    roma_app_api = inference_api,
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "inference_cc_test",
+    size = "small",
+    srcs = [":inference_roma_api_test.cc"],
+    tags = [
+        "noasan",
+    ],
+    deps = [
+        ":inference_roma_api",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

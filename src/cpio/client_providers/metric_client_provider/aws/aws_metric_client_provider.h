@@ -61,14 +61,15 @@ class AwsMetricClientProvider : public MetricClientProvider {
                              std::move(metric_batching_options)),
         io_async_executor_(io_async_executor) {}
 
-  core::ExecutionResult Run() noexcept override;
+  absl::Status Run() noexcept override;
 
  protected:
   core::ExecutionResult MetricsBatchPush(
       const std::shared_ptr<std::vector<core::AsyncContext<
           cmrt::sdk::metric_service::v1::PutMetricsRequest,
           cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
-          metric_requests_vector) noexcept override;
+          metric_requests_vector) noexcept override
+      ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
   /**
    * @brief Creates a Client Configuration object.
@@ -99,7 +100,8 @@ class AwsMetricClientProvider : public MetricClientProvider {
       const Aws::CloudWatch::CloudWatchClient*,
       const Aws::CloudWatch::Model::PutMetricDataRequest&,
       const Aws::CloudWatch::Model::PutMetricDataOutcome& outcome,
-      const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept;
+      const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept
+      ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
   /// An instance of the IO async executor.
   core::AsyncExecutorInterface* io_async_executor_;

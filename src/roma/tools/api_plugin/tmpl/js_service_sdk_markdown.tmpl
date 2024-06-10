@@ -5,21 +5,21 @@
 {{- $file_name := .Name -}}
 
 - [{{$file.Name}}](#{{$file_name | anchor}})
-  {{- if $file.Services}}
-    {{range $svc := $file.Services}}
-    - [{{$svc.Name}}](#{{$svc.FullName | anchor}})
-    {{- end}}
-  {{- end}}
-  {{- if .Messages}}
-    {{- range $msg := .Messages}}
-    - [{{$msg.LongName}}](#{{$msg.FullName | anchor}})
-    {{- end}}
-  {{- end}}
-  {{- if .Enums}}
-    {{range $enum := .Enums}}
-    - [{{$enum.LongName}}](#{{$enum.FullName | anchor}})
-    {{- end}}
-  {{- end}}
+{{- if $file.Services}}
+{{range $svc := $file.Services}}
+- [{{$svc.Name}}](#{{$svc.FullName | anchor}})
+{{- end}}
+{{- end}}
+{{- if .Messages}}
+{{- range $msg := .Messages}}
+- [{{$msg.LongName}}](#{{$msg.FullName | anchor}})
+{{- end}}
+{{- end}}
+{{- if .Enums}}
+{{range $enum := .Enums}}
+- [{{$enum.LongName}}](#{{$enum.FullName | anchor}})
+{{- end}}
+{{- end}}
 {{- end}}
 
 {{- range $file := .Files}}
@@ -30,7 +30,7 @@
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 <a name="{{$svc.FullName | anchor}}"></a>
 ## Service: {{$svcopts.Romav8AppName}} (`{{$svc.FullName}}`)
-{{$svcopts.Description}}`
+`{{$svcopts.Description}}`
 
 {{range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
 {{- $reqFullType := $rpc.RequestFullType | printf "proto.%s" }}
@@ -44,6 +44,7 @@
 {{- end}}
 
 Request: `{{$reqFullType}}`
+
 Response: `{{$respFullType}}`
 
 {{end}}{{/*methods*/}}

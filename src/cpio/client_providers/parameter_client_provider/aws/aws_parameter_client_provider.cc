@@ -29,11 +29,11 @@
 #include "src/core/async_executor/aws/aws_async_executor.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/common/aws/aws_utils.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 #include "error_codes.h"
 #include "ssm_error_converter.h"
@@ -53,7 +53,6 @@ using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_AWS_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME;
 using google::scp::cpio::client_providers::AwsInstanceClientUtils;
-using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::common::CreateClientConfiguration;
 
 namespace {
@@ -68,9 +67,9 @@ ClientConfiguration AwsParameterClientProvider::CreateClientConfiguration(
   return common::CreateClientConfiguration(region);
 }
 
-ExecutionResult AwsParameterClientProvider::Init() noexcept {
-  // Try to get region code from Global Cpio Options, otherwise get region code
-  // from running instance_client.
+absl::Status AwsParameterClientProvider::Init() noexcept {
+  // Try to get region code from options, otherwise get region code from running
+  // instance_client.
   if (!region_code_.empty()) {
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
         CreateClientConfiguration(region_code_), io_async_executor_);
@@ -80,24 +79,17 @@ ExecutionResult AwsParameterClientProvider::Init() noexcept {
     if (!region_code_or.Successful()) {
       SCP_ERROR(kAwsParameterClientProvider, kZeroUuid, region_code_or.result(),
                 "Failed to get region code for current instance");
-      return region_code_or.result();
+      return absl::InternalError(google::scp::core::errors::GetErrorMessage(
+          region_code_or.result().status_code));
     }
     ssm_client_ = ssm_client_factory_->CreateSSMClient(
         CreateClientConfiguration(*region_code_or), io_async_executor_);
   }
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
-ExecutionResult AwsParameterClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsParameterClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult AwsParameterClientProvider::GetParameter(
+absl::Status AwsParameterClientProvider::GetParameter(
     AsyncContext<GetParameterRequest, GetParameterResponse>&
         get_parameter_context) noexcept {
   if (get_parameter_context.request->parameter_name().empty()) {
@@ -108,7 +100,9 @@ ExecutionResult AwsParameterClientProvider::GetParameter(
                       "Failed to get the parameter value for %s.",
                       get_parameter_context.request->parameter_name().c_str());
     get_parameter_context.Finish(execution_result);
-    return execution_result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   Aws::SSM::Model::GetParameterRequest request;
@@ -120,7 +114,7 @@ ExecutionResult AwsParameterClientProvider::GetParameter(
                        this, get_parameter_context),
       nullptr);
 
-  return SuccessExecutionResult();
+  return absl::OkStatus();
 }
 
 void AwsParameterClientProvider::OnGetParameterCallback(
@@ -149,13 +143,15 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
   return std::make_unique<SSMClient>(std::move(client_config));
 }
 
-std::unique_ptr<ParameterClientProviderInterface>
+absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
     InstanceClientProviderInterface* instance_client_provider,
     core::AsyncExecutorInterface* /*cpu_async_executor*/,
     core::AsyncExecutorInterface* io_async_executor) {
-  return std::make_unique<AwsParameterClientProvider>(
+  auto provider = std::make_unique<AwsParameterClientProvider>(
       std::move(options), instance_client_provider, io_async_executor);
+  PS_RETURN_IF_ERROR(provider->Init());
+  return provider;
 }
 }  // namespace google::scp::cpio::client_providers

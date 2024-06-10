@@ -22,6 +22,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@build_bazel_rules_swift//swift:repositories.bzl", "swift_rules_dependencies")
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+load("@container_structure_test//:repositories.bzl", "container_structure_test_register_toolchain")
 load("@google_privacysandbox_servers_common//build_defs/cc:google_benchmark.bzl", "google_benchmark")
 load("@google_privacysandbox_servers_common//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies2 = "sdk_dependencies2")
 load("@google_privacysandbox_servers_common//build_defs/cc:v8.bzl", "import_v8")
@@ -118,3 +119,4 @@ def deps2(
         name = "oci",
         crane_version = LATEST_CRANE_VERSION,
     )
+    container_structure_test_register_toolchain(name = "cst")

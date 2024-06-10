@@ -49,13 +49,14 @@ struct DecryptResult {
 struct KeysResultPerEndpoint {
   // If the ListingMethod is kByKeyId, each key ID will have a ExecutionResult
   // which will be stored in the map here.
-  core::common::ConcurrentMap<std::string, core::ExecutionResult>
-      fetch_result_key_id_map;
+  absl::flat_hash_map<std::string, core::ExecutionResult>
+      fetch_result_key_id_map ABSL_GUARDED_BY(mu);
   // If the ListingMethod is kByMaxAge, all keys for each endpoint are sharing
   // the same ExecutionResult which will be stored here.
   core::ExecutionResult fetch_result = core::SuccessExecutionResult();
-  core::common::ConcurrentMap<std::string, DecryptResult>
-      decrypt_result_key_id_map;
+  absl::flat_hash_map<std::string, DecryptResult> decrypt_result_key_id_map
+      ABSL_GUARDED_BY(mu);
+  absl::Mutex mu;
 };
 
 class PrivateKeyClientUtils {

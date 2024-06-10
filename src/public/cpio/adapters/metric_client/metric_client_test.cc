@@ -45,7 +45,7 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class MetricClientTest : public ::testing::Test {
  protected:
-  MetricClientTest() : client_(std::make_shared<MetricClientOptions>()) {
+  MetricClientTest() : client_(MetricClientOptions()) {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }
@@ -58,13 +58,7 @@ class MetricClientTest : public ::testing::Test {
 TEST_F(MetricClientTest, PutMetricsSuccess) {
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context;
   EXPECT_CALL(client_.GetMetricClientProvider(), PutMetrics)
-      .WillOnce(Return(SuccessExecutionResult()));
+      .WillOnce(Return(absl::OkStatus()));
   EXPECT_THAT(client_.PutMetrics(context), IsSuccessful());
-}
-
-TEST_F(MetricClientTest, FailureToCreateMetricClientProvider) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_.create_metric_client_provider_result = failure;
-  EXPECT_EQ(client_.Init(), failure);
 }
 }  // namespace google::scp::cpio::test

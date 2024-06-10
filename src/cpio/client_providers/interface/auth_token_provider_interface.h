@@ -53,10 +53,9 @@ struct GetSessionTokenForTargetAudienceRequest {
  * token. For more information, see
  * https://developers.google.com/identity/protocols/oauth2
  */
-class AuthTokenProviderInterface : public core::ServiceInterface {
+class AuthTokenProviderInterface {
  public:
   virtual ~AuthTokenProviderInterface() = default;
-
   /**
    * @brief Gets a session token from instance metadata service.
    *
@@ -88,7 +87,7 @@ class AuthTokenProviderFactory {
    * AuthTokenProvider.
    */
   static std::unique_ptr<AuthTokenProviderInterface> Create(
-      core::HttpClientInterface* http1_client);
+      absl::Nonnull<core::HttpClientInterface*> http1_client);
 };
 }  // namespace google::scp::cpio::client_providers
 

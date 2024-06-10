@@ -66,27 +66,7 @@ constexpr std::string_view kNonteeAwsKmsClientProvider =
 
 namespace google::scp::cpio::client_providers {
 
-ExecutionResult NonteeAwsKmsClientProvider::Init() noexcept {
-  if (!role_credentials_provider_) {
-    auto execution_result = FailureExecutionResult(
-        SC_AWS_KMS_CLIENT_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND);
-    SCP_ERROR(kNonteeAwsKmsClientProvider, kZeroUuid, execution_result,
-              "Failed to get credential provider.");
-    return execution_result;
-  }
-
-  return SuccessExecutionResult();
-}
-
-ExecutionResult NonteeAwsKmsClientProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult NonteeAwsKmsClientProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
+absl::Status NonteeAwsKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
         decrypt_context) noexcept {
   const auto& ciphertext = decrypt_context.request->ciphertext();
@@ -97,7 +77,9 @@ ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
                       execution_result,
                       "Failed to get cipher text from decryption request.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   const auto& key_arn = decrypt_context.request->key_resource_name();
@@ -108,7 +90,9 @@ ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
                       execution_result,
                       "Failed to get Key Arn from decryption request.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   const auto& kms_region = decrypt_context.request->kms_region();
@@ -119,7 +103,9 @@ ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
                       execution_result,
                       "Failed to get Key Region from decryption request.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   const auto& account_identity = decrypt_context.request->account_identity();
@@ -130,7 +116,9 @@ ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
         kNonteeAwsKmsClientProvider, decrypt_context, execution_result,
         "Failed to get Account Identity from decryption request.");
     decrypt_context.Finish(execution_result);
-    return decrypt_context.result;
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code));
   }
 
   AsyncContext<DecryptRequest, Aead> get_aead_context(
@@ -138,7 +126,12 @@ ExecutionResult NonteeAwsKmsClientProvider::Decrypt(
       absl::bind_front(&NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt,
                        this, decrypt_context),
       decrypt_context);
-  return GetAead(get_aead_context);
+  if (const ExecutionResult result = GetAead(get_aead_context);
+      !result.Successful()) {
+    return absl::InvalidArgumentError(
+        google::scp::core::errors::GetErrorMessage(result.status_code));
+  }
+  return absl::OkStatus();
 }
 
 ExecutionResult NonteeAwsKmsClientProvider::GetAeadCallbackToDecrypt(
@@ -221,8 +214,11 @@ ExecutionResult NonteeAwsKmsClientProvider::CreateKmsClient(
                                GetSessionCredentialsCallbackToCreateKms,
                            this, create_kms_context),
           create_kms_context);
-  return role_credentials_provider_->GetRoleCredentials(
-      get_role_credentials_context);
+  return role_credentials_provider_
+                 ->GetRoleCredentials(get_role_credentials_context)
+                 .ok()
+             ? SuccessExecutionResult()
+             : FailureExecutionResult(SC_UNKNOWN);
 }
 
 void NonteeAwsKmsClientProvider::GetSessionCredentialsCallbackToCreateKms(
@@ -268,7 +264,7 @@ std::shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
     KmsClientOptions options,
-    RoleCredentialsProviderInterface* role_credentials_provider,
+    absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<NonteeAwsKmsClientProvider>(role_credentials_provider,
                                                       io_async_executor);

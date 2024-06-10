@@ -22,14 +22,13 @@ cc_library(
         ":gcp_parameter_client_provider_srcs",
     ],
     deps = [
-        "//src/cpio/client_providers/global_cpio",
-        "//src/cpio/client_providers/global_cpio/cpio_provider",
         "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",
         "//src/cpio/common/gcp:gcp_utils",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
+        "//src/util/status_macro:status_macros",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
     ],
 )
@@ -61,7 +60,6 @@ cc_test(
         "//src/cpio/client_providers/parameter_client_provider/mock/gcp:gcp_parameter_client_provider_mock",
         "//src/cpio/common/gcp:gcp_utils",
         "//src/public/core:test_execution_result_matchers",
-        "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager_mocks",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",

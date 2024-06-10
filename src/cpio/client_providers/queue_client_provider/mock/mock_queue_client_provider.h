@@ -27,33 +27,27 @@ namespace google::scp::cpio::client_providers::mock {
  */
 class MockQueueClientProvider : public QueueClientProviderInterface {
  public:
-  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
-
-  MOCK_METHOD(core::ExecutionResult, EnqueueMessage,
+  MOCK_METHOD(absl::Status, EnqueueMessage,
               ((core::AsyncContext<
                   cmrt::sdk::queue_service::v1::EnqueueMessageRequest,
                   cmrt::sdk::queue_service::v1::EnqueueMessageResponse>&)),
               (noexcept, override));
 
-  MOCK_METHOD(core::ExecutionResult, GetTopMessage,
+  MOCK_METHOD(absl::Status, GetTopMessage,
               ((core::AsyncContext<
                   cmrt::sdk::queue_service::v1::GetTopMessageRequest,
                   cmrt::sdk::queue_service::v1::GetTopMessageResponse>&)),
               (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, UpdateMessageVisibilityTimeout,
+      absl::Status, UpdateMessageVisibilityTimeout,
       ((core::AsyncContext<
           cmrt::sdk::queue_service::v1::UpdateMessageVisibilityTimeoutRequest,
           cmrt::sdk::queue_service::v1::
               UpdateMessageVisibilityTimeoutResponse>&)),
       (noexcept, override));
 
-  MOCK_METHOD(core::ExecutionResult, DeleteMessage,
+  MOCK_METHOD(absl::Status, DeleteMessage,
               ((core::AsyncContext<
                   cmrt::sdk::queue_service::v1::DeleteMessageRequest,
                   cmrt::sdk::queue_service::v1::DeleteMessageResponse>&)),

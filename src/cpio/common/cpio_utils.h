@@ -23,16 +23,17 @@
 
 #include "src/core/interface/async_context.h"
 #include "src/public/core/interface/execution_result.h"
+#include "src/util/status_macro/status_macros.h"
 
 namespace google::scp::cpio::common {
 
 class CpioUtils {
  public:
   template <typename RequestT, typename ResponseT>
-  static core::ExecutionResult AsyncToSync(
-      const std::function<core::ExecutionResult(
-          core::AsyncContext<RequestT, ResponseT>&)>& func,
-      RequestT& request, ResponseT& response) noexcept {
+  static absl::Status AsyncToSync(
+      const std::function<
+          absl::Status(core::AsyncContext<RequestT, ResponseT>&)>& func,
+      RequestT request, ResponseT& response) noexcept {
     std::promise<std::pair<core::ExecutionResult, std::shared_ptr<ResponseT>>>
         request_promise;
     core::AsyncContext<RequestT, ResponseT> context;
@@ -40,19 +41,14 @@ class CpioUtils {
     context.callback = [&](core::AsyncContext<RequestT, ResponseT>& outcome) {
       request_promise.set_value({outcome.result, outcome.response});
     };
-
-    auto execution_result = func(context);
-    if (!execution_result.Successful()) {
-      return execution_result;
+    PS_RETURN_IF_ERROR(func(context));
+    auto [result, out_response] = request_promise.get_future().get();
+    if (!result.Successful()) {
+      return absl::UnknownError(
+          google::scp::core::errors::GetErrorMessage(result.status_code));
     }
-
-    auto result = request_promise.get_future().get();
-    if (!result.first.Successful()) {
-      return result.first;
-    }
-
-    response = std::move(*result.second);
-    return core::SuccessExecutionResult();
+    response = *std::move(out_response);
+    return absl::OkStatus();
   }
 };
 }  // namespace google::scp::cpio::common

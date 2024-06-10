@@ -22,10 +22,11 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "absl/strings/match.h"
+#include "absl/strings/str_split.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
+#include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
@@ -41,6 +42,10 @@ constexpr char kCouldNotRunFunctionBinding[] =
     "ROMA: Could not run C++ function binding.";
 constexpr char kUnexpectedDataInBindingCallback[] =
     "ROMA: Unexpected data in global callback.";
+constexpr char kUnexpectedParametersInBindingCallback[] =
+    "ROMA: Unexpected parameters in global callback.";
+constexpr char kUnexpectedParameterTypeInBindingCallback[] =
+    "ROMA: Unexpected parameter type in global callback.";
 constexpr char kCouldNotConvertJsFunctionInputToNative[] =
     "ROMA: Could not convert JS function input to native C++ type.";
 constexpr char kErrorInFunctionBindingInvocation[] =
@@ -121,6 +126,7 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
 
 V8IsolateFunctionBinding::V8IsolateFunctionBinding(
     const std::vector<std::string>& function_names,
+    const std::vector<std::string>& rpc_method_names,
     std::unique_ptr<native_function_binding::NativeFunctionInvoker>
         function_invoker,
     std::string_view server_address)
@@ -129,13 +135,22 @@ V8IsolateFunctionBinding::V8IsolateFunctionBinding(
     binding_references_.emplace_back(Binding{
         .function_name = function_name,
         .instance = this,
+        .callback = &GlobalV8FunctionCallback,
+    });
+  }
+  for (const auto& rpc_method_name : rpc_method_names) {
+    binding_references_.emplace_back(Binding{
+        .function_name = rpc_method_name,
+        .instance = this,
+        .callback = &GrpcServerCallback,
     });
   }
 
   if (!server_address.empty()) {
     grpc_channel_ = grpc::CreateChannel(std::string(server_address),
                                         grpc::InsecureChannelCredentials());
-    stub_ = privacy_sandbox::server_common::TestService::NewStub(grpc_channel_);
+    stub_ = privacy_sandbox::server_common::JSCallbackService::NewStub(
+        grpc_channel_);
   }
 }
 
@@ -196,31 +211,108 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   info.GetReturnValue().Set(returned_value);
 }
 
+void V8IsolateFunctionBinding::GrpcServerCallback(
+    const v8::FunctionCallbackInfo<v8::Value>& info) {
+  ROMA_VLOG(9) << "Calling V8 gRPC Server callback";
+  auto isolate = info.GetIsolate();
+  v8::Isolate::Scope isolate_scope(isolate);
+  v8::HandleScope handle_scope(isolate);
+  auto data = info.Data();
+  if (data.IsEmpty()) {
+    isolate->ThrowError(kUnexpectedDataInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedDataInBindingCallback;
+    return;
+  }
+
+  if (info.Length() != 1) {
+    isolate->ThrowError(kUnexpectedParametersInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedParametersInBindingCallback;
+    return;
+  }
+
+  std::string native_data;
+  if (!TypeConverter<std::string>::FromV8(isolate, info[0], &native_data)) {
+    // Handle error: Value is not backed by an v8::String
+    isolate->ThrowError(kUnexpectedParameterTypeInBindingCallback);
+    ROMA_VLOG(1) << kUnexpectedParameterTypeInBindingCallback;
+    return;
+  }
+
+  auto binding_external = v8::Local<v8::External>::Cast(data);
+  auto binding = reinterpret_cast<Binding*>(binding_external->Value());
+  auto& stub = binding->instance->stub_;
+  auto uuid = binding->instance->invocation_req_uuid_;
+
+  privacy_sandbox::server_common::InvokeCallbackRequest request;
+  request.set_function_name(binding->function_name);
+  *request.mutable_request_payload() = std::move(native_data);
+
+  privacy_sandbox::server_common::InvokeCallbackResponse response;
+  grpc::ClientContext context;
+  context.AddMetadata(std::string(google::scp::roma::grpc_server::kUuidTag),
+                      uuid);
+
+  const grpc::Status status =
+      stub->InvokeCallback(&context, request, &response);
+
+  if (status.ok()) {
+    info.GetReturnValue().Set(
+        TypeConverter<std::string>::ToV8(isolate, response.response_payload()));
+  } else {
+    info.GetReturnValue().Set(
+        TypeConverter<std::string>::ToV8(isolate, status.error_message()));
+  }
+}
+
 void V8IsolateFunctionBinding::BindFunction(
     v8::Isolate* isolate, v8::Local<v8::ObjectTemplate>& global_object_template,
     void* binding, void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
-    std::string_view function_name) {
+    std::string_view function_name,
+    absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>&
+        child_templates) {
   const v8::Local<v8::External>& binding_context =
       v8::External::New(isolate, binding);
-  // Create the function template to register in the global object
+
+  std::vector<std::string> tokens = absl::StrSplit(function_name, ".");
+  // To support nested child objects with the same name
+  std::string prefix = "";
+  v8::Local<v8::ObjectTemplate> current_template = global_object_template;
+  for (int i = 0; i < tokens.size() - 1; i++) {
+    absl::StrAppend(&prefix, tokens[i], "/");
+    // Try to create a new ObjectTemplate for `prefix` in `child_templates`
+    auto [it, inserted] =
+        child_templates.try_emplace(prefix, v8::ObjectTemplate::New(isolate));
+    // If a ObjectTemplate for `prefix` doesn't already exist (If the child
+    // object hasn't already been created on the current object), add the newly
+    // created ObjectTemplate to `current_template`
+    if (inserted) {
+      const auto& object_binding_name =
+          TypeConverter<std::string>::ToV8(isolate, tokens[i]).As<v8::String>();
+      current_template->Set(object_binding_name, it->second);
+    }
+    current_template = it->second;
+  }
+
   const auto function_template =
       v8::FunctionTemplate::New(isolate, callback, binding_context);
-  // Convert the function binding name to a v8 type
   const auto& binding_name =
-      TypeConverter<std::string>::ToV8(isolate, function_name).As<v8::String>();
-  global_object_template->Set(binding_name, function_template);
+      TypeConverter<std::string>::ToV8(isolate, tokens.back()).As<v8::String>();
+  current_template->Set(binding_name, function_template);
 }
 
+// BindFunctions does not guarantee thread safety, but it is not a requirement.
 bool V8IsolateFunctionBinding::BindFunctions(
     v8::Isolate* isolate,
     v8::Local<v8::ObjectTemplate>& global_object_template) {
   if (!isolate) {
     return false;
   }
+  absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>
+      child_templates;
   for (auto& binding : binding_references_) {
     BindFunction(isolate, global_object_template,
-                 reinterpret_cast<void*>(&binding), &GlobalV8FunctionCallback,
-                 binding.function_name);
+                 reinterpret_cast<void*>(&binding), binding.callback,
+                 binding.function_name, child_templates);
   }
 
   return true;
@@ -246,6 +338,8 @@ void V8IsolateFunctionBinding::AddExternalReferences(
   }
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));
+  external_references.push_back(
+      reinterpret_cast<intptr_t>(&GrpcServerCallback));
 }
 
 absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {

@@ -25,9 +25,8 @@
 namespace google::scp::cpio::mock {
 class MockPrivateKeyClientWithOverrides : public PrivateKeyClient {
  public:
-  MockPrivateKeyClientWithOverrides(
-      const std::shared_ptr<PrivateKeyClientOptions>& options)
-      : PrivateKeyClient(options) {}
+  MockPrivateKeyClientWithOverrides()
+      : PrivateKeyClient(PrivateKeyClientOptions()) {}
 
   core::ExecutionResult create_private_key_client_provider_result =
       core::SuccessExecutionResult();

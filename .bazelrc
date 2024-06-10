@@ -3,7 +3,6 @@ build --verbose_failures
 build --compilation_mode=opt
 build --output_filter='^//((?!(third_party):).)*$'`
 build --color=yes
-build --@io_bazel_rules_docker//transitions:enable=false
 build --config=cpp
 build --config=roma_sandboxed
 build --config=otel
@@ -19,7 +18,7 @@ build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
 build:cpp --cxxopt=-std=c++17
 build:cpp --client_env=CC=clang
 build:cpp --copt=-Werror=return-type
-build:cpp --copt=-Werror=thread-safety-analysis
+build:cpp --copt=-Werror=thread-safety
 build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
 build:cpp --per_file_copt=src/roma/roma_service/.*@-fconstexpr-steps=1271242
@@ -30,6 +29,8 @@ build:cpp_nowarn --per_file_copt=src/.*_test\.cc@-Wno-unused-variable
 build:cpp_nowarn --per_file_copt=src/(metric|telemetry)/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/gcp/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/roma/(roma_service|sandbox)/.*.cc@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.cc@-Wno-macro-redefined
 
 build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
 build:clang-tidy --output_groups=report

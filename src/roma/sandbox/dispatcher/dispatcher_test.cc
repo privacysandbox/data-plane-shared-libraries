@@ -43,6 +43,7 @@ std::vector<worker_api::WorkerSandboxApi> Workers(int num_workers) {
         /*require_preload=*/true,
         /*native_js_function_comms_fd=*/-1,
         /*native_js_function_names=*/std::vector<std::string>(),
+        /*rpc_method_names=*/std::vector<std::string>(),
         /*server_address*/ "",
         /*max_worker_virtual_memory_mb=*/0,
         /*js_engine_initial_heap_size_mb=*/0,

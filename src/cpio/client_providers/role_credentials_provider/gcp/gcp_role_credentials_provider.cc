@@ -26,30 +26,20 @@ using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult GcpRoleCredentialsProvider::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpRoleCredentialsProvider::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpRoleCredentialsProvider::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult GcpRoleCredentialsProvider::GetRoleCredentials(
+absl::Status GcpRoleCredentialsProvider::GetRoleCredentials(
     core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
         get_credentials_context) noexcept {
-  return FailureExecutionResult(SC_UNKNOWN);
+  return absl::UnknownError("");
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 RoleCredentialsProviderFactory::Create(
-    RoleCredentialsProviderOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
+    RoleCredentialsProviderOptions /*options*/,
+    absl::Nonnull<
+        InstanceClientProviderInterface*> /*instance_client_provider*/,
+    absl::Nonnull<core::AsyncExecutorInterface*> /*cpu_async_executor*/,
+    absl::Nonnull<
+        core::AsyncExecutorInterface*> /*io_async_executor*/) noexcept {
   return std::make_unique<GcpRoleCredentialsProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

@@ -41,7 +41,7 @@ namespace google::scp::roma::sandbox::worker_api::test {
 TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   WorkerSandboxApi sandbox_api(
       false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
-      std::vector<std::string>() /*native_js_function_names*/,
+      {} /*native_js_function_names*/, {} /*rpc_method_names*/,
       "" /*server_address*/, 0, 0, 0, 0, 0, false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
@@ -73,7 +73,7 @@ TEST(WorkerSandboxApiTest,
   // start. We set a limit of 100MB which causes a failure in this case.
   WorkerSandboxApi sandbox_api(
       false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
-      std::vector<std::string>() /*native_js_function_names*/,
+      {} /*native_js_function_names*/, {} /*rpc_method_names*/,
       "" /*server_address*/, 100 /*max_worker_virtual_memory_mb*/, 0, 0, 0, 0,
       false);
 
@@ -88,9 +88,10 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   int fds[2];
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
-  WorkerSandboxApi sandbox_api(
-      false /*require_preload*/, fds[1] /*native_js_function_comms_fd*/,
-      {"my_great_func"}, "" /*server_address*/, 0, 0, 0, 0, 0, false);
+  WorkerSandboxApi sandbox_api(false /*require_preload*/,
+                               fds[1] /*native_js_function_comms_fd*/,
+                               {"my_great_func"}, {} /*rpc_method_names*/,
+                               "" /*server_address*/, 0, 0, 0, 0, 0, false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -136,8 +137,8 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
       bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names)
       : WorkerSandboxApi(require_preload, native_js_function_comms_fd,
-                         native_js_function_names, "" /*server_address*/, 0, 0,
-                         0, 0, 0, false) {}
+                         native_js_function_names, {} /*rpc_method_names*/,
+                         "" /*server_address*/, 0, 0, 0, 0, 0, false) {}
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }
 };

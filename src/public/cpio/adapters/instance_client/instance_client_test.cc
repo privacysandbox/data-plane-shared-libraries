@@ -23,7 +23,6 @@
 #include "absl/synchronization/notification.h"
 #include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/adapters/instance_client/mock_instance_client_with_overrides.h"
-#include "src/public/cpio/core/mock_lib_cpio.h"
 #include "src/public/cpio/interface/instance_client/instance_client_interface.h"
 #include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
 
@@ -48,7 +47,7 @@ using google::scp::cpio::mock::MockInstanceClientWithOverrides;
 namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
  protected:
-  InstanceClientTest() : client_(std::make_shared<InstanceClientOptions>()) {
+  InstanceClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }
@@ -67,7 +66,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameSuccess) {
             context.response =
                 std::make_shared<GetCurrentInstanceResourceNameResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -89,7 +88,7 @@ TEST_F(InstanceClientTest, GetCurrentInstanceResourceNameFailure) {
           [=](AsyncContext<GetCurrentInstanceResourceNameRequest,
                            GetCurrentInstanceResourceNameResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -111,7 +110,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameSuccess) {
                                  GetTagsByResourceNameResponse>& context) {
         context.response = std::make_shared<GetTagsByResourceNameResponse>();
         context.Finish(SuccessExecutionResult());
-        return SuccessExecutionResult();
+        return absl::OkStatus();
       });
 
   absl::Notification finished;
@@ -131,7 +130,7 @@ TEST_F(InstanceClientTest, GetTagsByResourceNameFailure) {
       .WillOnce([=](AsyncContext<GetTagsByResourceNameRequest,
                                  GetTagsByResourceNameResponse>& context) {
         context.Finish(FailureExecutionResult(SC_UNKNOWN));
-        return FailureExecutionResult(SC_UNKNOWN);
+        return absl::UnknownError("");
       });
 
   absl::Notification finished;
@@ -156,7 +155,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameSuccess) {
             context.response =
                 std::make_shared<GetInstanceDetailsByResourceNameResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -178,7 +177,7 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
           [=](AsyncContext<GetInstanceDetailsByResourceNameRequest,
                            GetInstanceDetailsByResourceNameResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -192,11 +191,5 @@ TEST_F(InstanceClientTest, GetInstanceDetailsByResourceNameFailure) {
                   }),
               ResultIs(FailureExecutionResult(SC_UNKNOWN)));
   finished.WaitForNotification();
-}
-
-TEST_F(InstanceClientTest, FailureToCreateInstanceClientProvider) {
-  auto failure = FailureExecutionResult(SC_UNKNOWN);
-  client_.create_instance_client_provider_result = failure;
-  EXPECT_EQ(client_.Init(), failure);
 }
 }  // namespace google::scp::cpio::test

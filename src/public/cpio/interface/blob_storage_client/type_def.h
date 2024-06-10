@@ -28,10 +28,6 @@ struct BlobStorageClientOptions {
   virtual ~BlobStorageClientOptions() = default;
   BlobStorageClientOptions() = default;
 
-  BlobStorageClientOptions(const BlobStorageClientOptions& options)
-      : transfer_stall_timeout(options.transfer_stall_timeout),
-        retry_limit(options.retry_limit) {}
-
   // GCP - How long a blob storage transfer (download or upload) should stay
   // alive for after some duration of inaction.
   std::chrono::seconds transfer_stall_timeout = std::chrono::seconds(60 * 2);

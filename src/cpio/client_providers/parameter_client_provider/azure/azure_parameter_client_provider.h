@@ -38,13 +38,7 @@ class AzureParameterClientProvider : public ParameterClientProviderInterface {
  public:
   AzureParameterClientProvider() {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult GetParameter(
+  absl::Status GetParameter(
       core::AsyncContext<
           cmrt::sdk::parameter_service::v1::GetParameterRequest,
           cmrt::sdk::parameter_service::v1::GetParameterResponse>&

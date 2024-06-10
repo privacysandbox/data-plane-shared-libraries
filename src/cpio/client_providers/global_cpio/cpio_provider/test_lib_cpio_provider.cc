@@ -48,8 +48,9 @@ TestLibCpioProvider::TestLibCpioProvider(TestCpioOptions test_options)
 #endif
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 TestLibCpioProvider::CreateRoleCredentialsProvider(
+    RoleCredentialsProviderOptions /*options*/,
     InstanceClientProviderInterface* instance_client_provider,
     AsyncExecutorInterface* cpu_async_executor,
     AsyncExecutorInterface* io_async_executor) noexcept {

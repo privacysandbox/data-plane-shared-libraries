@@ -39,18 +39,6 @@ Http1CurlClient::Http1CurlClient(
       operation_dispatcher_(io_async_executor,
                             RetryStrategy(retry_strategy_options)) {}
 
-ExecutionResult Http1CurlClient::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult Http1CurlClient::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult Http1CurlClient::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
 ExecutionResult Http1CurlClient::PerformRequest(
     AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
   return PerformRequest(http_context, google::scp::core::kHttpRequestTimeout);

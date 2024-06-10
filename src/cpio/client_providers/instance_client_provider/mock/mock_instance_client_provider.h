@@ -30,20 +30,8 @@
 namespace google::scp::cpio::client_providers::mock {
 class MockInstanceClientProvider : public InstanceClientProviderInterface {
  public:
-  core::ExecutionResult Init() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Run() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
-  core::ExecutionResult Stop() noexcept override {
-    return core::SuccessExecutionResult();
-  }
-
   MOCK_METHOD(
-      core::ExecutionResult, GetCurrentInstanceResourceName,
+      absl::Status, GetCurrentInstanceResourceName,
       ((core::AsyncContext<cmrt::sdk::instance_service::v1::
                                GetCurrentInstanceResourceNameRequest,
                            cmrt::sdk::instance_service::v1::
@@ -51,14 +39,14 @@ class MockInstanceClientProvider : public InstanceClientProviderInterface {
       (override, noexcept));
 
   MOCK_METHOD(
-      core::ExecutionResult, GetTagsByResourceName,
+      absl::Status, GetTagsByResourceName,
       ((core::AsyncContext<
           cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest,
           cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse>&)),
       (override, noexcept));
 
   MOCK_METHOD(
-      core::ExecutionResult, GetInstanceDetailsByResourceName,
+      absl::Status, GetInstanceDetailsByResourceName,
       ((core::AsyncContext<cmrt::sdk::instance_service::v1::
                                GetInstanceDetailsByResourceNameRequest,
                            cmrt::sdk::instance_service::v1::
@@ -66,7 +54,7 @@ class MockInstanceClientProvider : public InstanceClientProviderInterface {
       (override, noexcept));
 
   MOCK_METHOD(
-      core::ExecutionResult, ListInstanceDetailsByEnvironment,
+      absl::Status, ListInstanceDetailsByEnvironment,
       ((core::AsyncContext<cmrt::sdk::instance_service::v1::
                                ListInstanceDetailsByEnvironmentRequest,
                            cmrt::sdk::instance_service::v1::
@@ -75,24 +63,23 @@ class MockInstanceClientProvider : public InstanceClientProviderInterface {
 
   std::string instance_resource_name =
       R"(arn:aws:ec2:us-east-1:123456789012:instance/i-0e9801d129EXAMPLE)";
-  core::ExecutionResult get_instance_resource_name_mock =
-      core::SuccessExecutionResult();
+  absl::Status get_instance_resource_name_mock = absl::OkStatus();
 
-  core::ExecutionResult GetCurrentInstanceResourceNameSync(
+  absl::Status GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override {
-    if (get_instance_resource_name_mock != core::SuccessExecutionResult()) {
+    if (!get_instance_resource_name_mock.ok()) {
       return get_instance_resource_name_mock;
     }
     resource_name = instance_resource_name;
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
-  core::ExecutionResult GetInstanceDetailsByResourceNameSync(
+  absl::Status GetInstanceDetailsByResourceNameSync(
       std::string_view resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&
           instance_details) noexcept override {
     // Not implemented.
-    return core::FailureExecutionResult(SC_UNKNOWN);
+    return absl::UnimplementedError("");
   }
 };
 }  // namespace google::scp::cpio::client_providers::mock

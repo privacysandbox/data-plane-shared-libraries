@@ -53,29 +53,25 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
         io_async_executor_(io_async_executor),
         sqs_client_factory_(std::move(sqs_client_factory)) {}
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult EnqueueMessage(
+  absl::Status EnqueueMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::EnqueueMessageRequest,
                          cmrt::sdk::queue_service::v1::EnqueueMessageResponse>&
           enqueue_message_context) noexcept override;
 
-  core::ExecutionResult GetTopMessage(
+  absl::Status GetTopMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::GetTopMessageRequest,
                          cmrt::sdk::queue_service::v1::GetTopMessageResponse>&
           get_top_message_context) noexcept override;
 
-  core::ExecutionResult UpdateMessageVisibilityTimeout(
+  absl::Status UpdateMessageVisibilityTimeout(
       core::AsyncContext<
           cmrt::sdk::queue_service::v1::UpdateMessageVisibilityTimeoutRequest,
           cmrt::sdk::queue_service::v1::UpdateMessageVisibilityTimeoutResponse>&
           update_message_visibility_timeout_context) noexcept override;
 
-  core::ExecutionResult DeleteMessage(
+  absl::Status DeleteMessage(
       core::AsyncContext<cmrt::sdk::queue_service::v1::DeleteMessageRequest,
                          cmrt::sdk::queue_service::v1::DeleteMessageResponse>&
           delete_message_context) noexcept override;

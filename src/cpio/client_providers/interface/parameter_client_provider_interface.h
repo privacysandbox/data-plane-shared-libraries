@@ -20,6 +20,8 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/service_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
@@ -31,7 +33,7 @@ namespace google::scp::cpio::client_providers {
 /**
  * @brief Interface responsible for fetching parameters from cloud.
  */
-class ParameterClientProviderInterface : public core::ServiceInterface {
+class ParameterClientProviderInterface {
  public:
   virtual ~ParameterClientProviderInterface() = default;
 
@@ -39,9 +41,9 @@ class ParameterClientProviderInterface : public core::ServiceInterface {
    * @brief Fetches the parameter value.
    *
    * @param context context of the operation.
-   * @return ExecutionResult result of the operation.
+   * @return absl::Status status of the operation.
    */
-  virtual core::ExecutionResult GetParameter(
+  virtual absl::Status GetParameter(
       core::AsyncContext<
           cmrt::sdk::parameter_service::v1::GetParameterRequest,
           cmrt::sdk::parameter_service::v1::GetParameterResponse>&
@@ -57,11 +59,11 @@ class ParameterClientProviderFactory {
    * @return std::unique_ptr<ParameterClientProviderInterface> created
    * ParameterClientProvider.
    */
-  static std::unique_ptr<ParameterClientProviderInterface> Create(
-      ParameterClientOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor);
+  static absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
+  Create(ParameterClientOptions options,
+         InstanceClientProviderInterface* instance_client_provider,
+         core::AsyncExecutorInterface* cpu_async_executor,
+         core::AsyncExecutorInterface* io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

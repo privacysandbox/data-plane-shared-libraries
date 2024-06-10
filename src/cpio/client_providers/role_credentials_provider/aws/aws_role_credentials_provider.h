@@ -19,6 +19,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include <aws/sts/STSClient.h>
 
@@ -33,20 +34,18 @@ namespace google::scp::cpio::client_providers {
 class AwsRoleCredentialsProvider : public RoleCredentialsProviderInterface {
  public:
   AwsRoleCredentialsProvider(
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor)
+      RoleCredentialsProviderOptions options,
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor)
       : instance_client_provider_(instance_client_provider),
         cpu_async_executor_(cpu_async_executor),
-        io_async_executor_(io_async_executor) {}
+        io_async_executor_(io_async_executor),
+        region_code_(std::move(options).region) {}
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept;
 
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult GetRoleCredentials(
+  absl::Status GetRoleCredentials(
       core::AsyncContext<GetRoleCredentialsRequest, GetRoleCredentialsResponse>&
           get_credentials_context) noexcept override;
 
@@ -86,6 +85,7 @@ class AwsRoleCredentialsProvider : public RoleCredentialsProviderInterface {
   /// Instances of the async executor to execute call.
   core::AsyncExecutorInterface* cpu_async_executor_;
   core::AsyncExecutorInterface* io_async_executor_;
+  std::string region_code_;
 
   /// An instance of the AWS STS client.
   std::shared_ptr<Aws::STS::STSClient> sts_client_;

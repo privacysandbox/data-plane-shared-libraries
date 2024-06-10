@@ -124,13 +124,4 @@ TEST_F(AwsAuthTokenProviderTest, GetSessionTokenFailsIfHttpRequestFails) {
 
   finished.WaitForNotification();
 }
-
-TEST_F(AwsAuthTokenProviderTest, NullHttpClientProvider) {
-  auto auth_token_provider = std::make_shared<AwsAuthTokenProvider>(nullptr);
-
-  EXPECT_THAT(auth_token_provider->Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_INSTANCE_AUTHORIZER_PROVIDER_INITIALIZATION_FAILED)));
-}
-
 }  // namespace google::scp::cpio::client_providers::test

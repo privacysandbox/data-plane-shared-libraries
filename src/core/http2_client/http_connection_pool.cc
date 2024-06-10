@@ -50,17 +50,7 @@ constexpr std::string_view kHttpConnection = "HttpConnection";
 }  // namespace
 
 namespace google::scp::core {
-ExecutionResult HttpConnectionPool::Init() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult HttpConnectionPool::Run() noexcept {
-  is_running_ = true;
-  return SuccessExecutionResult();
-}
-
 ExecutionResult HttpConnectionPool::Stop() noexcept {
-  is_running_ = false;
   std::vector<std::string> keys;
   auto execution_result = connections_.Keys(keys);
   if (!execution_result.Successful()) {
@@ -80,6 +70,11 @@ ExecutionResult HttpConnectionPool::Stop() noexcept {
         return execution_result;
       }
     }
+
+    execution_result = connections_.Erase(key);
+    if (!execution_result.Successful()) {
+      return execution_result;
+    }
   }
 
   return SuccessExecutionResult();
@@ -95,11 +90,6 @@ std::shared_ptr<HttpConnection> HttpConnectionPool::CreateHttpConnection(
 ExecutionResult HttpConnectionPool::GetConnection(
     const std::shared_ptr<Uri>& uri,
     std::shared_ptr<HttpConnection>& connection) noexcept {
-  if (!is_running_) {
-    return FailureExecutionResult(
-        errors::SC_HTTP2_CLIENT_CONNECTION_POOL_IS_NOT_AVAILABLE);
-  }
-
   error_code ec;
   std::string scheme;
   std::string host;

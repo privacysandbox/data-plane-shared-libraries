@@ -12,10 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
-load("//src/roma/tools/api_plugin:roma_app_api.bzl", "roma_app_api", "roma_client_cc_library", "roma_service_js_library")
+load(
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
+    "js_proto_library",
+    "roma_app_api_cc_library",
+    "roma_sdk",
+    "roma_service_js_library",
+)
 
 proto_library(
     name = "kv_proto",
@@ -37,24 +45,52 @@ cc_proto_library(
     deps = [":kv_proto"],
 )
 
-kv_api = roma_app_api(
+kv_api = declare_roma_api(
     cc_protos = [":kv_cc_proto"],
     proto_basename = "kv",
     protos = [":kv_proto"],
 )
 
+js_proto_library(
+    name = "kv_js_proto_lib",
+    roma_api = kv_api,
+)
+
 roma_service_js_library(
     name = "kv_js_library",
     roma_app_api = kv_api,
+    deps = [":kv_js_proto_lib"],
 )
 
-roma_client_cc_library(
+closure_js_binary(
+    name = "kv_js",
+    compilation_level = "SIMPLE_OPTIMIZATIONS",
+    debug = False,
+    formatting = "PRETTY_PRINT",
+    language = "ECMASCRIPT_NEXT",
+    deps = [
+        ":kv_js_library",
+    ],
+)
+
+roma_app_api_cc_library(
     name = "kv_roma_api",
+    js_library = ":kv_js",
     roma_app_api = kv_api,
-    roma_service_js_library = ":kv_js_library",
     tags = [
         "noasan",
     ],
+    visibility = ["//visibility:public"],
+)
+
+roma_sdk(
+    name = "kv_sdk",
+    srcs = [
+        ":kv_js",
+    ],
+    app_api_cc_library = ":kv_roma_api",
+    js_library = ":kv_js_library",
+    roma_app_api = kv_api,
     visibility = ["//visibility:public"],
 )
 

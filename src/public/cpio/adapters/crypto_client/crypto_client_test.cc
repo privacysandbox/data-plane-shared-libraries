@@ -53,14 +53,7 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class CryptoClientTest : public ::testing::Test {
  protected:
-  CryptoClientTest() : client_(std::make_shared<CryptoClientOptions>()) {
-    EXPECT_CALL(*client_.GetCryptoClientProvider(), Init)
-        .WillOnce(Return(SuccessExecutionResult()));
-    EXPECT_CALL(*client_.GetCryptoClientProvider(), Run)
-        .WillOnce(Return(SuccessExecutionResult()));
-    EXPECT_CALL(*client_.GetCryptoClientProvider(), Stop)
-        .WillOnce(Return(SuccessExecutionResult()));
-
+  CryptoClientTest() {
     EXPECT_THAT(client_.Init(), IsSuccessful());
     EXPECT_THAT(client_.Run(), IsSuccessful());
   }
@@ -71,12 +64,12 @@ class CryptoClientTest : public ::testing::Test {
 };
 
 TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), HpkeEncrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), HpkeEncrypt)
       .WillOnce(
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
             context.response = std::make_shared<HpkeEncryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -91,11 +84,11 @@ TEST_F(CryptoClientTest, HpkeEncryptSuccess) {
 }
 
 TEST_F(CryptoClientTest, HpkeEncryptFailure) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), HpkeEncrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), HpkeEncrypt)
       .WillOnce(
           [=](AsyncContext<HpkeEncryptRequest, HpkeEncryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -111,12 +104,12 @@ TEST_F(CryptoClientTest, HpkeEncryptFailure) {
 }
 
 TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), HpkeDecrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), HpkeDecrypt)
       .WillOnce(
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
             context.response = std::make_shared<HpkeDecryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -131,11 +124,11 @@ TEST_F(CryptoClientTest, HpkeDecryptSuccess) {
 }
 
 TEST_F(CryptoClientTest, HpkeDecryptFailure) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), HpkeDecrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), HpkeDecrypt)
       .WillOnce(
           [=](AsyncContext<HpkeDecryptRequest, HpkeDecryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -151,12 +144,12 @@ TEST_F(CryptoClientTest, HpkeDecryptFailure) {
 }
 
 TEST_F(CryptoClientTest, AeadEncryptSuccess) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), AeadEncrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), AeadEncrypt)
       .WillOnce(
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
             context.response = std::make_shared<AeadEncryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -171,11 +164,11 @@ TEST_F(CryptoClientTest, AeadEncryptSuccess) {
 }
 
 TEST_F(CryptoClientTest, AeadEncryptFailure) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), AeadEncrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), AeadEncrypt)
       .WillOnce(
           [=](AsyncContext<AeadEncryptRequest, AeadEncryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;
@@ -191,12 +184,12 @@ TEST_F(CryptoClientTest, AeadEncryptFailure) {
 }
 
 TEST_F(CryptoClientTest, AeadDecryptSuccess) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), AeadDecrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), AeadDecrypt)
       .WillOnce(
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
             context.response = std::make_shared<AeadDecryptResponse>();
             context.Finish(SuccessExecutionResult());
-            return SuccessExecutionResult();
+            return absl::OkStatus();
           });
 
   absl::Notification finished;
@@ -211,11 +204,11 @@ TEST_F(CryptoClientTest, AeadDecryptSuccess) {
 }
 
 TEST_F(CryptoClientTest, AeadDecryptFailure) {
-  EXPECT_CALL(*client_.GetCryptoClientProvider(), AeadDecrypt)
+  EXPECT_CALL(client_.GetCryptoClientProvider(), AeadDecrypt)
       .WillOnce(
           [=](AsyncContext<AeadDecryptRequest, AeadDecryptResponse>& context) {
             context.Finish(FailureExecutionResult(SC_UNKNOWN));
-            return FailureExecutionResult(SC_UNKNOWN);
+            return absl::UnknownError("");
           });
 
   absl::Notification finished;

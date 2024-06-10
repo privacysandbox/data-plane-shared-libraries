@@ -64,8 +64,9 @@ constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
-  explicit RomaService(Config<TMetadata> config = Config<TMetadata>())
-      : config_(std::move(config)) {}
+  using Config = Config<TMetadata>;
+
+  explicit RomaService(Config config = Config()) : config_(std::move(config)) {}
 
   // RomaService is neither copyable nor movable.
   RomaService(const RomaService&) = delete;
@@ -154,18 +155,12 @@ class RomaService {
     }
     if (native_function_server_) {
       native_function_server_->Shutdown();
-      run_server_thread_.join();
     }
     native_function_binding_table_.Clear();
     for (worker_api::WorkerSandboxApi& worker : workers_) {
       PS_RETURN_IF_ERROR(worker.Stop());
     }
     return absl::OkStatus();
-  }
-
-  void RunServer() {
-    LOG(INFO) << "Initializing the server...";
-    native_function_server_->Run();
   }
 
   void SetupNativeFunctionGrpcServer() {
@@ -178,13 +173,9 @@ class RomaService {
     config_.RegisterService(
         std::make_unique<grpc_server::AsyncLoggingService>(),
         grpc_server::LogHandler<TMetadata>());
-    auto& services = config_.GetServices();
-    for (auto& service : services) {
-      native_function_server_->AddService(service.get());
-    }
-    native_function_server_->AddFactories(config_.GetFactories());
-
-    run_server_thread_ = std::thread(&RomaService::RunServer, this);
+    native_function_server_->AddServices(config_.ReleaseServices());
+    native_function_server_->AddFactories(config_.ReleaseFactories());
+    native_function_server_->Run();
   }
 
   absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
@@ -276,6 +267,7 @@ class RomaService {
       const NativeFunctionBindingSetup& native_binding_setup) {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
+    const auto& rpc_method_names = config_.GetRpcMethodNames();
     std::string server_address = native_function_server_addresses_.empty()
                                      ? ""
                                      : native_function_server_addresses_[0];
@@ -289,6 +281,7 @@ class RomaService {
           /*require_preload=*/true,
           /*native_js_function_comms_fd=*/remote_fd,
           /*native_js_function_names=*/function_names,
+          /*rpc_method_names=*/rpc_method_names,
           /*server_address=*/server_address,
           /*max_worker_virtual_memory_mb=*/config_.max_worker_virtual_memory_mb,
           /*js_engine_initial_heap_size_mb=*/
@@ -451,7 +444,7 @@ class RomaService {
     }
   }
 
-  Config<TMetadata> config_;
+  Config config_;
   std::vector<worker_api::WorkerSandboxApi> workers_;
   native_function_binding::NativeFunctionTable<TMetadata>
       native_function_binding_table_;
@@ -464,7 +457,6 @@ class RomaService {
   std::vector<std::string> native_function_server_addresses_;
   std::unique_ptr<grpc_server::NativeFunctionGrpcServer<TMetadata>>
       native_function_server_;
-  std::thread run_server_thread_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service
 

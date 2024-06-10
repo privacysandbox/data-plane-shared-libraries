@@ -31,25 +31,15 @@ constexpr absl::Duration kLockWaitTime = absl::Milliseconds(5);
 }  // namespace
 
 namespace google::scp::core {
-ExecutionResult SingleThreadAsyncExecutor::Init() noexcept {
-  if (queue_cap_ <= 0 || queue_cap_ > kMaxQueueCap) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_INVALID_QUEUE_CAP);
-  }
-  absl::MutexLock l(&mutex_);
-  normal_pri_queue_.emplace(queue_cap_);
-  high_pri_queue_.emplace(queue_cap_);
-  return SuccessExecutionResult();
-};
-
-ExecutionResult SingleThreadAsyncExecutor::Run() noexcept {
-  absl::MutexLock l(&mutex_);
-  if (is_running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_ALREADY_RUNNING);
-  }
-  if (!normal_pri_queue_ || !high_pri_queue_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_INITIALIZED);
-  }
-  is_running_ = true;
+SingleThreadAsyncExecutor::SingleThreadAsyncExecutor(
+    size_t queue_cap, std::optional<size_t> affinity_cpu_number)
+    : is_running_(true),
+      worker_thread_started_(false),
+      worker_thread_stopped_(false),
+      queue_cap_(queue_cap),
+      affinity_cpu_number_(affinity_cpu_number),
+      normal_pri_queue_(queue_cap_),
+      high_pri_queue_(queue_cap_) {
   working_thread_.emplace(
       [affinity_cpu_number =
            affinity_cpu_number_](SingleThreadAsyncExecutor* ptr) {
@@ -70,7 +60,6 @@ ExecutionResult SingleThreadAsyncExecutor::Run() noexcept {
       this);
   working_thread_id_ = working_thread_->get_id();
   working_thread_->detach();
-  return SuccessExecutionResult();
 }
 
 void SingleThreadAsyncExecutor::StartWorker() noexcept {
@@ -80,12 +69,12 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
       absl::MutexLock l(&mutex_);
       auto fn = [this] {
         mutex_.AssertReaderHeld();
-        return !is_running_ || high_pri_queue_->Size() > 0 ||
-               normal_pri_queue_->Size() > 0;
+        return !is_running_ || high_pri_queue_.Size() > 0 ||
+               normal_pri_queue_.Size() > 0;
       };
       mutex_.AwaitWithTimeout(absl::Condition(&fn), kLockWaitTime);
 
-      if (normal_pri_queue_->Size() == 0 && high_pri_queue_->Size() == 0) {
+      if (normal_pri_queue_.Size() == 0 && high_pri_queue_.Size() == 0) {
         if (!is_running_) {
           break;
         }
@@ -93,8 +82,8 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
       }
 
       // The priority is with the high pri tasks.
-      if (!high_pri_queue_->TryDequeue(task).Successful() &&
-          !normal_pri_queue_->TryDequeue(task).Successful()) {
+      if (!high_pri_queue_.TryDequeue(task).Successful() &&
+          !normal_pri_queue_.TryDequeue(task).Successful()) {
         continue;
       }
     }
@@ -102,11 +91,8 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
   }
 }
 
-ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
+SingleThreadAsyncExecutor::~SingleThreadAsyncExecutor() {
   absl::MutexLock l(&mutex_);
-  if (!is_running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
-  }
   is_running_ = false;
 
   // To ensure stop can happen cleanly, it is required to wait for the thread to
@@ -118,15 +104,11 @@ ExecutionResult SingleThreadAsyncExecutor::Stop() noexcept {
     return worker_thread_started_ && worker_thread_stopped_;
   };
   mutex_.Await(absl::Condition(&fn));
-  return SuccessExecutionResult();
-};
+}
 
 ExecutionResult SingleThreadAsyncExecutor::Schedule(
     AsyncOperation work, AsyncPriority priority) noexcept {
   absl::MutexLock l(&mutex_);
-  if (!is_running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
-  }
   if (priority != AsyncPriority::Normal && priority != AsyncPriority::High) {
     return FailureExecutionResult(
         errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);
@@ -135,9 +117,9 @@ ExecutionResult SingleThreadAsyncExecutor::Schedule(
   auto task = std::make_unique<AsyncTask>(std::move(work));
   ExecutionResult execution_result;
   if (priority == AsyncPriority::Normal) {
-    execution_result = normal_pri_queue_->TryEnqueue(std::move(task));
+    execution_result = normal_pri_queue_.TryEnqueue(std::move(task));
   } else {
-    execution_result = high_pri_queue_->TryEnqueue(std::move(task));
+    execution_result = high_pri_queue_.TryEnqueue(std::move(task));
   }
   if (!execution_result.Successful()) {
     return RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP);
@@ -145,11 +127,7 @@ ExecutionResult SingleThreadAsyncExecutor::Schedule(
   return SuccessExecutionResult();
 };
 
-ExecutionResultOr<std::thread::id> SingleThreadAsyncExecutor::GetThreadId()
-    const {
-  if (absl::MutexLock l(&mutex_); !is_running_) {
-    return FailureExecutionResult(errors::SC_ASYNC_EXECUTOR_NOT_RUNNING);
-  }
+std::thread::id SingleThreadAsyncExecutor::GetThreadId() const {
   return working_thread_id_;
 }
 

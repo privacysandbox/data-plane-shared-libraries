@@ -141,5 +141,143 @@ TEST(BuildDependentConfig, Partition) {
               testing::ElementsAreArray({"123", "456", "789"}));
 }
 
+constexpr metrics::Definition<int, metrics::Privacy::kImpacting,
+                              metrics::Instrument::kPartitionedCounter>
+    metric_1("m_1", "", "partition_type", 1, kDefaultBuyers, 1, 0, 0.95);
+
+constexpr metrics::Definition<int, metrics::Privacy::kImpacting,
+                              metrics::Instrument::kPartitionedCounter>
+    metric_2("m_2", "", "partition_type", 2, kDefaultBuyers, 10, 2);
+
+TEST(BuildDependentConfig, DefaultConfig) {
+  TelemetryConfig config_proto;
+  BuildDependentConfig config(config_proto);
+
+  EXPECT_EQ(config_proto.metric_size(), 0);
+
+  EXPECT_EQ(config.template GetDropNoisyValuesProbability(metric_1), 0.95);
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metric_1), 1);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metric_1), 1.0);
+  EXPECT_EQ(config.template GetBound(metric_1).lower_bound_, 0);
+  EXPECT_EQ(config.template GetBound(metric_1).upper_bound_, 1);
+
+  EXPECT_EQ(config.template GetDropNoisyValuesProbability(metric_2), 0.0);
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metric_2), 2);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metric_2), 1.0);
+  EXPECT_EQ(config.template GetBound(metric_2).lower_bound_, 2);
+  EXPECT_EQ(config.template GetBound(metric_2).upper_bound_, 10);
+}
+
+TEST(BuildDependentConfig, HasFlagMaxPartitionsContributed) {
+  TelemetryConfig config_proto;
+
+  auto metric_config_1 = config_proto.add_metric();
+  metric_config_1->set_name("m_1");
+  metric_config_1->set_max_partitions_contributed(5);
+
+  BuildDependentConfig config(config_proto);
+
+  EXPECT_EQ(config_proto.metric_size(), 1);
+
+  EXPECT_EQ(config.template GetDropNoisyValuesProbability(metric_1), 0.95);
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metric_1), 5);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metric_1), 1.0);
+  EXPECT_EQ(config.template GetBound(metric_1).lower_bound_, 0);
+  EXPECT_EQ(config.template GetBound(metric_1).upper_bound_, 1);
+}
+
+TEST(BuildDependentConfig, HasFlagMinNoiseToOutput) {
+  TelemetryConfig config_proto;
+
+  auto metric_config_1 = config_proto.add_metric();
+  metric_config_1->set_name("m_1");
+  metric_config_1->set_drop_noisy_values_probability(0.99);
+
+  BuildDependentConfig config(config_proto);
+
+  EXPECT_EQ(config_proto.metric_size(), 1);
+
+  EXPECT_EQ(config.template GetDropNoisyValuesProbability(metric_1), 0.99);
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metric_1), 1);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metric_1), 1.0);
+  EXPECT_EQ(config.template GetBound(metric_1).lower_bound_, 0);
+  EXPECT_EQ(config.template GetBound(metric_1).upper_bound_, 1);
+}
+
+TEST(BuildDependentConfig, HasFlagPrivacyBudgetWeight) {
+  TelemetryConfig config_proto;
+
+  auto metric_config_1 = config_proto.add_metric();
+  metric_config_1->set_name("m_1");
+  metric_config_1->set_privacy_budget_weight(2.0);
+
+  BuildDependentConfig config(config_proto);
+
+  EXPECT_EQ(config_proto.metric_size(), 1);
+
+  EXPECT_EQ(config.template GetDropNoisyValuesProbability(metric_1), 0.95);
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metric_1), 1);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metric_1), 2.0);
+  EXPECT_EQ(config.template GetBound(metric_1).lower_bound_, 0);
+  EXPECT_EQ(config.template GetBound(metric_1).upper_bound_, 1);
+}
+
+TEST(BuildDependentConfig, HasFlagNoiseBound) {
+  constexpr metrics::Definition<int, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kPartitionedCounter>
+      metric_3("m_3", "", "partition_type", 1, kDefaultBuyers, 3, 2);
+
+  constexpr metrics::Definition<int, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kPartitionedCounter>
+      metric_4("m_4", "", "partition_type", 1, kDefaultBuyers, 10, 2);
+
+  constexpr metrics::Definition<int, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kPartitionedCounter>
+      metric_5("m_5", "", "partition_type", 1, kDefaultBuyers, 10, 1);
+
+  TelemetryConfig config_proto;
+
+  auto metric_config_1 = config_proto.add_metric();
+  metric_config_1->set_name("m_1");
+  metric_config_1->set_upper_bound(3);
+
+  auto metric_config_2 = config_proto.add_metric();
+  metric_config_2->set_name("m_2");
+  metric_config_2->set_lower_bound(1.9);
+  metric_config_2->set_upper_bound(10.1);
+
+  auto metric_config_3 = config_proto.add_metric();
+  metric_config_3->set_name("m_3");
+  metric_config_3->set_lower_bound(2.1);
+
+  auto metric_config_4 = config_proto.add_metric();
+  metric_config_4->set_name("m_4");
+  metric_config_4->set_upper_bound(1.5);
+
+  auto metric_config_5 = config_proto.add_metric();
+  metric_config_5->set_name("m_5");
+  metric_config_5->set_lower_bound(11);
+  metric_config_5->set_upper_bound(10);
+
+  BuildDependentConfig config(config_proto);
+
+  EXPECT_EQ(config_proto.metric_size(), 5);
+
+  EXPECT_EQ(config.template GetBound(metric_1).lower_bound_, 0);
+  EXPECT_EQ(config.template GetBound(metric_1).upper_bound_, 3);
+
+  EXPECT_EQ(config.template GetBound(metric_2).lower_bound_, 1.9);
+  EXPECT_EQ(config.template GetBound(metric_2).upper_bound_, 10.1);
+
+  EXPECT_EQ(config.template GetBound(metric_3).lower_bound_, 2.1);
+  EXPECT_EQ(config.template GetBound(metric_3).upper_bound_, 3);
+
+  EXPECT_EQ(config.template GetBound(metric_4).lower_bound_, 2);
+  EXPECT_EQ(config.template GetBound(metric_4).upper_bound_, 10);
+
+  EXPECT_EQ(config.template GetBound(metric_5).lower_bound_, 1);
+  EXPECT_EQ(config.template GetBound(metric_5).upper_bound_, 10);
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::server_common::telemetry

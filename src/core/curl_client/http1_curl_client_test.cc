@@ -73,22 +73,7 @@ class Http1CurlClientTest : public ::testing::Test {
         common::RetryStrategyOptions(common::RetryStrategyType::Exponential,
                                      /*time_duration_ms=*/1UL,
                                      /*total_retries=*/10));
-    CHECK(cpu_async_executor_.Init().Successful())
-        << "cpu_async_executor_ initialization unsuccessful";
-    CHECK(io_async_executor_.Init().Successful())
-        << "io_async_executor_ initialization unsuccessful";
-    CHECK(cpu_async_executor_.Run().Successful())
-        << "cpu_async_executor_ run unsuccessful";
-    CHECK(io_async_executor_.Run().Successful())
-        << "io_async_executor_ run unsuccessful";
     ON_CALL(*provider_, MakeWrapper).WillByDefault(Return(wrapper_));
-  }
-
-  ~Http1CurlClientTest() {
-    CHECK(io_async_executor_.Stop().Successful())
-        << "io_async_executor_ stop unsuccessful";
-    CHECK(cpu_async_executor_.Stop().Successful())
-        << "cpu_async_executor_ stop unsuccessful";
   }
 
   AsyncExecutor cpu_async_executor_, io_async_executor_;

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
-#define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
+#ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_AZURE_NO_OP_INITIALIZER_H_
+#define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_AZURE_NO_OP_INITIALIZER_H_
 
 #include "src/cpio/client_providers/interface/cloud_initializer_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -25,16 +25,10 @@ namespace google::scp::cpio::client_providers {
  */
 class NoOpInitializer : public CloudInitializerInterface {
  public:
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
   void InitCloud() noexcept override;
 
   void ShutdownCloud() noexcept override;
 };
 }  // namespace google::scp::cpio::client_providers
 
-#endif  // CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_SRC_GCP_NO_OP_INITIALIZER_H_
+#endif  // CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_AZURE_NO_OP_INITIALIZER_H_

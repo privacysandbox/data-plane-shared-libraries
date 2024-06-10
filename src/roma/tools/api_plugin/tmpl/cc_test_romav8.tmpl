@@ -28,25 +28,6 @@
 
 namespace {{$svcopts.CppNamespace}}::test {
 
-class RomaV8AppServiceTest : public ::testing::Test {
- protected:
-  void SetUp() override {
-    google::scp::roma::Config cfg;
-    cfg.number_of_workers = 2;
-    roma_service_ = std::make_unique<
-        google::scp::roma::sandbox::roma_service::RomaService<>>(std::move(cfg));
-    EXPECT_TRUE(roma_service_->Init().ok());
-  }
-
-  void TearDown() override {
-    const absl::Status status = roma_service_->Stop();
-    EXPECT_TRUE(status.ok());
-  }
-
- protected:
-  std::unique_ptr<RomaService<>> roma_service_;
-};
-
 namespace {
   const absl::Duration kDefaultTimeout = absl::Seconds(10);
 }
@@ -55,8 +36,10 @@ namespace {
   {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
   {{- $respType := $rpc.ResponseFullType | replace "." "::" | printf "::%s" }}
   {{- $testName := printf "EncodeDecodeProtobuf_%d" $i}}
-TEST_F(RomaV8AppServiceTest, {{$testName}}) {
-  {{$svc.Name}}<> app_svc(*roma_service_);
+TEST(RomaV8App{{$svc.Name}}Test, {{$testName}}) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = {{$svc.Name}}<>::Create(std::move(config));
 
   constexpr std::string_view jscode = R"(
     {{$svcopts.Romav8AppName}}.{{$rpc.Name}} = function(req) {
@@ -65,14 +48,14 @@ TEST_F(RomaV8AppServiceTest, {{$testName}}) {
   )";
   absl::Notification register_finished;
   absl::Status register_status;
-  ASSERT_TRUE(app_svc.Register(register_finished, register_status, jscode).ok());
+  ASSERT_TRUE(app_svc->Register(register_finished, register_status, jscode).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   {{$reqType}} req;
   {{$respType}} resp;
-  ASSERT_TRUE(app_svc.{{$rpc.Name}}(completed, req, resp).ok());
+  ASSERT_TRUE(app_svc->{{$rpc.Name}}(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 }
 {{end}}

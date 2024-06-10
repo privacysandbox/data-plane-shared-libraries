@@ -73,11 +73,9 @@ class MockGcpKmsAeadProvider : public GcpKmsAeadProvider {
 class GcpKmsClientProviderTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    mock_aead_provider_ = std::make_shared<MockGcpKmsAeadProvider>();
-    client_ = std::make_unique<GcpKmsClientProvider>(mock_aead_provider_);
-    EXPECT_SUCCESS(client_->Init());
-    EXPECT_SUCCESS(client_->Run());
-
+    auto mock_aead_provider = std::make_unique<MockGcpKmsAeadProvider>();
+    mock_aead_provider_ = mock_aead_provider.get();
+    client_.emplace(std::move(mock_aead_provider));
     mock_gcp_key_management_service_client_ =
         std::make_shared<MockGcpKeyManagementServiceClient>();
     crypto::tink::util::StatusOr<std::unique_ptr<crypto::tink::Aead>>
@@ -88,10 +86,8 @@ class GcpKmsClientProviderTest : public ::testing::Test {
     aead_ = std::move(*aead_result);
   }
 
-  void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
-
-  std::unique_ptr<GcpKmsClientProvider> client_;
-  std::shared_ptr<MockGcpKmsAeadProvider> mock_aead_provider_;
+  std::optional<GcpKmsClientProvider> client_;
+  MockGcpKmsAeadProvider* mock_aead_provider_;
   std::shared_ptr<MockGcpKeyManagementServiceClient>
       mock_gcp_key_management_service_client_;
   std::shared_ptr<Aead> aead_;
@@ -105,9 +101,7 @@ TEST_F(GcpKmsClientProviderTest, NullKeyArn) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 }
 
 TEST_F(GcpKmsClientProviderTest, EmptyKeyArn) {
@@ -119,9 +113,7 @@ TEST_F(GcpKmsClientProviderTest, EmptyKeyArn) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 }
 
 TEST_F(GcpKmsClientProviderTest, NullCiphertext) {
@@ -132,9 +124,7 @@ TEST_F(GcpKmsClientProviderTest, NullCiphertext) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_KMS_CLIENT_PROVIDER_CIPHERTEXT_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 }
 
 TEST_F(GcpKmsClientProviderTest, EmptyCiphertext) {
@@ -146,9 +136,7 @@ TEST_F(GcpKmsClientProviderTest, EmptyCiphertext) {
       kms_decrpyt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_KMS_CLIENT_PROVIDER_CIPHERTEXT_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 }
 
 MATCHER_P(RequestMatches, req, "") {
@@ -181,9 +169,7 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecode) {
         condition.Notify();
       });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              FailureExecutionResult(
-                  SC_GCP_KMS_CLIENT_PROVIDER_BASE64_DECODING_FAILED));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 
   condition.WaitForNotification();
 }
@@ -220,7 +206,7 @@ TEST_F(GcpKmsClientProviderTest, SuccessToDecrypt) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
 
   condition.WaitForNotification();
 }
@@ -257,9 +243,7 @@ TEST_F(GcpKmsClientProviderTest, FailedToDecrypt) {
         condition.Notify();
       });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 
   condition.WaitForNotification();
 }

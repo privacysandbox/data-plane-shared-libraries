@@ -33,6 +33,7 @@ cc_library(
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/public_key_client:type_def",
         "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",

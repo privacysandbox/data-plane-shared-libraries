@@ -47,4 +47,8 @@ message WorkerInitParamsProto {
 
   // Address of Host gRPC Server
   string server_address = 11;
+
+  // A list of rpc methods for registered services. Will allow clients to invoke
+  // services via gRPC in UDF
+  repeated string rpc_method_names = 12;
 }

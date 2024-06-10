@@ -41,13 +41,7 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
         auth_token_provider_(auth_token_provider),
         unwrap_url_() {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult Decrypt(
+  absl::Status Decrypt(
       core::AsyncContext<cmrt::sdk::kms_service::v1::DecryptRequest,
                          cmrt::sdk::kms_service::v1::DecryptResponse>&
           decrypt_context) noexcept override;

@@ -48,12 +48,13 @@ void StringInStringOutFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputString) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = StringInStringOutFunction;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = StringInStringOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -120,12 +121,13 @@ void ListOfStringInListOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
 TEST(
     FunctionBindingTest,
     CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputListOfString) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = ListOfStringInListOfStringOutFunction;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = ListOfStringInListOfStringOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -203,12 +205,13 @@ void MapOfStringInMapOfStringOutFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputAndOutputMapOfString) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = MapOfStringInMapOfStringOutFunction;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = MapOfStringInMapOfStringOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -281,13 +284,13 @@ void StringInStringOutFunctionWithNoInputParams(
 }
 
 TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function =
-      StringInStringOutFunctionWithNoInputParams;
-  function_binding_object->function_name = "cool_function";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "cool_function",
+          .function = StringInStringOutFunctionWithNoInputParams,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -349,12 +352,13 @@ void ByteOutFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithOutputBytes) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = ByteOutFunction;
-  function_binding_object->function_name = "get_some_bytes";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "get_some_bytes",
+          .function = ByteOutFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -430,12 +434,13 @@ void ByteInFunction(FunctionBindingPayload<>& wrapper) {
 
 TEST(FunctionBindingTest,
      CanRegisterBindingAndExecuteCodeThatCallsItWithInputBytes) {
-  Config config;
+  RomaService<>::Config config;
   config.number_of_workers = 2;
-  auto function_binding_object = std::make_unique<FunctionBindingObjectV2<>>();
-  function_binding_object->function = ByteInFunction;
-  function_binding_object->function_name = "set_some_bytes";
-  config.RegisterFunctionBinding(std::move(function_binding_object));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "set_some_bytes",
+          .function = ByteInFunction,
+      }));
 
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -493,6 +498,87 @@ TEST(FunctionBindingTest,
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
   EXPECT_THAT(result, StrEq(R"str("Hello there :)")str"));
+
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
+void FooBarFunc1(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
+                                     " String from foo.bar.func1");
+}
+
+void FoObarFunc2(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string(wrapper.io_proto.input_string() +
+                                     " String from fo.obar.func2");
+}
+
+TEST(FunctionBindingTest, CanRegisterNonGlobalBindingsAndExecuteCode) {
+  RomaService<>::Config config;
+  config.number_of_workers = 3;
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "foo.bar.func1",
+          .function = FooBarFunc1,
+      }));
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "fo.obar.func2",
+          .function = FoObarFunc2,
+      }));
+
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+          function Handler(input) {
+            return `func1: ${foo.bar.func1(input)} func2: ${fo.obar.func2(input)}`;
+          })JS_CODE",
+    });
+
+    EXPECT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
+
+    EXPECT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_THAT(
+      result,
+      StrEq(
+          R"("func1: Foobar String from foo.bar.func1 func2: Foobar String from fo.obar.func2")"));
 
   EXPECT_TRUE(roma_service.Stop().ok());
 }

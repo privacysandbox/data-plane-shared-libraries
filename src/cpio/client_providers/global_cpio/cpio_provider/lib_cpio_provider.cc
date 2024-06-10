@@ -26,8 +26,6 @@
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/common/global_logger/global_logger.h"
 #include "src/core/common/uuid/uuid.h"
-#include "src/core/curl_client/http1_curl_client.h"
-#include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/errors.h"
 #include "src/core/interface/http_client_interface.h"
@@ -62,51 +60,24 @@ constexpr size_t kIOThreadPoolQueueSize = 100000;
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-ExecutionResult LibCpioProvider::Init() noexcept {
-  if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
+LibCpioProvider::LibCpioProvider(CpioOptions options)
+    : project_id_(std::move(options.project_id)),
+      region_(std::move(options.region)) {
+  if (options.cloud_init_option == CloudInitOption::kInitInCpio) {
     cloud_initializer_ = CloudInitializerFactory::Create();
-    auto execution_result = cloud_initializer_->Init();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to init cloud initializer.");
-      return execution_result;
-    }
+    cloud_initializer_->InitCloud();
   }
+}
+
+ExecutionResult LibCpioProvider::Init() noexcept {
   return SuccessExecutionResult();
 }
 
 ExecutionResult LibCpioProvider::Run() noexcept {
-  if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
-    auto execution_result = cloud_initializer_->Run();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to run cloud initializer.");
-      return execution_result;
-    }
-    cloud_initializer_->InitCloud();
-  }
   return SuccessExecutionResult();
 }
 
 ExecutionResult LibCpioProvider::Stop() noexcept {
-  if (instance_client_provider_) {
-    auto execution_result = instance_client_provider_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop instance client provider.");
-      return execution_result;
-    }
-  }
-
-  if (auth_token_provider_) {
-    auto execution_result = auth_token_provider_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop auth token provider.");
-      return execution_result;
-    }
-  }
-
   if (http2_client_) {
     auto execution_result = http2_client_->Stop();
     if (!execution_result.Successful()) {
@@ -116,238 +87,63 @@ ExecutionResult LibCpioProvider::Stop() noexcept {
     }
   }
 
-  if (http1_client_) {
-    auto execution_result = http1_client_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop http1 client.");
-      return execution_result;
-    }
-  }
-
-  if (cpu_async_executor_) {
-    auto execution_result = cpu_async_executor_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop CPU async executor.");
-      return execution_result;
-    }
-  }
-
-  if (io_async_executor_) {
-    auto execution_result = io_async_executor_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop IO async executor.");
-      return execution_result;
-    }
-  }
-
-  if (cpio_options_.cloud_init_option == CloudInitOption::kInitInCpio) {
+  if (cloud_initializer_) {
     cloud_initializer_->ShutdownCloud();
-    auto execution_result = cloud_initializer_->Stop();
-    if (!execution_result.Successful()) {
-      SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-                "Failed to stop cloud initializer.");
-      return execution_result;
-    }
   }
 
   return SuccessExecutionResult();
 }
 
-absl::StatusOr<HttpClientInterface*> LibCpioProvider::GetHttpClient() noexcept {
-  if (http2_client_) {
-    return http2_client_.get();
+HttpClientInterface& LibCpioProvider::GetHttpClient() noexcept {
+  if (!http2_client_) {
+    http2_client_ = std::make_unique<HttpClient>(&GetCpuAsyncExecutor());
   }
-
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto http2_client = std::make_unique<HttpClient>(*cpu_async_executor);
-  if (const auto execution_result = http2_client->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize http2 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize http2 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = http2_client->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run http2 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run http2 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  http2_client_ = std::move(http2_client);
-  return http2_client_.get();
+  return *http2_client_;
 }
 
-absl::StatusOr<HttpClientInterface*>
-LibCpioProvider::GetHttp1Client() noexcept {
-  if (http1_client_) {
-    return http1_client_.get();
+HttpClientInterface& LibCpioProvider::GetHttp1Client() noexcept {
+  if (!http1_client_) {
+    http1_client_ = std::make_unique<Http1CurlClient>(&GetCpuAsyncExecutor(),
+                                                      &GetIoAsyncExecutor());
   }
-
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto io_async_executor = GetIoAsyncExecutor();
-  if (!io_async_executor.ok()) {
-    return io_async_executor.status();
-  }
-
-  auto http1_client = std::make_unique<Http1CurlClient>(*cpu_async_executor,
-                                                        *io_async_executor);
-  if (const auto execution_result = http1_client->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize http1 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize http1 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = http1_client->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run http1 client.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run http1 client:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  http1_client_ = std::move(http1_client);
-  return http1_client_.get();
+  return *http1_client_;
 }
 
-absl::StatusOr<AsyncExecutorInterface*>
-LibCpioProvider::GetCpuAsyncExecutor() noexcept {
-  if (cpu_async_executor_) {
-    return cpu_async_executor_.get();
+AsyncExecutorInterface& LibCpioProvider::GetCpuAsyncExecutor() noexcept {
+  if (!cpu_async_executor_) {
+    cpu_async_executor_ = std::make_unique<AsyncExecutor>(
+        kThreadPoolThreadCount, kThreadPoolQueueSize);
   }
-
-  auto cpu_async_executor = std::make_unique<AsyncExecutor>(
-      kThreadPoolThreadCount, kThreadPoolQueueSize);
-  if (const auto execution_result = cpu_async_executor->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = cpu_async_executor->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  cpu_async_executor_ = std::move(cpu_async_executor);
-  return cpu_async_executor_.get();
+  return *cpu_async_executor_;
 }
 
-absl::StatusOr<AsyncExecutorInterface*>
-LibCpioProvider::GetIoAsyncExecutor() noexcept {
-  if (io_async_executor_) {
-    return io_async_executor_.get();
+AsyncExecutorInterface& LibCpioProvider::GetIoAsyncExecutor() noexcept {
+  if (!io_async_executor_) {
+    io_async_executor_ = std::make_unique<AsyncExecutor>(
+        kIOThreadPoolThreadCount, kIOThreadPoolQueueSize);
   }
-
-  auto io_async_executor = std::make_unique<AsyncExecutor>(
-      kIOThreadPoolThreadCount, kIOThreadPoolQueueSize);
-  if (const auto execution_result = io_async_executor->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize IO async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize IO async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = io_async_executor->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run IO async executor.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run IO async executor:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  io_async_executor_ = std::move(io_async_executor);
-  return io_async_executor_.get();
+  return *io_async_executor_;
 }
 
-absl::StatusOr<InstanceClientProviderInterface*>
+InstanceClientProviderInterface&
 LibCpioProvider::GetInstanceClientProvider() noexcept {
-  if (instance_client_provider_) {
-    return instance_client_provider_.get();
+  if (!instance_client_provider_) {
+    instance_client_provider_ = InstanceClientProviderFactory::Create(
+        &GetAuthTokenProvider(), &GetHttp1Client(), &GetHttpClient(),
+        &GetCpuAsyncExecutor(), &GetIoAsyncExecutor());
   }
-
-  auto auth_token_provider = GetAuthTokenProvider();
-  if (!auth_token_provider.ok()) {
-    return auth_token_provider.status();
-  }
-
-  auto http1_client = GetHttp1Client();
-  if (!http1_client.ok()) {
-    return http1_client.status();
-  }
-
-  auto http2_client = GetHttpClient();
-  if (!http2_client.ok()) {
-    return http2_client.status();
-  }
-
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto io_async_executor = GetIoAsyncExecutor();
-  if (!io_async_executor.ok()) {
-    return io_async_executor.status();
-  }
-
-  auto instance_client_provider = InstanceClientProviderFactory::Create(
-      *auth_token_provider, *http1_client, *http2_client, *cpu_async_executor,
-      *io_async_executor);
-  if (const auto execution_result = instance_client_provider->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize instance client provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize instance client provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = instance_client_provider->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run instance client provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run instance client provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  instance_client_provider_ = std::move(instance_client_provider);
-  return instance_client_provider_.get();
+  return *instance_client_provider_;
 }
 
-std::unique_ptr<RoleCredentialsProviderInterface>
+absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
 LibCpioProvider::CreateRoleCredentialsProvider(
+    RoleCredentialsProviderOptions options,
     InstanceClientProviderInterface* instance_client_provider,
     AsyncExecutorInterface* cpu_async_executor,
     AsyncExecutorInterface* io_async_executor) noexcept {
   return RoleCredentialsProviderFactory::Create(
-      RoleCredentialsProviderOptions(), instance_client_provider,
-      cpu_async_executor, io_async_executor);
+      std::move(options), instance_client_provider, cpu_async_executor,
+      io_async_executor);
 }
 
 absl::StatusOr<RoleCredentialsProviderInterface*>
@@ -356,84 +152,32 @@ LibCpioProvider::GetRoleCredentialsProvider() noexcept {
     return role_credentials_provider_.get();
   }
 
-  auto cpu_async_executor = GetCpuAsyncExecutor();
-  if (!cpu_async_executor.ok()) {
-    return cpu_async_executor.status();
-  }
-
-  auto io_async_executor = GetIoAsyncExecutor();
-  if (!io_async_executor.ok()) {
-    return io_async_executor.status();
-  }
-
-  auto instance_client = GetInstanceClientProvider();
-  if (!instance_client.ok()) {
-    return instance_client.status();
-  }
-
+  RoleCredentialsProviderOptions options;
+  options.region = GetRegion();
   auto role_credentials_provider = CreateRoleCredentialsProvider(
-      *instance_client, *cpu_async_executor, *io_async_executor);
-  if (const auto execution_result = role_credentials_provider->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
+      std::move(options), &GetInstanceClientProvider(), &GetCpuAsyncExecutor(),
+      &GetIoAsyncExecutor());
+  if (!role_credentials_provider.ok()) {
+    SCP_ERROR(kLibCpioProvider, kZeroUuid, role_credentials_provider.status(),
               "Failed to initialize role credential provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize role credential provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
+    return role_credentials_provider.status();
   }
-
-  if (const auto execution_result = role_credentials_provider->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run role credential provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run role credential provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  role_credentials_provider_ = std::move(role_credentials_provider);
+  role_credentials_provider_ = *std::move(role_credentials_provider);
   return role_credentials_provider_.get();
 }
 
-absl::StatusOr<AuthTokenProviderInterface*>
-LibCpioProvider::GetAuthTokenProvider() noexcept {
-  if (auth_token_provider_) {
-    return auth_token_provider_.get();
+AuthTokenProviderInterface& LibCpioProvider::GetAuthTokenProvider() noexcept {
+  if (!auth_token_provider_) {
+    auth_token_provider_ = AuthTokenProviderFactory::Create(&GetHttp1Client());
   }
-
-  auto http1_client = GetHttp1Client();
-  if (!http1_client.ok()) {
-    return http1_client.status();
-  }
-
-  auto auth_token_provider = AuthTokenProviderFactory::Create(*http1_client);
-  if (const auto execution_result = auth_token_provider->Init();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to initialize auth token provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to initialize auth token provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-
-  if (const auto execution_result = auth_token_provider->Run();
-      !execution_result.Successful()) {
-    SCP_ERROR(kLibCpioProvider, kZeroUuid, execution_result,
-              "Failed to run role  auth token provider.");
-    return absl::FailedPreconditionError(
-        absl::StrCat("Failed to run role  auth token provider:\n",
-                     GetErrorMessage(execution_result.status_code)));
-  }
-  auth_token_provider_ = std::move(auth_token_provider);
-  return auth_token_provider_.get();
+  return *auth_token_provider_;
 }
 
 const std::string& LibCpioProvider::GetProjectId() noexcept {
-  return cpio_options_.project_id;
+  return project_id_;
 }
 
-const std::string& LibCpioProvider::GetRegion() noexcept {
-  return cpio_options_.region;
-}
+const std::string& LibCpioProvider::GetRegion() noexcept { return region_; }
 
 std::unique_ptr<CpioProviderInterface> CpioProviderFactory::Create(
     CpioOptions options) {

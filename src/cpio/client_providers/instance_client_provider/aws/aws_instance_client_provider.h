@@ -17,15 +17,12 @@
 #ifndef CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
 #define CPIO_CLIENT_PROVIDERS_INSTANCE_CLIENT_PROVIDER_AWS_AWS_INSTANCE_CLIENT_PROVIDER_H_
 
-#include <map>
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include <aws/ec2/EC2Client.h>
 
-#include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -60,26 +57,20 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
         io_async_executor_(io_async_executor),
         ec2_factory_(std::move(ec2_factory)) {}
 
-  core::ExecutionResult Init() noexcept override;
-
-  core::ExecutionResult Run() noexcept override;
-
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult GetCurrentInstanceResourceName(
+  absl::Status GetCurrentInstanceResourceName(
       core::AsyncContext<cmrt::sdk::instance_service::v1::
                              GetCurrentInstanceResourceNameRequest,
                          cmrt::sdk::instance_service::v1::
                              GetCurrentInstanceResourceNameResponse>&
           context) noexcept override;
 
-  core::ExecutionResult GetTagsByResourceName(
+  absl::Status GetTagsByResourceName(
       core::AsyncContext<
           cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest,
           cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse>&
           context) noexcept override;
 
-  core::ExecutionResult GetInstanceDetailsByResourceName(
+  absl::Status GetInstanceDetailsByResourceName(
       core::AsyncContext<cmrt::sdk::instance_service::v1::
                              GetInstanceDetailsByResourceNameRequest,
                          cmrt::sdk::instance_service::v1::
@@ -89,17 +80,17 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
   // Not implemeted. AWS SDK supports this command, see
   // `DescribeAutoScalingGroups`. Please use it directly. Alternatively, that
   // SDK logic can also be put here.
-  core::ExecutionResult ListInstanceDetailsByEnvironment(
+  absl::Status ListInstanceDetailsByEnvironment(
       core::AsyncContext<cmrt::sdk::instance_service::v1::
                              ListInstanceDetailsByEnvironmentRequest,
                          cmrt::sdk::instance_service::v1::
                              ListInstanceDetailsByEnvironmentResponse>&
           context) noexcept override;
 
-  core::ExecutionResult GetCurrentInstanceResourceNameSync(
+  absl::Status GetCurrentInstanceResourceNameSync(
       std::string& resource_name) noexcept override;
 
-  core::ExecutionResult GetInstanceDetailsByResourceNameSync(
+  absl::Status GetInstanceDetailsByResourceNameSync(
       std::string_view resource_name,
       cmrt::sdk::instance_service::v1::InstanceDetails&
           instance_details) noexcept override;
@@ -183,11 +174,13 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
    * client if success.
    */
   core::ExecutionResultOr<std::shared_ptr<Aws::EC2::EC2Client>>
-  GetEC2ClientByRegion(std::string_view region) noexcept;
+  GetEC2ClientByRegion(std::string_view region) noexcept
+      ABSL_LOCKS_EXCLUDED(mu_);
 
   /// On-demand EC2 client for region codes.
-  core::common::ConcurrentMap<std::string, std::shared_ptr<Aws::EC2::EC2Client>>
-      ec2_clients_list_;
+  absl::flat_hash_map<std::string, std::shared_ptr<Aws::EC2::EC2Client>>
+      ec2_clients_list_ ABSL_GUARDED_BY(mu_);
+  absl::Mutex mu_;
 
   /// Instance of auth token provider.
   AuthTokenProviderInterface* auth_token_provider_;

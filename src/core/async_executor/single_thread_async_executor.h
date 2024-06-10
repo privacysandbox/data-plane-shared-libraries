@@ -30,22 +30,13 @@ namespace google::scp::core {
  * @brief A single threaded async executor. This executor will have one thread
  * working with one queue.
  */
-class SingleThreadAsyncExecutor : ServiceInterface {
+class SingleThreadAsyncExecutor {
  public:
   explicit SingleThreadAsyncExecutor(
       size_t queue_cap,
-      std::optional<size_t> affinity_cpu_number = std::nullopt)
-      : is_running_(false),
-        worker_thread_started_(false),
-        worker_thread_stopped_(false),
-        queue_cap_(queue_cap),
-        affinity_cpu_number_(affinity_cpu_number) {}
+      std::optional<size_t> affinity_cpu_number = std::nullopt);
 
-  ExecutionResult Init() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
-
-  ExecutionResult Run() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
-
-  ExecutionResult Stop() noexcept override ABSL_LOCKS_EXCLUDED(mutex_);
+  ~SingleThreadAsyncExecutor();
 
   /**
    * @brief Schedules a task with certain priority to be execute immediately or
@@ -61,8 +52,7 @@ class SingleThreadAsyncExecutor : ServiceInterface {
    * @brief Returns the ID of the spawned thread object to enable looking it up
    * via thread IDs later. Will only be populated after Run() is called.
    */
-  ExecutionResultOr<std::thread::id> GetThreadId() const
-      ABSL_LOCKS_EXCLUDED(mutex_);
+  std::thread::id GetThreadId() const;
 
  private:
   /// Starts the internal worker thread.
@@ -83,11 +73,11 @@ class SingleThreadAsyncExecutor : ServiceInterface {
   /// An optional CPU to have an affinity for.
   std::optional<size_t> affinity_cpu_number_;
   /// Queue for accepting the incoming normal priority tasks.
-  std::optional<common::ConcurrentQueue<std::unique_ptr<AsyncTask>>>
-      normal_pri_queue_ ABSL_GUARDED_BY(mutex_);
+  common::ConcurrentQueue<std::unique_ptr<AsyncTask>> normal_pri_queue_
+      ABSL_GUARDED_BY(mutex_);
   /// Queue for accepting the incoming high priority tasks.
-  std::optional<common::ConcurrentQueue<std::unique_ptr<AsyncTask>>>
-      high_pri_queue_ ABSL_GUARDED_BY(mutex_);
+  common::ConcurrentQueue<std::unique_ptr<AsyncTask>> high_pri_queue_
+      ABSL_GUARDED_BY(mutex_);
   /// A unique pointer to the working thread.
   std::optional<std::thread> working_thread_;
   /// The ID of the working_thread_.

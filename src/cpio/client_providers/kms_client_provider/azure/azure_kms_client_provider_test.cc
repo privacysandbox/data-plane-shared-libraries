@@ -107,7 +107,7 @@ TEST_F(AzureKmsClientProviderTest, NullKeyId) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
@@ -129,7 +129,7 @@ TEST_F(AzureKmsClientProviderTest, EmptyKeyArn) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
@@ -150,7 +150,7 @@ TEST_F(AzureKmsClientProviderTest, NullCiphertext) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
@@ -172,7 +172,7 @@ TEST_F(AzureKmsClientProviderTest, EmptyCiphertext) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
@@ -211,7 +211,7 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
 
   condition.WaitForNotification();
 }
@@ -240,7 +240,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToDecrypt) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
@@ -268,8 +268,7 @@ TEST_F(AzureKmsClientProviderTest, FailedToGetAuthToken) {
         condition.Notify();
       });
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(SC_UNKNOWN)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 }  // namespace google::scp::cpio::client_providers::test

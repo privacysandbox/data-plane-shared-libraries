@@ -28,8 +28,6 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
-#include "src/public/cpio/test/global_cpio/test_cpio_options.h"
-#include "src/public/cpio/test/global_cpio/test_lib_cpio.h"
 
 namespace google::scp::cpio::test {
 namespace {
@@ -57,8 +55,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::SC_GCP_UNKNOWN;
 using google::scp::core::test::IsSuccessful;
 using google::scp::core::test::ResultIs;
-using google::scp::cpio::TestCpioOptions;
-using google::scp::cpio::TestLibCpio;
 using google::scp::cpio::client_providers::mock::
     MockGcpParameterClientProviderOverrides;
 using google::scp::cpio::client_providers::mock::MockInstanceClientProvider;
@@ -85,18 +81,7 @@ class GcpParameterClientProviderTest : public ::testing::Test {
         std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
     client_->secret_manager_mock =
         std::make_shared<SecretManagerServiceClient>(connection_);
-
-    cpio_options.log_option = LogOption::kConsoleLog;
-    cpio_options.project_id = kProjectIdValueMock;
-    EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
-
-    EXPECT_SUCCESS(client_->Init());
-    EXPECT_SUCCESS(client_->Run());
-  }
-
-  void TearDown() override {
-    EXPECT_SUCCESS(client_->Stop());
-    EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
+    EXPECT_TRUE(client_->Init().ok());
   }
 
   std::string GetSecretName(
@@ -113,7 +98,6 @@ class GcpParameterClientProviderTest : public ::testing::Test {
   MockInstanceClientProvider instance_client_mock_;
   std::shared_ptr<MockSecretManagerServiceConnection> connection_;
   std::optional<MockGcpParameterClientProviderOverrides> client_;
-  TestCpioOptions cpio_options;
 };
 
 MATCHER_P(RequestHasName, secret_name, "") {
@@ -141,7 +125,7 @@ TEST_F(GcpParameterClientProviderTest, SucceedToFetchParameter) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -162,7 +146,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorNotFound) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -171,9 +155,7 @@ TEST_F(GcpParameterClientProviderTest, FailedWithInvalidParameterName) {
   AsyncContext<GetParameterRequest, GetParameterResponse> context(
       std::move(request),
       [&](AsyncContext<GetParameterRequest, GetParameterResponse>& context) {});
-  EXPECT_THAT(client_->GetParameter(context),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_PARAMETER_CLIENT_PROVIDER_INVALID_PARAMETER_NAME)));
+  EXPECT_FALSE(client_->GetParameter(context).ok());
 }
 
 TEST_F(GcpParameterClientProviderTest,
@@ -194,7 +176,7 @@ TEST_F(GcpParameterClientProviderTest,
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -215,7 +197,7 @@ TEST_F(GcpParameterClientProviderTest, FailedToFetchParameterErrorUnknown) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->GetParameter(context));
+  EXPECT_TRUE(client_->GetParameter(context).ok());
   condition.WaitForNotification();
 }
 
@@ -223,8 +205,7 @@ TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {
   MockAsyncExecutor async_executor_mock;
   MockAsyncExecutor io_async_executor_mock;
   MockInstanceClientProvider instance_client_mock;
-  instance_client_mock.get_instance_resource_name_mock =
-      FailureExecutionResult(SC_UNKNOWN);
+  instance_client_mock.get_instance_resource_name_mock = absl::UnknownError("");
 
   auto connection =
       std::make_shared<NiceMock<MockSecretManagerServiceConnection>>();
@@ -233,13 +214,7 @@ TEST(GcpParameterClientProviderTestII, InitFailedToFetchProjectId) {
 
   MockGcpParameterClientProviderOverrides client(
       &async_executor_mock, &io_async_executor_mock, &instance_client_mock);
-
-  TestCpioOptions cpio_options;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
-
-  EXPECT_THAT(client.Init(), ResultIs(FailureExecutionResult(SC_UNKNOWN)));
-
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
+  EXPECT_FALSE(client.Init().ok());
 }
 
 TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
@@ -250,15 +225,7 @@ TEST(GcpParameterClientProviderTestII, InitFailedToGetSMClient) {
 
   MockGcpParameterClientProviderOverrides client(
       &async_executor_mock, &io_async_executor_mock, &instance_client_mock);
-
-  TestCpioOptions cpio_options;
-  EXPECT_SUCCESS(TestLibCpio::InitCpio(cpio_options));
-
-  EXPECT_THAT(client.Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_GCP_PARAMETER_CLIENT_PROVIDER_CREATE_SM_CLIENT_FAILURE)));
-
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(cpio_options));
+  EXPECT_FALSE(client.Init().ok());
 }
 
 }  // namespace

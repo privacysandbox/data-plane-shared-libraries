@@ -124,26 +124,13 @@ class TeeAwsKmsClientProviderTest : public ::testing::Test {
                     &mock_io_async_executor_);
   }
 
-  void TearDown() override { EXPECT_SUCCESS(client_->Stop()); }
-
   std::optional<MockNonteeAwsKmsClientProviderWithOverrides> client_;
   std::shared_ptr<MockKMSClient> mock_kms_client_;
   MockAsyncExecutor mock_io_async_executor_;
   MockRoleCredentialsProvider mock_credentials_provider_;
 };
 
-TEST_F(TeeAwsKmsClientProviderTest, MissingCredentialsProvider) {
-  client_.emplace(nullptr, mock_kms_client_, &mock_io_async_executor_);
-
-  EXPECT_THAT(client_->Init(),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_KMS_CLIENT_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND)));
-}
-
 TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_key_resource_name(std::string{kKeyArn});
@@ -153,15 +140,10 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingAssumeRoleArn) {
       kms_decrypt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_KMS_CLIENT_PROVIDER_ASSUME_ROLE_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
   kms_decrypt_request->set_key_resource_name(std::string{kKeyArn});
@@ -171,15 +153,10 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingRegion) {
       kms_decrypt_request,
       [&](AsyncContext<DecryptRequest, DecryptResponse>& context) {});
 
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_KMS_CLIENT_PROVIDER_REGION_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
@@ -195,14 +172,11 @@ TEST_F(TeeAwsKmsClientProviderTest, SuccessToDecrypt) {
         condition.Notify();
       });
 
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
@@ -217,16 +191,11 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingCipherText) {
                         SC_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
         condition.Notify();
       });
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_KMS_CLIENT_PROVIDER_CIPHER_TEXT_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
@@ -241,16 +210,11 @@ TEST_F(TeeAwsKmsClientProviderTest, MissingKeyArn) {
                     ResultIs(FailureExecutionResult(
                         SC_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND)));
       });
-  EXPECT_THAT(client_->Decrypt(context),
-              ResultIs(FailureExecutionResult(
-                  SC_AWS_KMS_CLIENT_PROVIDER_KEY_ARN_NOT_FOUND)));
+  EXPECT_FALSE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 
 TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
-  EXPECT_SUCCESS(client_->Init());
-  EXPECT_SUCCESS(client_->Run());
-
   auto kms_decrypt_request = std::make_shared<DecryptRequest>();
   kms_decrypt_request->set_kms_region(kRegion);
   kms_decrypt_request->set_account_identity(kAssumeRoleArn);
@@ -266,7 +230,7 @@ TEST_F(TeeAwsKmsClientProviderTest, FailedDecryption) {
                     ResultIs(FailureExecutionResult(
                         SC_AWS_KMS_CLIENT_PROVIDER_DECRYPTION_FAILED)));
       });
-  EXPECT_SUCCESS(client_->Decrypt(context));
+  EXPECT_TRUE(client_->Decrypt(context).ok());
   condition.WaitForNotification();
 }
 }  // namespace
