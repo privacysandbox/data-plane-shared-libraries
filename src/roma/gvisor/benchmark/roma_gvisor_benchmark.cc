@@ -165,8 +165,6 @@ std::string GetFunctionTypeStr(BinaryRequest::Function func_type) {
       return R"(udf:"Callback hook")";
     case BinaryRequest::FUNCTION_TEN_CALLBACK_INVOCATIONS:
       return R"(udf:"Ten callback invocations")";
-    case BinaryRequest::FUNCTION_CONCURRENT_CALLBACKS:
-      return R"(udf:"Concurrent callback invocations")";
     default:
       return "udf:Unknown";
   }
@@ -367,9 +365,6 @@ BENCHMARK(BM_ExecuteBinarySyncUnaryGrpc)
             BinaryRequest::
                 FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of
                                                     // generic callback hook
-            BinaryRequest::
-                FUNCTION_CONCURRENT_CALLBACKS,  // Concurrent invocations of
-                                                // generic callback hook
         },
         {
             0, 1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
