@@ -76,10 +76,18 @@ Usage: exit
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 constexpr std::string_view kFlagPrefix = "--";
+constexpr std::string_view kRomaShellFlags[] = {
+    "--num_workers",
+    "--verbose",
+    "--enable_profilers",
+    "--file",
+};
 
 ABSL_FLAG(uint16_t, num_workers, 1, "Number of Roma workers");
 ABSL_FLAG(bool, verbose, false, "Log all messages from shell");
 ABSL_FLAG(bool, enable_profilers, false, "Enable V8 CPU and Heap Profilers");
+ABSL_FLAG(std::string, file, "",
+          "Read a list of Roma CLI tool commands from the specified file");
 
 // Get UDF from command line or input file if specified
 std::string GetUDF(std::string_view udf_file_path) {
@@ -214,6 +222,29 @@ void Execute(RomaService<>* roma_service,
             << std::endl;
 }
 
+std::vector<std::string> GetCommandsFromFile(const std::string& filename) {
+  std::ifstream file(filename);
+  std::vector<std::string> lines;
+
+  if (file.is_open()) {
+    std::string line;
+    while (std::getline(file, line)) {
+      if (!line.empty()) {
+        lines.push_back(line);
+      }
+    }
+    // Add exit as final command if not explicitly included
+    if (!absl::StartsWith(line, "exit")) {
+      lines.push_back("exit");
+    }
+    file.close();
+  } else {
+    std::cerr << "Error: Unable to open file " << filename << std::endl;
+  }
+
+  return lines;
+}
+
 // The read-eval-execute loop of the shell.
 void RunShell(const std::vector<std::string>& v8_flags) {
   using RomaService = RomaService<>;
@@ -245,11 +276,25 @@ void RunShell(const std::vector<std::string>& v8_flags) {
   std::string_view commands_msg =
       enable_profilers ? kCommandsWithProfilerMessage : kCommandsMessage;
   std::cout << commands_msg << std::endl;
-  while (true) {
-    std::cerr << "> ";
+
+  std::vector<std::string> commands;
+  if (std::string filename = absl::GetFlag(FLAGS_file); !filename.empty()) {
+    commands = GetCommandsFromFile(filename);
+    if (!commands.empty()) {
+      LOG(INFO) << "Read " << commands.size() << " commands from \"" << filename
+                << "\"";
+    }
+  }
+
+  for (int i = 0; commands.empty() || i < commands.size(); i++) {
     std::string line;
-    if (!std::getline(std::cin, line)) {
-      break;
+    if (commands.empty()) {
+      std::cout << "> ";
+      if (!std::getline(std::cin, line)) {
+        break;
+      }
+    } else {
+      line = commands[i];
     }
 
     std::vector<std::string> tokens = absl::StrSplit(line, " ");
@@ -277,6 +322,15 @@ void RunShell(const std::vector<std::string>& v8_flags) {
   }
 }
 
+bool IsV8Flag(std::string_view flag) {
+  for (const auto& roma_flag : kRomaShellFlags) {
+    if (absl::StartsWith(flag, roma_flag)) {
+      return false;
+    }
+  }
+  return true;
+}
+
 int main(int argc, char* argv[]) {
   // Initialize ABSL.
   absl::InitializeLog();
@@ -297,10 +351,7 @@ int main(int argc, char* argv[]) {
       flag_clean.remove_suffix(flag_clean.size() - eq_pos);
     }
     flag_clean.remove_prefix(kFlagPrefix.size());
-    if (!processed_flags.contains(flag_clean) &&
-        !absl::StartsWith(flag, "--num_workers") &&
-        !absl::StartsWith(flag, "--verbose") &&
-        !absl::StartsWith(flag, "--enable_profilers")) {
+    if (!processed_flags.contains(flag_clean) && IsV8Flag(flag)) {
       processed_flags.insert(std::string(flag_clean));
       sanitized_v8_flags.push_back(std::string(flag_clean));
       v8_flags.push_back(std::string(flag));
