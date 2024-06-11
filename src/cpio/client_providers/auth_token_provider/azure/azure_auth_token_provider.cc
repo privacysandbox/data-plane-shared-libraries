@@ -170,7 +170,6 @@ void AzureAuthTokenProvider::OnGetSessionTokenCallback(
     get_token_context.Finish();
     return;
   }
-
   get_token_context.response = std::make_shared<GetSessionTokenResponse>();
 
   uint64_t expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();

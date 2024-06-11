@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/private_key_fetcher_provider/azure/azure_private_key_fetcher_provider.h"
+#include "azure_private_key_fetcher_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -68,6 +68,18 @@ constexpr char kPrivateKeyBaseUri[] = "http://localhost.test:8000";
 constexpr char kSessionTokenMock[] = "session-token-test";
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
+constexpr char kKeyResponse[] = R"({
+  "wrappedKid": "NC0GVa6iXjyP90TocNFlpkzlw-1SAKq0zT6ytWuzcOQ_1",
+  "wrapped": "{\"keys\":[{\"name\":\"encryptionKeys/123456\",\"encryptionKeyType\":\"SINGLE_PARTY_HYBRID_KEY\",\"publicKeysetHandle\":\"TBD\",\"publicKeyMaterial\":\"testtest\",\"creationTime\":\"1714724806912\",\"expirationTime\":\"1746260806912\",\"keyData\":[{\"publicKeySignature\":\"\",\"keyEncryptionKeyUri\":\"azu-kms://NC0GVa6iXjyP90TocNFlpkzlw-1SAKq0zT6ytWuzcOQ_1\",\"keyMaterial\":\"{\\\"encryptedKeyset\\\":\\\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\\\"}\"}]}]}"
+})";
+constexpr char kKeyResponseWithoutKeyData[] = R"({
+  "wrappedKid": "NC0GVa6iXjyP90TocNFlpkzlw-1SAKq0zT6ytWuzcOQ_1",
+  "wrapped": "{\"keys\":[{\"name\":\"encryptionKeys/123456\",\"encryptionKeyType\":\"SINGLE_PARTY_HYBRID_KEY\",\"publicKeysetHandle\":\"TBD\",\"publicKeyMaterial\":\"testtest\",\"creationTime\":\"1714724806912\",\"expirationTime\":\"1746260806912\",\"xx\":[{\"publicKeySignature\":\"\",\"keyEncryptionKeyUri\":\"azu-kms://NC0GVa6iXjyP90TocNFlpkzlw-1SAKq0zT6ytWuzcOQ_1\",\"keyMaterial\":\"{\\\"encryptedKeyset\\\":\\\"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=\\\"}\"}]}]}"
+})";
+
+// constexpr char kKeyResponse[] = "{\"wrapped\": \"1\",\"wrappedKid\":
+// \"12345\"}";
+
 }  // namespace
 
 namespace google::scp::cpio::client_providers::test {
@@ -75,8 +87,11 @@ namespace google::scp::cpio::client_providers::test {
 class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
  protected:
   AzurePrivateKeyFetcherProviderTest()
-      : azure_private_key_fetcher_provider_(std::in_place, &http_client_,
-                                            &credentials_provider_) {
+      : http_client_(std::make_shared<MockHttpClient>()),
+        credentials_provider_(std::make_shared<MockAuthTokenProvider>()),
+        azure_private_key_fetcher_provider_(
+            std::make_unique<AzurePrivateKeyFetcherProvider>(
+                http_client_.get(), credentials_provider_.get())) {
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Init());
     EXPECT_SUCCESS(azure_private_key_fetcher_provider_->Run());
 
@@ -96,17 +111,17 @@ class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
   }
 
   void MockRequest(const std::string& uri) {
-    http_client_.request_mock = HttpRequest();
-    http_client_.request_mock.path = std::make_shared<std::string>(uri);
+    http_client_->request_mock = HttpRequest();
+    http_client_->request_mock.path = std::make_shared<std::string>(uri);
   }
 
   void MockResponse(const std::string& str) {
-    http_client_.response_mock = HttpResponse();
-    http_client_.response_mock.body = BytesBuffer(str);
+    http_client_->response_mock = HttpResponse();
+    http_client_->response_mock.body = BytesBuffer(str);
   }
 
   void MockGetSessionToken() {
-    EXPECT_CALL(credentials_provider_, GetSessionToken)
+    EXPECT_CALL(*credentials_provider_, GetSessionToken)
         .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                    GetSessionTokenResponse>& context) {
           context.result = SuccessExecutionResult();
@@ -118,15 +133,17 @@ class AzurePrivateKeyFetcherProviderTest : public ::testing::Test {
         });
   }
 
-  MockHttpClient http_client_;
-  MockAuthTokenProvider credentials_provider_;
-  std::optional<AzurePrivateKeyFetcherProvider>
+  std::shared_ptr<MockHttpClient> http_client_;
+  std::shared_ptr<MockAuthTokenProvider> credentials_provider_;
+  std::unique_ptr<AzurePrivateKeyFetcherProvider>
       azure_private_key_fetcher_provider_;
   std::shared_ptr<PrivateKeyFetchingRequest> request_;
 };
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingHttpClient) {
-  azure_private_key_fetcher_provider_.emplace(nullptr, &credentials_provider_);
+  azure_private_key_fetcher_provider_ =
+      std::make_unique<AzurePrivateKeyFetcherProvider>(
+          nullptr, credentials_provider_.get());
 
   EXPECT_THAT(azure_private_key_fetcher_provider_->Init(),
               ResultIs(FailureExecutionResult(
@@ -134,7 +151,9 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, MissingHttpClient) {
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, MissingCredentialsProvider) {
-  azure_private_key_fetcher_provider_.emplace(&http_client_, nullptr);
+  azure_private_key_fetcher_provider_ =
+      std::make_unique<AzurePrivateKeyFetcherProvider>(http_client_.get(),
+                                                       nullptr);
 
   EXPECT_THAT(
       azure_private_key_fetcher_provider_->Init(),
@@ -161,7 +180,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, SignHttpRequest) {
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToGetCredentials) {
-  EXPECT_CALL(credentials_provider_, GetSessionToken)
+  EXPECT_CALL(*credentials_provider_, GetSessionToken)
       .WillOnce([=](AsyncContext<GetSessionTokenRequest,
                                  GetSessionTokenResponse>& context) {
         context.result = FailureExecutionResult(SC_UNKNOWN);
@@ -186,34 +205,14 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToGetCredentials) {
 TEST_F(AzurePrivateKeyFetcherProviderTest, FetchPrivateKey) {
   MockGetSessionToken();
   MockRequest(std::string(kPrivateKeyBaseUri));
-  MockResponse(
-      R"({
-    "name": "encryptionKeys/123456",
-    "encryptionKeyType": "SINGLE_PARTY_HYBRID_KEY",
-    "publicKeysetHandle": "primaryKeyId",
-    "publicKeyMaterial": "testtest",
-    "creationTime": "1669252790485",
-    "expirationTime": "1669943990485",
-    "ttlTime": 0,
-    "keyData": [
-        {
-            "publicKeySignature": "",
-            "keyEncryptionKeyUri": "azu-kms://1234567",
-            "keyMaterial": "test=test"
-        },
-        {
-            "publicKeySignature": "",
-            "keyEncryptionKeyUri": "azu-kms://12345",
-            "keyMaterial": ""
-        }
-    ]
-  })");
+  MockResponse(kKeyResponse);
+
   absl::Notification condition;
 
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       request_, [&](AsyncContext<PrivateKeyFetchingRequest,
                                  PrivateKeyFetchingResponse>& context) {
-        // EXPECT_SUCCESS(context.result);
+        EXPECT_SUCCESS(context.result);
         EXPECT_EQ(context.response->encryption_keys.size(), 1);
         const auto& encryption_key = *context.response->encryption_keys.begin();
         EXPECT_THAT(*encryption_key->resource_name,
@@ -222,15 +221,15 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, FetchPrivateKey) {
         condition.Notify();
         return SuccessExecutionResult();
       });
-  EXPECT_THAT(azure_private_key_fetcher_provider_->FetchPrivateKey(context),
-              IsSuccessful());
+  auto res = azure_private_key_fetcher_provider_->FetchPrivateKey(context);
+  EXPECT_THAT(res, IsSuccessful());
   condition.WaitForNotification();
 }
 
 TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToFetchPrivateKey) {
   MockGetSessionToken();
   ExecutionResult result = FailureExecutionResult(SC_UNKNOWN);
-  http_client_.http_get_result_mock = result;
+  http_client_->http_get_result_mock = result;
 
   absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
@@ -248,17 +247,7 @@ TEST_F(AzurePrivateKeyFetcherProviderTest, FailedToFetchPrivateKey) {
 TEST_F(AzurePrivateKeyFetcherProviderTest, PrivateKeyNotFound) {
   MockGetSessionToken();
   MockRequest(std::string(kPrivateKeyBaseUri));
-  MockResponse(
-      R"({
-        "name": "encryptionKeys/123456",
-        "encryptionKeyType": "SINGLE_PARTY_HYBRID_KEY",
-        "publicKeysetHandle": "primaryKeyId",
-        "publicKeyMaterial": "testtest",
-        "creationTime": "1669252790485",
-        "expirationTime": "1669943990485",
-        "ttlTime": 0
-    })");
-
+  MockResponse(kKeyResponseWithoutKeyData);
   absl::Notification condition;
   AsyncContext<PrivateKeyFetchingRequest, PrivateKeyFetchingResponse> context(
       std::move(request_),

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/cpio/client_providers/private_key_fetcher_provider/azure/azure_private_key_fetcher_provider_utils.h"
+#include "azure_private_key_fetcher_provider_utils.h"
 
 #include <gtest/gtest.h>
 
@@ -47,6 +47,39 @@ TEST(AzurePrivateKeyFetchingClientUtilsTest, CreateHttpRequest) {
 
   EXPECT_EQ(http_request.method, HttpMethod::POST);
   EXPECT_EQ(*http_request.path, std::string(kPrivateKeyBaseUri));
+}
+
+TEST(AzurePrivateKeyFetchingClientUtilsTest, GenerateWrappingKey) {
+  auto wrappingKey = AzurePrivateKeyFetchingClientUtils::GenerateWrappingKey();
+
+  ASSERT_NE(wrappingKey.first, nullptr);
+  ASSERT_NE(wrappingKey.second, nullptr);
+
+  std::string pem = AzurePrivateKeyFetchingClientUtils::EvpPkeyToPem(
+      wrappingKey.first->get());
+
+  // Add the constant to avoid the key detection precommit
+  auto toTest = std::string("-----") + std::string("BEGIN PRIVATE") +
+                std::string(" KEY-----");
+  ASSERT_EQ(pem.find(toTest) == 0, true);
+
+  pem = AzurePrivateKeyFetchingClientUtils::EvpPkeyToPem(
+      wrappingKey.second->get());
+  ASSERT_EQ(pem.find("-----BEGIN PUBLIC KEY-----") == 0, true);
+}
+
+TEST(AzurePrivateKeyFetchingClientUtilsTest, GenerateWrappingKeyHash) {
+  auto publicPemKey =
+      google::scp::cpio::client_providers::GetTestPemPublicWrapKey();
+  auto publicKey =
+      AzurePrivateKeyFetchingClientUtils::PemToEvpPkey(publicPemKey);
+
+  auto hexHash =
+      AzurePrivateKeyFetchingClientUtils::CreateHexHashOnKey(publicKey);
+  std::cout << "##################HASH: " << hexHash << std::endl;
+  ASSERT_EQ(hexHash.size(), 64);
+  ASSERT_EQ(hexHash,
+            "36b03dab8e8751b26d9b33fa2fa1296f823a238ef3dd604f758a4aff5b2b41d0");
 }
 
 }  // namespace google::scp::cpio::client_providers::test

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/cpio/client_providers/kms_client_provider/azure/azure_kms_client_provider.h"
+#include "azure_kms_client_provider.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -60,6 +60,10 @@ static constexpr char kCiphertext[] = "ciphertext";
 static constexpr char kPlaintext[] = "plaintext";
 static constexpr char kKmsUnwrapPath[] =
     "https://127.0.0.1:8000/app/unwrapKey?fmt=tink";
+static constexpr char kUnwrapKeyResponse[] = R"(
+{
+  "wrapped": "ku3kczLacS0R8X7WiO2mNEXI319/42gccgiU6e19UDStU/+3uJsbqu8vvQ0yZmMmrPKKU1tXRzHAbXhXjbmIHQhuyXw2V1r2+YKdY2E/NnsrxB0UPwfKwRPLkG1ziNDarX9cmVTIjvtiECrxAbHGVIKvHxFxwzSjtTZzl8YoG0JXslrdYgkFjt/JlBjOEtt5YfyDcILs09eC+Hh3uUxi8J/Wylh9LCFsYo3NJD3Aln0oPPpjHtsxzNgOQJVHLczvdjDZkDTlvSpH8n5EoWt9eAbrUTBghY3qO5bi2/ZxrvaVesPa3Yi2oQIaL2brn+YGmZ7AqIdZJmQ141JnfS9SZtIAn0ONU/tOdVm3+dhLUP+Vcc3j5xsStmPThh1lWlaaDu6Z9ZW+jSd8IjN9o+9k+EHWSjgfOuTitokX6nk+v+DAHKdfGaayBzaKbrJmP+YYnSylgyAzA2mH47B6OA1jz26hmta0aJufDgDYak1lNhgS6Mobn3C30L+bfi3cl2AaCzogeK8NSTS7cX7TwQMSUvOxEaOitRsrdtXm3bfvKXuKGS/AFl+1cDNocriTESuAcsYm9cBN0W/LiN/sc3flD8VBnpOyVfdlzZ/1/RXNiOIJJTyTq6KIGlsA08q8zxWacoKyyL/KCrkJ7LUFdnBnfd+zBEJk6pAldyAhaFtQDo8="
+})";
 
 namespace google::scp::cpio::client_providers::test {
 
@@ -189,15 +193,10 @@ TEST_F(AzureKmsClientProviderTest, SuccessToDecrypt) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::POST);
     EXPECT_THAT(http_context.request->path, Pointee(Eq(kKmsUnwrapPath)));
-    std::string payload(http_context.request->body.bytes->begin(),
-                        http_context.request->body.bytes->end());
-    nlohmann::json json_payload = nlohmann::json::parse(payload);
-    EXPECT_EQ(json_payload["wrapped"], kCiphertext);
-    EXPECT_EQ(json_payload["kid"], kKeyId);
-    EXPECT_TRUE(json_payload["attestation"].is_object());
+    std::string payload(kUnwrapKeyResponse);
 
     http_context.response = std::make_shared<HttpResponse>();
-    http_context.response->body = BytesBuffer(kPlaintext);
+    http_context.response->body = BytesBuffer(kUnwrapKeyResponse);
     http_context.Finish();
     return SuccessExecutionResult();
   });

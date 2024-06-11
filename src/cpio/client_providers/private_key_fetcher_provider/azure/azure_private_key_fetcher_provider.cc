@@ -19,6 +19,8 @@
 #include <utility>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "src/azure/attestation/src/attestation.h"
@@ -193,10 +195,46 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     }
     return;
   }
+  std::string resp(http_client_context.response->body.bytes->begin(),
+                   http_client_context.response->body.bytes->end());
 
+  nlohmann::json privateKeyResp;
+  try {
+    privateKeyResp = nlohmann::json::parse(resp);
+  } catch (const nlohmann::json::parse_error& e) {
+    std::string errorMessage =
+        "Received http response could not be parsed into a JSON: ";
+    errorMessage += e.what();
+    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
+                      private_key_fetching_context, http_client_context.result,
+                      errorMessage);
+    private_key_fetching_context.result = http_client_context.result;
+    private_key_fetching_context.Finish();
+    return;
+  }
+  if (!privateKeyResp.contains(kWrappedKid)) {
+    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
+                      private_key_fetching_context, http_client_context.result,
+                      "/key did not provide the wrappedKid property");
+    private_key_fetching_context.result = http_client_context.result;
+    private_key_fetching_context.Finish();
+    return;
+  }
+
+  if (!privateKeyResp.contains(kWrapped)) {
+    SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
+                      private_key_fetching_context, http_client_context.result,
+                      "/key did not provide the wrapped property");
+    private_key_fetching_context.result = http_client_context.result;
+    private_key_fetching_context.Finish();
+    return;
+  }
+
+  std::string wrapped = privateKeyResp[kWrapped];
+  core::BytesBuffer buffer(wrapped);
   PrivateKeyFetchingResponse response;
-  auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      http_client_context.response->body, response);
+  auto result =
+      PrivateKeyFetchingClientUtils::ParsePrivateKey(buffer, response);
   if (!result.Successful()) {
     SCP_ERROR_CONTEXT(
         kAzurePrivateKeyFetcherProvider, private_key_fetching_context,
