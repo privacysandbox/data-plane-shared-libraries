@@ -38,6 +38,10 @@ load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_regi
 load("//third_party:emscripten_deps2.bzl", "emscripten_deps2")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
+RUST_TOOLCHAINS_EDITION = "2018"
+RUST_TOOLCHAINS_VERSIONS = [
+    "1.78.0",
+]
 
 def _buf_deps():
     # rules_buf (https://docs.buf.build/build-systems/bazel)
@@ -107,10 +111,8 @@ def deps2(
     boost_deps()
     rules_rust_dependencies()
     rust_register_toolchains(
-        edition = "2018",
-        versions = [
-            "1.74.0",
-        ],
+        edition = RUST_TOOLCHAINS_EDITION,
+        versions = RUST_TOOLCHAINS_VERSIONS,
     )
     crate_universe_dependencies()
     rules_fuzzing_dependencies()
