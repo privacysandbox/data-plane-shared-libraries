@@ -38,7 +38,7 @@ load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_regi
 load("//third_party:emscripten_deps2.bzl", "emscripten_deps2")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
-RUST_TOOLCHAINS_EDITION = "2018"
+RUST_TOOLCHAINS_EDITION = "2021"
 RUST_TOOLCHAINS_VERSIONS = [
     "1.78.0",
 ]
