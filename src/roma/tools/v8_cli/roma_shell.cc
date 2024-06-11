@@ -18,6 +18,7 @@
 #include <iostream>
 #include <string_view>
 
+#include "absl/base/nullability.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
@@ -245,6 +246,51 @@ std::vector<std::string> GetCommandsFromFile(const std::string& filename) {
   return lines;
 }
 
+/* Handle calling Execute, accounting for profiler support. `tokens` contains
+ * all std::string passed from stdin, and is structured in the following format:
+ *
+ * Without profilers: {"execute", <version>, <udf name>, [args...]}
+ * With profilers: {"execute", <profiler output file>, <version>, <udf name>,
+ * [args...]}
+ */
+void HandleExecute(RomaService<>* roma_service,
+                   absl::Span<const std::string> tokens) {
+  bool enable_profilers = absl::GetFlag(FLAGS_enable_profilers);
+  std::string profiler_output_filename = "";
+  if (enable_profilers) {
+    profiler_output_filename = tokens[1];
+    Execute(roma_service, profiler_output_filename,
+            absl::Span(tokens.data() + 2, tokens.size() - 2));
+  } else {
+    Execute(roma_service, profiler_output_filename,
+            absl::Span(tokens.data() + 1, tokens.size() - 1));
+  }
+}
+
+// Execute a single command, returns false upon RomaService stoppage.
+bool ExecuteCommand(absl::Nonnull<RomaService<>*> roma_service,
+                    std::string_view commands_msg, std::string_view line) {
+  std::vector<std::string> tokens = absl::StrSplit(line, " ");
+  std::string command = tokens[0];
+  if (command == "exit") {
+    roma_service->Stop().IgnoreError();
+    return false;
+  }
+
+  if (command == "load" && tokens.size() > 1) {
+    std::string udf_file_path = tokens.size() > 2 ? tokens[2] : "";
+    Load(roma_service, tokens[1], udf_file_path);
+  } else if (command == "execute" && tokens.size() > 2) {
+    HandleExecute(roma_service, tokens);
+  } else if (command == "help") {
+    std::cout << commands_msg << std::endl;
+  } else {
+    std::cout << "Warning: unknown command " << command << "." << std::endl;
+    std::cout << "Try help for options." << std::endl;
+  }
+  return true;
+}
+
 // The read-eval-execute loop of the shell.
 void RunShell(const std::vector<std::string>& v8_flags) {
   using RomaService = RomaService<>;
@@ -297,27 +343,8 @@ void RunShell(const std::vector<std::string>& v8_flags) {
       line = commands[i];
     }
 
-    std::vector<std::string> tokens = absl::StrSplit(line, " ");
-
-    // If --enable_profilers, tokens should include extra entry for
-    // profiler_output_filename, therefore absl::Span for Roma args needs to be
-    // additionally offset.
-    int profiler_offset = enable_profilers ? 1 : 0;
-    if (tokens[0] == "exit") {
-      roma_service.Stop().IgnoreError();
+    if (!ExecuteCommand(&roma_service, commands_msg, line)) {
       break;
-    } else if (tokens[0] == "load" && tokens.size() > 1) {
-      Load(&roma_service, tokens[1], tokens.size() > 2 ? tokens[2] : "");
-    } else if (tokens[0] == "execute" && tokens.size() > 2 + profiler_offset) {
-      std::string profiler_output_filename = enable_profilers ? tokens[1] : "";
-      Execute(&roma_service, profiler_output_filename,
-              absl::Span(tokens.data() + 1 + profiler_offset,
-                         tokens.size() - 1 - profiler_offset));
-    } else if (tokens[0] == "help") {
-      std::cout << commands_msg << std::endl;
-    } else {
-      std::cout << "Warning: unknown command " << tokens[0] << "." << std::endl;
-      std::cout << "Try help for options." << std::endl;
     }
   }
 }
