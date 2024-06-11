@@ -1,0 +1,210 @@
+#!/bin/bash
+
+set -o errexit
+
+declare -i JQ_POST_SLURP=0
+declare -i PLAINTEXT=0
+
+function usage() {
+  local -r -i exitval=$1
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 <options>
+    --rpc-invoker <filename>        image tarball or binary used to invoke rpc request
+    --rpc-invoker-type <filename>   recognized values: binary, image
+    --endpoint-hostport <host:port> host:port string
+    --docker-network <name>         docker network
+    --protoset <filename>           protobuf spec image file
+    --rpc <rpc name>                rpc name
+    --request <filename>            request.json filename
+    --jq-pre-filter <filename>      jq program to transform the request
+    --jq-post-filter <filename>     jq program to transform the reply
+    --jq-post-slurp                 run jq postprocessor in stream slurp mode
+    --reply <filename>              golden reply against which to diff the output
+    --plaintext                     send plaintext request
+    --http-path <string>            path used with endpoint hostport
+environment variables:
+    TEST_TOOLS_IMAGE                docker image uri for test tools
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rpc-invoker)
+      RPC_INVOKER="$2"
+      shift 2 || usage
+      ;;
+    --rpc-invoker-type)
+      RPC_INVOKER_TYPE="$2"
+      shift 2 || usage
+      ;;
+    --endpoint-hostport)
+      ENDPOINT_HOSTPORT="$2"
+      shift 2 || usage
+      ;;
+    --docker-network)
+      DOCKER_NETWORK="$2"
+      shift 2 || usage
+      ;;
+    --rpc)
+      RPC="$2"
+      shift 2 || usage
+      ;;
+    --protoset)
+      PROTOSET_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --request)
+      REQUEST_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --reply)
+      GOLDEN_REPLY="$2"
+      shift 2 || usage
+      ;;
+    --jq-pre-filter)
+      JQ_PRE_PROGRAM_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --jq-post-filter)
+      JQ_POST_PROGRAM_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --jq-post-slurp)
+      JQ_POST_SLURP=1
+      shift
+      ;;
+    --plaintext)
+      PLAINTEXT=1
+      shift
+      ;;
+    --http-path)
+      HTTP_PATH="$2"
+      shift 2
+      ;;
+    --help | -h) usage 0 ;;
+    *) usage 1 ;;
+  esac
+done
+
+: "${RPC?"Error: --rpc must be specified"}"
+: "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${GOLDEN_REPLY?"Error: --reply must be specified"}"
+: "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
+: "${RPC_INVOKER?"Error: --rpc-invoker not specified"}"
+: "${RPC_INVOKER_TYPE?"Error: --rpc-invoker-type not specified"}"
+: "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
+
+TMP_FILTERED_REQUEST="$(mktemp --dry-run)"
+readonly TMP_FILTERED_REQUEST
+TMP_RAW_REPLY="$(mktemp --dry-run)"
+readonly TMP_RAW_REPLY
+TMP_FILTERED_REPLY="$(mktemp --dry-run)"
+readonly TMP_FILTERED_REPLY
+
+trap cleanup EXIT
+function cleanup() {
+  local -r -i STATUS=$?
+  rm -f "${TMP_FILTERED_REQUEST}" "${TMP_RAW_REPLY}" "${TMP_FILTERED_REPLY}"
+  exit ${STATUS}
+}
+
+declare -a DOCKER_ARGS=(
+  "--rm"
+  "--interactive"
+  "--entrypoint=/bin/bash"
+  "--tmpfs=/work"
+  "--workdir=/work"
+)
+
+declare -a RPC_INVOKER_DOCKER_ARGS=(
+  "--rm"
+  "--interactive"
+)
+
+declare -a RPC_INVOKER_ARGS=(
+  --endpoint-hostport
+  "${ENDPOINT_HOSTPORT}"
+  --rpc
+  "${RPC}"
+)
+
+if [[ -n ${DOCKER_NETWORK} ]]; then
+  DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
+  RPC_INVOKER_DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
+  RPC_INVOKER_ARGS+=(
+    --docker-network
+    "${DOCKER_NETWORK}"
+  )
+fi
+
+declare JQ_PRE_PROGRAM=.
+declare JQ_POST_PROGRAM=.
+
+if [[ -s ${JQ_PRE_PROGRAM_FILENAME} ]]; then
+  JQ_PRE_PROGRAM="$(<"${JQ_PRE_PROGRAM_FILENAME}")"
+fi
+
+if [[ ${PLAINTEXT} -eq 1 ]]; then
+  RPC_INVOKER_ARGS+=(--plaintext)
+fi
+
+if [[ -n ${HTTP_PATH} ]]; then
+  RPC_INVOKER_ARGS+=(
+    --http-path
+    "${HTTP_PATH}"
+  )
+fi
+
+declare -a JQ_POST_ARGS=(
+  --from-file post-filter.jq
+)
+
+if [[ -s ${JQ_POST_PROGRAM_FILENAME} ]]; then
+  JQ_POST_PROGRAM="$(<"${JQ_POST_PROGRAM_FILENAME}")"
+  if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
+    JQ_POST_ARGS+=(--slurp)
+  fi
+fi
+
+docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
+cat /dev/stdin >raw_request
+printf '%s\n' '${JQ_PRE_PROGRAM}' >pre-filter.jq
+cat raw_request | jq --exit-status --from-file pre-filter.jq
+" \
+  <"${REQUEST_FILENAME}" \
+  >"${TMP_FILTERED_REQUEST}"
+
+
+if [[ ${RPC_INVOKER_TYPE} == binary ]]; then
+  "${RPC_INVOKER}" \
+    --protoset "${PROTOSET_FILENAME}" \
+    --request "${TMP_FILTERED_REQUEST}" \
+    "${RPC_INVOKER_ARGS[@]}" \
+    >"${TMP_RAW_REPLY}"
+else
+  RPC_INVOKER_IMAGE="$(docker load -i "${RPC_INVOKER}" | sed -nr "s/^Loaded image: (.*)$/\1/p")"
+  readonly RPC_INVOKER_IMAGE
+  RAW_FILTERED_REQUEST="$(<"${TMP_FILTERED_REQUEST}")"
+  readonly RAW_FILTERED_REQUEST
+  RAW_PROTOSET="$(<"${PROTOSET_FILENAME}")"
+  readonly RAW_PROTOSET
+
+  docker run "${RPC_INVOKER_DOCKER_ARGS[@]}" "${RPC_INVOKER_IMAGE}" \
+    --protoset "${RAW_PROTOSET}" \
+    --request "${RAW_FILTERED_REQUEST}" \
+    "${RPC_INVOKER_ARGS[@]}" \
+    >"${TMP_RAW_REPLY}"
+fi
+
+docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
+cat /dev/stdin >raw_reply
+printf '%s\n' '${JQ_POST_PROGRAM}' >post-filter.jq
+cat raw_reply | jq ${JQ_POST_ARGS[*]}
+" \
+  <"${TMP_RAW_REPLY}" \
+  >"${TMP_FILTERED_REPLY}"
+
+diff "${TMP_FILTERED_REPLY}" "${GOLDEN_REPLY}"

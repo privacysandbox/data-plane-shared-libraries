@@ -1,0 +1,36 @@
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set", "proto_library")
+
+copy_file(
+    name = "helloworld_proto_file",
+    src = "@grpc_example_helloworld_proto//file",
+    out = "helloworld.proto",
+)
+
+proto_library(
+    name = "helloworld_proto",
+    srcs = [":helloworld.proto"],
+)
+
+proto_descriptor_set(
+    name = "helloworld_descriptor_set",
+    visibility = ["//visibility:public"],
+    deps = [":helloworld_proto"],
+)
+
+copy_file(
+    name = "route_guide_proto_file",
+    src = "@grpc_example_route_guide_proto//file",
+    out = "route_guide.proto",
+)
+
+proto_library(
+    name = "route_guide_proto",
+    srcs = ["route_guide.proto"],
+)
+
+proto_descriptor_set(
+    name = "routeguide_descriptor_set",
+    visibility = ["//visibility:public"],
+    deps = [":route_guide_proto"],
+)

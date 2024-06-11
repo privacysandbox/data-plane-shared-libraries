@@ -1,0 +1,111 @@
+#!/bin/bash
+
+set -o errexit
+
+declare -i PLAINTEXT=0
+
+function usage() {
+  local -r -i exitval=$1
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 <options>
+    --endpoint-hostport <host:port> host:port string
+    --docker-network <name>         docker network
+    --protoset <filename>           protobuf spec image file
+    --rpc <rpc name>                rpc name
+    --request <filename>            request.json filename
+    --plaintext                     send plaintext request
+environment variables:
+    TEST_TOOLS_IMAGE                docker image uri for test tools
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --endpoint-hostport)
+      ENDPOINT_HOSTPORT="$2"
+      shift 2
+      ;;
+    --docker-network)
+      DOCKER_NETWORK="$2"
+      shift 2
+      ;;
+    --rpc)
+      RPC="$2"
+      shift 2
+      ;;
+    --protoset)
+      PROTOSET_FILENAME="$2"
+      shift 2
+      ;;
+    --request)
+      REQUEST_FILENAME="$2"
+      shift 2
+      ;;
+    --plaintext)
+      PLAINTEXT=1
+      shift
+      ;;
+    --help | -h) usage 0 ;;
+    *) usage 1 ;;
+  esac
+done
+
+: "${RPC?"Error: --rpc must be specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset must be specified"}"
+: "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
+: "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
+
+REQ_JSON="$(<"${REQUEST_FILENAME}")"
+declare -r REPORT_FILE=ghz_report.json
+declare REPORT_FORMAT=pretty
+
+declare -a DOCKER_ARGS=(
+  "--rm"
+  "--interactive"
+  "--entrypoint=/bin/bash"
+  "--tmpfs=/work"
+  "--workdir=/work"
+)
+if [[ -n ${DOCKER_NETWORK} ]]; then
+  DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
+fi
+
+declare -a GHZ_ARGS=(
+  "--concurrency=10"
+  "--total=5000"
+  "--call=${RPC}"
+  "--format=${REPORT_FORMAT}"
+)
+
+if [[ ${PLAINTEXT} -eq 1 ]]; then
+  GHZ_ARGS+=("--insecure")
+fi
+
+# declare -a GHZ_LINEAR_LOAD=(
+#   "--load-schedule=line"
+#   "--load-start=5"
+#   "--load-step=5"
+# )
+
+# declare -a GHZ_STEP_UP_RPS=(
+#   "--load-schedule=step"
+#   "--load-start=50"
+#   "--load-end=150"
+#   "--load-step=10"
+#   "--load-step-duration=5s"
+# )
+
+docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
+set -o errexit
+cat >rpc_request <<EOF
+${REQ_JSON}
+EOF
+cat /dev/stdin >protoset.pb
+ghz ${GHZ_ARGS[*]} --data-file=rpc_request --protoset protoset.pb ${ENDPOINT_HOSTPORT}
+" \
+  <"${PROTOSET_FILENAME}" \
+  >"${TEST_UNDECLARED_OUTPUTS_DIR}"/${REPORT_FILE}

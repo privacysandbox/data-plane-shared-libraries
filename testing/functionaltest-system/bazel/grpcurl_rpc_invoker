@@ -1,0 +1,89 @@
+#!/bin/bash
+
+set -o errexit
+
+declare -i PLAINTEXT=0
+
+function usage() {
+  local -r -i exitval=$1
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 <options>
+    --endpoint-hostport <host:port> host:port string
+    --docker-network <name>         docker network
+    --protoset <filename>           protobuf spec image file
+    --rpc <rpc name>                rpc name
+    --request <filename>            request.json filename
+    --plaintext                     send plaintext request
+environment variables:
+    TEST_TOOLS_IMAGE                docker image uri for test tools
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --endpoint-hostport)
+      ENDPOINT_HOSTPORT="$2"
+      shift 2
+      ;;
+    --docker-network)
+      DOCKER_NETWORK="$2"
+      shift 2
+      ;;
+    --rpc)
+      RPC="$2"
+      shift 2
+      ;;
+    --protoset)
+      PROTOSET_FILENAME="$2"
+      shift 2
+      ;;
+    --request)
+      REQUEST_FILENAME="$2"
+      shift 2
+      ;;
+    --plaintext)
+      PLAINTEXT=1
+      shift
+      ;;
+    --help | -h) usage 0 ;;
+    *) shift 2 ;;
+  esac
+done
+
+: "${RPC?"Error: --rpc must be specified"}"
+: "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset not specified"}"
+: "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
+
+REQ_JSON="$(<"${REQUEST_FILENAME}")"
+
+declare -a DOCKER_ARGS=(
+  "--rm"
+  "--interactive"
+  "--entrypoint=/bin/bash"
+  "--tmpfs=/work"
+  "--workdir=/work"
+)
+
+declare -a GRPCURL_ARGS=()
+
+if [[ -n ${DOCKER_NETWORK} ]]; then
+  DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
+fi
+
+if [[ ${PLAINTEXT} -eq 1 ]]; then
+  GRPCURL_ARGS+=("-plaintext")
+fi
+
+docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
+cat /dev/stdin >protoset.pb
+cat >rpc_request <<EOF
+${REQ_JSON}
+EOF
+
+grpcurl ${GRPCURL_ARGS[*]} -d @ -protoset protoset.pb ${ENDPOINT_HOSTPORT} ${RPC} <rpc_request
+" <"${PROTOSET_FILENAME}"

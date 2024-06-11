@@ -1,0 +1,28 @@
+build --workspace_status_command="bash tools/get_workspace_status"
+build --announce_rc
+build --verbose_failures
+build --compilation_mode=opt
+build --color=yes
+build --config=cpp
+build --output_filter='^//((?!(third_party):).)*$'`
+
+test --test_output=errors
+
+build:run_all_tests --cache_test_results=no
+test:run_all_tests --test_verbose_timeout_warnings
+
+build:cpp --client_env=BAZEL_CXXOPTS=-std=c++17
+build:cpp --cxxopt=-std=c++17
+build:cpp --host_cxxopt=-std=c++17
+build:cpp --client_env=CC=clang
+build:cpp --copt=-Werror=return-type
+build:cpp --copt=-Werror=thread-safety
+build:cpp --copt=-Wno-unknown-warning-option
+build:cpp --copt=-Wno-unused-parameter
+build:cpp --copt=-Wno-error=unused-but-set-variable
+build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
+build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
+build:cpp --per_file_copt=src/roma/roma_service/.*@-fconstexpr-steps=1271242
+build:cpp --config=cpp_nowarn
+build:cpp_nowarn --copt=-Werror
+build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
