@@ -29,7 +29,9 @@ proto_library(
 
 cc_proto_library(
     name = "roma_binary_cc_proto",
-    visibility = ["//src/roma/gvisor:__subpackages__"],
+    visibility = [
+        "//src/roma/gvisor:__subpackages__",
+    ],
     deps = [
         ":roma_binary_proto",
     ],
