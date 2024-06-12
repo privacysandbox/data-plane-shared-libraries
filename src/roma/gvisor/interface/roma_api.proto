@@ -24,9 +24,11 @@ service RomaGvisorService {
 }
 
 message ExecuteBinaryRequest {
-  bytes code_token = 1;
+  bytes request_id = 1;
+
+  bytes code_token = 2;
   // Serialized request proto defined by the integrator
-  bytes serialized_request = 2;
+  bytes serialized_request = 3;
 }
 
 message ExecuteBinaryResponse {
@@ -35,9 +37,12 @@ message ExecuteBinaryResponse {
 }
 
 message ExecuteBinaryBidiStreamingRequest {
-  bytes code_token = 1;
+  bytes request_id = 1;
+
+  bytes code_token = 2;
+
   // Serialized request proto defined by the integrator
-  bytes serialized_request = 2;
+  bytes serialized_request = 3;
 }
 
 message ExecuteBinaryBidiStreamingResponse {

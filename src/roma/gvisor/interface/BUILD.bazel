@@ -79,6 +79,23 @@ cc_library(
 )
 
 cc_library(
+    name = "roma_service",
+    hdrs = ["roma_service.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":roma_api_grpc_proto",
+        ":roma_gvisor",
+        ":roma_interface",
+        ":roma_local",
+        "//src/core/common/uuid",
+        "//src/roma/gvisor/config:utils",
+        "//src/roma/interface",
+        "//src/roma/metadata_storage",
+        "//src/util/status_macro:status_macros",
+    ],
+)
+
+cc_library(
     name = "roma_local",
     srcs = ["roma_local.cc"],
     hdrs = ["roma_local.h"],

@@ -32,6 +32,7 @@ cc_library(
             'ROMA_LIB_MOUNTS=\\"/lib,/lib64\\"',
         ],
     }),
+    visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = [
         "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
         "@com_google_absl//absl/status",

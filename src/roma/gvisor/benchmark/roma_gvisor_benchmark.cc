@@ -17,6 +17,7 @@
 #include <iostream>
 #include <memory>
 #include <string>
+#include <string_view>
 
 #include <grpcpp/grpcpp.h>
 
@@ -28,10 +29,10 @@
 #include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
+#include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
-#include "src/roma/gvisor/interface/roma_gvisor.h"
-#include "src/roma/gvisor/interface/roma_interface.h"
-#include "src/roma/gvisor/interface/roma_local.h"
+#include "src/roma/gvisor/interface/roma_service.h"
 #include "src/roma/gvisor/udf/roma_binary.pb.h"
 
 namespace {
@@ -42,10 +43,8 @@ using privacy_sandbox::server_common::gvisor::ExecuteBinaryRequest;
 using privacy_sandbox::server_common::gvisor::ExecuteBinaryResponse;
 using privacy_sandbox::server_common::gvisor::LoadBinaryRequest;
 using privacy_sandbox::server_common::gvisor::LoadBinaryResponse;
-using privacy_sandbox::server_common::gvisor::RomaClient;
-using privacy_sandbox::server_common::gvisor::RomaGvisor;
-using privacy_sandbox::server_common::gvisor::RomaInterface;
-using privacy_sandbox::server_common::gvisor::RomaLocal;
+using privacy_sandbox::server_common::gvisor::Mode;
+using privacy_sandbox::server_common::gvisor::RomaService;
 
 constexpr int kPrimeCount = 9592;
 constexpr std::string_view kGoLangBinaryPath = "/server/bin/sample_go_udf";
@@ -55,49 +54,40 @@ constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
 
-enum class Mode {
-  kModeGvisor = 0,
-  kModeLocal = 1,
-};
-
 enum class Language {
   kCPlusPlus = 0,
   kGoLang = 1,
 };
 
-ExecuteBinaryRequest ConstructExecuteBinaryRequest(
-    BinaryRequest::Function func_type) {
+BinaryResponse SendRequestAndGetResponse(RomaService<>* roma_service,
+                                         BinaryRequest::Function func_type,
+                                         std::string_view code_token) {
   // Data we are sending to the server.
   BinaryRequest bin_request;
   bin_request.set_function(func_type);
-  ExecuteBinaryRequest request;
-  request.set_serialized_request(bin_request.SerializeAsString());
-  return request;
+  BinaryResponse bin_response;
+  absl::Notification notif;
+  CHECK_OK(roma_service->ExecuteBinary(notif, code_token, bin_request,
+                                       bin_response, /*metadata=*/{}));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  return bin_response;
 }
 
-std::unique_ptr<RomaInterface> GetRomaInterface(Mode mode, int num_workers) {
+std::unique_ptr<RomaService<>> GetRomaService(Mode mode, int num_workers) {
   privacy_sandbox::server_common::gvisor::Config config = {
       .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
-  absl::StatusOr<std::unique_ptr<RomaInterface>> roma_interface;
-  if (mode == Mode::kModeGvisor) {
-    roma_interface = RomaGvisor::Create(config);
-  } else {
-    roma_interface = RomaLocal::Create(config);
-  }
+  absl::StatusOr<std::unique_ptr<RomaService<>>> roma_interface =
+      RomaService<>::Create(config, mode);
   CHECK_OK(roma_interface);
   return std::move(*roma_interface);
 }
 
 void VerifyResponse(
-    absl::StatusOr<ExecuteBinaryResponse> exec_response,
-    std::string_view expected_response,
+    BinaryResponse bin_response, std::string_view expected_response,
     BinaryRequest::Function func = BinaryRequest::FUNCTION_HELLO_WORLD) {
-  CHECK_OK(exec_response);
-  BinaryResponse bin_response;
-  bin_response.ParseFromString(exec_response->serialized_response());
   switch (func) {
     case BinaryRequest::FUNCTION_HELLO_WORLD:
       CHECK(absl::EqualsIgnoreCase(bin_response.greeting(), expected_response))
@@ -173,55 +163,54 @@ std::string GetFunctionTypeStr(BinaryRequest::Function func_type) {
 
 void BM_LoadBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaInterface> roma_interface =
-      GetRomaInterface(mode, /*num_workers=*/1);
+  std::unique_ptr<RomaService<>> roma_service =
+      GetRomaService(mode, /*num_workers=*/1);
 
   auto load_response =
-      roma_interface->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
+      roma_service->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
   CHECK_OK(load_response);
 
   BinaryRequest::Function func_type = BinaryRequest::FUNCTION_HELLO_WORLD;
-  ExecuteBinaryRequest request = ConstructExecuteBinaryRequest(func_type);
-  request.set_code_token(load_response->code_token());
-  VerifyResponse(roma_interface->ExecuteBinary(request), kFirstUdfOutput);
+
+  auto bin_response = SendRequestAndGetResponse(roma_service.get(), func_type,
+                                                load_response->code_token());
+  VerifyResponse(bin_response, kFirstUdfOutput);
 
   std::string code_str = GetFileContent(kCPlusPlusNewBinaryPath);
   for (auto _ : state) {
-    load_response = roma_interface->LoadBinary(code_str);
+    load_response = roma_service->LoadBinary(code_str);
   }
-  request.set_code_token(load_response->code_token());
-  VerifyResponse(roma_interface->ExecuteBinary(request), kNewUdfOutput);
+  bin_response = SendRequestAndGetResponse(roma_service.get(), func_type,
+                                           load_response->code_token());
+  VerifyResponse(bin_response, kNewUdfOutput);
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
 void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaInterface> roma_interface =
-      GetRomaInterface(mode, /*num_workers=*/2);
+  std::unique_ptr<RomaService<>> roma_service =
+      GetRomaService(mode, /*num_workers=*/2);
 
   auto first_load_response =
-      roma_interface->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
+      roma_service->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
   CHECK_OK(first_load_response);
   auto second_load_response =
-      roma_interface->LoadBinary(GetFileContent(kCPlusPlusNewBinaryPath));
+      roma_service->LoadBinary(GetFileContent(kCPlusPlusNewBinaryPath));
   CHECK_OK(second_load_response);
 
   BinaryRequest::Function func_type = BinaryRequest::FUNCTION_HELLO_WORLD;
-  ExecuteBinaryRequest request_for_first_binary =
-      ConstructExecuteBinaryRequest(func_type);
-  request_for_first_binary.set_code_token(first_load_response->code_token());
-  VerifyResponse(roma_interface->ExecuteBinary(request_for_first_binary),
+  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
+                                           first_load_response->code_token()),
                  kFirstUdfOutput);
 
-  ExecuteBinaryRequest request_for_second_binary =
-      ConstructExecuteBinaryRequest(func_type);
-  request_for_second_binary.set_code_token(second_load_response->code_token());
-  VerifyResponse(roma_interface->ExecuteBinary(request_for_second_binary),
+  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
+                                           second_load_response->code_token()),
                  kNewUdfOutput);
 
   for (auto _ : state) {
-    CHECK_OK(roma_interface->ExecuteBinary(request_for_first_binary));
+    auto response = SendRequestAndGetResponse(
+        roma_service.get(), func_type, first_load_response->code_token());
   }
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -229,31 +218,28 @@ void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
 
 void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaInterface> roma_interface =
-      GetRomaInterface(mode, /*num_workers=*/2);
+  std::unique_ptr<RomaService<>> roma_service =
+      GetRomaService(mode, /*num_workers=*/2);
 
   auto first_load_response =
-      roma_interface->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
+      roma_service->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
   CHECK_OK(first_load_response);
   auto second_load_response =
-      roma_interface->LoadBinary(GetFileContent(kCPlusPlusNewBinaryPath));
+      roma_service->LoadBinary(GetFileContent(kCPlusPlusNewBinaryPath));
   CHECK_OK(second_load_response);
 
   BinaryRequest::Function func_type = BinaryRequest::FUNCTION_HELLO_WORLD;
-  ExecuteBinaryRequest request_for_first_binary =
-      ConstructExecuteBinaryRequest(func_type);
-  request_for_first_binary.set_code_token(first_load_response->code_token());
-  VerifyResponse(roma_interface->ExecuteBinary(request_for_first_binary),
+  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
+                                           first_load_response->code_token()),
                  kFirstUdfOutput);
 
-  ExecuteBinaryRequest request_for_second_binary =
-      ConstructExecuteBinaryRequest(func_type);
-  request_for_second_binary.set_code_token(second_load_response->code_token());
-  VerifyResponse(roma_interface->ExecuteBinary(request_for_second_binary),
+  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
+                                           second_load_response->code_token()),
                  kNewUdfOutput);
 
   for (auto _ : state) {
-    CHECK_OK(roma_interface->ExecuteBinary(request_for_second_binary));
+    auto response = SendRequestAndGetResponse(
+        roma_service.get(), func_type, second_load_response->code_token());
   }
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -261,20 +247,20 @@ void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
 
 void BM_ExecuteBinarySyncUnaryGrpc(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaInterface> roma_interface =
-      GetRomaInterface(mode, /*num_workers=*/state.range(2));
+  std::unique_ptr<RomaService<>> roma_service =
+      GetRomaService(mode, /*num_workers=*/state.range(2));
   auto load_response =
-      roma_interface->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
+      roma_service->LoadBinary(GetFileContent(kCPlusPlusBinaryPath));
   CHECK_OK(load_response);
 
   BinaryRequest::Function func_type =
       static_cast<BinaryRequest::Function>(state.range(1));
-  ExecuteBinaryRequest request = ConstructExecuteBinaryRequest(func_type);
-  request.set_code_token(load_response->code_token());
-  CHECK_OK(roma_interface->ExecuteBinary(request));
+  auto response = SendRequestAndGetResponse(roma_service.get(), func_type,
+                                            load_response->code_token());
 
   for (auto s : state) {
-    CHECK_OK(roma_interface->ExecuteBinary(request));
+    response = SendRequestAndGetResponse(roma_service.get(), func_type,
+                                         load_response->code_token());
   }
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -282,25 +268,24 @@ void BM_ExecuteBinarySyncUnaryGrpc(benchmark::State& state) {
 
 void BM_GvisorCompareCPlusPlusAndGoLangBinary(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
-  std::unique_ptr<RomaInterface> roma_interface =
-      GetRomaInterface(Mode::kModeGvisor, /*num_workers=*/2);
+  std::unique_ptr<RomaService<>> roma_service =
+      GetRomaService(Mode::kModeGvisor, /*num_workers=*/2);
 
   auto load_response =
-      roma_interface->LoadBinary(GetFileContent(GetFilePathFromLanguage(lang)));
+      roma_service->LoadBinary(GetFileContent(GetFilePathFromLanguage(lang)));
   CHECK_OK(load_response);
 
   BinaryRequest::Function func_type =
       static_cast<BinaryRequest::Function>(state.range(1));
-  ExecuteBinaryRequest request_for_binary =
-      ConstructExecuteBinaryRequest(func_type);
-  request_for_binary.set_code_token(load_response->code_token());
   VerifyResponse(
-      roma_interface->ExecuteBinary(request_for_binary),
+      SendRequestAndGetResponse(roma_service.get(), func_type,
+                                load_response->code_token()),
       lang == Language::kCPlusPlus ? kFirstUdfOutput : kGoBinaryOutput,
       func_type);
 
   for (auto _ : state) {
-    CHECK_OK(roma_interface->ExecuteBinary(request_for_binary));
+    auto response = SendRequestAndGetResponse(roma_service.get(), func_type,
+                                              load_response->code_token());
   }
   state.SetLabel(absl::StrJoin(
       {GetFunctionTypeStr(func_type), GetLanguageStr(lang)}, ", "));

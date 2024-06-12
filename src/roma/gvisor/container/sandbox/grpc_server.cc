@@ -50,7 +50,8 @@ class RomaGvisorServiceImpl final : public RomaGvisorService::CallbackService {
       ExecuteBinaryResponse* response) override {
     absl::StatusOr<absl::Cord> output =
         pool_manager_->SendRequestAndGetResponseFromWorker(
-            request->code_token(), request->serialized_request());
+            request->request_id(), request->code_token(),
+            request->serialized_request());
     auto* reactor = context->DefaultReactor();
     if (!output.ok()) {
       reactor->Finish(FromAbslStatus(output.status()));
@@ -92,7 +93,8 @@ class RomaGvisorServiceImpl final : public RomaGvisorService::CallbackService {
 
     absl::StatusOr<absl::Cord> output =
         pool_manager_->SendRequestAndGetResponseFromWorker(
-            request.code_token(), request.serialized_request());
+            request.request_id(), request.code_token(),
+            request.serialized_request());
     if (!output.status().ok()) {
       return FromAbslStatus(output.status());
     }

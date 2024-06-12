@@ -48,9 +48,10 @@
 #include "src/roma/sandbox/native_function_binding/native_function_table.h"
 
 namespace privacy_sandbox::server_common::gvisor {
+
+template <typename TMetadata = ::google::scp::roma::DefaultMetadata>
 class NativeFunctionHandler {
  private:
-  using TMetadata = google::scp::roma::DefaultMetadata;
   static constexpr std::string_view kFailedNativeHandlerExecution =
       "ROMA: Failed to execute the C++ function.";
   static constexpr std::string_view kCouldNotFindFunctionName =
@@ -69,10 +70,11 @@ class NativeFunctionHandler {
   NativeFunctionHandler(
       std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>
           function_bindings,
-      std::string socket_name)
+      std::string socket_name, MetadataStorage<TMetadata>* metadata_storage)
       : stop_(false),
         server_fd_(::socket(AF_UNIX, SOCK_STREAM, 0)),
-        socket_name_(std::move(socket_name)) {
+        socket_name_(std::move(socket_name)),
+        metadata_storage_(metadata_storage) {
     LOG(INFO) << "Starting native function handler";
     PCHECK(server_fd_ != -1);
     {
@@ -119,14 +121,6 @@ class NativeFunctionHandler {
     }
   }
 
-  absl::Status StoreMetadata(std::string uuid, TMetadata metadata) {
-    return metadata_storage_.Add(std::move(uuid), std::move(metadata));
-  }
-
-  absl::Status DeleteMetadata(std::string_view uuid) {
-    return metadata_storage_.Delete(uuid);
-  }
-
  private:
   void HandlerImpl(int fd) {
     absl::Cleanup cleanup = [fd] { ::close(fd); };
@@ -150,7 +144,7 @@ class NativeFunctionHandler {
       if (const std::string& function_name = callback.function_name();
           !function_name.empty()) {
         if (auto reader = ScopedValueReader<TMetadata>::Create(
-                metadata_storage_.GetMetadataMap(), uuid.uuid());
+                metadata_storage_->GetMetadataMap(), uuid.uuid());
             !reader.ok()) {
           // If mutex can't be found, add errors to the proto to return
           io_proto.mutable_errors()->Add(std::string(kCouldNotFindMutex));
@@ -187,7 +181,7 @@ class NativeFunctionHandler {
       TMetadata>
       function_table_;
   // Map of invocation request uuid to associated metadata.
-  MetadataStorage<TMetadata> metadata_storage_;
+  MetadataStorage<TMetadata>* metadata_storage_;
   std::optional<std::thread> thread_;
 };
 }  // namespace privacy_sandbox::server_common::gvisor

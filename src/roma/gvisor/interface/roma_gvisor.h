@@ -23,7 +23,6 @@
 #include "absl/status/statusor.h"
 #include "src/roma/gvisor/config/config.h"
 #include "src/roma/gvisor/container/grpc_client.h"
-#include "src/roma/gvisor/host/native_function_handler.h"
 #include "src/roma/gvisor/interface/roma_interface.h"
 
 namespace privacy_sandbox::server_common::gvisor {
@@ -31,7 +30,8 @@ class RomaGvisor final : public RomaInterface {
  public:
   // Factory method: creates and returns a RomaGvisor.
   // May return null on failure.
-  static absl::StatusOr<std::unique_ptr<RomaGvisor>> Create(Config config);
+  static absl::StatusOr<std::unique_ptr<RomaGvisor>> Create(
+      Config config, ConfigInternal config_internal);
 
   absl::StatusOr<LoadBinaryResponse> LoadBinary(
       std::string_view code_str) override;
@@ -45,21 +45,16 @@ class RomaGvisor final : public RomaInterface {
   // Clients can't invoke the constructor directly.
   explicit RomaGvisor(Config config, ConfigInternal config_internal,
                       pid_t roma_container_pid, RomaClient roma_client,
-                      std::filesystem::path socket_directory,
-                      std::unique_ptr<NativeFunctionHandler> handler)
+                      std::filesystem::path socket_directory)
       : roma_container_pid_(roma_container_pid),
         roma_client_(std::move(roma_client)),
-        socket_directory_(std::move(socket_directory)),
         config_(std::move(config)),
-        config_internal_(std::move(config_internal)),
-        handler_(std::move(handler)) {}
+        config_internal_(std::move(config_internal)) {}
 
   const pid_t roma_container_pid_;
   RomaClient roma_client_;
-  std::filesystem::path socket_directory_;
   const Config config_;
   const ConfigInternal config_internal_;
-  std::unique_ptr<NativeFunctionHandler> handler_;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 

@@ -41,16 +41,14 @@ cc_binary(
     tags = ["manual"],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/roma/gvisor/container:grpc_client",
-        "//src/roma/gvisor/interface:roma_gvisor",
-        "//src/roma/gvisor/interface:roma_interface",
-        "//src/roma/gvisor/interface:roma_local",
+        "//src/roma/gvisor/interface:roma_service",
         "//src/roma/gvisor/udf:roma_binary_cc_proto",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
     ],
 )

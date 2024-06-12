@@ -224,11 +224,6 @@ RomaGvisor::~RomaGvisor() {
       nullptr,
   };
   RunCommand(runsc_kill);
-  if (std::error_code ec;
-      std::filesystem::remove_all(socket_directory_, ec) <= 0) {
-    LOG(ERROR) << "Failed to delete " << socket_directory_ << ": "
-               << ec.message();
-  }
   if (kill(roma_container_pid_, SIGTERM) == -1) {
     PLOG(ERROR) << "Failed to kill Roma server process " << roma_container_pid_;
   }
@@ -240,30 +235,35 @@ RomaGvisor::~RomaGvisor() {
       config_.roma_container_name.c_str(), nullptr,
   };
   RunCommand(runsc_delete);
+  std::filesystem::path server_socket_dir =
+      std::filesystem::path(config_internal_.server_socket).parent_path();
+  if (std::error_code ec;
+      std::filesystem::remove_all(server_socket_dir, ec) <= 0) {
+    LOG(ERROR) << "Failed to delete " << server_socket_dir << ": "
+               << ec.message();
+  }
 }
 
-absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(Config config) {
-  ConfigInternal config_internal;
+absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(
+    Config config, ConfigInternal config_internal) {
   PS_RETURN_IF_ERROR(PreCheckRomaContainerDir(&config_internal));
   PS_ASSIGN_OR_RETURN(const std::filesystem::path socket_pwd,
                       CreateUniqueSocketName());
   PS_ASSIGN_OR_RETURN(std::string callback_socket, CreateUniqueSocketName());
-  PS_RETURN_IF_ERROR(ModifyContainerConfigJson(&config, &config_internal,
-                                               socket_pwd, callback_socket));
-  std::shared_ptr<grpc::Channel> channel =
-      grpc::CreateChannel(absl::StrCat("unix://", socket_pwd.c_str()),
-                          grpc::InsecureChannelCredentials());
-  auto handler = std::make_unique<NativeFunctionHandler>(
-      std::move(config.function_bindings), std::move(callback_socket));
-  // TODO(gathuru): Store and delete metadata in Execute like Roma v8
-  PS_RETURN_IF_ERROR(handler->StoreMetadata("my_key", {/*empty map*/}));
-  PS_ASSIGN_OR_RETURN(pid_t pid, RunGvisorContainer(&config, &config_internal,
-                                                    socket_pwd, channel));
+  PS_RETURN_IF_ERROR(ModifyContainerConfigJson(
+      &config, &config_internal, config_internal.server_socket,
+      config_internal.callback_socket));
+  std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(
+      absl::StrCat("unix://", config_internal.server_socket),
+      grpc::InsecureChannelCredentials());
+  PS_ASSIGN_OR_RETURN(
+      pid_t pid, RunGvisorContainer(&config, &config_internal,
+                                    config_internal.server_socket, channel));
   RomaClient roma_client(channel);
   // Note that since RomaGvisor's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaGvisor(
       std::move(config), std::move(config_internal), pid,
-      std::move(roma_client), std::filesystem::path(socket_pwd).parent_path(),
-      std::move(handler)));
+      std::move(roma_client),
+      std::filesystem::path(config_internal.server_socket).parent_path()));
 }
 }  // namespace privacy_sandbox::server_common::gvisor

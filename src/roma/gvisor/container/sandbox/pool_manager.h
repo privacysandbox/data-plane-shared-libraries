@@ -58,7 +58,8 @@ class RomaGvisorPoolManager final {
       ABSL_LOCKS_EXCLUDED(worker_map_mu_);
 
   absl::StatusOr<absl::Cord> SendRequestAndGetResponseFromWorker(
-      std::string_view code_token, std::string_view serialized_bin_request)
+      std::string_view request_id, std::string_view code_token,
+      std::string_view serialized_bin_request)
       ABSL_LOCKS_EXCLUDED(worker_map_mu_);
 
  private:

@@ -389,15 +389,17 @@ absl::StatusOr<WorkerInfo> RomaGvisorPoolManager::GetWorker(
 
 absl::StatusOr<absl::Cord>
 RomaGvisorPoolManager::SendRequestAndGetResponseFromWorker(
-    std::string_view code_token, std::string_view serialized_bin_request) {
+    std::string_view request_id, std::string_view code_token,
+    std::string_view serialized_bin_request) {
   if (code_token.empty()) {
     return absl::InvalidArgumentError("Expected non-empty code token");
   }
   PS_ASSIGN_OR_RETURN(const WorkerInfo worker_info, GetWorker(code_token));
-  Uuid uuid;
 
-  // TODO(gathuru): Set uuid from request args.
-  uuid.set_uuid("my_key");
+  Uuid uuid;
+  // Write the request_id to the callback pipe. The request_id is not passed to
+  // the worker.
+  uuid.set_uuid(request_id);
   if (!google::protobuf::util::SerializeDelimitedToFileDescriptor(
           uuid, worker_info.comms_fd)) {
     return absl::InternalError("Failed to send uuid to callback server.");

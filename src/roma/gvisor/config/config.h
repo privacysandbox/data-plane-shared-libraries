@@ -53,6 +53,10 @@ struct ConfigInternal {
   std::string socket_flag_name = "server_socket";
 
   std::string worker_pool_size_flag_name = "worker_pool_size";
+
+  std::string server_socket;
+
+  std::string callback_socket;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 
