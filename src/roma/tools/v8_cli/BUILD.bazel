@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -42,14 +42,31 @@ filegroup(
     srcs = glob(["test_udfs/**"]),
 )
 
-cc_binary(
-    name = "roma_shell",
-    srcs = ["roma_shell.cc"],
+cc_library(
+    name = "roma_repl",
+    srcs = ["roma_repl.cc"],
+    hdrs = ["roma_repl.h"],
     data = [
         ":test_command_scripts",
         ":test_udfs",
     ],
     deps = [
+        "//src/core/common/uuid",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/util:duration",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_binary(
+    name = "roma_shell",
+    srcs = ["roma_shell.cc"],
+    deps = [
+        ":roma_repl",
         "//src/roma/interface",
         "//src/roma/roma_service",
         "//src/util:duration",
