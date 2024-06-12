@@ -32,9 +32,23 @@ cc_binary(
     ],
 )
 
+filegroup(
+    name = "test_command_scripts",
+    srcs = glob(["test_command_scripts/**"]),
+)
+
+filegroup(
+    name = "test_udfs",
+    srcs = glob(["test_udfs/**"]),
+)
+
 cc_binary(
     name = "roma_shell",
     srcs = ["roma_shell.cc"],
+    data = [
+        ":test_command_scripts",
+        ":test_udfs",
+    ],
     deps = [
         "//src/roma/interface",
         "//src/roma/roma_service",
