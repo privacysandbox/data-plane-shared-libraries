@@ -78,10 +78,7 @@ Usage: exit
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 constexpr std::string_view kFlagPrefix = "--";
 constexpr std::string_view kRomaShellFlags[] = {
-    "--num_workers",
-    "--verbose",
-    "--enable_profilers",
-    "--file",
+    "--num_workers", "--verbose", "--enable_profilers", "--timeout", "--file",
 };
 
 ABSL_FLAG(uint16_t, num_workers, 1, "Number of Roma workers");
@@ -89,6 +86,8 @@ ABSL_FLAG(bool, verbose, false, "Log all messages from shell");
 ABSL_FLAG(bool, enable_profilers, false, "Enable V8 CPU and Heap Profilers");
 ABSL_FLAG(std::string, file, "",
           "Read a list of Roma CLI tool commands from the specified file");
+ABSL_FLAG(absl::Duration, timeout, kRequestTimeout,
+          "Pass custom timeout duration to execute commands");
 
 // Get UDF from command line or input file if specified
 std::string GetUDF(std::string_view udf_file_path) {
@@ -170,6 +169,10 @@ void Execute(RomaService<>* roma_service,
       .id = uuid_str,
       .version_string = tokens[0],
       .handler_name = tokens[1],
+      .tags = {{"TimeoutDuration",
+                absl::StrCat(
+                    absl::ToInt64Milliseconds(absl::GetFlag(FLAGS_timeout)),
+                    "ms")}},
       .input = input,
   };
   LOG(INFO) << "ExecutionObject:\nid: " << execution_object.id
@@ -217,7 +220,7 @@ void Execute(RomaService<>* roma_service,
                 execute_finished.Notify();
               })
           .ok());
-  execute_finished.WaitForNotificationWithTimeout(kRequestTimeout);
+  execute_finished.WaitForNotificationWithTimeout(absl::GetFlag(FLAGS_timeout));
   std::cout << "> execute duration: "
             << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
             << std::endl;
