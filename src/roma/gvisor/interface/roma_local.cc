@@ -70,15 +70,18 @@ RomaLocal::~RomaLocal() {
     PLOG(ERROR) << absl::StrCat("Failed to wait for ", roma_server_pid_);
   }
   if (std::error_code ec;
+      std::filesystem::remove_all(std::filesystem::path(prog_dir_), ec) <= 0) {
+    LOG(ERROR) << "Failed to delete " << prog_dir_ << ": " << ec.message();
+  }
+  if (std::error_code ec;
       std::filesystem::remove_all(socket_directory_, ec) <= 0) {
     LOG(ERROR) << "Failed to delete " << socket_directory_ << ": "
                << ec.message();
   }
 }
 
-absl::StatusOr<LoadBinaryResponse> RomaLocal::LoadBinary(
-    std::string_view code_str) {
-  return roma_client_.LoadBinary(code_str);
+absl::StatusOr<std::string> RomaLocal::LoadBinary(std::string_view code_path) {
+  return roma_client_.LoadBinary(code_path);
 }
 
 absl::StatusOr<ExecuteBinaryResponse> RomaLocal::ExecuteBinary(
@@ -106,20 +109,28 @@ absl::StatusOr<std::unique_ptr<RomaLocal>> RomaLocal::Create(
       absl::StrCat("--", config_internal.worker_pool_size_flag_name, "=",
                    config.num_workers);
   const std::string callback_socket_flag =
-      absl::StrCat("--callback_socket=", config_internal.callback_socket);
+      absl::StrCat("--", config_internal.callback_socket_flag_name, "=",
+                   config_internal.callback_socket);
+  const std::string prog_dir_flag = absl::StrCat(
+      "--", config_internal.prog_dir_flag_name, "=", config_internal.prog_dir);
   std::vector<const char*> run_local_server = {
-      server_path.c_str(),          socket_path_flag.c_str(),
-      lib_mount_flag.c_str(),       num_workers_flag.c_str(),
-      callback_socket_flag.c_str(), nullptr,
+      server_path.c_str(),
+      socket_path_flag.c_str(),
+      lib_mount_flag.c_str(),
+      num_workers_flag.c_str(),
+      callback_socket_flag.c_str(),
+      prog_dir_flag.c_str(),
+      nullptr,
   };
   auto channel = grpc::CreateChannel(
       absl::StrCat("unix://", config_internal.server_socket),
       grpc::InsecureChannelCredentials());
   PS_ASSIGN_OR_RETURN(pid_t pid, RunLocalServer(run_local_server, channel));
-  RomaClient roma_client(channel);
+  RomaClient roma_client(channel, config_internal.prog_dir);
   // Note that since RomaLocal's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaLocal(
       std::move(config), pid, std::move(roma_client),
-      std::filesystem::path(config_internal.server_socket).parent_path()));
+      std::filesystem::path(config_internal.server_socket).parent_path(),
+      std::filesystem::path(config_internal.prog_dir)));
 }
 }  // namespace privacy_sandbox::server_common::gvisor

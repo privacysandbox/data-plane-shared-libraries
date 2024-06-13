@@ -37,6 +37,8 @@ std::filesystem::path GetRunscPath();
 
 std::string GetLibMounts();
 
+absl::StatusOr<std::string> CreateUniqueDirectory();
+
 absl::StatusOr<std::filesystem::path> CreateUniqueSocketName();
 
 absl::Status HealthCheckWithExponentialBackoff(

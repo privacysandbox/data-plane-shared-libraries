@@ -67,15 +67,9 @@ class RomaGvisorServiceImpl final : public RomaGvisorService::CallbackService {
   grpc::ServerUnaryReactor* LoadBinary(grpc::CallbackServerContext* context,
                                        const LoadBinaryRequest* request,
                                        LoadBinaryResponse* response) override {
-    absl::StatusOr<std::string> code_token =
-        pool_manager_->LoadBinary(request->code_token(), request->code());
     auto* reactor = context->DefaultReactor();
-    if (!code_token.ok()) {
-      reactor->Finish(FromAbslStatus(code_token.status()));
-      return reactor;
-    }
-    response->set_code_token(*std::move(code_token));
-    reactor->Finish(grpc::Status::OK);
+    reactor->Finish(
+        FromAbslStatus(pool_manager_->LoadBinary(request->code_token())));
     return reactor;
   }
 

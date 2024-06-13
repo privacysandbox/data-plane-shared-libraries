@@ -18,6 +18,7 @@
 #define SRC_ROMA_GVISOR_CONTAINER_GRPC_CLIENT_H_
 
 #include <memory>
+#include <string>
 
 #include <grpcpp/grpcpp.h>
 
@@ -29,10 +30,11 @@ namespace privacy_sandbox::server_common::gvisor {
 
 class RomaClient {
  public:
-  explicit RomaClient(std::shared_ptr<grpc::Channel> channel)
-      : stub_(RomaGvisorService::NewStub(channel)) {}
+  explicit RomaClient(std::shared_ptr<grpc::Channel> channel,
+                      std::string prog_dir)
+      : stub_(RomaGvisorService::NewStub(channel)), prog_dir_(prog_dir) {}
 
-  absl::StatusOr<LoadBinaryResponse> LoadBinary(std::string_view code_str);
+  absl::StatusOr<std::string> LoadBinary(std::string_view code_path);
 
   // Assembles the client's payload, sends it and presents the response back
   // from the server.
@@ -41,6 +43,7 @@ class RomaClient {
 
  private:
   std::unique_ptr<RomaGvisorService::Stub> stub_;
+  std::string prog_dir_;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 

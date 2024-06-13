@@ -18,6 +18,7 @@
 #define SRC_ROMA_GVISOR_INTERFACE_ROMA_LOCAL_H_
 
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "absl/status/statusor.h"
@@ -33,8 +34,7 @@ class RomaLocal final : public RomaInterface {
   static absl::StatusOr<std::unique_ptr<RomaLocal>> Create(
       Config config, ConfigInternal config_internal);
 
-  absl::StatusOr<LoadBinaryResponse> LoadBinary(
-      std::string_view code_str) override;
+  absl::StatusOr<std::string> LoadBinary(std::string_view code_path) override;
 
   absl::StatusOr<ExecuteBinaryResponse> ExecuteBinary(
       const ExecuteBinaryRequest& request) override;
@@ -45,15 +45,18 @@ class RomaLocal final : public RomaInterface {
   // Clients can't invoke the constructor directly.
   explicit RomaLocal(Config config, pid_t roma_server_pid,
                      RomaClient roma_client,
-                     std::filesystem::path socket_directory)
+                     std::filesystem::path socket_directory,
+                     std::filesystem::path prog_dir)
       : roma_server_pid_(roma_server_pid),
         roma_client_(std::move(roma_client)),
         socket_directory_(std::move(socket_directory)),
+        prog_dir_(std::move(prog_dir)),
         config_(std::move(config)) {}
 
   const pid_t roma_server_pid_;
   RomaClient roma_client_;
   std::filesystem::path socket_directory_;
+  std::filesystem::path prog_dir_;
   const Config config_;
 };
 }  // namespace privacy_sandbox::server_common::gvisor

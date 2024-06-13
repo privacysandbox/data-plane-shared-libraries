@@ -51,10 +51,9 @@ class RomaGvisorPoolManager final {
 
   ~RomaGvisorPoolManager();
 
-  // Loads new binary. Version string is used as a key -- just like it is for
-  // Roma V8.
-  absl::StatusOr<std::string> LoadBinary(std::string_view version,
-                                         std::string_view code)
+  // Loads new binary. code_token string is used as a key -- just like
+  // code_version is for Roma V8.
+  absl::Status LoadBinary(std::string_view code_token)
       ABSL_LOCKS_EXCLUDED(worker_map_mu_);
 
   absl::StatusOr<absl::Cord> SendRequestAndGetResponseFromWorker(

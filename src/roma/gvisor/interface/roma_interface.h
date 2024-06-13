@@ -17,6 +17,8 @@
 #ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
 #define SRC_ROMA_GVISOR_INTERFACE_ROMA_INTERFACE_H_
 
+#include <string>
+
 #include "absl/status/statusor.h"
 #include "src/roma/gvisor/interface/roma_api.pb.h"
 
@@ -26,8 +28,8 @@ namespace privacy_sandbox::server_common::gvisor {
 
 class RomaInterface {
  public:
-  virtual absl::StatusOr<LoadBinaryResponse> LoadBinary(
-      std::string_view code_str) = 0;
+  virtual absl::StatusOr<std::string> LoadBinary(
+      std::string_view code_path) = 0;
 
   virtual absl::StatusOr<ExecuteBinaryResponse> ExecuteBinary(
       const ExecuteBinaryRequest& request) = 0;

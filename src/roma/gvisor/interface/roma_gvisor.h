@@ -18,6 +18,7 @@
 #define SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_H_
 
 #include <memory>
+#include <string>
 #include <utility>
 
 #include "absl/status/statusor.h"
@@ -33,8 +34,7 @@ class RomaGvisor final : public RomaInterface {
   static absl::StatusOr<std::unique_ptr<RomaGvisor>> Create(
       Config config, ConfigInternal config_internal);
 
-  absl::StatusOr<LoadBinaryResponse> LoadBinary(
-      std::string_view code_str) override;
+  absl::StatusOr<std::string> LoadBinary(std::string_view code_path) override;
 
   absl::StatusOr<ExecuteBinaryResponse> ExecuteBinary(
       const ExecuteBinaryRequest& request) override;

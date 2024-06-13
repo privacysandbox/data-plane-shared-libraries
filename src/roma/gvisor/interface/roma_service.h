@@ -58,6 +58,7 @@ class RomaService final {
                         CreateUniqueSocketName());
     PS_ASSIGN_OR_RETURN(config_internal.callback_socket,
                         CreateUniqueSocketName());
+    PS_ASSIGN_OR_RETURN(config_internal.prog_dir, CreateUniqueDirectory());
     if (mode == Mode::kModeGvisor) {
       PS_ASSIGN_OR_RETURN(roma_interface,
                           RomaGvisor::Create(config, config_internal));
@@ -70,8 +71,8 @@ class RomaService final {
                                             config_internal.callback_socket));
   }
 
-  absl::StatusOr<LoadBinaryResponse> LoadBinary(std::string_view code_str) {
-    return roma_interface_->LoadBinary(code_str);
+  absl::StatusOr<std::string> LoadBinary(std::string_view code_path) {
+    return roma_interface_->LoadBinary(code_path);
   }
 
   absl::Status ExecuteBinary(absl::Notification& notif,

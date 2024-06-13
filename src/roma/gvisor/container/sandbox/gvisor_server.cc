@@ -37,6 +37,8 @@ ABSL_FLAG(int, worker_pool_size, 10,
           "Size of pool of workers responsible for executing the binaries");
 ABSL_FLAG(std::string, callback_socket, "/hostsockdir/xyzw.sock",
           "Server socket for reaching host callback server");
+ABSL_FLAG(std::string, prog_dir, "/progdir",
+          "Directory mounted into the sandbox containing untrusted binaries");
 
 int main(int argc, char* argv[]) {
   std::vector<char*> args = absl::ParseCommandLine(argc, argv);
@@ -48,8 +50,7 @@ int main(int argc, char* argv[]) {
   if (server_socket.empty()) {
     LOG(ERROR) << "No server socket provided.";
   }
-  char tmp_file[] = "/tmp/roma_app_server_XXXXXX";
-  std::string prog_dir = mkdtemp(tmp_file);
+  std::string prog_dir = absl::GetFlag(FLAGS_prog_dir);
 
   std::vector<std::string> mounts = absl::GetFlag(FLAGS_libs);
   mounts.push_back(prog_dir);

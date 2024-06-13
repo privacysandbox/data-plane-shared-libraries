@@ -56,7 +56,13 @@ struct ConfigInternal {
 
   std::string server_socket;
 
+  std::string callback_socket_flag_name = "callback_socket";
+
   std::string callback_socket;
+
+  std::string prog_dir_flag_name = "prog_dir";
+
+  std::string prog_dir;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 

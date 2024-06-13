@@ -117,15 +117,23 @@ absl::Status ModifyContainerConfigJson(
       {"destination", socket_dir.c_str()},
       {"type", "bind"},
       {"source", socket_dir.c_str()},
-      {"options", nlohmann::json{"rbind", "rprivate"}}};
+      {"options", nlohmann::json{"rbind", "rprivate"}},
+  };
   std::filesystem::path callback_socket_dir = callback_socket.parent_path();
   nlohmann::json callback_sock_dir_mount = {
       {"destination", callback_socket_dir.c_str()},
       {"type", "bind"},
       {"source", callback_socket_dir.c_str()},
-      {"options", nlohmann::json{"rbind", "rprivate"}}};
-  config_nlohmann_json["mounts"] =
-      nlohmann::json::array({sock_dir_mount, callback_sock_dir_mount});
+      {"options", nlohmann::json{"rbind", "rprivate"}},
+  };
+  nlohmann::json prog_dir_mount = {
+      {"destination", roma_config_internal->prog_dir.c_str()},
+      {"type", "volume"},
+      {"source", roma_config_internal->prog_dir.c_str()},
+      {"options", nlohmann::json{"rbind", "rprivate"}},
+  };
+  config_nlohmann_json["mounts"] = nlohmann::json::array(
+      {sock_dir_mount, callback_sock_dir_mount, prog_dir_mount});
   // Add args to startup gVisor server.
   config_nlohmann_json["process"]["args"] = {
       roma_config_internal->roma_server_path.c_str(),
@@ -137,7 +145,10 @@ absl::Status ModifyContainerConfigJson(
                    callback_socket.parent_path().c_str()),
       absl::StrCat("--", roma_config_internal->worker_pool_size_flag_name, "=",
                    roma_config->num_workers),
-      absl::StrCat("--callback_socket=", callback_socket.c_str())};
+      absl::StrCat("--", roma_config_internal->callback_socket_flag_name, "=",
+                   callback_socket.c_str()),
+      absl::StrCat("--", roma_config_internal->prog_dir_flag_name, "=",
+                   roma_config_internal->prog_dir)};
   return WriteToFile(config_file_loc, config_nlohmann_json.dump());
 }
 
@@ -203,9 +214,8 @@ void RunCommand(const std::vector<const char*>& argv) {
 }
 }  // namespace
 
-absl::StatusOr<LoadBinaryResponse> RomaGvisor::LoadBinary(
-    std::string_view code_str) {
-  return roma_client_.LoadBinary(code_str);
+absl::StatusOr<std::string> RomaGvisor::LoadBinary(std::string_view code_path) {
+  return roma_client_.LoadBinary(code_path);
 }
 
 absl::StatusOr<ExecuteBinaryResponse> RomaGvisor::ExecuteBinary(
@@ -242,6 +252,12 @@ RomaGvisor::~RomaGvisor() {
     LOG(ERROR) << "Failed to delete " << server_socket_dir << ": "
                << ec.message();
   }
+  if (std::error_code ec;
+      std::filesystem::remove_all(
+          std::filesystem::path(config_internal_.prog_dir), ec) <= 0) {
+    LOG(ERROR) << "Failed to delete " << config_internal_.prog_dir << ": "
+               << ec.message();
+  }
 }
 
 absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(
@@ -259,7 +275,7 @@ absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(
   PS_ASSIGN_OR_RETURN(
       pid_t pid, RunGvisorContainer(&config, &config_internal,
                                     config_internal.server_socket, channel));
-  RomaClient roma_client(channel);
+  RomaClient roma_client(channel, config_internal.prog_dir);
   // Note that since RomaGvisor's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaGvisor(
       std::move(config), std::move(config_internal), pid,

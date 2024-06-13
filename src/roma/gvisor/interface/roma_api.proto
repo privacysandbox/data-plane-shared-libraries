@@ -52,7 +52,6 @@ message ExecuteBinaryBidiStreamingResponse {
 
 message LoadBinaryRequest {
   bytes code_token = 1;
-  bytes code = 2;
 }
 
 message LoadBinaryResponse {

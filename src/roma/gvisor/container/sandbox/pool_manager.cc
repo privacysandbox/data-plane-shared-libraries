@@ -258,22 +258,17 @@ absl::Status RomaGvisorPoolManager::ClearWorkerMap() {
   return absl::OkStatus();
 }
 
-absl::StatusOr<std::string> RomaGvisorPoolManager::LoadBinary(
-    std::string_view code_token, std::string_view code) {
+absl::Status RomaGvisorPoolManager::LoadBinary(std::string_view code_token) {
   PS_RETURN_IF_ERROR(ClearWorkerMap());
   std::filesystem::path prog_path =
       std::filesystem::path(prog_dir_) / std::filesystem::path(code_token);
-  std::ofstream ofs(prog_path.c_str(), std::ofstream::trunc);
-  std::filesystem::permissions(prog_path.c_str(),
-                               std::filesystem::perms::owner_all);
-  if (!ofs.is_open() || ofs.fail()) {
-    return absl::InternalError("Failed to open file");
+  if (std::error_code ec; !std::filesystem::exists(prog_path, ec)) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "Code file for code_token ", code_token, " not found: ", ec.message()));
   }
-  ofs << code;
-  ofs.close();
   PS_RETURN_IF_ERROR(
       PopulateWorkerQueue(code_token, prog_path.c_str(), worker_pool_size_));
-  return std::string(code_token);
+  return absl::OkStatus();
 }
 
 namespace {

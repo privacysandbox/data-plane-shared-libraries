@@ -50,7 +50,9 @@ cc_library(
     deps = [
         "//src/core/common/uuid",
         "//src/roma/gvisor/interface:roma_api_grpc_proto",
+        "//src/util/status_macro:status_macros",
         "//src/util/status_macro:status_util",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
     ],
