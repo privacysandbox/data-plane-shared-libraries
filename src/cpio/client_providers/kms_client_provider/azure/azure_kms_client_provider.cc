@@ -15,7 +15,6 @@
  */
 
 #include "azure_kms_client_provider.h"
-#include "azure_kms_client_provider_utils.h"
 
 #include <cstdlib>
 #include <utility>
@@ -32,6 +31,7 @@
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
+#include "azure_kms_client_provider_utils.h"
 #include "error_codes.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
