@@ -52,6 +52,12 @@ constexpr char kAzurePrivateKeyFetcherProvider[] =
     "AzurePrivateKeyFetcherProvider";
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
+
+// Define properties of API calls
+constexpr char kWrappedKid[] = "wrappedKid";
+constexpr char kWrapped[] = "wrapped";
+constexpr char kWrappingKey[] = "wrappingKey";
+
 }  // namespace
 
 namespace google::scp::cpio::client_providers {

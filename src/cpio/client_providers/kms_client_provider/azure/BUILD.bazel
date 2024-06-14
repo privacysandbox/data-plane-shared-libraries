@@ -26,6 +26,7 @@ cc_library(
     ],
     deps = [
         "//src/azure:attestation",
+        "//src/core/http2_client",
         "//src/core/common/uuid",
         "//src/core/interface",
         "//src/core/interface:async_context",
@@ -56,6 +57,8 @@ filegroup(
     srcs = [
         ":azure_kms_client_provider.cc",
         ":azure_kms_client_provider.h",
+        ":azure_kms_client_provider_utils.cc",
+        ":azure_kms_client_provider_utils.h",
         ":error_codes.h",
     ],
 )
