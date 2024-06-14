@@ -36,34 +36,30 @@ constexpr char kPrivateKeyBaseUri[] = "http://localhost.test:8000";
 
 namespace google::scp::cpio::client_providers::test {
 
-
 TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKey) {
   auto wrappingKey = AzureKmsClientProviderUtils::GenerateWrappingKey();
 
   ASSERT_NE(wrappingKey.first, nullptr);
   ASSERT_NE(wrappingKey.second, nullptr);
 
-  std::string pem = AzureKmsClientProviderUtils::EvpPkeyToPem(
-      wrappingKey.first->get());
+  std::string pem =
+      AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.first->get());
 
   // Add the constant to avoid the key detection precommit
   auto toTest = std::string("-----") + std::string("BEGIN PRIVATE") +
                 std::string(" KEY-----");
   ASSERT_EQ(pem.find(toTest) == 0, true);
 
-  pem = AzureKmsClientProviderUtils::EvpPkeyToPem(
-      wrappingKey.second->get());
+  pem = AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.second->get());
   ASSERT_EQ(pem.find("-----BEGIN PUBLIC KEY-----") == 0, true);
 }
 
 TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKeyHash) {
   auto publicPemKey =
       google::scp::cpio::client_providers::GetTestPemPublicWrapKey();
-  auto publicKey =
-      AzureKmsClientProviderUtils::PemToEvpPkey(publicPemKey);
+  auto publicKey = AzureKmsClientProviderUtils::PemToEvpPkey(publicPemKey);
 
-  auto hexHash =
-      AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
+  auto hexHash = AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
   std::cout << "##################HASH: " << hexHash << std::endl;
   ASSERT_EQ(hexHash.size(), 64);
   ASSERT_EQ(hexHash,

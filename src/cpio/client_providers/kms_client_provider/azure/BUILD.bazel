@@ -26,8 +26,8 @@ cc_library(
     ],
     deps = [
         "//src/azure:attestation",
-        "//src/core/http2_client",
         "//src/core/common/uuid",
+        "//src/core/http2_client",
         "//src/core/interface",
         "//src/core/interface:async_context",
         "//src/core/utils:core_utils",

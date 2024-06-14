@@ -27,6 +27,7 @@
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
+
 #include "azure_kms_client_provider_utils.h"
 
 namespace google::scp::cpio::client_providers {

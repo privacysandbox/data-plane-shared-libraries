@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-#include "azure_kms_client_provider.h"
 #include "azure_kms_client_provider_utils.h"
 
 #include <memory>
 #include <utility>
 
 #include "src/azure/attestation/src/attestation.h"
+
+#include "azure_kms_client_provider.h"
 
 using google::scp::azure::attestation::fetchFakeSnpAttestation;
 using google::scp::azure::attestation::fetchSnpAttestation;

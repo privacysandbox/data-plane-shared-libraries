@@ -27,11 +27,11 @@
 #include <openssl/pem.h>
 #include <openssl/rsa.h>
 
-//#include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider.h"
+// #include
+// "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider.h"
 
 namespace google::scp::cpio::client_providers {
 #define MAX_OPENSSL_ERROR_STRING_LEN 256
-
 
 // add test keys for non-SNP environment
 static constexpr char kPemSeperator[] = "-----";

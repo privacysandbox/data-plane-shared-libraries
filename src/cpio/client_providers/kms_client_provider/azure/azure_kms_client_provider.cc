@@ -183,8 +183,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   if (hasSnp()) {
     // Generate wrapping key
     try {
-      wrappingKeyPair =
-          AzureKmsClientProviderUtils::GenerateWrappingKey();
+      wrappingKeyPair = AzureKmsClientProviderUtils::GenerateWrappingKey();
     } catch (const std::runtime_error& e) {
       std::string errorMessage = "Failed to generate wrapping key : ";
       errorMessage += e.what();
@@ -250,8 +249,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   payload[kWrapped] = ciphertext;
   payload[kWrappedKid] = key_id;
   payload[kAttestation] = nlohmann::json(report.value());
-  payload[kWrappingKey] =
-      AzureKmsClientProviderUtils::EvpPkeyToPem(publicKey);
+  payload[kWrappingKey] = AzureKmsClientProviderUtils::EvpPkeyToPem(publicKey);
   http_context.request->body = core::BytesBuffer(nlohmann::to_string(payload));
   http_context.request->headers = std::make_shared<core::HttpHeaders>();
   http_context.request->headers->insert(
