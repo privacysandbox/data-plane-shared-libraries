@@ -33,6 +33,8 @@
 namespace google::scp::cpio::client_providers {
 #define MAX_OPENSSL_ERROR_STRING_LEN 256
 
+constexpr char kAttestation[] = "attestation";
+
 // add test keys for non-SNP environment
 static constexpr char kPemSeperator[] = "-----";
 static constexpr char kPemEnd[] = "END ";

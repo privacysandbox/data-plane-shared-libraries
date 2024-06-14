@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include "azure_kms_client_provider_utils.h"
-
 #include <memory>
 #include <utility>
 

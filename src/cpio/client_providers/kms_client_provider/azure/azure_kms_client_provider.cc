@@ -15,6 +15,7 @@
  */
 
 #include "azure_kms_client_provider.h"
+#include "azure_kms_client_provider_utils.h"
 
 #include <cstdlib>
 #include <utility>
@@ -29,7 +30,6 @@
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/azure/azure_private_key_fetcher_provider_utils.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
 #include "error_codes.h"
