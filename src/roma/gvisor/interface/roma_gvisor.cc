@@ -224,14 +224,6 @@ RomaGvisor::~RomaGvisor() {
       nullptr,
   };
   RunCommand(runsc_kill);
-  // TODO: ashruti - Currently, delete fails with errno 128 (Key has been
-  // revoked). However, if the container is not deleted, error occurs when
-  // starting another container.
-  std::vector<const char*> runsc_delete = {
-      config_internal_.runsc_path.c_str(), "delete", "-force",
-      config_.roma_container_name.c_str(), nullptr,
-  };
-  RunCommand(runsc_delete);
   if (std::error_code ec;
       std::filesystem::remove_all(socket_directory_, ec) <= 0) {
     LOG(ERROR) << "Failed to delete " << socket_directory_ << ": "
@@ -242,8 +234,12 @@ RomaGvisor::~RomaGvisor() {
   }
   if (int status; waitpid(roma_container_pid_, &status, /*options=*/0) == -1) {
     PLOG(ERROR) << absl::StrCat("Failed to wait for ", roma_container_pid_);
-    return;
   }
+  std::vector<const char*> runsc_delete = {
+      config_internal_.runsc_path.c_str(), "delete", "-force",
+      config_.roma_container_name.c_str(), nullptr,
+  };
+  RunCommand(runsc_delete);
 }
 
 absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(Config config) {
