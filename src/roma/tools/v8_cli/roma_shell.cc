@@ -23,25 +23,18 @@
 #include "absl/log/log.h"
 #include "absl/strings/match.h"
 #include "src/roma/tools/v8_cli/roma_repl.h"
+#include "src/roma/tools/v8_cli/utils.h"
 #include "src/util/duration.h"
 
 namespace {
+using google::scp::roma::tools::v8_cli::ExtractAndSanitizeCustomFlags;
 using google::scp::roma::tools::v8_cli::RomaRepl;
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
-constexpr std::string_view kFlagPrefix = "--";
-constexpr std::string_view kRomaShellFlags[] = {
+const std::vector<std::string> kRomaShellFlags = {
     "--num_workers", "--verbose", "--enable_profilers", "--timeout", "--file",
 };
 
-bool IsV8Flag(std::string_view flag) {
-  for (const auto& roma_flag : kRomaShellFlags) {
-    if (absl::StartsWith(flag, roma_flag)) {
-      return false;
-    }
-  }
-  return true;
-}
 }  // namespace
 
 ABSL_FLAG(uint16_t, num_workers, 1, "Number of Roma workers");
@@ -61,24 +54,8 @@ int main(int argc, char* argv[]) {
       "associated value must be specified using the form --flag=value eg. "
       "--initial-heap-size=50.");
 
-  std::vector<std::string> v8_flags;
-  // Sanitized V8 flags to be passed to the RomaService.
-  std::vector<std::string> sanitized_v8_flags;
-  absl::flat_hash_set<std::string> processed_flags;
-  for (int i = 1; i < argc; i++) {
-    std::string_view flag = argv[i];
-    std::string_view flag_clean = flag;
-    if (const size_t eq_pos = flag_clean.find('='); eq_pos != flag_clean.npos) {
-      flag_clean.remove_suffix(flag_clean.size() - eq_pos);
-    }
-    flag_clean.remove_prefix(kFlagPrefix.size());
-    if (!processed_flags.contains(flag_clean) && IsV8Flag(flag)) {
-      processed_flags.insert(std::string(flag_clean));
-      sanitized_v8_flags.push_back(std::string(flag_clean));
-      v8_flags.push_back(std::string(flag));
-    }
-  }
-  absl::SetFlag(&FLAGS_undefok, sanitized_v8_flags);
+  std::vector<std::string> v8_flags =
+      ExtractAndSanitizeCustomFlags(argc, argv, kRomaShellFlags);
 
   absl::ParseCommandLine(argc, argv);
   absl::SetStderrThreshold(absl::GetFlag(FLAGS_verbose)

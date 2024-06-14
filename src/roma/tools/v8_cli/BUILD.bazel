@@ -24,6 +24,17 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "utils",
+    hdrs = ["utils.h"],
+    deps = [
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
 cc_binary(
     name = "v8_shell",
     srcs = ["v8_shell.cc"],
@@ -67,6 +78,7 @@ cc_binary(
     srcs = ["roma_shell.cc"],
     deps = [
         ":roma_repl",
+        ":utils",
         "//src/roma/interface",
         "//src/roma/roma_service",
         "//src/util:duration",
