@@ -54,7 +54,7 @@ namespace privacy_sandbox::server_common::gvisor {
 namespace {
 
 constexpr int32_t kStackSize = 1 << 20;
-constexpr int32_t kBufferChunkSize = 1024;
+constexpr int32_t kBufferChunkSize = 64 << 10;
 constexpr absl::Duration kWorkerFetchTimeout = absl::Seconds(5);
 
 absl::Status MkDir(std::string_view dir) {
@@ -176,25 +176,22 @@ int RunWorker(void* worker_arg) {
   abort();
 }
 
-absl::StatusOr<absl::Cord> ReadResponseFromPipe(const int pipe_fd) {
-  bool first_read = true;
+absl::StatusOr<absl::Cord> ReadResponseFromPipe(const int pipe_fd,
+                                                const int bytes_available) {
   absl::Cord response_cord;
   // Read from the pipe until there is no more data.
-  while (true) {
-    absl::CordBuffer buffer =
-        first_read ? response_cord.GetAppendBuffer(kBufferChunkSize)
-                   : absl::CordBuffer::CreateWithDefaultLimit(kBufferChunkSize);
-    absl::Span<char> data = buffer.available_up_to(kBufferChunkSize);
+  int bytes_to_be_read = bytes_available;
+  while (bytes_to_be_read > 0) {
+    absl::CordBuffer buffer = absl::CordBuffer::CreateWithCustomLimit(
+        kBufferChunkSize, bytes_to_be_read);
+    absl::Span<char> data = buffer.available_up_to(bytes_to_be_read);
     int bytes_read = ::read(pipe_fd, data.data(), data.size());
     if (bytes_read < 0) {
       return absl::ErrnoToStatus(errno, "Failed to read from pipe");
     }
     buffer.IncreaseLengthBy(data.size());
     response_cord.Append(std::move(buffer));
-    first_read = false;
-    if (bytes_read == 0) {
-      break;
-    }
+    bytes_to_be_read -= data.size();
   }
   if (::close(pipe_fd) < 0) {
     return absl::ErrnoToStatus(
@@ -364,7 +361,7 @@ absl::StatusOr<WorkerInfo> RomaGvisorPoolManager::GetWorker(
       std::filesystem::path(prog_dir_) / std::filesystem::path(code_token);
   if (std::error_code ec; !std::filesystem::exists(prog_path, ec)) {
     return absl::InvalidArgumentError(absl::StrCat(
-        "Code file for code_token ", code_token, " found: ", ec.message()));
+        "Code file for code_token ", code_token, " not found: ", ec.message()));
   }
   // Before utilizing a worker, preempt creation of a replacement.
   std::thread([&, code_token = std::string(code_token),
@@ -442,6 +439,14 @@ RomaGvisorPoolManager::SendRequestAndGetResponseFromWorker(
         absl::StrCat("Worker process did not exited with non-zero code ",
                      worker_errno));
   }
-  return ReadResponseFromPipe(worker_info.out_pipe);
+  int bytes_available = 0;
+  if (::ioctl(worker_info.out_pipe, FIONREAD, &bytes_available) < 0) {
+    return absl::ErrnoToStatus(errno, "Failed to find output size");
+  }
+  if (bytes_available < 0) {
+    return absl::InvalidArgumentError(absl::StrCat(
+        "No response written to output pipe ", worker_info.out_pipe));
+  }
+  return ReadResponseFromPipe(worker_info.out_pipe, bytes_available);
 }
 }  // namespace privacy_sandbox::server_common::gvisor
