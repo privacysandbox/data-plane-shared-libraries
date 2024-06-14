@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-function echo(input) {
-  return input;
+function echo(...args) {
+  return args.join(' '); // Join arguments with a space separator
 }
