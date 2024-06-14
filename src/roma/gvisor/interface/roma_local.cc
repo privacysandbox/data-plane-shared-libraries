@@ -98,8 +98,7 @@ absl::StatusOr<std::unique_ptr<RomaLocal>> RomaLocal::Create(Config config) {
   std::string socket_path_flag =
       absl::StrCat("--", config_internal.socket_flag_name, "=", socket_pwd);
   std::string lib_mount_flag = absl::StrCat(
-      "--", config_internal.lib_mounts_flag_name, "=",
-      config_internal.lib_mounts_flag_value, ",",
+      "--", config_internal.lib_mounts_flag_name, "=", config.lib_mounts, ",",
       std::filesystem::path(callback_socket).parent_path().c_str());
   std::string num_workers_flag =
       absl::StrCat("--", config_internal.worker_pool_size_flag_name, "=",

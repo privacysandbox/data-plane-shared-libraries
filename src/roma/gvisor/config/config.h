@@ -31,6 +31,8 @@ struct Config {
 
   std::string roma_container_name = "roma_server";
 
+  std::string lib_mounts = GetLibMounts();
+
   std::vector<google::scp::roma::FunctionBindingObjectV2<>> function_bindings;
 };
 
@@ -47,8 +49,6 @@ struct ConfigInternal {
   std::filesystem::path roma_server_path = GetRomaServerPwd();
 
   std::string lib_mounts_flag_name = "libs";
-
-  std::string lib_mounts_flag_value = GetLibMounts();
 
   std::string socket_flag_name = "server_socket";
 

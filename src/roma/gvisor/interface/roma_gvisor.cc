@@ -133,7 +133,7 @@ absl::Status ModifyContainerConfigJson(
       absl::StrCat("--", roma_config_internal->socket_flag_name, "=",
                    socket_pwd.c_str()),
       absl::StrCat("--", roma_config_internal->lib_mounts_flag_name, "=",
-                   roma_config_internal->lib_mounts_flag_value, ",",
+                   roma_config->lib_mounts, ",",
                    callback_socket.parent_path().c_str()),
       absl::StrCat("--", roma_config_internal->worker_pool_size_flag_name, "=",
                    roma_config->num_workers),
