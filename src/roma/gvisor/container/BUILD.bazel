@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
@@ -40,22 +39,6 @@ pkg_tar(
         ":gvisor_execs",
     ],
     visibility = ["//visibility:public"],
-)
-
-cc_library(
-    name = "grpc_client",
-    srcs = ["grpc_client.cc"],
-    hdrs = ["grpc_client.h"],
-    visibility = ["//src/roma/gvisor:__subpackages__"],
-    deps = [
-        "//src/core/common/uuid",
-        "//src/roma/gvisor/interface:roma_api_grpc_proto",
-        "//src/util/status_macro:status_macros",
-        "//src/util/status_macro:status_util",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-    ],
 )
 
 pkg_files(

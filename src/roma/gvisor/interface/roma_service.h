@@ -17,18 +17,26 @@
 #ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_SERVICE_H_
 #define SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_SERVICE_H_
 
+#include <filesystem>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <utility>
 #include <vector>
+
+#include <grpcpp/grpcpp.h>
 
 #include <google/protobuf/message_lite.h>
 
 #include "absl/log/check.h"
+#include "absl/log/log.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/gvisor/config/config.h"
 #include "src/roma/gvisor/config/utils.h"
 #include "src/roma/gvisor/host/native_function_handler.h"
+#include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
 #include "src/roma/gvisor/interface/roma_api.pb.h"
 #include "src/roma/gvisor/interface/roma_gvisor.h"
 #include "src/roma/gvisor/interface/roma_interface.h"
@@ -36,6 +44,7 @@
 #include "src/roma/interface/roma.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/util/status_macro/status_macros.h"
+#include "src/util/status_macro/status_util.h"
 
 namespace privacy_sandbox::server_common::gvisor {
 
@@ -59,39 +68,132 @@ class RomaService final {
     PS_ASSIGN_OR_RETURN(config_internal.callback_socket,
                         CreateUniqueSocketName());
     PS_ASSIGN_OR_RETURN(config_internal.prog_dir, CreateUniqueDirectory());
+    std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateChannel(
+        absl::StrCat("unix://", config_internal.server_socket),
+        ::grpc::InsecureChannelCredentials());
     if (mode == Mode::kModeGvisor) {
       PS_ASSIGN_OR_RETURN(roma_interface,
-                          RomaGvisor::Create(config, config_internal));
+                          RomaGvisor::Create(config, config_internal, channel));
     } else {
       PS_ASSIGN_OR_RETURN(roma_interface,
-                          RomaLocal::Create(config, config_internal));
+                          RomaLocal::Create(config, config_internal, channel));
     }
-    return absl::WrapUnique(new RomaService(std::move(roma_interface),
-                                            std::move(config.function_bindings),
-                                            config_internal.callback_socket));
+    return absl::WrapUnique(new RomaService(
+        std::move(roma_interface), std::move(config.function_bindings),
+        config_internal.callback_socket, std::move(channel),
+        config_internal.prog_dir));
   }
 
-  absl::StatusOr<std::string> LoadBinary(std::string_view code_path) {
-    return roma_interface_->LoadBinary(code_path);
+  /**
+   * @brief Loads a new binary asynchronously from the provided code_path.
+   *
+   * @paragraph Once the load operation has been completed, notification will be
+   * sent via absl::Notification namely notif. If load is successful, the
+   * load_status will be populated with an ok status else with the error
+   * status and message. If load is successful, ExecuteBinary can be called on
+   * the code using the code_token returned by this function.
+   *
+   * @param code_path path to the binary to be loaded into the sandbox.
+   * @param notif notifies that load_status is available.
+   * @param load_status is populated with the status of load once load is
+   * completed. If the status is ok, then code_token returned by this function
+   * can be used for calling this binary in subsequent execute requests.
+   * @return absl::StatusOr<std::string> returns the code_token.
+   */
+  absl::StatusOr<std::string> LoadBinary(std::string_view code_path,
+                                         absl::Notification& notif,
+                                         absl::Status& load_status) {
+    std::string code_token_str = ::google::scp::core::common::ToString(
+        ::google::scp::core::common::Uuid::GenerateUuid());
+    PS_RETURN_IF_ERROR(CopyFile(code_path, prog_dir_, code_token_str));
+
+    struct LoadBinaryArgs {
+      ::grpc::ClientContext context;
+      LoadBinaryRequest request;
+      LoadBinaryResponse response;
+    };
+
+    std::shared_ptr<LoadBinaryArgs> load_args =
+        std::make_shared<LoadBinaryArgs>();
+    load_args->request.set_code_token(code_token_str);
+    stub_->async()->LoadBinary(
+        &load_args->context, &load_args->request, &load_args->response,
+        // Load args are moved into the callback to extend the lifetime so that
+        // they are available when needed by the async gRPC.
+        [load_args = std::move(load_args), &notif,
+         &load_status](::grpc::Status status) {
+          load_status = ToAbslStatus(status);
+          // Once load_status is populated, notify load
+          // is complete and status is available.
+          notif.Notify();
+        });
+    return code_token_str;
   }
 
-  absl::Status ExecuteBinary(absl::Notification& notif,
-                             std::string_view code_token,
-                             const ::google::protobuf::MessageLite& request,
-                             ::google::protobuf::MessageLite& response,
-                             TMetadata metadata) {
+  /**
+   * @brief Executes the binary referred to by the provided code_token
+   * asynchronously.
+   *
+   * Once the async execute is complete, notification will be sent via the
+   * provided notif. If successful, response will be populated with the output
+   * from the binary. Else, with the error and the message.
+   *
+   * @param code_token identifier provided by load of the binary to be executed.
+   * @param request proto for the binary.
+   * @param metadata for execution request. It is a templated type.
+   * @param response populated with the response from the binary once
+   * execution is complete, if successful.  Else, the error and the message.
+   * @param notif notifies that execution_status is available.
+   * @return absl::Status
+   */
+  absl::Status ExecuteBinary(
+      std::string_view code_token,
+      const ::google::protobuf::MessageLite& request, TMetadata metadata,
+      absl::StatusOr<std::unique_ptr<::google::protobuf::MessageLite>>&
+          response,
+      absl::Notification& notif) {
     std::string request_id = google::scp::core::common::ToString(
         google::scp::core::common::Uuid::GenerateUuid());
     PS_RETURN_IF_ERROR(metadata_storage_.Add(request_id, metadata));
-    ExecuteBinaryRequest exec_request;
-    exec_request.set_code_token(code_token);
-    exec_request.set_serialized_request(request.SerializeAsString());
-    exec_request.set_request_id(request_id);
-    PS_ASSIGN_OR_RETURN(ExecuteBinaryResponse exec_response,
-                        roma_interface_->ExecuteBinary(exec_request));
-    response.ParseFromString(exec_response.serialized_response());
-    notif.Notify();
-    PS_RETURN_IF_ERROR(metadata_storage_.Delete(request_id));
+
+    struct ExecuteBinaryArgs {
+      ::grpc::ClientContext context;
+      ExecuteBinaryRequest request;
+      ExecuteBinaryResponse response;
+    };
+
+    std::shared_ptr<ExecuteBinaryArgs> exec_args =
+        std::make_shared<ExecuteBinaryArgs>();
+    exec_args->request.set_code_token(code_token);
+    exec_args->request.set_serialized_request(request.SerializeAsString());
+    exec_args->request.set_request_id(request_id);
+    stub_->async()->ExecuteBinary(
+        &exec_args->context, &exec_args->request, &exec_args->response,
+        // Exec args are moved into the callback to extend the lifetime so that
+        // they are available when needed by the async gRPC.
+        [&, exec_args = std::move(exec_args),
+         request_id = std::move(request_id)](::grpc::Status status) {
+          if (status.ok()) {
+            CHECK(*response != nullptr);
+            if (!(**response)
+                     .ParseFromString(
+                         exec_args->response.serialized_response())) {
+              response = absl::InternalError(
+                  "Failed to deserialize response to proto");
+            }
+          } else {
+            response = ToAbslStatus(status);
+          }
+          // Once response and execution_status have been populated, notify that
+          // execution has been completed.
+          notif.Notify();
+          // Post-execution cleanup.
+          // Delete metadata from storage.
+          if (!metadata_storage_.Delete(request_id).ok()) {
+            LOG(ERROR) << "Failed to delete metadata for request " << request_id
+                       << " from metadata storage";
+          }
+        });
     return absl::OkStatus();
   }
 
@@ -99,8 +201,11 @@ class RomaService final {
   explicit RomaService(
       std::unique_ptr<RomaInterface> roma_interface,
       std::vector<FunctionBindingObjectV2<TMetadata>> function_bindings,
-      std::string callback_socket) {
+      std::string callback_socket, std::shared_ptr<::grpc::Channel> channel,
+      std::string prog_dir) {
     roma_interface_ = std::move(roma_interface);
+    stub_ = RomaGvisorService::NewStub(channel);
+    prog_dir_ = prog_dir;
     native_function_handler_ =
         std::make_unique<NativeFunctionHandler<TMetadata>>(
             std::move(function_bindings), callback_socket, &metadata_storage_);
@@ -109,6 +214,8 @@ class RomaService final {
   // Map of invocation request uuid to associated metadata.
   ::google::scp::roma::metadata_storage::MetadataStorage<TMetadata>
       metadata_storage_;
+  std::unique_ptr<RomaGvisorService::Stub> stub_;
+  std::string prog_dir_;
   std::unique_ptr<RomaInterface> roma_interface_;
   std::unique_ptr<NativeFunctionHandler<TMetadata>> native_function_handler_;
 };

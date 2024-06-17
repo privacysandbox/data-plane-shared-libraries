@@ -37,7 +37,6 @@
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "src/roma/gvisor/config/config.h"
-#include "src/roma/gvisor/container/grpc_client.h"
 #include "src/roma/gvisor/interface/roma_api.pb.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -155,7 +154,7 @@ absl::Status ModifyContainerConfigJson(
 absl::StatusOr<pid_t> RunGvisorContainer(
     const Config* config, const ConfigInternal* config_internal,
     const std::filesystem::path& socket_pwd,
-    const std::shared_ptr<grpc::Channel>& gvisor_channel) {
+    std::shared_ptr<grpc::Channel> gvisor_channel) {
   std::vector<const char*> argv_runsc = {
       config_internal->runsc_path.c_str(), "--host-uds=all", "run",
       config->roma_container_name.c_str(), nullptr};
@@ -177,7 +176,8 @@ absl::StatusOr<pid_t> RunGvisorContainer(
   } else if (pid == -1) {
     return absl::ErrnoToStatus(errno, "Failed to vfork.");
   }
-  PS_RETURN_IF_ERROR(HealthCheckWithExponentialBackoff(gvisor_channel));
+  PS_RETURN_IF_ERROR(
+      HealthCheckWithExponentialBackoff(std::move(gvisor_channel)));
   return pid;
 }
 
@@ -213,15 +213,6 @@ void RunCommand(const std::vector<const char*>& argv) {
   }
 }
 }  // namespace
-
-absl::StatusOr<std::string> RomaGvisor::LoadBinary(std::string_view code_path) {
-  return roma_client_.LoadBinary(code_path);
-}
-
-absl::StatusOr<ExecuteBinaryResponse> RomaGvisor::ExecuteBinary(
-    const ExecuteBinaryRequest& request) {
-  return roma_client_.ExecuteBinary(request);
-}
 
 RomaGvisor::~RomaGvisor() {
   // Observed 'gofer is still running' issue -
@@ -261,7 +252,8 @@ RomaGvisor::~RomaGvisor() {
 }
 
 absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(
-    Config config, ConfigInternal config_internal) {
+    Config config, ConfigInternal config_internal,
+    std::shared_ptr<::grpc::Channel> channel) {
   PS_RETURN_IF_ERROR(PreCheckRomaContainerDir(&config_internal));
   PS_ASSIGN_OR_RETURN(const std::filesystem::path socket_pwd,
                       CreateUniqueSocketName());
@@ -269,17 +261,13 @@ absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(
   PS_RETURN_IF_ERROR(ModifyContainerConfigJson(
       &config, &config_internal, config_internal.server_socket,
       config_internal.callback_socket));
-  std::shared_ptr<grpc::Channel> channel = grpc::CreateChannel(
-      absl::StrCat("unix://", config_internal.server_socket),
-      grpc::InsecureChannelCredentials());
   PS_ASSIGN_OR_RETURN(
-      pid_t pid, RunGvisorContainer(&config, &config_internal,
-                                    config_internal.server_socket, channel));
-  RomaClient roma_client(channel, config_internal.prog_dir);
+      pid_t pid,
+      RunGvisorContainer(&config, &config_internal,
+                         config_internal.server_socket, std::move(channel)));
   // Note that since RomaGvisor's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaGvisor(
       std::move(config), std::move(config_internal), pid,
-      std::move(roma_client),
       std::filesystem::path(config_internal.server_socket).parent_path()));
 }
 }  // namespace privacy_sandbox::server_common::gvisor

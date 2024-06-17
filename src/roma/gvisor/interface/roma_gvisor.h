@@ -23,7 +23,6 @@
 
 #include "absl/status/statusor.h"
 #include "src/roma/gvisor/config/config.h"
-#include "src/roma/gvisor/container/grpc_client.h"
 #include "src/roma/gvisor/interface/roma_interface.h"
 
 namespace privacy_sandbox::server_common::gvisor {
@@ -32,27 +31,21 @@ class RomaGvisor final : public RomaInterface {
   // Factory method: creates and returns a RomaGvisor.
   // May return null on failure.
   static absl::StatusOr<std::unique_ptr<RomaGvisor>> Create(
-      Config config, ConfigInternal config_internal);
-
-  absl::StatusOr<std::string> LoadBinary(std::string_view code_path) override;
-
-  absl::StatusOr<ExecuteBinaryResponse> ExecuteBinary(
-      const ExecuteBinaryRequest& request) override;
+      Config config, ConfigInternal config_internal,
+      std::shared_ptr<::grpc::Channel> channel);
 
   ~RomaGvisor() override;
 
  private:
   // Clients can't invoke the constructor directly.
   explicit RomaGvisor(Config config, ConfigInternal config_internal,
-                      pid_t roma_container_pid, RomaClient roma_client,
+                      pid_t roma_container_pid,
                       std::filesystem::path socket_directory)
       : roma_container_pid_(roma_container_pid),
-        roma_client_(std::move(roma_client)),
         config_(std::move(config)),
         config_internal_(std::move(config_internal)) {}
 
   const pid_t roma_container_pid_;
-  RomaClient roma_client_;
   const Config config_;
   const ConfigInternal config_internal_;
 };

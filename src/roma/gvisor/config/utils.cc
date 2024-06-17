@@ -25,6 +25,7 @@
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -85,7 +86,7 @@ absl::StatusOr<std::filesystem::path> CreateUniqueSocketName() {
 }
 
 absl::Status HealthCheckWithExponentialBackoff(
-    const std::shared_ptr<::grpc::Channel>& channel) {
+    std::shared_ptr<::grpc::Channel> channel) {
   std::unique_ptr<::grpc::health::v1::Health::Stub> health_stub =
       ::grpc::health::v1::Health::NewStub(channel);
   ::grpc::health::v1::HealthCheckRequest request;
@@ -107,4 +108,17 @@ absl::Status HealthCheckWithExponentialBackoff(
   return absl::DeadlineExceededError("Server did not startup in time");
 }
 
+absl::Status CopyFile(std::string_view src, std::string_view dest_dir,
+                      std::string_view dest_file_name) {
+  std::filesystem::path dest = std::filesystem::path(dest_dir) / dest_file_name;
+  if (std::error_code ec;
+      !std::filesystem::copy_file(std::filesystem::path(src), dest, ec)) {
+    LOG(ERROR) << "Failed to copy " << src << " to " << dest << " with error "
+               << ec.message() << std::endl;
+    return absl::InternalError(absl::StrCat("Failed to copy ", src, " to ",
+                                            dest.c_str(), " with error ",
+                                            ec.message()));
+  }
+  return absl::OkStatus();
+}
 }  // namespace privacy_sandbox::server_common::gvisor

@@ -35,16 +35,14 @@
 #include "absl/strings/str_join.h"
 #include "src/proto/grpc/health/v1/health.grpc.pb.h"
 #include "src/roma/gvisor/config/config.h"
-#include "src/roma/gvisor/container/grpc_client.h"
 #include "src/util/status_macro/status_macros.h"
 
 namespace privacy_sandbox::server_common::gvisor {
 
 namespace {
 
-absl::StatusOr<pid_t> RunLocalServer(
-    const std::vector<const char*>& argv,
-    const std::shared_ptr<grpc::Channel> channel) {
+absl::StatusOr<pid_t> RunLocalServer(const std::vector<const char*>& argv,
+                                     std::shared_ptr<grpc::Channel> channel) {
   pid_t pid = vfork();
   if (pid == 0) {
     if (execv(argv[0], const_cast<char* const*>(argv.data())) == -1) {
@@ -57,7 +55,7 @@ absl::StatusOr<pid_t> RunLocalServer(
                                absl::StrCat("Failed to fork before executing '",
                                             absl::StrJoin(argv, " "), "'"));
   }
-  PS_RETURN_IF_ERROR(HealthCheckWithExponentialBackoff(channel));
+  PS_RETURN_IF_ERROR(HealthCheckWithExponentialBackoff(std::move(channel)));
   return pid;
 }
 }  // namespace
@@ -70,27 +68,19 @@ RomaLocal::~RomaLocal() {
     PLOG(ERROR) << absl::StrCat("Failed to wait for ", roma_server_pid_);
   }
   if (std::error_code ec;
-      std::filesystem::remove_all(std::filesystem::path(prog_dir_), ec) <= 0) {
-    LOG(ERROR) << "Failed to delete " << prog_dir_ << ": " << ec.message();
-  }
-  if (std::error_code ec;
       std::filesystem::remove_all(socket_directory_, ec) <= 0) {
     LOG(ERROR) << "Failed to delete " << socket_directory_ << ": "
                << ec.message();
   }
-}
-
-absl::StatusOr<std::string> RomaLocal::LoadBinary(std::string_view code_path) {
-  return roma_client_.LoadBinary(code_path);
-}
-
-absl::StatusOr<ExecuteBinaryResponse> RomaLocal::ExecuteBinary(
-    const ExecuteBinaryRequest& request) {
-  return roma_client_.ExecuteBinary(request);
+  if (std::error_code ec;
+      std::filesystem::remove_all(std::filesystem::path(prog_dir_), ec) <= 0) {
+    LOG(ERROR) << "Failed to delete " << prog_dir_ << ": " << ec.message();
+  }
 }
 
 absl::StatusOr<std::unique_ptr<RomaLocal>> RomaLocal::Create(
-    Config config, ConfigInternal config_internal) {
+    Config config, ConfigInternal config_internal,
+    std::shared_ptr<::grpc::Channel> channel) {
   PS_ASSIGN_OR_RETURN(std::string socket_pwd, CreateUniqueSocketName());
   PS_ASSIGN_OR_RETURN(std::string callback_socket, CreateUniqueSocketName());
   const std::filesystem::path server_path =
@@ -122,14 +112,11 @@ absl::StatusOr<std::unique_ptr<RomaLocal>> RomaLocal::Create(
       prog_dir_flag.c_str(),
       nullptr,
   };
-  auto channel = grpc::CreateChannel(
-      absl::StrCat("unix://", config_internal.server_socket),
-      grpc::InsecureChannelCredentials());
-  PS_ASSIGN_OR_RETURN(pid_t pid, RunLocalServer(run_local_server, channel));
-  RomaClient roma_client(channel, config_internal.prog_dir);
+  PS_ASSIGN_OR_RETURN(pid_t pid,
+                      RunLocalServer(run_local_server, std::move(channel)));
   // Note that since RomaLocal's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaLocal(
-      std::move(config), pid, std::move(roma_client),
+      std::move(config), pid,
       std::filesystem::path(config_internal.server_socket).parent_path(),
       std::filesystem::path(config_internal.prog_dir)));
 }

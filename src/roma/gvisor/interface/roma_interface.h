@@ -28,12 +28,6 @@ namespace privacy_sandbox::server_common::gvisor {
 
 class RomaInterface {
  public:
-  virtual absl::StatusOr<std::string> LoadBinary(
-      std::string_view code_path) = 0;
-
-  virtual absl::StatusOr<ExecuteBinaryResponse> ExecuteBinary(
-      const ExecuteBinaryRequest& request) = 0;
-
   virtual ~RomaInterface() = default;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
