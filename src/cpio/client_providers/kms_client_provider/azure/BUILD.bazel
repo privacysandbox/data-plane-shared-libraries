@@ -32,7 +32,6 @@ cc_library(
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
-        "//src/cpio/client_providers/private_key_fetcher_provider/azure:azure_private_key_fetcher_provider",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@com_github_googleapis_google_cloud_cpp//:kms",
@@ -56,6 +55,8 @@ filegroup(
     srcs = [
         ":azure_kms_client_provider.cc",
         ":azure_kms_client_provider.h",
+        ":azure_kms_client_provider_utils.cc",
+        ":azure_kms_client_provider_utils.h",
         ":error_codes.h",
     ],
 )

@@ -29,9 +29,9 @@
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "src/cpio/client_providers/private_key_fetcher_provider/azure/azure_private_key_fetcher_provider_utils.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
+#include "azure_kms_client_provider_utils.h"
 #include "error_codes.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
@@ -62,7 +62,7 @@ using google::scp::core::errors::
     SC_AZURE_KMS_CLIENT_PROVIDER_WRAPPING_KEY_GENERATION_ERROR;
 using google::scp::core::utils::Base64Decode;
 using google::scp::core::utils::Base64Encode;
-using google::scp::cpio::client_providers::AzurePrivateKeyFetchingClientUtils;
+using google::scp::cpio::client_providers::AzureKmsClientProviderUtils;
 using google::scp::cpio::client_providers::EvpPkeyWrapper;
 using std::all_of;
 using std::bind;
@@ -84,6 +84,11 @@ constexpr char kAzureKmsUnwrapUrlEnvVar[] = "AZURE_BA_PARAM_KMS_UNWRAP_URL";
 
 constexpr char kAuthorizationHeaderKey[] = "Authorization";
 constexpr char kBearerTokenPrefix[] = "Bearer ";
+
+// Define properties of API calls
+constexpr char kWrappedKid[] = "wrappedKid";
+constexpr char kWrapped[] = "wrapped";
+constexpr char kWrappingKey[] = "wrappingKey";
 
 absl::Status AzureKmsClientProvider::Decrypt(
     core::AsyncContext<DecryptRequest, DecryptResponse>&
@@ -178,8 +183,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   if (hasSnp()) {
     // Generate wrapping key
     try {
-      wrappingKeyPair =
-          AzurePrivateKeyFetchingClientUtils::GenerateWrappingKey();
+      wrappingKeyPair = AzureKmsClientProviderUtils::GenerateWrappingKey();
     } catch (const std::runtime_error& e) {
       std::string errorMessage = "Failed to generate wrapping key : ";
       errorMessage += e.what();
@@ -198,12 +202,12 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     // Calculate hash on publicKey
     hexHashOnWrappingKey =
-        AzurePrivateKeyFetchingClientUtils::CreateHexHashOnKey(publicKey);
+        AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
   } else {
     // Get test PEM public key
     auto publicPemKey =
         google::scp::cpio::client_providers::GetTestPemPublicWrapKey();
-    publicKey = AzurePrivateKeyFetchingClientUtils::PemToEvpPkey(publicPemKey);
+    publicKey = AzureKmsClientProviderUtils::PemToEvpPkey(publicPemKey);
 
     // Get test PEM private key and convert it to EVP_PKEY*
     auto privateKeyPem = GetTestPemPrivWrapKey();
@@ -233,7 +237,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     // Calculate hash on publicKey
     hexHashOnWrappingKey =
-        AzurePrivateKeyFetchingClientUtils::CreateHexHashOnKey(publicKey);
+        AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
   }
 
   // Get Attestation Report
@@ -245,8 +249,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   payload[kWrapped] = ciphertext;
   payload[kWrappedKid] = key_id;
   payload[kAttestation] = nlohmann::json(report.value());
-  payload[kWrappingKey] =
-      AzurePrivateKeyFetchingClientUtils::EvpPkeyToPem(publicKey);
+  payload[kWrappingKey] = AzureKmsClientProviderUtils::EvpPkeyToPem(publicKey);
   http_context.request->body = core::BytesBuffer(nlohmann::to_string(payload));
   http_context.request->headers = std::make_shared<core::HttpHeaders>();
   http_context.request->headers->insert(
@@ -308,7 +311,7 @@ void AzureKmsClientProvider::OnDecryptCallback(
   }
   std::vector<uint8_t> encrypted(decodedWrapped.begin(), decodedWrapped.end());
 
-  std::string decrypted = AzurePrivateKeyFetchingClientUtils::KeyUnwrap(
+  std::string decrypted = AzureKmsClientProviderUtils::KeyUnwrap(
       ephemeral_private_key->get(), encrypted);
   decrypt_context.response = std::make_shared<DecryptResponse>();
 
