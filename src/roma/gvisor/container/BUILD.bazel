@@ -39,7 +39,7 @@ pkg_tar(
     srcs = [
         ":gvisor_execs",
     ],
-    visibility = ["//src/roma/gvisor:__subpackages__"],
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
