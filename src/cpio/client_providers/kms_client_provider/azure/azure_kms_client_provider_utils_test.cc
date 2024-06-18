@@ -25,9 +25,11 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
+
 using google::scp::core::ExecutionResult;
 using google::scp::core::HttpMethod;
 using google::scp::core::HttpRequest;
+
 
 namespace {
 constexpr char kKeyId[] = "123";
@@ -43,16 +45,36 @@ TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKey) {
   ASSERT_NE(wrappingKey.second, nullptr);
 
   std::string pem =
-      AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.first->get());
+      AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.first);
 
   // Add the constant to avoid the key detection precommit
   auto toTest = std::string("-----") + std::string("BEGIN PRIVATE") +
                 std::string(" KEY-----");
   ASSERT_EQ(pem.find(toTest) == 0, true);
 
-  pem = AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.second->get());
+  pem = AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.second);
   ASSERT_EQ(pem.find("-----BEGIN PUBLIC KEY-----") == 0, true);
 }
+TEST(AzureKmsClientProviderUtilsTest, WrapUnwrap) {
+    // Generate wrapping key
+    auto wrappingKeyPair = AzureKmsClientProviderUtils::GenerateWrappingKey();
+    auto public_key = wrappingKeyPair.second;
+    auto private_key = wrappingKeyPair.first;
+
+    // Original message to encrypt
+    const std::string payload = "payload";
+
+    // Encrypt the payload
+    auto cipher = AzureKmsClientProviderUtils::KeyWrap(public_key, payload);
+    ASSERT_FALSE(cipher.empty());
+
+    // Decrypt the encrypted message
+    std::string decrypted = AzureKmsClientProviderUtils::KeyUnwrap(private_key, cipher);
+    
+    // Assert that decrypted message matches original payload
+    ASSERT_EQ(decrypted, payload);
+}
+
 
 TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKeyHash) {
   auto publicPemKey =

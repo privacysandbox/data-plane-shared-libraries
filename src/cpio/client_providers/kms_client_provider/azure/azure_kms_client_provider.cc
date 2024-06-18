@@ -173,8 +173,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   http_context.request->path = std::make_shared<Uri>(unwrap_url_);
   http_context.request->method = HttpMethod::POST;
 
-  EVP_PKEY* publicKey;
-  EVP_PKEY* privateKey;
+  std::shared_ptr<EvpPkeyWrapper> publicKey;
+  std::shared_ptr<EvpPkeyWrapper> privateKey;
 
   // Temporary store wrappingKey
   std::pair<std::shared_ptr<EvpPkeyWrapper>, std::shared_ptr<EvpPkeyWrapper>>
@@ -312,7 +312,7 @@ void AzureKmsClientProvider::OnDecryptCallback(
   std::vector<uint8_t> encrypted(decodedWrapped.begin(), decodedWrapped.end());
 
   std::string decrypted = AzureKmsClientProviderUtils::KeyUnwrap(
-      ephemeral_private_key->get(), encrypted);
+      ephemeral_private_key, encrypted);
   decrypt_context.response = std::make_shared<DecryptResponse>();
 
   decrypt_context.response->set_plaintext(decrypted);

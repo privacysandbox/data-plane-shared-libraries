@@ -137,7 +137,7 @@ class RsaWrapper {
 class BnWrapper {
  public:
   BnWrapper() : bn_(BN_new()) {}
-
+  explicit BnWrapper(BIGNUM* bn) : bn_(bn) {}
   ~BnWrapper() { BN_free(bn_); }
 
   BIGNUM* get() { return bn_; }
@@ -147,17 +147,54 @@ class BnWrapper {
 };
 
 class EvpPkeyWrapper {
- public:
-  EvpPkeyWrapper() : pkey_(EVP_PKEY_new()) {}
+public:
+    EvpPkeyWrapper() : pkey_(EVP_PKEY_new()) {
+        if (pkey_ == nullptr) {
+            throw std::runtime_error("Failed to allocate EVP_PKEY");
+        }
+    }
 
-  explicit EvpPkeyWrapper(EVP_PKEY* pkey) : pkey_(pkey) {}
+    explicit EvpPkeyWrapper(EVP_PKEY* pkey) : pkey_(pkey) {
+        if (pkey_ == nullptr) {
+            throw std::invalid_argument("EVP_PKEY pointer cannot be null");
+        }
+    }
 
-  ~EvpPkeyWrapper() { EVP_PKEY_free(pkey_); }
+    EvpPkeyWrapper(const EvpPkeyWrapper& other) : pkey_(other.pkey_) {
+        if (pkey_ != nullptr) {
+            EVP_PKEY_up_ref(pkey_);
+        } else {
+            throw std::runtime_error("EvpPkeyWrapper copy constructor: EVP_PKEY pointer is null");
+        }
+    }
 
-  EVP_PKEY* get() { return pkey_; }
+    EvpPkeyWrapper& operator=(const EvpPkeyWrapper& other) {
+        if (this != &other) {
+            if (pkey_ != nullptr) {
+                EVP_PKEY_free(pkey_);
+            }
+            pkey_ = other.pkey_;
+            if (pkey_ != nullptr) {
+                EVP_PKEY_up_ref(pkey_);
+            } else {
+                throw std::runtime_error("EvpPkeyWrapper assignment operator: EVP_PKEY pointer is null");
+            }
+        }
+        return *this;
+    }
 
- private:
-  EVP_PKEY* pkey_;
+    ~EvpPkeyWrapper() {
+        if (pkey_ != nullptr) {
+            EVP_PKEY_free(pkey_);
+        }
+    }
+
+    EVP_PKEY* get() const {
+        return pkey_;
+    }
+
+private:
+    EVP_PKEY* pkey_;
 };
 
 class BIOWrapper {
@@ -203,33 +240,33 @@ class AzureKmsClientProviderUtils {
    *
    * @param wrappingKey RSA public key used to wrap a key.
    */
-  static std::string EvpPkeyToPem(EVP_PKEY* wrappingKey);
+  static std::string EvpPkeyToPem(std::shared_ptr<EvpPkeyWrapper> wrappingKey);
 
   /**
    * @brief Convert a public PEM wrapping key to pkey
    *
    * @param wrappingPemKey RSA PEM key used to wrap a key.
    */
-  static EVP_PKEY* GetPublicEvpPkey(std::string wrappingPemKey);
+  static std::shared_ptr<EvpPkeyWrapper> GetPublicEvpPkey(std::string wrappingPemKey);
 
   /**
    * @brief Convert a private PEM wrapping key to pkey
    *
    * @param wrappingPemKey RSA PEM key used to wrap a key.
    */
-  static EVP_PKEY* GetPrivateEvpPkey(std::string wrappingPemKey);
+  static std::shared_ptr<EvpPkeyWrapper> GetPrivateEvpPkey(std::string wrappingPemKey);
 
   /**
    * @brief Generate hex hash on wrapping key
    */
-  static std::string CreateHexHashOnKey(EVP_PKEY* publicKey);
+  static std::string CreateHexHashOnKey(std::shared_ptr<EvpPkeyWrapper> publicKey);
 
   /**
    * @brief Convert a PEM wrapping key to pkey
    *
    * @param wrappingPemKey RSA PEM key used to wrap a key.
    */
-  static EVP_PKEY* PemToEvpPkey(std::string wrappingPemKey);
+  static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(std::string wrappingPemKey);
 
   /**
    * @brief Wrap a key using RSA OAEP
@@ -237,7 +274,7 @@ class AzureKmsClientProviderUtils {
    * @param wrappingKey RSA public key used to wrap a key.
    * @param key         Key in PEM format to wrap.
    */
-  static std::vector<unsigned char> KeyWrap(EVP_PKEY* wrappingKey,
+  static std::vector<unsigned char> KeyWrap(std::shared_ptr<EvpPkeyWrapper> wrappingKey,
                                             const std::string& key);
 
   /**
@@ -246,12 +283,12 @@ class AzureKmsClientProviderUtils {
    * @param wrappingKey RSA private key used to unwrap a key.
    * @param encrypted   Wrapped key to unwrap.
    */
-  static std::string KeyUnwrap(EVP_PKEY* wrappingKey,
+  static std::string KeyUnwrap(std::shared_ptr<EvpPkeyWrapper> wrappingKey,
                                const std::vector<unsigned char>& encrypted);
 
  private:
   // Declare the isPrivate function as private
-  static bool isPrivate(EVP_PKEY* pkey);
+  static bool isPrivate(std::shared_ptr<EvpPkeyWrapper> key);
 };
 }  // namespace google::scp::cpio::client_providers
 

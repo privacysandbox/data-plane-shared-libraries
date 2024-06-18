@@ -65,7 +65,7 @@ cc_test(
     name = "azure_kms_client_provider_test",
     size = "small",
     srcs =
-        ["azure_kms_client_provider_test.cc"],
+        ["azure_kms_client_provider_test.cc", "azure_kms_client_provider_utils_test.cc"],
     deps = [
         "//src/core/curl_client/mock:mock_curl_client",
         "//src/core/interface",
