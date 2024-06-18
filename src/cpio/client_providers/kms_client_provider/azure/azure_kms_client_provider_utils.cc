@@ -86,46 +86,49 @@ std::string AzureKmsClientProviderUtils::CreateHexHashOnKey(
  */
 std::pair<std::shared_ptr<EvpPkeyWrapper>, std::shared_ptr<EvpPkeyWrapper>>
 AzureKmsClientProviderUtils::GenerateWrappingKey() {
-  RsaWrapper rsa;
-  BnWrapper e;
-  ERR_clear_error();
-  BN_set_word(e.get(), RSA_F4);
-
-  RSA_generate_key_ex(rsa.get(), 4096, e.get(), NULL);
-
-  std::shared_ptr<EvpPkeyWrapper> private_key =
-      std::make_shared<EvpPkeyWrapper>();
-  if (EVP_PKEY_set1_RSA(private_key->get(), rsa.get()) != 1) {
-    char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
-    char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
+    RsaWrapper rsa;
+    BnWrapper e;
     ERR_clear_error();
-    throw std::runtime_error(std::string("Getting private EVP_PKEY failed: ") +
-                             std::string(error_string));
-  }
+    BN_set_word(e.get(), RSA_F4);
 
-  // Create a new EVP_PKEY for the public key
-  const RSA* rsa_pub = EVP_PKEY_get1_RSA(private_key->get());
-  RsaWrapper rsa_pub_dup;
-  if (!RSA_set0_key(rsa_pub_dup.get(), rsa_pub->n, rsa_pub->e, NULL)) {
-    char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
-    char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
-    ERR_clear_error();
-    throw std::runtime_error(
-        std::string("Set RSA public key duplicate values failed: ") +
-        std::string(error_string));
-  }
-  RSA_up_ref(rsa_pub_dup.get());
-  std::shared_ptr<EvpPkeyWrapper> public_key =
-      std::make_shared<EvpPkeyWrapper>();
-  if (EVP_PKEY_set1_RSA(public_key->get(), rsa_pub_dup.get()) != 1) {
-    char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
-    char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
-    ERR_clear_error();
-    throw std::runtime_error(std::string("Set RSA public key failed: ") +
-                             std::string(error_string));
-  }
+    RSA_generate_key_ex(rsa.get(), 4096, e.get(), NULL);
 
-  return std::make_pair(private_key, public_key);
+    // Create an EVP_PKEY for the private key
+    EVP_PKEY* private_pkey = EVP_PKEY_new();
+    if (EVP_PKEY_set1_RSA(private_pkey, rsa.get()) != 1) {
+        EVP_PKEY_free(private_pkey);
+        char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
+        char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
+        ERR_clear_error();
+        throw std::runtime_error(std::string("Getting private EVP_PKEY failed: ") + std::string(error_string));
+    }
+
+    // Create a shared pointer for the private key
+    std::shared_ptr<EvpPkeyWrapper> private_key = std::make_shared<EvpPkeyWrapper>(private_pkey);
+
+    // Create an EVP_PKEY for the public key
+    const RSA* rsa_pub = EVP_PKEY_get1_RSA(private_pkey);
+    RsaWrapper rsa_pub_dup;
+    if (!RSA_set0_key(rsa_pub_dup.get(), rsa_pub->n, rsa_pub->e, NULL)) {
+        char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
+        char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
+        ERR_clear_error();
+        throw std::runtime_error(std::string("Set RSA public key duplicate values failed: ") + std::string(error_string));
+    }
+    RSA_up_ref(rsa_pub_dup.get());
+    EVP_PKEY* public_pkey = EVP_PKEY_new();
+    if (EVP_PKEY_set1_RSA(public_pkey, rsa_pub_dup.get()) != 1) {
+        EVP_PKEY_free(public_pkey);
+        char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
+        char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
+        ERR_clear_error();
+        throw std::runtime_error(std::string("Set RSA public key failed: ") + std::string(error_string));
+    }
+
+    // Create a shared pointer for the public key
+    std::shared_ptr<EvpPkeyWrapper> public_key = std::make_shared<EvpPkeyWrapper>(public_pkey);
+
+    return std::make_pair(private_key, public_key);
 }
 
 
@@ -138,6 +141,7 @@ AzureKmsClientProviderUtils::GenerateWrappingKey() {
 std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPrivateEvpPkey(
     std::string wrappingPemKey) {
     ERR_clear_error();
+    
     BIO* bio = BIO_new_mem_buf(wrappingPemKey.c_str(), wrappingPemKey.size());
     if (bio == nullptr) {
         throw std::runtime_error("Failed to create BIO");
@@ -145,10 +149,6 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPrivateEvpPkey(
 
     EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
     BIO_free(bio);
-
-    if (pkey == nullptr) {
-        throw std::runtime_error("Failed to read PEM private key");
-    }
 
     return std::make_shared<EvpPkeyWrapper>(pkey);
 }
@@ -221,7 +221,7 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::PemToEvpPkey(
   }
 
   // Wrap EVP_PKEY into std::shared_ptr<EvpPkeyWrapper>
-  return std::make_shared<EvpPkeyWrapper>(key);
+  return key;
 }
 
 /**

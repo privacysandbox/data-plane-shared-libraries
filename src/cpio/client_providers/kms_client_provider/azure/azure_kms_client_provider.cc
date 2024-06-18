@@ -197,8 +197,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
       return;
     }
 
-    privateKey = wrappingKeyPair.first->get();
-    publicKey = wrappingKeyPair.second->get();
+    privateKey = wrappingKeyPair.first;
+    publicKey = wrappingKeyPair.second;
 
     // Calculate hash on publicKey
     hexHashOnWrappingKey =
@@ -211,7 +211,6 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     // Get test PEM private key and convert it to EVP_PKEY*
     auto privateKeyPem = GetTestPemPrivWrapKey();
-    privateKey = nullptr;
     BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
 
     // Get the BIO object from the wrapper
@@ -224,16 +223,17 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     BIO_write(bio, privateKeyPem.c_str(), privateKeyPem.size());
 
+
+    BIO_write(bio, privateKeyPem.c_str(), privateKeyPem.size());
+
     // Add the constant to avoid the key detection precommit
     auto toTest = std::string("-----") + std::string("BEGIN PRIVATE") +
                   std::string(" KEY-----");
 
     CHECK(privateKeyPem.find(toTest) == 0) << "Failed to get private PEM key";
-
-    PEM_read_bio_PrivateKey(bio, &privateKey, nullptr, nullptr);
-    wrappingKeyPair =
-        std::make_pair(std::make_shared<EvpPkeyWrapper>(privateKey),
-                       std::make_shared<EvpPkeyWrapper>(publicKey));
+    EVP_PKEY* pkey = nullptr;
+    PEM_read_bio_PrivateKey(bio, &pkey, nullptr, nullptr);
+    wrappingKeyPair = std::make_pair(std::make_shared<EvpPkeyWrapper>(pkey), publicKey);
 
     // Calculate hash on publicKey
     hexHashOnWrappingKey =

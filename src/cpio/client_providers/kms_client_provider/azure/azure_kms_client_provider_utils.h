@@ -148,47 +148,22 @@ class BnWrapper {
 
 class EvpPkeyWrapper {
 public:
-    EvpPkeyWrapper() : pkey_(EVP_PKEY_new()) {
-        if (pkey_ == nullptr) {
-            throw std::runtime_error("Failed to allocate EVP_PKEY");
-        }
-    }
-
+    // Constructor accepting an EVP_PKEY*
     explicit EvpPkeyWrapper(EVP_PKEY* pkey) : pkey_(pkey) {
-        if (pkey_ == nullptr) {
-            throw std::invalid_argument("EVP_PKEY pointer cannot be null");
-        }
     }
 
-    EvpPkeyWrapper(const EvpPkeyWrapper& other) : pkey_(other.pkey_) {
-        if (pkey_ != nullptr) {
-            EVP_PKEY_up_ref(pkey_);
-        } else {
-            throw std::runtime_error("EvpPkeyWrapper copy constructor: EVP_PKEY pointer is null");
-        }
-    }
+    // Default constructor
+    EvpPkeyWrapper() : pkey_(nullptr) {}
 
-    EvpPkeyWrapper& operator=(const EvpPkeyWrapper& other) {
-        if (this != &other) {
-            if (pkey_ != nullptr) {
-                EVP_PKEY_free(pkey_);
-            }
-            pkey_ = other.pkey_;
-            if (pkey_ != nullptr) {
-                EVP_PKEY_up_ref(pkey_);
-            } else {
-                throw std::runtime_error("EvpPkeyWrapper assignment operator: EVP_PKEY pointer is null");
-            }
-        }
-        return *this;
-    }
-
+    // Destructor
     ~EvpPkeyWrapper() {
-        if (pkey_ != nullptr) {
+        if (pkey_) {
             EVP_PKEY_free(pkey_);
         }
     }
 
+
+    // Getter for the EVP_PKEY* pointer
     EVP_PKEY* get() const {
         return pkey_;
     }
@@ -196,6 +171,7 @@ public:
 private:
     EVP_PKEY* pkey_;
 };
+
 
 class BIOWrapper {
  public:
