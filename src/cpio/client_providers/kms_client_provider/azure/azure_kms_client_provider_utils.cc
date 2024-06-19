@@ -60,11 +60,10 @@ bool AzureKmsClientProviderUtils::isPrivate(
 std::string AzureKmsClientProviderUtils::CreateHexHashOnKey(
     std::shared_ptr<EvpPkeyWrapper> publicKey) {
   ERR_clear_error();
-  CHECK(isPrivate(publicKey) == 0)
-      << "CreateHexHashOnKey only supports public keys";
+  CHECK(isPrivate(publicKey) == 0) << "CreateHexHashOnKey only supports public keys";
 
   // Create a BIO to hold the public key in PEM format
-  BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
+  BIOWrapper bioWrapper;
   int result = PEM_write_bio_PUBKEY(bioWrapper.get(), publicKey->get());
   if (result != 1) {
     char* error_string = ERR_error_string(ERR_get_error(), nullptr);
@@ -77,13 +76,10 @@ std::string AzureKmsClientProviderUtils::CreateHexHashOnKey(
   char* pem_key;
   int64 pem_key_length = BIO_get_mem_data(bioWrapper.get(), &pem_key);
   if (pem_key_length == -1) {
-    // Handle error (possibly throw an exception)
     char* error_string = ERR_error_string(ERR_get_error(), nullptr);
-    throw std::runtime_error(std::string("BIO_get_mem_data failed: ") +
-                             error_string);
+    throw std::runtime_error(std::string("BIO_get_mem_data failed: ") + error_string);
   }
   if (pem_key == nullptr) {
-    // Handle case where pem_key is unexpectedly nullptr
     throw std::runtime_error("BIO_get_mem_data returned nullptr for pem_key");
   }
   std::string pem_key_str(pem_key, pem_key_length);
@@ -193,14 +189,28 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPrivateEvpPkey(
     std::string wrappingPemKey) {
   ERR_clear_error();
 
-  BIO* bio = BIO_new_mem_buf(wrappingPemKey.c_str(), wrappingPemKey.size());
-  if (bio == nullptr) {
+  // Create a BIO wrapper to manage memory
+  BIOWrapper bioWrapper;
+  
+  // Ensure the bio is created successfully before using it
+  if (bioWrapper.get() == nullptr) {
     throw std::runtime_error("Failed to create BIO");
   }
 
-  EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bio, NULL, NULL, NULL);
-  BIO_free(bio);
+  // Write the PEM key data into the BIO
+  if (BIO_write(bioWrapper.get(), wrappingPemKey.c_str(), wrappingPemKey.size()) <= 0) {
+    throw std::runtime_error("Failed to write PEM data to BIO in GetPrivateEvpPkey");
+  }
 
+  // Read the private key from the BIO
+  EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bioWrapper.get(), NULL, NULL, NULL);
+  if (pkey == nullptr) {
+    char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
+    ERR_error_string(ERR_get_error(), errBuffer);
+    throw std::runtime_error(std::string("GetPrivateEvpPkey: Failed to read private key from BIO: ") + errBuffer);
+  }
+
+  // Use EvpPkeyWrapper to manage the EVP_PKEY
   return std::make_shared<EvpPkeyWrapper>(pkey);
 }
 
@@ -213,40 +223,32 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPrivateEvpPkey(
 std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPublicEvpPkey(
     std::string wrappingPemKey) {
   ERR_clear_error();
-  // Create a BIOWrapper object to manage the BIO resource
-  BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
 
-  BIO* bio = bioWrapper.get();
-  if (bio == NULL) {
-    char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
-    char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
-    ERR_clear_error();
-    throw std::runtime_error(std::string("Failed to create BIO: ") +
-                             std::string(error_string));
+  // Create a BIO wrapper to manage memory
+  BIOWrapper bioWrapper;
+  
+  // Ensure the bio is created successfully before using it
+  if (bioWrapper.get() == nullptr) {
+    throw std::runtime_error("Failed to create BIO");
   }
 
-  // Write PEM data to BIO
-  if (BIO_write(bio, wrappingPemKey.c_str(), wrappingPemKey.size()) <= 0) {
-    char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
-    char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
-    ERR_clear_error();
-    throw std::runtime_error(std::string("Failed to write to BIO: ") +
-                             std::string(error_string));
+  // Write the PEM key data into the BIO
+  if (BIO_write(bioWrapper.get(), wrappingPemKey.c_str(), wrappingPemKey.size()) <= 0) {
+    throw std::runtime_error("Failed to write PEM data to BIO in GetPublicEvpPkey");
   }
 
-  // Read the PEM key
-  EVP_PKEY* pkey = PEM_read_bio_PUBKEY(bio, NULL, NULL, NULL);
-  if (pkey == NULL) {
+  // Read the public key from the BIO
+  EVP_PKEY* pkey = PEM_read_bio_PUBKEY(bioWrapper.get(), NULL, NULL, NULL);
+  if (pkey == nullptr) {
     char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
-    char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
-    ERR_clear_error();
-    throw std::runtime_error(std::string("Failed to read PEM public key: ") +
-                             std::string(error_string));
+    ERR_error_string(ERR_get_error(), errBuffer);
+    throw std::runtime_error(std::string("GetPublicEvpPkey: Failed to read PEM public key: ") + errBuffer);
   }
 
-  // Wrap EVP_PKEY into std::shared_ptr<EvpPkeyWrapper>
+  // Return a shared pointer to manage the EVP_PKEY
   return std::make_shared<EvpPkeyWrapper>(pkey);
 }
+
 
 /**
  * @brief Convert a PEM wrapping key to pkey
@@ -256,9 +258,13 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPublicEvpPkey(
 std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::PemToEvpPkey(
     std::string wrappingPemKey) {
   ERR_clear_error();
-  std::shared_ptr<EvpPkeyWrapper> key = GetPrivateEvpPkey(wrappingPemKey);
-  if (key->get() == NULL) {
-    // Attempt to read the PEM key as a public key
+
+  // check for public key or private key
+  bool isPrivate = wrappingPemKey.find(kPemToken) != std::string::npos;
+  std::shared_ptr<EvpPkeyWrapper> key;
+  if (isPrivate) {
+    key = GetPrivateEvpPkey(wrappingPemKey);
+  } else {
     key = GetPublicEvpPkey(wrappingPemKey);
   }
 
@@ -283,7 +289,7 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::PemToEvpPkey(
 std::string AzureKmsClientProviderUtils::EvpPkeyToPem(
     std::shared_ptr<EvpPkeyWrapper> key) {
   ERR_clear_error();
-  BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
+  BIOWrapper bioWrapper;
 
   BIO* bio = bioWrapper.get();
   if (bio == nullptr) {

@@ -211,7 +211,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     // Get test PEM private key and convert it to EVP_PKEY*
     auto privateKeyPem = GetTestPemPrivWrapKey();
-    BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
+    BIOWrapper bioWrapper;
 
     // Get the BIO object from the wrapper
     BIO* bio = bioWrapper.get();

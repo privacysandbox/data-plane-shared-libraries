@@ -175,7 +175,11 @@ class EvpPkeyWrapper {
 
 class BIOWrapper {
  public:
-  explicit BIOWrapper(BIO_METHOD* method) : bio_(BIO_new(method)) {}
+  BIOWrapper() : bio_(BIO_new(BIO_s_mem())) {
+    if (!bio_) {
+      throw std::runtime_error("Failed to create BIO");
+    }
+  }
 
   ~BIOWrapper() { BIO_free(bio_); }
 
@@ -219,34 +223,10 @@ class AzureKmsClientProviderUtils {
   static std::string EvpPkeyToPem(std::shared_ptr<EvpPkeyWrapper> wrappingKey);
 
   /**
-   * @brief Convert a public PEM wrapping key to pkey
-   *
-   * @param wrappingPemKey RSA PEM key used to wrap a key.
-   */
-  static std::shared_ptr<EvpPkeyWrapper> GetPublicEvpPkey(
-      std::string wrappingPemKey);
-
-  /**
-   * @brief Convert a private PEM wrapping key to pkey
-   *
-   * @param wrappingPemKey RSA PEM key used to wrap a key.
-   */
-  static std::shared_ptr<EvpPkeyWrapper> GetPrivateEvpPkey(
-      std::string wrappingPemKey);
-
-  /**
    * @brief Generate hex hash on wrapping key
    */
   static std::string CreateHexHashOnKey(
       std::shared_ptr<EvpPkeyWrapper> publicKey);
-
-  /**
-   * @brief Convert a PEM wrapping key to pkey
-   *
-   * @param wrappingPemKey RSA PEM key used to wrap a key.
-   */
-  static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(
-      std::string wrappingPemKey);
 
   /**
    * @brief Wrap a key using RSA OAEP
@@ -268,6 +248,31 @@ class AzureKmsClientProviderUtils {
 
   // Declare the isPrivate function as private
   static bool isPrivate(std::shared_ptr<EvpPkeyWrapper> key);
+
+  /**
+   * @brief Convert a PEM wrapping key to pkey
+   *
+   * @param wrappingPemKey RSA PEM key used to wrap a key.
+   */
+  static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(
+      std::string wrappingPemKey);
+
+private:
+  /**
+   * @brief Convert a public PEM wrapping key to pkey
+   *
+   * @param wrappingPemKey RSA PEM key used to wrap a key.
+   */
+  static std::shared_ptr<EvpPkeyWrapper> GetPublicEvpPkey(
+      std::string wrappingPemKey);
+
+  /**
+   * @brief Convert a private PEM wrapping key to pkey
+   *
+   * @param wrappingPemKey RSA PEM key used to wrap a key.
+   */
+  static std::shared_ptr<EvpPkeyWrapper> GetPrivateEvpPkey(
+      std::string wrappingPemKey);
 };
 }  // namespace google::scp::cpio::client_providers
 
