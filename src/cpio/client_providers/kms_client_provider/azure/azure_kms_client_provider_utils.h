@@ -257,7 +257,7 @@ class AzureKmsClientProviderUtils {
   static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(
       std::string wrappingPemKey);
 
-private:
+ private:
   /**
    * @brief Convert a public PEM wrapping key to pkey
    *

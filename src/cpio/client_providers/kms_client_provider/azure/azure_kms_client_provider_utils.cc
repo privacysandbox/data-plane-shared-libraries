@@ -60,7 +60,8 @@ bool AzureKmsClientProviderUtils::isPrivate(
 std::string AzureKmsClientProviderUtils::CreateHexHashOnKey(
     std::shared_ptr<EvpPkeyWrapper> publicKey) {
   ERR_clear_error();
-  CHECK(isPrivate(publicKey) == 0) << "CreateHexHashOnKey only supports public keys";
+  CHECK(isPrivate(publicKey) == 0)
+      << "CreateHexHashOnKey only supports public keys";
 
   // Create a BIO to hold the public key in PEM format
   BIOWrapper bioWrapper;
@@ -77,7 +78,8 @@ std::string AzureKmsClientProviderUtils::CreateHexHashOnKey(
   int64 pem_key_length = BIO_get_mem_data(bioWrapper.get(), &pem_key);
   if (pem_key_length == -1) {
     char* error_string = ERR_error_string(ERR_get_error(), nullptr);
-    throw std::runtime_error(std::string("BIO_get_mem_data failed: ") + error_string);
+    throw std::runtime_error(std::string("BIO_get_mem_data failed: ") +
+                             error_string);
   }
   if (pem_key == nullptr) {
     throw std::runtime_error("BIO_get_mem_data returned nullptr for pem_key");
@@ -191,15 +193,17 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPrivateEvpPkey(
 
   // Create a BIO wrapper to manage memory
   BIOWrapper bioWrapper;
-  
+
   // Ensure the bio is created successfully before using it
   if (bioWrapper.get() == nullptr) {
     throw std::runtime_error("Failed to create BIO");
   }
 
   // Write the PEM key data into the BIO
-  if (BIO_write(bioWrapper.get(), wrappingPemKey.c_str(), wrappingPemKey.size()) <= 0) {
-    throw std::runtime_error("Failed to write PEM data to BIO in GetPrivateEvpPkey");
+  if (BIO_write(bioWrapper.get(), wrappingPemKey.c_str(),
+                wrappingPemKey.size()) <= 0) {
+    throw std::runtime_error(
+        "Failed to write PEM data to BIO in GetPrivateEvpPkey");
   }
 
   // Read the private key from the BIO
@@ -207,7 +211,10 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPrivateEvpPkey(
   if (pkey == nullptr) {
     char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
     ERR_error_string(ERR_get_error(), errBuffer);
-    throw std::runtime_error(std::string("GetPrivateEvpPkey: Failed to read private key from BIO: ") + errBuffer);
+    throw std::runtime_error(
+        std::string(
+            "GetPrivateEvpPkey: Failed to read private key from BIO: ") +
+        errBuffer);
   }
 
   // Use EvpPkeyWrapper to manage the EVP_PKEY
@@ -226,15 +233,17 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPublicEvpPkey(
 
   // Create a BIO wrapper to manage memory
   BIOWrapper bioWrapper;
-  
+
   // Ensure the bio is created successfully before using it
   if (bioWrapper.get() == nullptr) {
     throw std::runtime_error("Failed to create BIO");
   }
 
   // Write the PEM key data into the BIO
-  if (BIO_write(bioWrapper.get(), wrappingPemKey.c_str(), wrappingPemKey.size()) <= 0) {
-    throw std::runtime_error("Failed to write PEM data to BIO in GetPublicEvpPkey");
+  if (BIO_write(bioWrapper.get(), wrappingPemKey.c_str(),
+                wrappingPemKey.size()) <= 0) {
+    throw std::runtime_error(
+        "Failed to write PEM data to BIO in GetPublicEvpPkey");
   }
 
   // Read the public key from the BIO
@@ -242,13 +251,14 @@ std::shared_ptr<EvpPkeyWrapper> AzureKmsClientProviderUtils::GetPublicEvpPkey(
   if (pkey == nullptr) {
     char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
     ERR_error_string(ERR_get_error(), errBuffer);
-    throw std::runtime_error(std::string("GetPublicEvpPkey: Failed to read PEM public key: ") + errBuffer);
+    throw std::runtime_error(
+        std::string("GetPublicEvpPkey: Failed to read PEM public key: ") +
+        errBuffer);
   }
 
   // Return a shared pointer to manage the EVP_PKEY
   return std::make_shared<EvpPkeyWrapper>(pkey);
 }
-
 
 /**
  * @brief Convert a PEM wrapping key to pkey
