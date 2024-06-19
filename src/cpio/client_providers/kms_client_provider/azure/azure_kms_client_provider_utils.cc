@@ -327,10 +327,14 @@ std::string AzureKmsClientProviderUtils::EvpPkeyToPem(
                              error_string);
   }
 
+  // BIO memory is managed by openssl
   BUF_MEM* bio_mem;
   BIO_get_mem_ptr(bio, &bio_mem);
-  std::string pem_str(bio_mem->data, bio_mem->length);
+  if (bio_mem == nullptr) {
+    throw std::runtime_error("Failed to get BIO memory pointer");
+  }
 
+  std::string pem_str(bio_mem->data, bio_mem->length);
   return pem_str;
 }
 
