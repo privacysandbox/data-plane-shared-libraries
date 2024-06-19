@@ -38,14 +38,15 @@ namespace google::scp::cpio::client_providers {
  */
 bool AzureKmsClientProviderUtils::isPrivate(
     std::shared_ptr<EvpPkeyWrapper> key) {
+  ERR_clear_error();
   // Determine if the key is private or public
 
   int key_type = EVP_PKEY_type(EVP_PKEY_id(key->get()));
   bool is_private = false;
   if (key_type == EVP_PKEY_RSA) {
     RSA* rsa_raw = EVP_PKEY_get1_RSA(key->get());
+    RsaWrapper rsa_wrapper(rsa_raw);
     if (rsa_raw != nullptr) {
-      RsaWrapper rsa_wrapper(rsa_raw);
       is_private = (rsa_wrapper.getE() != NULL && rsa_wrapper.getN() != NULL &&
                     rsa_wrapper.getD() != NULL);
     }
@@ -58,13 +59,33 @@ bool AzureKmsClientProviderUtils::isPrivate(
  */
 std::string AzureKmsClientProviderUtils::CreateHexHashOnKey(
     std::shared_ptr<EvpPkeyWrapper> publicKey) {
+  ERR_clear_error();
+  CHECK(isPrivate(publicKey) == 0)
+      << "CreateHexHashOnKey only supports public keys";
+
   // Create a BIO to hold the public key in PEM format
   BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
-  PEM_write_bio_PUBKEY(bioWrapper.get(), publicKey->get());
+  int result = PEM_write_bio_PUBKEY(bioWrapper.get(), publicKey->get());
+  if (result != 1) {
+    char* error_string = ERR_error_string(ERR_get_error(), nullptr);
+    throw std::runtime_error(
+        std::string("PEM_write_bio_PUBKEY failed with result: ") +
+        std::to_string(result) + " - " + error_string);
+  }
 
   // Read the PEM key into a string
   char* pem_key;
   int64 pem_key_length = BIO_get_mem_data(bioWrapper.get(), &pem_key);
+  if (pem_key_length == -1) {
+    // Handle error (possibly throw an exception)
+    char* error_string = ERR_error_string(ERR_get_error(), nullptr);
+    throw std::runtime_error(std::string("BIO_get_mem_data failed: ") +
+                             error_string);
+  }
+  if (pem_key == nullptr) {
+    // Handle case where pem_key is unexpectedly nullptr
+    throw std::runtime_error("BIO_get_mem_data returned nullptr for pem_key");
+  }
   std::string pem_key_str(pem_key, pem_key_length);
 
   // Create a SHA-2 hash of the PEM key string
@@ -117,19 +138,21 @@ AzureKmsClientProviderUtils::GenerateWrappingKey() {
       throw std::runtime_error("RSA key components are not properly set");
     }
 
-    EVP_PKEY* private_pkey = EVP_PKEY_new();
-    if (EVP_PKEY_set1_RSA(private_pkey, rsa.get()) != 1) {
-      EVP_PKEY_free(private_pkey);
+    std::shared_ptr<EvpPkeyWrapper> private_key =
+        std::make_shared<EvpPkeyWrapper>(EVP_PKEY_new());
+    if (!private_key->get()) {
+      throw std::runtime_error("Could not retrieve private_key memory");
+    }
+
+    if (EVP_PKEY_set1_RSA(private_key->get(), rsa.get()) != 1) {
       char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
       char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
       throw std::runtime_error(
-          std::string("Getting private EVP_PKEY failed: ") +
+          std::string("Setting RSA key in private EVP_PKEY failed: ") +
           std::string(error_string));
     }
 
-    std::shared_ptr<EvpPkeyWrapper> private_key =
-        std::make_shared<EvpPkeyWrapper>(private_pkey);
-
+    // Duplicating the RSA public key
     RSA* rsa_pub = RSAPublicKey_dup(rsa.get());
     if (rsa_pub == nullptr) {
       char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
@@ -139,20 +162,19 @@ AzureKmsClientProviderUtils::GenerateWrappingKey() {
           std::string(error_string));
     }
 
-    RsaWrapper rsa_pub_dup(rsa_pub);
+    // Creating a shared_ptr to manage the duplicated RSA public key
+    std::shared_ptr<RsaWrapper> rsa_pub_dup =
+        std::make_shared<RsaWrapper>(rsa_pub);
 
-    EVP_PKEY* public_pkey = EVP_PKEY_new();
-    if (EVP_PKEY_set1_RSA(public_pkey, rsa_pub_dup.get()) != 1) {
-      EVP_PKEY_free(public_pkey);
+    // Creating a shared_ptr to manage the public key
+    std::shared_ptr<EvpPkeyWrapper> public_key =
+        std::make_shared<EvpPkeyWrapper>(EVP_PKEY_new());
+    if (EVP_PKEY_set1_RSA(public_key->get(), rsa_pub_dup->get()) != 1) {
       char errBuffer[MAX_OPENSSL_ERROR_STRING_LEN];
       char* error_string = ERR_error_string(ERR_get_error(), errBuffer);
       throw std::runtime_error(std::string("Set RSA public key failed: ") +
                                std::string(error_string));
     }
-
-    std::shared_ptr<EvpPkeyWrapper> public_key =
-        std::make_shared<EvpPkeyWrapper>(public_pkey);
-
     return std::make_pair(private_key, public_key);
   } catch (const std::exception& ex) {
     std::cerr << "Exception caught in GenerateWrappingKey: " << ex.what()
