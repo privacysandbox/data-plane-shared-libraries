@@ -223,7 +223,6 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     BIO_write(bio, privateKeyPem.c_str(), privateKeyPem.size());
 
-
     BIO_write(bio, privateKeyPem.c_str(), privateKeyPem.size());
 
     // Add the constant to avoid the key detection precommit
@@ -233,7 +232,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
     CHECK(privateKeyPem.find(toTest) == 0) << "Failed to get private PEM key";
     EVP_PKEY* pkey = nullptr;
     PEM_read_bio_PrivateKey(bio, &pkey, nullptr, nullptr);
-    wrappingKeyPair = std::make_pair(std::make_shared<EvpPkeyWrapper>(pkey), publicKey);
+    wrappingKeyPair =
+        std::make_pair(std::make_shared<EvpPkeyWrapper>(pkey), publicKey);
 
     // Calculate hash on publicKey
     hexHashOnWrappingKey =
@@ -311,8 +311,8 @@ void AzureKmsClientProvider::OnDecryptCallback(
   }
   std::vector<uint8_t> encrypted(decodedWrapped.begin(), decodedWrapped.end());
 
-  std::string decrypted = AzureKmsClientProviderUtils::KeyUnwrap(
-      ephemeral_private_key, encrypted);
+  std::string decrypted =
+      AzureKmsClientProviderUtils::KeyUnwrap(ephemeral_private_key, encrypted);
   decrypt_context.response = std::make_shared<DecryptResponse>();
 
   decrypt_context.response->set_plaintext(decrypted);

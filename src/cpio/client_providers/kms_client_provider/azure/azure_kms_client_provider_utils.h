@@ -125,10 +125,15 @@ static std::string GetTestPemPrivWrapKey() {
 class RsaWrapper {
  public:
   RsaWrapper() : rsa_(RSA_new()) {}
+  explicit RsaWrapper(RSA* rsa_raw) : rsa_(rsa_raw) {}
 
   ~RsaWrapper() { RSA_free(rsa_); }
 
   RSA* get() { return rsa_; }
+
+  const BIGNUM* getE() const { return rsa_->e; }
+  const BIGNUM* getN() const { return rsa_->n; }
+  const BIGNUM* getD() const { return rsa_->d; }
 
  private:
   RSA* rsa_;
@@ -147,31 +152,26 @@ class BnWrapper {
 };
 
 class EvpPkeyWrapper {
-public:
-    // Constructor accepting an EVP_PKEY*
-    explicit EvpPkeyWrapper(EVP_PKEY* pkey) : pkey_(pkey) {
+ public:
+  // Constructor accepting an EVP_PKEY*
+  explicit EvpPkeyWrapper(EVP_PKEY* pkey) : pkey_(pkey) {}
+
+  // Default constructor
+  EvpPkeyWrapper() : pkey_(nullptr) {}
+
+  // Destructor
+  ~EvpPkeyWrapper() {
+    if (pkey_) {
+      EVP_PKEY_free(pkey_);
     }
+  }
 
-    // Default constructor
-    EvpPkeyWrapper() : pkey_(nullptr) {}
+  // Getter for the EVP_PKEY* pointer
+  EVP_PKEY* get() const { return pkey_; }
 
-    // Destructor
-    ~EvpPkeyWrapper() {
-        if (pkey_) {
-            EVP_PKEY_free(pkey_);
-        }
-    }
-
-
-    // Getter for the EVP_PKEY* pointer
-    EVP_PKEY* get() const {
-        return pkey_;
-    }
-
-private:
-    EVP_PKEY* pkey_;
+ private:
+  EVP_PKEY* pkey_;
 };
-
 
 class BIOWrapper {
  public:
@@ -223,26 +223,30 @@ class AzureKmsClientProviderUtils {
    *
    * @param wrappingPemKey RSA PEM key used to wrap a key.
    */
-  static std::shared_ptr<EvpPkeyWrapper> GetPublicEvpPkey(std::string wrappingPemKey);
+  static std::shared_ptr<EvpPkeyWrapper> GetPublicEvpPkey(
+      std::string wrappingPemKey);
 
   /**
    * @brief Convert a private PEM wrapping key to pkey
    *
    * @param wrappingPemKey RSA PEM key used to wrap a key.
    */
-  static std::shared_ptr<EvpPkeyWrapper> GetPrivateEvpPkey(std::string wrappingPemKey);
+  static std::shared_ptr<EvpPkeyWrapper> GetPrivateEvpPkey(
+      std::string wrappingPemKey);
 
   /**
    * @brief Generate hex hash on wrapping key
    */
-  static std::string CreateHexHashOnKey(std::shared_ptr<EvpPkeyWrapper> publicKey);
+  static std::string CreateHexHashOnKey(
+      std::shared_ptr<EvpPkeyWrapper> publicKey);
 
   /**
    * @brief Convert a PEM wrapping key to pkey
    *
    * @param wrappingPemKey RSA PEM key used to wrap a key.
    */
-  static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(std::string wrappingPemKey);
+  static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(
+      std::string wrappingPemKey);
 
   /**
    * @brief Wrap a key using RSA OAEP
@@ -250,8 +254,8 @@ class AzureKmsClientProviderUtils {
    * @param wrappingKey RSA public key used to wrap a key.
    * @param key         Key in PEM format to wrap.
    */
-  static std::vector<unsigned char> KeyWrap(std::shared_ptr<EvpPkeyWrapper> wrappingKey,
-                                            const std::string& key);
+  static std::vector<unsigned char> KeyWrap(
+      std::shared_ptr<EvpPkeyWrapper> wrappingKey, const std::string& key);
 
   /**
    * @brief Unwrap a key using RSA OAEP
@@ -262,7 +266,6 @@ class AzureKmsClientProviderUtils {
   static std::string KeyUnwrap(std::shared_ptr<EvpPkeyWrapper> wrappingKey,
                                const std::vector<unsigned char>& encrypted);
 
- private:
   // Declare the isPrivate function as private
   static bool isPrivate(std::shared_ptr<EvpPkeyWrapper> key);
 };
