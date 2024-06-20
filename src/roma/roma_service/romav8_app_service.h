@@ -87,7 +87,8 @@ class RomaV8AppService {
   template <typename TRequest, typename TResponse>
   absl::Status Execute(absl::Notification& notification,
                        std::string_view handler_fn_name,
-                       const TRequest& request, TResponse& response) {
+                       const TRequest& request, TResponse& response,
+                       TMetadata metadata = TMetadata()) {
     LOG(INFO) << "code id: " << code_id_;
     LOG(INFO) << "code version: " << code_version_;
     LOG(INFO) << "handler fn: " << handler_fn_name;
@@ -101,6 +102,7 @@ class RomaV8AppService {
         .handler_name = std::string(handler_fn_name),
         .input = {encoded_request},
         .treat_input_as_byte_str = true,
+        .metadata = std::move(metadata),
     };
     auto execute_cb = [&response,
                        &notification](absl::StatusOr<ResponseObject> resp) {

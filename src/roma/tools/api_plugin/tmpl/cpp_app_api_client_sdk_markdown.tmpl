@@ -59,7 +59,8 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
   absl::Status {{$rpc.Name}}(
       absl::Notification& notification,
       const {{$reqType}}& request,
-      {{$respType}}& response);
+      {{$respType}}& response,
+      TMetadata metadata = TMetadata());
 {{- end}}
 ```
 

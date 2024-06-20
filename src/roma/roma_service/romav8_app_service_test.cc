@@ -47,11 +47,17 @@ absl::StatusOr<std::string> Encode(const std::string& obj) {
 
 namespace google::scp::roma::test {
 
+void HelloWorldFunction(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string(absl::StrCat(
+      wrapper.metadata.at(wrapper.io_proto.input_string()), " From C++"));
+}
+
 class HelloWorldApp
     : public google::scp::roma::romav8::app_api::RomaV8AppService<> {
  public:
   using Request = std::string;
   using Response = std::string;
+  using Metadata = google::scp::roma::DefaultMetadata;
   static absl::StatusOr<HelloWorldApp> Create(Config config) {
     auto service = HelloWorldApp(std::move(config));
     PS_RETURN_IF_ERROR(service.Init());
@@ -59,8 +65,9 @@ class HelloWorldApp
   }
 
   absl::Status Hello1(absl::Notification& notification, const Request& request,
-                      Response& response) {
-    return Execute(notification, "Hello1", request, response);
+                      Response& response, Metadata metadata = Metadata()) {
+    return Execute(notification, "Hello1", request, response,
+                   std::move(metadata));
   }
 
   absl::Status Hello2(absl::Notification& notification, const Request& request,
@@ -106,6 +113,40 @@ TEST(RomaV8AppServiceTest, HelloWorld) {
 
   execute_finished2.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_THAT(resp2, testing::StrEq("Hello world! Foobar [Hello2]"));
+}
+
+TEST(RomaV8AppServiceTest, MetadataSupportedInRomaV8AppService) {
+  absl::Notification load_finished;
+  absl::Status load_status;
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "HelloWorld",
+          .function = HelloWorldFunction,
+      }));
+  auto app = HelloWorldApp::Create(std::move(config));
+  EXPECT_TRUE(app.ok());
+
+  constexpr std::string_view jscode = R"(
+    var Hello1 = function(input) {
+      return HelloWorld(input);
+    }
+  )";
+  const std::string metadata_key = "Foobar";
+  const std::string metadata_value = "Hello world!";
+
+  EXPECT_TRUE(app->Register(load_finished, load_status, jscode).ok());
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+
+  std::string resp;
+  absl::Notification execute_finished;
+  EXPECT_TRUE(app->Hello1(execute_finished, metadata_key, resp,
+                          {{metadata_key, metadata_value}})
+                  .ok());
+
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_THAT(resp, testing::StrEq("Hello world! From C++"));
 }
 
 }  // namespace google::scp::roma::test
