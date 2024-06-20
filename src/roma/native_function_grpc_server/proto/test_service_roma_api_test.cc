@@ -33,7 +33,7 @@ using ::testing::StrEq;
 
 using ::privacy_sandbox::server_common::TestMethodRequest;
 using ::privacy_sandbox::server_common::TestMethodResponse;
-using ::privacysandbox::test_server::TestService;
+using ::privacysandbox::test_server::V8TestService;
 
 namespace privacysandbox::testserver::roma::AppApi::RomaTestServiceTest {
 
@@ -45,7 +45,7 @@ constexpr std::string_view kCodeVersion = "v1";
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -77,7 +77,7 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -108,7 +108,7 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobufWithNoFields) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -140,7 +140,7 @@ TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
   privacysandbox::test_host_server::RegisterHostApi(config);
   privacysandbox::multi_server::RegisterHostApi(config);
 
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -187,7 +187,7 @@ TEST(RomaV8AppTest, NativeCallbackObjectToProtoBytes) {
   privacysandbox::test_host_server::RegisterHostApi(config);
   privacysandbox::multi_server::RegisterHostApi(config);
 
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -227,7 +227,7 @@ TEST(RomaV8AppTest, NativeCallbackProtoBytesToObject) {
   privacysandbox::test_host_server::RegisterHostApi(config);
   privacysandbox::multi_server::RegisterHostApi(config);
 
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(

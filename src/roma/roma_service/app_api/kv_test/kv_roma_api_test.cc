@@ -27,7 +27,7 @@ using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
-using ::privacysandbox::kvserver::roma_app_api::KeyValueService;
+using ::privacysandbox::kvserver::roma_app_api::V8KeyValueService;
 using ::privacysandbox::roma::app_api::kv_test::v1::GetValuesRequest;
 using ::privacysandbox::roma::app_api::kv_test::v1::GetValuesResponse;
 
@@ -41,7 +41,7 @@ constexpr std::string_view kCodeVersion = "v1";
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8KeyValueService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -80,7 +80,7 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8KeyValueService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -118,7 +118,7 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8KeyValueService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -166,7 +166,7 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
 TEST(RomaV8AppTest, UseRequestField) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8KeyValueService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(

@@ -16,8 +16,12 @@
 
 {{range $file := .Files}}
 {{- $defineGuard := $file.Package | printf "%s_" | replace "." "_" | upper}}
-#ifndef {{$defineGuard}}
-#define {{$defineGuard}}
+#ifndef {{$defineGuard}}V8_H_
+#define {{$defineGuard}}V8_H_
+
+#include <memory>
+
+#include "{{$file.Name | trimSuffix (ext $file.Name)}}_roma_app_service.h"
 
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/roma_service/romav8_app_service.h"
@@ -25,11 +29,14 @@
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
+{{- $svcName := printf "V8%s" $svc.Name -}}
+{{- $svcCommonInterface := printf "%s::%s"  $svcopts.CppNamespace $svc.Name -}}
 
 namespace {{$svcopts.CppNamespace}} {
 
@@ -37,14 +44,16 @@ namespace {{$svcopts.CppNamespace}} {
  * service: {{$svc.FullName}}
  */
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
-class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata> {
+class {{$svcName}} final :
+      public google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata>,
+      public {{$svcCommonInterface}}<TMetadata> {
  public:
   using AppService = google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata>;
   using Config = typename AppService::Config;
 
  public:
-   static absl::StatusOr<{{$svc.Name}}<TMetadata>> Create(Config config) {
-    auto service = {{$svc.Name}}(std::move(config));
+   static absl::StatusOr<{{$svcName}}<TMetadata>> Create(Config config) {
+    auto service = {{$svcName}}(std::move(config));
     PS_RETURN_IF_ERROR(service.Init());
     return service;
   }
@@ -76,7 +85,7 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
       absl::Notification& notification,
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
-      TMetadata metadata = TMetadata()) {
+      TMetadata metadata = TMetadata()) override {
     return AppService::Execute(
         notification,
         "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}Pb",
@@ -87,7 +96,7 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
 
 {{end}}
  private:
-  explicit {{$svc.Name}}(Config config, const std::string& code_id = "{{$svcopts.CodeId}}")
+  explicit {{$svcName}}(Config config, const std::string& code_id = "{{$svcopts.CodeId}}")
     : AppService(std::move(config), code_id) {}
 
  inline static constexpr std::string_view roma_app_jscode = R"ROMA_APP_JSCODE(
@@ -98,5 +107,5 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
 }  // namespace {{$svcopts.CppNamespace}}
 {{end}}
 
-#endif  // {{$defineGuard}}
+#endif  // {{$defineGuard}}V8_H_
 {{end}}

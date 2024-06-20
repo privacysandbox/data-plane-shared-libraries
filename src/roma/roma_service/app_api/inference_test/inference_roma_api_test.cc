@@ -29,7 +29,7 @@ using ::testing::IsEmpty;
 using ::testing::StrEq;
 
 using ::privacysandbox::bidding_auction::inference::roma_app_api::
-    InferenceService;
+    V8InferenceService;
 using ::privacysandbox::roma::app_api::inference_test::v1::RunInferenceRequest;
 using ::privacysandbox::roma::app_api::inference_test::v1::RunInferenceResponse;
 
@@ -43,7 +43,7 @@ constexpr std::string_view kCodeVersion = "v1";
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = InferenceService<>::Create(std::move(config));
+  auto app_svc = V8InferenceService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -79,7 +79,7 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = InferenceService<>::Create(std::move(config));
+  auto app_svc = V8InferenceService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -111,7 +111,7 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 TEST(RomaV8AppTest, UseRequestField) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = InferenceService<>::Create(std::move(config));
+  auto app_svc = V8InferenceService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(

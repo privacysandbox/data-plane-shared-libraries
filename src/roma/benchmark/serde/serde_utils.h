@@ -47,7 +47,7 @@ using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using privacy_sandbox::server_common::BenchmarkRequest;
-using privacysandbox::benchmark::BenchmarkService;
+using privacysandbox::benchmark::V8BenchmarkService;
 
 constexpr auto kTimeout = absl::Seconds(10);
 constexpr std::string_view kCodeVersion = "v1";
@@ -75,15 +75,15 @@ BenchmarkRequest GetProtoFromPath(std::string_view path) {
   return req;
 }
 
-BenchmarkService<> CreateAppService() {
+V8BenchmarkService<> CreateAppService() {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = BenchmarkService<>::Create(std::move(config));
+  auto app_svc = V8BenchmarkService<>::Create(std::move(config));
   CHECK_OK(app_svc);
   return std::move(*app_svc);
 }
 
-void LoadCodeObj(BenchmarkService<>& app_svc, std::string_view code) {
+void LoadCodeObj(V8BenchmarkService<>& app_svc, std::string_view code) {
   absl::Notification register_finished;
   absl::Status register_status;
   CHECK_OK(
@@ -94,7 +94,7 @@ void LoadCodeObj(BenchmarkService<>& app_svc, std::string_view code) {
 
 void RunRomaJsBenchmark(::benchmark::State& state, std::string_view code,
                         std::string_view handler, std::string_view data_path) {
-  BenchmarkService<> app_svc = CreateAppService();
+  V8BenchmarkService<> app_svc = CreateAppService();
   LoadCodeObj(app_svc, code);
 
   std::ifstream input_file(data_path.data());

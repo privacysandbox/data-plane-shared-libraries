@@ -28,6 +28,7 @@ constexpr std::string_view kCodeVersion = "v1";
 
 {{range $svc := .Services}}
 {{$svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
+{{$svcName := printf "V8%s" $svc.Name -}}
 
 namespace {{$svcopts.CppNamespace}}::test {
 
@@ -39,10 +40,10 @@ namespace {
   {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
   {{- $respType := $rpc.ResponseFullType | replace "." "::" | printf "::%s" }}
   {{- $testName := printf "EncodeDecodeProtobuf_%d" $i}}
-TEST(RomaV8App{{$svc.Name}}Test, {{$testName}}) {
+TEST(RomaV8App{{$svcName}}Test, {{$testName}}) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = {{$svc.Name}}<>::Create(std::move(config));
+  auto app_svc = {{$svcName}}<>::Create(std::move(config));
 
   constexpr std::string_view jscode = R"(
     {{$svcopts.Romav8AppName}}.{{$rpc.Name}} = function(req) {
