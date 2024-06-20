@@ -102,7 +102,7 @@ TEST(RomaV8AppServiceTest, HelloWorld) {
   const std::string req = "Foobar";
 
   EXPECT_TRUE(
-      app->Register(load_finished, load_status, jscode, kCodeVersion).ok());
+      app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   std::string resp1;
@@ -142,7 +142,7 @@ TEST(RomaV8AppServiceTest, MetadataSupportedInRomaV8AppService) {
   const std::string metadata_value = "Hello world!";
 
   EXPECT_TRUE(
-      app->Register(load_finished, load_status, jscode, kCodeVersion).ok());
+      app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   std::string resp;

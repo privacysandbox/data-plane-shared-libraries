@@ -49,15 +49,15 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
     return service;
   }
 
-  absl::Status Register(absl::Notification& notification,
-                        absl::Status& notify_status,
-                        std::string_view jscode,
-                        std::string_view code_version) {
+  absl::Status Register(std::string_view jscode,
+                        std::string_view code_version,
+                        absl::Notification& notification,
+                        absl::Status& notify_status) {
     return AppService::Register(
-        notification,
-        notify_status,
         absl::StrCat(roma_app_jscode, jscode),
-        code_version);
+        code_version,
+        notification,
+        notify_status);
   }
 
   constexpr std::string_view GetRomaJsCode() { return roma_app_jscode; }

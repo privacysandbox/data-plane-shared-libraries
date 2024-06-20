@@ -51,7 +51,7 @@ TEST(RomaV8App{{$svc.Name}}Test, {{$testName}}) {
   )";
   absl::Notification register_finished;
   absl::Status register_status;
-  ASSERT_TRUE(app_svc->Register(register_finished, register_status, jscode, kCodeVersion).ok());
+  ASSERT_TRUE(app_svc->Register(jscode, kCodeVersion, register_finished, register_status).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 

@@ -67,9 +67,9 @@ class RomaV8AppService {
    *   jscode --
    *   code_version --
    */
-  absl::Status Register(absl::Notification& notification,
-                        absl::Status& notify_status, std::string_view jscode,
-                        std::string_view code_version) {
+  absl::Status Register(std::string_view jscode, std::string_view code_version,
+                        absl::Notification& notification,
+                        absl::Status& notify_status) {
     code_version_ = code_version;
     auto code_obj = std::make_unique<CodeObject>(CodeObject{
         .id = code_id_,

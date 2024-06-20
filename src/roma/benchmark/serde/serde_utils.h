@@ -87,7 +87,7 @@ void LoadCodeObj(BenchmarkService<>& app_svc, std::string_view code) {
   absl::Notification register_finished;
   absl::Status register_status;
   CHECK_OK(
-      app_svc.Register(register_finished, register_status, code, kCodeVersion));
+      app_svc.Register(code, kCodeVersion, register_finished, register_status));
   register_finished.WaitForNotificationWithTimeout(kTimeout);
   CHECK_OK(register_status);
 }

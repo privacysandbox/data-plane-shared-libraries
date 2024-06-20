@@ -59,7 +59,7 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   absl::Status register_status;
   ASSERT_TRUE(
       app_svc
-          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
           .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
@@ -96,7 +96,7 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   absl::Status register_status;
   ASSERT_TRUE(
       app_svc
-          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
           .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
@@ -143,7 +143,7 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   absl::Status register_status;
   ASSERT_TRUE(
       app_svc
-          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
           .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
@@ -178,7 +178,7 @@ TEST(RomaV8AppTest, UseRequestField) {
   absl::Status register_status;
   ASSERT_TRUE(
       app_svc
-          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
           .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
