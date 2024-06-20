@@ -35,7 +35,8 @@ namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest {
 
 namespace {
 const absl::Duration kDefaultTimeout = absl::Seconds(10);
-}
+constexpr std::string_view kCodeVersion = "v1";
+}  // namespace
 
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
@@ -57,7 +58,9 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
@@ -92,7 +95,9 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
@@ -137,7 +142,9 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
@@ -170,7 +177,9 @@ TEST(RomaV8AppTest, UseRequestField) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(register_finished, register_status, jscode, kCodeVersion)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 

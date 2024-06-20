@@ -50,6 +50,7 @@ using privacy_sandbox::server_common::BenchmarkRequest;
 using privacysandbox::benchmark::BenchmarkService;
 
 constexpr auto kTimeout = absl::Seconds(10);
+constexpr std::string_view kCodeVersion = "v1";
 
 constexpr std::string_view kSmallProtoPath =
     "./src/roma/benchmark/serde/benchmark_request_small.txtpb";
@@ -85,7 +86,8 @@ BenchmarkService<> CreateAppService() {
 void LoadCodeObj(BenchmarkService<>& app_svc, std::string_view code) {
   absl::Notification register_finished;
   absl::Status register_status;
-  CHECK_OK(app_svc.Register(register_finished, register_status, code));
+  CHECK_OK(
+      app_svc.Register(register_finished, register_status, code, kCodeVersion));
   register_finished.WaitForNotificationWithTimeout(kTimeout);
   CHECK_OK(register_status);
 }

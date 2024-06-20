@@ -22,6 +22,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+namespace {
+constexpr std::string_view kCodeVersion = "v1";
+}
 
 {{range $svc := .Services}}
 {{$svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -48,7 +51,7 @@ TEST(RomaV8App{{$svc.Name}}Test, {{$testName}}) {
   )";
   absl::Notification register_finished;
   absl::Status register_status;
-  ASSERT_TRUE(app_svc->Register(register_finished, register_status, jscode).ok());
+  ASSERT_TRUE(app_svc->Register(register_finished, register_status, jscode, kCodeVersion).ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 

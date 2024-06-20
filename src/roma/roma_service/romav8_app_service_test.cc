@@ -30,6 +30,10 @@
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;
 
+namespace {
+constexpr std::string_view kCodeVersion = "v1";
+}  // namespace
+
 namespace google::scp::roma::romav8 {
 
 template <>
@@ -97,7 +101,8 @@ TEST(RomaV8AppServiceTest, HelloWorld) {
   )";
   const std::string req = "Foobar";
 
-  EXPECT_TRUE(app->Register(load_finished, load_status, jscode).ok());
+  EXPECT_TRUE(
+      app->Register(load_finished, load_status, jscode, kCodeVersion).ok());
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   std::string resp1;
@@ -136,7 +141,8 @@ TEST(RomaV8AppServiceTest, MetadataSupportedInRomaV8AppService) {
   const std::string metadata_key = "Foobar";
   const std::string metadata_value = "Hello world!";
 
-  EXPECT_TRUE(app->Register(load_finished, load_status, jscode).ok());
+  EXPECT_TRUE(
+      app->Register(load_finished, load_status, jscode, kCodeVersion).ok());
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
   std::string resp;
