@@ -22,7 +22,7 @@ go_library(
         "app_api.go",
         "protoc_template_plugin.go",
     ],
-    embedsrcs = glob(["tmpl/*"]),
+    embedsrcs = glob(["tmpl/**/*"]),
     importpath = "github.com/privacysandbox/data-plane-shared/roma/tools/api_plugin/cmd",
     x_defs = {
         "tmplSymlink": template_dir_name,
