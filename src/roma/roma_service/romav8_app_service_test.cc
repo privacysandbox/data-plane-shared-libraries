@@ -68,14 +68,17 @@ class HelloWorldApp
     return service;
   }
 
-  absl::Status Hello1(absl::Notification& notification, const Request& request,
-                      Response& response, Metadata metadata = Metadata()) {
+  absl::Status Hello1(
+      absl::Notification& notification, const Request& request,
+      absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>>& response,
+      Metadata metadata = Metadata()) {
     return Execute(notification, "Hello1", request, response,
                    std::move(metadata));
   }
 
-  absl::Status Hello2(absl::Notification& notification, const Request& request,
-                      Response& response) {
+  absl::Status Hello2(
+      absl::Notification& notification, const Request& request,
+      absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>>& response) {
     return Execute(notification, "Hello2", request, response);
   }
 
@@ -105,19 +108,23 @@ TEST(RomaV8AppServiceTest, HelloWorld) {
       app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
-  std::string resp1;
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> resp1;
   absl::Notification execute_finished1;
   EXPECT_TRUE(app->Hello1(execute_finished1, req, resp1).ok());
 
-  std::string resp2;
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> resp2;
   absl::Notification execute_finished2;
   EXPECT_TRUE(app->Hello2(execute_finished2, req, resp2).ok());
 
   execute_finished1.WaitForNotificationWithTimeout(absl::Seconds(10));
-  EXPECT_THAT(resp1, testing::StrEq("Hello Foobar [Hello1]"));
+  EXPECT_TRUE(resp1.ok());
+  EXPECT_NE(*resp1, nullptr);
+  EXPECT_THAT(**resp1, testing::StrEq("Hello Foobar [Hello1]"));
 
   execute_finished2.WaitForNotificationWithTimeout(absl::Seconds(10));
-  EXPECT_THAT(resp2, testing::StrEq("Hello world! Foobar [Hello2]"));
+  EXPECT_TRUE(resp2.ok());
+  EXPECT_NE(*resp2, nullptr);
+  EXPECT_THAT(**resp2, testing::StrEq("Hello world! Foobar [Hello2]"));
 }
 
 TEST(RomaV8AppServiceTest, MetadataSupportedInRomaV8AppService) {
@@ -145,14 +152,43 @@ TEST(RomaV8AppServiceTest, MetadataSupportedInRomaV8AppService) {
       app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
   load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
 
-  std::string resp;
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> resp;
   absl::Notification execute_finished;
   EXPECT_TRUE(app->Hello1(execute_finished, metadata_key, resp,
                           {{metadata_key, metadata_value}})
                   .ok());
 
   execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-  EXPECT_THAT(resp, testing::StrEq("Hello world! From C++"));
+  ASSERT_TRUE(resp.ok());
+  EXPECT_NE(*resp, nullptr);
+  EXPECT_THAT(**resp, testing::StrEq("Hello world! From C++"));
+}
+
+TEST(RomaV8AppServiceTest, ErrorCanBeFetchedFromAbslStatusOrResponse) {
+  absl::Notification load_finished;
+  absl::Status load_status;
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app = HelloWorldApp::Create(std::move(config));
+  EXPECT_TRUE(app.ok());
+
+  constexpr std::string_view jscode = R"(
+    let x;
+    var Hello1 = (input) => x.value;
+  )";
+  const std::string input = "";
+
+  EXPECT_TRUE(
+      app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> resp;
+  absl::Notification execute_finished;
+  EXPECT_TRUE(app->Hello1(execute_finished, input, resp).ok());
+
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_FALSE(resp.ok());
+  EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
 }
 
 }  // namespace google::scp::roma::test

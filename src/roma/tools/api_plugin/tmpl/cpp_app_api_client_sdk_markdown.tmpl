@@ -54,12 +54,12 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
    * {{$rpc.Name}}
    * {{- $rpc.Description}}
    * request: {{$reqType}}
-   * response: {{$respType}}
+   * response: absl::StatusOr<std::unique_ptr<{{$respType}}>>
    */
   absl::Status {{$rpc.Name}}(
       absl::Notification& notification,
       const {{$reqType}}& request,
-      {{$respType}}& response,
+      absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
       TMetadata metadata = TMetadata());
 {{- end}}
 ```

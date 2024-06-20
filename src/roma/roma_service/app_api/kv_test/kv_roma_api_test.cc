@@ -66,14 +66,15 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 
   absl::Notification completed;
   GetValuesRequest req;
-  GetValuesResponse resp;
+  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
   ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.vals(), Contains("Hi Foobar!"));
-  EXPECT_THAT(resp.value(), StrEq("Something in the reply"));
-  EXPECT_THAT(resp.foo().foobar1(), Eq(123));
-  EXPECT_THAT(resp.foos_size(), Eq(0));
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->vals(), Contains("Hi Foobar!"));
+  EXPECT_THAT((*resp)->value(), StrEq("Something in the reply"));
+  EXPECT_THAT((*resp)->foo().foobar1(), Eq(123));
+  EXPECT_THAT((*resp)->foos_size(), Eq(0));
 }
 
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
@@ -103,14 +104,15 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 
   absl::Notification completed;
   GetValuesRequest req;
-  GetValuesResponse resp;
+  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
   ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.vals(), IsEmpty());
-  EXPECT_THAT(resp.value(), IsEmpty());
-  EXPECT_THAT(resp.foo().foobar1(), Eq(0));
-  ASSERT_THAT(resp.foos_size(), Eq(0));
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->vals(), IsEmpty());
+  EXPECT_THAT((*resp)->value(), IsEmpty());
+  EXPECT_THAT((*resp)->foo().foobar1(), Eq(0));
+  ASSERT_THAT((*resp)->foos_size(), Eq(0));
 }
 
 TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
@@ -150,14 +152,15 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
 
   absl::Notification completed;
   GetValuesRequest req;
-  GetValuesResponse resp;
+  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
   ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.vals_size(), Eq(4));
-  ASSERT_THAT(resp.foos_size(), Eq(2));
-  EXPECT_THAT(resp.foos(0).foobar1(), Eq(123));
-  EXPECT_THAT(resp.foos(1).foobar2(), StrEq("abc123"));
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->vals_size(), Eq(4));
+  ASSERT_THAT((*resp)->foos_size(), Eq(2));
+  EXPECT_THAT((*resp)->foos(0).foobar1(), Eq(123));
+  EXPECT_THAT((*resp)->foos(1).foobar2(), StrEq("abc123"));
 }
 
 TEST(RomaV8AppTest, UseRequestField) {
@@ -188,12 +191,13 @@ TEST(RomaV8AppTest, UseRequestField) {
   req.set_key1("abc123");
   req.set_key2("def123");
   req.add_keys("Foobar");
-  GetValuesResponse resp;
+  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
   ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.vals(), Contains("Hi Foobar!"));
-  EXPECT_THAT(resp.value(), StrEq("Something in the reply"));
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->vals(), Contains("Hi Foobar!"));
+  EXPECT_THAT((*resp)->value(), StrEq("Something in the reply"));
 }
 
 }  // namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest

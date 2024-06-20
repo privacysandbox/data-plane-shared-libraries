@@ -67,12 +67,13 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 
   absl::Notification completed;
   RunInferenceRequest req;
-  RunInferenceResponse resp;
+  absl::StatusOr<std::unique_ptr<RunInferenceResponse>> resp;
   ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.response_size(), Eq(1));
-  EXPECT_THAT(resp.response(0).model_path(), StrEq("a/b/c/1/2/3"));
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->response_size(), Eq(1));
+  EXPECT_THAT((*resp)->response(0).model_path(), StrEq("a/b/c/1/2/3"));
 }
 
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
@@ -99,11 +100,12 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 
   absl::Notification completed;
   RunInferenceRequest req;
-  RunInferenceResponse resp;
+  absl::StatusOr<std::unique_ptr<RunInferenceResponse>> resp;
   ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.response(), IsEmpty());
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->response(), IsEmpty());
 }
 
 TEST(RomaV8AppTest, UseRequestField) {
@@ -143,17 +145,18 @@ TEST(RomaV8AppTest, UseRequestField) {
   constexpr std::string_view model_path = "my_bucket/models/pcvr_models/1";
   req.add_request()->set_model_path(model_path);
 
-  RunInferenceResponse resp;
+  absl::StatusOr<std::unique_ptr<RunInferenceResponse>> resp;
   ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.response_size(), Eq(2));
-  EXPECT_THAT(resp.response(0).model_path(),
+  ASSERT_TRUE(resp.ok());
+  EXPECT_THAT((*resp)->response_size(), Eq(2));
+  EXPECT_THAT((*resp)->response(0).model_path(),
               StrEq(absl::StrCat("foo-", model_path, "-bar")));
-  EXPECT_THAT(resp.response(0).tensors_size(), Eq(0));
-  EXPECT_THAT(resp.response(1).tensors_size(), Eq(2));
-  EXPECT_THAT(resp.response(1).tensors(0).data_type(), Eq(1));
-  EXPECT_THAT(resp.response(1).tensors(1).data_type(), Eq(0));
+  EXPECT_THAT((*resp)->response(0).tensors_size(), Eq(0));
+  EXPECT_THAT((*resp)->response(1).tensors_size(), Eq(2));
+  EXPECT_THAT((*resp)->response(1).tensors(0).data_type(), Eq(1));
+  EXPECT_THAT((*resp)->response(1).tensors(1).data_type(), Eq(0));
 }
 
 }  // namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest

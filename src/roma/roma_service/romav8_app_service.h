@@ -25,6 +25,7 @@
 #include <google/protobuf/message_lite.h>
 #include <google/protobuf/util/json_util.h>
 
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
@@ -87,7 +88,8 @@ class RomaV8AppService {
   template <typename TRequest, typename TResponse>
   absl::Status Execute(absl::Notification& notification,
                        std::string_view handler_fn_name,
-                       const TRequest& request, TResponse& response,
+                       const TRequest& request,
+                       absl::StatusOr<std::unique_ptr<TResponse>>& response,
                        TMetadata metadata = TMetadata()) {
     LOG(INFO) << "code id: " << code_id_;
     LOG(INFO) << "code version: " << code_version_;
@@ -106,12 +108,21 @@ class RomaV8AppService {
     };
     auto execute_cb = [&response,
                        &notification](absl::StatusOr<ResponseObject> resp) {
-      if (!resp.ok()) {
+      if (resp.ok()) {
+        auto resp_ptr = std::make_unique<TResponse>();
+        if (absl::Status decode =
+                google::scp::roma::romav8::Decode(resp->resp, *resp_ptr);
+            decode.ok()) {
+          response = std::move(resp_ptr);
+        } else {
+          const std::string error_msg =
+              absl::StrCat("Error decoding response. response: ", resp->resp);
+          LOG(ERROR) << error_msg;
+          response = absl::InternalError(error_msg);
+        }
+      } else {
         LOG(ERROR) << "Error in Roma Execute()";
-      } else if (absl::Status decode =
-                     google::scp::roma::romav8::Decode(resp->resp, response);
-                 !decode.ok()) {
-        LOG(ERROR) << "error decoding response. response: " << resp->resp;
+        response = resp.status();
       }
       notification.Notify();
     };

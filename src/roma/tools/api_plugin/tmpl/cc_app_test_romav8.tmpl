@@ -57,7 +57,8 @@ TEST(RomaV8App{{$svc.Name}}Test, {{$testName}}) {
 
   absl::Notification completed;
   {{$reqType}} req;
-  {{$respType}} resp;
+
+  absl::StatusOr<std::unique_ptr<{{$respType}}>> resp;
   ASSERT_TRUE(app_svc->{{$rpc.Name}}(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 }

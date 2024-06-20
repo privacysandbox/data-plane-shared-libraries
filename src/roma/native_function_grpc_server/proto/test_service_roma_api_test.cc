@@ -67,11 +67,11 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   absl::Notification completed;
   TestMethodRequest req;
   req.set_input("Hello ");
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.output(), StrEq("Hello World. From Callback"));
+  EXPECT_THAT((*resp)->output(), StrEq("Hello World. From Callback"));
 }
 
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
@@ -98,11 +98,11 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 
   absl::Notification completed;
   TestMethodRequest req;
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.output(), IsEmpty());
+  EXPECT_THAT((*resp)->output(), IsEmpty());
 }
 
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobufWithNoFields) {
@@ -127,11 +127,11 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobufWithNoFields) {
 
   absl::Notification completed;
   TestMethodRequest req;
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.output(), IsEmpty());
+  EXPECT_THAT((*resp)->output(), IsEmpty());
 }
 
 TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
@@ -171,12 +171,12 @@ TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
   absl::Notification completed;
   TestMethodRequest req;
   req.set_input("Hello ");
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(
-      resp.output(),
+      (*resp)->output(),
       StrEq("Hello World. From NativeMethod. Hello World. From TestMethod1. "
             "Hello World. From TestMethod2"));
 }
@@ -211,12 +211,13 @@ TEST(RomaV8AppTest, NativeCallbackObjectToProtoBytes) {
   absl::Notification completed;
   TestMethodRequest req;
   req.set_input("Hello ");
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  // Remove null terminator from resp.output() to compare with expected string
-  EXPECT_THAT(resp.output().substr(0, resp.output().length() - 1),
+  // Remove null terminator from (*resp)->output() to compare with expected
+  // string
+  EXPECT_THAT((*resp)->output().substr(0, (*resp)->output().length() - 1),
               StrEq("\n\x6Hello \x10"));
 }
 
@@ -251,11 +252,11 @@ TEST(RomaV8AppTest, NativeCallbackProtoBytesToObject) {
   TestMethodRequest req;
   req.set_input(native_method_req.SerializeAsString());
 
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  nlohmann::json j = nlohmann::json::parse(resp.output());
+  nlohmann::json j = nlohmann::json::parse((*resp)->output());
   EXPECT_THAT(j["input"], native_method_req.input());
 }
 
