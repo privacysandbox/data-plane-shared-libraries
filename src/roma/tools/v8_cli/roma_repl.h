@@ -52,7 +52,7 @@ class RomaRepl final {
                std::string_view profiler_output_filename = "");
   bool ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
                       std::string_view commands_msg, std::string_view line);
-  void HandleExecute(RomaSvc* roma_service,
+  void HandleExecute(RomaSvc* roma_service, int32_t execution_count,
                      absl::Span<const std::string_view> tokens);
 
   RomaReplOptions options_;

@@ -50,8 +50,9 @@ Usage: load <version> <path to udf>
 Example: load v1 src/roma/tools/v8_cli/sample.js
 
 execute - Execute a User Defined Function (UDF)
-Usage: execute <version> <udf name> [args...]
+Usage: execute[:count] <version> <udf name> [args...]
 Example: execute v1 HandleFunc foo bar
+Example: execute:5 v1 HandleFunc foo bar
 
 help - Display all shell commands
 Usage: help
@@ -70,8 +71,9 @@ Usage: load <version> <path to udf>
 Example: load v1 src/roma/tools/v8_cli/sample.js
 
 execute - Execute a User Defined Function (UDF)
-Usage: execute <profiler output file> <version> <udf name> [args...]
+Usage: execute[:count] <profiler output file> <version> <udf name> [args...]
 Example: execute foo/bar/profiler_output.txt v1 HandleFunc foo bar
+Example: execute:2 foo/bar/profiler_output.txt v1 HandleFunc foo bar
 
 help - Display all shell commands
 Usage: help
@@ -172,21 +174,26 @@ void RomaRepl::Load(RomaSvc* roma_service, std::string_view version_str,
             << std::endl;
 }
 
-/* Handle calling Execute, accounting for profiler support. `tokens` contains
+/* Handle calling Execute, accounting for profiler support. `toks` contains
  * all std::string passed from stdin, and is structured in the following format:
  *
  * Without profilers: {"execute", <version>, <udf name>, [args...]}
  * With profilers: {"execute", <profiler output file>, <version>, <udf name>,
  * [args...]}
  */
-void RomaRepl::HandleExecute(RomaSvc* roma_service,
-                             absl::Span<const std::string_view> tokens) {
+void RomaRepl::HandleExecute(RomaSvc* roma_service, int32_t execution_count,
+                             absl::Span<const std::string_view> toks) {
   if (options_.enable_profilers) {
-    std::string_view profiler_output_filename = tokens[1];
-    Execute(roma_service, absl::Span(tokens.data() + 2, tokens.size() - 2),
-            profiler_output_filename);
+    std::string_view profiler_output_filename = toks[1];
+    absl::Span args(toks.data() + 2, toks.size() - 2);
+    for (auto i = 0; i < execution_count; ++i) {
+      Execute(roma_service, args, profiler_output_filename);
+    }
   } else {
-    Execute(roma_service, absl::Span(tokens.data() + 1, tokens.size() - 1));
+    absl::Span args(toks.data() + 1, toks.size() - 1);
+    for (auto i = 0; i < execution_count; ++i) {
+      Execute(roma_service, args);
+    }
   }
 }
 
@@ -194,21 +201,28 @@ void RomaRepl::HandleExecute(RomaSvc* roma_service,
 bool RomaRepl::ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
                               std::string_view commands_msg,
                               std::string_view line) {
-  std::vector<std::string_view> tokens = absl::StrSplit(line, " ");
-  std::string_view command = tokens[0];
+  std::vector<std::string_view> toks = absl::StrSplit(line, ' ');
+  std::pair<std::string_view, std::string_view> command_toks =
+      absl::StrSplit(toks[0], absl::MaxSplits(':', 1));
+  std::string_view command = command_toks.first;
+  int32_t command_count = 1;
+  if (!(command_toks.second.empty() ||
+        absl::SimpleAtoi(command_toks.second, &command_count))) {
+    std::cout << "Warning: unable to parse execution count: ["
+              << command_toks.second << "]" << std::endl;
+  }
   if (command == "exit") {
     roma_service->Stop().IgnoreError();
     return false;
   }
-
-  if (command == "load" && tokens.size() > 1) {
+  if (command == "load" && toks.size() > 1) {
     std::string_view udf_file_path;
-    if (tokens.size() > 2) {
-      udf_file_path = tokens[2];
+    if (toks.size() > 2) {
+      udf_file_path = toks[2];
     }
-    Load(roma_service, tokens[1], udf_file_path);
-  } else if (command == "execute" && tokens.size() > 2) {
-    HandleExecute(roma_service, tokens);
+    Load(roma_service, toks[1], udf_file_path);
+  } else if (command == "execute" && toks.size() > 2) {
+    HandleExecute(roma_service, command_count, toks);
   } else if (command == "help") {
     std::cout << commands_msg << std::endl;
   } else {
@@ -219,16 +233,16 @@ bool RomaRepl::ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
 }
 
 void RomaRepl::Execute(RomaSvc* roma_service,
-                       absl::Span<const std::string_view> tokens,
+                       absl::Span<const std::string_view> toks,
                        std::string_view profiler_output_filename) {
   std::vector<std::string> input;
-  std::transform(tokens.begin() + 2, tokens.end(), std::back_inserter(input),
+  std::transform(toks.begin() + 2, toks.end(), std::back_inserter(input),
                  [](auto s) { return absl::StrCat("\"", s, "\""); });
   InvocationStrRequest<> execution_object = {
       .id = google::scp::core::common::ToString(
           google::scp::core::common::Uuid::GenerateUuid()),
-      .version_string = std::string(tokens[0]),
-      .handler_name = std::string(tokens[1]),
+      .version_string = std::string(toks[0]),
+      .handler_name = std::string(toks[1]),
       .tags = {{
           "TimeoutDuration",
           absl::StrCat(absl::ToDoubleMilliseconds(options_.execution_timeout),
