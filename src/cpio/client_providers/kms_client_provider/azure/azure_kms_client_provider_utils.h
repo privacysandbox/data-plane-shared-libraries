@@ -35,7 +35,24 @@ namespace google::scp::cpio::client_providers {
 
 constexpr char kAttestation[] = "attestation";
 
-// add test keys for non-SNP environment
+/*
+ * What is the wrapping key?
+ * The wrapping key is an RSA public key used by the /unwrapkey KMS endpoint. 
+ * When making a request to this endpoint, the caller must provide this RSA public key.
+ * The /unwrapkey endpoint uses the provided public key to encrypt the plaintext HPKE private key which is returned in the respone. 
+ * This ensures that the HPKE private key remains encrypted while traveling over proxies between KMS and B&A services.
+ * The caller can later use its corresponding private key to decrypt and obtain the actual plaintext HPKE private key.
+ *
+ * Security:
+ * To prevent man-in-the-middle attacks, the KMS /unwrapkey endpoint validates that the presented wrapping key is owned by the calling service.
+ * This validation is done by checking the report data in the attestation report.
+ *
+ * Why do we use a test wrapping key in non-production environments?
+ * In production environments on real SNP hardware, the wrapping key is generated dynamically.
+ * A hash of the key is included in the attestation report (report data).
+ * In test environments, we cannot generate real-time attestation reports. Instead, we use a fake attestation report that hardcodes
+ * the hash of a test wrapping key.
+ */
 static constexpr char kPemSeperator[] = "-----";
 static constexpr char kPemEnd[] = "END ";
 static constexpr char kPemToken[] = "PRIVATE ";
