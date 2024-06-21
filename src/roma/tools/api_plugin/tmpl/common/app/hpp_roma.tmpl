@@ -54,7 +54,8 @@ class {{$svc.Name}} {
       absl::Notification& notification,
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
-      TMetadata metadata = TMetadata()) = 0;
+      TMetadata metadata = TMetadata(),
+      std::string_view code_token = "") = 0;
 
 {{end}}
 };

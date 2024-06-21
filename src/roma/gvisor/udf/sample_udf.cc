@@ -26,20 +26,24 @@
 #include "absl/strings/str_cat.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/host/callback.pb.h"
-#include "src/roma/gvisor/udf/roma_binary.pb.h"
+#include "src/roma/gvisor/udf/kv.pb.h"
 
-using privacy_sandbox::server_common::gvisor::BinaryRequest;
-using privacy_sandbox::server_common::gvisor::BinaryResponse;
 using privacy_sandbox::server_common::gvisor::Callback;
+using privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
+using privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
+using privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
+using privacy_sandbox::server_common::gvisor::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using privacy_sandbox::server_common::gvisor::GetValuesRequest;
+using privacy_sandbox::server_common::gvisor::GetValuesResponse;
 
 // Find all prime numbers less than this:
 constexpr int kPrimeCount = 100'000;
 
-void RunHelloWorld(BinaryResponse& bin_response) {
+void RunHelloWorld(GetValuesResponse& bin_response) {
   bin_response.set_greeting("Hello, world!");
 }
 
-void RunPrimeSieve(BinaryResponse& bin_response) {
+void RunPrimeSieve(GetValuesResponse& bin_response) {
   // Create a boolean array of size n+1
   std::vector<bool> primes(kPrimeCount + 1, true);
   // Set first two values to false
@@ -81,23 +85,23 @@ int main(int argc, char* argv[]) {
   CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
       << "Conversion of comms file descriptor string to int failed";
 
-  BinaryRequest bin_request;
+  GetValuesRequest bin_request;
   bin_request.ParseFromFileDescriptor(STDIN_FILENO);
   int32_t write_fd;
   CHECK(absl::SimpleAtoi(argv[1], &write_fd))
       << "Conversion of write file descriptor string to int failed";
-  BinaryResponse bin_response;
+  GetValuesResponse bin_response;
   switch (bin_request.function()) {
-    case BinaryRequest::FUNCTION_HELLO_WORLD:
+    case FUNCTION_HELLO_WORLD:
       RunHelloWorld(bin_response);
       break;
-    case BinaryRequest::FUNCTION_PRIME_SIEVE:
+    case FUNCTION_PRIME_SIEVE:
       RunPrimeSieve(bin_response);
       break;
-    case BinaryRequest::FUNCTION_CALLBACK:
+    case FUNCTION_CALLBACK:
       RunEchoCallback(comms_fd);
       break;
-    case BinaryRequest::FUNCTION_TEN_CALLBACK_INVOCATIONS:
+    case FUNCTION_TEN_CALLBACK_INVOCATIONS:
       for (int i = 0; i < 10; ++i) {
         RunEchoCallback(comms_fd);
       }

@@ -45,7 +45,7 @@ cc_library(
 cc_library(
     name = "config",
     hdrs = ["config.h"],
-    visibility = ["//src/roma/gvisor:__subpackages__"],
+    visibility = ["//src/roma:__subpackages__"],
     deps = [
         ":utils",
         "//src/roma/config",

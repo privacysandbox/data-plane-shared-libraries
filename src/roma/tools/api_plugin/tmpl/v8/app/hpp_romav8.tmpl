@@ -85,7 +85,8 @@ class {{$svcName}} final :
       absl::Notification& notification,
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
-      TMetadata metadata = TMetadata()) override {
+      TMetadata metadata = TMetadata(),
+      std::string_view code_token = "") override {
     return AppService::Execute(
         notification,
         "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}Pb",

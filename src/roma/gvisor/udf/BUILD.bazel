@@ -16,38 +16,51 @@ load(
     "@com_google_googleapis_imports//:imports.bzl",
     "cc_proto_library",
 )
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load(
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
+    "js_proto_library",
+    "roma_app_api_cc_library",
+    "roma_service_js_library",
+)
 
 proto_library(
-    name = "roma_binary_proto",
-    srcs = ["roma_binary.proto"],
+    name = "kv_proto",
+    srcs = ["kv.proto"],
+    visibility = [
+        "//src/roma/gvisor:__subpackages__",
+    ],
+    deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_proto"],
 )
 
 cc_proto_library(
-    name = "roma_binary_cc_proto",
+    name = "kv_cc_proto",
     visibility = [
         "//src/roma/gvisor:__subpackages__",
     ],
     deps = [
-        ":roma_binary_proto",
+        ":kv_proto",
     ],
 )
 
 buf_lint_test(
-    name = "roma_binary_proto_lint",
+    name = "kv_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
-    targets = [":roma_binary_proto"],
+    targets = [":kv_proto"],
 )
 
 go_proto_library(
-    name = "roma_binary_go_proto",
+    name = "kv_go_proto",
     importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example",
-    proto = ":roma_binary_proto",
+    proto = ":kv_proto",
+    deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_go"],
 )
 
 go_binary(
@@ -57,7 +70,7 @@ go_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":roma_binary_go_proto",
+        ":kv_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )
@@ -69,7 +82,7 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":roma_binary_cc_proto",
+        ":kv_cc_proto",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",
     ],
@@ -82,7 +95,7 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":roma_binary_cc_proto",
+        ":kv_cc_proto",
         "//src/roma/gvisor/host:callback_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
@@ -90,4 +103,43 @@ cc_binary(
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
+)
+
+kv_api = declare_roma_api(
+    cc_protos = [":kv_cc_proto"],
+    proto_basename = "kv",
+    protos = [":kv_proto"],
+)
+
+js_proto_library(
+    name = "kv_js_proto_lib",
+    roma_api = kv_api,
+)
+
+roma_service_js_library(
+    name = "kv_js_library",
+    roma_app_api = kv_api,
+    deps = [":kv_js_proto_lib"],
+)
+
+closure_js_binary(
+    name = "kv_js",
+    compilation_level = "SIMPLE_OPTIMIZATIONS",
+    debug = False,
+    formatting = "PRETTY_PRINT",
+    language = "ECMASCRIPT_NEXT",
+    deps = [
+        ":kv_js_library",
+    ],
+)
+
+roma_app_api_cc_library(
+    name = "kv_roma_api",
+    js_library = ":kv_js",
+    roma_app_api = kv_api,
+    tags = [
+        "noasan",
+        "notsan-aarch64",
+    ],
+    visibility = ["//visibility:public"],
 )

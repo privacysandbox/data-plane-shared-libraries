@@ -135,22 +135,23 @@ class RomaService final {
    * asynchronously.
    *
    * Once the async execute is complete, notification will be sent via the
-   * provided notif. If successful, response will be populated with the output
-   * from the binary. Else, with the error and the message.
+   * provided notif. If successful, the grpc::Status passed to the
+   * populate_response function will indicate the same the serialized_response
+   * can then be used processing the response.
    *
    * @param code_token identifier provided by load of the binary to be executed.
    * @param request proto for the binary.
    * @param metadata for execution request. It is a templated type.
-   * @param response populated with the response from the binary once
-   * execution is complete, if successful.  Else, the error and the message.
+   * @param populate_response invoked once the response is available.
    * @param notif notifies that execution_status is available.
    * @return absl::Status
    */
   absl::Status ExecuteBinary(
       std::string_view code_token,
       const ::google::protobuf::MessageLite& request, TMetadata metadata,
-      absl::StatusOr<std::unique_ptr<::google::protobuf::MessageLite>>&
-          response,
+      std::function<void(::grpc::Status status,
+                         const std::string& serialized_response)>
+          populate_response,
       absl::Notification& notif) {
     std::string request_id = google::scp::core::common::ToString(
         google::scp::core::common::Uuid::GenerateUuid());
@@ -172,18 +173,11 @@ class RomaService final {
         // Exec args are moved into the callback to extend the lifetime so that
         // they are available when needed by the async gRPC.
         [&, exec_args = std::move(exec_args),
-         request_id = std::move(request_id)](::grpc::Status status) {
-          if (status.ok()) {
-            CHECK(*response != nullptr);
-            if (!(**response)
-                     .ParseFromString(
-                         exec_args->response.serialized_response())) {
-              response = absl::InternalError(
-                  "Failed to deserialize response to proto");
-            }
-          } else {
-            response = ToAbslStatus(status);
-          }
+         request_id = std::move(request_id),
+         populate_response =
+             std::move(populate_response)](::grpc::Status status) {
+          populate_response(std::move(status),
+                            exec_args->response.serialized_response());
           // Once response and execution_status have been populated, notify that
           // execution has been completed.
           notif.Notify();

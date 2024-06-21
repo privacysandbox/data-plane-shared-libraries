@@ -13,22 +13,22 @@
 // limitations under the License.
 
 #include "absl/log/check.h"
-#include "src/roma/gvisor/udf/roma_binary.pb.h"
+#include "src/roma/gvisor/udf/kv.pb.h"
 
-using privacy_sandbox::server_common::gvisor::BinaryRequest;
-using privacy_sandbox::server_common::gvisor::BinaryResponse;
+using privacy_sandbox::server_common::gvisor::GetValuesRequest;
+using privacy_sandbox::server_common::gvisor::GetValuesResponse;
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cout << "Not enough arguments!";
     return -1;
   }
-  BinaryRequest bin_request;
+  GetValuesRequest bin_request;
   bin_request.ParseFromFileDescriptor(STDIN_FILENO);
   int32_t write_fd;
   CHECK(absl::SimpleAtoi(argv[1], &write_fd))
       << "Conversion of write file descriptor string to int failed";
-  BinaryResponse bin_response;
+  GetValuesResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
 
   bin_response.SerializeToFileDescriptor(write_fd);

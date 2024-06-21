@@ -22,7 +22,6 @@
 #include <grpcpp/grpcpp.h>
 
 #include <benchmark/benchmark.h>
-#include <google/protobuf/message_lite.h>
 
 #include "absl/log/check.h"
 #include "absl/log/initialize.h"
@@ -33,15 +32,21 @@
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
-#include "src/roma/gvisor/interface/roma_service.h"
-#include "src/roma/gvisor/udf/roma_binary.pb.h"
+#include "src/roma/gvisor/udf/kv.pb.h"
+#include "src/roma/gvisor/udf/kv_roma_gvisor_app_service.h"
 
 namespace {
 using google::scp::roma::FunctionBindingObjectV2;
-using privacy_sandbox::server_common::gvisor::BinaryRequest;
-using privacy_sandbox::server_common::gvisor::BinaryResponse;
+using privacy_sandbox::kv_server::roma_app_api::GvisorKeyValueService;
+using privacy_sandbox::kv_server::roma_app_api::KeyValueService;
+using privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
+using privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
+using privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
+using privacy_sandbox::server_common::gvisor::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using privacy_sandbox::server_common::gvisor::FunctionType;
+using privacy_sandbox::server_common::gvisor::GetValuesRequest;
+using privacy_sandbox::server_common::gvisor::GetValuesResponse;
 using privacy_sandbox::server_common::gvisor::Mode;
-using privacy_sandbox::server_common::gvisor::RomaService;
 
 constexpr int kPrimeCount = 9592;
 constexpr std::string_view kGoLangBinaryPath = "/server/bin/sample_go_udf";
@@ -56,58 +61,57 @@ enum class Language {
   kGoLang = 1,
 };
 
-BinaryResponse SendRequestAndGetResponse(RomaService<>* roma_service,
-                                         BinaryRequest::Function func_type,
-                                         std::string_view code_token) {
+GetValuesResponse SendRequestAndGetResponse(
+    GvisorKeyValueService<>& roma_service,
+    privacy_sandbox::server_common::gvisor::FunctionType func_type,
+    std::string_view code_token) {
   // Data we are sending to the server.
-  BinaryRequest bin_request;
+  GetValuesRequest bin_request;
   bin_request.set_function(func_type);
-  std::unique_ptr<BinaryResponse> bin_response =
-      std::make_unique<BinaryResponse>();
-  absl::StatusOr<std::unique_ptr<::google::protobuf::MessageLite>> response =
-      std::move(bin_response);
+  absl::StatusOr<std::unique_ptr<GetValuesResponse>> response;
 
   absl::Notification notif;
-  CHECK_OK(roma_service->ExecuteBinary(code_token, bin_request,
-                                       /*metadata=*/{}, response, notif));
+  CHECK_OK(roma_service.GetValues(notif, bin_request, response,
+                                  /*metadata=*/{}, code_token));
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(response);
-  return std::move(*static_cast<BinaryResponse*>(response->get()));
+  return *std::move((*response).get());
 }
 
-std::string LoadCode(RomaService<>* roma_service, std::string_view file_path) {
+std::string LoadCode(GvisorKeyValueService<>& roma_service,
+                     std::string_view file_path) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service->LoadBinary(file_path, notif, notif_status);
+      roma_service.Register(file_path, notif, notif_status);
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
   CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 
-std::unique_ptr<RomaService<>> GetRomaService(Mode mode, int num_workers) {
+GvisorKeyValueService<> GetRomaService(Mode mode, int num_workers) {
   privacy_sandbox::server_common::gvisor::Config config = {
       .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
-  absl::StatusOr<std::unique_ptr<RomaService<>>> roma_interface =
-      RomaService<>::Create(config, mode);
-  CHECK_OK(roma_interface);
-  return *std::move(roma_interface);
+  absl::StatusOr<GvisorKeyValueService<>> kv_interface =
+      GvisorKeyValueService<>::Create(config, mode);
+  CHECK_OK(kv_interface);
+  return std::move(*kv_interface);
 }
 
-void VerifyResponse(
-    BinaryResponse bin_response, std::string_view expected_response,
-    BinaryRequest::Function func = BinaryRequest::FUNCTION_HELLO_WORLD) {
+void VerifyResponse(GetValuesResponse bin_response,
+                    std::string_view expected_response,
+                    FunctionType func = FUNCTION_HELLO_WORLD) {
   switch (func) {
-    case BinaryRequest::FUNCTION_HELLO_WORLD:
+    case FUNCTION_HELLO_WORLD:
       CHECK(absl::EqualsIgnoreCase(bin_response.greeting(), expected_response))
           << "Actual response: " << bin_response.greeting()
           << "\tExpected response: " << expected_response;
       break;
-    case BinaryRequest::FUNCTION_PRIME_SIEVE:
+    case FUNCTION_PRIME_SIEVE:
       CHECK_EQ(bin_response.prime_number_size(), kPrimeCount)
           << "Expected " << kPrimeCount << " upto 100,000";
       break;
@@ -150,15 +154,15 @@ std::string GetLanguageStr(Language lang) {
   }
 }
 
-std::string GetFunctionTypeStr(BinaryRequest::Function func_type) {
+std::string GetFunctionTypeStr(FunctionType func_type) {
   switch (func_type) {
-    case BinaryRequest::FUNCTION_HELLO_WORLD:
+    case FUNCTION_HELLO_WORLD:
       return R"(udf:"Hello World")";
-    case BinaryRequest::FUNCTION_PRIME_SIEVE:
+    case FUNCTION_PRIME_SIEVE:
       return R"(udf:"Prime Sieve")";
-    case BinaryRequest::FUNCTION_CALLBACK:
+    case FUNCTION_CALLBACK:
       return R"(udf:"Callback hook")";
-    case BinaryRequest::FUNCTION_TEN_CALLBACK_INVOCATIONS:
+    case FUNCTION_TEN_CALLBACK_INVOCATIONS:
       return R"(udf:"Ten callback invocations")";
     default:
       return "udf:Unknown";
@@ -168,21 +172,19 @@ std::string GetFunctionTypeStr(BinaryRequest::Function func_type) {
 
 void BM_LoadBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaService<>> roma_service =
+  GvisorKeyValueService<> roma_service =
       GetRomaService(mode, /*num_workers=*/1);
-  BinaryRequest::Function func_type = BinaryRequest::FUNCTION_HELLO_WORLD;
+  FunctionType func_type = FUNCTION_HELLO_WORLD;
 
   auto bin_response = SendRequestAndGetResponse(
-      roma_service.get(), func_type,
-      LoadCode(roma_service.get(), kCPlusPlusBinaryPath));
+      roma_service, func_type, LoadCode(roma_service, kCPlusPlusBinaryPath));
   VerifyResponse(bin_response, kFirstUdfOutput);
 
   std::string code_token;
   for (auto _ : state) {
-    code_token = LoadCode(roma_service.get(), kCPlusPlusNewBinaryPath);
+    code_token = LoadCode(roma_service, kCPlusPlusNewBinaryPath);
   }
-  bin_response =
-      SendRequestAndGetResponse(roma_service.get(), func_type, code_token);
+  bin_response = SendRequestAndGetResponse(roma_service, func_type, code_token);
   VerifyResponse(bin_response, kNewUdfOutput);
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -190,26 +192,25 @@ void BM_LoadBinary(benchmark::State& state) {
 
 void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaService<>> roma_service =
+  GvisorKeyValueService<> roma_service =
       GetRomaService(mode, /*num_workers=*/2);
 
-  std::string first_code_token =
-      LoadCode(roma_service.get(), kCPlusPlusBinaryPath);
+  std::string first_code_token = LoadCode(roma_service, kCPlusPlusBinaryPath);
   std::string second_code_token =
-      LoadCode(roma_service.get(), kCPlusPlusNewBinaryPath);
+      LoadCode(roma_service, kCPlusPlusNewBinaryPath);
 
-  BinaryRequest::Function func_type = BinaryRequest::FUNCTION_HELLO_WORLD;
-  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
-                                           first_code_token),
-                 kFirstUdfOutput);
+  FunctionType func_type = FUNCTION_HELLO_WORLD;
+  VerifyResponse(
+      SendRequestAndGetResponse(roma_service, func_type, first_code_token),
+      kFirstUdfOutput);
 
-  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
-                                           second_code_token),
-                 kNewUdfOutput);
+  VerifyResponse(
+      SendRequestAndGetResponse(roma_service, func_type, second_code_token),
+      kNewUdfOutput);
 
   for (auto _ : state) {
-    auto response = SendRequestAndGetResponse(roma_service.get(), func_type,
-                                              first_code_token);
+    auto response =
+        SendRequestAndGetResponse(roma_service, func_type, first_code_token);
   }
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -217,26 +218,25 @@ void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
 
 void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaService<>> roma_service =
+  GvisorKeyValueService<> roma_service =
       GetRomaService(mode, /*num_workers=*/2);
 
-  std::string first_code_token =
-      LoadCode(roma_service.get(), kCPlusPlusBinaryPath);
+  std::string first_code_token = LoadCode(roma_service, kCPlusPlusBinaryPath);
   std::string second_code_token =
-      LoadCode(roma_service.get(), kCPlusPlusNewBinaryPath);
+      LoadCode(roma_service, kCPlusPlusNewBinaryPath);
 
-  BinaryRequest::Function func_type = BinaryRequest::FUNCTION_HELLO_WORLD;
-  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
-                                           first_code_token),
-                 kFirstUdfOutput);
+  FunctionType func_type = FUNCTION_HELLO_WORLD;
+  VerifyResponse(
+      SendRequestAndGetResponse(roma_service, func_type, first_code_token),
+      kFirstUdfOutput);
 
-  VerifyResponse(SendRequestAndGetResponse(roma_service.get(), func_type,
-                                           second_code_token),
-                 kNewUdfOutput);
+  VerifyResponse(
+      SendRequestAndGetResponse(roma_service, func_type, second_code_token),
+      kNewUdfOutput);
 
   for (auto _ : state) {
-    auto response = SendRequestAndGetResponse(roma_service.get(), func_type,
-                                              second_code_token);
+    auto response =
+        SendRequestAndGetResponse(roma_service, func_type, second_code_token);
   }
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -244,19 +244,17 @@ void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
 
 void BM_ExecuteBinaryAsyncUnaryGrpc(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  std::unique_ptr<RomaService<>> roma_service =
+  GvisorKeyValueService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
 
-  std::string code_token = LoadCode(roma_service.get(), kCPlusPlusBinaryPath);
+  std::string code_token = LoadCode(roma_service, kCPlusPlusBinaryPath);
 
-  BinaryRequest::Function func_type =
-      static_cast<BinaryRequest::Function>(state.range(1));
+  FunctionType func_type = static_cast<FunctionType>(state.range(1));
   auto response =
-      SendRequestAndGetResponse(roma_service.get(), func_type, code_token);
+      SendRequestAndGetResponse(roma_service, func_type, code_token);
 
   for (auto s : state) {
-    response =
-        SendRequestAndGetResponse(roma_service.get(), func_type, code_token);
+    response = SendRequestAndGetResponse(roma_service, func_type, code_token);
   }
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
@@ -264,22 +262,21 @@ void BM_ExecuteBinaryAsyncUnaryGrpc(benchmark::State& state) {
 
 void BM_GvisorCompareCPlusPlusAndGoLangBinary(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
-  std::unique_ptr<RomaService<>> roma_service =
+  GvisorKeyValueService<> roma_service =
       GetRomaService(Mode::kModeGvisor, /*num_workers=*/2);
 
   std::string code_token =
-      LoadCode(roma_service.get(), GetFilePathFromLanguage(lang));
+      LoadCode(roma_service, GetFilePathFromLanguage(lang));
 
-  BinaryRequest::Function func_type =
-      static_cast<BinaryRequest::Function>(state.range(1));
+  FunctionType func_type = static_cast<FunctionType>(state.range(1));
   VerifyResponse(
-      SendRequestAndGetResponse(roma_service.get(), func_type, code_token),
+      SendRequestAndGetResponse(roma_service, func_type, code_token),
       lang == Language::kCPlusPlus ? kFirstUdfOutput : kGoBinaryOutput,
       func_type);
 
   for (auto _ : state) {
     auto response =
-        SendRequestAndGetResponse(roma_service.get(), func_type, code_token);
+        SendRequestAndGetResponse(roma_service, func_type, code_token);
   }
   state.SetLabel(absl::StrJoin(
       {GetFunctionTypeStr(func_type), GetLanguageStr(lang)}, ", "));
@@ -303,8 +300,8 @@ BENCHMARK(BM_GvisorCompareCPlusPlusAndGoLangBinary)
             (int)Language::kGoLang,
         },
         {
-            BinaryRequest::FUNCTION_HELLO_WORLD,  // Generic "Hello, world!"
-            BinaryRequest::FUNCTION_PRIME_SIEVE,  // Sieve of primes
+            FUNCTION_HELLO_WORLD,  // Generic "Hello, world!"
+            FUNCTION_PRIME_SIEVE,  // Sieve of primes
         },
     })
     ->ArgNames({"mode", "udf"});
@@ -337,12 +334,11 @@ BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
             (int)Mode::kModeLocal,
         },
         {
-            BinaryRequest::FUNCTION_HELLO_WORLD,  // Generic "Hello, world!"
-            BinaryRequest::FUNCTION_PRIME_SIEVE,  // Sieve of primes
-            BinaryRequest::FUNCTION_CALLBACK,     // Generic callback hook
-            BinaryRequest::
-                FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of
-                                                    // generic callback hook
+            FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
+            FUNCTION_PRIME_SIEVE,               // Sieve of primes
+            FUNCTION_CALLBACK,                  // Generic callback hook
+            FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
+                                                // callback hook
         },
         {
             0, 1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
