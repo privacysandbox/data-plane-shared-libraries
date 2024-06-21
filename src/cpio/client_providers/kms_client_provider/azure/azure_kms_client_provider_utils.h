@@ -35,7 +35,28 @@ namespace google::scp::cpio::client_providers {
 
 constexpr char kAttestation[] = "attestation";
 
-// add test keys for non-SNP environment
+/*
+ * What is the wrapping key?
+ * The wrapping key is an RSA public key used by the /unwrapkey KMS endpoint.
+ * When making a request to this endpoint, the caller must provide this RSA
+ * public key. The /unwrapkey endpoint uses the provided public key to encrypt
+ * the plaintext HPKE private key which is returned in the respone. This ensures
+ * that the HPKE private key remains encrypted while traveling over proxies
+ * between KMS and B&A services. The caller can later use its corresponding
+ * private key to decrypt and obtain the actual plaintext HPKE private key.
+ *
+ * Security:
+ * To prevent man-in-the-middle attacks, the KMS /unwrapkey endpoint validates
+ * that the presented wrapping key is owned by the calling service. This
+ * validation is done by checking the report data in the attestation report.
+ *
+ * Why do we use a test wrapping key in non-production environments?
+ * In production environments on real SNP hardware, the wrapping key is
+ * generated dynamically. A hash of the key is included in the attestation
+ * report (report data). In test environments, we cannot generate real-time
+ * attestation reports. Instead, we use a fake attestation report that hardcodes
+ * the hash of a test wrapping key.
+ */
 static constexpr char kPemSeperator[] = "-----";
 static constexpr char kPemEnd[] = "END ";
 static constexpr char kPemToken[] = "PRIVATE ";
@@ -125,10 +146,15 @@ static std::string GetTestPemPrivWrapKey() {
 class RsaWrapper {
  public:
   RsaWrapper() : rsa_(RSA_new()) {}
+  explicit RsaWrapper(RSA* rsa_raw) : rsa_(rsa_raw) {}
 
   ~RsaWrapper() { RSA_free(rsa_); }
 
   RSA* get() { return rsa_; }
+
+  const BIGNUM* getE() const { return rsa_->e; }
+  const BIGNUM* getN() const { return rsa_->n; }
+  const BIGNUM* getD() const { return rsa_->d; }
 
  private:
   RSA* rsa_;
@@ -137,7 +163,7 @@ class RsaWrapper {
 class BnWrapper {
  public:
   BnWrapper() : bn_(BN_new()) {}
-
+  explicit BnWrapper(BIGNUM* bn) : bn_(bn) {}
   ~BnWrapper() { BN_free(bn_); }
 
   BIGNUM* get() { return bn_; }
@@ -148,13 +174,21 @@ class BnWrapper {
 
 class EvpPkeyWrapper {
  public:
-  EvpPkeyWrapper() : pkey_(EVP_PKEY_new()) {}
-
+  // Constructor accepting an EVP_PKEY*
   explicit EvpPkeyWrapper(EVP_PKEY* pkey) : pkey_(pkey) {}
 
-  ~EvpPkeyWrapper() { EVP_PKEY_free(pkey_); }
+  // Default constructor
+  EvpPkeyWrapper() : pkey_(nullptr) {}
 
-  EVP_PKEY* get() { return pkey_; }
+  // Destructor
+  ~EvpPkeyWrapper() {
+    if (pkey_) {
+      EVP_PKEY_free(pkey_);
+    }
+  }
+
+  // Getter for the EVP_PKEY* pointer
+  EVP_PKEY* get() const { return pkey_; }
 
  private:
   EVP_PKEY* pkey_;
@@ -162,7 +196,11 @@ class EvpPkeyWrapper {
 
 class BIOWrapper {
  public:
-  explicit BIOWrapper(BIO_METHOD* method) : bio_(BIO_new(method)) {}
+  BIOWrapper() : bio_(BIO_new(BIO_s_mem())) {
+    if (!bio_) {
+      throw std::runtime_error("Failed to create BIO");
+    }
+  }
 
   ~BIOWrapper() { BIO_free(bio_); }
 
@@ -203,33 +241,13 @@ class AzureKmsClientProviderUtils {
    *
    * @param wrappingKey RSA public key used to wrap a key.
    */
-  static std::string EvpPkeyToPem(EVP_PKEY* wrappingKey);
-
-  /**
-   * @brief Convert a public PEM wrapping key to pkey
-   *
-   * @param wrappingPemKey RSA PEM key used to wrap a key.
-   */
-  static EVP_PKEY* GetPublicEvpPkey(std::string wrappingPemKey);
-
-  /**
-   * @brief Convert a private PEM wrapping key to pkey
-   *
-   * @param wrappingPemKey RSA PEM key used to wrap a key.
-   */
-  static EVP_PKEY* GetPrivateEvpPkey(std::string wrappingPemKey);
+  static std::string EvpPkeyToPem(std::shared_ptr<EvpPkeyWrapper> wrappingKey);
 
   /**
    * @brief Generate hex hash on wrapping key
    */
-  static std::string CreateHexHashOnKey(EVP_PKEY* publicKey);
-
-  /**
-   * @brief Convert a PEM wrapping key to pkey
-   *
-   * @param wrappingPemKey RSA PEM key used to wrap a key.
-   */
-  static EVP_PKEY* PemToEvpPkey(std::string wrappingPemKey);
+  static std::string CreateHexHashOnKey(
+      std::shared_ptr<EvpPkeyWrapper> publicKey);
 
   /**
    * @brief Wrap a key using RSA OAEP
@@ -237,8 +255,8 @@ class AzureKmsClientProviderUtils {
    * @param wrappingKey RSA public key used to wrap a key.
    * @param key         Key in PEM format to wrap.
    */
-  static std::vector<unsigned char> KeyWrap(EVP_PKEY* wrappingKey,
-                                            const std::string& key);
+  static std::vector<unsigned char> KeyWrap(
+      std::shared_ptr<EvpPkeyWrapper> wrappingKey, const std::string& key);
 
   /**
    * @brief Unwrap a key using RSA OAEP
@@ -246,12 +264,36 @@ class AzureKmsClientProviderUtils {
    * @param wrappingKey RSA private key used to unwrap a key.
    * @param encrypted   Wrapped key to unwrap.
    */
-  static std::string KeyUnwrap(EVP_PKEY* wrappingKey,
+  static std::string KeyUnwrap(std::shared_ptr<EvpPkeyWrapper> wrappingKey,
                                const std::vector<unsigned char>& encrypted);
 
- private:
   // Declare the isPrivate function as private
-  static bool isPrivate(EVP_PKEY* pkey);
+  static bool isPrivate(std::shared_ptr<EvpPkeyWrapper> key);
+
+  /**
+   * @brief Convert a PEM wrapping key to pkey
+   *
+   * @param wrappingPemKey RSA PEM key used to wrap a key.
+   */
+  static std::shared_ptr<EvpPkeyWrapper> PemToEvpPkey(
+      std::string wrappingPemKey);
+
+ private:
+  /**
+   * @brief Convert a public PEM wrapping key to pkey
+   *
+   * @param wrappingPemKey RSA PEM key used to wrap a key.
+   */
+  static std::shared_ptr<EvpPkeyWrapper> GetPublicEvpPkey(
+      std::string wrappingPemKey);
+
+  /**
+   * @brief Convert a private PEM wrapping key to pkey
+   *
+   * @param wrappingPemKey RSA PEM key used to wrap a key.
+   */
+  static std::shared_ptr<EvpPkeyWrapper> GetPrivateEvpPkey(
+      std::string wrappingPemKey);
 };
 }  // namespace google::scp::cpio::client_providers
 

@@ -173,8 +173,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   http_context.request->path = std::make_shared<Uri>(unwrap_url_);
   http_context.request->method = HttpMethod::POST;
 
-  EVP_PKEY* publicKey;
-  EVP_PKEY* privateKey;
+  std::shared_ptr<EvpPkeyWrapper> publicKey;
+  std::shared_ptr<EvpPkeyWrapper> privateKey;
 
   // Temporary store wrappingKey
   std::pair<std::shared_ptr<EvpPkeyWrapper>, std::shared_ptr<EvpPkeyWrapper>>
@@ -197,12 +197,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
       return;
     }
 
-    privateKey = wrappingKeyPair.first->get();
-    publicKey = wrappingKeyPair.second->get();
-
-    // Calculate hash on publicKey
-    hexHashOnWrappingKey =
-        AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
+    privateKey = wrappingKeyPair.first;
+    publicKey = wrappingKeyPair.second;
   } else {
     // Get test PEM public key
     auto publicPemKey =
@@ -211,34 +207,19 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
 
     // Get test PEM private key and convert it to EVP_PKEY*
     auto privateKeyPem = GetTestPemPrivWrapKey();
-    privateKey = nullptr;
-    BIOWrapper bioWrapper(const_cast<BIO_METHOD*>(BIO_s_mem()));
-
-    // Get the BIO object from the wrapper
-    BIO* bio = bioWrapper.get();
-    if (bio == nullptr) {
-      char* error_string = ERR_error_string(ERR_get_error(), nullptr);
-      throw std::runtime_error(std::string("Failed to create BIO: ") +
-                               error_string);
-    }
-
-    BIO_write(bio, privateKeyPem.c_str(), privateKeyPem.size());
-
     // Add the constant to avoid the key detection precommit
     auto toTest = std::string("-----") + std::string("BEGIN PRIVATE") +
                   std::string(" KEY-----");
 
     CHECK(privateKeyPem.find(toTest) == 0) << "Failed to get private PEM key";
+    privateKey = AzureKmsClientProviderUtils::PemToEvpPkey(privateKeyPem);
 
-    PEM_read_bio_PrivateKey(bio, &privateKey, nullptr, nullptr);
-    wrappingKeyPair =
-        std::make_pair(std::make_shared<EvpPkeyWrapper>(privateKey),
-                       std::make_shared<EvpPkeyWrapper>(publicKey));
-
-    // Calculate hash on publicKey
-    hexHashOnWrappingKey =
-        AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
+    wrappingKeyPair = std::make_pair(privateKey, publicKey);
   }
+
+  // Calculate hash on publicKey
+  hexHashOnWrappingKey =
+      AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
 
   // Get Attestation Report
   const auto report = hasSnp() ? fetchSnpAttestation(hexHashOnWrappingKey)
@@ -311,8 +292,8 @@ void AzureKmsClientProvider::OnDecryptCallback(
   }
   std::vector<uint8_t> encrypted(decodedWrapped.begin(), decodedWrapped.end());
 
-  std::string decrypted = AzureKmsClientProviderUtils::KeyUnwrap(
-      ephemeral_private_key->get(), encrypted);
+  std::string decrypted =
+      AzureKmsClientProviderUtils::KeyUnwrap(ephemeral_private_key, encrypted);
   decrypt_context.response = std::make_shared<DecryptResponse>();
 
   decrypt_context.response->set_plaintext(decrypted);
