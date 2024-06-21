@@ -1,0 +1,13 @@
+{
+  "extra_ignore_include_paths": [
+    "gtest/gtest.h",
+    "gmock/gmock.h",
+    "nlohmann/json.hpp"
+  ],
+  "ignore_include_patterns": [
+    "google/cloud/kms/v1/service.grpc.pb.h",
+    "google/cloud/common_options.h",
+    "google/cloud/credentials.h",
+    "google/protobuf/util/time_util.h"
+  ]
+}

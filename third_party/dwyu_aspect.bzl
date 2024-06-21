@@ -1,4 +1,4 @@
-# Copyright 2023 Google LLC
+# Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,8 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-filegroup(
-    name = "depend_on_what_you_use_config",
-    srcs = ["depend_on_what_you_use_config.json"],
-    visibility = ["//third_party:__subpackages__"],
+""" Use depend_on_what_you_use for the codebase. """
+
+load("@depend_on_what_you_use//:defs.bzl", "dwyu_aspect_factory")
+
+dwyu_aspect = dwyu_aspect_factory(
+    skip_external_targets = True,
+    # TODO - Turn on when ready for the whole codebase.
+    # recursive = True,
 )

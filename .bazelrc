@@ -54,6 +54,10 @@ build:clang-tidy --@bazel_clang_tidy//:clang_tidy_config=//:clang_tidy_config
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
 
+# depend_on_what_you_use build check.
+build:dwyu --aspects=//third_party:depend_on_what_you_use.bzl%dwyu
+build:dwyu --output_groups=dwyu
+
 try-import %workspace%/builders/.coverage.bazelrc
 
 # Common settings for all sanitizers.

@@ -71,9 +71,20 @@ def _rust_deps():
         urls = ["https://github.com/bazelbuild/rules_rust/releases/download/0.31.0/rules_rust-v0.31.0.tar.gz"],
     )
 
+def _dwyu_deps():
+    maybe(
+        http_archive,
+        name = "depend_on_what_you_use",
+        patches = [Label("//third_party:depend_on_what_you_use.patch")],
+        sha256 = "b56cdfaed0d74967fefb54bdd3f05bd167c4c4ebaa2a67af962d969e6a51962b",
+        strip_prefix = "depend_on_what_you_use-0.3.0",
+        urls = ["https://github.com/martis42/depend_on_what_you_use/releases/download/0.3.0/depend_on_what_you_use-0.3.0.tar.gz"],
+    )
+
 def deps1():
     _bazel_deps()
     _absl_deps()
     _rust_deps()
+    _dwyu_deps()
     scp_sdk_dependencies()
     emscripten_deps1()
