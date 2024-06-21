@@ -22,6 +22,7 @@
 #include "absl/flags/parse.h"
 #include "absl/log/log.h"
 #include "absl/strings/match.h"
+#include "absl/time/time.h"
 #include "src/roma/tools/v8_cli/roma_repl.h"
 #include "src/roma/tools/v8_cli/utils.h"
 #include "src/util/duration.h"
