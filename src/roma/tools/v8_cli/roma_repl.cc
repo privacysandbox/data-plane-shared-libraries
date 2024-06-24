@@ -187,6 +187,61 @@ void RomaRepl::Load(RomaSvc* roma_service, std::string_view version_str,
             << std::endl;
 }
 
+void RomaRepl::Execute(RomaSvc* roma_service,
+                       absl::Span<const std::string_view> toks,
+                       std::string_view profiler_output_filename) {
+  std::vector<std::string> input;
+  std::transform(toks.begin() + 2, toks.end(), std::back_inserter(input),
+                 [](auto s) { return absl::StrCat("\"", s, "\""); });
+  InvocationStrRequest<> execution_object = {
+      .id = google::scp::core::common::ToString(
+          google::scp::core::common::Uuid::GenerateUuid()),
+      .version_string = std::string(toks[0]),
+      .handler_name = std::string(toks[1]),
+      .tags = {{
+          "TimeoutDuration",
+          absl::StrCat(absl::ToDoubleMilliseconds(options_.execution_timeout),
+                       "ms"),
+      }},
+      .input = input,
+  };
+  LOG(INFO) << "ExecutionObject:\nid: " << execution_object.id
+            << "\nversion_string: " << execution_object.version_string
+            << "\nhandler_name: " << execution_object.handler_name
+            << "\ninput: " << absl::StrJoin(input, " ");
+  std::string result;
+  absl::Notification execute_finished;
+  LOG(INFO) << "Calling Execute...";
+  privacy_sandbox::server_common::Stopwatch timer;
+  const bool allow_profilers =
+      options_.enable_profilers && !profiler_output_filename.empty();
+  CHECK(roma_service
+            ->Execute(
+                std::make_unique<InvocationStrRequest<>>(execution_object),
+                [&result, allow_profilers, profiler_output_filename,
+                 &execute_finished](absl::StatusOr<ResponseObject> resp) {
+                  if (resp.ok()) {
+                    LOG(INFO) << "Execute successful!";
+                    result = std::move(resp->resp);
+                    std::cout << "> " << result << std::endl;
+
+                    if (allow_profilers && !resp->profiler_output.empty()) {
+                      WriteProfilerOutput(profiler_output_filename,
+                                          resp->profiler_output);
+                    }
+                  } else {
+                    std::cerr << "> unsuccessful with status: " << resp.status()
+                              << std::endl;
+                  }
+                  execute_finished.Notify();
+                })
+            .ok());
+  execute_finished.WaitForNotificationWithTimeout(options_.execution_timeout);
+  std::cout << "> execute duration: "
+            << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
+            << std::endl;
+}
+
 /* Handle calling Execute, accounting for profiler support. `toks` contains
  * all std::string passed from stdin, and is structured in the following format:
  *
@@ -243,61 +298,6 @@ bool RomaRepl::ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
     std::cout << "Try help for options." << std::endl;
   }
   return true;
-}
-
-void RomaRepl::Execute(RomaSvc* roma_service,
-                       absl::Span<const std::string_view> toks,
-                       std::string_view profiler_output_filename) {
-  std::vector<std::string> input;
-  std::transform(toks.begin() + 2, toks.end(), std::back_inserter(input),
-                 [](auto s) { return absl::StrCat("\"", s, "\""); });
-  InvocationStrRequest<> execution_object = {
-      .id = google::scp::core::common::ToString(
-          google::scp::core::common::Uuid::GenerateUuid()),
-      .version_string = std::string(toks[0]),
-      .handler_name = std::string(toks[1]),
-      .tags = {{
-          "TimeoutDuration",
-          absl::StrCat(absl::ToDoubleMilliseconds(options_.execution_timeout),
-                       "ms"),
-      }},
-      .input = input,
-  };
-  LOG(INFO) << "ExecutionObject:\nid: " << execution_object.id
-            << "\nversion_string: " << execution_object.version_string
-            << "\nhandler_name: " << execution_object.handler_name
-            << "\ninput: " << absl::StrJoin(input, " ");
-  std::string result;
-  absl::Notification execute_finished;
-  LOG(INFO) << "Calling Execute...";
-  privacy_sandbox::server_common::Stopwatch timer;
-  const bool allow_profilers =
-      options_.enable_profilers && !profiler_output_filename.empty();
-  CHECK(roma_service
-            ->Execute(
-                std::make_unique<InvocationStrRequest<>>(execution_object),
-                [&result, allow_profilers, profiler_output_filename,
-                 &execute_finished](absl::StatusOr<ResponseObject> resp) {
-                  if (resp.ok()) {
-                    LOG(INFO) << "Execute successful!";
-                    result = std::move(resp->resp);
-                    std::cout << "> " << result << std::endl;
-
-                    if (allow_profilers && !resp->profiler_output.empty()) {
-                      WriteProfilerOutput(profiler_output_filename,
-                                          resp->profiler_output);
-                    }
-                  } else {
-                    std::cerr << "> unsuccessful with status: " << resp.status()
-                              << std::endl;
-                  }
-                  execute_finished.Notify();
-                })
-            .ok());
-  execute_finished.WaitForNotificationWithTimeout(options_.execution_timeout);
-  std::cout << "> execute duration: "
-            << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
-            << std::endl;
 }
 
 // The read-eval-execute loop of the shell.
