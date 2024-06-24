@@ -330,6 +330,13 @@ static size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
   return 0;
 }
 
+void FatalErrorCallback(const char* location, const char* message) {
+  LOG(ERROR) << "Fatal Error at location: "
+             << (location != nullptr ? location : "unknown")
+             << ". Occurred with message: "
+             << (message != nullptr ? message : "");
+}
+
 std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
     const v8::StartupData& startup_data) {
   v8::Isolate::CreateParams params;
@@ -360,6 +367,7 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   }
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
   isolate->SetCaptureStackTraceForUncaughtExceptions(true);
+  isolate->SetFatalErrorHandler(FatalErrorCallback);
   v8::debug::SetConsoleDelegate(isolate, console(isolate));
   return V8IsolateFactory::Create(isolate, std::move(allocator),
                                   enable_profilers_);
