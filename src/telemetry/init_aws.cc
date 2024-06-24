@@ -15,6 +15,7 @@
 #include "opentelemetry/exporters/otlp/otlp_grpc_exporter.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_exporter_factory.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_log_record_exporter_factory.h"
+#include "opentelemetry/exporters/otlp/otlp_grpc_log_record_exporter_options.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_metric_exporter_factory.h"
 #include "opentelemetry/sdk/trace/random_id_generator_factory.h"
 
@@ -54,7 +55,7 @@ CreatePeriodicExportingMetricReader(
 
 std::unique_ptr<opentelemetry::sdk::logs::LogRecordExporter>
 CreateLogRecordExporter(absl::optional<std::string> collector_endpoint) {
-  opentelemetry::exporter::otlp::OtlpGrpcExporterOptions opts;
+  opentelemetry::exporter::otlp::OtlpGrpcLogRecordExporterOptions opts;
   if (collector_endpoint.has_value()) {
     opts.endpoint = *collector_endpoint;
   }

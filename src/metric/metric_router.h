@@ -100,6 +100,7 @@ class MetricRouter {
   friend class MetricRouterTest;
 
   void AddHistogramView(std::string_view instrument_name,
+                        std::string_view units,
                         const internal::Histogram& histogram);
 
   template <typename T>
@@ -141,7 +142,7 @@ auto* MetricRouter::GetHistogramInstrument(
     using U = api::Histogram<uint64_t>;
     return GetInstrument<U>(
         definition.name_, [&definition, this, &histogram]() {
-          AddHistogramView(definition.name_, histogram);
+          AddHistogramView(definition.name_, /*units=*/"", histogram);
           return std::unique_ptr<U>(meter_->CreateUInt64Histogram(
               definition.name_.data(), definition.description_.data()));
         });
@@ -149,7 +150,7 @@ auto* MetricRouter::GetHistogramInstrument(
     using U = api::Histogram<double>;
     return GetInstrument<U>(
         definition.name_, [&definition, this, &histogram]() {
-          AddHistogramView(definition.name_, histogram);
+          AddHistogramView(definition.name_, /*units=*/"", histogram);
           return std::unique_ptr<U>(meter_->CreateDoubleHistogram(
               definition.name_.data(), definition.description_.data()));
         });

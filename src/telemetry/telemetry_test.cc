@@ -19,6 +19,7 @@
 
 #include "opentelemetry/logs/provider.h"
 #include "opentelemetry/metrics/provider.h"
+#include "opentelemetry/trace/noop.h"
 
 #include "telemetry_provider.h"
 

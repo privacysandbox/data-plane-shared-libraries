@@ -31,7 +31,8 @@ namespace {
 class XRayIdGenerator : public opentelemetry::sdk::trace::IdGenerator {
  public:
   explicit XRayIdGenerator(std::function<absl::Time()> now_func)
-      : random_generator_(
+      : opentelemetry::sdk::trace::IdGenerator(/*is_random=*/true),
+        random_generator_(
             opentelemetry::sdk::trace::RandomIdGeneratorFactory::Create()),
         now_func_(std::move(now_func)) {}
 
@@ -44,7 +45,7 @@ class XRayIdGenerator : public opentelemetry::sdk::trace::IdGenerator {
   // example:
   // https://github.com/alfianabdi/opentelemetry-cpp/blob/main/sdk/trace/aws_xray_id_generator.cc
   opentelemetry::trace::TraceId GenerateTraceId() noexcept override {
-    const uint32_t seconds_nl = htonl(absl::ToUnixSeconds(now_func_()));
+    const uint32_t seconds_nl = ::htonl(absl::ToUnixSeconds(now_func_()));
     const uint64_t lo =
         absl::Uniform(bitgen_, 0u, std::numeric_limits<decltype(lo)>::max());
     const uint32_t hi =
