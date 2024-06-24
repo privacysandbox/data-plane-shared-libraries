@@ -359,6 +359,7 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
     return nullptr;
   }
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
+  isolate->SetCaptureStackTraceForUncaughtExceptions(true);
   v8::debug::SetConsoleDelegate(isolate, console(isolate));
   return V8IsolateFactory::Create(isolate, std::move(allocator),
                                   enable_profilers_);
