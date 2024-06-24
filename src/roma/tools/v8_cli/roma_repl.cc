@@ -130,6 +130,19 @@ std::vector<std::string> GetCommandsFromFile(const std::string& filename) {
   return lines;
 }
 
+void WriteProfilerOutput(std::string_view profiler_output_filename,
+                         std::string_view profiler_output) {
+  std::filesystem::path pathObj(profiler_output_filename);
+  std::filesystem::create_directories(pathObj.parent_path());
+  if (std::ofstream outfile(pathObj, std::ios::app); outfile.is_open()) {
+    LOG(INFO) << "Writing profiler output to " << profiler_output_filename;
+    outfile << profiler_output << std::endl;
+  } else {
+    std::cerr << "> Unable to write profiler output to file "
+              << profiler_output_filename << std::endl;
+  }
+}
+
 }  // namespace
 
 namespace google::scp::roma::tools::v8_cli {
@@ -260,40 +273,27 @@ void RomaRepl::Execute(RomaSvc* roma_service,
   privacy_sandbox::server_common::Stopwatch timer;
   const bool allow_profilers =
       options_.enable_profilers && !profiler_output_filename.empty();
-  CHECK(
-      roma_service
-          ->Execute(
-              std::make_unique<InvocationStrRequest<>>(execution_object),
-              [&result, allow_profilers, profiler_output_filename,
-               &execute_finished](absl::StatusOr<ResponseObject> resp) {
-                if (resp.ok()) {
-                  LOG(INFO) << "Execute successful!";
-                  result = std::move(resp->resp);
-                  std::cout << "> " << result << std::endl;
+  CHECK(roma_service
+            ->Execute(
+                std::make_unique<InvocationStrRequest<>>(execution_object),
+                [&result, allow_profilers, profiler_output_filename,
+                 &execute_finished](absl::StatusOr<ResponseObject> resp) {
+                  if (resp.ok()) {
+                    LOG(INFO) << "Execute successful!";
+                    result = std::move(resp->resp);
+                    std::cout << "> " << result << std::endl;
 
-                  if (allow_profilers && !resp->profiler_output.empty()) {
-                    std::filesystem::path pathObj(profiler_output_filename);
-                    std::filesystem::create_directories(pathObj.parent_path());
-                    if (std::ofstream outfile{
-                            std::string(profiler_output_filename),
-                            std::ios::app};
-                        outfile.is_open()) {
-                      LOG(INFO) << "Writing profiler output to "
-                                << profiler_output_filename;
-                      outfile << resp->profiler_output << std::endl;
-                      outfile.close();
-                    } else {
-                      std::cerr << "> Unable to write profiler output to file "
-                                << profiler_output_filename << std::endl;
+                    if (allow_profilers && !resp->profiler_output.empty()) {
+                      WriteProfilerOutput(profiler_output_filename,
+                                          resp->profiler_output);
                     }
+                  } else {
+                    std::cerr << "> unsuccessful with status: " << resp.status()
+                              << std::endl;
                   }
-                } else {
-                  std::cerr << "> unsuccessful with status: " << resp.status()
-                            << std::endl;
-                }
-                execute_finished.Notify();
-              })
-          .ok());
+                  execute_finished.Notify();
+                })
+            .ok());
   execute_finished.WaitForNotificationWithTimeout(options_.execution_timeout);
   std::cout << "> execute duration: "
             << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
