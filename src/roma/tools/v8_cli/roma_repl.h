@@ -25,6 +25,7 @@
 #include "absl/base/nullability.h"
 #include "absl/types/span.h"
 #include "src/roma/roma_service/roma_service.h"
+#include "src/util/duration.h"
 
 namespace google::scp::roma::tools::v8_cli {
 
@@ -49,10 +50,12 @@ class RomaRepl final {
   void Load(RomaSvc* roma_service, std::string_view version_str,
             std::string_view udf_file_path);
   void Execute(RomaSvc* roma_service, absl::Span<const std::string_view> tokens,
+               bool wait_for_completion, absl::Notification& execute_finished,
                std::string_view profiler_output_filename = "");
   bool ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
                       std::string_view commands_msg, std::string_view line);
   void HandleExecute(RomaSvc* roma_service, int32_t execution_count,
+                     bool execute_concurrently,
                      absl::Span<const std::string_view> tokens);
 
   RomaReplOptions options_;

@@ -50,9 +50,12 @@ Usage: load <version> <path to udf>
 Example: load v1 src/roma/tools/v8_cli/sample.js
 
 execute - Execute a User Defined Function (UDF)
-Usage: execute[:count] <version> <udf name> [args...]
+Usage: execute[:[C]count] <version> <udf name> [args...]
+    Note: If count is specified, "C" can be added as a prefix to execute count times concurrently.
+
 Example: execute v1 HandleFunc foo bar
 Example: execute:5 v1 HandleFunc foo bar
+Example: execute:C8 v1 HandleFunc foo bar
 
 help - Display all shell commands
 Usage: help
@@ -71,9 +74,12 @@ Usage: load <version> <path to udf>
 Example: load v1 src/roma/tools/v8_cli/sample.js
 
 execute - Execute a User Defined Function (UDF)
-Usage: execute[:count] <profiler output file> <version> <udf name> [args...]
+Usage: execute[:[C]count] <profiler output file> <version> <udf name> [args...]
+    Note: If count is specified, "C" can be added as a prefix to execute count times concurrently.
+
 Example: execute foo/bar/profiler_output.txt v1 HandleFunc foo bar
 Example: execute:2 foo/bar/profiler_output.txt v1 HandleFunc foo bar
+Example: execute:C4 foo/bar/profiler_output.txt v1 HandleFunc foo bar
 
 help - Display all shell commands
 Usage: help
@@ -189,6 +195,8 @@ void RomaRepl::Load(RomaSvc* roma_service, std::string_view version_str,
 
 void RomaRepl::Execute(RomaSvc* roma_service,
                        absl::Span<const std::string_view> toks,
+                       bool wait_for_completion,
+                       absl::Notification& execute_finished,
                        std::string_view profiler_output_filename) {
   std::vector<std::string> input;
   std::transform(toks.begin() + 2, toks.end(), std::back_inserter(input),
@@ -209,20 +217,19 @@ void RomaRepl::Execute(RomaSvc* roma_service,
             << "\nversion_string: " << execution_object.version_string
             << "\nhandler_name: " << execution_object.handler_name
             << "\ninput: " << absl::StrJoin(input, " ");
-  std::string result;
-  absl::Notification execute_finished;
   LOG(INFO) << "Calling Execute...";
-  privacy_sandbox::server_common::Stopwatch timer;
   const bool allow_profilers =
       options_.enable_profilers && !profiler_output_filename.empty();
+
+  privacy_sandbox::server_common::Stopwatch timer;
   CHECK(roma_service
             ->Execute(
                 std::make_unique<InvocationStrRequest<>>(execution_object),
-                [&result, allow_profilers, profiler_output_filename,
+                [allow_profilers, profiler_output_filename,
                  &execute_finished](absl::StatusOr<ResponseObject> resp) {
                   if (resp.ok()) {
                     LOG(INFO) << "Execute successful!";
-                    result = std::move(resp->resp);
+                    std::string result = std::move(resp->resp);
                     std::cout << "> " << result << std::endl;
 
                     if (allow_profilers && !resp->profiler_output.empty()) {
@@ -236,10 +243,13 @@ void RomaRepl::Execute(RomaSvc* roma_service,
                   execute_finished.Notify();
                 })
             .ok());
-  execute_finished.WaitForNotificationWithTimeout(options_.execution_timeout);
-  std::cout << "> execute duration: "
-            << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
-            << std::endl;
+
+  if (wait_for_completion) {
+    execute_finished.WaitForNotificationWithTimeout(options_.execution_timeout);
+    std::cout << "> execute duration: "
+              << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
+              << std::endl;
+  }
 }
 
 /* Handle calling Execute, accounting for profiler support. `toks` contains
@@ -250,18 +260,32 @@ void RomaRepl::Execute(RomaSvc* roma_service,
  * [args...]}
  */
 void RomaRepl::HandleExecute(RomaSvc* roma_service, int32_t execution_count,
+                             bool execute_concurrently,
                              absl::Span<const std::string_view> toks) {
+  std::vector<absl::Notification> finished(execution_count);
+  privacy_sandbox::server_common::Stopwatch timer;
+
   if (options_.enable_profilers) {
     std::string_view profiler_output_filename = toks[1];
     absl::Span args(toks.data() + 2, toks.size() - 2);
     for (auto i = 0; i < execution_count; ++i) {
-      Execute(roma_service, args, profiler_output_filename);
+      Execute(roma_service, args, !execute_concurrently, finished[i],
+              profiler_output_filename);
     }
   } else {
     absl::Span args(toks.data() + 1, toks.size() - 1);
     for (auto i = 0; i < execution_count; ++i) {
-      Execute(roma_service, args);
+      Execute(roma_service, args, !execute_concurrently, finished[i]);
     }
+  }
+
+  if (execute_concurrently) {
+    for (int i = 0; i < execution_count; i++) {
+      finished[i].WaitForNotificationWithTimeout(options_.execution_timeout);
+    }
+    std::cout << "> execute duration: "
+              << absl::ToDoubleMilliseconds(timer.GetElapsedTime()) << " ms"
+              << std::endl;
   }
 }
 
@@ -274,11 +298,17 @@ bool RomaRepl::ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
       absl::StrSplit(toks[0], absl::MaxSplits(':', 1));
   std::string_view command = command_toks.first;
   int32_t command_count = 1;
-  if (!(command_toks.second.empty() ||
-        absl::SimpleAtoi(command_toks.second, &command_count))) {
+  bool execute_concurrently = false;
+  if (!command_toks.second.empty() && command_toks.second[0] == 'C') {
+    execute_concurrently = true;
+    command_toks.second.remove_prefix(1);
+  }
+  if (!command_toks.second.empty() &&
+      !absl::SimpleAtoi(command_toks.second, &command_count)) {
     std::cout << "Warning: unable to parse execution count: ["
               << command_toks.second << "]" << std::endl;
   }
+
   if (command == "exit") {
     roma_service->Stop().IgnoreError();
     return false;
@@ -290,7 +320,7 @@ bool RomaRepl::ExecuteCommand(absl::Nonnull<RomaSvc*> roma_service,
     }
     Load(roma_service, toks[1], udf_file_path);
   } else if (command == "execute" && toks.size() > 2) {
-    HandleExecute(roma_service, command_count, toks);
+    HandleExecute(roma_service, command_count, execute_concurrently, toks);
   } else if (command == "help") {
     std::cout << commands_msg << std::endl;
   } else {

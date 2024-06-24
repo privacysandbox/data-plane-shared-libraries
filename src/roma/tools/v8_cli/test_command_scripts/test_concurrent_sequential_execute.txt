@@ -1,0 +1,5 @@
+load v1 src/roma/tools/v8_cli/test_udfs/hello_world_udf.js
+execute:5 v1 helloworld sequential
+load v1 src/roma/tools/v8_cli/test_udfs/hello_world_udf.js
+execute:C5 v1 helloworld concurrent
+exit
