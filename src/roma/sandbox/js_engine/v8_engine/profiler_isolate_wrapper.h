@@ -77,6 +77,25 @@ class ProfilerIsolateWrapperImpl final : public V8IsolateWrapper {
     absl::StrAppend(&profiler_output, profile_nodes, "\n");
     cpu_profiler_->Dispose();
 
+    absl::StrAppend(&profiler_output, "Heap Object Statistics:\n\n");
+
+    for (int i = 0; i < isolate_->NumberOfTrackedHeapObjectTypes(); i++) {
+      v8::HeapObjectStatistics stats;
+      isolate_->GetHeapObjectStatisticsAtLastGC(&stats, i);
+      absl::StrAppend(
+          &profiler_output,
+          absl::StrCat("Stats for Object Type: ", stats.object_type(), "\n"));
+      absl::StrAppend(
+          &profiler_output,
+          absl::StrCat("  Object Subtype: ", stats.object_sub_type(), "\n"));
+      absl::StrAppend(
+          &profiler_output,
+          absl::StrCat("  Object Count: ", stats.object_count(), "\n"));
+      absl::StrAppend(
+          &profiler_output,
+          absl::StrCat("  Object Size: ", stats.object_size(), "\n\n"));
+    }
+
     auto heap_profiler = isolate_->GetHeapProfiler();
     const v8::HeapSnapshot* snapshot = heap_profiler->TakeHeapSnapshot();
 

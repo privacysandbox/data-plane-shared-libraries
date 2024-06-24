@@ -160,6 +160,48 @@ LogOptions GetLogOptions(
       .min_log_level = min_log_level,
   };
 }
+
+std::string_view GetGCTypeName(v8::GCType type) {
+  static const absl::flat_hash_map<v8::GCType, std::string_view> gcTypeMap = {
+      {v8::GCType::kGCTypeScavenge, "kGCTypeScavenge"},
+      {v8::GCType::kGCTypeMinorMarkSweep, "kGCTypeMinorMarkSweep"},
+      {v8::GCType::kGCTypeMarkSweepCompact, "kGCTypeMarkSweepCompact"},
+      {v8::GCType::kGCTypeIncrementalMarking, "kGCTypeIncrementalMarking"},
+      {v8::GCType::kGCTypeProcessWeakCallbacks, "kGCTypeProcessWeakCallbacks"},
+      {v8::GCType::kGCTypeAll, "kGCTypeAll"},
+  };
+
+  if (auto it = gcTypeMap.find(type); it != gcTypeMap.end()) {
+    return it->second;
+  } else {
+    return "UNKNOWN_GC_TYPE";
+  }
+}
+
+std::string_view GetGCCallbackFlagsName(v8::GCCallbackFlags flags) {
+  static const absl::flat_hash_map<v8::GCCallbackFlags, std::string_view>
+      flagMap = {
+          {v8::GCCallbackFlags::kNoGCCallbackFlags, "kNoGCCallbackFlags"},
+          {v8::GCCallbackFlags::kGCCallbackFlagConstructRetainedObjectInfos,
+           "kGCCallbackFlagConstructRetainedObjectInfos"},
+          {v8::GCCallbackFlags::kGCCallbackFlagForced, "kGCCallbackFlagForced"},
+          {v8::GCCallbackFlags::
+               kGCCallbackFlagSynchronousPhantomCallbackProcessing,
+           "kGCCallbackFlagSynchronousPhantomCallbackProcessing"},
+          {v8::GCCallbackFlags::kGCCallbackFlagCollectAllAvailableGarbage,
+           "kGCCallbackFlagCollectAllAvailableGarbage"},
+          {v8::GCCallbackFlags::kGCCallbackFlagCollectAllExternalMemory,
+           "kGCCallbackFlagCollectAllExternalMemory"},
+          {v8::GCCallbackFlags::kGCCallbackScheduleIdleGarbageCollection,
+           "kGCCallbackScheduleIdleGarbageCollection"},
+      };
+
+  if (auto it = flagMap.find(flags); it != flagMap.end()) {
+    return it->second;
+  } else {
+    return "UNKNOWN_GC_CALLBACK_FLAG";
+  }
+}
 }  // namespace
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
@@ -337,6 +379,13 @@ void FatalErrorCallback(const char* location, const char* message) {
              << (message != nullptr ? message : "");
 }
 
+void GCCallback(v8::Isolate* isolate, v8::GCType type,
+                v8::GCCallbackFlags flags) {
+  LOG(ERROR) << "Garbage Collection event occured. Type: "
+             << GetGCTypeName(type)
+             << "Flags: " << GetGCCallbackFlagsName(flags);
+}
+
 std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
     const v8::StartupData& startup_data) {
   v8::Isolate::CreateParams params;
@@ -368,6 +417,7 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
   isolate->SetCaptureStackTraceForUncaughtExceptions(true);
   isolate->SetFatalErrorHandler(FatalErrorCallback);
+  isolate->AddGCPrologueCallback(GCCallback);
   v8::debug::SetConsoleDelegate(isolate, console(isolate));
   return V8IsolateFactory::Create(isolate, std::move(allocator),
                                   enable_profilers_);
