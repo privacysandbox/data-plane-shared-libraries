@@ -236,7 +236,7 @@ class SystemLogContext : public SafePathContext {
   }
 
   std::string_view ContextStr() const override {
-    return "privacy_sandbox_sytem_log: ";
+    return "privacy_sandbox_system_log: ";
   }
 };
 
