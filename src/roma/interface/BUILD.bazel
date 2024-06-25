@@ -32,7 +32,6 @@ cc_library(
     name = "interface",
     hdrs = ["roma.h"],
     deps = [
-        "//src/core/interface",
         "//src/roma/config",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",

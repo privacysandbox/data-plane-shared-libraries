@@ -23,8 +23,6 @@ cc_library(
         "//src/roma/sandbox/worker_api:__subpackages__",
     ],
     deps = [
-        "//src/core/interface",
-        "//src/core/interface:type_def",
         "//src/roma/config",
         "//src/roma/logging",
         "//src/roma/sandbox/constants",

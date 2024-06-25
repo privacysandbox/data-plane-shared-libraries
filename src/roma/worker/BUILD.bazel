@@ -26,8 +26,6 @@ cc_library(
         "//src/roma/sandbox/js_engine:__subpackages__",
     ],
     deps = [
-        "//src/core/interface",
-        "//src/core/interface:type_def",
         "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/wasm:deserializer",
@@ -50,6 +48,7 @@ cc_library(
     ],
     deps = [
         "//src/util:duration",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/synchronization",
         "@v8//:v8_icu",
@@ -96,5 +95,6 @@ cc_test(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
+        "@v8//:v8_icu",
     ],
 )

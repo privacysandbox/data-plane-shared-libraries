@@ -20,8 +20,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <linux/limits.h>
-
 #include <functional>
 #include <memory>
 #include <string>

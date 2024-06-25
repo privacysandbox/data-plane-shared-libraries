@@ -27,9 +27,7 @@
 #include <vector>
 
 #include "sandboxed_api/sandbox2/comms.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
-#include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/native_function_table.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
@@ -46,7 +44,7 @@ constexpr std::string_view kRequestUuid = "foo";
 
 TEST(NativeFunctionHandlerSapiIpcTest, IninRunStop) {
   int fd_pair[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -67,7 +65,7 @@ void FunctionToBeCalled(FunctionBindingPayload<>& wrapper) {
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
   int fd_pair[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -100,7 +98,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldCallFunctionWhenRegistered) {
 TEST(NativeFunctionHandlerSapiIpcTest,
      ShouldAddErrorsIfFunctionNameIsNotFoundInTable) {
   int fd_pair[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -137,7 +135,7 @@ TEST(NativeFunctionHandlerSapiIpcTest,
 TEST(NativeFunctionHandlerSapiIpcTest,
      ShouldAddErrorsIfFunctionNameIsNotInMetadata) {
   int fd_pair[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;
@@ -183,7 +181,7 @@ void FunctionTwo(FunctionBindingPayload<>& wrapper) {
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldBeAbleToCallMultipleFunctions) {
   int fd_pair[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
   std::vector<int> local_fds = {fd_pair[0]};
   std::vector<int> remote_fds = {fd_pair[1]};
   NativeFunctionTable function_table;

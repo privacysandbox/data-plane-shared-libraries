@@ -46,7 +46,7 @@ cc_library(
     name = "native_function_binding",
     hdrs = ["native_function_invoker.h"],
     deps = [
-        "//src/roma/interface:function_binding_io_cc_proto",
+        ":rpc_wrapper_cc_proto",
         "@com_google_absl//absl/status",
     ],
 )
@@ -58,11 +58,9 @@ cc_library(
     deps = [
         ":native_function_binding",
         ":rpc_wrapper_cc_proto",
-        "//src/roma/interface:function_binding_io_cc_proto",
         "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
-        "@com_google_sandboxed_api//sandboxed_api:sapi",
-        "@com_google_sandboxed_api//sandboxed_api:vars",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )
 
@@ -87,16 +85,10 @@ cc_library(
     deps = [
         ":native_function_table",
         ":rpc_wrapper_cc_proto",
-        "//src/core/interface",
-        "//src/roma/config",
-        "//src/roma/interface:function_binding_io_cc_proto",
         "//src/roma/logging",
         "//src/roma/metadata_storage",
         "//src/roma/sandbox/constants",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_sandboxed_api//sandboxed_api:sapi",
-        "@com_google_sandboxed_api//sandboxed_api:vars",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )
 
@@ -106,9 +98,11 @@ cc_test(
     srcs = ["native_function_handler_sapi_ipc_test.cc"],
     deps = [
         ":native_function_handler_sapi_ipc",
-        "//src/core/test/utils",
-        "//src/roma/sandbox/constants",
+        ":native_function_table",
+        ":rpc_wrapper_cc_proto",
+        "//src/roma/metadata_storage",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )
 
@@ -118,10 +112,9 @@ cc_test(
     srcs = ["native_function_invoker_sapi_ipc_test.cc"],
     deps = [
         ":native_function_invoker_sapi_ipc",
-        "//src/core/test/utils",
-        "//src/roma/sandbox/constants",
-        "@com_google_absl//absl/status",
+        ":rpc_wrapper_cc_proto",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )
 

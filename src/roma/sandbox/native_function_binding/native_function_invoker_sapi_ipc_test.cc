@@ -21,14 +21,10 @@
 
 #include <sys/socket.h>
 
-#include <memory>
-#include <string>
 #include <thread>
-#include <vector>
 
-#include "absl/status/status.h"
 #include "sandboxed_api/sandbox2/comms.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
+#include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
@@ -44,7 +40,7 @@ TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
 
 TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
   int fd_pair[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
 
   NativeFunctionInvokerSapiIpc invoker(fd_pair[0]);
 

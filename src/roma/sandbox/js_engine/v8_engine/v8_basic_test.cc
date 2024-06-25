@@ -22,8 +22,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <linux/limits.h>
-
 #include <memory>
 #include <string>
 

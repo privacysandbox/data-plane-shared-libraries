@@ -18,8 +18,6 @@
 
 #include <gtest/gtest.h>
 
-#include <linux/limits.h>
-
 #include <string>
 
 #include "absl/log/check.h"

@@ -18,9 +18,10 @@
 #include <iostream>
 #include <string>
 
+#include <google/protobuf/text_format.h>
+#include <google/protobuf/util/json_util.h>
+
 #include "absl/strings/match.h"
-#include "google/protobuf/text_format.h"
-#include "google/protobuf/util/json_util.h"
 #include "src/roma/benchmark/serde/benchmark_service.pb.h"
 
 int main(int argc, char* argv[]) {

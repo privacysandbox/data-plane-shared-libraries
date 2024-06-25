@@ -20,7 +20,6 @@
 #include <string>
 
 #include "absl/status/statusor.h"
-#include "src/roma/gvisor/interface/roma_api.pb.h"
 
 namespace privacy_sandbox::server_common::gvisor {
 

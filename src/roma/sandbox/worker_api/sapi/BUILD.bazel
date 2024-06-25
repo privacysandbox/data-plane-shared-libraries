@@ -48,7 +48,7 @@ cc_library(
     srcs = ["error_codes.cc"],
     hdrs = ["error_codes.h"],
     deps = [
-        "//src/roma/config",
+        "//src/util/status_macro:status_builder",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
     ],
@@ -74,6 +74,8 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/strings",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api:vars",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )
@@ -99,7 +101,6 @@ sapi_library(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
-        "//src/core/interface",
     ],
 )
 
@@ -113,11 +114,11 @@ cc_library(
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         ":worker_wrapper-sapi",
-        "//src/core/interface",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
         "//src/roma/sandbox/worker",
         "@com_google_absl//absl/status",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )
@@ -175,8 +176,9 @@ cc_test(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
-        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )

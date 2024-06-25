@@ -26,12 +26,7 @@
 #include <vector>
 
 #include "sandboxed_api/lenval_core.h"
-#include "sandboxed_api/sandbox2/buffer.h"
-#include "sandboxed_api/var_int.h"
-#include "src/roma/config/config.h"
 #include "src/roma/sandbox/worker_api/sapi/error_codes.h"
-#include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 
 // All of the types used for these functions, that're wrapped by SAPI, must be
 // C types and cannot be complex C++ types.

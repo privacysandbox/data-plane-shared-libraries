@@ -21,7 +21,6 @@
 
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
-#include "src/core/interface/errors.h"
 #include "src/roma/config/config.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"

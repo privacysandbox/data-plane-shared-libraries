@@ -37,6 +37,7 @@ cc_library(
         "//src/roma/native_function_grpc_server/proto:logging_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:logging_service_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/log",
     ],
 )

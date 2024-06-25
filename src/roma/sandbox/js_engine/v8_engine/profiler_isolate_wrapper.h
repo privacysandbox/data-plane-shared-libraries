@@ -21,7 +21,6 @@
 #include <string>
 #include <utility>
 
-#include "absl/log/log.h"
 #include "include/v8-profiler.h"
 #include "include/v8.h"
 #include "src/core/common/uuid/uuid.h"

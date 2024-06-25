@@ -26,7 +26,6 @@
 
 #include "absl/status/status.h"
 #include "include/v8.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/wasm/deserializer.h"

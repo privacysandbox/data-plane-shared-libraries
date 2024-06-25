@@ -27,7 +27,8 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_join.h"
-#include "src/core/interface/errors.h"
+#include "sandboxed_api/lenval_core.h"
+#include "sandboxed_api/sandbox2/buffer.h"
 #include "src/roma/config/config.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -35,6 +36,8 @@
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
 #include "src/roma/sandbox/native_function_binding/native_function_invoker_sapi_ipc.h"
 #include "src/roma/sandbox/worker/worker.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/util/duration.h"
 #include "src/util/protoutil.h"
 

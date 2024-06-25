@@ -23,8 +23,6 @@ cc_library(
     hdrs = ["roma_service.h"],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/core/interface",
-        "//src/core/interface:type_def",
         "//src/core/os/linux:system_resource_info_provider_linux",
         "//src/roma/logging",
         "//src/roma/native_function_grpc_server",
@@ -190,7 +188,7 @@ cc_test(
         "//src/core/test/utils",
         "//src/logger:request_context_logger",
         "@com_google_absl//absl/strings",
-        "@com_google_googletest//:gtest",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -212,8 +210,9 @@ cc_test(
     deps = [
         ":helloworld_cc_proto",
         ":romav8_proto_utils",
-        "//src/core/test/utils",
-        "@com_google_googletest//:gtest",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 

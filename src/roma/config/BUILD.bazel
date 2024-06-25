@@ -23,7 +23,6 @@ cc_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        "//src/core/interface",
         "//src/roma/interface:function_binding_io_cc_proto",
         "//src/roma/native_function_grpc_server:interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
@@ -41,7 +40,6 @@ cc_test(
     srcs = ["function_binding_v2_test.cc"],
     deps = [
         ":config",
-        "//src/core/interface",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:bind_front",
@@ -72,7 +70,6 @@ cc_test(
     tags = ["manual"],
     deps = [
         ":config",
-        "//src/core/interface",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",
@@ -89,7 +86,7 @@ cc_test(
     srcs = ["type_converter_test.cc"],
     deps = [
         ":config",
-        "//src/core/interface",
+        "//src/roma/interface:function_binding_io_cc_proto",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log:check",

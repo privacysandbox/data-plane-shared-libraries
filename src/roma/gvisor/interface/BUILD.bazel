@@ -53,7 +53,6 @@ cc_library(
     hdrs = ["roma_interface.h"],
     visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = [
-        ":roma_api_grpc_proto",
         "@com_google_absl//absl/status:statusor",
     ],
 )
@@ -64,6 +63,8 @@ cc_library(
     hdrs = ["roma_gvisor.h"],
     visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = [
+        ":roma_api_cc_proto",
+        ":roma_api_grpc_proto",
         ":roma_interface",
         "//src/roma/gvisor/config",
         "//src/roma/gvisor/host:native_function_handler",
@@ -82,15 +83,23 @@ cc_library(
     hdrs = ["roma_service.h"],
     visibility = ["//visibility:public"],
     deps = [
+        ":roma_api_cc_proto",
         ":roma_api_grpc_proto",
         ":roma_gvisor",
         ":roma_interface",
         ":roma_local",
         "//src/core/common/uuid",
+        "//src/roma/gvisor/config",
         "//src/roma/gvisor/config:utils",
+        "//src/roma/gvisor/host:native_function_handler",
         "//src/roma/interface",
         "//src/roma/metadata_storage",
         "//src/util/status_macro:status_macros",
+        "//src/util/status_macro:status_util",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 
