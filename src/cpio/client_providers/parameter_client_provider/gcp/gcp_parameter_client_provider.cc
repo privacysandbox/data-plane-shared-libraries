@@ -35,7 +35,6 @@
 #include "error_codes.h"
 
 using google::cloud::StatusCode;
-using google::cloud::StatusOr;
 using google::cloud::secretmanager::MakeSecretManagerServiceConnection;
 using google::cloud::secretmanager::SecretManagerServiceClient;
 using google::cloud::secretmanager::v1::AccessSecretVersionRequest;
