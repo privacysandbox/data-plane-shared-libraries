@@ -121,7 +121,7 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                   KeyFetchResultCounter::SetNumPublicKeysCached(
                       platform, public_keys_[platform].size());
                 }
-                PS_VLOG(1, log_context_) << absl::Substitute(
+                PS_LOG(ERROR, log_context_) << absl::Substitute(
                     kKeyFetchFailMessage,
                     GetErrorMessage(execution_result.status_code));
               }
@@ -129,7 +129,7 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               all_fetches_done.DecrementCount();
             });
         !error.ok()) {
-      PS_VLOG(1, log_context_)
+      PS_LOG(ERROR, log_context_)
           << absl::Substitute(kKeyFetchFailMessage, error.message());
       all_fetches_done.DecrementCount();
     }
