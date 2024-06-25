@@ -116,9 +116,10 @@ class SafePathLogTest : public ConsentedLogTest {
     return std::unique_ptr<SafePathContext>(new SafePathContext());
   }
   void SetUp() override { ConsentedLogTest::SetUp(); }
-  std::unique_ptr<logs_api::LoggerProvider> logger_;
   std::unique_ptr<SafePathContext> test_instance_;
 };
+
+class SystemLogTest : public ConsentedLogTest {};
 
 }  // namespace privacy_sandbox::server_common::log
 #endif  // LOGGER_REQUEST_CONTEXT_IMPL_TEST_H_

@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/no_destructor.h"
 #include "absl/container/btree_map.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/log/check.h"
@@ -223,6 +224,20 @@ class SafePathContext : public PSLogContext {
   };
 
   OtelSinkImpl otel_sink_;
+};
+
+// Log context for system logs that is not on user request path.  `Get()` return
+// singleton without construction.
+class SystemLogContext : public SafePathContext {
+ public:
+  static SystemLogContext& Get() {
+    static absl::NoDestructor<SystemLogContext> log_instance;
+    return *log_instance;
+  }
+
+  std::string_view ContextStr() const override {
+    return "privacy_sandbox_sytem_log: ";
+  }
 };
 
 }  // namespace privacy_sandbox::server_common::log

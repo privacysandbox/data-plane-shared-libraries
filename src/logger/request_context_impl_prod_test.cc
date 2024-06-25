@@ -248,6 +248,14 @@ TEST_F(SafePathLogTest, LogMessage) {
   EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
 }
 
+TEST_F(SystemLogTest, LogMessage) {
+  EXPECT_THAT(LogWithCapturedStderr([]() {
+                PS_VLOG(kMaxV, SystemLogContext::Get()) << kLogContent;
+              }),
+              IsEmpty());
+  EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
+}
+
 TEST(IsProd, TrueInProd) { EXPECT_TRUE(IsProd()); }
 
 }  // namespace
