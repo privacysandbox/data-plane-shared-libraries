@@ -19,17 +19,20 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <atomic>
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
+#include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "absl/types/span.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 
 using ::testing::StrEq;
 

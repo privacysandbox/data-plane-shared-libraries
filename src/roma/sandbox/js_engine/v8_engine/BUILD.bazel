@@ -162,7 +162,6 @@ cc_test(
     ],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils",
         "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
@@ -175,7 +174,6 @@ cc_test(
     srcs = ["v8_console_test.cc"],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -186,7 +184,6 @@ cc_test(
     srcs = ["v8_isolate_function_binding_test.cc"],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],

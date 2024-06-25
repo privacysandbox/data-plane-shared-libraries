@@ -17,16 +17,14 @@
 #include <gtest/gtest.h>
 
 #include "absl/base/log_severity.h"
-#include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
-#include "absl/strings/string_view.h"
-#include "src/roma/config/function_binding_object_v2.h"
+#include "absl/synchronization/notification.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 
-using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
 using ::testing::AllOf;

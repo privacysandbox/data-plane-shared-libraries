@@ -25,12 +25,14 @@ cc_library(
     deps = [
         "//src/core/os/linux:system_resource_info_provider_linux",
         "//src/roma/logging",
+        "//src/roma/metadata_storage",
         "//src/roma/native_function_grpc_server",
         "//src/roma/native_function_grpc_server:request_handlers",
+        "//src/roma/sandbox/constants",
         "//src/roma/sandbox/dispatcher",
         "//src/roma/sandbox/native_function_binding:native_function_handler_sapi_ipc",
+        "//src/roma/sandbox/native_function_binding:native_function_table",
         "//src/util/status_macro:status_macros",
-        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -44,9 +46,12 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -62,11 +67,10 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
-        "@com_google_absl//absl/log:scoped_mock_log",
-        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -81,11 +85,15 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
+        "@com_google_absl//absl/base:log_severity",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -101,18 +109,14 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server:test_request_handlers",
-        "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
-        "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
-        "//src/roma/native_function_grpc_server/proto:test_service_cc_proto",
-        "//src/roma/native_function_grpc_server/proto:test_service_grpc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/util:duration",
-        "//src/util/status_macro:status_util",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
         "@nlohmann_json//:lib",
     ],
@@ -135,11 +139,17 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/wasm:wasm_testing",
+        "@com_google_absl//absl/base:log_severity",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:scoped_mock_log",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
     ],
 )
 
@@ -168,9 +178,12 @@ cc_library(
     deps = [
         ":roma_service",
         ":romav8_proto_utils",
+        "//src/roma/config",
+        "//src/roma/interface",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
     ],
 )
 
@@ -185,9 +198,12 @@ cc_test(
     deps = [
         ":helloworld_cc_proto",
         ":romav8_app_service",
-        "//src/core/test/utils",
-        "//src/logger:request_context_logger",
+        "//src/roma/config",
+        "//src/roma/interface",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -228,12 +244,11 @@ cc_test(
     ],
     deps = [
         ":roma_service",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
-        "//src/roma/native_function_grpc_server:test_request_handlers",
-        "//src/util:duration",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
     ],
 )

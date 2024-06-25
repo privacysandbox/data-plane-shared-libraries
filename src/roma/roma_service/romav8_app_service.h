@@ -22,15 +22,15 @@
 #include <string_view>
 #include <utility>
 
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/util/json_util.h>
-
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/roma/roma_service/romav8_proto_utils.h"
+#include "src/util/status_macro/status_macros.h"
 
 namespace google::scp::roma::romav8::app_api {
 template <typename TMetadata = google::scp::roma::DefaultMetadata>

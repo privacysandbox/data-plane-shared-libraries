@@ -12,13 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Example command to run this (the grep is necessary to avoid noisy log
- * output):
- *
- * builders/tools/bazel-debian run \
- * //src/roma/benchmark:logging_benchmark \
- * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
 #include <memory>
@@ -27,13 +20,12 @@
 
 #include <benchmark/benchmark.h>
 
-#include "absl/log/log.h"
-#include "absl/strings/str_cat.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/native_function_grpc_server/proto/test_host_service_native_request_handler.h"
 #include "src/roma/roma_service/roma_service.h"

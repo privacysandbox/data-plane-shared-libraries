@@ -23,7 +23,13 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "absl/strings/str_split.h"
+#include "src/roma/config/type_converter.h"
+#include "src/roma/wasm/deserializer.h"
+#include "src/roma/wasm/serializer.h"
+#include "src/roma/wasm/wasm_types.h"
 #include "src/util/status_macro/status_builder.h"
 #include "src/util/status_macro/status_macros.h"
 

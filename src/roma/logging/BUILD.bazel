@@ -23,6 +23,7 @@ cc_library(
     ],
     deps = [
         "//src/roma/config",
+        "@@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",
@@ -38,9 +39,11 @@ cc_test(
         "notsan-aarch64",  # TODO(b/307540489) - Fix TSAN errors in this test. Fails on aarch64.
     ],
     deps = [
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "@com_google_absl//absl/base:log_severity",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",

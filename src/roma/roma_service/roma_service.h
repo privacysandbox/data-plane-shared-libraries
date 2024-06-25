@@ -26,8 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/base/thread_annotations.h"
-#include "absl/synchronization/mutex.h"
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
@@ -219,7 +217,7 @@ class RomaService {
     remote_fds.reserve(concurrency);
     for (int i = 0; i < concurrency; i++) {
       int fd_pair[2];
-      if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
+      if (::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
         return absl::InternalError(
             absl::StrCat("Failed to create socket for native function binding "
                          "communication."));

@@ -24,7 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include "absl/base/thread_annotations.h"
+#include "absl/base/log_severity.h"
+#include "absl/container/flat_hash_map.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
 #include "absl/strings/str_cat.h"

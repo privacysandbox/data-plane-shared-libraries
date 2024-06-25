@@ -21,11 +21,16 @@
 #include <benchmark/benchmark.h>
 #include <nlohmann/json.hpp>
 
+#include "absl/base/log_severity.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
-#include "absl/log/log.h"
-#include "absl/strings/match.h"
-#include "absl/strings/str_join.h"
+#include "absl/flags/usage.h"
+#include "absl/log/check.h"
+#include "absl/log/initialize.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
+#include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"

@@ -28,11 +28,12 @@ cc_binary(
     srcs = ["execute_benchmark.cc"],
     deps = [
         ":compiler_utils",
-        "//src/core/test/utils",
         "//src/roma/benchmark:test_code",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
-        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -42,11 +43,13 @@ cc_binary(
     srcs = ["load_benchmark.cc"],
     deps = [
         ":compiler_utils",
-        "//src/core/test/utils",
         "//src/roma/benchmark:test_code",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
-        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
     ],
 )

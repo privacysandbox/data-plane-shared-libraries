@@ -20,7 +20,10 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/config/config.h"
 
 #include "multi_service_roma_host.h"
 #include "test_host_service_roma_host.h"

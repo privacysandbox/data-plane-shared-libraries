@@ -24,9 +24,9 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/js_engine/js_engine.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"

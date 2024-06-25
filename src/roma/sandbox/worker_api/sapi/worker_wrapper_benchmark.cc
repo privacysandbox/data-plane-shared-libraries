@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-#include <gmock/gmock-matchers.h>
+#include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
 #include <benchmark/benchmark.h>
 
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
-#include "src/roma/config/config.h"
-#include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/worker_api/sapi/error_codes.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
 
 using google::scp::roma::sandbox::constants::kCodeVersion;

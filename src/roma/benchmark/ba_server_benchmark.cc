@@ -33,7 +33,6 @@
 namespace {
 
 using google::scp::roma::Config;
-using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::benchmark::DispatchRequest;
 using google::scp::roma::benchmark::FakeBaServer;
 

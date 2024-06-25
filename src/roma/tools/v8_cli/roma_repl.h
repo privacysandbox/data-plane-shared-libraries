@@ -23,9 +23,9 @@
 #include <vector>
 
 #include "absl/base/nullability.h"
+#include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "src/roma/roma_service/roma_service.h"
-#include "src/util/duration.h"
 
 namespace google::scp::roma::tools::v8_cli {
 

@@ -25,6 +25,7 @@
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/worker_api/sapi/error_codes.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 

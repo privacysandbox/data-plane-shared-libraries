@@ -20,7 +20,8 @@
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
-#include "absl/log/log.h"
+#include "absl/flags/usage.h"
+#include "absl/log/initialize.h"
 #include "absl/strings/match.h"
 #include "absl/time/time.h"
 #include "src/roma/tools/v8_cli/roma_repl.h"

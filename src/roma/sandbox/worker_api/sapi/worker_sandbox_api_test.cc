@@ -25,6 +25,8 @@
 #include <thread>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
@@ -164,7 +166,7 @@ TEST(WorkerSandboxApiTest,
 
 TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   int fds[2];
-  EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
+  EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
   WorkerSandboxApi sandbox_api(
       /*require_preload=*/false, /*native_js_function_comms_fd=*/fds[1],

@@ -26,7 +26,6 @@
 
 #include "absl/status/status.h"
 #include "include/v8.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
 #include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"

@@ -26,9 +26,11 @@
 
 #include <benchmark/benchmark.h>
 
+#include "absl/strings/str_cat.h"
 #include "src/roma/benchmark/fake_kv_server.h"
 #include "src/roma/benchmark/test_code.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/wasm/testing_utils.h"
 
 namespace {

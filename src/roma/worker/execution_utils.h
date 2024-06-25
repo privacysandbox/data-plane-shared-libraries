@@ -24,13 +24,10 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/status/status.h"
 #include "include/v8.h"
-#include "src/roma/config/type_converter.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/wasm/deserializer.h"
-#include "src/roma/wasm/serializer.h"
-#include "src/roma/wasm/wasm_types.h"
 
 namespace google::scp::roma::worker {
 

@@ -16,6 +16,7 @@
 
 #include "src/roma/sandbox/worker_api/sapi/error_codes.h"
 
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "src/util/status_macro/status_builder.h"
 

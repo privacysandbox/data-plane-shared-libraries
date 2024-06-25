@@ -19,10 +19,11 @@ cc_library(
     srcs = ["fake_ba_server.cc"],
     hdrs = ["fake_ba_server.h"],
     deps = [
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
-        "//src/roma/sandbox/constants",
-        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
     ],
@@ -33,10 +34,12 @@ cc_library(
     srcs = ["fake_kv_server.cc"],
     hdrs = ["fake_kv_server.h"],
     deps = [
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
-        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
     ],
@@ -50,7 +53,11 @@ cc_library(
         "//src/roma/interface",
         "//src/roma/roma_service",
         "//src/roma/sandbox/constants",
+        "//src/util:duration",
         "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/time",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -66,8 +73,6 @@ cc_binary(
     srcs = ["benchmark_suite_test.cc"],
     deps = [
         ":benchmark",
-        "//src/roma/interface",
-        "//src/roma/sandbox/constants",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -82,7 +87,7 @@ cc_test(
     ],
     deps = [
         ":fake_kv_server",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -91,10 +96,12 @@ cc_binary(
     name = "logging_benchmark",
     srcs = ["logging_benchmark.cc"],
     deps = [
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -103,12 +110,14 @@ cc_binary(
     name = "host_api_grpc_benchmark",
     srcs = ["host_api_grpc_benchmark.cc"],
     deps = [
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/roma/roma_service",
-        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -125,6 +134,7 @@ cc_binary(
         ":test_code",
         "//src/roma/config",
         "//src/roma/wasm:wasm_testing",
+        "@com_google_absl//absl/strings",
         "@google_benchmark//:benchmark",
     ],
 )

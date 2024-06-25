@@ -23,9 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/log/log.h"
-#include "absl/log/scoped_mock_log.h"
-#include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"

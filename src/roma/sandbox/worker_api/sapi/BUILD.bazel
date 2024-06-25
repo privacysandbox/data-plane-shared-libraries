@@ -145,11 +145,12 @@ cc_test(
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
     ],
     deps = [
-        ":error_codes",
         ":worker_sandbox_api",
-        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
+        "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )
 
@@ -160,11 +161,13 @@ cc_test(
     malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
+        ":error_codes",
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
-        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -174,6 +177,7 @@ cc_test(
     size = "medium",
     srcs = ["worker_wrapper_test.cc"],
     deps = [
+        ":error_codes",
         ":worker_init_params_cc_proto",
         ":worker_wrapper",
         "//src/roma/sandbox/constants",

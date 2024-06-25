@@ -37,7 +37,6 @@ cc_library(
     deps = [
         "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_host_service_cc_proto",
-        "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
     ],
@@ -245,6 +244,9 @@ cc_test(
         ":multi_service_roma_host_api",
         ":test_service_roma_app_api",
         ":test_service_roma_host_api",
+        "//src/roma/config",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",

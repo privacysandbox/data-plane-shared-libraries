@@ -22,7 +22,6 @@
 #include <vector>
 
 #include "include/v8.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
 #include "src/roma/sandbox/native_function_binding/native_function_invoker.h"

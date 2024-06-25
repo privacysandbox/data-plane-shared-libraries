@@ -19,13 +19,14 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include "absl/base/const_init.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "src/logger/request_context_logger.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/helloworld.pb.h"
-#include "src/util/duration.h"
 
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;

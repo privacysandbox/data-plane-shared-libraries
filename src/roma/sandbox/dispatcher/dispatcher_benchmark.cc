@@ -21,14 +21,16 @@
  * --test_output=all
  */
 
-#include <gtest/gtest.h>
-
 #include <benchmark/benchmark.h>
 
 #include "absl/cleanup/cleanup.h"
+#include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/blocking_counter.h"
+#include "absl/types/span.h"
+#include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/dispatcher/dispatcher.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 
 namespace {
 
@@ -83,14 +85,12 @@ void BM_Dispatch(benchmark::State& state) {
           .version_string = "v1",
           .js = R"(function test() { return 'Hello World'; })",
       };
-      ASSERT_TRUE(
-          dispatcher
-              .Invoke(std::move(load_request),
-                      [&is_loading](absl::StatusOr<ResponseObject> resp) {
-                        ASSERT_TRUE(resp.ok());
-                        is_loading.DecrementCount();
-                      })
-              .ok());
+      CHECK_OK(
+          dispatcher.Invoke(std::move(load_request),
+                            [&is_loading](absl::StatusOr<ResponseObject> resp) {
+                              CHECK_OK(resp);
+                              is_loading.DecrementCount();
+                            }));
     }
     is_loading.Wait();
   }

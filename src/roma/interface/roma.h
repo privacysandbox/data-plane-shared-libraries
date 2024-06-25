@@ -25,9 +25,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/functional/any_invocable.h"
-#include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 
 namespace google::scp::roma {
 /// @brief The key of timeout tag for request. This tag should be set with a

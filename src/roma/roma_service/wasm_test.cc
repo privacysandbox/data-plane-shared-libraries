@@ -22,8 +22,11 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/log_severity.h"
+#include "absl/container/flat_hash_map.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"
@@ -335,7 +338,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
   }
 }
 
-TEST(WasmTest, CanExecuteJSWithWasmCode) {
+TEST(WasmTest, CanExecuteJsWithWasmCode) {
   Config config;
   config.number_of_workers = 2;
   RomaService<> roma_service(std::move(config));
