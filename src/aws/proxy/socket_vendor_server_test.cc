@@ -34,39 +34,40 @@ TEST(SocketVendorServerTest, EmptyPath) {
   EXPECT_FALSE(server.Init());
 }
 
-TEST(SocketVendorServerTest, NonExistentFile) {
+TEST(SocketVendorServerTest, NonExistentSocketFile) {
+  const std::filesystem::path sock_path =
+      std::filesystem::temp_directory_path() / "foo_sock.file";
   Endpoint proxy_endpoint;
-  SocketVendorServer server(/*sock_path=*/"/foo/bar", proxy_endpoint,
+  SocketVendorServer server(sock_path.string(), proxy_endpoint,
+                            /*concurrency=*/1);
+  EXPECT_TRUE(server.Init());
+}
+
+TEST(SocketVendorServerTest, NonExistentSocketDir) {
+  const std::filesystem::path sock_path =
+      std::filesystem::path("/bar") / "foo" / "sock.file";
+  Endpoint proxy_endpoint;
+  SocketVendorServer server(sock_path.string(), proxy_endpoint,
                             /*concurrency=*/1);
   EXPECT_FALSE(server.Init());
 }
 
 TEST(SocketVendorServerTest, InitSuccess) {
-  const std::filesystem::path temp_file_path =
-      std::filesystem::temp_directory_path() / "sock_path";
-  // Write to the file so that it exists:
-  std::ofstream ofstream(temp_file_path);
-  ofstream << "";
-  ofstream.close();
-
+  const std::filesystem::path sock_path =
+      std::filesystem::temp_directory_path() / "sock.file";
   Endpoint proxy_endpoint;
-  SocketVendorServer server(/*sock_path=*/std::string(temp_file_path),
-                            proxy_endpoint,
+  SocketVendorServer server(sock_path.string(), proxy_endpoint,
                             /*concurrency=*/1);
   EXPECT_TRUE(server.Init());
 }
 
 TEST(SocketVendorServerTest, RunStop) {
-  const std::filesystem::path temp_file_path =
-      std::filesystem::temp_directory_path() / "sock_path";
-  // Write to the file so that it exists:
-  std::ofstream ofstream(temp_file_path);
-  ofstream << "";
-  ofstream.close();
-
+  const std::filesystem::path sock_path =
+      std::filesystem::temp_directory_path() / "foo" / "sock.file";
+  // Ensure the directory exists
+  std::filesystem::create_directories(sock_path.parent_path());
   Endpoint proxy_endpoint;
-  SocketVendorServer server(/*sock_path=*/std::string(temp_file_path),
-                            proxy_endpoint,
+  SocketVendorServer server(sock_path.string(), proxy_endpoint,
                             /*concurrency=*/1);
   ASSERT_TRUE(server.Init());
   std::thread server_thread([&server] { server.Run(); });
