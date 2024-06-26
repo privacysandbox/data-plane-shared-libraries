@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const kDefaultIter = 10_000;
+const kDefaultIter = 100_000;
 
 function generateLargeDataStructure() {
   const data = [];
@@ -26,5 +26,5 @@ function generateLargeDataStructure() {
 
 const largeDataStructure = generateLargeDataStructure();
 function Handler() {
-  return largeDataStructure[0].name;
+  return 1;
 }

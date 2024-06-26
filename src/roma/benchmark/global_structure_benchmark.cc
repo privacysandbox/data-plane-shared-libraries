@@ -47,10 +47,10 @@ using google::scp::roma::sandbox::roma_service::RomaService;
 
 constexpr std::string_view kHandlerName = "Handler";
 constexpr absl::Duration kTimeout = absl::Seconds(10);
-constexpr int32_t kDefaultIter = 10'000;
+constexpr int32_t kMinIter = 10'000;
 constexpr int32_t kMaxIter = 1'000'000;
 constexpr std::string_view kGlobalStructureUdfPath =
-    "./src/roma/tools/v8_cli/test_udfs/global_structure.js";
+    "./src/roma/tools/v8_cli/test_udfs/global_structure_10K.js";
 
 std::unique_ptr<RomaService<>> roma_service;
 
@@ -129,11 +129,11 @@ void BM_Execute(::benchmark::State& state) {
 }
 
 BENCHMARK(BM_Load)
-    ->Range(kDefaultIter, kMaxIter)
+    ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_Execute)
-    ->Range(kDefaultIter, kMaxIter)
+    ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 }  // namespace
