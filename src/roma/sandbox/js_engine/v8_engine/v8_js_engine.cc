@@ -381,16 +381,16 @@ void FatalErrorCallback(const char* location, const char* message) {
 
 void GCPrologueCallback(v8::Isolate* isolate, v8::GCType type,
                         v8::GCCallbackFlags flags) {
-  LOG(ERROR) << "Garbage Collection event started. Type: "
-             << GetGCTypeName(type)
-             << ", Flags: " << GetGCCallbackFlagsName(flags);
+  ROMA_VLOG(9) << "Garbage Collection event started. Type: "
+               << GetGCTypeName(type)
+               << ", Flags: " << GetGCCallbackFlagsName(flags);
 }
 
 void GCEpilogueCallback(v8::Isolate* isolate, v8::GCType type,
                         v8::GCCallbackFlags flags) {
-  LOG(ERROR) << "Garbage Collection event finished. Type: "
-             << GetGCTypeName(type)
-             << ", Flags: " << GetGCCallbackFlagsName(flags);
+  ROMA_VLOG(9) << "Garbage Collection event finished. Type: "
+               << GetGCTypeName(type)
+               << ", Flags: " << GetGCCallbackFlagsName(flags);
 }
 
 std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
