@@ -379,11 +379,26 @@ void FatalErrorCallback(const char* location, const char* message) {
              << (message != nullptr ? message : "");
 }
 
+void LogHeapStatistics(v8::Isolate* isolate) {
+  v8::HeapStatistics heap_stats;
+  isolate->GetHeapStatistics(&heap_stats);
+
+  ROMA_VLOG(9) << "\nHeap Statistics:" << "\n  total_heap_size: "
+               << heap_stats.total_heap_size()
+               << "\n  total_heap_size_executable: "
+               << heap_stats.total_heap_size_executable()
+               << "\n  total_physical_size: "
+               << heap_stats.total_physical_size()
+               << "\n  used_heap_size: " << heap_stats.used_heap_size()
+               << "\n  heap_size_limit: " << heap_stats.heap_size_limit();
+}
+
 void GCPrologueCallback(v8::Isolate* isolate, v8::GCType type,
                         v8::GCCallbackFlags flags) {
   ROMA_VLOG(9) << "Garbage Collection event started. Type: "
                << GetGCTypeName(type)
                << ", Flags: " << GetGCCallbackFlagsName(flags);
+  LogHeapStatistics(isolate);
 }
 
 void GCEpilogueCallback(v8::Isolate* isolate, v8::GCType type,
@@ -391,6 +406,7 @@ void GCEpilogueCallback(v8::Isolate* isolate, v8::GCType type,
   ROMA_VLOG(9) << "Garbage Collection event finished. Type: "
                << GetGCTypeName(type)
                << ", Flags: " << GetGCCallbackFlagsName(flags);
+  LogHeapStatistics(isolate);
 }
 
 std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
