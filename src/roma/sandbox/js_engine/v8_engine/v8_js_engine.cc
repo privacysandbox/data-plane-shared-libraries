@@ -379,11 +379,18 @@ void FatalErrorCallback(const char* location, const char* message) {
              << (message != nullptr ? message : "");
 }
 
-void GCCallback(v8::Isolate* isolate, v8::GCType type,
-                v8::GCCallbackFlags flags) {
-  LOG(ERROR) << "Garbage Collection event occured. Type: "
+void GCPrologueCallback(v8::Isolate* isolate, v8::GCType type,
+                        v8::GCCallbackFlags flags) {
+  LOG(ERROR) << "Garbage Collection event started. Type: "
              << GetGCTypeName(type)
-             << "Flags: " << GetGCCallbackFlagsName(flags);
+             << ", Flags: " << GetGCCallbackFlagsName(flags);
+}
+
+void GCEpilogueCallback(v8::Isolate* isolate, v8::GCType type,
+                        v8::GCCallbackFlags flags) {
+  LOG(ERROR) << "Garbage Collection event finished. Type: "
+             << GetGCTypeName(type)
+             << ", Flags: " << GetGCCallbackFlagsName(flags);
 }
 
 std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
@@ -417,7 +424,8 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
   isolate->SetCaptureStackTraceForUncaughtExceptions(true);
   isolate->SetFatalErrorHandler(FatalErrorCallback);
-  isolate->AddGCPrologueCallback(GCCallback);
+  isolate->AddGCPrologueCallback(GCPrologueCallback);
+  isolate->AddGCEpilogueCallback(GCEpilogueCallback);
   v8::debug::SetConsoleDelegate(isolate, console(isolate));
   return V8IsolateFactory::Create(isolate, std::move(allocator),
                                   enable_profilers_);
