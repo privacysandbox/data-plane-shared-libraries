@@ -80,9 +80,9 @@ oci_image(
     entrypoint = ["/bin/bash"],
     tars = [
         "//src/roma/gvisor/container:gvisor_tar",
-        ":sample_udf_tar",
         "//src/roma/gvisor/container:gvisor_server_container.tar",
         ":roma_gvisor_benchmark_tar",
+        ":sample_udf_tar",
     ],
 )
 
