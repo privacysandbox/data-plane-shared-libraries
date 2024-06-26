@@ -109,7 +109,7 @@ void RunRomaJsBenchmark(::benchmark::State& state, std::string_view code,
     auto execution_obj =
         std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
             .id = "foo",
-            .version_string = "1",
+            .version_string = std::string(kCodeVersion),
             .handler_name = std::string(handler),
             .input = {input},
         });
