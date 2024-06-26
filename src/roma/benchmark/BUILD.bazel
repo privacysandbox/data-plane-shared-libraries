@@ -107,6 +107,21 @@ cc_binary(
 )
 
 cc_binary(
+    name = "global_structure_benchmark",
+    srcs = ["global_structure_benchmark.cc"],
+    data = ["//src/roma/tools/v8_cli:test_udfs"],
+    deps = [
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
     name = "host_api_grpc_benchmark",
     srcs = ["host_api_grpc_benchmark.cc"],
     deps = [

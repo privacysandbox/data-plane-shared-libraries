@@ -93,6 +93,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/aws/proxy:benchmark_test
     //src/core/common/uuid:uuid_benchmark
     //src/roma/benchmark:ba_server_benchmark
+    //src/roma/benchmark:global_structure_benchmark
     //src/roma/benchmark:host_api_grpc_benchmark
     //src/roma/benchmark:kv_server_udf_benchmark_test
     //src/roma/benchmark/serde:serialize_benchmark
