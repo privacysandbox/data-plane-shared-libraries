@@ -83,9 +83,7 @@ std::vector<std::string> ReadJsonArray(const std::string& filePath) {
   }
 
   std::ifstream file(filePath);
-  if (!file.is_open()) {
-    throw std::runtime_error("Could not open file: " + filePath);
-  }
+  CHECK(file.is_open()) << "Could not open file: " << filePath;
 
   // Parse the JSON content
   nlohmann::json jsonArray;
@@ -94,11 +92,8 @@ std::vector<std::string> ReadJsonArray(const std::string& filePath) {
   // Convert JSON array to std::vector<std::string>
   std::vector<std::string> result;
   for (const auto& element : jsonArray) {
-    if (element.is_string()) {
-      result.push_back(absl::StrCat("\"", element.get<std::string>(), "\""));
-    } else {
-      throw std::runtime_error("Non-string element found in JSON array");
-    }
+    CHECK(element.is_string()) << "Non-string element found in JSON array";
+    result.push_back(absl::StrCat("\"", element.get<std::string>(), "\""));
   }
 
   return result;
@@ -109,10 +104,8 @@ void BM_Load(benchmark::State& state) {
   std::string js((std::istreambuf_iterator<char>(input_str)),
                  (std::istreambuf_iterator<char>()));
 
-  if (js.empty()) {
-    std::cout << "Empty UDF cannot be loaded. Please try again. " << std::endl;
-    return;
-  }
+  CHECK(!js.empty()) << "Could not open file: "
+                     << absl::GetFlag(FLAGS_udf_file_path);
 
   for (auto _ : state) {
     LoadCodeObj(js);
@@ -124,10 +117,8 @@ void BM_Execute(benchmark::State& state) {
   std::string js((std::istreambuf_iterator<char>(input_str)),
                  (std::istreambuf_iterator<char>()));
 
-  if (js.empty()) {
-    std::cout << "Empty UDF cannot be loaded. Please try again. " << std::endl;
-    return;
-  }
+  CHECK(!js.empty()) << "Could not open file: "
+                     << absl::GetFlag(FLAGS_udf_file_path);
 
   LoadCodeObj(js);
   std::vector<std::string> input =
