@@ -17,7 +17,7 @@
  * output):
  *
  * builders/tools/bazel-debian run \
- * //src/roma/benchmark:global_structure_benchmark \
+ * //src/roma/benchmark:isolate_restoration_benchmark \
  * --test_output=all 2>&1 | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc"
  */
 
@@ -50,7 +50,9 @@ constexpr absl::Duration kTimeout = absl::Seconds(10);
 constexpr int32_t kMinIter = 10'000;
 constexpr int32_t kMaxIter = 1'000'000;
 constexpr std::string_view kGlobalStructureUdfPath =
-    "./src/roma/tools/v8_cli/test_udfs/global_structure_10K.js";
+    "./src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_10K.js";
+constexpr std::string_view kGlobalStringUdfPath =
+    "./src/roma/tools/v8_cli/test_udfs/global_vars/global_string_10K.js";
 
 std::unique_ptr<RomaService<>> roma_service;
 
@@ -84,8 +86,10 @@ void DoSetup(const ::benchmark::State& state) {
   CHECK_OK(roma_service->Init());
 }
 
-std::string GetGlobalDataStructureUdf(int iter) {
-  std::ifstream inputFile((std::string(kGlobalStructureUdfPath)));
+std::string GetGlobalVariableUdf(int iter, bool benchmark_structure) {
+  std::string_view udf_path =
+      benchmark_structure ? kGlobalStructureUdfPath : kGlobalStringUdfPath;
+  std::ifstream inputFile((std::string(udf_path)));
   std::string code((std::istreambuf_iterator<char>(inputFile)),
                    (std::istreambuf_iterator<char>()));
   CHECK(!code.empty());
@@ -95,18 +99,28 @@ std::string GetGlobalDataStructureUdf(int iter) {
                             absl::StrCat("const kDefaultIter = ", iter, ";"));
 }
 
-void BM_Load(::benchmark::State& state) {
+void LoadBenchmark(::benchmark::State& state, bool benchmark_structure) {
   auto iter = state.range(0);
-  std::string code = GetGlobalDataStructureUdf(iter);
+  std::string code = GetGlobalVariableUdf(iter, benchmark_structure);
 
   for (auto _ : state) {
     LoadCodeObj(code);
   }
 }
 
-void BM_Execute(::benchmark::State& state) {
+void BM_LoadGlobalStructure(::benchmark::State& state) {
+  bool benchmark_structure = true;
+  LoadBenchmark(state, benchmark_structure);
+}
+
+void BM_LoadGlobalString(::benchmark::State& state) {
+  bool benchmark_structure = false;
+  LoadBenchmark(state, benchmark_structure);
+}
+
+void ExecuteBenchmark(::benchmark::State& state, bool benchmark_structure) {
   auto iter = state.range(0);
-  std::string code = GetGlobalDataStructureUdf(iter);
+  std::string code = GetGlobalVariableUdf(iter, benchmark_structure);
   LoadCodeObj(code);
 
   for (auto _ : state) {
@@ -128,11 +142,29 @@ void BM_Execute(::benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_Load)
+void BM_ExecuteGlobalStructure(::benchmark::State& state) {
+  bool benchmark_structure = true;
+  ExecuteBenchmark(state, benchmark_structure);
+}
+
+void BM_ExecuteGlobalString(::benchmark::State& state) {
+  bool benchmark_structure = false;
+  ExecuteBenchmark(state, benchmark_structure);
+}
+
+BENCHMARK(BM_LoadGlobalStructure)
     ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_Execute)
+BENCHMARK(BM_LoadGlobalString)
+    ->Range(kMinIter, kMaxIter)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobalStructure)
+    ->Range(kMinIter, kMaxIter)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobalString)
     ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);

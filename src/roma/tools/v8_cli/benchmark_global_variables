@@ -23,11 +23,16 @@ declare -a -r BASE_CMD=(
 )
 
 declare -a -r UDF_FILES=(
-    "src/roma/tools/v8_cli/test_udfs/global_structure_10K.js"
-    "src/roma/tools/v8_cli/test_udfs/global_structure_50K.js"
-    "src/roma/tools/v8_cli/test_udfs/global_structure_100K.js"
-    "src/roma/tools/v8_cli/test_udfs/global_structure_500K.js"
-    "src/roma/tools/v8_cli/test_udfs/global_structure_1M.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_10K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_50K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_100K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_500K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_1M.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_string_10K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_string_50K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_string_100K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_string_500K.js"
+    "src/roma/tools/v8_cli/test_udfs/global_vars/global_string_1M.js"
 )
 
 for UDF_FILE in "${UDF_FILES[@]}"
