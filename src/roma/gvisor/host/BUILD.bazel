@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -54,6 +55,14 @@ cc_proto_library(
     name = "callback_cc_proto",
     visibility = ["//visibility:public"],
     deps = [":callback_proto"],
+)
+
+go_proto_library(
+    name = "callback_go_proto",
+    importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/binary/callback",
+    proto = ":callback_proto",
+    visibility = ["//visibility:public"],
+    deps = ["//src/roma/interface:function_binding_io_go_proto"],
 )
 
 proto_library(
