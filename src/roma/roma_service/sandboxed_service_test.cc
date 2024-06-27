@@ -37,10 +37,6 @@
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
-// #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
-// #include
-// "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
-// #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/native_function_grpc_server/proto/test_host_service_native_request_handler.h"
 #include "src/roma/native_function_grpc_server/test_request_handlers.h"
 #include "src/roma/roma_service/roma_service.h"
