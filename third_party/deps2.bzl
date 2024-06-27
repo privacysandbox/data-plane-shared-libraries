@@ -58,9 +58,11 @@ def _proto_deps():
     maybe(
         http_archive,
         name = "rules_proto_grpc",
-        sha256 = "9ba7299c5eb6ec45b6b9a0ceb9916d0ab96789ac8218269322f0124c0c0d24e2",
-        strip_prefix = "rules_proto_grpc-4.5.0",
-        urls = ["https://github.com/rules-proto-grpc/rules_proto_grpc/releases/download/4.5.0/rules_proto_grpc-4.5.0.tar.gz"],
+        sha256 = "a53cea895b9e870cdcfe5e50a1c61d8aa837c1d30b5886b210f0eb3e4709e4bc",
+        strip_prefix = "rules_proto_grpc-4.6.0",
+        urls = [
+            "https://github.com/rules-proto-grpc/rules_proto_grpc/archive/refs/tags/4.6.0.zip",
+        ],
     )
 
 def _quiche_deps():
