@@ -43,6 +43,7 @@
 #include "src/util/duration.h"
 
 using google::scp::roma::FunctionBindingPayload;
+using google::scp::roma::sandbox::roma_service::kMinWorkerVirtualMemoryMB;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
 using ::testing::AnyOf;
@@ -84,8 +85,24 @@ TEST(SandboxedServiceTest,
   RomaService<> roma_service(std::move(config));
   auto status = roma_service.Init();
   EXPECT_FALSE(status.ok());
-  EXPECT_THAT(status.message(), StrEq("Receiving TLV value failed"));
+  EXPECT_THAT(
+      status.message(),
+      StrEq(absl::StrCat(
+          "Roma startup failed due to insufficient address space for workers. "
+          "Please increase config.max_worker_virtual_memory_mb above ",
+          kMinWorkerVirtualMemoryMB, " MB. Current value is ",
+          config.max_worker_virtual_memory_mb, " MB.")));
 
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
+TEST(SandboxedServiceTest, CanInitializeWithAppropriateVirtualMemoryCap) {
+  Config config;
+  config.number_of_workers = 2;
+  config.max_worker_virtual_memory_mb = kMinWorkerVirtualMemoryMB;
+
+  RomaService<> roma_service(std::move(config));
+  EXPECT_TRUE(roma_service.Init().ok());
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 

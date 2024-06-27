@@ -51,7 +51,8 @@ constexpr int kWorkerQueueMax = 100;
 // This value does not account for runtime memory usage and is only a generic
 // estimate based on the memory needed by roma and the steady-state memory
 // needed by v8.
-constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
+constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKB = 400 * 1024;
+constexpr uint64_t kMinWorkerVirtualMemoryMB = 9 * 1024;  // 9 GB
 
 /**
  * @brief The template parameter, TMetadata, needs to be default assignable and
@@ -73,6 +74,13 @@ class RomaService {
     if (!RomaHasEnoughMemoryForStartup()) {
       return absl::InternalError(
           "Roma startup failed due to insufficient system memory.");
+    }
+    if (!RomaWorkersHaveEnoughAddressSpace()) {
+      return absl::InternalError(absl::StrCat(
+          "Roma startup failed due to insufficient address space for workers. "
+          "Please increase config.max_worker_virtual_memory_mb above ",
+          kMinWorkerVirtualMemoryMB, " MB. Current value is ",
+          config_.max_worker_virtual_memory_mb, " MB."));
     }
     PS_RETURN_IF_ERROR(InitInternal());
     return absl::OkStatus();
@@ -399,6 +407,13 @@ class RomaService {
     return absl::OkStatus();
   }
 
+  // V8 fails to initialize if Roma workers aren't given at least 9 GB of
+  // address space.
+  bool RomaWorkersHaveEnoughAddressSpace() {
+    return config_.max_worker_virtual_memory_mb == 0 ||
+           config_.max_worker_virtual_memory_mb >= kMinWorkerVirtualMemoryMB;
+  }
+
   bool RomaHasEnoughMemoryForStartup() {
     if (!config_.enable_startup_memory_check) {
       return true;
@@ -427,7 +442,7 @@ class RomaService {
     ROMA_VLOG(1) << "Number of workers is " << num_processes;
 
     auto minimum_memory_needed =
-        num_processes * kDefaultMinStartupMemoryNeededPerWorkerKb;
+        num_processes * kDefaultMinStartupMemoryNeededPerWorkerKB;
 
     return minimum_memory_needed < *available_memory;
   }
