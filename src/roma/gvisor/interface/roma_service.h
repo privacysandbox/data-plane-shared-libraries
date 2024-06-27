@@ -139,15 +139,14 @@ class RomaService final {
    * can then be used processing the response.
    *
    * @param code_token identifier provided by load of the binary to be executed.
-   * @param request proto for the binary.
+   * @param request serialized proto for the binary.
    * @param metadata for execution request. It is a templated type.
    * @param populate_response invoked once the response is available.
    * @param notif notifies that execution_status is available.
    * @return absl::Status
    */
   absl::Status ExecuteBinary(
-      std::string_view code_token,
-      const ::google::protobuf::MessageLite& request, TMetadata metadata,
+      std::string_view code_token, std::string request, TMetadata metadata,
       std::function<void(::grpc::Status status,
                          const std::string& serialized_response)>
           populate_response,
@@ -165,7 +164,7 @@ class RomaService final {
     std::shared_ptr<ExecuteBinaryArgs> exec_args =
         std::make_shared<ExecuteBinaryArgs>();
     exec_args->request.set_code_token(code_token);
-    exec_args->request.set_serialized_request(request.SerializeAsString());
+    exec_args->request.set_serialized_request(std::move(request));
     exec_args->request.set_request_id(request_id);
     stub_->async()->ExecuteBinary(
         &exec_args->context, &exec_args->request, &exec_args->response,

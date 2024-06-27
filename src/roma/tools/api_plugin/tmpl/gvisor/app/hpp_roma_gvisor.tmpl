@@ -86,7 +86,7 @@ class {{$svcName}} final :
     return roma_service_->ExecuteBinary(
         // TODO: ashruti - See if it makes sense to map code token to a
         // rpc.Name when loading and call the function using the RPC name.
-        code_token, request, std::move(metadata),
+        code_token, request.SerializeAsString(), std::move(metadata),
         [&response](::grpc::Status status,
                     const std::string& serialized_response) {
           if (status.ok()) {
