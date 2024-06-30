@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.17.0 (2024-06-27)
+
+
+### Features
+
+* Allow gRPC tests to output stderr
+
+## 0.16.1 (2024-06-21)
+
+
+### Bug Fixes
+
+* Simplify docker commands by mounting files
+
 ## 0.16.0 (2024-06-11)
 
 

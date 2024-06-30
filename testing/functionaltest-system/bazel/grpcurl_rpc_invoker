@@ -59,31 +59,30 @@ done
 : "${PROTOSET_FILENAME?"Error: --protoset not specified"}"
 : "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
 
-REQ_JSON="$(<"${REQUEST_FILENAME}")"
-
 declare -a DOCKER_ARGS=(
   "--rm"
   "--interactive"
   "--entrypoint=/bin/bash"
   "--tmpfs=/work"
   "--workdir=/work"
+  "--volume=$(realpath "${REQUEST_FILENAME}"):/work/req.json"
+  "--volume=$(realpath "${PROTOSET_FILENAME}"):/work/protoset.pb"
 )
-
-declare -a GRPCURL_ARGS=()
-
 if [[ -n ${DOCKER_NETWORK} ]]; then
   DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
 fi
 
+declare -a GRPCURL_ARGS=()
 if [[ ${PLAINTEXT} -eq 1 ]]; then
   GRPCURL_ARGS+=("-plaintext")
 fi
 
-docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
-cat /dev/stdin >protoset.pb
-cat >rpc_request <<EOF
-${REQ_JSON}
-EOF
+GRPCURL_ERROR_TMPFILE="$(mktemp)"
+readonly GRPCURL_ERROR_TMPFILE
 
-grpcurl ${GRPCURL_ARGS[*]} -d @ -protoset protoset.pb ${ENDPOINT_HOSTPORT} ${RPC} <rpc_request
-" <"${PROTOSET_FILENAME}"
+set -o xtrace
+if ! docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
+grpcurl ${GRPCURL_ARGS[*]} -d @ -protoset protoset.pb ${ENDPOINT_HOSTPORT} ${RPC} <req.json
+" 2> "${GRPCURL_ERROR_TMPFILE}"; then
+  cat "${GRPCURL_ERROR_TMPFILE}"
+fi

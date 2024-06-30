@@ -135,6 +135,7 @@ declare -a TESTS=(
 
 DATA_DIR="$(mktemp --directory)"
 readonly DATA_DIR
+chmod 755 "${DATA_DIR}"
 get_sut_data_configs "${DATA_DIR}"
 
 declare -a -r DOCKER_COMPOSE_ARGS=(
@@ -145,4 +146,5 @@ declare -a -r DOCKER_COMPOSE_ARGS=(
 
 docker compose "${DOCKER_COMPOSE_ARGS[@]}" up --quiet-pull --detach
 
-"${TOOLS_DIR}"/bazel-debian test "${TESTS[@]}" "${TEST_ARGS[@]}"
+EXTRA_DOCKER_RUN_ARGS="--volume /tmp:/tmp" \
+  "${TOOLS_DIR}"/bazel-debian test "${TESTS[@]}" "${TEST_ARGS[@]}"

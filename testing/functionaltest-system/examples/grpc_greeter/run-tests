@@ -75,7 +75,7 @@ function container_run_test() {
   local -r CBUILD_IMAGE="$("${TOOLS_DIR}"/get-builder-image-tagged --image build-debian)"
   export CBUILD_IMAGE
   declare -r -x WORKSPACE_MOUNT="${TEST_REPO}"
-  EXTRA_DOCKER_RUN_ARGS="${EXTRA_DOCKER_RUN_ARGS} --volume ${REPO_ROOT}:${FUNCTEST_REPO_PATH} --volume ${WORKSPACE_TMPFILE}:/src/workspace/WORKSPACE" \
+  EXTRA_DOCKER_RUN_ARGS="${EXTRA_DOCKER_RUN_ARGS} --volume /tmp:/tmp --volume ${REPO_ROOT}:${FUNCTEST_REPO_PATH} --volume ${WORKSPACE_TMPFILE}:/src/workspace/WORKSPACE" \
     "${TOOLS_DIR}"/bazel-debian test "${TESTS[@]}" "${TEST_ARGS[@]}"
 }
 

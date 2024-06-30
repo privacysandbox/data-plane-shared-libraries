@@ -91,23 +91,41 @@ done
 
 : "${RPC?"Error: --rpc must be specified"}"
 : "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset must be specified"}"
 : "${GOLDEN_REPLY?"Error: --reply must be specified"}"
 : "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
 : "${RPC_INVOKER?"Error: --rpc-invoker not specified"}"
 : "${RPC_INVOKER_TYPE?"Error: --rpc-invoker-type not specified"}"
 : "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
 
-TMP_FILTERED_REQUEST="$(mktemp --dry-run)"
-readonly TMP_FILTERED_REQUEST
-TMP_RAW_REPLY="$(mktemp --dry-run)"
-readonly TMP_RAW_REPLY
-TMP_FILTERED_REPLY="$(mktemp --dry-run)"
-readonly TMP_FILTERED_REPLY
+TMP_DIR="$(mktemp --directory)"
+readonly TMP_DIR
+chmod 755 "${TMP_DIR}"
+
+readonly TMP_FILTERED_REQUEST="${TMP_DIR}/filtered_request"
+readonly TMP_RAW_REPLY="${TMP_DIR}/raw_reply"
+readonly TMP_FILTERED_REPLY="${TMP_DIR}/filtered_reply"
+readonly TMP_JQ_PRE_PROGRAM_FILENAME="${TMP_DIR}/pre_program.jq"
+readonly TMP_JQ_POST_PROGRAM_FILENAME="${TMP_DIR}/post_program.jq"
+readonly TMP_PROTOSET_FILENAME="${TMP_DIR}/protoset.pb"
+cp "${PROTOSET_FILENAME}" "${TMP_PROTOSET_FILENAME}"
+if [[ -s ${JQ_PRE_PROGRAM_FILENAME} ]]; then
+  cp "${JQ_PRE_PROGRAM_FILENAME}" "${TMP_JQ_PRE_PROGRAM_FILENAME}"
+else
+  printf '.\n' >"${TMP_JQ_PRE_PROGRAM_FILENAME}"
+fi
+if [[ -s ${JQ_POST_PROGRAM_FILENAME} ]]; then
+  cp "${JQ_POST_PROGRAM_FILENAME}" "${TMP_JQ_POST_PROGRAM_FILENAME}"
+else
+  printf '.\n' >"${TMP_JQ_POST_PROGRAM_FILENAME}"
+fi
 
 trap cleanup EXIT
 function cleanup() {
   local -r -i STATUS=$?
-  rm -f "${TMP_FILTERED_REQUEST}" "${TMP_RAW_REPLY}" "${TMP_FILTERED_REPLY}"
+  if [[ ${STATUS} -eq 0 ]]; then
+    rm -rf "${TMP_DIR}"
+  fi
   exit ${STATUS}
 }
 
@@ -115,6 +133,7 @@ declare -a DOCKER_ARGS=(
   "--rm"
   "--interactive"
   "--entrypoint=/bin/bash"
+  "--volume=/tmp:/tmp"
   "--tmpfs=/work"
   "--workdir=/work"
 )
@@ -140,12 +159,7 @@ if [[ -n ${DOCKER_NETWORK} ]]; then
   )
 fi
 
-declare JQ_PRE_PROGRAM=.
-declare JQ_POST_PROGRAM=.
-
-if [[ -s ${JQ_PRE_PROGRAM_FILENAME} ]]; then
-  JQ_PRE_PROGRAM="$(<"${JQ_PRE_PROGRAM_FILENAME}")"
-fi
+set -o xtrace
 
 if [[ ${PLAINTEXT} -eq 1 ]]; then
   RPC_INVOKER_ARGS+=(--plaintext)
@@ -158,29 +172,22 @@ if [[ -n ${HTTP_PATH} ]]; then
   )
 fi
 
-declare -a JQ_POST_ARGS=(
-  --from-file post-filter.jq
-)
-
-if [[ -s ${JQ_POST_PROGRAM_FILENAME} ]]; then
-  JQ_POST_PROGRAM="$(<"${JQ_POST_PROGRAM_FILENAME}")"
-  if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
-    JQ_POST_ARGS+=(--slurp)
-  fi
+declare -a JQ_POST_ARGS=()
+if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
+  JQ_POST_ARGS+=(--slurp)
 fi
 
-docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
-cat /dev/stdin >raw_request
-printf '%s\n' '${JQ_PRE_PROGRAM}' >pre-filter.jq
-cat raw_request | jq --exit-status --from-file pre-filter.jq
-" \
+docker run "${DOCKER_ARGS[@]}" \
+  --volume="$(realpath "${TMP_JQ_PRE_PROGRAM_FILENAME}"):/work/pre-filter.jq" \
+  "${TEST_TOOLS_IMAGE}" \
+  -c "jq --exit-status --from-file pre-filter.jq" \
   <"${REQUEST_FILENAME}" \
   >"${TMP_FILTERED_REQUEST}"
 
 
 if [[ ${RPC_INVOKER_TYPE} == binary ]]; then
   "${RPC_INVOKER}" \
-    --protoset "${PROTOSET_FILENAME}" \
+    --protoset "${TMP_PROTOSET_FILENAME}" \
     --request "${TMP_FILTERED_REQUEST}" \
     "${RPC_INVOKER_ARGS[@]}" \
     >"${TMP_RAW_REPLY}"
@@ -199,12 +206,16 @@ else
     >"${TMP_RAW_REPLY}"
 fi
 
-docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
-cat /dev/stdin >raw_reply
-printf '%s\n' '${JQ_POST_PROGRAM}' >post-filter.jq
-cat raw_reply | jq ${JQ_POST_ARGS[*]}
-" \
-  <"${TMP_RAW_REPLY}" \
-  >"${TMP_FILTERED_REPLY}"
+# Check if TMP_RAW_REPLY is a valid json. If not, diff the raw reply without jq.
+if docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "jq ${JQ_POST_ARGS[*]}" <"${TMP_RAW_REPLY}"; then
+  docker run "${DOCKER_ARGS[@]}" \
+    --volume="$(realpath "${TMP_JQ_POST_PROGRAM_FILENAME}"):/work/post-filter.jq" \
+    "${TEST_TOOLS_IMAGE}" \
+    -c "jq --from-file post-filter.jq ${JQ_POST_ARGS[*]}" \
+    <"${TMP_RAW_REPLY}" \
+    >"${TMP_FILTERED_REPLY}"
+else
+  ln -s "${TMP_RAW_REPLY}" "${TMP_FILTERED_REPLY}"
+fi
 
 diff "${TMP_FILTERED_REPLY}" "${GOLDEN_REPLY}"
