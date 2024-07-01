@@ -54,6 +54,8 @@ constexpr std::string_view kGlobalStructureUdfPath =
 constexpr std::string_view kGlobalStringUdfPath =
     "./src/roma/tools/v8_cli/test_udfs/global_vars/global_string_10K.js";
 
+enum class GlobalType { Structure, String };
+
 std::unique_ptr<RomaService<>> roma_service;
 
 void DoTeardown(const ::benchmark::State& state) {
@@ -86,9 +88,10 @@ void DoSetup(const ::benchmark::State& state) {
   CHECK_OK(roma_service->Init());
 }
 
-std::string GetGlobalVariableUdf(int iter, bool benchmark_structure) {
-  std::string_view udf_path =
-      benchmark_structure ? kGlobalStructureUdfPath : kGlobalStringUdfPath;
+std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
+  std::string_view udf_path = global_type == GlobalType::Structure
+                                  ? kGlobalStructureUdfPath
+                                  : kGlobalStringUdfPath;
   std::ifstream inputFile((std::string(udf_path)));
   std::string code((std::istreambuf_iterator<char>(inputFile)),
                    (std::istreambuf_iterator<char>()));
@@ -99,30 +102,20 @@ std::string GetGlobalVariableUdf(int iter, bool benchmark_structure) {
                             absl::StrCat("const kDefaultIter = ", iter, ";"));
 }
 
-void LoadBenchmark(::benchmark::State& state, bool benchmark_structure) {
+template <GlobalType T>
+void BM_LoadGlobal(benchmark::State& state) {
   auto iter = state.range(0);
-  std::string code = GetGlobalVariableUdf(iter, benchmark_structure);
-
+  const std::string code = GetGlobalVariableUdf(iter, T);
   for (auto _ : state) {
     LoadCodeObj(code);
   }
 }
 
-void BM_LoadGlobalStructure(::benchmark::State& state) {
-  bool benchmark_structure = true;
-  LoadBenchmark(state, benchmark_structure);
-}
-
-void BM_LoadGlobalString(::benchmark::State& state) {
-  bool benchmark_structure = false;
-  LoadBenchmark(state, benchmark_structure);
-}
-
-void ExecuteBenchmark(::benchmark::State& state, bool benchmark_structure) {
+template <GlobalType T>
+void BM_ExecuteGlobal(::benchmark::State& state) {
   auto iter = state.range(0);
-  std::string code = GetGlobalVariableUdf(iter, benchmark_structure);
+  const std::string code = GetGlobalVariableUdf(iter, T);
   LoadCodeObj(code);
-
   for (auto _ : state) {
     absl::Notification execute_finished;
 
@@ -142,29 +135,19 @@ void ExecuteBenchmark(::benchmark::State& state, bool benchmark_structure) {
   }
 }
 
-void BM_ExecuteGlobalStructure(::benchmark::State& state) {
-  bool benchmark_structure = true;
-  ExecuteBenchmark(state, benchmark_structure);
-}
-
-void BM_ExecuteGlobalString(::benchmark::State& state) {
-  bool benchmark_structure = false;
-  ExecuteBenchmark(state, benchmark_structure);
-}
-
-BENCHMARK(BM_LoadGlobalStructure)
+BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
     ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobalString)
+BENCHMARK(BM_LoadGlobal<GlobalType::String>)
     ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobalStructure)
+BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
     ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobalString)
+BENCHMARK(BM_ExecuteGlobal<GlobalType::String>)
     ->Range(kMinIter, kMaxIter)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
