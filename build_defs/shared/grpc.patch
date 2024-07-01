@@ -1,8 +1,8 @@
 diff --git a/BUILD b/BUILD
-index ca9cfbb1d8..02fe65b97e 100644
+index 29af922edc..1ce64a417e 100644
 --- a/BUILD
 +++ b/BUILD
-@@ -2353,6 +2353,7 @@ grpc_cc_library(
+@@ -1831,6 +1831,7 @@ grpc_cc_library(
          "//src/core:tsi/transport_security_grpc.cc",
      ],
      hdrs = [
@@ -10,37 +10,33 @@ index ca9cfbb1d8..02fe65b97e 100644
          "//src/core:tsi/transport_security.h",
          "//src/core:tsi/transport_security_grpc.h",
          "//src/core:tsi/transport_security_interface.h",
-@@ -2840,7 +2841,7 @@ grpc_cc_library(
-         "include/grpcpp/test/mock_stream.h",
-         "include/grpcpp/test/server_context_test_spouse.h",
-     ],
--    visibility = ["@grpc:grpc++_test"],
-+    visibility = ["//visibility:public"],
-     deps = [
-         "channel",
-         "grpc++",
 diff --git a/bazel/grpc_deps.bzl b/bazel/grpc_deps.bzl
-index d0099ab616..884aed3d26 100644
+index 4740bbd98e..3ee8c15eeb 100644
 --- a/bazel/grpc_deps.bzl
 +++ b/bazel/grpc_deps.bzl
-@@ -213,12 +213,10 @@ def grpc_deps():
+@@ -263,17 +263,11 @@ def grpc_deps():
      if "com_google_protobuf" not in native.existing_rules():
          http_archive(
              name = "com_google_protobuf",
--            sha256 = "387478260190c540388839a3449c635a69708d92fc38ea6e2364b1196db90ea5",
--            strip_prefix = "protobuf-2434ef2adf0c74149b9d547ac5fb545a1ff8b6b5",
-+            sha256 = "e15c272392df84ae95797759c685a9225fe5e88838bab3e0650c29239bdfccdd",
-+            strip_prefix = "protobuf-26.1",
+-            sha256 = "70f480fe9cb0c6829dbf6be3c388103313aacb65de667b86d981bbc9eaedb905",
+-            strip_prefix = "protobuf-7f94235e552599141950d7a4a3eaf93bc87d1b22",
++            sha256 = "3ae7a8f2181be28e5d694617c2b85c6561ba6a16bfcdc9db8e3a95077cab8815",
++            strip_prefix = "protobuf-25.3",
              urls = [
--                # https://github.com/protocolbuffers/protobuf/commits/v26.1
--                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/protocolbuffers/protobuf/archive/2434ef2adf0c74149b9d547ac5fb545a1ff8b6b5.tar.gz",
--                "https://github.com/protocolbuffers/protobuf/archive/2434ef2adf0c74149b9d547ac5fb545a1ff8b6b5.tar.gz",
-+                "https://github.com/protocolbuffers/protobuf/releases/download/v26.1/protobuf-26.1.zip",
+-                # https://github.com/protocolbuffers/protobuf/commits/v25.0
+-                "https://storage.googleapis.com/grpc-bazel-mirror/github.com/protocolbuffers/protobuf/archive/7f94235e552599141950d7a4a3eaf93bc87d1b22.tar.gz",
+-                "https://github.com/protocolbuffers/protobuf/archive/7f94235e552599141950d7a4a3eaf93bc87d1b22.tar.gz",
++                "https://github.com/protocolbuffers/protobuf/releases/download/v25.3/protobuf-25.3.zip",
              ],
-             patches = [
-                 "@com_github_grpc_grpc//third_party:protobuf.patch",
+-            patches = [
+-                "@com_github_grpc_grpc//third_party:protobuf.patch",
+-            ],
+-            patch_args = ["-p1"],
+         )
+ 
+     if "com_google_googletest" not in native.existing_rules():
 diff --git a/examples/cpp/helloworld/BUILD b/examples/cpp/helloworld/BUILD
-index 1bcee389ef..824dec2fee 100644
+index 463dd6f495..94e2f02ca5 100644
 --- a/examples/cpp/helloworld/BUILD
 +++ b/examples/cpp/helloworld/BUILD
 @@ -12,6 +12,8 @@
