@@ -183,4 +183,3 @@ repos:
     - -sn
     - --rcfile=.pylintrc
     - --fail-on=I
-    exclude: ^google_internal/kokoro/perfgate/preprocessor/
