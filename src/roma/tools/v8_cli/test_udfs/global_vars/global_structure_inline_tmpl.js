@@ -14,15 +14,8 @@
  * limitations under the License.
  */
 
-function generateLargeDataStructure() {
-  const data = [];
-  for (let i = 0; i < $VAL; i++) {
-    data.push({ id: i, name: `Item ${i}`, value: Math.random() });
-  }
-  return data;
-}
+const bigArray = $VAL;
 
-const largeDataStructure = generateLargeDataStructure();
 function Handler() {
-  return 1;
+  return bigArray[0];
 }

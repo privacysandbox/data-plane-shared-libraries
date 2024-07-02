@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("//src/roma/tools/v8_cli:template_iter_replace.bzl", "template_iter_replace")
+load("//src/roma/tools/v8_cli:template_replace.bzl", "template_replace")
 
 cc_library(
     name = "fake_ba_server",
@@ -161,21 +161,31 @@ MAX_ITERATION = 1000000
 iterations = (MIN_ITERATION, 32768, 262144, MAX_ITERATION)
 
 [
-    template_iter_replace(
+    template_replace(
         name = "global_string_%d" % i,
         out = "global_string_%d.js" % i,
-        length = i,
         template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_string_tmpl.js",
+        val = str(i),
     )
     for i in iterations
 ]
 
 [
-    template_iter_replace(
+    template_replace(
         name = "global_structure_%d" % i,
         out = "global_structure_%d.js" % i,
-        length = i,
         template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_tmpl.js",
+        val = str(i),
+    )
+    for i in iterations
+]
+
+[
+    template_replace(
+        name = "global_inline_int_array_%d" % i,
+        out = "global_inline_int_array_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_inline_tmpl.js",
+        val = str(list(range(i))),
     )
     for i in iterations
 ]
@@ -187,8 +197,7 @@ cc_binary(
         "-DMIN_ITERATION=%d" % MIN_ITERATION,
         "-DMAX_ITERATION=%d" % MAX_ITERATION,
     ],
-    data = [":global_string_%d" % i for i in iterations] +
-           [":global_structure_%d" % i for i in iterations],
+    data = [":global_{}_{}".format(kind, i) for i in iterations for kind in ("string", "structure", "inline_int_array")],
     deps = [
         "//src/roma/config",
         "//src/roma/interface",

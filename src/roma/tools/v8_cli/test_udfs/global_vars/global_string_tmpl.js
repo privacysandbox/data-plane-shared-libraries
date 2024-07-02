@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-const largeString = 'x'.repeat($ITER);
+const largeString = 'x'.repeat($VAL);
 function Handler() {
   return 1;
 }

@@ -50,10 +50,12 @@ constexpr absl::Duration kTimeout = absl::Seconds(10);
 
 constexpr std::string_view kGlobalStructureUdfPathBase =
     "./src/roma/benchmark/global_structure_";
+constexpr std::string_view kGlobalInlineIntArrayUdfPathBase =
+    "./src/roma/benchmark/global_inline_int_array_";
 constexpr std::string_view kGlobalStringUdfPathBase =
     "./src/roma/benchmark/global_string_";
 
-enum class GlobalType { Structure, String };
+enum class GlobalType { Structure, InlineIntArray, String };
 
 std::unique_ptr<RomaService<>> roma_service;
 
@@ -88,9 +90,20 @@ void DoSetup(const ::benchmark::State& state) {
 }
 
 std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
-  std::string_view udf_path = global_type == GlobalType::Structure
-                                  ? kGlobalStructureUdfPathBase
-                                  : kGlobalStringUdfPathBase;
+  std::string_view udf_path;
+  switch (global_type) {
+    case GlobalType::String:
+      udf_path = kGlobalStringUdfPathBase;
+      break;
+    case GlobalType::Structure:
+      udf_path = kGlobalStructureUdfPathBase;
+      break;
+    case GlobalType::InlineIntArray:
+      udf_path = kGlobalInlineIntArrayUdfPathBase;
+      break;
+    default:
+      assert(0);
+  }
   std::ifstream inputFile(absl::StrCat(udf_path, iter, ".js"));
   std::string code((std::istreambuf_iterator<char>(inputFile)),
                    (std::istreambuf_iterator<char>()));
@@ -136,12 +149,22 @@ BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadGlobal<GlobalType::InlineIntArray>)
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::String>)
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineIntArray>)
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)

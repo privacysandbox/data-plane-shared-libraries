@@ -12,18 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-def _template_iter_replace_impl(ctx):
+def _template_replace_impl(ctx):
     ctx.actions.expand_template(
         template = ctx.file.template,
         output = ctx.outputs.out,
-        substitutions = {"$ITER": str(ctx.attr.length)},
+        substitutions = {"$VAL": str(ctx.attr.val)},
     )
 
-template_iter_replace = rule(
-    implementation = _template_iter_replace_impl,
+template_replace = rule(
+    implementation = _template_replace_impl,
     attrs = {
-        "length": attr.int(mandatory = True),
         "out": attr.output(mandatory = True),
         "template": attr.label(allow_single_file = True),
+        "val": attr.string(mandatory = True),
     },
 )
