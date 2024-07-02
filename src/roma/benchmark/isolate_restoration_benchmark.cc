@@ -47,12 +47,11 @@ using google::scp::roma::sandbox::roma_service::RomaService;
 
 constexpr std::string_view kHandlerName = "Handler";
 constexpr absl::Duration kTimeout = absl::Seconds(10);
-constexpr int32_t kMinIter = 10'000;
-constexpr int32_t kMaxIter = 1'000'000;
-constexpr std::string_view kGlobalStructureUdfPath =
-    "./src/roma/tools/v8_cli/test_udfs/global_vars/global_structure_10K.js";
-constexpr std::string_view kGlobalStringUdfPath =
-    "./src/roma/tools/v8_cli/test_udfs/global_vars/global_string_10K.js";
+
+constexpr std::string_view kGlobalStructureUdfPathBase =
+    "./src/roma/benchmark/global_structure_";
+constexpr std::string_view kGlobalStringUdfPathBase =
+    "./src/roma/benchmark/global_string_";
 
 enum class GlobalType { Structure, String };
 
@@ -90,16 +89,13 @@ void DoSetup(const ::benchmark::State& state) {
 
 std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
   std::string_view udf_path = global_type == GlobalType::Structure
-                                  ? kGlobalStructureUdfPath
-                                  : kGlobalStringUdfPath;
-  std::ifstream inputFile((std::string(udf_path)));
+                                  ? kGlobalStructureUdfPathBase
+                                  : kGlobalStringUdfPathBase;
+  std::ifstream inputFile(absl::StrCat(udf_path, iter, ".js"));
   std::string code((std::istreambuf_iterator<char>(inputFile)),
                    (std::istreambuf_iterator<char>()));
   CHECK(!code.empty());
-  std::regex pattern(R"(const kDefaultIter = \w+;)");
-
-  return std::regex_replace(code, pattern,
-                            absl::StrCat("const kDefaultIter = ", iter, ";"));
+  return code;
 }
 
 template <GlobalType T>
@@ -136,19 +132,23 @@ void BM_ExecuteGlobal(::benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
-    ->Range(kMinIter, kMaxIter)
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::String>)
-    ->Range(kMinIter, kMaxIter)
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
-    ->Range(kMinIter, kMaxIter)
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::String>)
-    ->Range(kMinIter, kMaxIter)
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 }  // namespace
