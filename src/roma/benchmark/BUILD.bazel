@@ -193,11 +193,13 @@ iterations = (MIN_ITERATION, 32768, 262144, MAX_ITERATION)
 cc_binary(
     name = "isolate_restoration_benchmark",
     srcs = ["isolate_restoration_benchmark.cc"],
-    copts = [
-        "-DMIN_ITERATION=%d" % MIN_ITERATION,
-        "-DMAX_ITERATION=%d" % MAX_ITERATION,
+    data = [":global_{}_{}".format(kind, i) for i in iterations for kind in ("string", "structure", "inline_int_array")] + [
+        "//src/roma/tools/v8_cli:test_udfs",
     ],
-    data = [":global_{}_{}".format(kind, i) for i in iterations for kind in ("string", "structure", "inline_int_array")],
+    local_defines = [
+        "MIN_ITERATION=%d" % MIN_ITERATION,
+        "MAX_ITERATION=%d" % MAX_ITERATION,
+    ],
     deps = [
         "//src/roma/config",
         "//src/roma/interface",

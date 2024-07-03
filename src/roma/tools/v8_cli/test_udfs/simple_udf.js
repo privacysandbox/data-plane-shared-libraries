@@ -14,6 +14,6 @@
  * limitations under the License.
  */
 
-function foo() {
+function Handler() {
   return 'foo';
 }

@@ -54,8 +54,10 @@ constexpr std::string_view kGlobalInlineIntArrayUdfPathBase =
     "./src/roma/benchmark/global_inline_int_array_";
 constexpr std::string_view kGlobalStringUdfPathBase =
     "./src/roma/benchmark/global_string_";
+constexpr std::string_view kSimpleUdfPath =
+    "./src/roma/tools/v8_cli/test_udfs/simple_udf.js";
 
-enum class GlobalType { Structure, InlineIntArray, String };
+enum class GlobalType { Structure, InlineIntArray, String, None };
 
 std::unique_ptr<RomaService<>> roma_service;
 
@@ -89,9 +91,19 @@ void DoSetup(const ::benchmark::State& state) {
   CHECK_OK(roma_service->Init());
 }
 
+std::string GetCode(std::string_view path) {
+  std::ifstream inputFile(path.data());
+  std::string code((std::istreambuf_iterator<char>(inputFile)),
+                   (std::istreambuf_iterator<char>()));
+  CHECK(!code.empty());
+  return code;
+}
+
 std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
   std::string_view udf_path;
   switch (global_type) {
+    case GlobalType::None:
+      return GetCode(kSimpleUdfPath);
     case GlobalType::String:
       udf_path = kGlobalStringUdfPathBase;
       break;
@@ -104,11 +116,7 @@ std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
     default:
       assert(0);
   }
-  std::ifstream inputFile(absl::StrCat(udf_path, iter, ".js"));
-  std::string code((std::istreambuf_iterator<char>(inputFile)),
-                   (std::istreambuf_iterator<char>()));
-  CHECK(!code.empty());
-  return code;
+  return GetCode(absl::StrCat(udf_path, iter, ".js"));
 }
 
 template <GlobalType T>
@@ -144,6 +152,9 @@ void BM_ExecuteGlobal(::benchmark::State& state) {
   }
 }
 
+BENCHMARK(BM_LoadGlobal<GlobalType::None>)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
@@ -157,6 +168,9 @@ BENCHMARK(BM_LoadGlobal<GlobalType::InlineIntArray>)
 BENCHMARK(BM_LoadGlobal<GlobalType::String>)
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobal<GlobalType::None>)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
