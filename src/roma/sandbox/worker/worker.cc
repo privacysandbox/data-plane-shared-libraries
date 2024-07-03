@@ -41,6 +41,7 @@ using google::scp::roma::sandbox::js_engine::JsEngineExecutionResponse;
 using google::scp::roma::sandbox::js_engine::RomaJsEngineCompilationContext;
 
 namespace google::scp::roma::sandbox::worker {
+
 Worker::Worker(std::unique_ptr<js_engine::JsEngine> js_engine,
                bool require_preload)
     : js_engine_(std::move(js_engine)), require_preload_(require_preload) {}
@@ -94,7 +95,7 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
   }
   RomaJsEngineCompilationContext context;
 
-  // Only reuse the context if this is not a load request.
+  // Only reuse the compilation context if this is not a load request.
   // A load request for an existing version should overwrite the given version.
   if (action != kRequestActionLoad) {
     absl::MutexLock lock(&cache_mu_);
@@ -144,4 +145,5 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
   }
   return response_or->execution_response;
 }
+
 }  // namespace google::scp::roma::sandbox::worker
