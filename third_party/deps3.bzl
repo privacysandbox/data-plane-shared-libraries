@@ -14,6 +14,7 @@
 
 """Further initialization of shared control plane dependencies."""
 
+load("@aspect_rules_js//npm:npm_import.bzl", "npm_translate_lock", "pnpm_repository")
 load("@com_github_google_rpmpack//:deps.bzl", "rpmpack_dependencies")
 load("@com_github_googleapis_google_cloud_cpp//bazel:google_cloud_cpp_deps.bzl", "google_cloud_cpp_deps")
 load("@com_google_googleapis//:repository_rules.bzl", "switched_rules_by_language")
@@ -33,6 +34,16 @@ load("@tink_cc//:tink_cc_deps.bzl", "tink_cc_deps")
 load("@v8_python_deps//:requirements.bzl", install_v8_python_deps = "install_deps")
 load("//third_party:aws_nitro_kms_deps.bzl", "aws_nitro_kms_repos")
 load("//third_party:bazel_rules_closure.bzl", "bazel_rules_closure")
+
+def _npm_deps():
+    pnpm_repository(name = "pnpm")
+
+    npm_translate_lock(
+        name = "npm",
+        npmrc = Label("//:.npmrc"),
+        pnpm_lock = Label("//:pnpm-lock.yaml"),
+        verify_node_modules_ignored = "//:.bazelignore",
+    )
 
 def deps3():
     protobuf_deps()
@@ -85,3 +96,4 @@ def deps3():
     aws_nitro_kms_repos()
     benchmark_deps()
     dwyu_setup_step_2()
+    _npm_deps()

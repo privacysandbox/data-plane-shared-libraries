@@ -1,3 +1,6 @@
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
 build --announce_rc
 build --verbose_failures
 build --compilation_mode=opt

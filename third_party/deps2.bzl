@@ -14,7 +14,15 @@
 
 """Further initialization of shared control plane dependencies."""
 
-load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains", "register_jq_toolchains")
+load(
+    "@aspect_bazel_lib//lib:repositories.bzl",
+    "aspect_bazel_lib_dependencies",
+    "aspect_bazel_lib_register_toolchains",
+    "register_copy_directory_toolchains",
+    "register_copy_to_directory_toolchains",
+    "register_coreutils_toolchains",
+    "register_jq_toolchains",
+)
 load("@bazel_gazelle//:deps.bzl", "gazelle_dependencies")
 load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
@@ -24,19 +32,22 @@ load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
 load("@container_structure_test//:repositories.bzl", "container_structure_test_register_toolchain")
 load("@depend_on_what_you_use//:setup_step_1.bzl", dwyu_setup_step_1 = "setup_step_1")
-load("@google_privacysandbox_servers_common//build_defs/cc:google_benchmark.bzl", "google_benchmark")
-load("@google_privacysandbox_servers_common//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies2 = "sdk_dependencies2")
-load("@google_privacysandbox_servers_common//build_defs/cc:v8.bzl", "import_v8")
-load("@google_privacysandbox_servers_common//build_defs/cc/shared:sandboxed_api.bzl", "sandboxed_api")
-load("@google_privacysandbox_servers_common//build_defs/shared:rpm.bzl", "rpm")
+load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
+load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
+load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
 load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
 load("@rules_oci//oci:repositories.bzl", "LATEST_CRANE_VERSION", "oci_register_toolchains")
 load("@rules_pkg//pkg:deps.bzl", "rules_pkg_dependencies")
 load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
-load("//third_party:emscripten_deps2.bzl", "emscripten_deps2")
+load("//build_defs/cc:google_benchmark.bzl", "google_benchmark")
+load("//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies2 = "sdk_dependencies2")
+load("//build_defs/cc:v8.bzl", "import_v8")
+load("//build_defs/cc/shared:sandboxed_api.bzl", "sandboxed_api")
+load("//build_defs/shared:rpm.bzl", "rpm")
+load("//third_party:cpp_deps.bzl", "EMSCRIPTEN_VER")
 
 GO_TOOLCHAINS_VERSION = "1.21.1"
 RUST_TOOLCHAINS_EDITION = "2021"
@@ -90,11 +101,24 @@ def _quiche_deps():
         urls = ["https://storage.googleapis.com/quiche-envoy-integration/googleurl_9cdb1f4d1a365ebdbcbf179dadf7f8aa5ee802e7.tar.gz"],
     )
 
+def _nodejs_deps():
+    nodejs_register_toolchains(
+        name = "nodejs",
+        node_version = DEFAULT_NODE_VERSION,
+    )
+
+def _emscripten_deps():
+    emsdk_emscripten_deps(emscripten_version = EMSCRIPTEN_VER)
+    register_emscripten_toolchains()
+
 def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
     aspect_bazel_lib_dependencies()
     aspect_bazel_lib_register_toolchains()
+    register_coreutils_toolchains()
+    register_copy_directory_toolchains()
+    register_copy_to_directory_toolchains()
     register_jq_toolchains()
     go_rules_dependencies()
     go_register_toolchains(version = go_toolchains_version)
@@ -119,7 +143,8 @@ def deps2(
     )
     crate_universe_dependencies()
     rules_fuzzing_dependencies()
-    emscripten_deps2()
+    _nodejs_deps()
+    _emscripten_deps()
     rules_oci_dependencies()
     oci_register_toolchains(
         name = "oci",
