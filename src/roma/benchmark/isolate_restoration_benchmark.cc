@@ -52,12 +52,20 @@ constexpr std::string_view kGlobalStructureUdfPathBase =
     "./src/roma/benchmark/global_structure_";
 constexpr std::string_view kGlobalInlineIntArrayUdfPathBase =
     "./src/roma/benchmark/global_inline_int_array_";
+constexpr std::string_view kGlobalInlineStructureArrayUdfPathBase =
+    "./src/roma/benchmark/global_inline_structure_array_";
 constexpr std::string_view kGlobalStringUdfPathBase =
     "./src/roma/benchmark/global_string_";
 constexpr std::string_view kSimpleUdfPath =
     "./src/roma/tools/v8_cli/test_udfs/simple_udf.js";
 
-enum class GlobalType { Structure, InlineIntArray, String, None };
+enum class GlobalType {
+  Structure,
+  InlineIntArray,
+  InlineStructureArray,
+  String,
+  None
+};
 
 std::unique_ptr<RomaService<>> roma_service;
 
@@ -113,6 +121,9 @@ std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
     case GlobalType::InlineIntArray:
       udf_path = kGlobalInlineIntArrayUdfPathBase;
       break;
+    case GlobalType::InlineStructureArray:
+      udf_path = kGlobalInlineStructureArrayUdfPathBase;
+      break;
     default:
       assert(0);
   }
@@ -154,10 +165,17 @@ void BM_ExecuteGlobal(::benchmark::State& state) {
 
 BENCHMARK(BM_LoadGlobal<GlobalType::None>)
     ->Name("BM_LoadGlobalNone")
+    ->Range(1, 1)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
     ->Name("BM_LoadGlobalStructure")
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadGlobal<GlobalType::String>)
+    ->Name("BM_LoadGlobalString")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
@@ -168,8 +186,8 @@ BENCHMARK(BM_LoadGlobal<GlobalType::InlineIntArray>)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::String>)
-    ->Name("BM_LoadGlobalString")
+BENCHMARK(BM_LoadGlobal<GlobalType::InlineStructureArray>)
+    ->Name("BM_LoadGlobalInlineStructureArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
@@ -184,14 +202,20 @@ BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobal<GlobalType::String>)
+    ->Name("BM_ExecuteGlobalString")
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineIntArray>)
     ->Name("BM_ExecuteGlobalInlineIntArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::String>)
-    ->Name("BM_ExecuteGlobalString")
+BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineStructureArray>)
+    ->Name("BM_ExecuteGlobalInlineStructureArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
