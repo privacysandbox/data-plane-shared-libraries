@@ -123,7 +123,7 @@ roma_app_api_cc_library(
     roma_app_api = benchmark_service_app_api,
     tags = [
         "noasan",
-        "notsan-aarch64",
+        "notsan",
     ],
     visibility = [
         "//src/roma/benchmark:__pkg__",

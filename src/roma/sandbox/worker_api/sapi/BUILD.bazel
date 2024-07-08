@@ -94,6 +94,7 @@ sapi_library(
     input_files = ["worker_wrapper.cc"],
     lib = ":worker_wrapper",
     lib_name = "WorkerWrapper",
+    malloc = "@com_google_tcmalloc//tcmalloc",
     namespace = "google::scp::roma::sandbox::worker_api",
     tags = [
         "noasan",
