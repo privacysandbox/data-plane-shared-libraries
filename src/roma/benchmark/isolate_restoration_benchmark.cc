@@ -153,37 +153,45 @@ void BM_ExecuteGlobal(::benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadGlobal<GlobalType::None>)
+    ->Name("BM_LoadGlobalNone")
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
+    ->Name("BM_LoadGlobalStructure")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::InlineIntArray>)
+    ->Name("BM_LoadGlobalInlineIntArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::String>)
+    ->Name("BM_LoadGlobalString")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::None>)
+    ->Name("BM_ExecuteGlobalNone")
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
+    ->Name("BM_ExecuteGlobalStructure")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineIntArray>)
+    ->Name("BM_ExecuteGlobalInlineIntArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::String>)
+    ->Name("BM_ExecuteGlobalString")
     ->Range(MIN_ITERATION, MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
