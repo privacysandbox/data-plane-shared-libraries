@@ -147,6 +147,34 @@ void BM_Execute(benchmark::State& state) {
 BENCHMARK(BM_Load);
 BENCHMARK(BM_Execute);
 
+bool CheckFlag(std::string_view flag_name, std::string_view flag_value,
+               std::string_view flag_message) {
+  if (flag_value.empty()) {
+    std::cerr << "Missing or empty flag --" << flag_name << ": " << flag_message
+              << std::endl;
+    return false;
+  }
+  return true;
+}
+
+bool FlagsAreValid() {
+  bool valid = CheckFlag("udf_file_path", absl::GetFlag(FLAGS_udf_file_path),
+                         "Specify the path to the UDF file.") &&
+               CheckFlag("entrypoint", absl::GetFlag(FLAGS_entrypoint),
+                         "Specify the name of the entrypoint JS function.");
+  if (!valid) {
+    std::cerr << "\nRoma CLI Benchmarking Tool: " << absl::ProgramUsageMessage()
+              << R"(
+
+Usage: ./src/roma/tools/v8_cli:roma_benchmark --udf_file_path=<path> --input_json=<path> --entrypoint=<function_name>
+  --udf_file_path: Path to UDF
+  --input_json: Path to input JSON to UDF
+  --entrypoint: The entrypoint JS function.
+)";
+  }
+  return valid;
+}
+
 int main(int argc, char* argv[]) {
   // Initialize ABSL.
   absl::InitializeLog();
@@ -160,6 +188,10 @@ int main(int argc, char* argv[]) {
   (void)ExtractAndSanitizeCustomFlags(argc, argv, kBenchmarkFlags);
 
   absl::ParseCommandLine(argc, argv);
+
+  if (!FlagsAreValid()) {
+    return 1;
+  }
 
   auto logging_fn = [](absl::LogSeverity severity,
                        const RomaService<>::TMetadata& metadata,
