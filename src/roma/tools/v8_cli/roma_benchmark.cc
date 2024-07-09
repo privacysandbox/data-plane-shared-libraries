@@ -166,7 +166,7 @@ bool FlagsAreValid() {
     std::cerr << "\nRoma CLI Benchmarking Tool: " << absl::ProgramUsageMessage()
               << R"(
 
-Usage: ./src/roma/tools/v8_cli:roma_benchmark --udf_file_path=<path> --input_json=<path> --entrypoint=<function_name>
+Usage: src/roma/tools/v8_cli/roma_benchmark --udf_file_path=<path> --input_json=<path> --entrypoint=<function_name>
   --udf_file_path: Path to UDF
   --input_json: Path to input JSON to UDF
   --entrypoint: The entrypoint JS function.
