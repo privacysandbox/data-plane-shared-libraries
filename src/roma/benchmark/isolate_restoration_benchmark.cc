@@ -48,10 +48,14 @@ using google::scp::roma::sandbox::roma_service::RomaService;
 constexpr std::string_view kHandlerName = "Handler";
 constexpr absl::Duration kTimeout = absl::Seconds(10);
 
+constexpr std::string_view kGlobalArrayBufferUdfPathBase =
+    "./src/roma/benchmark/global_array_buffer_";
 constexpr std::string_view kGlobalStructureUdfPathBase =
     "./src/roma/benchmark/global_structure_";
 constexpr std::string_view kGlobalInlineIntArrayUdfPathBase =
     "./src/roma/benchmark/global_inline_int_array_";
+constexpr std::string_view kGlobalInlineFloatArrayUdfPathBase =
+    "./src/roma/benchmark/global_inline_float_array_";
 constexpr std::string_view kGlobalInlineStructureArrayUdfPathBase =
     "./src/roma/benchmark/global_inline_structure_array_";
 constexpr std::string_view kGlobalStringUdfPathBase =
@@ -60,11 +64,13 @@ constexpr std::string_view kSimpleUdfPath =
     "./src/roma/tools/v8_cli/test_udfs/simple_udf.js";
 
 enum class GlobalType {
-  Structure,
+  ArrayBuffer,
   InlineIntArray,
+  InlineFloatArray,
   InlineStructureArray,
+  None,
   String,
-  None
+  Structure,
 };
 
 std::unique_ptr<RomaService<>> roma_service;
@@ -112,17 +118,23 @@ std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
   switch (global_type) {
     case GlobalType::None:
       return GetCode(kSimpleUdfPath);
+    case GlobalType::ArrayBuffer:
+      udf_path = kGlobalArrayBufferUdfPathBase;
+      break;
+    case GlobalType::InlineIntArray:
+      udf_path = kGlobalInlineIntArrayUdfPathBase;
+      break;
+    case GlobalType::InlineFloatArray:
+      udf_path = kGlobalInlineFloatArrayUdfPathBase;
+      break;
+    case GlobalType::InlineStructureArray:
+      udf_path = kGlobalInlineStructureArrayUdfPathBase;
+      break;
     case GlobalType::String:
       udf_path = kGlobalStringUdfPathBase;
       break;
     case GlobalType::Structure:
       udf_path = kGlobalStructureUdfPathBase;
-      break;
-    case GlobalType::InlineIntArray:
-      udf_path = kGlobalInlineIntArrayUdfPathBase;
-      break;
-    case GlobalType::InlineStructureArray:
-      udf_path = kGlobalInlineStructureArrayUdfPathBase;
       break;
     default:
       assert(0);
@@ -186,9 +198,21 @@ BENCHMARK(BM_LoadGlobal<GlobalType::InlineIntArray>)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadGlobal<GlobalType::InlineFloatArray>)
+    ->Name("BM_LoadGlobalInlineFloatArray")
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
 BENCHMARK(BM_LoadGlobal<GlobalType::InlineStructureArray>)
     ->Name("BM_LoadGlobalInlineStructureArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_LoadGlobal<GlobalType::ArrayBuffer>)
+    ->Name("BM_LoadGlobalArrayBuffer")
+    ->Range(ARRAY_BUFFER_MIN_ITERATION, ARRAY_BUFFER_MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
@@ -214,9 +238,21 @@ BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineIntArray>)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineFloatArray>)
+    ->Name("BM_ExecuteGlobalInlineFloatArray")
+    ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
 BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineStructureArray>)
     ->Name("BM_ExecuteGlobalInlineStructureArray")
     ->Range(MIN_ITERATION, MAX_ITERATION)
+    ->RangeMultiplier(8)
+    ->Setup(DoSetup)
+    ->Teardown(DoTeardown);
+BENCHMARK(BM_ExecuteGlobal<GlobalType::ArrayBuffer>)
+    ->Name("BM_ExecuteArrayBuffer")
+    ->Range(ARRAY_BUFFER_MIN_ITERATION, ARRAY_BUFFER_MAX_ITERATION)
     ->RangeMultiplier(8)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);

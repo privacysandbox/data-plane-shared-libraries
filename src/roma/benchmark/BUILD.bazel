@@ -192,6 +192,16 @@ iterations = (MIN_ITERATION, 32768, 262144, MAX_ITERATION)
 
 [
     template_replace(
+        name = "global_inline_float_array_%d" % i,
+        out = "global_inline_float_array_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_inline_tmpl.js",
+        val = str([float("%d.%d" % (i, i)) for i in range(i)]),
+    )
+    for i in iterations
+]
+
+[
+    template_replace(
         name = "global_inline_structure_array_%d" % i,
         out = "global_inline_structure_array_%d.js" % i,
         template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_inline_tmpl.js",
@@ -200,24 +210,44 @@ iterations = (MIN_ITERATION, 32768, 262144, MAX_ITERATION)
     for i in iterations
 ]
 
+ARRAY_BUFFER_MIN_ITERATION = 1024 * 4
+
+ARRAY_BUFFER_MAX_ITERATION = 1024 * 512
+
+array_buffer_iterations = (ARRAY_BUFFER_MIN_ITERATION, 32768, 262144, ARRAY_BUFFER_MAX_ITERATION)
+
+[
+    template_replace(
+        name = "global_array_buffer_%d" % i,
+        out = "global_array_buffer_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_array_buffer_tmpl.js",
+        val = str(list(range(i))),
+    )
+    for i in array_buffer_iterations
+]
+
 cc_binary(
     name = "isolate_restoration_benchmark",
     srcs = ["isolate_restoration_benchmark.cc"],
     data = [
-        ":global_{}_{}".format(kind, i)
-        for i in iterations
-        for kind in (
-            "string",
-            "structure",
-            "inline_int_array",
-            "inline_structure_array",
-        )
-    ] + [
+               ":global_{}_{}".format(kind, i)
+               for i in iterations
+               for kind in (
+                   "string",
+                   "structure",
+                   "inline_int_array",
+                   "inline_float_array",
+                   "inline_structure_array",
+               )
+           ] +
+           [":global_array_buffer_{}".format(i) for i in array_buffer_iterations] + [
         "//src/roma/tools/v8_cli:test_udfs",
     ],
     local_defines = [
         "MIN_ITERATION=%d" % MIN_ITERATION,
         "MAX_ITERATION=%d" % MAX_ITERATION,
+        "ARRAY_BUFFER_MIN_ITERATION=%d" % ARRAY_BUFFER_MIN_ITERATION,
+        "ARRAY_BUFFER_MAX_ITERATION=%d" % ARRAY_BUFFER_MAX_ITERATION,
     ],
     deps = [
         "//src/roma/config",
