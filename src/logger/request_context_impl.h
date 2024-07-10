@@ -122,10 +122,10 @@ class ContextImpl final : public PSLogContext {
   }
 
   template <typename T>
-  void SetEventMessageField(const T& field) {
+  void SetEventMessageField(T&& field) {
     if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
       if (is_debug_response() && !IsProd()) {
-        provider_.Set(field);
+        provider_.Set(std::forward<T>(field));
       }
     }
   }
