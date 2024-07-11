@@ -154,11 +154,11 @@ cc_binary(
 
 # Declare materialized JS code for benchmarks
 # Benchmark iterations go up by multiples of 8 to max
-MIN_ITERATION = 4096
+MIN_LENGTH = 4096
 
-MAX_ITERATION = 1000000
+MAX_LENGTH = 1000000
 
-iterations = (MIN_ITERATION, 32768, 262144, MAX_ITERATION)
+iterations = (MIN_LENGTH, 32768, 262144, MAX_LENGTH)
 
 [
     template_replace(
@@ -210,11 +210,11 @@ iterations = (MIN_ITERATION, 32768, 262144, MAX_ITERATION)
     for i in iterations
 ]
 
-ARRAY_BUFFER_MIN_ITERATION = 1024 * 4
+ARRAY_BUFFER_MIN_LENGTH = 1024 * 4
 
-ARRAY_BUFFER_MAX_ITERATION = 1024 * 512
+ARRAY_BUFFER_MAX_LENGTH = 1024 * 512
 
-array_buffer_iterations = (ARRAY_BUFFER_MIN_ITERATION, 32768, 262144, ARRAY_BUFFER_MAX_ITERATION)
+array_buffer_iterations = (ARRAY_BUFFER_MIN_LENGTH, 32768, 262144, ARRAY_BUFFER_MAX_LENGTH)
 
 [
     template_replace(
@@ -244,10 +244,10 @@ cc_binary(
         "//src/roma/tools/v8_cli:test_udfs",
     ],
     local_defines = [
-        "MIN_ITERATION=%d" % MIN_ITERATION,
-        "MAX_ITERATION=%d" % MAX_ITERATION,
-        "ARRAY_BUFFER_MIN_ITERATION=%d" % ARRAY_BUFFER_MIN_ITERATION,
-        "ARRAY_BUFFER_MAX_ITERATION=%d" % ARRAY_BUFFER_MAX_ITERATION,
+        "MIN_LENGTH=%d" % MIN_LENGTH,
+        "MAX_LENGTH=%d" % MAX_LENGTH,
+        "ARRAY_BUFFER_MIN_LENGTH=%d" % ARRAY_BUFFER_MIN_LENGTH,
+        "ARRAY_BUFFER_MAX_LENGTH=%d" % ARRAY_BUFFER_MAX_LENGTH,
     ],
     deps = [
         "//src/roma/config",
@@ -257,5 +257,6 @@ cc_binary(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
     ],
 )

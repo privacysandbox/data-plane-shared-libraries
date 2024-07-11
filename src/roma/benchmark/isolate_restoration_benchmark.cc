@@ -32,6 +32,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "nlohmann/json.hpp"
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
@@ -73,6 +74,8 @@ enum class GlobalType {
   Structure,
 };
 
+constexpr std::array<std::string_view, 2> kArgNames = {"length", "type"};
+
 std::unique_ptr<RomaService<>> roma_service;
 
 void DoTeardown(const ::benchmark::State& state) {
@@ -113,7 +116,7 @@ std::string GetCode(std::string_view path) {
   return code;
 }
 
-std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
+std::string GetGlobalVariableUdf(int length, GlobalType global_type) {
   std::string_view udf_path;
   switch (global_type) {
     case GlobalType::None:
@@ -139,22 +142,54 @@ std::string GetGlobalVariableUdf(int iter, GlobalType global_type) {
     default:
       assert(0);
   }
-  return GetCode(absl::StrCat(udf_path, iter, ".js"));
+  return GetCode(absl::StrCat(udf_path, length, ".js"));
 }
 
-template <GlobalType T>
+std::string GetTypeString(GlobalType type) {
+  switch (type) {
+    case GlobalType::None:
+      return "None";
+    case GlobalType::ArrayBuffer:
+      return "ArrayBuffer";
+    case GlobalType::InlineIntArray:
+      return "InlineIntArray";
+    case GlobalType::InlineFloatArray:
+      return "InlineFloatArray";
+    case GlobalType::InlineStructureArray:
+      return "InlineStructureArray";
+    case GlobalType::String:
+      return "String";
+    case GlobalType::Structure:
+      return "Structure";
+    default:
+      return "type:Unknown";
+  }
+}
+
+std::string MakeLabel(GlobalType type, int length, std::string_view name) {
+  nlohmann::ordered_json json;
+  std::string type_string = GetTypeString(type);
+  json["length"] = length;
+  json["type"] = type_string;
+  json["label"] = absl::StrCat(name, "/length:", length, "/type:", type_string);
+  return json.dump();
+}
+
 void BM_LoadGlobal(benchmark::State& state) {
-  auto iter = state.range(0);
-  const std::string code = GetGlobalVariableUdf(iter, T);
+  auto length = state.range(0);
+  GlobalType type = static_cast<GlobalType>(state.range(1));
+  state.SetLabel(MakeLabel(type, length, state.name()));
+  const std::string code = GetGlobalVariableUdf(length, type);
   for (auto _ : state) {
     LoadCodeObj(code);
   }
 }
 
-template <GlobalType T>
 void BM_ExecuteGlobal(::benchmark::State& state) {
-  auto iter = state.range(0);
-  const std::string code = GetGlobalVariableUdf(iter, T);
+  auto length = state.range(0);
+  GlobalType type = static_cast<GlobalType>(state.range(1));
+  state.SetLabel(MakeLabel(type, length, state.name()));
+  const std::string code = GetGlobalVariableUdf(length, type);
   LoadCodeObj(code);
   for (auto _ : state) {
     absl::Notification execute_finished;
@@ -175,85 +210,65 @@ void BM_ExecuteGlobal(::benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_LoadGlobal<GlobalType::None>)
+BENCHMARK(BM_LoadGlobal)
     ->Name("BM_LoadGlobalNone")
-    ->Range(1, 1)
+    ->ArgsProduct({benchmark::CreateRange(1, 1, 2),
+                   {static_cast<int>(GlobalType::None)}})
+    ->ArgNames({kArgNames.begin(), kArgNames.end()})
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::Structure>)
-    ->Name("BM_LoadGlobalStructure")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
+BENCHMARK(BM_LoadGlobal)
+    ->Name("BM_LoadGlobal")
+    ->ArgsProduct({benchmark::CreateRange(MIN_LENGTH, MAX_LENGTH, 8),
+                   {
+                       static_cast<int>(GlobalType::Structure),
+                       static_cast<int>(GlobalType::String),
+                       static_cast<int>(GlobalType::InlineIntArray),
+                       static_cast<int>(GlobalType::InlineFloatArray),
+                       static_cast<int>(GlobalType::InlineStructureArray),
+                   }})
+    ->ArgNames({kArgNames.begin(), kArgNames.end()})
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::String>)
-    ->Name("BM_LoadGlobalString")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::InlineIntArray>)
-    ->Name("BM_LoadGlobalInlineIntArray")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::InlineFloatArray>)
-    ->Name("BM_LoadGlobalInlineFloatArray")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::InlineStructureArray>)
-    ->Name("BM_LoadGlobalInlineStructureArray")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_LoadGlobal<GlobalType::ArrayBuffer>)
+BENCHMARK(BM_LoadGlobal)
     ->Name("BM_LoadGlobalArrayBuffer")
-    ->Range(ARRAY_BUFFER_MIN_ITERATION, ARRAY_BUFFER_MAX_ITERATION)
-    ->RangeMultiplier(8)
+    ->ArgsProduct({benchmark::CreateRange(ARRAY_BUFFER_MIN_LENGTH,
+                                          ARRAY_BUFFER_MAX_LENGTH, 8),
+
+                   {
+                       static_cast<int>(GlobalType::ArrayBuffer),
+                   }})
+    ->ArgNames({kArgNames.begin(), kArgNames.end()})
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::None>)
+BENCHMARK(BM_ExecuteGlobal)
     ->Name("BM_ExecuteGlobalNone")
+    ->ArgsProduct({benchmark::CreateRange(1, 1, 2),
+                   {static_cast<int>(GlobalType::None)}})
+    ->ArgNames({kArgNames.begin(), kArgNames.end()})
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::Structure>)
-    ->Name("BM_ExecuteGlobalStructure")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
+BENCHMARK(BM_ExecuteGlobal)
+    ->Name("BM_ExecuteGlobal")
+    ->ArgsProduct({benchmark::CreateRange(MIN_LENGTH, MAX_LENGTH, 8),
+                   {
+                       static_cast<int>(GlobalType::Structure),
+                       static_cast<int>(GlobalType::String),
+                       static_cast<int>(GlobalType::InlineIntArray),
+                       static_cast<int>(GlobalType::InlineFloatArray),
+                       static_cast<int>(GlobalType::InlineStructureArray),
+                   }})
+    ->ArgNames({kArgNames.begin(), kArgNames.end()})
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::String>)
-    ->Name("BM_ExecuteGlobalString")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineIntArray>)
-    ->Name("BM_ExecuteGlobalInlineIntArray")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineFloatArray>)
-    ->Name("BM_ExecuteGlobalInlineFloatArray")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::InlineStructureArray>)
-    ->Name("BM_ExecuteGlobalInlineStructureArray")
-    ->Range(MIN_ITERATION, MAX_ITERATION)
-    ->RangeMultiplier(8)
-    ->Setup(DoSetup)
-    ->Teardown(DoTeardown);
-BENCHMARK(BM_ExecuteGlobal<GlobalType::ArrayBuffer>)
-    ->Name("BM_ExecuteArrayBuffer")
-    ->Range(ARRAY_BUFFER_MIN_ITERATION, ARRAY_BUFFER_MAX_ITERATION)
-    ->RangeMultiplier(8)
+BENCHMARK(BM_ExecuteGlobal)
+    ->Name("BM_ExecuteGlobalArrayBuffer")
+    ->ArgsProduct({benchmark::CreateRange(ARRAY_BUFFER_MIN_LENGTH,
+                                          ARRAY_BUFFER_MAX_LENGTH, 8),
+                   {
+                       static_cast<int>(GlobalType::ArrayBuffer),
+                   }})
+    ->ArgNames({kArgNames.begin(), kArgNames.end()})
     ->Setup(DoSetup)
     ->Teardown(DoTeardown);
 }  // namespace
