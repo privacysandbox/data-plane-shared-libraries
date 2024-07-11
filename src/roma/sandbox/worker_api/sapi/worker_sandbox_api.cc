@@ -101,8 +101,7 @@ WorkerSandboxApi::WorkerSandboxApi(
 
 void WorkerSandboxApi::CreateWorkerSapiSandbox() {
   // Get the environment variable ROMA_VLOG_LEVEL value.
-  int external_verbose_level = logging::GetVlogVerboseLevel();
-
+  const int external_verbose_level = logging::GetVlogVerboseLevel();
   worker_sapi_sandbox_ = std::make_unique<WorkerSapiSandbox>(
       ROMA_CONVERT_MB_TO_BYTES(max_worker_virtual_memory_mb_),
       external_verbose_level);
@@ -187,27 +186,22 @@ absl::Status WorkerSandboxApi::Init() {
                                                 v8_flags_.end());
   worker_init_params.set_enable_profilers(enable_profilers_);
 
-  const auto serialized_size = worker_init_params.ByteSizeLong();
-  std::vector<char> serialized_data(serialized_size);
-  if (!worker_init_params.SerializeToArray(serialized_data.data(),
-                                           serialized_size)) {
+  std::string serialized_data = worker_init_params.SerializeAsString();
+  if (serialized_data.empty()) {
     LOG(ERROR) << "Failed to serialize init data.";
     return absl::InvalidArgumentError("Failed to serialize init data.");
   }
-
-  sapi::v::LenVal sapi_len_val(static_cast<const char*>(serialized_data.data()),
-                               serialized_size);
-  const auto status_or =
+  sapi::v::LenVal sapi_len_val(serialized_data.data(), serialized_data.size());
+  const auto worker_status =
       worker_wrapper_api_->InitFromSerializedData(sapi_len_val.PtrBefore());
-  if (!status_or.ok()) {
+  if (!worker_status.ok()) {
     LOG(ERROR) << "Failed to init the worker via the wrapper with: "
-               << status_or.status().message();
-    return status_or.status();
+               << worker_status.status().message();
+    return worker_status.status();
   }
-  if (*status_or != SapiStatusCode::kOk) {
-    return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
+  if (*worker_status != SapiStatusCode::kOk) {
+    return SapiStatusCodeToAbslStatus(static_cast<int>(*worker_status));
   }
-
   ROMA_VLOG(1) << "Successfully init the worker in the sapi sandbox";
   return absl::OkStatus();
 }
@@ -260,29 +254,25 @@ absl::Status WorkerSandboxApi::Stop() {
         "Attempt to call API function with an uninitialized sandbox.");
   }
 
-  auto status_or = worker_wrapper_api_->Stop();
-  if (!status_or.ok()) {
+  const auto worker_status = worker_wrapper_api_->Stop();
+  if (!worker_status.ok()) {
     LOG(ERROR) << "Failed to stop the worker via the wrapper with: "
-               << status_or.status().message();
+               << worker_status.status().message();
     // The worker had already died so nothing to stop
     return absl::OkStatus();
-  } else if (*status_or != SapiStatusCode::kOk) {
-    return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
+  } else if (*worker_status != SapiStatusCode::kOk) {
+    return SapiStatusCodeToAbslStatus(static_cast<int>(*worker_status));
   }
-
   worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
-
   return absl::OkStatus();
 }
 
 std::pair<absl::Status, WorkerSandboxApi::RetryStatus>
 WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
   const int serialized_size = params.ByteSizeLong();
-
   std::unique_ptr<sapi::v::LenVal> sapi_len_val;
   std::string len_val_data;
-  int input_serialized_size(serialized_size);
-  sapi::v::IntBase<size_t> output_serialized_size_ptr;
+  int input_serialized_size = serialized_size;
 
   if (serialized_size < request_and_response_data_buffer_size_bytes_) {
     ROMA_VLOG(1) << "Request data sharing with Buffer";
@@ -305,7 +295,7 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
     // Set input_serialized_size to 0 to indicate the data shared by LenVal.
     input_serialized_size = 0;
     len_val_data.resize(serialized_size);
-    if (!params.SerializeToArray(len_val_data.data(), serialized_size)) {
+    if (!params.SerializeToString(&len_val_data)) {
       LOG(ERROR) << "Failed to serialize run_code request protobuf into array.";
       return WrapResultWithNoRetry(
           absl::InvalidArgumentError("Failed to serialize run_code data."));
@@ -314,19 +304,20 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
                                                      len_val_data.size());
   }
 
-  auto status_or = worker_wrapper_api_->RunCodeFromSerializedData(
+  sapi::v::IntBase<size_t> output_serialized_size_ptr;
+  auto worker_status = worker_wrapper_api_->RunCodeFromSerializedData(
       sapi_len_val->PtrBoth(), input_serialized_size,
       output_serialized_size_ptr.PtrAfter());
 
-  if (!status_or.ok()) {
+  if (!worker_status.ok()) {
     std::string err_msg = "Sandbox worker crashed during execution of request.";
     return WrapResultWithRetry(absl::InternalError(err_msg));
-  } else if (*status_or != SapiStatusCode::kOk &&
+  } else if (*worker_status != SapiStatusCode::kOk &&
              // If execution failed then the output may contain forwardable
              // error message.
-             *status_or != SapiStatusCode::kExecutionFailed) {
+             *worker_status != SapiStatusCode::kExecutionFailed) {
     return WrapResultWithNoRetry(
-        SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
+        SapiStatusCodeToAbslStatus(static_cast<int>(*worker_status)));
   }
 
   ::worker_api::WorkerParamsProto out_params;
@@ -350,9 +341,9 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
 
   params = std::move(out_params);
 
-  if (*status_or != SapiStatusCode::kOk) {
+  if (*worker_status != SapiStatusCode::kOk) {
     return WrapResultWithNoRetry(SapiStatusCodeToAbslStatus(
-        static_cast<int>(*status_or), params.error_message()));
+        static_cast<int>(*worker_status), params.error_message()));
   }
   return WrapResultWithNoRetry(absl::OkStatus());
 }
@@ -360,7 +351,7 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
 std::pair<absl::Status, WorkerSandboxApi::RetryStatus>
 WorkerSandboxApi::InternalRunCodeBufferShareOnly(
     ::worker_api::WorkerParamsProto& params) {
-  int serialized_size = params.ByteSizeLong();
+  const int serialized_size = params.ByteSizeLong();
   if (serialized_size > request_and_response_data_buffer_size_bytes_) {
     LOG(ERROR) << "Request serialized size in Bytes " << serialized_size
                << " is larger than the Buffer capacity in Bytes "
