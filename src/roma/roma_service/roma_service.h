@@ -52,7 +52,7 @@ constexpr int kWorkerQueueMax = 100;
 // estimate based on the memory needed by roma and the steady-state memory
 // needed by v8.
 constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKB = 400 * 1024;
-constexpr uint64_t kMinWorkerVirtualMemoryMB = 9 * 1024;  // 9 GB
+constexpr uint64_t kMinWorkerVirtualMemoryMB = 10 * 1024;  // 10 GB
 
 /**
  * @brief The template parameter, TMetadata, needs to be default assignable and
@@ -407,8 +407,8 @@ class RomaService {
     return absl::OkStatus();
   }
 
-  // V8 fails to initialize if Roma workers aren't given at least 9 GB of
-  // address space.
+  // V8 fails to initialize if Roma workers aren't given at least
+  // kMinWorkerVirtualMemoryMB of address space.
   bool RomaWorkersHaveEnoughAddressSpace() {
     return config_.max_worker_virtual_memory_mb == 0 ||
            config_.max_worker_virtual_memory_mb >= kMinWorkerVirtualMemoryMB;

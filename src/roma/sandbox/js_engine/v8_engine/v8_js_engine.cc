@@ -164,7 +164,7 @@ LogOptions GetLogOptions(
 std::string_view GetGCTypeName(v8::GCType type) {
   static const absl::flat_hash_map<v8::GCType, std::string_view> gcTypeMap = {
       {v8::GCType::kGCTypeScavenge, "kGCTypeScavenge"},
-      {v8::GCType::kGCTypeMinorMarkSweep, "kGCTypeMinorMarkSweep"},
+      {v8::GCType::kGCTypeMinorMarkCompact, "kGCTypeMinorMarkCompact"},
       {v8::GCType::kGCTypeMarkSweepCompact, "kGCTypeMarkSweepCompact"},
       {v8::GCType::kGCTypeIncrementalMarking, "kGCTypeIncrementalMarking"},
       {v8::GCType::kGCTypeProcessWeakCallbacks, "kGCTypeProcessWeakCallbacks"},
