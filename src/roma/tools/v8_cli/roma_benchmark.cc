@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <string_view>
@@ -47,11 +48,30 @@ using google::scp::roma::tools::v8_cli::ExtractAndSanitizeCustomFlags;
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 constexpr std::string_view kVersionStr = "v1";
-const std::vector<std::string> kBenchmarkFlags = {
+const std::vector<std::string> kRomaBenchmarkFlags = {
     "--udf_file_path",
     "--input_json",
     "--entrypoint",
 };
+constexpr std::string_view kProgramUsageMessage =
+    R"(Supports benchmarking UDF code executing within the Roma V8 execution environment. The google microbenchmarking library is used, with each load and execute operation independently benchmarked. All benchmarking flags used with the google microbenchmarking library are supported.
+
+  Flags from the Google Microbenchmarking Library:
+    --benchmark_list_tests={true|false}
+    --benchmark_filter=<regex>
+    --benchmark_min_time=`<integer>x` OR `<float>s`
+    --benchmark_min_warmup_time=<min_warmup_time>
+    --benchmark_repetitions=<num_repetitions>
+    --benchmark_enable_random_interleaving={true|false}
+    --benchmark_report_aggregates_only={true|false}
+    --benchmark_display_aggregates_only={true|false}
+    --benchmark_format=<console|json|csv>
+    --benchmark_out=<filename>
+    --benchmark_out_format=<json|console|csv>
+    --benchmark_color={auto|true|false}
+    --benchmark_counters_tabular={true|false}
+    --benchmark_context=<key>=<value>,...
+    --benchmark_time_unit={ns|us|ms|s})";
 }  // namespace
 
 ABSL_FLAG(std::string, udf_file_path, "", "Path to UDF");
@@ -157,19 +177,28 @@ bool CheckFlag(std::string_view flag_name, std::string_view flag_value,
   return true;
 }
 
-bool FlagsAreValid() {
-  bool valid = CheckFlag("udf_file_path", absl::GetFlag(FLAGS_udf_file_path),
-                         "Specify the path to the UDF file.") &&
-               CheckFlag("entrypoint", absl::GetFlag(FLAGS_entrypoint),
-                         "Specify the name of the entrypoint JS function.");
+bool FlagsAreValid(std::vector<std::string>& benchmark_flags) {
+  bool valid = true;
+  for (const auto& flag : benchmark_flags) {
+    if (!absl::StrContains(flag, "=") && flag != "--verbose") {
+      std::cerr << "Unrecognized flag: " << flag << std::endl;
+      valid = false;
+    }
+  }
+
+  valid = valid &&
+          CheckFlag("udf_file_path", absl::GetFlag(FLAGS_udf_file_path),
+                    "Specify the path to the UDF file.") &&
+          CheckFlag("entrypoint", absl::GetFlag(FLAGS_entrypoint),
+                    "Specify the name of the entrypoint JS function.");
   if (!valid) {
     std::cerr << "\nRoma CLI Benchmarking Tool: " << absl::ProgramUsageMessage()
               << R"(
 
-Usage: src/roma/tools/v8_cli/roma_benchmark --udf_file_path=<path> --input_json=<path> --entrypoint=<function_name>
-  --udf_file_path: Path to UDF
-  --input_json: Path to input JSON to UDF
-  --entrypoint: The entrypoint JS function.
+  Usage: src/roma/tools/v8_cli/roma_benchmark --udf_file_path=<path> --input_json=<path> --entrypoint=<function_name>
+    --udf_file_path: Path to UDF
+    --input_json: Path to input JSON to UDF
+    --entrypoint: The entrypoint JS function.
 )";
   }
   return valid;
@@ -178,18 +207,14 @@ Usage: src/roma/tools/v8_cli/roma_benchmark --udf_file_path=<path> --input_json=
 int main(int argc, char* argv[]) {
   // Initialize ABSL.
   absl::InitializeLog();
-  absl::SetProgramUsageMessage(
-      "Opens a shell to support benchmarking UDF code executing within the "
-      "Roma V8 execution environment. The google microbenchmarking library is "
-      "used, with each load and execute operation independently benchmarked. "
-      "All benchmarking flags used with the google microbenchmarking library "
-      "are supported.");
+  absl::SetProgramUsageMessage(kProgramUsageMessage);
 
-  (void)ExtractAndSanitizeCustomFlags(argc, argv, kBenchmarkFlags);
+  std::vector<std::string> benchmark_flags =
+      ExtractAndSanitizeCustomFlags(argc, argv, kRomaBenchmarkFlags);
 
   absl::ParseCommandLine(argc, argv);
 
-  if (!FlagsAreValid()) {
+  if (!FlagsAreValid(benchmark_flags)) {
     return 1;
   }
 
