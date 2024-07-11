@@ -228,16 +228,14 @@ absl::Status WorkerSandboxApi::Run() {
     return absl::FailedPreconditionError(
         "Attempt to call API function with an uninitialized sandbox.");
   }
-
-  auto status_or = worker_wrapper_api_->Run();
-  if (!status_or.ok()) {
+  const auto worker_status = worker_wrapper_api_->Run();
+  if (!worker_status.ok()) {
     LOG(ERROR) << "Failed to run the worker via the wrapper with: "
-               << status_or.status().message();
-    return status_or.status();
-  } else if (*status_or != SapiStatusCode::kOk) {
-    return SapiStatusCodeToAbslStatus(static_cast<int>(*status_or));
+               << worker_status.status().message();
+    return worker_status.status();
+  } else if (*worker_status != SapiStatusCode::kOk) {
+    return SapiStatusCodeToAbslStatus(static_cast<int>(*worker_status));
   }
-
   WarmUpSandbox();
   return absl::OkStatus();
 }
@@ -371,18 +369,17 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
   }
 
   sapi::v::IntBase<size_t> output_serialized_size_ptr;
-  auto status_or = worker_wrapper_api_->RunCodeFromBuffer(
+  auto worker_status = worker_wrapper_api_->RunCodeFromBuffer(
       serialized_size, output_serialized_size_ptr.PtrAfter());
-
-  if (!status_or.ok()) {
+  if (!worker_status.ok()) {
     return WrapResultWithRetry(absl::InternalError(
         "Sandbox worker crashed during execution of request."));
-  } else if (*status_or != SapiStatusCode::kOk &&
+  } else if (*worker_status != SapiStatusCode::kOk &&
              // If execution failed then the output may contain forwardable
              // error message.
-             *status_or != SapiStatusCode::kExecutionFailed) {
+             *worker_status != SapiStatusCode::kExecutionFailed) {
     return WrapResultWithNoRetry(
-        SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
+        SapiStatusCodeToAbslStatus(static_cast<int>(*worker_status)));
   }
 
   ::worker_api::WorkerParamsProto out_params;
@@ -397,9 +394,9 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
 
   params = std::move(out_params);
 
-  if (*status_or != SapiStatusCode::kOk) {
+  if (*worker_status != SapiStatusCode::kOk) {
     return WrapResultWithNoRetry(SapiStatusCodeToAbslStatus(
-        static_cast<int>(*status_or), params.error_message()));
+        static_cast<int>(*worker_status), params.error_message()));
   }
   return WrapResultWithNoRetry(absl::OkStatus());
 }
@@ -410,14 +407,12 @@ WorkerSandboxApi::RunCode(::worker_api::WorkerParamsProto& params) {
     return WrapResultWithNoRetry(absl::FailedPreconditionError(
         "Attempt to call API function with an uninitialized sandbox."));
   }
-
   std::pair<absl::Status, WorkerSandboxApi::RetryStatus> run_code_result;
   if (enable_sandbox_sharing_request_response_with_buffer_only_) {
     run_code_result = InternalRunCodeBufferShareOnly(params);
   } else {
     run_code_result = InternalRunCode(params);
   }
-
   if (!run_code_result.first.ok()) {
     if (run_code_result.second == WorkerSandboxApi::RetryStatus::kRetry) {
       // This means that the sandbox died so we need to restart it.
@@ -428,10 +423,8 @@ WorkerSandboxApi::RunCode(::worker_api::WorkerParamsProto& params) {
         return WrapResultWithNoRetry(status);
       }
     }
-
     return run_code_result;
   }
-
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
