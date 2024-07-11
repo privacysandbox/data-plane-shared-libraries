@@ -31,6 +31,7 @@ cc_library(
         "//src/core/interface",
         "//src/core/utils:core_utils",
         "//src/public/core/interface:execution_result",
+        "@com_google_absl//absl/strings",
         "@nlohmann_json//:lib",
     ],
 )
