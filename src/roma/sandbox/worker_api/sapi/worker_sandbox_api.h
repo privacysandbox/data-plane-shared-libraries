@@ -28,6 +28,7 @@
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_sapi_sandbox.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 
@@ -99,13 +100,13 @@ class WorkerSandboxApi {
   std::pair<absl::Status, RetryStatus> InternalRunCode(
       ::worker_api::WorkerParamsProto& params);
 
+  std::pair<absl::Status, RetryStatus> InternalRunCodeDebug(
+      ::worker_api::WorkerParamsProto& params);
+
   std::pair<absl::Status, RetryStatus> InternalRunCodeBufferShareOnly(
       ::worker_api::WorkerParamsProto& params);
 
-  /**
-   *  @brief Warm up SAPI Sandbox and V8 by running one-space-char code.
-   */
-  void WarmUpSandbox();
+  bool SandboxIsInitialized();
 
   void CreateWorkerSapiSandbox();
 
@@ -113,9 +114,7 @@ class WorkerSandboxApi {
   int TransferFdAndGetRemoteFd(std::unique_ptr<::sapi::v::Fd> local_fd);
 
   std::unique_ptr<WorkerSapiSandbox> worker_sapi_sandbox_;
-  // See BUILD file for named library "WorkerWrapper" in the
-  // sapi_library roma_worker_wrapper_lib-sapi target.
-  std::unique_ptr<WorkerWrapperApi> worker_wrapper_api_;
+  std::unique_ptr<WorkerWrapper> worker_wrapper_;
 
   bool require_preload_;
   int native_js_function_comms_fd_;

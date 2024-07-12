@@ -124,6 +124,35 @@ sapi_library(
 )
 
 cc_library(
+    name = "worker_wrapper",
+    srcs = select({
+        "//:non_prod_build": ["worker_wrapper_nonprod.cc"],
+        "//conditions:default": ["worker_wrapper_prod.cc"],
+    }),
+    hdrs = ["worker_wrapper.h"],
+    deps = [
+        ":error_codes",
+        ":utils",
+        ":worker_init_params_cc_proto",
+        ":worker_params_cc_proto",
+        ":worker_sapi_sandbox",
+        ":worker_wrapper-sapi",
+        "//src/roma/config",
+        "//src/roma/logging",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/native_function_binding:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/worker",
+        "//src/util:protoutil",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/strings",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api:vars",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
+    ],
+)
+
+cc_library(
     name = "worker_sapi_sandbox",
     hdrs = ["worker_sapi_sandbox.h"],
     deps = [
@@ -146,6 +175,7 @@ cc_library(
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         ":worker_sapi_sandbox",
+        ":worker_wrapper",
         ":worker_wrapper-sapi",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
