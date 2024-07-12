@@ -99,6 +99,7 @@ WorkerSandboxApi::WorkerSandboxApi(
   sandbox_data_shared_buffer_ptr_ = std::move(buffer).value();
 }
 
+// TODO: b/354929154 - Create SAPI sandbox only in non_prod mode
 void WorkerSandboxApi::CreateWorkerSapiSandbox() {
   // Get the environment variable ROMA_VLOG_LEVEL value.
   const int external_verbose_level = logging::GetVlogVerboseLevel();
