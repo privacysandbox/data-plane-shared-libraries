@@ -286,9 +286,9 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
     sapi_len_val = std::make_unique<sapi::v::LenVal>(nullptr, 0);
   } else {
     ROMA_VLOG(1) << "Request serialized size " << serialized_size
-                 << "bytes is larger than the Buffer capacity "
+                 << " bytes is larger than the Buffer capacity "
                  << request_and_response_data_buffer_size_bytes_
-                 << "bytes. Data sharing with sapi::v::LenVal Bytes";
+                 << " bytes. Data sharing with sapi::v::LenVal Bytes";
 
     // Set input_serialized_size to 0 to indicate the data shared by LenVal.
     input_serialized_size = 0;
