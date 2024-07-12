@@ -148,8 +148,7 @@ void BM_NonDeclarativeApiNativeFunctionHandler(benchmark::State& state) {
 
 BENCHMARK(BM_NonDeclarativeApiNativeFunctionHandler)
     ->Setup(SetupNonDeclarativeApiNativeFunctionHandler)
-    ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond);
+    ->Teardown(DoTeardown);
 
 void BM_DeclarativeApiNativeFunctionHandler(benchmark::State& state) {
   constexpr std::string_view input = R"("\n\u0006Hello ")";
@@ -160,8 +159,7 @@ void BM_DeclarativeApiNativeFunctionHandler(benchmark::State& state) {
 
 BENCHMARK(BM_DeclarativeApiNativeFunctionHandler)
     ->Setup(SetupDeclarativeApiNativeFunctionHandler)
-    ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond);
+    ->Teardown(DoTeardown);
 
 void BM_DeclarativeApiGrpcServer(benchmark::State& state) {
   constexpr std::string_view input = R"("\n\u0006Hello ")";
@@ -172,8 +170,7 @@ void BM_DeclarativeApiGrpcServer(benchmark::State& state) {
 
 BENCHMARK(BM_DeclarativeApiGrpcServer)
     ->Setup(SetupDeclarativeApiGrpcServer)
-    ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond);
+    ->Teardown(DoTeardown);
 
 }  // namespace
 

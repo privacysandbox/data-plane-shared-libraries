@@ -119,7 +119,6 @@ void BM_RomaLogging(benchmark::State& state) {
 BENCHMARK(BM_RomaLogging)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         // Number of log iterations per invocation
         benchmark::CreateRange(1, 10'000, /*multi=*/10),

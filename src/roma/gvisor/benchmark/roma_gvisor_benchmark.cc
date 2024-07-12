@@ -283,7 +283,6 @@ void BM_GvisorCompareCPlusPlusAndGoLangBinary(benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadBinary)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
@@ -293,7 +292,6 @@ BENCHMARK(BM_LoadBinary)
     ->ArgNames({"mode"});
 
 BENCHMARK(BM_GvisorCompareCPlusPlusAndGoLangBinary)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
@@ -307,7 +305,6 @@ BENCHMARK(BM_GvisorCompareCPlusPlusAndGoLangBinary)
     ->ArgNames({"mode", "udf"});
 
 BENCHMARK(BM_LoadTwoBinariesAndExecuteFirstBinary)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
@@ -317,7 +314,6 @@ BENCHMARK(BM_LoadTwoBinariesAndExecuteFirstBinary)
     ->ArgNames({"mode"});
 
 BENCHMARK(BM_LoadTwoBinariesAndExecuteSecondBinary)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
@@ -327,7 +323,6 @@ BENCHMARK(BM_LoadTwoBinariesAndExecuteSecondBinary)
     ->ArgNames({"mode"});
 
 BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
