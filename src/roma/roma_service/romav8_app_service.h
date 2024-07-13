@@ -122,10 +122,11 @@ class RomaV8AppService {
       }
       notification.Notify();
     };
-    return roma_service_->Execute(
-        std::make_unique<InvocationStrRequest<TMetadata>>(
-            std::move(execution_obj)),
-        std::move(execute_cb));
+    return roma_service_
+        ->Execute(std::make_unique<InvocationStrRequest<TMetadata>>(
+                      std::move(execution_obj)),
+                  std::move(execute_cb))
+        .status();
   }
 
   template <typename TRequest, typename TResponse>
@@ -172,10 +173,11 @@ class RomaV8AppService {
           callback(std::move(template_response));
         };
 
-    return roma_service_->Execute(
-        std::make_unique<InvocationStrRequest<TMetadata>>(
-            std::move(execution_obj)),
-        std::move(callback_wrapper));
+    return roma_service_
+        ->Execute(std::make_unique<InvocationStrRequest<TMetadata>>(
+                      std::move(execution_obj)),
+                  std::move(callback_wrapper))
+        .status();
   }
 
  protected:

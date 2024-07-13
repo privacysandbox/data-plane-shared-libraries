@@ -99,7 +99,7 @@ class RomaService {
   // Execute single invocation request. Can only be called when a valid
   // code object has been loaded.
   template <typename InputType>
-  absl::Status Execute(
+  absl::StatusOr<ExecutionToken> Execute(
       std::unique_ptr<InvocationRequest<InputType, TMetadata>> invocation_req,
       Callback callback) {
     // We accept empty request IDs, but we will replace them with a placeholder.
@@ -325,7 +325,7 @@ class RomaService {
   }
 
   template <typename InputType>
-  absl::Status ExecuteInternal(
+  absl::StatusOr<ExecutionToken> ExecuteInternal(
       std::unique_ptr<InvocationRequest<InputType, TMetadata>> invocation_req,
       Callback callback) {
     PS_RETURN_IF_ERROR(
@@ -347,10 +347,11 @@ class RomaService {
           DeleteMetadata(uuid_str);
         };
 
-    PS_RETURN_IF_ERROR(StoreMetadata(std::move(uuid_str),
-                                     std::move(invocation_req->metadata)));
-    return dispatcher_->Invoke(std::move(*invocation_req),
-                               std::move(callback_wrapper));
+    PS_RETURN_IF_ERROR(
+        StoreMetadata(uuid_str, std::move(invocation_req->metadata)));
+    PS_RETURN_IF_ERROR(dispatcher_->Invoke(std::move(*invocation_req),
+                                           std::move(callback_wrapper)));
+    return ExecutionToken(std::move(uuid_str));
   }
 
   template <typename InputType>
