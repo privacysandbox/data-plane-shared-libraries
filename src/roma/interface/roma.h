@@ -131,21 +131,6 @@ struct ResponseObject {
   absl::flat_hash_map<std::string, absl::Duration> metrics;
 };
 
-struct ExecutionToken {
-  explicit ExecutionToken(const std::string& id) : uuid_(id) {}
-
-  bool operator==(const ExecutionToken& other) const {
-    return uuid_ == other.uuid_;
-  }
-
-  bool operator!=(const ExecutionToken& other) const {
-    return uuid_ != other.uuid_;
-  }
-
- private:
-  std::string uuid_;
-};
-
 using Callback = absl::AnyInvocable<void(absl::StatusOr<ResponseObject>)>;
 
 // Batch API

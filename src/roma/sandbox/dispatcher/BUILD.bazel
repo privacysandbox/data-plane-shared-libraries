@@ -25,6 +25,7 @@ cc_library(
         ":request_converter",
         ":request_validator",
         "//src/roma/interface",
+        "//src/roma/interface:execution_token",
         "//src/roma/logging",
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/worker_api/sapi:utils",

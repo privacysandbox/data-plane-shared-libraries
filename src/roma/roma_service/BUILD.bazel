@@ -24,6 +24,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/core/os/linux:system_resource_info_provider_linux",
+        "//src/roma/interface:execution_token",
         "//src/roma/logging",
         "//src/roma/metadata_storage",
         "//src/roma/native_function_grpc_server",

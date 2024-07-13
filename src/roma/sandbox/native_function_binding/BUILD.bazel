@@ -85,6 +85,8 @@ cc_library(
     deps = [
         ":native_function_table",
         ":rpc_wrapper_cc_proto",
+        "//src/roma/interface",
+        "//src/roma/interface:execution_token",
         "//src/roma/logging",
         "//src/roma/metadata_storage",
         "//src/roma/sandbox/constants",

@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
+#include "src/roma/interface/execution_token.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
@@ -109,7 +110,10 @@ class RomaService {
     return ExecuteInternal(std::move(invocation_req), std::move(callback));
   }
 
-  void Cancel(const ExecutionToken& token) { dispatcher_->Cancel(token); }
+  void Cancel(const ExecutionToken& token) {
+    native_function_binding_handler_->PreventCallbacks(token);
+    dispatcher_->Cancel(token);
+  }
 
   // Async & Batch API.
   // Batch execute a batch of invocation requests. Can only be called when a
