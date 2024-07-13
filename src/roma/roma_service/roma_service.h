@@ -109,6 +109,8 @@ class RomaService {
     return ExecuteInternal(std::move(invocation_req), std::move(callback));
   }
 
+  void Cancel(const ExecutionToken& token) { dispatcher_->Cancel(token); }
+
   // Async & Batch API.
   // Batch execute a batch of invocation requests. Can only be called when a
   // valid code object has been loaded.

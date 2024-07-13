@@ -83,6 +83,8 @@ class Dispatcher final {
     return absl::OkStatus();
   }
 
+  void Cancel(const ExecutionToken& token);
+
  private:
   struct Request {
     ::worker_api::WorkerParamsProto param;

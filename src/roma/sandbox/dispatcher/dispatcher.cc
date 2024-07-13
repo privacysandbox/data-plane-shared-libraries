@@ -37,6 +37,7 @@
 
 namespace google::scp::roma::sandbox::dispatcher {
 using google::scp::roma::sandbox::constants::kRequestId;
+using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::worker_api::RetryStatus;
 
 Dispatcher::~Dispatcher() {
@@ -185,6 +186,23 @@ void Dispatcher::ConsumerImpl(int i) {
             std::move(*request.param.mutable_profiler_output());
         std::move(request).callback(std::move(response));
       }
+    }
+  }
+}
+
+void Dispatcher::Cancel(const ExecutionToken& token) {
+  absl::MutexLock lock(&mu_);
+
+  size_t num_queued_requests = requests_.size();
+  for (int i = 0; i < num_queued_requests; i++) {
+    Request item = std::move(requests_.front());
+    requests_.pop();
+
+    if (ExecutionToken(item.param.metadata().at(kRequestUuid)) != token) {
+      requests_.push(std::move(item));
+    } else {
+      std::move(item).callback(
+          absl::CancelledError("Request has been cancelled."));
     }
   }
 }
