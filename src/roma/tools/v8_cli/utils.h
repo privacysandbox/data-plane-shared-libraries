@@ -48,6 +48,9 @@ std::vector<std::string> ExtractAndSanitizeCustomFlags(
     if (const size_t eq_pos = flag_clean.find('='); eq_pos != flag_clean.npos) {
       flag_clean.remove_suffix(flag_clean.size() - eq_pos);
     }
+    if (!absl::StartsWith(flag_clean, kFlagPrefix)) {
+      continue;
+    }
     flag_clean.remove_prefix(kFlagPrefix.size());
     if (!processed_flags.contains(flag_clean) &&
         IsCustomFlag(absl_flags, flag)) {
