@@ -59,24 +59,22 @@ constexpr char kMetadataHeaderValue[] = "true";
 // Local IDP for Managed Identity.
 // https://learn.microsoft.com/en-us/azure/container-instances/container-instances-managed-identity
 constexpr char kDefaultGetTokenUrl[] =
-    "http://169.254.169.254/metadata/identity/oauth2/"
-    "token?api-version=2018-02-01&resource=https%3A%2F%2Fprivacysandboxkms."
-    "azure.net";
+    "http://169.254.169.254/metadata/identity/oauth2/token";
+constexpr char kGetTokenQuery[] =
+    "?api-version=2018-02-01&resource=https%3A%2F%2Fmanagement.azure.com%2F";
 constexpr char kGetTokenUrlEnvVar[] = "AZURE_BA_PARAM_GET_TOKEN_URL";
 constexpr char kJsonAccessTokenKey[] = "access_token";
 constexpr char kJsonTokenExpiryKey[] = "expires_in";
-constexpr char kJsonTokenExtendedExpiryKey[] = "ext_expires_in";
 constexpr char kJsonTokenTypeKey[] = "token_type";
 
 // Returns a pair of iterators - one to the beginning, one to the end.
 const auto& GetRequiredJWTComponents() {
-  static char const* components[4];
+  static char const* components[3];
   using iterator_type = decltype(std::cbegin(components));
   static std::pair<iterator_type, iterator_type> iterator_pair = []() {
     components[0] = kJsonAccessTokenKey;
     components[1] = kJsonTokenExpiryKey;
-    components[2] = kJsonTokenExtendedExpiryKey;
-    components[3] = kJsonTokenTypeKey;
+    components[2] = kJsonTokenTypeKey;
     return std::make_pair(std::cbegin(components), std::cend(components));
   }();
   return iterator_pair;
@@ -89,9 +87,10 @@ AzureAuthTokenProvider::AzureAuthTokenProvider(
     : http_client_(http_client), get_token_url_() {
   const char* value_from_env = std::getenv(kGetTokenUrlEnvVar);
   if (value_from_env) {
-    get_token_url_ = value_from_env;
+    get_token_url_ = std::string(value_from_env) + std::string(kGetTokenQuery);
   } else {
-    get_token_url_ = kDefaultGetTokenUrl;
+    get_token_url_ =
+        std::string(kDefaultGetTokenUrl) + std::string(kGetTokenQuery);
   }
 }
 
@@ -172,7 +171,36 @@ void AzureAuthTokenProvider::OnGetSessionTokenCallback(
   }
   get_token_context.response = std::make_shared<GetSessionTokenResponse>();
 
-  uint64_t expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();
+  uint64_t expiry_seconds;
+  if (json_response[kJsonTokenExpiryKey].type() ==
+      json::value_t::number_unsigned) {
+    // expires_in that follows https://www.rfc-editor.org/rfc/rfc6749.
+    expiry_seconds = json_response[kJsonTokenExpiryKey].get<uint64_t>();
+  } else if (json_response[kJsonTokenExpiryKey].type() ==
+             json::value_t::string) {
+    // expires_in of Managed identity token is string
+    try {
+      expiry_seconds =
+          std::stoi(json_response[kJsonTokenExpiryKey].get<std::string>());
+    } catch (...) {
+      auto result = RetryExecutionResult(
+          SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);
+      SCP_ERROR_CONTEXT(kAzureAuthTokenProvider, get_token_context, result,
+                        "The string value for field expires_in cannot be "
+                        "parsed as an integer.");
+      get_token_context.result = result;
+      get_token_context.Finish();
+      return;
+    }
+  } else {
+    auto result = RetryExecutionResult(
+        SC_AZURE_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);
+    SCP_ERROR_CONTEXT(kAzureAuthTokenProvider, get_token_context, result,
+                      "The value for field expires_in is invalid.");
+    get_token_context.result = result;
+    get_token_context.Finish();
+    return;
+  }
   get_token_context.response->token_lifetime_in_seconds =
       std::chrono::seconds(expiry_seconds);
   auto access_token = json_response[kJsonAccessTokenKey].get<std::string>();

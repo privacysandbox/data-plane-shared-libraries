@@ -57,13 +57,12 @@ using testing::UnorderedElementsAre;
 
 namespace {
 constexpr char kDefaultGetTokenUrl[] =
-    "http://169.254.169.254/metadata/identity/oauth2/"
-    "token?api-version=2018-02-01&resource=https%3A%2F%2Fprivacysandboxkms."
-    "azure.net";
+    "http://169.254.169.254/metadata/identity/oauth2/token";
+constexpr char kGetTokenQuery[] =
+    "?api-version=2018-02-01&resource=https%3A%2F%2Fmanagement.azure.com%2F";
 constexpr char kMetadataHeader[] = "Metadata";
 constexpr char kMetadataHeaderValue[] = "true";
 constexpr int kTokenTtlInSecondHeaderValue = 1000;
-constexpr int kExtendedTokenTtlInSecondHeaderValue = 1000;
 constexpr char kTokenPayloadValue[] = "b0Aaekm1IeizWZVKoBQQULOiiT_PDcQk";
 }  // namespace
 
@@ -87,20 +86,19 @@ TEST_F(AzureAuthTokenProviderTest,
   EXPECT_CALL(http_client_, PerformRequest).WillOnce([](auto& http_context) {
     http_context.result = SuccessExecutionResult();
     EXPECT_EQ(http_context.request->method, HttpMethod::GET);
-    EXPECT_THAT(http_context.request->path, Pointee(Eq(kDefaultGetTokenUrl)));
+    EXPECT_THAT(http_context.request->path,
+                Pointee(Eq(std::string(kDefaultGetTokenUrl) +
+                           std::string(kGetTokenQuery))));
     EXPECT_THAT(http_context.request->headers,
                 Pointee(UnorderedElementsAre(
                     Pair(kMetadataHeader, kMetadataHeaderValue))));
 
     http_context.response = std::make_shared<HttpResponse>();
-    const std::string kHttpResponseMock =
-        std::string(R"({
-        "access_token":")") +
-        kTokenPayloadValue + R"(",
-        "expires_in":)" +
-        std::to_string(kTokenTtlInSecondHeaderValue) + R"(,
-        "ext_expires_in": )" +
-        std::to_string(kExtendedTokenTtlInSecondHeaderValue) + R"(,
+    const std::string kHttpResponseMock = std::string(R"({
+        "access_token":")") + kTokenPayloadValue +
+                                          R"(",
+        "expires_in":")" + std::to_string(kTokenTtlInSecondHeaderValue) +
+                                          R"(",
         "token_type":"bearer"
       })";
     http_context.response->body = BytesBuffer(kHttpResponseMock);
