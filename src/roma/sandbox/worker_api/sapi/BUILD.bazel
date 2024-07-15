@@ -124,6 +124,18 @@ sapi_library(
 )
 
 cc_library(
+    name = "worker_sapi_sandbox",
+    hdrs = ["worker_sapi_sandbox.h"],
+    deps = [
+        ":worker_wrapper-sapi",
+        "//src/roma/config",
+        "//src/roma/logging",
+        "@com_google_absl//absl/strings",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2",
+    ],
+)
+
+cc_library(
     name = "worker_sandbox_api",
     srcs = ["worker_sandbox_api.cc"],
     hdrs = ["worker_sandbox_api.h"],
@@ -133,6 +145,7 @@ cc_library(
         ":utils",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
+        ":worker_sapi_sandbox",
         ":worker_wrapper-sapi",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
