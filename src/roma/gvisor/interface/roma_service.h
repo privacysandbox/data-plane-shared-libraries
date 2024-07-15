@@ -59,9 +59,12 @@ template <typename TMetadata = ::google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
   static absl::StatusOr<std::unique_ptr<RomaService<TMetadata>>> Create(
-      Config config, Mode mode = Mode::kModeGvisor) {
+      Config<TMetadata> config, Mode mode = Mode::kModeGvisor) {
     std::unique_ptr<RomaInterface> roma_interface;
     ConfigInternal config_internal;
+    config_internal.num_workers = config.num_workers;
+    config_internal.roma_container_name = std::move(config.roma_container_name);
+    config_internal.lib_mounts = std::move(config.lib_mounts);
     PS_ASSIGN_OR_RETURN(config_internal.server_socket,
                         CreateUniqueSocketName());
     PS_ASSIGN_OR_RETURN(config_internal.callback_socket,
@@ -72,10 +75,10 @@ class RomaService final {
         ::grpc::InsecureChannelCredentials());
     if (mode == Mode::kModeGvisor) {
       PS_ASSIGN_OR_RETURN(roma_interface,
-                          RomaGvisor::Create(config, config_internal, channel));
+                          RomaGvisor::Create(config_internal, channel));
     } else {
       PS_ASSIGN_OR_RETURN(roma_interface,
-                          RomaLocal::Create(config, config_internal, channel));
+                          RomaLocal::Create(config_internal, channel));
     }
     return absl::WrapUnique(new RomaService(
         std::move(roma_interface), std::move(config.function_bindings),

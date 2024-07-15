@@ -91,7 +91,7 @@ std::string LoadCode(GvisorKeyValueService<>& roma_service,
 }
 
 GvisorKeyValueService<> GetRomaService(Mode mode, int num_workers) {
-  privacy_sandbox::server_common::gvisor::Config config = {
+  privacy_sandbox::server_common::gvisor::Config<> config = {
       .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},

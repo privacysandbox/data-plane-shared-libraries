@@ -26,17 +26,26 @@
 #include "src/roma/gvisor/config/utils.h"
 
 namespace privacy_sandbox::server_common::gvisor {
+
+template <typename TMetadata = google::scp::roma::DefaultMetadata>
 struct Config {
-  int num_workers = std::thread::hardware_concurrency();
+  int num_workers = static_cast<int>(std::thread::hardware_concurrency());
 
   std::string roma_container_name = "roma_server";
 
   std::string lib_mounts = GetLibMounts();
 
-  std::vector<google::scp::roma::FunctionBindingObjectV2<>> function_bindings;
+  std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>
+      function_bindings;
 };
 
 struct ConfigInternal {
+  int num_workers = static_cast<int>(std::thread::hardware_concurrency());
+
+  std::string roma_container_name = "roma_server";
+
+  std::string lib_mounts = GetLibMounts();
+
   // Path to gVisor runsc binary.
   std::filesystem::path runsc_path = GetRunscPath();
 

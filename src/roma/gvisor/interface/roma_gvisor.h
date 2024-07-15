@@ -31,23 +31,18 @@ class RomaGvisor final : public RomaInterface {
   // Factory method: creates and returns a RomaGvisor.
   // May return null on failure.
   static absl::StatusOr<std::unique_ptr<RomaGvisor>> Create(
-      Config config, ConfigInternal config_internal,
-      std::shared_ptr<::grpc::Channel> channel);
+      ConfigInternal config, std::shared_ptr<::grpc::Channel> channel);
 
   ~RomaGvisor() override;
 
  private:
   // Clients can't invoke the constructor directly.
-  explicit RomaGvisor(Config config, ConfigInternal config_internal,
-                      pid_t roma_container_pid,
+  explicit RomaGvisor(ConfigInternal config, pid_t roma_container_pid,
                       std::filesystem::path socket_directory)
-      : roma_container_pid_(roma_container_pid),
-        config_(std::move(config)),
-        config_internal_(std::move(config_internal)) {}
+      : roma_container_pid_(roma_container_pid), config_(std::move(config)) {}
 
   const pid_t roma_container_pid_;
-  const Config config_;
-  const ConfigInternal config_internal_;
+  const ConfigInternal config_;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 

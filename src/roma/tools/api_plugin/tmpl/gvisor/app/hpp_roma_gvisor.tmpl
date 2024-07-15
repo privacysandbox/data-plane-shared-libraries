@@ -50,7 +50,7 @@ class {{$svcName}} final :
       public {{$svcCommonInterface}}<TMetadata> {
  public:
   using AppService = privacy_sandbox::server_common::gvisor::RomaService<TMetadata>;
-  using Config = privacy_sandbox::server_common::gvisor::Config;
+  using Config = privacy_sandbox::server_common::gvisor::Config<TMetadata>;
   using Mode = privacy_sandbox::server_common::gvisor::Mode;
 
   static absl::StatusOr<{{$svcName}}<TMetadata>> Create(Config config,

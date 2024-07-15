@@ -31,25 +31,17 @@ class RomaLocal final : public RomaInterface {
   // Factory method: creates and returns a RomaLocal.
   // May return null on failure.
   static absl::StatusOr<std::unique_ptr<RomaLocal>> Create(
-      Config config, ConfigInternal config_internal,
-      std::shared_ptr<::grpc::Channel> channel);
+      ConfigInternal config, std::shared_ptr<::grpc::Channel> channel);
 
   ~RomaLocal() override;
 
  private:
   // Clients can't invoke the constructor directly.
-  explicit RomaLocal(Config config, pid_t roma_server_pid,
-                     std::filesystem::path socket_directory,
-                     std::filesystem::path prog_dir)
-      : roma_server_pid_(roma_server_pid),
-        socket_directory_(std::move(socket_directory)),
-        prog_dir_(std::move(prog_dir)),
-        config_(std::move(config)) {}
+  explicit RomaLocal(ConfigInternal config, pid_t roma_server_pid)
+      : roma_server_pid_(roma_server_pid), config_(std::move(config)) {}
 
   const pid_t roma_server_pid_;
-  std::filesystem::path socket_directory_;
-  std::filesystem::path prog_dir_;
-  const Config config_;
+  const ConfigInternal config_;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 

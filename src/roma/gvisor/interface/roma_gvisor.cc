@@ -95,12 +95,11 @@ absl::Status WriteToFile(const std::filesystem::path& file_path,
   return absl::OkStatus();
 }
 
-absl::Status ModifyContainerConfigJson(
-    const Config* roma_config, const ConfigInternal* roma_config_internal,
-    const std::filesystem::path& socket_pwd,
-    std::filesystem::path callback_socket) {
+absl::Status ModifyContainerConfigJson(const ConfigInternal& roma_config,
+                                       const std::filesystem::path& socket_pwd,
+                                       std::filesystem::path callback_socket) {
   const std::filesystem::path config_file_loc =
-      roma_config_internal->roma_container_dir / kConfigJson;
+      roma_config.roma_container_dir / kConfigJson;
   // Read the existing config.json file.
   PS_ASSIGN_OR_RETURN(std::string config_json_contents,
                       ReadFromFile(config_file_loc));
@@ -108,7 +107,7 @@ absl::Status ModifyContainerConfigJson(
       nlohmann::json::parse(config_json_contents);
   // Add root path to config.
   config_nlohmann_json["root"] = {
-      {"path", roma_config_internal->roma_container_root_dir.c_str()}};
+      {"path", roma_config.roma_container_root_dir.c_str()}};
   std::filesystem::path socket_dir = socket_pwd.parent_path();
   // Bind-mount socket directory for unix-domain sockets. The sockets from this
   // directory will be used for communication between gVisor and outside world.
@@ -126,48 +125,45 @@ absl::Status ModifyContainerConfigJson(
       {"options", nlohmann::json{"rbind", "rprivate"}},
   };
   nlohmann::json prog_dir_mount = {
-      {"destination", roma_config_internal->prog_dir.c_str()},
+      {"destination", roma_config.prog_dir.c_str()},
       {"type", "volume"},
-      {"source", roma_config_internal->prog_dir.c_str()},
+      {"source", roma_config.prog_dir.c_str()},
       {"options", nlohmann::json{"rbind", "rprivate"}},
   };
   config_nlohmann_json["mounts"] = nlohmann::json::array(
       {sock_dir_mount, callback_sock_dir_mount, prog_dir_mount});
   // Add args to startup gVisor server.
   config_nlohmann_json["process"]["args"] = {
-      roma_config_internal->roma_server_path.c_str(),
+      roma_config.roma_server_path.c_str(),
       // Share socket path with the server.
-      absl::StrCat("--", roma_config_internal->socket_flag_name, "=",
-                   socket_pwd.c_str()),
-      absl::StrCat("--", roma_config_internal->lib_mounts_flag_name, "=",
-                   roma_config->lib_mounts, ",",
+      absl::StrCat("--", roma_config.socket_flag_name, "=", socket_pwd.c_str()),
+      absl::StrCat("--", roma_config.lib_mounts_flag_name, "=",
+                   roma_config.lib_mounts, ",",
                    callback_socket.parent_path().c_str()),
-      absl::StrCat("--", roma_config_internal->worker_pool_size_flag_name, "=",
-                   roma_config->num_workers),
-      absl::StrCat("--", roma_config_internal->callback_socket_flag_name, "=",
+      absl::StrCat("--", roma_config.worker_pool_size_flag_name, "=",
+                   roma_config.num_workers),
+      absl::StrCat("--", roma_config.callback_socket_flag_name, "=",
                    callback_socket.c_str()),
-      absl::StrCat("--", roma_config_internal->prog_dir_flag_name, "=",
-                   roma_config_internal->prog_dir)};
+      absl::StrCat("--", roma_config.prog_dir_flag_name, "=",
+                   roma_config.prog_dir)};
   return WriteToFile(config_file_loc, config_nlohmann_json.dump());
 }
 
 absl::StatusOr<pid_t> RunGvisorContainer(
-    const Config* config, const ConfigInternal* config_internal,
-    const std::filesystem::path& socket_pwd,
+    const ConfigInternal* config, const std::filesystem::path& socket_pwd,
     std::shared_ptr<grpc::Channel> gvisor_channel) {
   std::vector<const char*> argv_runsc = {
-      config_internal->runsc_path.c_str(), "--host-uds=all", "run",
+      config->runsc_path.c_str(), "--host-uds=all", "run",
       config->roma_container_name.c_str(), nullptr};
   // Need to set this to ensure all the children can be reaped
   prctl(PR_SET_CHILD_SUBREAPER, 1);
   pid_t pid = vfork();
   if (pid == 0) {
-    if (chdir(config_internal->roma_container_dir.c_str()) == -1) {
-      PLOG(ERROR) << "Failed to chdir to "
-                  << config_internal->roma_container_dir;
+    if (chdir(config->roma_container_dir.c_str()) == -1) {
+      PLOG(ERROR) << "Failed to chdir to " << config->roma_container_dir;
       exit(errno);
     }
-    if (execv(config_internal->runsc_path.c_str(),
+    if (execv(config->runsc_path.c_str(),
               const_cast<char* const*>(argv_runsc.data())) == -1) {
       PLOG(ERROR) << "Failed to execv Roma gVisor container '"
                   << absl::StrJoin(argv_runsc, " ") << "'";
@@ -218,7 +214,7 @@ RomaGvisor::~RomaGvisor() {
   // Observed 'gofer is still running' issue -
   // https://github.com/google/gvisor/issues/6255
   std::vector<const char*> runsc_kill = {
-      config_internal_.runsc_path.c_str(),
+      config_.runsc_path.c_str(),
       "kill",
       config_.roma_container_name.c_str(),
       "SIGTERM",
@@ -232,42 +228,38 @@ RomaGvisor::~RomaGvisor() {
     PLOG(ERROR) << absl::StrCat("Failed to wait for ", roma_container_pid_);
   }
   std::vector<const char*> runsc_delete = {
-      config_internal_.runsc_path.c_str(), "delete", "-force",
+      config_.runsc_path.c_str(),          "delete", "-force",
       config_.roma_container_name.c_str(), nullptr,
   };
   RunCommand(runsc_delete);
-  std::filesystem::path server_socket_dir =
-      std::filesystem::path(config_internal_.server_socket).parent_path();
+  using std::filesystem::path;
+  path server_socket_dir = path(config_.server_socket).parent_path();
   if (std::error_code ec;
       std::filesystem::remove_all(server_socket_dir, ec) <= 0) {
     LOG(ERROR) << "Failed to delete " << server_socket_dir << ": "
                << ec.message();
   }
   if (std::error_code ec;
-      std::filesystem::remove_all(
-          std::filesystem::path(config_internal_.prog_dir), ec) <= 0) {
-    LOG(ERROR) << "Failed to delete " << config_internal_.prog_dir << ": "
+      std::filesystem::remove_all(path(config_.prog_dir), ec) <= 0) {
+    LOG(ERROR) << "Failed to delete " << config_.prog_dir << ": "
                << ec.message();
   }
 }
 
 absl::StatusOr<std::unique_ptr<RomaGvisor>> RomaGvisor::Create(
-    Config config, ConfigInternal config_internal,
-    std::shared_ptr<::grpc::Channel> channel) {
-  PS_RETURN_IF_ERROR(PreCheckRomaContainerDir(&config_internal));
+    ConfigInternal config, std::shared_ptr<::grpc::Channel> channel) {
+  PS_RETURN_IF_ERROR(PreCheckRomaContainerDir(&config));
   PS_ASSIGN_OR_RETURN(const std::filesystem::path socket_pwd,
                       CreateUniqueSocketName());
   PS_ASSIGN_OR_RETURN(std::string callback_socket, CreateUniqueSocketName());
-  PS_RETURN_IF_ERROR(ModifyContainerConfigJson(
-      &config, &config_internal, config_internal.server_socket,
-      config_internal.callback_socket));
+  PS_RETURN_IF_ERROR(ModifyContainerConfigJson(config, config.server_socket,
+                                               config.callback_socket));
   PS_ASSIGN_OR_RETURN(
       pid_t pid,
-      RunGvisorContainer(&config, &config_internal,
-                         config_internal.server_socket, std::move(channel)));
+      RunGvisorContainer(&config, config.server_socket, std::move(channel)));
   // Note that since RomaGvisor's constructor is private, we have to use new.
   return absl::WrapUnique(new RomaGvisor(
-      std::move(config), std::move(config_internal), pid,
-      std::filesystem::path(config_internal.server_socket).parent_path()));
+      std::move(config), pid,
+      std::filesystem::path(config.server_socket).parent_path()));
 }
 }  // namespace privacy_sandbox::server_common::gvisor
