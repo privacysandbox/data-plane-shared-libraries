@@ -34,6 +34,7 @@
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/worker_api/sapi/error_codes.h"
+#include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 
@@ -47,19 +48,6 @@ namespace {
 constexpr std::string_view kWarmupCode = " ";
 constexpr std::string_view kWarmupRequestId = "warmup";
 constexpr std::string_view kWarmupCodeVersion = "vWarmup";
-
-std::pair<absl::Status, WorkerSandboxApi::RetryStatus> WrapResultWithNoRetry(
-    absl::Status result) {
-  return std::make_pair(std::move(result),
-                        WorkerSandboxApi::RetryStatus::kDoNotRetry);
-}
-
-std::pair<absl::Status, WorkerSandboxApi::RetryStatus> WrapResultWithRetry(
-    absl::Status result) {
-  return std::make_pair(std::move(result),
-                        WorkerSandboxApi::RetryStatus::kRetry);
-}
-
 }  // namespace
 
 WorkerSandboxApi::WorkerSandboxApi(
@@ -266,8 +254,8 @@ absl::Status WorkerSandboxApi::Stop() {
   return absl::OkStatus();
 }
 
-std::pair<absl::Status, WorkerSandboxApi::RetryStatus>
-WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
+std::pair<absl::Status, RetryStatus> WorkerSandboxApi::InternalRunCode(
+    ::worker_api::WorkerParamsProto& params) {
   const int serialized_size = params.ByteSizeLong();
   std::unique_ptr<sapi::v::LenVal> sapi_len_val;
   std::string len_val_data;
@@ -347,7 +335,7 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
-std::pair<absl::Status, WorkerSandboxApi::RetryStatus>
+std::pair<absl::Status, RetryStatus>
 WorkerSandboxApi::InternalRunCodeBufferShareOnly(
     ::worker_api::WorkerParamsProto& params) {
   const int serialized_size = params.ByteSizeLong();
@@ -402,20 +390,20 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
-std::pair<absl::Status, WorkerSandboxApi::RetryStatus>
-WorkerSandboxApi::RunCode(::worker_api::WorkerParamsProto& params) {
+std::pair<absl::Status, RetryStatus> WorkerSandboxApi::RunCode(
+    ::worker_api::WorkerParamsProto& params) {
   if (!worker_sapi_sandbox_ || !worker_wrapper_api_) {
     return WrapResultWithNoRetry(absl::FailedPreconditionError(
         "Attempt to call API function with an uninitialized sandbox."));
   }
-  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> run_code_result;
+  std::pair<absl::Status, RetryStatus> run_code_result;
   if (enable_sandbox_sharing_request_response_with_buffer_only_) {
     run_code_result = InternalRunCodeBufferShareOnly(params);
   } else {
     run_code_result = InternalRunCode(params);
   }
   if (!run_code_result.first.ok()) {
-    if (run_code_result.second == WorkerSandboxApi::RetryStatus::kRetry) {
+    if (run_code_result.second == RetryStatus::kRetry) {
       // This means that the sandbox died so we need to restart it.
       if (auto status = Init(); !status.ok()) {
         return WrapResultWithNoRetry(status);

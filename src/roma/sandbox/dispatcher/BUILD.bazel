@@ -27,6 +27,7 @@ cc_library(
         "//src/roma/interface",
         "//src/roma/logging",
         "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/worker_api/sapi:utils",
         "//src/roma/sandbox/worker_api/sapi:worker_sandbox_api",
         "//src/util:duration",
         "//src/util:protoutil",

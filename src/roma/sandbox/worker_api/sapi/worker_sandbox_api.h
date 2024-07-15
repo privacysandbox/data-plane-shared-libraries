@@ -34,6 +34,7 @@
 #include "sandboxed_api/sandbox2/policybuilder.h"
 #include "src/roma/config/config.h"
 #include "src/roma/logging/logging.h"
+#include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
 
@@ -46,8 +47,6 @@ namespace google::scp::roma::sandbox::worker_api {
  */
 class WorkerSandboxApi {
  public:
-  enum class RetryStatus { kDoNotRetry, kRetry };
-
   /**
    * @brief Construct a new Worker Sandbox Api object.
    *

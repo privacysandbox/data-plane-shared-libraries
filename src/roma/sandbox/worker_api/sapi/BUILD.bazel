@@ -44,6 +44,23 @@ sapi_proto_library(
 )
 
 cc_library(
+    name = "utils",
+    srcs = ["utils.cc"],
+    hdrs = ["utils.h"],
+    visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
+    deps = [
+        ":worker_params_cc_proto",
+        "//src/roma/config",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/native_function_binding:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/worker",
+        "//src/util/status_macro:status_builder",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "error_codes",
     srcs = ["error_codes.cc"],
     hdrs = ["error_codes.h"],
@@ -63,6 +80,7 @@ cc_library(
     ],
     deps = [
         ":error_codes",
+        ":utils",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         "//src/roma/config",
@@ -112,6 +130,7 @@ cc_library(
     visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
     deps = [
         ":error_codes",
+        ":utils",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         ":worker_wrapper-sapi",
@@ -174,6 +193,7 @@ cc_test(
         "notsan",  # TODO: b/354929154 - Create SAPI sandbox only in non_prod mode
     ],
     deps = [
+        ":utils",
         ":worker_sandbox_api",
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",

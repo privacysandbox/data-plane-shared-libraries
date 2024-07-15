@@ -27,6 +27,7 @@
 #include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 
 using google::scp::roma::proto::RpcWrapper;
@@ -108,17 +109,17 @@ TEST(WorkerSandboxApiSapiTest, SandboxShouldComeBackUpIfItDies) {
 
   // We expect a failure since the worker process died
   {
-    std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
+    std::pair<absl::Status, RetryStatus> result_pair =
         sandbox_api.RunCode(params_proto);
     EXPECT_FALSE(result_pair.first.ok());
-    EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kRetry);
+    EXPECT_EQ(result_pair.second, RetryStatus::kRetry);
   }
 
   // Run code again and this time it should work
-  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
+  std::pair<absl::Status, RetryStatus> result_pair =
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(result_pair.first.ok());
-  EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kDoNotRetry);
+  EXPECT_EQ(result_pair.second, RetryStatus::kDoNotRetry);
   EXPECT_THAT(params_proto.response(),
               StrEq(R"js("Hi there from sandboxed JS :)")js"));
 
@@ -170,18 +171,18 @@ TEST(WorkerSandboxApiSapiTest,
 
   // This is expected to fail since we killed the sandbox
   {
-    std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
+    std::pair<absl::Status, RetryStatus> result_pair =
         sandbox_api.RunCode(params_proto);
     EXPECT_FALSE(result_pair.first.ok());
-    EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kRetry);
+    EXPECT_EQ(result_pair.second, RetryStatus::kRetry);
   }
 
   // We run the code again and expect it to work this time around since the
   // sandbox should have been restarted
-  std::pair<absl::Status, WorkerSandboxApi::RetryStatus> result_pair =
+  std::pair<absl::Status, RetryStatus> result_pair =
       sandbox_api.RunCode(params_proto);
   ASSERT_TRUE(result_pair.first.ok());
-  EXPECT_EQ(result_pair.second, WorkerSandboxApi::RetryStatus::kDoNotRetry);
+  EXPECT_EQ(result_pair.second, RetryStatus::kDoNotRetry);
 
   to_handle_function_call.join();
 

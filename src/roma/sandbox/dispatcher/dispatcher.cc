@@ -29,15 +29,15 @@
 #include "src/roma/interface/roma.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 #include "src/util/duration.h"
 #include "src/util/protoutil.h"
 #include "src/util/status_macro/status_macros.h"
 
 namespace google::scp::roma::sandbox::dispatcher {
 using google::scp::roma::sandbox::constants::kRequestId;
-using google::scp::roma::sandbox::worker_api::WorkerSandboxApi;
+using google::scp::roma::sandbox::worker_api::RetryStatus;
 
 Dispatcher::~Dispatcher() {
   // Wait for per-worker queues to empty to ensure cleanup runs.
@@ -140,7 +140,7 @@ void Dispatcher::ConsumerImpl(int i) {
         !error.ok()) {
       LOG(ERROR) << "The worker " << i << " execute the request failed due to "
                  << error;
-      if (retry_status == WorkerSandboxApi::RetryStatus::kRetry) {
+      if (retry_status == RetryStatus::kRetry) {
         // This means that the worker crashed and the request could be retried,
         // however, we need to reload the worker with the cached code.
         std::vector<::worker_api::WorkerParamsProto> params;

@@ -36,6 +36,7 @@
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
 #include "src/roma/sandbox/native_function_binding/native_function_invoker_sapi_ipc.h"
 #include "src/roma/sandbox/worker/worker.h"
+#include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/util/duration.h"
@@ -53,23 +54,13 @@ using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using google::scp::roma::sandbox::worker::Worker;
+using google::scp::roma::sandbox::worker_api::ClearInputFields;
+using google::scp::roma::sandbox::worker_api::CreateWorker;
+using google::scp::roma::sandbox::worker_api::GetEngineOneTimeSetup;
+using google::scp::roma::sandbox::worker_api::V8WorkerEngineParams;
 using sandbox2::Buffer;
 
 namespace {
-
-struct V8WorkerEngineParams {
-  int native_js_function_comms_fd;
-  std::vector<std::string> native_js_function_names;
-  std::vector<std::string> rpc_method_names;
-  std::string server_address;
-  google::scp::roma::JsEngineResourceConstraints resource_constraints;
-  size_t max_wasm_memory_number_of_pages;
-  bool require_preload = true;
-  size_t compilation_context_cache_size;
-  bool skip_v8_cleanup = false;
-  std::vector<std::string> v8_flags;
-  bool enable_profilers = false;
-};
 
 // the pointer of the data shared sandbox2::Buffer which is used to share
 // data between the host process and the sandboxee.
@@ -77,31 +68,6 @@ std::unique_ptr<Buffer> sandbox_data_shared_buffer_ptr_{nullptr};
 size_t request_and_response_data_buffer_size_bytes_{0};
 
 std::unique_ptr<Worker> worker_{nullptr};
-
-absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
-    const V8WorkerEngineParams& params) {
-  return {
-      {std::string(kJsEngineOneTimeSetupWasmPagesKey),
-       std::to_string(params.max_wasm_memory_number_of_pages)},
-      {std::string(kJsEngineOneTimeSetupV8FlagsKey),
-       absl::StrJoin(params.v8_flags, " ")},
-  };
-}
-
-std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
-  auto native_function_invoker = std::make_unique<NativeFunctionInvokerSapiIpc>(
-      params.native_js_function_comms_fd);
-
-  auto isolate_function_binding = std::make_unique<V8IsolateFunctionBinding>(
-      params.native_js_function_names, params.rpc_method_names,
-      std::move(native_function_invoker), params.server_address);
-
-  auto v8_engine = std::make_unique<V8JsEngine>(
-      std::move(isolate_function_binding), params.skip_v8_cleanup,
-      params.enable_profilers, params.resource_constraints);
-  v8_engine->OneTimeSetup(GetEngineOneTimeSetup(params));
-  return std::make_unique<Worker>(std::move(v8_engine), params.require_preload);
-}
 
 SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
   if (worker_) {
@@ -249,12 +215,6 @@ SapiStatusCode Stop() {
   worker_->Stop();
   worker_.reset();
   return SapiStatusCode::kOk;
-}
-
-inline void ClearInputFields(worker_api::WorkerParamsProto& params) {
-  params.clear_code();
-  params.clear_input_strings();
-  params.clear_input_bytes();
 }
 
 SapiStatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
