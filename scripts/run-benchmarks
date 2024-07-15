@@ -102,7 +102,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/roma/benchmark/compiler:load_benchmark
     //src/roma/config:type_converter_benchmark
     //src/roma/sandbox/dispatcher:dispatcher_benchmark
-    //src/roma/sandbox/worker_api/sapi:worker_wrapper_benchmark
+    //src/roma/sandbox/worker_api/sapi:worker_wrapper_impl_benchmark
     # TODO: Enable logging benchmark after reducing volume of log output.
     # //src/roma/benchmark:logging_benchmark
     # TODO: b/303250465 - Turn this back on once the segfault is fixed.

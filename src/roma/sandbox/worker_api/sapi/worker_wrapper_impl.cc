@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "worker_wrapper.h"
+#include "worker_wrapper_impl.h"
 
 #include <stdint.h>
 #include <unistd.h>

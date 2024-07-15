@@ -25,7 +25,7 @@
 #include "src/roma/sandbox/worker_api/sapi/error_codes.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper_impl.h"
 
 using google::scp::roma::sandbox::constants::kCodeVersion;
 using google::scp::roma::sandbox::constants::kHandlerName;

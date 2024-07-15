@@ -31,7 +31,6 @@ build:cpp_nowarn --per_file_copt=src/(metric|telemetry)/.*@-Wno-deprecated-decla
 build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/gcp/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/roma/(roma_service|sandbox|benchmark|native_function_grpc_server)/.*.cc@-Wno-deprecated-declarations
-build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.cc@-Wno-macro-redefined
 
 # Disabled due to `Code` being deprecated in tink_cc
 build:cpp_nowarn --per_file_copt=src/public/cpio/adapters/crypto_client/crypto_client\.cc@-Wno-deprecated-declarations
@@ -47,6 +46,7 @@ build:cpp_nowarn --per_file_copt=src/roma/gvisor/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker/v8_engine_worker_test\.cc@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/js_engine/v8_engine/.*@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/benchmark/.*@-Wno-macro-redefined
+build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.*.cc@-Wno-macro-redefined
 
 build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
 build:clang-tidy --output_groups=report

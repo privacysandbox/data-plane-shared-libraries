@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper_impl.h"
 
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
@@ -64,7 +64,7 @@ static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
   return init_params;
 }
 
-TEST(WorkerWrapperTest,
+TEST(WorkerWrapperImplTest,
      CanRunCodeThroughWrapperWithoutPreloadSharedWithBuffer) {
   auto init_params = GetDefaultInitParams();
   std::string serialized_init_params;
@@ -124,7 +124,7 @@ sapi::LenValStruct CreateLenValStruct(std::string_view in_str) {
   return sapi::LenValStruct{in_str.size(), out_str.release()};
 }
 
-TEST(WorkerWrapperTest,
+TEST(WorkerWrapperImplTest,
      CanRunCodeThroughWrapperWithoutPreloadSharedWithLenValStruct) {
   auto init_params = GetDefaultInitParams();
   std::string serialized_init_params;
@@ -168,7 +168,7 @@ TEST(WorkerWrapperTest,
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
-TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
+TEST(WorkerWrapperImplTest, OverSizeResponseSharedWithLenValStruct) {
   auto init_params = GetDefaultInitParams();
   std::string serialized_init_params;
   ASSERT_TRUE(init_params.SerializeToString(&serialized_init_params));
@@ -215,7 +215,7 @@ TEST(WorkerWrapperTest, OverSizeResponseSharedWithLenValStruct) {
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
-TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
+TEST(WorkerWrapperImplTest, CanRunCodeWithBufferShareOnly) {
   auto init_params = GetDefaultInitParams();
   std::string serialized_init_params;
   ASSERT_TRUE(init_params.SerializeToString(&serialized_init_params));
@@ -254,7 +254,7 @@ TEST(WorkerWrapperTest, CanRunCodeWithBufferShareOnly) {
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
-TEST(WorkerWrapperTest,
+TEST(WorkerWrapperImplTest,
      ShouldFailRunCodeWithBufferShareOnlyIfResponseOversize) {
   auto init_params = GetDefaultInitParams();
   std::string serialized_init_params;
@@ -293,7 +293,8 @@ TEST(WorkerWrapperTest,
   EXPECT_EQ(SapiStatusCode::kOk, ::Stop());
 }
 
-TEST(WorkerWrapperTest, FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
+TEST(WorkerWrapperImplTest,
+     FailsToRunCodeWhenPreloadIsRequiredAndExecuteIsSent) {
   auto init_params = GetDefaultInitParams();
   init_params.set_require_code_preload_for_execution(true);
   init_params.set_require_code_preload_for_execution(true);

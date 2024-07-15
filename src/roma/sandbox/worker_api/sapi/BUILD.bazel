@@ -55,9 +55,9 @@ cc_library(
 )
 
 cc_library(
-    name = "worker_wrapper",
-    srcs = ["worker_wrapper.cc"],
-    hdrs = ["worker_wrapper.h"],
+    name = "worker_wrapper_impl",
+    srcs = ["worker_wrapper_impl.cc"],
+    hdrs = ["worker_wrapper_impl.h"],
     copts = [
         "-Wno-deprecated-declarations",
     ],
@@ -82,7 +82,7 @@ cc_library(
 
 sapi_library(
     name = "worker_wrapper-sapi",
-    hdrs = ["worker_wrapper.h"],
+    hdrs = ["worker_wrapper_impl.h"],
     functions = [
         "InitFromSerializedData",
         "Run",
@@ -91,8 +91,8 @@ sapi_library(
         "Stop",
     ],
     generator_version = 1,
-    input_files = ["worker_wrapper.cc"],
-    lib = ":worker_wrapper",
+    input_files = ["worker_wrapper_impl.cc"],
+    lib = ":worker_wrapper_impl",
     lib_name = "WorkerWrapper",
     malloc = "@com_google_tcmalloc//tcmalloc",
     namespace = "google::scp::roma::sandbox::worker_api",
@@ -184,15 +184,15 @@ cc_test(
 )
 
 cc_test(
-    name = "worker_wrapper_benchmark",
+    name = "worker_wrapper_impl_benchmark",
     timeout = "eternal",
-    srcs = ["worker_wrapper_benchmark.cc"],
+    srcs = ["worker_wrapper_impl_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
         ":error_codes",
         ":worker_init_params_cc_proto",
-        ":worker_wrapper",
+        ":worker_wrapper_impl",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
         "@com_google_sandboxed_api//sandboxed_api:lenval_core",
@@ -202,13 +202,13 @@ cc_test(
 )
 
 cc_test(
-    name = "worker_wrapper_test",
+    name = "worker_wrapper_impl_test",
     size = "medium",
-    srcs = ["worker_wrapper_test.cc"],
+    srcs = ["worker_wrapper_impl_test.cc"],
     deps = [
         ":error_codes",
         ":worker_init_params_cc_proto",
-        ":worker_wrapper",
+        ":worker_wrapper_impl",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
         "@com_google_sandboxed_api//sandboxed_api:lenval_core",
