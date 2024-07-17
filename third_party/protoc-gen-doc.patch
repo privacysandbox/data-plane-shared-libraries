@@ -1,0 +1,15 @@
+diff --git a/renderer.go b/renderer.go
+index eba74c5..a34527d 100644
+--- a/renderer.go
++++ b/renderer.go
+@@ -81,6 +81,10 @@ var funcMap = map[string]interface{}{
+ 	"anchor": AnchorFilter,
+ }
+ 
++func AddFunction(name string, fn interface{}) {
++	funcMap[name] = fn
++}
++
+ // Processor is an interface that is satisfied by all built-in processors (text, html, and json).
+ type Processor interface {
+ 	Apply(template *Template) ([]byte, error)

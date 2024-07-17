@@ -150,10 +150,13 @@ def go_dependencies():
         sum = "h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=",
         version = "v1.0.0",
     )
-
     go_repository(
         name = "com_github_pseudomuto_protoc_gen_doc",
         importpath = "github.com/pseudomuto/protoc-gen-doc",
+        patch_args = ["-p1"],
+        patches = [
+            Label("//third_party:protoc-gen-doc.patch"),
+        ],
         sum = "h1:Ah259kcrio7Ix1Rhb6u8FCaOkzf9qRBqXnvAufg061w=",
         version = "v1.5.1",
     )
