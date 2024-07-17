@@ -50,21 +50,12 @@ class Dispatcher {
       Metadata metadata, const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback)
       ABSL_LOCKS_EXCLUDED(mu_) {
-    int fd;
     {
-      auto fn = [&] {
-        mu_.AssertReaderHeld();
-        return !code_token_to_fds_[code_token].empty();
-      };
       absl::MutexLock l(&mu_);
-      mu_.Await(absl::Condition(&fn));
-      auto& fds = code_token_to_fds_[code_token];
-      fd = fds.front();
-      fds.pop();
       ++executor_threads_in_flight_;
     }
-    std::thread(&Dispatcher::ExecutorImpl, this, fd, serialized_request,
-                std::move(callback),
+    std::thread(&Dispatcher::ExecutorImpl, this, code_token,
+                std::move(serialized_request), std::move(callback),
                 [&table, metadata = std::move(metadata)](
                     std::string_view function, auto& io_proto) {
                   if (const auto it = table.find(function); it != table.end()) {
@@ -86,7 +77,7 @@ class Dispatcher {
   // and pushes file descriptors to the queue.
   void AcceptorImpl() ABSL_LOCKS_EXCLUDED(mu_);
   void ExecutorImpl(
-      int fd, std::string_view serialized_request,
+      std::string_view code_token, std::string_view serialized_request,
       absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
       absl::FunctionRef<void(std::string_view,
                              google::scp::roma::proto::FunctionBindingIoProto&)>

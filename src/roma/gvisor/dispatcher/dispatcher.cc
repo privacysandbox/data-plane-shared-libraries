@@ -117,10 +117,22 @@ void RunCallback(
 }  // namespace
 
 void Dispatcher::ExecutorImpl(
-    const int fd, std::string_view serialized_request,
+    std::string_view code_token, std::string_view serialized_request,
     absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
         handler) {
+  int fd;
+  {
+    auto fn = [&] {
+      mu_.AssertReaderHeld();
+      return !code_token_to_fds_[code_token].empty();
+    };
+    absl::MutexLock l(&mu_);
+    mu_.Await(absl::Condition(&fn));
+    auto& fds = code_token_to_fds_[code_token];
+    fd = fds.front();
+    fds.pop();
+  }
   {
     FileOutputStream output(fd);
     CodedOutputStream coded_output(&output);
