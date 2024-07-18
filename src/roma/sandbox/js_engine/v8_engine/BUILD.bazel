@@ -201,3 +201,37 @@ cc_test(
         "@v8//:v8_icu",
     ],
 )
+
+cc_library(
+    name = "arraybuffer",
+    hdrs = [
+        "arraybuffer.h",
+        "arraybuffer_js.h",
+    ],
+    deps = [
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_test(
+    name = "arraybuffer_test",
+    size = "small",
+    srcs = [
+        "arraybuffer_test.cc",
+    ],
+    data = [
+        "//src/roma/benchmark/flatbuffers:kvdata",
+    ],
+    deps = [
+        ":arraybuffer",
+        "//src/roma/benchmark/flatbuffers:arraybuffer_flatbuffer_js_lib",
+        "//src/util:process_util",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+        "@v8//:v8_icu",
+    ],
+)

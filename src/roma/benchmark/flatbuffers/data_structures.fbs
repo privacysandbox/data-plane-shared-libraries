@@ -1,15 +1,24 @@
 namespace privacysandbox_roma_benchmarks;
 
-table KeyValue {
+table KeyValueKey {
+  key:string (key);
+  val:string;
+}
+
+table KeyValueStr {
   key:string;
   val:string;
 }
 
-table KVData {
-  kv:[KeyValue];
+table KVStrData {
+  kv:[KeyValueStr];
 }
 
-table KVDataSplit {
+table KVKeyData {
+  kv:[KeyValueKey];
+}
+
+table KVDataParallel {
   keys:[string];
   vals:[string];
 }

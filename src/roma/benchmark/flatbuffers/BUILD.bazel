@@ -16,7 +16,7 @@ load("@aspect_rules_esbuild//esbuild:defs.bzl", "esbuild")
 load("@bazel_skylib//rules:run_binary.bzl", "run_binary")
 load("@com_github_google_flatbuffers//:build_defs.bzl", "flatbuffer_cc_library")
 load("@com_github_google_flatbuffers//:typescript.bzl", "flatbuffer_ts_library")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 flatbuffer_cc_library(
     name = "data_structures_cc_fbs",
@@ -58,6 +58,36 @@ esbuild(
     target = "esnext",
 )
 
+genrule(
+    name = "arraybuffer_flatbuffer_js_h",
+    srcs = [
+        ":data_structures_js_app",
+    ],
+    outs = ["arraybuffer_flatbuffer_js.h"],
+    cmd = """
+{
+  cat <<EOF
+#ifndef ROMA_BENCHMARK_FLATBUFFERS_DATA_STRUCTURES_JS_H_
+#define ROMA_BENCHMARK_FLATBUFFERS_DATA_STRUCTURES_JS_H_
+
+#include <string_view>
+
+inline constexpr std::string_view kFlatbufferJs = R"JS_CODE(
+EOF
+  cat $(location :data_structures_js_app)/data_structures.js
+  cat <<EOF
+)JS_CODE";
+#endif  // ROMA_BENCHMARK_FLATBUFFERS_DATA_STRUCTURES_JS_H_
+EOF
+} >$@""",
+)
+
+cc_library(
+    name = "arraybuffer_flatbuffer_js_lib",
+    hdrs = [":arraybuffer_flatbuffer_js.h"],
+    visibility = ["//visibility:public"],
+)
+
 cc_binary(
     name = "generate_flatbuffers_kvstruct",
     srcs = ["generate_flatbuffers_kvstruct.cc"],
@@ -74,17 +104,31 @@ cc_binary(
 kvdata_entries = [
     (
         num_entries,
-        generate_js,
-        "kvdata_fbs_" + num_abbrev + fname_ext,
+        "false" if generate_js == "true" and num_entries > 100000 else generate_js,
+        data_layout,
+        "{}_{}_{}{}".format(
+            data_layout.lower(),
+            fname_middle,
+            num_abbrev,
+            fname_ext,
+        ),
     )
     for num_entries, num_abbrev in (
         (1000, "1K"),
+        (10000, "10K"),
         (100000, "100K"),
         (1000000, "1M"),
+        (5000000, "5M"),
+        (10000000, "10M"),
     )
-    for generate_js, fname_ext in [
-        ("true", ".js"),
-        ("false", ".fbs"),
+    for data_layout in (
+        "KVStrData",
+        "KVKeyData",
+        "KVDataParallel",
+    )
+    for generate_js, fname_middle, fname_ext in [
+        ("true", "benchmark", ".js"),
+        ("false", "fbs", ".fbs"),
     ]
 ]
 
@@ -96,30 +140,29 @@ kvdata_entries = [
             "--num_entries={}".format(num_entries),
             "--generate_js={}".format(generate_js),
             "--output_file=$(location {})".format(fname),
+            "--data_layout={}".format(data_layout),
         ],
         tool = ":generate_flatbuffers_kvstruct",
     )
-    for num_entries, generate_js, fname in kvdata_entries
+    for num_entries, generate_js, data_layout, fname in kvdata_entries
 ]
 
 filegroup(
     name = "kvdata",
-    srcs = [fname for _, _, fname in kvdata_entries],
+    srcs = [":{}".format(fname) for _, generate_js, _, fname in kvdata_entries if generate_js == "false"],
     visibility = ["//visibility:public"],
 )
 
 [
     genrule(
-        name = "kvdata_benchmark_{}_js".format(num_entries),
+        name = fname.replace("_benchmark_", "_benchmark_udf_").replace(".", "_"),
         srcs = [
             ":text_decoder_bundle",
             ":data_structures_js_app",
             ":kvdata_benchmark.js",
             ":{}".format(fname),
         ],
-        outs = [
-            "kvdata_benchmark_udf_{}.js".format(num_entries),
-        ],
+        outs = [fname.replace("_benchmark_", "_benchmark_udf_")],
         cmd = """
 {
   cat $(location :text_decoder_bundle)/text_decoder.js
@@ -128,11 +171,15 @@ filegroup(
   sed -e '/^  const fbs_data_b64 = /r $(location :""" + fname + """)' -e '/^  const fbs_data_b64 = /d' $(location :kvdata_benchmark.js)
 } >$@""",
     )
-    for num_entries, generate_js, fname in kvdata_entries
+    for num_entries, generate_js, data_layout, fname in kvdata_entries
     if generate_js == "true"
 ]
 
 filegroup(
     name = "kvdata_js",
-    srcs = ["kvdata_benchmark_{}_js".format(num_entries) for num_entries, generate_js, _ in kvdata_entries if generate_js == "true"],
+    srcs = [
+        ":{}".format(fname.replace("_benchmark_", "_benchmark_udf_"))
+        for num_entries, generate_js, _, fname in kvdata_entries
+        if generate_js == "true"
+    ],
 )
