@@ -14,53 +14,24 @@
  * limitations under the License.
  */
 
+#ifndef ROMA_TOOLS_V8_CLI_UTILS_H_
+#define ROMA_TOOLS_V8_CLI_UTILS_H_
+
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include "absl/container/flat_hash_set.h"
-#include "absl/flags/flag.h"
-#include "absl/flags/parse.h"
-#include "absl/strings/match.h"
-
 namespace google::scp::roma::tools::v8_cli {
 constexpr std::string_view kFlagPrefix = "--";
 
+constexpr std::string_view kTestDoublesLibraryPath =
+    "src/roma/tools/v8_cli/test_doubles_library.js";
+
 bool IsCustomFlag(const std::vector<std::string>& custom_flags,
-                  std::string_view flag) {
-  for (const auto& custom_flag : custom_flags) {
-    if (absl::StartsWith(flag, custom_flag)) {
-      return false;
-    }
-  }
-  return true;
-}
+                  std::string_view flag);
 
 std::vector<std::string> ExtractAndSanitizeCustomFlags(
-    int argc, char* argv[], const std::vector<std::string>& absl_flags) {
-  std::vector<std::string> custom_flags;
-  // Sanitized V8 flags to be passed to the RomaService.
-  std::vector<std::string> sanitized_custom_flags;
-  absl::flat_hash_set<std::string> processed_flags;
-  for (int i = 1; i < argc; i++) {
-    std::string_view flag = argv[i];
-    std::string_view flag_clean = flag;
-    if (const size_t eq_pos = flag_clean.find('='); eq_pos != flag_clean.npos) {
-      flag_clean.remove_suffix(flag_clean.size() - eq_pos);
-    }
-    if (!absl::StartsWith(flag_clean, kFlagPrefix)) {
-      continue;
-    }
-    flag_clean.remove_prefix(kFlagPrefix.size());
-    if (!processed_flags.contains(flag_clean) &&
-        IsCustomFlag(absl_flags, flag)) {
-      processed_flags.insert(std::string(flag_clean));
-      sanitized_custom_flags.push_back(std::string(flag_clean));
-      custom_flags.push_back(std::string(flag));
-    }
-  }
-  absl::SetFlag(&FLAGS_undefok, sanitized_custom_flags);
-  return custom_flags;
-}
-
+    int argc, char* argv[], const std::vector<std::string>& absl_flags);
 }  // namespace google::scp::roma::tools::v8_cli
+
+#endif  // ROMA_TOOLS_V8_CLI_UTILS_H_

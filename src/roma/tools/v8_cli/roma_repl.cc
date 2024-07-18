@@ -40,6 +40,7 @@
 #include "absl/types/span.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/interface/roma.h"
+#include "src/roma/tools/v8_cli/utils.h"
 #include "src/util/duration.h"
 
 using google::scp::core::common::ToString;
@@ -47,6 +48,7 @@ using google::scp::core::common::Uuid;
 using google::scp::roma::CodeObject;
 using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
+using google::scp::roma::tools::v8_cli::kTestDoublesLibraryPath;
 namespace {
 
 constexpr std::string_view kCommandsMessage =
@@ -164,7 +166,8 @@ namespace google::scp::roma::tools::v8_cli {
 
 void RomaRepl::Load(RomaSvc* roma_service, std::string_view version_str,
                     std::string_view udf_file_path) {
-  std::string js = GetUDF(udf_file_path);
+  std::string js =
+      absl::StrCat(GetUDF(kTestDoublesLibraryPath), GetUDF(udf_file_path));
   if (js.empty()) {
     std::cout << "Empty UDF cannot be loaded. Please try again. " << std::endl;
     return;

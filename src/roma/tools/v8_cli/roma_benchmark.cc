@@ -29,6 +29,7 @@
 #include "absl/log/check.h"
 #include "absl/log/initialize.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
@@ -45,6 +46,7 @@ using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::tools::v8_cli::ExtractAndSanitizeCustomFlags;
+using google::scp::roma::tools::v8_cli::kTestDoublesLibraryPath;
 
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 constexpr std::string_view kVersionStr = "v1";
@@ -80,13 +82,23 @@ ABSL_FLAG(std::string, entrypoint, "", "The entrypoint JS function.");
 
 std::unique_ptr<RomaService<>> roma_service;
 
+std::string GetUDF(std::string_view path) {
+  std::ifstream input_str(path.data());
+  std::string js((std::istreambuf_iterator<char>(input_str)),
+                 (std::istreambuf_iterator<char>()));
+
+  CHECK(!js.empty()) << "Could not open file: " << path;
+  return js;
+}
+
 void LoadCodeObj(std::string_view js) {
   absl::Notification load_finished;
+  std::string library_code = GetUDF(kTestDoublesLibraryPath);
 
   auto code_obj = std::make_unique<CodeObject>(CodeObject{
       .id = ToString(Uuid::GenerateUuid()),
       .version_string = std::string(kVersionStr),
-      .js = std::string(js),
+      .js = absl::StrCat(library_code, js),
   });
   CHECK_OK(roma_service->LoadCodeObj(std::move(code_obj),
                                      [&](absl::StatusOr<ResponseObject> resp) {
@@ -120,12 +132,7 @@ std::vector<std::string> ReadJsonArray(const std::string& filePath) {
 }
 
 void BM_Load(benchmark::State& state) {
-  std::ifstream input_str(absl::GetFlag(FLAGS_udf_file_path));
-  std::string js((std::istreambuf_iterator<char>(input_str)),
-                 (std::istreambuf_iterator<char>()));
-
-  CHECK(!js.empty()) << "Could not open file: "
-                     << absl::GetFlag(FLAGS_udf_file_path);
+  std::string js = GetUDF(absl::GetFlag(FLAGS_udf_file_path));
 
   for (auto _ : state) {
     LoadCodeObj(js);
@@ -133,12 +140,7 @@ void BM_Load(benchmark::State& state) {
 }
 
 void BM_Execute(benchmark::State& state) {
-  std::ifstream input_str(absl::GetFlag(FLAGS_udf_file_path));
-  std::string js((std::istreambuf_iterator<char>(input_str)),
-                 (std::istreambuf_iterator<char>()));
-
-  CHECK(!js.empty()) << "Could not open file: "
-                     << absl::GetFlag(FLAGS_udf_file_path);
+  std::string js = GetUDF(absl::GetFlag(FLAGS_udf_file_path));
 
   LoadCodeObj(js);
   std::vector<std::string> input =
