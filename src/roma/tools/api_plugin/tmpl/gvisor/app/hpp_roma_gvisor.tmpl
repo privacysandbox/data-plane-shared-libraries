@@ -67,6 +67,22 @@ class {{$svcName}} final :
     return {{$svcName}}<TMetadata>(std::move(roma_service));
   }
 
+  /**
+   * @brief Registers a new binary asynchronously from the provided `code_path`.
+   *
+   * @paragraph Once the load operation has been completed, notification will be
+   * sent via absl::Notification namely `notification`. If load is successful,
+   * the load_status will be populated with an ok status else with the error
+   * status and message. If load is successful, registered service can be called
+   * on the code using the `code_token` returned by this function.
+   *
+   * @param code_path path to the binary to be loaded into the sandbox.
+   * @param notification notifies once `load_status` is available.
+   * @param load_status is populated with the status of load once load is
+   * completed. If the status is ok, then `code_token` returned by this function
+   * can be used for calling this binary in subsequent execution requests.
+   * @return absl::StatusOr<std::string> returns the `code_token`.
+   */
   absl::StatusOr<std::string> Register(std::string_view code_path,
                                        absl::Notification& notification,
                                        absl::Status& load_status) {
@@ -80,10 +96,20 @@ class {{$svcName}} final :
   {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
   {{- $respType := $rpc.ResponseFullType | replace "." "::" | printf "::%s" }}
   /*
+   * @brief Executes {{$rpc.Name}} referred to by the provided `code_token`
+   * asynchronously.
+   *
    * {{$rpc.Name}}
    * {{- $rpc.Description}}
-   * request: {{$reqType}}
-   * response: {{$respType}}
+   *
+   * @param notification notifies that `response` is available.
+   * @param request {{$reqType}} for the binary.
+   * @param response populated with the status once execution is completed. If
+   * the status is ok, then `{{$respType}}` returned by this function contains
+   * the response else the error.
+   * @param metadata for execution request. It is a templated type.
+   * @param code_token identifier provided by load of the binary to be executed.
+   * @return absl::Status
    */
   absl::Status {{$rpc.Name}}(
       absl::Notification& notification, const {{$reqType}}& request,
