@@ -16,6 +16,21 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("//src/roma/tools/v8_cli:template_replace.bzl", "template_replace")
 
 cc_binary(
+    name = "prime_sieve_benchmark",
+    srcs = ["prime_sieve_benchmark.cc"],
+    deps = [
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
     name = "sort_list_benchmark",
     srcs = ["sort_list_benchmark.cc"],
     deps = [
