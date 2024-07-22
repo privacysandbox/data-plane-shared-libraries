@@ -129,7 +129,7 @@ cc_test(
     data = [
         "//src/roma/testing/cpp_wasm_allocate_memory",
         "//src/roma/testing/cpp_wasm_erroneous_code_example",
-        "//src/roma/testing/cpp_wasm_hello_world_example",
+        "//src/roma/testing/cpp_wasm_hello_world_with_logging_example",
         "//src/roma/testing/cpp_wasm_string_in_string_out_example",
     ],
     tags = [

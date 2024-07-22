@@ -60,7 +60,7 @@ TEST(WasmTest, CanExecuteWasmCode) {
   absl::Notification execute_finished;
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./src/roma/testing/"
+      "src/roma/testing/"
       "cpp_wasm_string_in_string_out_example/"
       "string_in_string_out.wasm");
   {
@@ -117,7 +117,7 @@ TEST(WasmTest, ReportsWasmStacktrace) {
   absl::Notification execute_finished;
 
   auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-      "./src/roma/testing/"
+      "src/roma/testing/"
       "cpp_wasm_erroneous_code_example/"
       "erroneous_code.wasm");
   {
@@ -189,8 +189,8 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
   log.StartCapturingLogs();
   {
     const std::string inline_wasm_js = WasmTestingUtils::LoadJsWithWasmFile(
-        "./src/roma/testing/cpp_wasm_hello_world_example/"
-        "cpp_wasm_hello_world_example_generated.js");
+        "src/roma/testing/cpp_wasm_hello_world_with_logging_example/"
+        "cpp_wasm_hello_world_with_logging_example_generated.js");
 
     const std::string udf = R"(
       async function HandleRequest(input, log_input, err_input) {
@@ -265,7 +265,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
     ASSERT_TRUE(roma_service.Init().ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-        "./src/roma/testing/"
+        "src/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
     absl::Notification load_finished;
@@ -309,7 +309,7 @@ TEST(WasmTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
     ASSERT_TRUE(roma_service.Init().ok());
 
     auto wasm_bin = WasmTestingUtils::LoadWasmFile(
-        "./src/roma/testing/"
+        "src/roma/testing/"
         "cpp_wasm_allocate_memory/allocate_memory.wasm");
 
     absl::Notification load_finished;

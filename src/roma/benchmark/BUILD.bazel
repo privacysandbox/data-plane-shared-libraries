@@ -142,6 +142,7 @@ cc_binary(
     name = "kv_server_udf_benchmark_test",
     srcs = ["kv_server_udf_benchmark.cc"],
     data = [
+        "//src/roma/testing/cpp_wasm_hello_world_example",
         "//src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example",
     ],
     malloc = "@com_google_tcmalloc//tcmalloc",

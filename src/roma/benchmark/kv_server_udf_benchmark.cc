@@ -142,10 +142,30 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
                        state);
 }
 
+void BM_ExecuteWasmHelloWorld(benchmark::State& state) {
+  const std::string inline_wasm_js =
+      google::scp::roma::wasm::testing::WasmTestingUtils::LoadJsWithWasmFile(
+          "src/roma/testing/cpp_wasm_hello_world_example/"
+          "cpp_wasm_hello_world_example_generated.js");
+
+  const std::string udf = R"(
+async function HandleRequest() {
+  const module = await getModule();
+
+  const result = module.HelloClass.SayHello();
+  return result;
+}
+)";
+
+  std::string code = absl::StrCat(inline_wasm_js, udf);
+  std::string handler_name = "HandleRequest";
+  ExecuteCodeBenchmark(code, handler_name, state);
+}
+
 void BM_ExecuteWasmPrimeSieve(benchmark::State& state) {
   const std::string inline_wasm_js =
       google::scp::roma::wasm::testing::WasmTestingUtils::LoadJsWithWasmFile(
-          "./src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example/"
+          "src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example/"
           "cpp_wasm_sieve_of_eratosthenes_example_generated.js");
 
   const std::string udf = R"(
@@ -177,6 +197,7 @@ BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
 BENCHMARK(BM_ExecuteHelloWorld);
 BENCHMARK(BM_ExecuteHelloWorldCallback);
 BENCHMARK(BM_ExecutePrimeSieve);
+BENCHMARK(BM_ExecuteWasmHelloWorld);
 BENCHMARK(BM_ExecuteWasmPrimeSieve);
 
 // Run the benchmark
