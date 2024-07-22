@@ -148,3 +148,28 @@ cc_test(
         "@com_google_googletest//:gtest_main",
     ],
 )
+
+cc_library(
+    name = "framing_utils",
+    srcs = [
+        "framing_utils.cc",
+    ],
+    hdrs = [
+        "framing_utils.h",
+    ],
+    deps = [
+        "@com_google_absl//absl/numeric:bits",
+    ],
+)
+
+cc_test(
+    name = "framing_utils_test",
+    size = "small",
+    srcs = [
+        "framing_utils_test.cc",
+    ],
+    deps = [
+        ":framing_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
