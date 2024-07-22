@@ -23,7 +23,7 @@
 
 #include "absl/log/check.h"
 #include "absl/log/initialize.h"
-#include "absl/strings/str_cat.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
@@ -35,47 +35,35 @@ using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
 namespace {
-void BM_PayloadSizeUdf(::benchmark::State& state) {
+void BM_SortNumberListUdf(::benchmark::State& state) {
   Config<> config;
   config.number_of_workers = 2;
   RomaService<> roma_service(std::move(config));
   CHECK_OK(roma_service.Init());
   {
     absl::Notification done;
-    CHECK_OK(roma_service.LoadCodeObj(std::make_unique<CodeObject>(CodeObject{
-                                          .id = "foo",
-                                          .version_string = "v1",
-                                          .js = R"(
-  function sort(numbers) {
-    numbers.sort();
-    return numbers;
+    CHECK_OK(
+        roma_service.LoadCodeObj(std::make_unique<CodeObject>(CodeObject{
+                                     .id = "foo",
+                                     .version_string = "v1",
+                                     .js = absl::Substitute(R"(
+  numbers = Array.from({length: $0}, () => Math.random())
+  function sort() {
+    numbers.sort((a, b) => a - b);
   }
 )",
-                                      }),
-                                      [&done](auto response) {
-                                        CHECK_OK(response);
-                                        done.Notify();
-                                      }));
+                                                            state.range(0)),
+                                 }),
+                                 [&done](auto response) {
+                                   CHECK_OK(response);
+                                   done.Notify();
+                                 }));
     done.WaitForNotification();
   }
-  std::vector<int> items(state.range(0));
-  {
-    static std::uniform_int_distribution<int> distribution(
-        std::numeric_limits<int>::min(), std::numeric_limits<int>::max());
-    static std::default_random_engine generator;
-    std::generate(items.begin(), items.end(),
-                  [] { return distribution(generator); });
-  }
-  std::string input = "[";
-  for (int i = 0; i < items.size(); ++i) {
-    absl::StrAppend(&input, items[i], ", ");
-  }
-  absl::StrAppend(&input, items.back(), "]");
   const InvocationStrRequest<> request{
       .id = "foo",
       .version_string = "v1",
       .handler_name = "sort",
-      .input = {std::move(input)},
   };
   for (auto _ : state) {
     absl::Notification done;
@@ -91,7 +79,7 @@ void BM_PayloadSizeUdf(::benchmark::State& state) {
 }
 }  // namespace
 
-BENCHMARK(BM_PayloadSizeUdf)->Arg(10'000)->Arg(100'000)->Arg(1'000'000);
+BENCHMARK(BM_SortNumberListUdf)->Arg(10'000)->Arg(100'000)->Arg(1'000'000);
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
