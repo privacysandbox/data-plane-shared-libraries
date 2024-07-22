@@ -35,10 +35,12 @@ cc_binary(
 cc_binary(
     name = "sort_list_benchmark",
     srcs = ["sort_list_benchmark.cc"],
+    data = ["//src/roma/testing/cpp_wasm_sort_list_example"],
     deps = [
         "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",

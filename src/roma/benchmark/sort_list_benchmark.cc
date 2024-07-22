@@ -28,6 +28,7 @@
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
+#include "src/roma/wasm/testing_utils.h"
 
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
@@ -35,7 +36,7 @@ using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
 namespace {
-void BM_SortNumberListUdf(::benchmark::State& state) {
+void BM_SortNumbersListUdfJs(::benchmark::State& state) {
   Config<> config;
   config.number_of_workers = 2;
   RomaService<> roma_service(std::move(config));
@@ -77,9 +78,59 @@ void BM_SortNumberListUdf(::benchmark::State& state) {
   }
   CHECK_OK(roma_service.Stop());
 }
+
+void BM_SortNumbersListUdfWasm(::benchmark::State& state) {
+  Config<> config;
+  config.number_of_workers = 2;
+  RomaService<> roma_service(std::move(config));
+  CHECK_OK(roma_service.Init());
+  {
+    absl::Notification done;
+    CHECK_OK(roma_service.LoadCodeObj(
+        std::make_unique<CodeObject>(CodeObject{
+            .id = "foo",
+            .version_string = "v1",
+            .js = absl::StrCat(
+                google::scp::roma::wasm::testing::WasmTestingUtils::
+                    LoadJsWithWasmFile(
+                        "src/roma/testing/cpp_wasm_sort_list_example/"
+                        "cpp_wasm_sort_list_example_generated.js"),
+                absl::Substitute(R"(
+  numbers = Array.from({length: $0}, () => Math.random())
+  async function sort() {
+    const module = await getModule();
+    module.SortListClass.SortList(numbers);
+  }
+)",
+                                 state.range(0))),
+        }),
+        [&done](auto response) {
+          CHECK_OK(response);
+          done.Notify();
+        }));
+    done.WaitForNotification();
+  }
+  const InvocationStrRequest<> request{
+      .id = "foo",
+      .version_string = "v1",
+      .handler_name = "sort",
+  };
+  for (auto _ : state) {
+    absl::Notification done;
+    CHECK_OK(
+        roma_service.Execute(std::make_unique<InvocationStrRequest<>>(request),
+                             [&done](auto response) {
+                               CHECK_OK(response);
+                               done.Notify();
+                             }));
+    done.WaitForNotification();
+  }
+  CHECK_OK(roma_service.Stop());
+}
 }  // namespace
 
-BENCHMARK(BM_SortNumberListUdf)->Arg(10'000)->Arg(100'000)->Arg(1'000'000);
+BENCHMARK(BM_SortNumbersListUdfJs)->Arg(10'000)->Arg(100'000)->Arg(1'000'000);
+BENCHMARK(BM_SortNumbersListUdfWasm)->Arg(10'000)->Arg(100'000)->Arg(1'000'000);
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
