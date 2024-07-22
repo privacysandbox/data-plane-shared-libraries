@@ -18,10 +18,12 @@ load("//src/roma/tools/v8_cli:template_replace.bzl", "template_replace")
 cc_binary(
     name = "prime_sieve_benchmark",
     srcs = ["prime_sieve_benchmark.cc"],
+    data = ["//src/roma/testing/cpp_wasm_prime_sieve_n_example"],
     deps = [
         "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",

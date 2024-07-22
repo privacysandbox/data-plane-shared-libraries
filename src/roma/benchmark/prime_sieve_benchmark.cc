@@ -18,11 +18,13 @@
 
 #include "absl/log/check.h"
 #include "absl/log/initialize.h"
+#include "absl/strings/str_cat.h"
 #include "absl/strings/substitute.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
+#include "src/roma/wasm/testing_utils.h"
 
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
@@ -30,7 +32,7 @@ using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
 namespace {
-void BM_PrimeSieveUdf(::benchmark::State& state) {
+void BM_PrimeSieveUdfJs(::benchmark::State& state) {
   Config<> config;
   config.number_of_workers = 2;
   RomaService<> roma_service(std::move(config));
@@ -103,9 +105,77 @@ void BM_PrimeSieveUdf(::benchmark::State& state) {
   }
   CHECK_OK(roma_service.Stop());
 }
+
+void BM_PrimeSieveUdfWasm(::benchmark::State& state) {
+  Config<> config;
+  config.number_of_workers = 2;
+  RomaService<> roma_service(std::move(config));
+  CHECK_OK(roma_service.Init());
+  {
+    absl::Notification done;
+    CHECK_OK(roma_service.LoadCodeObj(
+        std::make_unique<CodeObject>(CodeObject{
+            .id = "foo",
+            .version_string = "v1",
+            .js = absl::StrCat(
+                google::scp::roma::wasm::testing::WasmTestingUtils::
+                    LoadJsWithWasmFile(
+                        "./src/roma/testing/cpp_wasm_prime_sieve_n_example/"
+                        "cpp_wasm_prime_sieve_n_example_generated.js"),
+                R"(
+  async function sieve(n) {
+    const module = await getModule();
+    return module.PrimeSieveClass.PrimeSieve(n);
+  }
+)"),
+        }),
+        [&done](auto response) {
+          CHECK_OK(response);
+          done.Notify();
+        }));
+    done.WaitForNotification();
+  }
+  const InvocationStrRequest<> request{
+      .id = "foo",
+      .version_string = "v1",
+      .handler_name = "sieve",
+      .input = {absl::StrCat(state.range(0))},
+  };
+  {
+    absl::Notification done;
+    CHECK_OK(roma_service.Execute(
+        std::make_unique<InvocationStrRequest<>>(request),
+        [&done](auto response) {
+          CHECK_OK(response);
+          int largest_prime;
+          CHECK(absl::SimpleAtoi(response->resp, &largest_prime));
+          CHECK_GT(largest_prime, 0);
+          done.Notify();
+        }));
+    done.WaitForNotification();
+  }
+  for (auto _ : state) {
+    absl::Notification done;
+    CHECK_OK(
+        roma_service.Execute(std::make_unique<InvocationStrRequest<>>(request),
+                             [&done](auto response) {
+                               CHECK_OK(response);
+                               done.Notify();
+                             }));
+    done.WaitForNotification();
+  }
+  CHECK_OK(roma_service.Stop());
+}
 }  // namespace
 
-BENCHMARK(BM_PrimeSieveUdf)
+BENCHMARK(BM_PrimeSieveUdfJs)
+    ->Arg(100'000)
+    ->Arg(500'000)
+    ->Arg(1'000'000)
+    ->Arg(5'000'000)
+    ->Arg(10'000'000);
+
+BENCHMARK(BM_PrimeSieveUdfWasm)
     ->Arg(100'000)
     ->Arg(500'000)
     ->Arg(1'000'000)

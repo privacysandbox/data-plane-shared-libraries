@@ -1,0 +1,6 @@
+load("//build_defs/cc:wasm.bzl", "cc_inline_wasm_udf_js")
+
+cc_inline_wasm_udf_js(
+    name = "cpp_wasm_prime_sieve_n_example",
+    srcs = ["prime_sieve.cc"],
+)
