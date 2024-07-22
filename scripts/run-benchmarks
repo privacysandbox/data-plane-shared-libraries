@@ -117,6 +117,7 @@ for tgt in "${targets[@]}"; do
   out_fname="${label%_test}".json
   # The logs are noisy from this test so use "grep -Fv" to hide them:
   "${TOOLS_DIR}"/bazel-debian run \
+    --config=benchmark \
     "${tgt}" \
     -- \
     --benchmark_out="/src/workspace/dist/benchmarks/${out_fname}" \

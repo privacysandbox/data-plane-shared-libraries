@@ -166,3 +166,15 @@ build:aws_aws --config=platform_aws
 
 build:non_prod --//:build_flavor=non_prod
 build:prod --//:build_flavor=prod
+
+# Enable optimized build.
+build:benchmark --compilation_mode=opt
+# Link the benchmark test binary statically.
+build:benchmark --dynamic_mode=off
+# Generate `-gmlt` level of debug information. This ensures that inlined
+# portions of the stacks and the source filename and line numbers are included
+# in the debug information and become available in `pprof` profiles.
+build:benchmark --copt=-gmlt
+# Disable (note the minus sign after the `=`) using `-fPIC` for binaries in
+# `opt` compilation mode.
+build:benchmark --features=-prefer_pic_for_opt_binaries
