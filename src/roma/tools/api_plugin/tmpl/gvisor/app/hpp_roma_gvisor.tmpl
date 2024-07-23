@@ -137,13 +137,12 @@ class {{$svcName}} final :
         },
         notification);
   }
+{{end}}
 
  private:
   std::unique_ptr<AppService> roma_service_;
   explicit {{$svcName}}(std::unique_ptr<AppService> roma_service)
     : roma_service_(std::move(roma_service)) {}
-
-{{end}}
 };
 
 }  // namespace {{$svcopts.CppNamespace}}
