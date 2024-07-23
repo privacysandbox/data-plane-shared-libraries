@@ -19,6 +19,8 @@ def bazel_rules_closure():
     maybe(
         http_archive,
         name = "io_bazel_rules_closure",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:rules_closure.patch")],
         sha256 = "40eea8724e1a2a380a98e6de6e114fcc931ced18814afe8c3aa1f0dc910da4f1",
         strip_prefix = "rules_closure-0.13.0",
         urls = [
