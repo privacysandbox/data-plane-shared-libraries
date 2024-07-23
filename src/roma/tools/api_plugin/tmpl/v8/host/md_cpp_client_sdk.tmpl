@@ -22,7 +22,7 @@
 {{- range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 <a name="{{$svc.FullName | anchor}}"></a>
-## Service: {{$svcopts.Romav8AppName}} (`{{$svc.FullName}}`)
+## Service: {{$svcopts.RomaAppName}} (`{{$svc.FullName}}`)
 `{{$svcopts.Description}}`
 
 ```c++

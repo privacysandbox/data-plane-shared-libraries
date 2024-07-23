@@ -27,7 +27,7 @@ service BenchmarkService {
     code_id: "app_api_roma_app_benchmark_v1",
     description: 'Benchmark',
     cpp_namespace: 'privacysandbox::benchmark',
-    romav8_app_name: 'BenchmarkServer',
+    roma_app_name: 'BenchmarkServer',
   };
 
   rpc Benchmark(BenchmarkRequest) returns (BenchmarkResponse) {

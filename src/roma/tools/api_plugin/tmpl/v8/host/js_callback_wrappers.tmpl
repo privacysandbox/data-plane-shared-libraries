@@ -31,15 +31,15 @@ goog.require('jspb.BinaryWriter');
 {{- range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 {{- if gt (len $svcopts.CppHostProcessCallbackIncludes) 0}}
-{{- $appPb := $svcopts.Romav8AppName | printf "%sPb" }}
+{{- $appPb := $svcopts.RomaAppName | printf "%sPb" }}
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-{{- $internalName := printf "%s%s_internal" $svcopts.Romav8AppName $rpc.Name | replace "." "_" | lower}}
+{{- $internalName := printf "%s%s_internal" $svcopts.RomaAppName $rpc.Name | replace "." "_" | lower}}
 /** @suppress {undefinedVars} */
 ( () => {
-if (typeof {{$svcopts.Romav8AppName}} !== 'undefined' && typeof {{$svcopts.Romav8AppName}}.{{$rpc.Name}} === 'function') {
-  var {{$internalName}} = {{$svcopts.Romav8AppName}}.{{$rpc.Name}};
+if (typeof {{$svcopts.RomaAppName}} !== 'undefined' && typeof {{$svcopts.RomaAppName}}.{{$rpc.Name}} === 'function') {
+  var {{$internalName}} = {{$svcopts.RomaAppName}}.{{$rpc.Name}};
 
-  {{$svcopts.Romav8AppName}}.{{$rpc.Name}} = function(req) {
+  {{$svcopts.RomaAppName}}.{{$rpc.Name}} = function(req) {
     var req_bytes = {{$appPb}}.ObjectToProtoBytes_{{$rpc.Name}}Request(req);
     var response_bytes = {{$internalName}}(req_bytes);
     return {{$appPb}}.ProtoBytesToObject_{{$rpc.Name}}Response(response_bytes);

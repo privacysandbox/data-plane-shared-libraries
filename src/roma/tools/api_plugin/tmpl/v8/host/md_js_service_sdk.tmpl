@@ -33,7 +33,7 @@
 {{- range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 <a name="{{$svc.FullName | anchor}}"></a>
-## Service: {{$svcopts.Romav8AppName}} (`{{$svc.FullName}}`)
+## Service: {{$svcopts.RomaAppName}} (`{{$svc.FullName}}`)
 {{- if $svcopts.Description}}
 Description: `{{$svcopts.Description}}`
 {{- end}}{{/*svcopts.Description*/}}
@@ -50,7 +50,7 @@ Description: `{{$svcopts.Description}}`
 {{- $respFullType := $rpc.ResponseFullType | printf "proto.%s" }}
 {{- $respType := $rpc.ResponseType }}
 
-#### Rpc Js Name: `{{$svcopts.Romav8AppName}}.{{$rpc.Name}}`
+#### Rpc Js Name: `{{$svcopts.RomaAppName}}.{{$rpc.Name}}`
 {{- if $rpc.Description}}
 Description: {{$rpc.Description}}
 {{- end}}

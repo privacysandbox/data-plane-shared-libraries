@@ -24,7 +24,7 @@ service InferenceService {
     code_id: "PAA_inference_roma_app_test_v1",
     description: 'An inference value server built to operate within Trusted Execution Environments',
     cpp_namespace: 'privacysandbox::bidding_auction::inference::roma_app_api',
-    romav8_app_name: 'InferenceServer'
+    roma_app_name: 'InferenceServer'
   };
 
   rpc RunInference(RunInferenceRequest) returns (RunInferenceResponse) {

@@ -32,11 +32,11 @@
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 
-var {{$svcopts.Romav8AppName}}Pb = {
+var {{$svcopts.RomaAppName}}Pb = {
 
 /*
  * service: {{$svc.FullName}}
- * romav8 app: {{$svcopts.Romav8AppName}}
+ * romav8 app: {{$svcopts.RomaAppName}}
  */
 
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}

@@ -85,11 +85,11 @@ const {{$msg.LongName}} = class {
 
 {{- range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
-{{- $appPb := $svcopts.Romav8AppName | printf "%sPb" }}
+{{- $appPb := $svcopts.RomaAppName | printf "%sPb" }}
 
 /*
  * service: {{$svc.FullName}}
- * romav8 app: {{$svcopts.Romav8AppName}}
+ * romav8 app: {{$svcopts.RomaAppName}}
  */
 /** @suppress {duplicate} */
 var {{$appPb}} = {

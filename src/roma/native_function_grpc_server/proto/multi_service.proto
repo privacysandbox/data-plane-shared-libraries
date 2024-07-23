@@ -26,7 +26,7 @@ service MultiService {
     name: 'Multi Server',
     description: 'Multi Server',
     cpp_namespace: 'privacysandbox::multi_server',
-    romav8_app_name: 'MultiServer',
+    roma_app_name: 'MultiServer',
     cpp_host_process_callback_includes: [
       'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
     ],

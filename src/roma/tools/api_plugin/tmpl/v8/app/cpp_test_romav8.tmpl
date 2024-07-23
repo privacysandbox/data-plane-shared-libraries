@@ -53,7 +53,7 @@ TEST(RomaV8App{{$svcName}}Test, {{$testName}}) {
   auto app_svc = {{$svcName}}<>::Create(std::move(config));
 
   constexpr std::string_view jscode = R"(
-    {{$svcopts.Romav8AppName}}.{{$rpc.Name}} = function(req) {
+    {{$svcopts.RomaAppName}}.{{$rpc.Name}} = function(req) {
       return {};
     };
   )";

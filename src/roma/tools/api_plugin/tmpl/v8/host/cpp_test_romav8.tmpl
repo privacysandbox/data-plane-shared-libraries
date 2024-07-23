@@ -61,7 +61,7 @@ TEST(RomaV8{{$svc.Name}}HostApiTest, Register{{$svc.Name}}HostApi) {
   const std::string js = R"(
         function Handler() {
           {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-          {{$svcopts.Romav8AppName}}.{{$rpc.Name}}();
+          {{$svcopts.RomaAppName}}.{{$rpc.Name}}();
           {{end}}{{/* rpc range */}}
         })";
 
@@ -109,7 +109,7 @@ TEST(RomaV8{{$svc.Name}}HostApiTest, Register{{$rpc.Name}}FunctionBinding) {
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(
     std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
-        .function_name = "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}",
+        .function_name = "{{$svcopts.RomaAppName}}.{{$rpc.Name}}",
         .function = {{$svcopts.CppNamespace}}::{{$rpc.Name}}FunctionBinding<DefaultMetadata>,
     }));
 
@@ -120,7 +120,7 @@ TEST(RomaV8{{$svc.Name}}HostApiTest, Register{{$rpc.Name}}FunctionBinding) {
   absl::Notification load_finished;
   const std::string js = R"(
         function Handler() {
-          return {{$svcopts.Romav8AppName}}.{{$rpc.Name}}();
+          return {{$svcopts.RomaAppName}}.{{$rpc.Name}}();
         })";
 
   absl::Status load_status = roma_service->LoadCodeObj(

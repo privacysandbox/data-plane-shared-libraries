@@ -29,14 +29,14 @@
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
-{{- $appPb := $svcopts.Romav8AppName | printf "%sPb" }}
+{{- $appPb := $svcopts.RomaAppName | printf "%sPb" }}
 
 /*
  * service: {{$svc.FullName}}
  * svc: {{$svc}}
  */
 /** @suppress {duplicate} */
-var {{$svcopts.Romav8AppName}} = {
+var {{$svcopts.RomaAppName}} = {
 
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
 {{- $reqFullType := $rpc.RequestFullType | printf "proto.%s" }}
@@ -49,7 +49,7 @@ var {{$svcopts.Romav8AppName}} = {
  */
   {{$rpc.Name}}Pb: function(pbReq) {
     const reqObj = {{$appPb}}.ProtoBytesToObject_{{$reqType}}(pbReq);
-    const respObj = {{$svcopts.Romav8AppName}}.{{$rpc.Name}}(reqObj);
+    const respObj = {{$svcopts.RomaAppName}}.{{$rpc.Name}}(reqObj);
     return {{$appPb}}.ObjectToProtoBytes_{{$respType}}(respObj);
   },
 

@@ -24,7 +24,7 @@ service KeyValueService {
     code_id: "app_api_roma_app_test_v1",
     description: 'A key-value server built to operate within Trusted Execution Environments',
     cpp_namespace: 'privacysandbox::kvserver::roma_app_api',
-    romav8_app_name: 'KvServer'
+    roma_app_name: 'KvServer'
   };
 
   rpc GetValues(GetValuesRequest) returns (GetValuesResponse) {

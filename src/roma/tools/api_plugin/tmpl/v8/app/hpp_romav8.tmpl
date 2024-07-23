@@ -99,7 +99,7 @@ class {{$svcName}} final :
       std::string_view code_token = "") override {
     return AppService::Execute(
         notification,
-        "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}Pb",
+        "{{$svcopts.RomaAppName}}.{{$rpc.Name}}Pb",
         request,
         response,
         std::move(metadata));

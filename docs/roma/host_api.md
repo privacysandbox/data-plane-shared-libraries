@@ -7,13 +7,13 @@ declaration and usage of C++ hook functions within JS.
 
 With this new Host Api functionality, Roma integrators can define a `service`, annotated with
 `privacysandbox.apis.roma.app_api.v1.roma_svc_annotation`. These annotations include
-`cpp_namespace`, `romav8_app_name`, and `cpp_host_process_callback_includes`, which are used to
+`cpp_namespace`, `roma_app_name`, and `cpp_host_process_callback_includes`, which are used to
 customize the generated C++ code.
 
 ### Service Properties
 
 -   `cpp_namespace` - Namespace of generated C++ code
--   `romav8_app_name` - Name for Service in JS
+-   `roma_app_name` - Name for Service in JS
 -   `cpp_host_process_callback_includes` - List of include paths to C++ hook function declarations
 -   `description` - (optional) Description of Host Api Service
 
@@ -23,7 +23,7 @@ customize the generated C++ code.
 service TestHostService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
     cpp_namespace: "privacysandbox::host_server"
-    romav8_app_name: "TestHostService"
+    roma_app_name: "TestHostService"
     cpp_host_process_callback_includes: "src/roma/native_function_grpc_server/proto/test_service_native_functions.h"
   };
 }
@@ -61,12 +61,12 @@ void cpp_namespace::RegisterHostApi(Config config);
 
 Which accepts a `Config` object and registers all RPC methods from that service to make them
 available from JS. In JS, each RPC method will be able to be invoked in the host process using
-`romav8_app_name.rpcName` (`TestHostService.NativeMethod` for example).
+`roma_app_name.rpcName` (`TestHostService.NativeMethod` for example).
 
 See `EncodeDecodeProtobufWithNativeCallback` in
 [test_service_roma_api_test.cc](/src/roma/native_function_grpc_server/proto/test_service_roma_api_test.cc)
 for an example that uses `RegisterHostApi` to register the host api for `test_host_service.proto`
-and then invokes the C++ hook function in the host process using `romav8_app_name.rpcName`.
+and then invokes the C++ hook function in the host process using `roma_app_name.rpcName`.
 
 ## Performance
 
