@@ -26,9 +26,11 @@
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/roma/interface/execution_token.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/helloworld.pb.h"
 
+using google::scp::roma::ExecutionToken;
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;
 
@@ -70,7 +72,7 @@ class HelloWorldApp
     return service;
   }
 
-  absl::Status Hello1(
+  absl::StatusOr<ExecutionToken> Hello1(
       absl::Notification& notification, const Request& request,
       absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>>& response,
       Metadata metadata = Metadata()) {
@@ -78,14 +80,14 @@ class HelloWorldApp
                    std::move(metadata));
   }
 
-  absl::Status Hello1(
+  absl::StatusOr<ExecutionToken> Hello1(
       absl::AnyInvocable<void(absl::StatusOr<HelloWorldApp::Response>)>
           callback,
       const Request& request, Metadata metadata = Metadata()) {
     return Execute(std::move(callback), "Hello1", request, std::move(metadata));
   }
 
-  absl::Status Hello2(
+  absl::StatusOr<ExecutionToken> Hello2(
       absl::Notification& notification, const Request& request,
       absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>>& response) {
     return Execute(notification, "Hello2", request, response);
@@ -230,6 +232,45 @@ TEST(RomaV8AppServiceTest, ErrorCanBeFetchedFromAbslStatusOrResponse) {
   execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
   EXPECT_FALSE(resp.ok());
   EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
+}
+
+TEST(RomaV8AppServiceTest, CanCancelAppApiRequest) {
+  absl::Notification load_finished;
+  absl::Status load_status;
+  google::scp::roma::Config config;
+  config.number_of_workers = 1;
+  auto app = HelloWorldApp::Create(std::move(config));
+  EXPECT_TRUE(app.ok());
+
+  constexpr std::string_view jscode = R"(
+    var Hello1 = function(input) {
+      const startTime = Date.now();
+      while (Date.now() - startTime < 1000) {}
+      return "Hello World";
+    }
+    var Hello2 = function(input) { return "Hello World" }
+  )";
+  const std::string input = "";
+
+  EXPECT_TRUE(
+      app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> resp1;
+  absl::Notification hello1_finished;
+  EXPECT_TRUE(app->Hello1(hello1_finished, input, resp1).ok());
+
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> resp2;
+  absl::Notification hello2_finished;
+  auto execution_token = app->Hello2(hello2_finished, input, resp2);
+  EXPECT_TRUE(execution_token.ok());
+  app->Cancel(*execution_token);
+
+  hello1_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  hello2_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_TRUE(resp1.ok());
+  EXPECT_FALSE(resp2.ok());
+  EXPECT_EQ(resp2.status().code(), absl::StatusCode::kCancelled);
 }
 
 }  // namespace google::scp::roma::test

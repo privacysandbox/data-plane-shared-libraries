@@ -40,6 +40,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "src/roma/interface/execution_token.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -79,6 +80,9 @@ class {{$svcName}} final :
 
   constexpr std::string_view GetRomaJsCode() { return roma_app_jscode; }
 
+  void Cancel(const google::scp::roma::ExecutionToken& token) {
+    AppService::Cancel(token);
+  }
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
   {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
@@ -89,7 +93,7 @@ class {{$svcName}} final :
    * request: {{$reqType}}
    * response: absl::StatusOr<std::unique_ptr<{{$respType}}>>
    */
-  absl::Status {{$rpc.Name}}(
+  absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::Notification& notification,
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
@@ -103,7 +107,7 @@ class {{$svcName}} final :
         std::move(metadata));
   }
 
-  absl::Status {{$rpc.Name}}(
+  absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),

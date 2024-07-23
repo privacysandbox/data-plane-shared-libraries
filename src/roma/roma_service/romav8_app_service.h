@@ -28,12 +28,16 @@
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/roma/interface/execution_token.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/roma/roma_service/romav8_proto_utils.h"
 #include "src/util/status_macro/status_macros.h"
 
 namespace google::scp::roma::romav8::app_api {
+
+using google::scp::roma::ExecutionToken;
+
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaV8AppService {
  public:
@@ -61,6 +65,8 @@ class RomaV8AppService {
 
   RomaService* GetRomaService() { return roma_service_.get(); }
 
+  void Cancel(const ExecutionToken& token) { roma_service_->Cancel(token); }
+
   /*
    * Args:
    *   notification --
@@ -87,11 +93,11 @@ class RomaV8AppService {
   }
 
   template <typename TRequest, typename TResponse>
-  absl::Status Execute(absl::Notification& notification,
-                       std::string_view handler_fn_name,
-                       const TRequest& request,
-                       absl::StatusOr<std::unique_ptr<TResponse>>& response,
-                       TMetadata metadata = TMetadata()) {
+  absl::StatusOr<ExecutionToken> Execute(
+      absl::Notification& notification, std::string_view handler_fn_name,
+      const TRequest& request,
+      absl::StatusOr<std::unique_ptr<TResponse>>& response,
+      TMetadata metadata = TMetadata()) {
     PS_ASSIGN_OR_RETURN(std::string encoded_request,
                         google::scp::roma::romav8::Encode(request));
     InvocationStrRequest<TMetadata> execution_obj = {
@@ -122,15 +128,14 @@ class RomaV8AppService {
       }
       notification.Notify();
     };
-    return roma_service_
-        ->Execute(std::make_unique<InvocationStrRequest<TMetadata>>(
-                      std::move(execution_obj)),
-                  std::move(execute_cb))
-        .status();
+    return roma_service_->Execute(
+        std::make_unique<InvocationStrRequest<TMetadata>>(
+            std::move(execution_obj)),
+        std::move(execute_cb));
   }
 
   template <typename TRequest, typename TResponse>
-  absl::Status Execute(
+  absl::StatusOr<ExecutionToken> Execute(
       absl::AnyInvocable<void(absl::StatusOr<TResponse>)> callback,
       std::string_view handler_fn_name, const TRequest& request,
       TMetadata metadata = TMetadata()) {
@@ -173,11 +178,10 @@ class RomaV8AppService {
           callback(std::move(template_response));
         };
 
-    return roma_service_
-        ->Execute(std::make_unique<InvocationStrRequest<TMetadata>>(
-                      std::move(execution_obj)),
-                  std::move(callback_wrapper))
-        .status();
+    return roma_service_->Execute(
+        std::make_unique<InvocationStrRequest<TMetadata>>(
+            std::move(execution_obj)),
+        std::move(callback_wrapper));
   }
 
  protected:

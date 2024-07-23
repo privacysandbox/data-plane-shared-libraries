@@ -40,6 +40,7 @@
 #include "src/roma/gvisor/interface/roma_gvisor.h"
 #include "src/roma/gvisor/interface/roma_interface.h"
 #include "src/roma/gvisor/interface/roma_local.h"
+#include "src/roma/interface/execution_token.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/util/status_macro/status_macros.h"
@@ -144,7 +145,7 @@ class RomaService final {
    * @param populate_response invoked once the response is available.
    * @return absl::Status
    */
-  absl::Status ExecuteBinary(
+  absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
       std::string_view code_token, std::string request, TMetadata metadata,
       std::function<void(::grpc::Status status,
                          const std::string& serialized_response)>
@@ -168,8 +169,7 @@ class RomaService final {
         &exec_args->context, &exec_args->request, &exec_args->response,
         // Exec args are moved into the callback to extend the lifetime so that
         // they are available when needed by the async gRPC.
-        [&, exec_args = std::move(exec_args),
-         request_id = std::move(request_id),
+        [&, request_id, exec_args = std::move(exec_args),
          populate_response =
              std::move(populate_response)](::grpc::Status status) {
           populate_response(std::move(status),
@@ -181,7 +181,7 @@ class RomaService final {
                        << " from metadata storage";
           }
         });
-    return absl::OkStatus();
+    return google::scp::roma::ExecutionToken(std::move(request_id));
   }
 
  private:

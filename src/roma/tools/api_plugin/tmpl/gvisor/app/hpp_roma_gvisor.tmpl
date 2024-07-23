@@ -34,6 +34,7 @@
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/interface/roma_service.h"
 #include "src/roma/gvisor/config/config.h"
+#include "src/roma/interface/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
 
@@ -113,7 +114,7 @@ class {{$svcName}} final :
    * @param code_token identifier provided by load of the binary to be executed.
    * @return absl::Status
    */
-  absl::Status {{$rpc.Name}}(
+  absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::Notification& notification, const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "")
@@ -142,7 +143,7 @@ class {{$svcName}} final :
         });
   }
 
-  absl::Status {{$rpc.Name}}(
+  absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
