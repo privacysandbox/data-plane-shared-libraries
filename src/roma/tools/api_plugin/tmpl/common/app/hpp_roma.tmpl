@@ -35,11 +35,14 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "src/roma/interface/roma.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 
 namespace {{$svcopts.CppNamespace}} {
+
+using Callback = google::scp::roma::Callback;
 
 /*
  * service: {{$svc.FullName}}
@@ -61,6 +64,12 @@ class {{$svc.Name}} {
       absl::Notification& notification,
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
+      TMetadata metadata = TMetadata(),
+      std::string_view code_token = "") = 0;
+
+  virtual absl::Status {{$rpc.Name}}(
+      Callback callback,
+      const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") = 0;
 

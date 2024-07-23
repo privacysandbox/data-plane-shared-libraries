@@ -31,6 +31,7 @@
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}_roma_app_service.h"
 
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/romav8_app_service.h"
 #include "src/util/status_macro/status_macros.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
@@ -46,6 +47,8 @@
 {{- $svcCommonInterface := printf "%s::%s"  $svcopts.CppNamespace $svc.Name -}}
 
 namespace {{$svcopts.CppNamespace}} {
+
+using Callback = google::scp::roma::Callback;
 
 /*
  * service: {{$svc.FullName}}
@@ -99,6 +102,18 @@ class {{$svcName}} final :
         "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}Pb",
         request,
         response,
+        std::move(metadata));
+  }
+
+  absl::Status {{$rpc.Name}}(
+      Callback callback,
+      const {{$reqType}}& request,
+      TMetadata metadata = TMetadata(),
+      std::string_view code_token = "") override {
+    return AppService::Execute(
+        std::move(callback),
+        "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}Pb",
+        request,
         std::move(metadata));
   }
 

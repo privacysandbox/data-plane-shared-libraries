@@ -65,6 +65,11 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
       TMetadata metadata = TMetadata());
+
+  absl::Status {{$rpc.Name}}(
+      google::scp::roma::Callback callback,
+      const {{$reqType}}& request,
+      TMetadata metadata = TMetadata());
 {{- end}}
 ```
 

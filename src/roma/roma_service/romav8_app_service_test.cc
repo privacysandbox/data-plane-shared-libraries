@@ -77,6 +77,11 @@ class HelloWorldApp
                    std::move(metadata));
   }
 
+  absl::Status Hello1(Callback callback, const Request& request,
+                      Metadata metadata = Metadata()) {
+    return Execute(std::move(callback), "Hello1", request, std::move(metadata));
+  }
+
   absl::Status Hello2(
       absl::Notification& notification, const Request& request,
       absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>>& response) {
@@ -126,6 +131,49 @@ TEST(RomaV8AppServiceTest, HelloWorld) {
   EXPECT_TRUE(resp2.ok());
   EXPECT_NE(*resp2, nullptr);
   EXPECT_THAT(**resp2, testing::StrEq("Hello world! Foobar [Hello2]"));
+}
+
+TEST(RomaV8AppServiceTest, CallbackBasedHelloWorld) {
+  absl::Notification load_finished;
+  absl::Status load_status;
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app = HelloWorldApp::Create(std::move(config));
+  EXPECT_TRUE(app.ok());
+
+  constexpr std::string_view jscode = R"(
+    var Hello1 = (input) => `Hello ${input} [Hello1]`;
+  )";
+  const std::string req = "Foobar";
+
+  EXPECT_TRUE(
+      app->Register(jscode, kCodeVersion, load_finished, load_status).ok());
+  load_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+
+  absl::StatusOr<std::unique_ptr<HelloWorldApp::Response>> response;
+  absl::Notification execute_finished;
+
+  auto callback = [&response,
+                   &execute_finished](absl::StatusOr<ResponseObject> resp) {
+    if (resp.ok()) {
+      auto resp_ptr = std::make_unique<HelloWorldApp::Response>();
+      if (absl::Status decode =
+              google::scp::roma::romav8::Decode(resp->resp, *resp_ptr);
+          decode.ok()) {
+        response = std::move(resp_ptr);
+      }
+    } else {
+      LOG(ERROR) << "Error in Roma Execute()";
+      response = resp.status();
+    }
+    execute_finished.Notify();
+  };
+  EXPECT_TRUE(app->Hello1(callback, req).ok());
+
+  execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_TRUE(response.ok());
+  EXPECT_NE(*response, nullptr);
+  EXPECT_THAT(**response, testing::StrEq("Hello Foobar [Hello1]"));
 }
 
 TEST(RomaV8AppServiceTest, MetadataSupportedInRomaV8AppService) {

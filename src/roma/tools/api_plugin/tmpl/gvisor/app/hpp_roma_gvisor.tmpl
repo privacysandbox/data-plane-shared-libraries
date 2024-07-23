@@ -139,6 +139,15 @@ class {{$svcName}} final :
   }
 {{end}}
 
+  absl::Status {{$rpc.Name}}(
+      Callback callback,
+      const {{$reqType}}& request,
+      TMetadata metadata = TMetadata(),
+      std::string_view code_token = "") override {
+    absl::Notification execute_finished;
+    return absl::UnimplementedError("Callback-based {{$rpc.Name}} cannot be used with BYOB");
+  }
+
  private:
   std::unique_ptr<AppService> roma_service_;
   explicit {{$svcName}}(std::unique_ptr<AppService> roma_service)
