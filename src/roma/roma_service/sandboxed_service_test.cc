@@ -96,7 +96,10 @@ TEST(SandboxedServiceTest,
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
-TEST(SandboxedServiceTest, CanInitializeWithAppropriateVirtualMemoryCap) {
+// TODO: b/354030982 - Re-enable when setting virtual memory cap leads to
+// deterministic behavior
+TEST(SandboxedServiceTest,
+     DISABLED_CanInitializeWithAppropriateVirtualMemoryCap) {
   Config config;
   config.number_of_workers = 2;
   config.max_worker_virtual_memory_mb = kMinWorkerVirtualMemoryMB;
