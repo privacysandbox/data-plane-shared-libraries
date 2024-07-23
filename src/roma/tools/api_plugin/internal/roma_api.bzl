@@ -97,6 +97,11 @@ _cc_app_template_plugins = [
             suffix = "_roma_gvisor_app_service.h",
             sub_directory = "gvisor/app",
         ),
+        struct(
+            template_file = "md_cpp_client_sdk.tmpl",
+            suffix = "_cc_gvisor_app_api_client_sdk.md",
+            sub_directory = "gvisor/app",
+        ),
     ])
 ]
 
