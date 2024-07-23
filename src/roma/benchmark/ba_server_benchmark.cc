@@ -91,7 +91,7 @@ void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
   state.SetItemsProcessed(batch_size);
 }
 
-void BM_LoadHelloWorld(benchmark::State& state) {
+void BM_LoadCodeWithPadding(benchmark::State& state) {
   LoadCodeBenchmark(google::scp::roma::benchmark::kCodeHelloWorld, state);
 }
 
@@ -115,15 +115,17 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
 }  // namespace
 
 // Register the function as a benchmark
-BENCHMARK(BM_LoadHelloWorld)
+BENCHMARK(BM_LoadCodeWithPadding)
     ->ArgsProduct({
         // Pad with this many extra bytes.
         {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
-    });
+    })
+    ->ArgNames({"padding_in_bytes"});
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
         {0},  // No need to pad this code with extra bytes.
-    });
+    })
+    ->ArgNames({"padding_in_bytes"});
 
 // Run these benchmarks with {1, 10, 100} requests in each batch.
 BENCHMARK(BM_ExecuteHelloWorld)->RangeMultiplier(10)->Range(1, 100);

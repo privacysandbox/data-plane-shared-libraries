@@ -117,7 +117,7 @@ void BM_ExecuteHelloWorldCallback(benchmark::State& state) {
   state.SetItemsProcessed(state.iterations());
 }
 
-void BM_LoadHelloWorld(benchmark::State& state) {
+void BM_LoadCodeWithPadding(benchmark::State& state) {
   LoadCodeBenchmark(google::scp::roma::benchmark::kCodeHelloWorld,
                     google::scp::roma::benchmark::kHandlerNameHelloWorld,
                     state);
@@ -185,15 +185,17 @@ async function HandleRequest() {
 }  // namespace
 
 // Register the function as a benchmark
-BENCHMARK(BM_LoadHelloWorld)
+BENCHMARK(BM_LoadCodeWithPadding)
     ->ArgsProduct({
         // Pad with this many extra bytes.
         {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
-    });
+    })
+    ->ArgNames({"padding_in_bytes"});
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
         {0},  // No need to pad this code with extra bytes.
-    });
+    })
+    ->ArgNames({"padding_in_bytes"});
 BENCHMARK(BM_ExecuteHelloWorld);
 BENCHMARK(BM_ExecuteHelloWorldCallback);
 BENCHMARK(BM_ExecutePrimeSieve);
