@@ -112,7 +112,7 @@ class {{$svcName}} final :
       std::string_view code_token = "") override {
     return AppService::Execute(
         std::move(callback),
-        "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}Pb",
+        "{{$svcopts.RomaAppName}}.{{$rpc.Name}}Pb",
         request,
         std::move(metadata));
   }

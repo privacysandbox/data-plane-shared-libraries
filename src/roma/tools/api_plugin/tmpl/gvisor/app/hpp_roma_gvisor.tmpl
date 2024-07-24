@@ -137,7 +137,6 @@ class {{$svcName}} final :
         },
         notification);
   }
-{{end}}
 
   absl::Status {{$rpc.Name}}(
       Callback callback,
@@ -147,6 +146,7 @@ class {{$svcName}} final :
     absl::Notification execute_finished;
     return absl::UnimplementedError("Callback-based {{$rpc.Name}} cannot be used with BYOB");
   }
+{{end}}
 
  private:
   std::unique_ptr<AppService> roma_service_;
