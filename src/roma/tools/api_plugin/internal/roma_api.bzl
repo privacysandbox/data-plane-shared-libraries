@@ -74,7 +74,7 @@ _cc_app_template_plugins = [
     for i, plugin in enumerate([
         struct(
             template_file = "md_cpp_client_sdk.tmpl",
-            suffix = "_cc_app_api_client_sdk.md",
+            suffix = "_cc_v8_app_api_client_sdk.md",
             sub_directory = "v8/app",
         ),
         struct(
