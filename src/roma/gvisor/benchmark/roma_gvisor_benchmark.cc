@@ -282,6 +282,64 @@ void BM_GvisorCompareCPlusPlusAndGoLangBinary(benchmark::State& state) {
       {GetFunctionTypeStr(func_type), GetLanguageStr(lang)}, ", "));
 }
 
+std::string GetSize(int64_t val) {
+  int64_t divisor = 1;
+  std::string_view unit_qual = "";
+  if (val >= 1'000'000) {
+    divisor = 1'000'000;
+    unit_qual = "M";
+  } else if (val >= 1000) {
+    divisor = 1000;
+    unit_qual = "K";
+  }
+  return absl::StrCat(val / divisor, unit_qual, "B");
+}
+
+void BM_RequestPayload(benchmark::State& state) {
+  int64_t elem_size = state.range(0);
+  int64_t elem_count = state.range(1);
+  Mode mode = static_cast<Mode>(state.range(2));
+  GvisorKeyValueService<> roma_service =
+      GetRomaService(mode, /*num_workers=*/2);
+
+  const auto rpc = [&roma_service](const auto& request,
+                                   std::string_view code_token) {
+    absl::StatusOr<std::unique_ptr<
+        privacy_sandbox::server_common::gvisor::ReadPayloadResponse>>
+        response;
+    absl::Notification notif;
+    CHECK_OK(roma_service.ReadPayload(notif, request, response,
+                                      /*metadata=*/{}, code_token));
+    CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(180)));
+    return response;
+  };
+
+  privacy_sandbox::server_common::gvisor::ReadPayloadRequest request;
+  std::string payload(elem_size, char(10));
+  auto payloads = request.mutable_payloads();
+  payloads->Reserve(elem_count);
+  for (auto i = 0; i < elem_count; ++i) {
+    payloads->Add(payload.data());
+  }
+
+  std::string code_tok = LoadCode(roma_service, "/server/bin/payload_read_udf");
+
+  const int64_t payload_size = elem_size * elem_count;
+  if (const auto response = rpc(request, code_tok); response.ok()) {
+    CHECK((*response)->payload_size() == payload_size);
+  } else {
+    return;
+  }
+
+  for (auto _ : state) {
+    (void)rpc(request, code_tok);
+  }
+  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
+                              " x ", elem_count));
+  state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
+                          payload_size);
+}
+
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
@@ -340,6 +398,59 @@ BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
         },
     })
     ->ArgNames({"mode", "udf", "num_pre_warmed_workers"});
+
+BENCHMARK(BM_RequestPayload)
+    // elem count: 1
+    ->Args({1, 1, (int)Mode::kModeGvisor})
+    ->Args({1000, 1, (int)Mode::kModeGvisor})
+    ->Args({5000, 1, (int)Mode::kModeGvisor})
+    ->Args({10'000, 1, (int)Mode::kModeGvisor})
+    ->Args({50'000, 1, (int)Mode::kModeGvisor})
+    ->Args({100'000, 1, (int)Mode::kModeGvisor})
+    ->Args({500'000, 1, (int)Mode::kModeGvisor})
+    ->Args({1'000'000, 1, (int)Mode::kModeGvisor})
+    ->Args({5'000'000, 1, (int)Mode::kModeGvisor})
+    ->Args({50'000'000, 1, (int)Mode::kModeGvisor})
+    // elem count: 10
+    ->Args({1, 10, (int)Mode::kModeGvisor})
+    ->Args({1000, 10, (int)Mode::kModeGvisor})
+    ->Args({5000, 10, (int)Mode::kModeGvisor})
+    ->Args({10'000, 10, (int)Mode::kModeGvisor})
+    ->Args({50'000, 10, (int)Mode::kModeGvisor})
+    ->Args({100'000, 10, (int)Mode::kModeGvisor})
+    ->Args({500'000, 10, (int)Mode::kModeGvisor})
+    ->Args({5'000'000, 10, (int)Mode::kModeGvisor})
+    // elem count: 1000
+    ->Args({1, 1000, (int)Mode::kModeGvisor})
+    ->Args({1000, 1000, (int)Mode::kModeGvisor})
+    ->Args({5000, 1000, (int)Mode::kModeGvisor})
+    ->Args({50'000, 1000, (int)Mode::kModeGvisor})
+
+    // elem count: 1
+    ->Args({1, 1, (int)Mode::kModeLocal})
+    ->Args({1000, 1, (int)Mode::kModeLocal})
+    ->Args({5000, 1, (int)Mode::kModeLocal})
+    ->Args({10'000, 1, (int)Mode::kModeLocal})
+    ->Args({50'000, 1, (int)Mode::kModeLocal})
+    ->Args({100'000, 1, (int)Mode::kModeLocal})
+    ->Args({500'000, 1, (int)Mode::kModeLocal})
+    ->Args({1'000'000, 1, (int)Mode::kModeLocal})
+    ->Args({5'000'000, 1, (int)Mode::kModeLocal})
+    ->Args({50'000'000, 1, (int)Mode::kModeLocal})
+    // elem count: 10
+    ->Args({1, 10, (int)Mode::kModeLocal})
+    ->Args({1000, 10, (int)Mode::kModeLocal})
+    ->Args({5000, 10, (int)Mode::kModeLocal})
+    ->Args({10'000, 10, (int)Mode::kModeLocal})
+    ->Args({50'000, 10, (int)Mode::kModeLocal})
+    ->Args({100'000, 10, (int)Mode::kModeLocal})
+    ->Args({500'000, 10, (int)Mode::kModeLocal})
+    ->Args({5'000'000, 10, (int)Mode::kModeLocal})
+    // elem count: 1000
+    ->Args({1, 1000, (int)Mode::kModeLocal})
+    ->Args({1000, 1000, (int)Mode::kModeLocal})
+    ->Args({5000, 1000, (int)Mode::kModeLocal})
+    ->Args({50'000, 1000, (int)Mode::kModeLocal});
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();

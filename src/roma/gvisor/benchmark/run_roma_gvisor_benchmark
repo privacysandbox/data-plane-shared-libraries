@@ -16,9 +16,10 @@
 set -o errexit
 
 function _cleanup() {
+  # shellcheck disable=SC2207
   declare -a -r pids=($(jobs -pr))
   if [[ ${#pids[*]} -gt 0 ]]; then
-    kill ${pids[*]} || true
+    kill "${pids[@]}" || true
   fi
 }
 trap _cleanup EXIT
@@ -30,4 +31,5 @@ mkdir -p "${BENCHMARK_DIR}"
 sleep 1
 /server/bin/roma_gvisor_benchmark \
   --benchmark_out_format=json \
+  --benchmark_time_unit=ms \
   --benchmark_out="${BENCHMARK_DIR}/roma_gvisor_client_benchmark.json"

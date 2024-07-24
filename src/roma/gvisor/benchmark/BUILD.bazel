@@ -20,9 +20,7 @@ load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 pkg_files(
     name = "sample_udf_execs",
     srcs = [
-        "//src/roma/gvisor/udf:new_udf",
-        "//src/roma/gvisor/udf:sample_go_udf",
-        "//src/roma/gvisor/udf:sample_udf",
+        "//src/roma/gvisor/udf:udf_binaries",
     ],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/server/bin",

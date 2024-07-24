@@ -32,6 +32,12 @@ service KeyValueService {
       description: 'MethodAnnotation'
     };
   }
+
+  rpc ReadPayload(ReadPayloadRequest) returns (ReadPayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
 }
 
 enum FunctionType {
@@ -55,4 +61,12 @@ message GetValuesRequest {
 message GetValuesResponse {
   bytes greeting = 1;
   repeated int32 prime_number = 2;
+}
+
+message ReadPayloadRequest {
+  repeated bytes payloads = 1;
+}
+
+message ReadPayloadResponse {
+  uint64 payload_size = 1;
 }
