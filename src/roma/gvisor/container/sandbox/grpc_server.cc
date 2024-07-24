@@ -120,8 +120,8 @@ void RomaGvisorGrpcServer::Run(
   // go/grpc-performance-best-practices#c
   builder.AddListeningPort(absl::StrCat("unix:", server_socket),
                            grpc::InsecureServerCredentials());
-  builder.SetMaxSendMessageSize(6'000'000);
-  builder.SetMaxReceiveMessageSize(6'000'000);
+  builder.SetMaxSendMessageSize(200'000'000);
+  builder.SetMaxReceiveMessageSize(200'000'000);
   builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS,
                              absl::ToInt64Milliseconds(absl::Minutes(10)));
   builder.AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS,
