@@ -71,13 +71,16 @@ TEST(WasmTest, CanExecuteWasmCode) {
                             wasm_bin.size()),
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -89,22 +92,24 @@ TEST(WasmTest, CanExecuteWasmCode) {
             .input = {R"("Foobar")"},
         });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+
   EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
 
-  EXPECT_TRUE(roma_service.Stop().ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 }
 
 TEST(WasmTest, ReportsWasmStacktrace) {
@@ -128,13 +133,16 @@ TEST(WasmTest, ReportsWasmStacktrace) {
                             wasm_bin.size()),
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -145,25 +153,25 @@ TEST(WasmTest, ReportsWasmStacktrace) {
             .handler_name = "Handler",
         });
 
-    EXPECT_TRUE(
-        roma_service
-            .Execute(
-                std::move(execution_obj),
-                [&](absl::StatusOr<ResponseObject> resp) {
-                  EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
-                  EXPECT_THAT(
-                      resp.status().message(),
-                      // Since abort() causes the code to terminate
-                      // unexpectedly, it throws a runtime error: unreachable.
-                      // https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Control_flow/unreachable
-                      HasSubstr("Uncaught RuntimeError: unreachable"));
-                  execute_finished.Notify();
-                })
-            .ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
+    EXPECT_THAT(
+        response_status.message(),
+        // Since abort() causes the code to terminate
+        // unexpectedly, it throws a runtime error: unreachable.
+        // https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Control_flow/unreachable
+        HasSubstr("Uncaught RuntimeError: unreachable"));
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-  EXPECT_TRUE(roma_service.Stop().ok());
+
+  ASSERT_TRUE(roma_service.Stop().ok());
 }
 
 void LoggingFunction(absl::LogSeverity severity,
@@ -210,13 +218,16 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
         .js = absl::StrCat(inline_wasm_js, udf),
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -233,22 +244,24 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
             .input = inputs,
         });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+
   EXPECT_THAT(result, StrEq(R"("Hello from C++! Input: Foobar")"));
 
-  EXPECT_TRUE(roma_service.Stop().ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -277,13 +290,16 @@ TEST(WasmTest, CanExecuteJsWithWasmCode) {
         .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -295,23 +311,24 @@ TEST(WasmTest, CanExecuteJsWithWasmCode) {
             .input = {"1", "2"},
         });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
 
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_THAT(result, StrEq("3"));
 
-  EXPECT_TRUE(roma_service.Stop().ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 }
 
 TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
@@ -402,13 +419,16 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .tags = {{std::string{kWasmCodeArrayName}, "wrongName"}},
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_FALSE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished1.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished1.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_FALSE(response_status.ok());
   }
 
   // Invalid wasm code array
@@ -426,18 +446,19 @@ TEST(WasmTest, LoadJSWithWasmCodeShouldFailOnInvalidRequest) {
         .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
+    absl::Status response_status;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_FALSE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished2.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished2.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_FALSE(response_status.ok());
   }
 
-  ASSERT_TRUE(load_finished1.WaitForNotificationWithTimeout(kTimeout));
-  ASSERT_TRUE(load_finished2.WaitForNotificationWithTimeout(kTimeout));
-  EXPECT_TRUE(roma_service.Stop().ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 }
 
 TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
@@ -459,13 +480,16 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
         .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -477,22 +501,24 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
             .input = {"1", "2"},
         });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+
   EXPECT_THAT(result, StrEq("3"));
 
-  EXPECT_TRUE(roma_service.Stop().ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 }
 
 }  // namespace

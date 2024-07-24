@@ -64,6 +64,7 @@ TEST_P(StringSizeTest, LoadCodeObj) {
   ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
+  absl::Status response_status;
 
   const size_t strsize = GetParam();
   auto code_obj = std::make_unique<CodeObject>(CodeObject{
@@ -77,14 +78,15 @@ TEST_P(StringSizeTest, LoadCodeObj) {
   });
 
   absl::Notification load_finished;
-  EXPECT_TRUE(roma_service
+  ASSERT_TRUE(roma_service
                   .LoadCodeObj(std::move(code_obj),
                                [&](absl::StatusOr<ResponseObject> resp) {
-                                 EXPECT_TRUE(resp.ok());
+                                 response_status = resp.status();
                                  load_finished.Notify();
                                })
                   .ok());
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(40)));
+  ASSERT_TRUE(response_status.ok());
 
   auto execution_obj =
       std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
@@ -96,19 +98,19 @@ TEST_P(StringSizeTest, LoadCodeObj) {
   absl::Notification execute_finished;
   EXPECT_TRUE(roma_service
                   .Execute(std::move(execution_obj),
-                           [&execute_finished,
-                            &strsize](absl::StatusOr<ResponseObject> resp) {
-                             EXPECT_TRUE(resp.ok()) << resp.status();
-                             EXPECT_THAT(
-                                 resp->resp,
-                                 StrEq(absl::StrCat("\"some string of length: ",
-                                                    strsize, "\"")));
+                           [&execute_finished, &response_status,
+                            &result](absl::StatusOr<ResponseObject> resp) {
+                             response_status = resp.status();
+                             result = std::move(resp->resp);
                              execute_finished.Notify();
                            })
                   .ok());
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(40)));
-  EXPECT_TRUE(roma_service.Stop().ok());
+  ASSERT_TRUE(response_status.ok()) << response_status;
+  EXPECT_THAT(result,
+              StrEq(absl::StrCat("\"some string of length: ", strsize, "\"")));
+  ASSERT_TRUE(roma_service.Stop().ok());
 }
 
 }  // namespace

@@ -74,17 +74,18 @@ TEST(WasmSapiTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
                               wasm_bin.size()),
       });
 
-      EXPECT_TRUE(roma_service
+      absl::Status response_status;
+      ASSERT_TRUE(roma_service
                       .LoadCodeObj(std::move(code_obj),
                                    [&](absl::StatusOr<ResponseObject> resp) {
-                                     EXPECT_EQ(resp.status().code(),
-                                               absl::StatusCode::kInternal);
+                                     response_status = resp.status();
+
                                      load_finished.Notify();
                                    })
                       .ok());
+      ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+      EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
     }
-
-    load_finished.WaitForNotification();
 
     EXPECT_TRUE(roma_service.Stop().ok());
   }
@@ -118,17 +119,18 @@ TEST(WasmSapiTest, LoadingWasmModuleShouldFailIfMemoryRequirementIsNotMet) {
                               wasm_bin.size()),
       });
 
-      EXPECT_TRUE(roma_service
+      absl::Status response;
+      ASSERT_TRUE(roma_service
                       .LoadCodeObj(std::move(code_obj),
                                    [&](absl::StatusOr<ResponseObject> resp) {
-                                     // Loading works
-                                     EXPECT_TRUE(resp.ok());
+                                     response = resp.status();
                                      load_finished.Notify();
                                    })
                       .ok());
+      ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+      // Loading works
+      EXPECT_TRUE(response.ok());
     }
-
-    load_finished.WaitForNotification();
 
     EXPECT_TRUE(roma_service.Stop().ok());
   }
@@ -174,15 +176,17 @@ TEST(WasmSapiTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
         .tags = {{std::string{kWasmCodeArrayName}, "addModule"}},
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
 
   {
     absl::Notification execute_finished;
@@ -195,19 +199,19 @@ TEST(WasmSapiTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
             .input = {"1", "2", "10"},
         });
 
-    EXPECT_TRUE(
-        roma_service
-            .Execute(std::move(execution_obj),
-                     [&](absl::StatusOr<ResponseObject> resp) {
-                       EXPECT_FALSE(resp.ok());
-                       EXPECT_THAT(
-                           resp.status().message(),
-                           StrEq("Sandbox worker crashed during execution "
-                                 "of request."));
-                       execute_finished.Notify();
-                     })
-            .ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               execute_finished.Notify();
+                             })
+                    .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_FALSE(response_status.ok());
+    EXPECT_THAT(response_status.message(),
+                StrEq("Sandbox worker crashed during execution "
+                      "of request."));
   }
 
   {
@@ -223,19 +227,19 @@ TEST(WasmSapiTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
             .input = {"1", "2", "1"},
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
-
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-
+    ASSERT_TRUE(response.ok());
     EXPECT_THAT(result, StrEq("3"));
   }
 

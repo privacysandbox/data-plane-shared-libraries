@@ -73,13 +73,16 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
         .js = js,
     });
 
+    absl::Status response_status;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_TRUE(response_status.ok());
   }
 
   {
@@ -91,19 +94,20 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
             .min_log_level = absl::LogSeverity::kWarning,
         });
 
+    absl::Status response_status;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_TRUE(response_status.ok());
   }
-  EXPECT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  EXPECT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
 
   EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
@@ -144,12 +148,17 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
     )JS_CODE",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -161,19 +170,20 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
             .input = {absl::StrCat("\"", input, "\"")},
         });
 
-    status = roma_service.Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          ASSERT_EQ(resp.status().code(), absl::StatusCode::kInternal);
-          execute_failed.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               execute_failed.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
   }
 
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 }  // namespace google::scp::roma::test

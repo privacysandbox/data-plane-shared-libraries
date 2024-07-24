@@ -70,15 +70,19 @@ TEST(LoggingSapiTest, MetadataInLogsAvailableInBatchedRequests) {
         .js = "var Handler = (input) => console.log(input);",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
-  load_finished.WaitForNotification();
   absl::Mutex res_count_mu;
   int res_count = 0;
 
@@ -101,15 +105,10 @@ TEST(LoggingSapiTest, MetadataInLogsAvailableInBatchedRequests) {
         batch.push_back(execution_obj);
       }
 
+      std::vector<absl::StatusOr<ResponseObject>> batch_responses;
       auto batch_callback =
           [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            for (auto resp : batch_resp) {
-              if (resp.ok()) {
-                EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
-              } else {
-                ADD_FAILURE() << "resp is NOT OK.";
-              }
-            }
+            batch_responses = batch_resp;
             {
               absl::MutexLock lock(&res_count_mu);
               res_count += batch_resp.size();
@@ -120,7 +119,13 @@ TEST(LoggingSapiTest, MetadataInLogsAvailableInBatchedRequests) {
       }
 
       // Thread cannot join until batch_callback is called.
-      local_execute.WaitForNotification();
+      ASSERT_TRUE(
+          local_execute.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
+      for (auto resp : batch_responses) {
+        EXPECT_TRUE(resp.ok()) << "resp is NOT OK.";
+        EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
+      }
     });
   }
 
@@ -132,8 +137,7 @@ TEST(LoggingSapiTest, MetadataInLogsAvailableInBatchedRequests) {
     EXPECT_EQ(res_count, kBatchSize * kNumThreads);
   }
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 
   log.StopCapturingLogs();
 }

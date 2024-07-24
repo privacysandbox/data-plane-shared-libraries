@@ -71,13 +71,13 @@ TEST(MetadataSapiTest, MetadataAssociatedWithEachNativeFunction) {
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
   RomaService<> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   absl::Notification load_finished;
   size_t total_runs = 10;
   std::vector<std::string> results(total_runs);
   std::vector<absl::Notification> finished(total_runs);
+  std::vector<absl::Status> response_statuses(total_runs);
   const auto& metadata_tag = "Working";
 
   absl::ScopedMockLog log;
@@ -94,12 +94,17 @@ TEST(MetadataSapiTest, MetadataAssociatedWithEachNativeFunction) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response.ok());
   }
 
   {
@@ -113,27 +118,26 @@ TEST(MetadataSapiTest, MetadataAssociatedWithEachNativeFunction) {
       code_obj->metadata.insert(
           {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
 
-      status = roma_service.Execute(
-          std::move(code_obj), [&, i](absl::StatusOr<ResponseObject> resp) {
-            EXPECT_TRUE(resp.ok());
-            if (resp.ok()) {
-              results[i] = resp->resp;
-            }
-            finished[i].Notify();
-          });
-      EXPECT_TRUE(status.ok());
+      ASSERT_TRUE(roma_service
+                      .Execute(std::move(code_obj),
+                               [&, i](absl::StatusOr<ResponseObject> resp) {
+                                 response_statuses[i] = resp.status();
+                                 if (resp.ok()) {
+                                   results[i] = resp->resp;
+                                 }
+                                 finished[i].Notify();
+                               })
+                      .ok());
     }
   }
 
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
   for (auto i = 0u; i < total_runs; ++i) {
     finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
+    ASSERT_TRUE(response_statuses[i].ok());
     EXPECT_THAT(results[i], testing::StrEq("undefined"));
   }
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 
   log.StopCapturingLogs();
 }
@@ -144,8 +148,7 @@ TEST(MetadataSapiTest, MetadataAssociatedWithBatchedFunctions) {
   config.number_of_workers = 10;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
   RomaService<> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   absl::Notification load_finished;
   constexpr int kNumThreads = 10;
@@ -168,15 +171,19 @@ TEST(MetadataSapiTest, MetadataAssociatedWithBatchedFunctions) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_TRUE(response.ok());
   }
 
-  load_finished.WaitForNotification();
   absl::Mutex res_count_mu;
   int res_count = 0;
 
@@ -199,15 +206,10 @@ TEST(MetadataSapiTest, MetadataAssociatedWithBatchedFunctions) {
         batch.push_back(execution_obj);
       }
 
+      std::vector<absl::StatusOr<ResponseObject>> batch_responses;
       auto batch_callback =
           [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            for (auto resp : batch_resp) {
-              if (resp.ok()) {
-                EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
-              } else {
-                ADD_FAILURE() << "resp is NOT OK.";
-              }
-            }
+            batch_responses = batch_resp;
             {
               absl::MutexLock lock(&res_count_mu);
               res_count += batch_resp.size();
@@ -218,7 +220,16 @@ TEST(MetadataSapiTest, MetadataAssociatedWithBatchedFunctions) {
       }
 
       // Thread cannot join until batch_callback is called.
-      local_execute.WaitForNotification();
+      ASSERT_TRUE(
+          local_execute.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
+      for (auto resp : batch_responses) {
+        if (resp.ok()) {
+          EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
+        } else {
+          ADD_FAILURE() << "resp is NOT OK.";
+        }
+      }
     });
   }
 
@@ -230,8 +241,7 @@ TEST(MetadataSapiTest, MetadataAssociatedWithBatchedFunctions) {
     EXPECT_EQ(res_count, kBatchSize * kNumThreads);
   }
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Stop().ok());
 
   log.StopCapturingLogs();
 }

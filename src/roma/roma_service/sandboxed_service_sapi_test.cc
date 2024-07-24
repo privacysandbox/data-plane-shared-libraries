@@ -60,7 +60,7 @@ void EchoFunction(FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.set_output_string(wrapper.io_proto.input_string());
 }
 
-TEST(SandboxedServiceTest,
+TEST(SandboxedServiceSapiTest,
      ShouldRespectJsHeapLimitsAndContinueWorkingAfterWorkerRestart) {
   Config config;
   // Only one worker so we can make sure it's actually restarted.
@@ -101,15 +101,17 @@ TEST(SandboxedServiceTest,
       )",
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
     ASSERT_TRUE(
         load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -125,15 +127,17 @@ TEST(SandboxedServiceTest,
       )",
     });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
     ASSERT_TRUE(
         load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -147,19 +151,20 @@ TEST(SandboxedServiceTest,
             .input = {R"("10")"},
         });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_FALSE(resp.ok());
-                               EXPECT_THAT(
-                                   resp.status().message(),
-                                   StrEq("Sandbox worker crashed during "
-                                         "execution of request."));
+                               response_status = resp.status();
                                execute_finished.Notify();
                              })
                     .ok());
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_FALSE(response_status.ok());
+    EXPECT_THAT(response_status.message(),
+                StrEq("Sandbox worker crashed during "
+                      "execution of request."));
   }
 
   {
@@ -175,20 +180,20 @@ TEST(SandboxedServiceTest,
             .input = {R"("1")"},
         });
 
-    EXPECT_TRUE(roma_service
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
-
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
+    EXPECT_TRUE(response_status.ok());
     EXPECT_THAT(result, StrEq("233"));
   }
 
@@ -205,20 +210,20 @@ TEST(SandboxedServiceTest,
             .input = {R"("Hello, World!")"},
         });
 
+    absl::Status response_status;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
-
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
+    EXPECT_TRUE(response_status.ok());
     EXPECT_THAT(result, StrEq(R"("Hello, World!")"));
   }
 
