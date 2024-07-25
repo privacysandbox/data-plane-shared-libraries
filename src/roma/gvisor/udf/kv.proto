@@ -38,6 +38,13 @@ service KeyValueService {
       description: 'MethodAnnotation'
     };
   }
+
+  rpc GeneratePayload(GeneratePayloadRequest)
+      returns (GeneratePayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
 }
 
 enum FunctionType {
@@ -69,4 +76,13 @@ message ReadPayloadRequest {
 
 message ReadPayloadResponse {
   uint64 payload_size = 1;
+}
+
+message GeneratePayloadRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message GeneratePayloadResponse {
+  repeated bytes payloads = 1;
 }
