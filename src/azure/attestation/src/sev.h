@@ -28,6 +28,7 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/log/check.h"
 #include "absl/strings/escaping.h"
 
 namespace google::scp::azure::attestation::sev {
@@ -79,9 +80,7 @@ SnpReport* getReport(const std::string report_data) {
   auto sev_file = open("/dev/sev", O_RDWR | O_CLOEXEC);
 
   auto rc = ioctl(sev_file, SEV_SNP_GUEST_MSG_REPORT, &payload);
-  if (rc < 0) {
-    throw std::runtime_error("Failed to issue ioctl SEV_SNP_GUEST_MSG_REPORT");
-  }
+  CHECK(rc >= 0) << "Failed to issue ioctl SEV_SNP_GUEST_MSG_REPORT";
 
   SnpReport* report = new SnpReport;
   *report = response.report;

@@ -39,25 +39,26 @@ namespace google::scp::cpio::client_providers::test {
 TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKey) {
   std::cout << "Starting test GenerateWrappingKey..." << std::endl;
 
-  auto wrappingKey = AzureKmsClientProviderUtils::GenerateWrappingKey();
+  auto wrapping_key =
+      AzureKmsClientProviderUtils::GenerateWrappingKey().value();
 
-  ASSERT_NE(wrappingKey.first, nullptr) << "Private key is null";
-  ASSERT_TRUE(AzureKmsClientProviderUtils::isPrivate(wrappingKey.first));
-  ASSERT_NE(wrappingKey.second, nullptr) << "Public key is null";
-  ASSERT_FALSE(AzureKmsClientProviderUtils::isPrivate(wrappingKey.second));
+  ASSERT_NE(wrapping_key.first, nullptr) << "Private key is null";
+  ASSERT_TRUE(AzureKmsClientProviderUtils::isPrivate(wrapping_key.first));
+  ASSERT_NE(wrapping_key.second, nullptr) << "Public key is null";
+  ASSERT_FALSE(AzureKmsClientProviderUtils::isPrivate(wrapping_key.second));
   std::cout << "GenerateWrappingKey generated keys" << std::endl;
 
   std::string pem =
-      AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.first);
+      AzureKmsClientProviderUtils::EvpPkeyToPem(wrapping_key.first).value();
   std::cout << "GenerateWrappingKey PEM: " << pem << std::endl;
 
   // Add the constant to avoid the key detection precommit
-  auto toTest = std::string("-----") + std::string("BEGIN PRIVATE") +
-                std::string(" KEY-----");
-  ASSERT_EQ(pem.find(toTest), 0) << "Private key PEM header not found";
+  auto to_test = std::string("-----") + std::string("BEGIN PRIVATE") +
+                 std::string(" KEY-----");
+  ASSERT_EQ(pem.find(to_test), 0) << "Private key PEM header not found";
   std::cout << "Private key found" << std::endl;
 
-  pem = AzureKmsClientProviderUtils::EvpPkeyToPem(wrappingKey.second);
+  pem = AzureKmsClientProviderUtils::EvpPkeyToPem(wrapping_key.second).value();
   ASSERT_EQ(pem.find("-----BEGIN PUBLIC KEY-----"), 0)
       << "Public key PEM header not found";
   std::cout << "Public key found" << std::endl;
@@ -67,20 +68,22 @@ TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKey) {
 
 TEST(AzureKmsClientProviderUtilsTest, WrapUnwrap) {
   // Generate wrapping key
-  auto wrappingKeyPair = AzureKmsClientProviderUtils::GenerateWrappingKey();
-  auto public_key = wrappingKeyPair.second;
-  auto private_key = wrappingKeyPair.first;
+  auto wrapping_key_pair =
+      AzureKmsClientProviderUtils::GenerateWrappingKey().value();
+  auto public_key = wrapping_key_pair.second;
+  auto private_key = wrapping_key_pair.first;
   std::cout << "key pair generated" << std::endl;
   // Original message to encrypt
   const std::string payload = "payload";
 
   // Encrypt the payload
-  auto cipher = AzureKmsClientProviderUtils::KeyWrap(public_key, payload);
+  const auto cipher =
+      AzureKmsClientProviderUtils::KeyWrap(public_key, payload).value();
   ASSERT_FALSE(cipher.empty());
 
   // Decrypt the encrypted message
   std::string decrypted =
-      AzureKmsClientProviderUtils::KeyUnwrap(private_key, cipher);
+      AzureKmsClientProviderUtils::KeyUnwrap(private_key, cipher).value();
 
   // Assert that decrypted message matches original payload
   ASSERT_EQ(decrypted, payload);
@@ -88,16 +91,18 @@ TEST(AzureKmsClientProviderUtilsTest, WrapUnwrap) {
 }
 
 TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKeyHash) {
-  auto publicPemKey =
+  auto public_pem_key =
       google::scp::cpio::client_providers::GetTestPemPublicWrapKey();
-  std::cout << "Test GenerateWrappingKeyHash PEM key: " << publicPemKey
+  std::cout << "Test GenerateWrappingKeyHash PEM key: " << public_pem_key
             << std::endl;
-  auto publicKey = AzureKmsClientProviderUtils::PemToEvpPkey(publicPemKey);
+  auto public_key =
+      AzureKmsClientProviderUtils::PemToEvpPkey(public_pem_key).value();
 
-  auto hexHash = AzureKmsClientProviderUtils::CreateHexHashOnKey(publicKey);
-  std::cout << "##################HASH: " << hexHash << std::endl;
-  ASSERT_EQ(hexHash.size(), 64);
-  ASSERT_EQ(hexHash,
+  auto hex_hash =
+      AzureKmsClientProviderUtils::CreateHexHashOnKey(public_key).value();
+  std::cout << "##################HASH: " << hex_hash << std::endl;
+  ASSERT_EQ(hex_hash.size(), 64);
+  ASSERT_EQ(hex_hash,
             "36b03dab8e8751b26d9b33fa2fa1296f823a238ef3dd604f758a4aff5b2b41d0");
 }
 

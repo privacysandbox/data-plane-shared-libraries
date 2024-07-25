@@ -264,8 +264,9 @@ void PrivateKeyClientProvider::OnDecryptCallback(
 
     for (auto& key_id : list_keys_status->key_id_set) {
       bool all_splits_are_available = true;
-      auto single_party_key = PrivateKeyClientUtils::ExtractSinglePartyKey(
-          list_keys_status->result_list, key_id);
+      const auto single_party_key =
+          PrivateKeyClientUtils::ExtractSinglePartyKey(
+              list_keys_status->result_list, key_id);
       std::vector<DecryptResult> success_decrypt_result;
       if (single_party_key.has_value()) {
         // If contains single party key, ignore the fetch and decrypt results.
@@ -326,7 +327,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
         }
       }
       if (all_splits_are_available) {
-        auto private_key_or =
+        const auto private_key_or =
             PrivateKeyClientUtils::ConstructPrivateKey(success_decrypt_result);
         if (!private_key_or.Successful()) {
           SCP_ERROR_CONTEXT(kPrivateKeyClientProvider,

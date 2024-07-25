@@ -204,21 +204,21 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
   std::string resp(http_client_context.response->body.bytes->begin(),
                    http_client_context.response->body.bytes->end());
 
-  nlohmann::json privateKeyResp;
+  nlohmann::json private_key_resp;
   try {
-    privateKeyResp = nlohmann::json::parse(resp);
+    private_key_resp = nlohmann::json::parse(resp);
   } catch (const nlohmann::json::parse_error& e) {
-    std::string errorMessage =
+    std::string error_message =
         "Received http response could not be parsed into a JSON: ";
-    errorMessage += e.what();
+    error_message += e.what();
     SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
                       private_key_fetching_context, http_client_context.result,
-                      errorMessage);
+                      error_message);
     private_key_fetching_context.result = http_client_context.result;
     private_key_fetching_context.Finish();
     return;
   }
-  if (!privateKeyResp.contains(kWrappedKid)) {
+  if (!private_key_resp.contains(kWrappedKid)) {
     SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
                       private_key_fetching_context, http_client_context.result,
                       "/key did not provide the wrappedKid property");
@@ -227,7 +227,7 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     return;
   }
 
-  if (!privateKeyResp.contains(kWrapped)) {
+  if (!private_key_resp.contains(kWrapped)) {
     SCP_ERROR_CONTEXT(kAzurePrivateKeyFetcherProvider,
                       private_key_fetching_context, http_client_context.result,
                       "/key did not provide the wrapped property");
@@ -236,7 +236,7 @@ void AzurePrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     return;
   }
 
-  std::string wrapped = privateKeyResp[kWrapped];
+  std::string wrapped = private_key_resp[kWrapped];
   core::BytesBuffer buffer(wrapped);
   PrivateKeyFetchingResponse response;
   auto result =

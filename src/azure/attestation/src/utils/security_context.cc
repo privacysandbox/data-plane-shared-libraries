@@ -16,21 +16,18 @@
 
 #include "security_context.h"
 
+#include "absl/log/check.h"
+
 namespace google::scp::azure::attestation::utils {
 
 std::string getSecurityContextFile(std::string file_path) {
   const char* dir = std::getenv("UVM_SECURITY_CONTEXT_DIR");
-  if (!dir) {
-    throw std::runtime_error(
-        "UVM_SECURITY_CONTEXT_DIR environment variable is not set");
-  }
+  CHECK(dir) << "UVM_SECURITY_CONTEXT_DIR environment variable is not set";
 
   std::string full_path = std::string(dir) + file_path;
   std::ifstream file(full_path, std::ios::binary);
 
-  if (!file) {
-    throw std::runtime_error("Unable to open file at full_path: " + full_path);
-  }
+  CHECK(file) << "Unable to open file at full_path: " + full_path;
 
   std::vector<uint8_t> file_bytes = {std::istreambuf_iterator<char>(file),
                                      std::istreambuf_iterator<char>()};

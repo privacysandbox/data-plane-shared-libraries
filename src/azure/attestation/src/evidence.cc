@@ -21,6 +21,7 @@
 
 #include <openssl/base64.h>
 
+#include "absl/log/check.h"
 #include "src/core/utils/base64.h"
 
 #include "attestation.h"
@@ -50,7 +51,7 @@ std::string getSnpEvidence(const std::string report_data) {
       report = sev_guest::getReport(report_data);
       break;
     default:
-      throw std::runtime_error("Unsupported or no SNP type");
+      CHECK(false) << "Unsupported or no SNP type";
   }
 
   return base64EncodeBytes(reinterpret_cast<uint8_t*>(report),

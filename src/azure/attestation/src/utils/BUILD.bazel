@@ -28,6 +28,7 @@ cc_library(
     ],
     deps = [
         "//src/core/utils:core_utils",
+        "@com_google_absl//absl/log:check",
         "@nlohmann_json//:lib",
     ],
 )
