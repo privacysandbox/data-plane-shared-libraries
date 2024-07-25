@@ -119,11 +119,26 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "payload_write_udf",
+    srcs = ["payload_write.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":kv_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 filegroup(
     name = "udf_binaries",
     srcs = [
         ":new_udf",
         ":payload_read_udf",
+        ":payload_write_udf",
         ":sample_go_udf",
         ":sample_udf",
     ],

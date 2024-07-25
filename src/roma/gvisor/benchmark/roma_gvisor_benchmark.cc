@@ -340,6 +340,52 @@ void BM_RequestPayload(benchmark::State& state) {
                           payload_size);
 }
 
+void BM_ResponsePayload(benchmark::State& state) {
+  int64_t elem_size = state.range(0);
+  int64_t elem_count = state.range(1);
+  Mode mode = static_cast<Mode>(state.range(2));
+  GvisorKeyValueService<> roma_service =
+      GetRomaService(mode, /*num_workers=*/2);
+
+  const auto rpc = [&roma_service](const auto& request,
+                                   std::string_view code_token) {
+    absl::StatusOr<std::unique_ptr<
+        privacy_sandbox::server_common::gvisor::GeneratePayloadResponse>>
+        response;
+    absl::Notification notif;
+    CHECK_OK(roma_service.GeneratePayload(notif, request, response,
+                                          /*metadata=*/{}, code_token));
+    CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(300)));
+    return response;
+  };
+
+  privacy_sandbox::server_common::gvisor::GeneratePayloadRequest request;
+  request.set_element_size(elem_size);
+  request.set_element_count(elem_count);
+  const int64_t req_payload_size = elem_size * elem_count;
+
+  std::string code_tok =
+      LoadCode(roma_service, "/server/bin/payload_write_udf");
+
+  int64_t response_payload_size = 0;
+  if (const auto response = rpc(request, code_tok); response.ok()) {
+    for (const auto& p : (*response)->payloads()) {
+      response_payload_size += p.size();
+    }
+    CHECK(req_payload_size == response_payload_size);
+  } else {
+    return;
+  }
+
+  for (auto _ : state) {
+    (void)rpc(request, code_tok);
+  }
+  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
+                              " x ", elem_count));
+  state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
+                          req_payload_size);
+}
+
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
@@ -399,7 +445,7 @@ BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
     })
     ->ArgNames({"mode", "udf", "num_pre_warmed_workers"});
 
-static void PayloadArguments(benchmark::internal::Benchmark* b) {
+static void RequestPayloadArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000'000;
   constexpr int modes[] = {
       static_cast<int>(Mode::kModeGvisor),
@@ -420,7 +466,31 @@ static void PayloadArguments(benchmark::internal::Benchmark* b) {
     }
   }
 }
-BENCHMARK(BM_RequestPayload)->Apply(PayloadArguments);
+
+BENCHMARK(BM_RequestPayload)->Apply(RequestPayloadArguments);
+
+static void ResponsePayloadArgs(benchmark::internal::Benchmark* b) {
+  constexpr int64_t kMaxPayloadSize = 50'000;
+  constexpr int modes[] = {
+      static_cast<int>(Mode::kModeGvisor),
+      static_cast<int>(Mode::kModeLocal),
+  };
+  constexpr int64_t elem_counts[] = {1, 10, 100, 1'000};
+  constexpr int64_t elem_sizes[] = {
+      1, 1'000, 5'000, 10'000, 50'000,
+  };
+  for (auto mode : modes) {
+    for (auto elem_count : elem_counts) {
+      for (auto elem_size : elem_sizes) {
+        if (elem_count * elem_size <= kMaxPayloadSize) {
+          b->Args({elem_size, elem_count, mode});
+        }
+      }
+    }
+  }
+}
+
+BENCHMARK(BM_ResponsePayload)->Apply(ResponsePayloadArgs);
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
