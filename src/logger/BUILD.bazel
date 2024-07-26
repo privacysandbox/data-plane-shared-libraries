@@ -114,6 +114,7 @@ alias(
         deps = [
             ":logger_cc_proto",
             ":request_context_logger_{}".format(flavor),
+            "//src/communication:json_utils",
             "//src/util/status_macro:source_location",
             "@com_google_absl//absl/base:no_destructor",
             "@com_google_absl//absl/functional:any_invocable",

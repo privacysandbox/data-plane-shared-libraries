@@ -110,6 +110,24 @@ class MockEventMessageProvider {
   LogContext event_message_;
 };
 
+class EventMessageTest : public ConsentedLogTest {
+ protected:
+  std::string ReadSs() {
+    // Shut down reader now to avoid concurrent access of Ss.
+    logger_.reset();
+    em_instance_.reset();
+    std::string output = GetSs().str();
+    GetSs().str("");
+    return output;
+  }
+
+  void SetServerTokenForTestOnly(std::string_view token) {
+    em_instance_->SetServerTokenForTestOnly(token);
+  }
+
+  std::unique_ptr<ContextImpl<MockEventMessageProvider>> em_instance_;
+};
+
 class SafePathLogTest : public ConsentedLogTest {
  protected:
   static std::unique_ptr<SafePathContext> CreateTestInstance() {
