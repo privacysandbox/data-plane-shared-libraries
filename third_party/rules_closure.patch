@@ -24,10 +24,10 @@ index bef85f0..d748841 100644
 -    if language:
 -        print("closure_js_test 'language' is removed and now always ES6 strict")
 +    if (language):
-+        if (language == "ECMASCRIPT_2021"):
-+            language_out = "ECMASCRIPT_2021";
++        if (language == "ECMASCRIPT_NEXT"):
++            language_out = "ECMASCRIPT_NEXT";
 +        else:
-+            print("closure_js_test 'language' only supports 'EMCASCRIPT_2021' and now always ES5 strict.")
++            print("closure_js_test 'language' only supports 'ECMASCRIPT_NEXT' and will otherwise always be ES5 strict.")
      for src in srcs:
          if not src.endswith("_test.js"):
              fail("closure_js_test srcs must be files ending with _test.js")
