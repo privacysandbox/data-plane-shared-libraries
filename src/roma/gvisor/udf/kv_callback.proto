@@ -13,8 +13,22 @@
 // limitations under the License.
 
 syntax = "proto3";
+
 package privacy_sandbox.server_common.gvisor;
 
-message Uuid {
-  bytes uuid = 1;
+message CallbackReadRequest {
+  repeated bytes payloads = 1;
+}
+
+message CallbackReadResponse {
+  uint64 payload_size = 1;
+}
+
+message CallbackWriteRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message CallbackWriteResponse {
+  repeated bytes payloads = 1;
 }

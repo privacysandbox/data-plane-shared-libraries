@@ -56,6 +56,31 @@ buf_lint_test(
     targets = [":kv_proto"],
 )
 
+proto_library(
+    name = "kv_callback_proto",
+    srcs = ["kv_callback.proto"],
+    visibility = [
+        "//src/roma/gvisor:__subpackages__",
+    ],
+)
+
+cc_proto_library(
+    name = "kv_callback_cc_proto",
+    visibility = [
+        "//src/roma/gvisor:__subpackages__",
+    ],
+    deps = [
+        ":kv_callback_proto",
+    ],
+)
+
+buf_lint_test(
+    name = "kv_callback_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":kv_callback_proto"],
+)
+
 go_proto_library(
     name = "kv_go_proto",
     importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example",
@@ -120,6 +145,38 @@ cc_binary(
 )
 
 cc_binary(
+    name = "callback_payload_read_udf",
+    srcs = ["callback_payload_read.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":kv_callback_cc_proto",
+        ":kv_cc_proto",
+        "//src/roma/gvisor/host:callback_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "callback_payload_write_udf",
+    srcs = ["callback_payload_write.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":kv_callback_cc_proto",
+        ":kv_cc_proto",
+        "//src/roma/gvisor/host:callback_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
     name = "payload_write_udf",
     srcs = ["payload_write.cc"],
     visibility = ["//visibility:public"],
@@ -136,6 +193,8 @@ cc_binary(
 filegroup(
     name = "udf_binaries",
     srcs = [
+        ":callback_payload_read_udf",
+        ":callback_payload_write_udf",
         ":new_udf",
         ":payload_read_udf",
         ":payload_write_udf",

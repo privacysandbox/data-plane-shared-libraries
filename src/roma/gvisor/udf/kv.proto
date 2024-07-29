@@ -45,6 +45,20 @@ service KeyValueService {
       description: 'MethodAnnotation'
     };
   }
+
+  rpc ReadCallbackPayload(ReadCallbackPayloadRequest)
+      returns (ReadCallbackPayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc WriteCallbackPayload(WriteCallbackPayloadRequest)
+      returns (WriteCallbackPayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
 }
 
 enum FunctionType {
@@ -85,4 +99,22 @@ message GeneratePayloadRequest {
 
 message GeneratePayloadResponse {
   repeated bytes payloads = 1;
+}
+
+message ReadCallbackPayloadRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message ReadCallbackPayloadResponse {
+  uint64 payload_size = 1;
+}
+
+message WriteCallbackPayloadRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message WriteCallbackPayloadResponse {
+  uint64 payload_size = 1;
 }

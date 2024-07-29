@@ -31,14 +31,20 @@
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
 #include "src/roma/gvisor/udf/kv.pb.h"
+#include "src/roma/gvisor/udf/kv_callback.pb.h"
 #include "src/roma/gvisor/udf/kv_roma_gvisor_app_service.h"
 
 namespace {
 using google::scp::roma::FunctionBindingObjectV2;
 using privacy_sandbox::kv_server::roma_app_api::GvisorKeyValueService;
 using privacy_sandbox::kv_server::roma_app_api::KeyValueService;
+using privacy_sandbox::server_common::gvisor::CallbackReadRequest;
+using privacy_sandbox::server_common::gvisor::CallbackReadResponse;
+using privacy_sandbox::server_common::gvisor::CallbackWriteRequest;
+using privacy_sandbox::server_common::gvisor::CallbackWriteResponse;
 using privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
 using privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
 using privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
@@ -47,6 +53,10 @@ using privacy_sandbox::server_common::gvisor::FunctionType;
 using privacy_sandbox::server_common::gvisor::GetValuesRequest;
 using privacy_sandbox::server_common::gvisor::GetValuesResponse;
 using privacy_sandbox::server_common::gvisor::Mode;
+using privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest;
+using privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse;
+using privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
+using privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
 constexpr int kPrimeCount = 9592;
 constexpr std::string_view kGoLangBinaryPath = "/server/bin/sample_go_udf";
@@ -167,6 +177,34 @@ std::string GetFunctionTypeStr(FunctionType func_type) {
     default:
       return "udf:Unknown";
   }
+}
+
+void ReadCallbackPayload(
+    ::google::scp::roma::FunctionBindingPayload<>& wrapper) {
+  CallbackReadRequest req;
+  CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
+  int64_t payload_size = 0;
+  for (const auto& p : req.payloads()) {
+    payload_size += p.size();
+  }
+  CallbackReadResponse resp;
+  resp.set_payload_size(payload_size);
+  wrapper.io_proto.clear_input_bytes();
+  resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
+}
+
+void WriteCallbackPayload(
+    ::google::scp::roma::FunctionBindingPayload<>& wrapper) {
+  CallbackWriteRequest req;
+  CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
+  CallbackWriteResponse resp;
+  auto* payloads = resp.mutable_payloads();
+  payloads->Reserve(req.element_count());
+  for (auto i = 0; i < req.element_count(); ++i) {
+    payloads->Add(std::string(req.element_size(), 'a'));
+  }
+  wrapper.io_proto.clear_input_bytes();
+  resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
 }
 }  // namespace
 
@@ -386,6 +424,106 @@ void BM_ResponsePayload(benchmark::State& state) {
                           req_payload_size);
 }
 
+void BM_CallbackRequestPayload(benchmark::State& state) {
+  int64_t elem_size = state.range(0);
+  int64_t elem_count = state.range(1);
+  Mode mode = static_cast<Mode>(state.range(2));
+  ::privacy_sandbox::server_common::gvisor::Config<> config = {
+      .num_workers = 2,
+      .roma_container_name = "roma_server",
+      .function_bindings = {FunctionBindingObjectV2<>{"example",
+                                                      ReadCallbackPayload}},
+  };
+  absl::StatusOr<GvisorKeyValueService<>> kv_interface =
+      GvisorKeyValueService<>::Create(config, mode);
+  CHECK_OK(kv_interface);
+  GvisorKeyValueService<> roma_service = std::move(*kv_interface);
+
+  const auto rpc = [&roma_service](std::string_view code_token,
+                                   const auto& request) {
+    absl::StatusOr<std::unique_ptr<
+        privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse>>
+        response;
+    absl::Notification notif;
+    CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
+                                              /*metadata=*/{}, code_token));
+    notif.WaitForNotification();
+    return response;
+  };
+
+  privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest request;
+  request.set_element_size(elem_size);
+  request.set_element_count(elem_count);
+  const int64_t payload_size = elem_size * elem_count;
+
+  std::string code_tok =
+      LoadCode(roma_service, "/server/bin/callback_payload_read_udf");
+
+  if (const auto response = rpc(code_tok, request); response.ok()) {
+    CHECK((*response)->payload_size() == payload_size);
+  } else {
+    return;
+  }
+
+  for (auto _ : state) {
+    (void)rpc(code_tok, request);
+  }
+  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
+                              " x ", elem_count));
+  state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
+                          payload_size);
+}
+
+void BM_CallbackResponsePayload(benchmark::State& state) {
+  int64_t elem_size = state.range(0);
+  int64_t elem_count = state.range(1);
+  Mode mode = static_cast<Mode>(state.range(2));
+  ::privacy_sandbox::server_common::gvisor::Config<> config = {
+      .num_workers = 2,
+      .roma_container_name = "roma_server",
+      .function_bindings = {FunctionBindingObjectV2<>{"example",
+                                                      WriteCallbackPayload}},
+  };
+  absl::StatusOr<GvisorKeyValueService<>> kv_interface =
+      GvisorKeyValueService<>::Create(config, mode);
+  CHECK_OK(kv_interface);
+  GvisorKeyValueService<> roma_service = std::move(*kv_interface);
+
+  const auto rpc = [&roma_service](std::string_view code_token,
+                                   const auto& request) {
+    absl::StatusOr<std::unique_ptr<
+        privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse>>
+        response;
+    absl::Notification notif;
+    CHECK_OK(roma_service.WriteCallbackPayload(notif, request, response,
+                                               /*metadata=*/{}, code_token));
+    notif.WaitForNotification();
+    return response;
+  };
+
+  privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest request;
+  request.set_element_size(elem_size);
+  request.set_element_count(elem_count);
+  const int64_t payload_size = elem_size * elem_count;
+
+  std::string code_tok =
+      LoadCode(roma_service, "/server/bin/callback_payload_write_udf");
+
+  if (const auto response = rpc(code_tok, request); response.ok()) {
+    CHECK((*response)->payload_size() == payload_size);
+  } else {
+    return;
+  }
+
+  for (auto _ : state) {
+    (void)rpc(code_tok, request);
+  }
+  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
+                              " x ", elem_count));
+  state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
+                          payload_size);
+}
+
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
@@ -445,7 +583,7 @@ BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
     })
     ->ArgNames({"mode", "udf", "num_pre_warmed_workers"});
 
-static void RequestPayloadArguments(benchmark::internal::Benchmark* b) {
+static void PayloadArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000'000;
   constexpr int modes[] = {
       static_cast<int>(Mode::kModeGvisor),
@@ -467,7 +605,9 @@ static void RequestPayloadArguments(benchmark::internal::Benchmark* b) {
   }
 }
 
-BENCHMARK(BM_RequestPayload)->Apply(RequestPayloadArguments);
+BENCHMARK(BM_RequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_CallbackRequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_CallbackResponsePayload)->Apply(PayloadArguments);
 
 static void ResponsePayloadArgs(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000;
