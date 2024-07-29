@@ -47,9 +47,6 @@
 
 namespace privacy_sandbox::server_common::gvisor {
 
-using google::scp::roma::FunctionBindingObjectV2;
-using google::scp::roma::metadata_storage::MetadataStorage;
-
 enum class Mode {
   kModeGvisor = 0,
   kModeLocal = 1,
@@ -195,7 +192,8 @@ class RomaService final {
  private:
   explicit RomaService(
       std::unique_ptr<RomaInterface> roma_interface,
-      std::vector<FunctionBindingObjectV2<TMetadata>> function_bindings,
+      std::vector<::google::scp::roma::FunctionBindingObjectV2<TMetadata>>
+          function_bindings,
       std::string callback_socket, std::shared_ptr<::grpc::Channel> channel,
       std::string prog_dir) {
     roma_interface_ = std::move(roma_interface);

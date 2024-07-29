@@ -16,8 +16,8 @@
 #include "absl/strings/numbers.h"
 #include "src/roma/gvisor/udf/kv.pb.h"
 
-using privacy_sandbox::server_common::gvisor::GetValuesRequest;
-using privacy_sandbox::server_common::gvisor::GetValuesResponse;
+using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
+using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {

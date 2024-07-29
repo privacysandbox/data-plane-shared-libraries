@@ -28,13 +28,14 @@
 #include "src/roma/gvisor/host/callback.pb.h"
 #include "src/roma/gvisor/udf/kv.pb.h"
 
-using privacy_sandbox::server_common::gvisor::Callback;
-using privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
-using privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
-using privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
-using privacy_sandbox::server_common::gvisor::FUNCTION_TEN_CALLBACK_INVOCATIONS;
-using privacy_sandbox::server_common::gvisor::GetValuesRequest;
-using privacy_sandbox::server_common::gvisor::GetValuesResponse;
+using ::privacy_sandbox::server_common::gvisor::Callback;
+using ::privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
+using ::privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
+using ::privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::server_common::gvisor::
+    FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
+using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;
 
 // Find all prime numbers less than this:
 constexpr int kPrimeCount = 100'000;

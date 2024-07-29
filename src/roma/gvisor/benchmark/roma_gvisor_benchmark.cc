@@ -38,25 +38,26 @@
 #include "src/roma/gvisor/udf/kv_roma_gvisor_app_service.h"
 
 namespace {
-using google::scp::roma::FunctionBindingObjectV2;
-using privacy_sandbox::kv_server::roma_app_api::GvisorKeyValueService;
-using privacy_sandbox::kv_server::roma_app_api::KeyValueService;
-using privacy_sandbox::server_common::gvisor::CallbackReadRequest;
-using privacy_sandbox::server_common::gvisor::CallbackReadResponse;
-using privacy_sandbox::server_common::gvisor::CallbackWriteRequest;
-using privacy_sandbox::server_common::gvisor::CallbackWriteResponse;
-using privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
-using privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
-using privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
-using privacy_sandbox::server_common::gvisor::FUNCTION_TEN_CALLBACK_INVOCATIONS;
-using privacy_sandbox::server_common::gvisor::FunctionType;
-using privacy_sandbox::server_common::gvisor::GetValuesRequest;
-using privacy_sandbox::server_common::gvisor::GetValuesResponse;
-using privacy_sandbox::server_common::gvisor::Mode;
-using privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest;
-using privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse;
-using privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
-using privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
+using ::google::scp::roma::FunctionBindingObjectV2;
+using ::privacy_sandbox::kv_server::roma_app_api::GvisorKeyValueService;
+using ::privacy_sandbox::kv_server::roma_app_api::KeyValueService;
+using ::privacy_sandbox::server_common::gvisor::CallbackReadRequest;
+using ::privacy_sandbox::server_common::gvisor::CallbackReadResponse;
+using ::privacy_sandbox::server_common::gvisor::CallbackWriteRequest;
+using ::privacy_sandbox::server_common::gvisor::CallbackWriteResponse;
+using ::privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
+using ::privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
+using ::privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::server_common::gvisor::
+    FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using ::privacy_sandbox::server_common::gvisor::FunctionType;
+using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
+using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;
+using ::privacy_sandbox::server_common::gvisor::Mode;
+using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest;
+using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse;
+using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
+using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
 constexpr int kPrimeCount = 9592;
 constexpr std::string_view kGoLangBinaryPath = "/server/bin/sample_go_udf";

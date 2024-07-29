@@ -22,8 +22,8 @@
 #include "absl/strings/numbers.h"
 #include "src/roma/gvisor/udf/kv.pb.h"
 
-using privacy_sandbox::server_common::gvisor::GeneratePayloadRequest;
-using privacy_sandbox::server_common::gvisor::GeneratePayloadResponse;
+using ::privacy_sandbox::server_common::gvisor::GeneratePayloadRequest;
+using ::privacy_sandbox::server_common::gvisor::GeneratePayloadResponse;
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();

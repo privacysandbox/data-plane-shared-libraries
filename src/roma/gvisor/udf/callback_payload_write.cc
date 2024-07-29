@@ -25,11 +25,11 @@
 #include "src/roma/gvisor/udf/kv.pb.h"
 #include "src/roma/gvisor/udf/kv_callback.pb.h"
 
-using privacy_sandbox::server_common::gvisor::Callback;
-using privacy_sandbox::server_common::gvisor::CallbackWriteRequest;
-using privacy_sandbox::server_common::gvisor::CallbackWriteResponse;
-using privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
-using privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
+using ::privacy_sandbox::server_common::gvisor::Callback;
+using ::privacy_sandbox::server_common::gvisor::CallbackWriteRequest;
+using ::privacy_sandbox::server_common::gvisor::CallbackWriteResponse;
+using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
+using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
