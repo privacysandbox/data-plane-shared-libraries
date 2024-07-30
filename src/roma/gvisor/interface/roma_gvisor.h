@@ -17,6 +17,7 @@
 #ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_H_
 #define SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_H_
 
+#include <filesystem>
 #include <memory>
 #include <string>
 #include <utility>
@@ -26,6 +27,7 @@
 #include "src/roma/gvisor/interface/roma_interface.h"
 
 namespace privacy_sandbox::server_common::gvisor {
+
 class RomaGvisor final : public RomaInterface {
  public:
   // Factory method: creates and returns a RomaGvisor.
@@ -44,6 +46,7 @@ class RomaGvisor final : public RomaInterface {
   const pid_t roma_container_pid_;
   const ConfigInternal config_;
 };
+
 }  // namespace privacy_sandbox::server_common::gvisor
 
 #endif  // SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_H_

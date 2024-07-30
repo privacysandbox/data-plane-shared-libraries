@@ -107,7 +107,8 @@ absl::Status ModifyContainerConfigJson(const ConfigInternal& roma_config,
       nlohmann::json::parse(config_json_contents);
   // Add root path to config.
   config_nlohmann_json["root"] = {
-      {"path", roma_config.roma_container_root_dir.c_str()}};
+      {"path", roma_config.roma_container_root_dir.c_str()},
+  };
   std::filesystem::path socket_dir = socket_pwd.parent_path();
   // Bind-mount socket directory for unix-domain sockets. The sockets from this
   // directory will be used for communication between gVisor and outside world.
@@ -145,19 +146,22 @@ absl::Status ModifyContainerConfigJson(const ConfigInternal& roma_config,
       absl::StrCat("--", roma_config.callback_socket_flag_name, "=",
                    callback_socket.c_str()),
       absl::StrCat("--", roma_config.prog_dir_flag_name, "=",
-                   roma_config.prog_dir)};
+                   roma_config.prog_dir),
+  };
   return WriteToFile(config_file_loc, config_nlohmann_json.dump());
 }
 
 absl::StatusOr<pid_t> RunGvisorContainer(
     const ConfigInternal* config, const std::filesystem::path& socket_pwd,
     std::shared_ptr<grpc::Channel> gvisor_channel) {
-  std::vector<const char*> argv_runsc = {config->runsc_path.c_str(),
-                                         "--host-uds=all",
-                                         "--ignore-cgroups",
-                                         "run",
-                                         config->roma_container_name.c_str(),
-                                         nullptr};
+  const std::vector<const char*> argv_runsc = {
+      config->runsc_path.c_str(),
+      "--host-uds=all",
+      "--ignore-cgroups",
+      "run",
+      config->roma_container_name.c_str(),
+      nullptr,
+  };
   // Need to set this to ensure all the children can be reaped
   prctl(PR_SET_CHILD_SUBREAPER, 1);
   pid_t pid = vfork();
@@ -216,7 +220,7 @@ void RunCommand(const std::vector<const char*>& argv) {
 RomaGvisor::~RomaGvisor() {
   // Observed 'gofer is still running' issue -
   // https://github.com/google/gvisor/issues/6255
-  std::vector<const char*> runsc_kill = {
+  const std::vector<const char*> runsc_kill = {
       config_.runsc_path.c_str(),
       "kill",
       config_.roma_container_name.c_str(),
