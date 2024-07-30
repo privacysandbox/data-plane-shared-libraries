@@ -152,9 +152,12 @@ absl::Status ModifyContainerConfigJson(const ConfigInternal& roma_config,
 absl::StatusOr<pid_t> RunGvisorContainer(
     const ConfigInternal* config, const std::filesystem::path& socket_pwd,
     std::shared_ptr<grpc::Channel> gvisor_channel) {
-  std::vector<const char*> argv_runsc = {
-      config->runsc_path.c_str(), "--host-uds=all", "run",
-      config->roma_container_name.c_str(), nullptr};
+  std::vector<const char*> argv_runsc = {config->runsc_path.c_str(),
+                                         "--host-uds=all",
+                                         "--ignore-cgroups",
+                                         "run",
+                                         config->roma_container_name.c_str(),
+                                         nullptr};
   // Need to set this to ensure all the children can be reaped
   prctl(PR_SET_CHILD_SUBREAPER, 1);
   pid_t pid = vfork();

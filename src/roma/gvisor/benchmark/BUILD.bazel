@@ -88,7 +88,7 @@ oci_image(
 # Sample usage:
 # builders/tools/bazel-debian build //src/roma/gvisor/benchmark:roma_gvisor_benchmark_image_tarball
 # docker load -i bazel-bin/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image_tarball/tarball.tar
-# docker run -it -v /sys:/sys --privileged --rm bazel/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image:v1
+# docker run -it --privileged --rm bazel/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image:v1
 oci_tarball(
     name = "roma_gvisor_benchmark_image_tarball",
     image = ":roma_gvisor_benchmark_image",
