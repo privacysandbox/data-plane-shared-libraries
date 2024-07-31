@@ -16,7 +16,7 @@
     AWS Proxy for the Nitro Enclave
 
     Note: this package uses an older version of absl. This is to work around
-    the incompatibility between the clang-11 compiler used on amazonlinux2
+    the incompatibility between the clang-11 compiler used on amazonlinux2023
     and the versions of absl since 2023-11-17 (commit 00e087f). clang-11
     doesn't have std::filesystem, instead it's in std::experimental
 """
@@ -118,7 +118,7 @@ genrule(
     cmd_bash = """cat << EOF > '$@'
 readonly target_dir=dist/aws
 mkdir -p \\$${target_dir}
-cp $(execpath :resolv_conf_getter_server_debian_tarball) "\\$${target_dir}"
+cp $(execpath :resolv_conf_getter_server_debian_tarball) "\\$${target_dir}/resolv_conf_getter_server_debian_image.tar"
 EOF""",
     executable = True,
     local = True,
