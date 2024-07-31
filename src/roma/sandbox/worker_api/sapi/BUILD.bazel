@@ -125,10 +125,7 @@ sapi_library(
 
 cc_library(
     name = "worker_wrapper",
-    srcs = select({
-        "//:non_prod_build": ["worker_wrapper_nonprod.cc"],
-        "//conditions:default": ["worker_wrapper_prod.cc"],
-    }),
+    srcs = ["worker_wrapper_prod.cc"],
     hdrs = ["worker_wrapper.h"],
     deps = [
         ":error_codes",
