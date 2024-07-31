@@ -135,6 +135,19 @@ v8::Local<v8::Value> ProtoToV8Type(v8::Isolate* isolate,
   return v8::Undefined(isolate);
 }
 
+bool ShouldAbortLoggingCallback(std::string_view function_name,
+                                absl::LogSeverity min_log_level) {
+  if (function_name == "ROMA_ERROR") {
+    return min_log_level > absl::LogSeverity::kError;
+  } else if (function_name == "ROMA_WARN") {
+    return min_log_level > absl::LogSeverity::kWarning;
+  } else if (function_name == "ROMA_LOG") {
+    return min_log_level > absl::LogSeverity::kInfo;
+  } else {
+    return false;  // not a logging callback at all, do not abort
+  }
+}
+
 }  // namespace
 
 V8IsolateFunctionBinding::V8IsolateFunctionBinding(
@@ -207,6 +220,11 @@ void V8IsolateFunctionBinding::GlobalV8FunctionCallback(
   if (!NativeFieldsToProto(*binding, function_invocation_proto, rpc_proto)) {
     isolate->ThrowError(kCouldNotRunFunctionBinding);
     ROMA_VLOG(1) << kCouldNotRunFunctionBinding;
+  }
+
+  if (ShouldAbortLoggingCallback(rpc_proto.function_name(),
+                                 binding->instance->min_log_level_)) {
+    return;
   }
 
   const auto result = binding->instance->function_invoker_->Invoke(rpc_proto);
@@ -360,5 +378,9 @@ void V8IsolateFunctionBinding::AddExternalReferences(
 
 absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {
   return function_invoker_->Invoke(rpc_proto);
+}
+
+void V8IsolateFunctionBinding::SetMinLogLevel(absl::LogSeverity severity) {
+  min_log_level_ = severity;
 }
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

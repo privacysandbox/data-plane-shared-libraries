@@ -124,7 +124,7 @@ TEST(LoggingSapiTest, MetadataInLogsAvailableInBatchedRequests) {
 
       for (auto resp : batch_responses) {
         EXPECT_TRUE(resp.ok()) << "resp is NOT OK.";
-        EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
+        EXPECT_THAT(resp->resp, testing::StrEq("\"\""));
       }
     });
   }

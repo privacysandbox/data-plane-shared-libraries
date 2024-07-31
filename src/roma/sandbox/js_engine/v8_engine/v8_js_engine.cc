@@ -209,12 +209,14 @@ namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 V8JsEngine::V8JsEngine(
     std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
     const bool skip_v8_cleanup, const bool enable_profilers,
-    const JsEngineResourceConstraints& v8_resource_constraints)
+    const JsEngineResourceConstraints& v8_resource_constraints,
+    const bool logging_function_set)
     : isolate_function_binding_(std::move(isolate_function_binding)),
       v8_resource_constraints_(v8_resource_constraints),
       execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()),
       skip_v8_cleanup_(skip_v8_cleanup),
-      enable_profilers_(enable_profilers) {
+      enable_profilers_(enable_profilers),
+      logging_function_set_(logging_function_set) {
   if (isolate_function_binding_) {
     isolate_function_binding_->AddExternalReferences(external_references_);
   }
@@ -318,7 +320,8 @@ absl::Status V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     //  Compile and run JavaScript code object.
-    PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js_code));
+    PS_RETURN_IF_ERROR(
+        ExecutionUtils::CompileRunJS(js_code, logging_function_set_));
     // Set above context with compiled and run code as the default context for
     // the StartupData blob to create.
     creator.SetDefaultContext(context);
@@ -442,7 +445,6 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   isolate->SetFatalErrorHandler(FatalErrorCallback);
   isolate->AddGCPrologueCallback(GCPrologueCallback);
   isolate->AddGCEpilogueCallback(GCEpilogueCallback);
-  v8::debug::SetConsoleDelegate(isolate, console(isolate));
   return V8IsolateFactory::Create(isolate, std::move(allocator),
                                   enable_profilers_);
 }
@@ -841,15 +843,10 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
     auto [uuid, id, min_log_level] = GetLogOptions(metadata);
-    {
-      absl::MutexLock lock(&console_mutex_);
-      console_->SetMinLogLevel(min_log_level);
-    }
 
     if (isolate_function_binding_) {
+      isolate_function_binding_->SetMinLogLevel(min_log_level);
       isolate_function_binding_->AddIds(uuid, id);
-      absl::MutexLock lock(&console_mutex_);
-      console_->SetIds(uuid, id);
     }
   }
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();

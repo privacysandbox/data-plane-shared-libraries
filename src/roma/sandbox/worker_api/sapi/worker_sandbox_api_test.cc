@@ -53,7 +53,8 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{},
-      /*enable_profilers=*/false);
+      /*enable_profilers=*/false,
+      /*logging_function_set=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -87,7 +88,8 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeThrowMessageThroughSandbox) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{}, /*enable_profilers=*/false);
+      /*v8_flags=*/{}, /*enable_profilers=*/false,
+      /*logging_function_set=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -120,7 +122,8 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeMessageForMissingParam) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{}, /*enable_cpu_profiler=*/false);
+      /*v8_flags=*/{}, /*enable_cpu_profiler=*/false,
+      /*logging_function_set=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -155,7 +158,8 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
       /*js_engine_max_wasm_memory_number_of_pages=*/0,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-      /*v8_flags=*/{}, /*enable_profilers=*/false);
+      /*v8_flags=*/{}, /*enable_profilers=*/false,
+      /*logging_function_set=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 

@@ -60,4 +60,7 @@ message WorkerInitParamsProto {
 
   // Enable V8's Heap and Sample-based CPU Profiler
   bool enable_profilers = 15;
+
+  // Set if a custom logging function was set on the Config passed into Roma.
+  bool logging_function_set = 16;
 }

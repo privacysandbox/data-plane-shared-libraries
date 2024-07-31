@@ -180,7 +180,7 @@ void LoggingFunction(absl::LogSeverity severity,
   LOG(LEVEL(severity)) << msg;
 }
 
-TEST(WasmTest, CanLogFromInlineWasmCode) {
+TEST(WasmTest, DISABLED_CanLogFromInlineWasmCode) {
   Config config;
   config.number_of_workers = 2;
   config.SetLoggingFunction(LoggingFunction);

@@ -63,7 +63,8 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
 
   auto v8_engine = std::make_unique<V8JsEngine>(
       std::move(isolate_function_binding), params.skip_v8_cleanup,
-      params.enable_profilers, params.resource_constraints);
+      params.enable_profilers, params.resource_constraints,
+      params.logging_function_set);
   v8_engine->OneTimeSetup(GetEngineOneTimeSetup(params));
   return std::make_unique<Worker>(std::move(v8_engine), params.require_preload);
 }

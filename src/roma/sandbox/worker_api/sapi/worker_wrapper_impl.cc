@@ -109,6 +109,7 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       .skip_v8_cleanup = init_params->skip_v8_cleanup(),
       .v8_flags = std::move(v8_flags),
       .enable_profilers = init_params->enable_profilers(),
+      .logging_function_set = init_params->logging_function_set(),
   };
 
   worker_ = CreateWorker(v8_params);

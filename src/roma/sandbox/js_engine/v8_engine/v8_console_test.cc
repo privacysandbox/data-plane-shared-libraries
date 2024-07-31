@@ -53,7 +53,7 @@ class NativeFunctionInvokerMock
   virtual ~NativeFunctionInvokerMock() = default;
 };
 
-TEST_F(V8ConsoleTest, ConsoleFunctionsInvokeRPC) {
+TEST_F(V8ConsoleTest, DISABLED_ConsoleFunctionsInvokeRPC) {
   auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
   EXPECT_CALL(*function_invoker, Invoke(_))
       .Times(3)

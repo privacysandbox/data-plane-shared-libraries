@@ -77,7 +77,8 @@ class WorkerSandboxApi {
       size_t js_engine_max_wasm_memory_number_of_pages,
       size_t sandbox_request_response_shared_buffer_size_mb,
       bool enable_sandbox_sharing_request_response_with_buffer_only,
-      const std::vector<std::string>& v8_flags, bool enable_profilers);
+      const std::vector<std::string>& v8_flags, bool enable_profilers,
+      bool logging_function_set);
 
   absl::Status Init();
 
@@ -134,6 +135,7 @@ class WorkerSandboxApi {
   const bool enable_sandbox_sharing_request_response_with_buffer_only_;
   std::vector<std::string> v8_flags_;
   const bool enable_profilers_;
+  const bool logging_function_set_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

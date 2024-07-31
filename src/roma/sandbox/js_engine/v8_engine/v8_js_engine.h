@@ -48,7 +48,8 @@ class V8JsEngine : public JsEngine {
                  isolate_function_binding = nullptr,
              bool skip_v8_cleanup = false, bool enable_profilers = false,
              const JsEngineResourceConstraints& v8_resource_constraints =
-                 JsEngineResourceConstraints());
+                 JsEngineResourceConstraints(),
+             bool logging_function_set = false);
 
   ~V8JsEngine() override;
 
@@ -228,6 +229,7 @@ class V8JsEngine : public JsEngine {
   absl::Mutex console_mutex_;
   const bool skip_v8_cleanup_;
   const bool enable_profilers_;
+  const bool logging_function_set_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
