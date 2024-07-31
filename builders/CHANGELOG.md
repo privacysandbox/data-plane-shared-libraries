@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.67.0 (2024-07-31)
+
+
+### Bug Fixes
+
+* Add EXTRA_CBUILD_ARGS to tools/bazel-* scripts
+
+
+### Dependencies
+
+* **deps:** Update buildozer to 6.1.1
+* **deps:** Upgrade amazonlinux2023 to 5.20240722.0
+
+## 0.66.1 (2024-06-24)
+
+
+### Bug Fixes
+
+* Add --compilation_mode=opt to build:profiler config
+
+## 0.66.0 (2024-06-20)
+
+
+### Features
+
+* Add cpu-profiler flags to cbuild
+* Add profiler config in .profiler.bazelrc
+
 ## 0.65.1 (2024-06-04)
 
 
