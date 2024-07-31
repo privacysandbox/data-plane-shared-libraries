@@ -23,6 +23,7 @@
 #include <sys/types.h>
 
 #include <algorithm>
+#include <memory>
 #include <string>
 
 #include "absl/log/check.h"
@@ -52,7 +53,7 @@ struct Request {
   uint64_t fw_err;  // firmware error code on failure (see psp-sev.h)
 };
 
-SnpReport* getReport(const std::string report_data) {
+std::unique_ptr<SnpReport> getReport(const std::string report_data) {
   SnpRequest request = {};
   auto decodedBytes = absl::HexStringToBytes(report_data);
   size_t numBytesToCopy =
@@ -73,7 +74,7 @@ SnpReport* getReport(const std::string report_data) {
   auto rc = ioctl(sev_guest_file, SNP_GET_REPORT, &payload);
   CHECK(rc >= 0) << "Failed to issue ioctl SNP_GET_REPORT";
 
-  SnpReport* report = new SnpReport;
+  auto report = std::make_unique<SnpReport>();
   *report = response.report;
   return report;
 }

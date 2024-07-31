@@ -39,7 +39,7 @@ std::string base64EncodeBytes(const uint8_t* decoded, size_t size) {
 }
 
 std::string getSnpEvidence(const std::string report_data) {
-  SnpReport* report;
+  std::unique_ptr<SnpReport> report;
 
   switch (getSnpType()) {
     case SnpType::SEV:
@@ -54,7 +54,7 @@ std::string getSnpEvidence(const std::string report_data) {
       CHECK(false) << "Unsupported or no SNP type";
   }
 
-  return base64EncodeBytes(reinterpret_cast<uint8_t*>(report),
+  return base64EncodeBytes(reinterpret_cast<uint8_t*>(report.get()),
                            sizeof(SnpReport));
 }
 

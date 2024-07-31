@@ -24,6 +24,7 @@
 
 #include <algorithm>
 #include <charconv>
+#include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
@@ -58,7 +59,7 @@ struct Request {
   uint32_t error; /* firmware error code on failure (see psp-sev.h) */
 };
 
-SnpReport* getReport(const std::string report_data) {
+std::unique_ptr<SnpReport> getReport(const std::string report_data) {
   SnpRequest request = {};
   auto decodedBytes = absl::HexStringToBytes(report_data);
   size_t numBytesToCopy =
@@ -82,7 +83,7 @@ SnpReport* getReport(const std::string report_data) {
   auto rc = ioctl(sev_file, SEV_SNP_GUEST_MSG_REPORT, &payload);
   CHECK(rc >= 0) << "Failed to issue ioctl SEV_SNP_GUEST_MSG_REPORT";
 
-  SnpReport* report = new SnpReport;
+  auto report = std::make_unique<SnpReport>();
   *report = response.report;
   return report;
 }
