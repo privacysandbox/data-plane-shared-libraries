@@ -60,9 +60,10 @@ pkg_tar(
 oci_image(
     name = "gvisor_server_image",
     base = select({
-        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
-        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
+        "@platforms//cpu:aarch64": "@runtime-debian-nondebug-nonroot-arm64",
+        "@platforms//cpu:x86_64": "@runtime-debian-nondebug-nonroot-amd64",
     }),
+    cmd = ["/server/bin/gvisor_server"],
     tars = [
         ":gvisor_server_tar",
     ],

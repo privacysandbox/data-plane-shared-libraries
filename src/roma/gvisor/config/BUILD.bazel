@@ -26,10 +26,10 @@ cc_library(
         "RUNSC_PATH=/usr/bin/runsc",
     ] + select({
         "@platforms//cpu:arm64": [
-            'ROMA_LIB_MOUNTS=\\"/lib\\"',
+            'ROMA_LIB_MOUNTS=\\"/lib,/usr\\"',
         ],
         "@platforms//cpu:x86_64": [
-            'ROMA_LIB_MOUNTS=\\"/lib,/lib64\\"',
+            'ROMA_LIB_MOUNTS=\\"/lib,/lib64,/usr\\"',
         ],
     }),
     visibility = ["//src/roma/gvisor:__subpackages__"],
