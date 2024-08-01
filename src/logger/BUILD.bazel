@@ -41,6 +41,7 @@ cc_proto_library(
 
 cc_library(
     name = "request_context_logger_non_prod",
+    srcs = ["request_context_logger.cc"],
     hdrs = ["request_context_logger.h"],
     defines = ["PS_LOG_NON_PROD=1"],
     deps = [
@@ -50,6 +51,7 @@ cc_library(
 
 cc_library(
     name = "request_context_logger_prod",
+    srcs = ["request_context_logger.cc"],
     hdrs = ["request_context_logger.h"],
     deps = [
         "@com_google_absl//absl/log:absl_log",

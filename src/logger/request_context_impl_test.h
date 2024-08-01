@@ -41,7 +41,7 @@ class ConsentedLogTest : public test::LogTest {
  protected:
   void SetUp() override {
     // initialize max verbosity = kMaxV
-    PS_VLOG_IS_ON(0, kMaxV);
+    SetGlobalPSVLogLevel(kMaxV);
 
     logger_ = logs_sdk::LoggerProviderFactory::Create(
         logs_sdk::SimpleLogRecordProcessorFactory::Create(
