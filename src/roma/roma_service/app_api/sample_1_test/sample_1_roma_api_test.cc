@@ -21,19 +21,18 @@
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
 
-#include "inference_romav8_app_service.h"
+#include "sample_1_romav8_app_service.h"
 
 using ::testing::Contains;
 using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
-using ::privacysandbox::bidding_auction::inference::roma_app_api::
-    V8InferenceService;
-using ::privacysandbox::roma::app_api::inference_test::v1::RunInferenceRequest;
-using ::privacysandbox::roma::app_api::inference_test::v1::RunInferenceResponse;
+using ::privacysandbox::roma::app_api::sample_1_test::V8Sample1Service;
+using ::privacysandbox::roma::app_api::sample_1_test::v1::RunSample1Request;
+using ::privacysandbox::roma::app_api::sample_1_test::v1::RunSample1Response;
 
-namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest {
+namespace privacysandbox::sample::roma::AppApi::RomaSample1Test {
 
 namespace {
 const absl::Duration kDefaultTimeout = absl::Seconds(10);
@@ -43,11 +42,11 @@ constexpr std::string_view kCodeVersion = "v1";
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8InferenceService<>::Create(std::move(config));
+  auto app_svc = V8Sample1Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    InferenceServer.RunInference = function(req) {
+    Sample1Server.RunSample1 = function(req) {
       return {
         response: [
           { model_path: "a/b/c/1/2/3" },
@@ -66,9 +65,9 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  RunInferenceRequest req;
-  absl::StatusOr<std::unique_ptr<RunInferenceResponse>> resp;
-  ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
+  RunSample1Request req;
+  absl::StatusOr<std::unique_ptr<RunSample1Response>> resp;
+  ASSERT_TRUE(app_svc->RunSample1(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
@@ -79,11 +78,11 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8InferenceService<>::Create(std::move(config));
+  auto app_svc = V8Sample1Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    InferenceServer.RunInference = function(req) {
+    Sample1Server.RunSample1 = function(req) {
       return {
         response: [],
       };
@@ -99,9 +98,9 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  RunInferenceRequest req;
-  absl::StatusOr<std::unique_ptr<RunInferenceResponse>> resp;
-  ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
+  RunSample1Request req;
+  absl::StatusOr<std::unique_ptr<RunSample1Response>> resp;
+  ASSERT_TRUE(app_svc->RunSample1(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
@@ -111,11 +110,11 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 TEST(RomaV8AppTest, UseRequestField) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8InferenceService<>::Create(std::move(config));
+  auto app_svc = V8Sample1Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    InferenceServer.RunInference = function(req) {
+    Sample1Server.RunSample1 = function(req) {
       return {
         response: [
           {
@@ -141,12 +140,12 @@ TEST(RomaV8AppTest, UseRequestField) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  RunInferenceRequest req;
+  RunSample1Request req;
   constexpr std::string_view model_path = "my_bucket/models/pcvr_models/1";
   req.add_request()->set_model_path(model_path);
 
-  absl::StatusOr<std::unique_ptr<RunInferenceResponse>> resp;
-  ASSERT_TRUE(app_svc->RunInference(completed, req, resp).ok());
+  absl::StatusOr<std::unique_ptr<RunSample1Response>> resp;
+  ASSERT_TRUE(app_svc->RunSample1(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
@@ -159,4 +158,4 @@ TEST(RomaV8AppTest, UseRequestField) {
   EXPECT_THAT((*resp)->response(1).tensors(1).data_type(), Eq(0));
 }
 
-}  // namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest
+}  // namespace privacysandbox::sample::roma::AppApi::RomaSample1Test

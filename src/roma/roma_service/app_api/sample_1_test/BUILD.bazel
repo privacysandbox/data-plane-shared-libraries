@@ -26,57 +26,57 @@ load(
 )
 
 proto_library(
-    name = "inference_proto",
-    srcs = ["inference.proto"],
+    name = "sample_1_proto",
+    srcs = ["sample_1.proto"],
     deps = [
         "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
     ],
 )
 
 buf_lint_test(
-    name = "inference_proto_lint",
+    name = "sample_1_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
-    targets = [":inference_proto"],
+    targets = [":sample_1_proto"],
 )
 
 cc_proto_library(
-    name = "inference_cc_proto",
-    deps = [":inference_proto"],
+    name = "sample_1_cc_proto",
+    deps = [":sample_1_proto"],
 )
 
-inference_api = declare_roma_api(
-    cc_protos = [":inference_cc_proto"],
-    proto_basename = "inference",
-    protos = [":inference_proto"],
+sample_1_api = declare_roma_api(
+    cc_protos = [":sample_1_cc_proto"],
+    proto_basename = "sample_1",
+    protos = [":sample_1_proto"],
 )
 
 js_proto_library(
-    name = "inference_js_proto_lib",
-    roma_api = inference_api,
+    name = "sample_1_js_proto_lib",
+    roma_api = sample_1_api,
 )
 
 roma_service_js_library(
-    name = "inference_js_library",
-    roma_app_api = inference_api,
-    deps = [":inference_js_proto_lib"],
+    name = "sample_1_js_library",
+    roma_app_api = sample_1_api,
+    deps = [":sample_1_js_proto_lib"],
 )
 
 closure_js_binary(
-    name = "inference_js",
+    name = "sample_1_js",
     compilation_level = "SIMPLE_OPTIMIZATIONS",
     debug = False,
     formatting = "PRETTY_PRINT",
     language = "ECMASCRIPT_NEXT",
     deps = [
-        ":inference_js_library",
+        ":sample_1_js_library",
     ],
 )
 
 roma_app_api_cc_library(
-    name = "inference_roma_api",
-    js_library = ":inference_js",
-    roma_app_api = inference_api,
+    name = "sample_1_roma_api",
+    js_library = ":sample_1_js",
+    roma_app_api = sample_1_api,
     tags = [
         "noasan",
         "notsan",
@@ -85,26 +85,26 @@ roma_app_api_cc_library(
 )
 
 roma_sdk(
-    name = "inference_sdk",
+    name = "sample_1_sdk",
     srcs = [
-        ":inference_js",
+        ":sample_1_js",
     ],
-    app_api_cc_library = ":inference_roma_api",
-    js_library = ":inference_js_library",
-    roma_app_api = inference_api,
+    app_api_cc_library = ":sample_1_roma_api",
+    js_library = ":sample_1_js_library",
+    roma_app_api = sample_1_api,
     visibility = ["//visibility:public"],
 )
 
 cc_test(
-    name = "inference_cc_test",
+    name = "sample_1_cc_test",
     size = "small",
-    srcs = [":inference_roma_api_test.cc"],
+    srcs = [":sample_1_roma_api_test.cc"],
     tags = [
         "noasan",
         "notsan",
     ],
     deps = [
-        ":inference_roma_api",
+        ":sample_1_roma_api",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
