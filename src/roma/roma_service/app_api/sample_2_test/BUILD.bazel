@@ -26,57 +26,57 @@ load(
 )
 
 proto_library(
-    name = "kv_proto",
-    srcs = ["kv.proto"],
+    name = "sample_2_proto",
+    srcs = ["sample_2.proto"],
     deps = [
         "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
     ],
 )
 
 buf_lint_test(
-    name = "kv_proto_lint",
+    name = "sample_2_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
-    targets = [":kv_proto"],
+    targets = [":sample_2_proto"],
 )
 
 cc_proto_library(
-    name = "kv_cc_proto",
-    deps = [":kv_proto"],
+    name = "sample_2_cc_proto",
+    deps = [":sample_2_proto"],
 )
 
-kv_api = declare_roma_api(
-    cc_protos = [":kv_cc_proto"],
-    proto_basename = "kv",
-    protos = [":kv_proto"],
+sample_2_api = declare_roma_api(
+    cc_protos = [":sample_2_cc_proto"],
+    proto_basename = "sample_2",
+    protos = [":sample_2_proto"],
 )
 
 js_proto_library(
-    name = "kv_js_proto_lib",
-    roma_api = kv_api,
+    name = "sample_2_js_proto_lib",
+    roma_api = sample_2_api,
 )
 
 roma_service_js_library(
-    name = "kv_js_library",
-    roma_app_api = kv_api,
-    deps = [":kv_js_proto_lib"],
+    name = "sample_2_js_library",
+    roma_app_api = sample_2_api,
+    deps = [":sample_2_js_proto_lib"],
 )
 
 closure_js_binary(
-    name = "kv_js",
+    name = "sample_2_js",
     compilation_level = "SIMPLE_OPTIMIZATIONS",
     debug = False,
     formatting = "PRETTY_PRINT",
     language = "ECMASCRIPT_NEXT",
     deps = [
-        ":kv_js_library",
+        ":sample_2_js_library",
     ],
 )
 
 roma_app_api_cc_library(
-    name = "kv_roma_api",
-    js_library = ":kv_js",
-    roma_app_api = kv_api,
+    name = "sample_2_roma_api",
+    js_library = ":sample_2_js",
+    roma_app_api = sample_2_api,
     tags = [
         "noasan",
         "notsan",
@@ -85,26 +85,26 @@ roma_app_api_cc_library(
 )
 
 roma_sdk(
-    name = "kv_sdk",
+    name = "sample_2_sdk",
     srcs = [
-        ":kv_js",
+        ":sample_2_js",
     ],
-    app_api_cc_library = ":kv_roma_api",
-    js_library = ":kv_js_library",
-    roma_app_api = kv_api,
+    app_api_cc_library = ":sample_2_roma_api",
+    js_library = ":sample_2_js_library",
+    roma_app_api = sample_2_api,
     visibility = ["//visibility:public"],
 )
 
 cc_test(
-    name = "kv_cc_test",
+    name = "sample_2_cc_test",
     size = "small",
-    srcs = [":kv_roma_api_test.cc"],
+    srcs = [":sample_2_roma_api_test.cc"],
     tags = [
         "noasan",
         "notsan",
     ],
     deps = [
-        ":kv_roma_api",
+        ":sample_2_roma_api",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",

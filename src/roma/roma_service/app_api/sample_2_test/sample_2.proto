@@ -14,33 +14,33 @@
 
 syntax = "proto3";
 
-package privacysandbox.roma.app_api.kv_test.v1;
+package privacysandbox.roma.app_api.sample_2_test.v1;
 
 import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 
-service KeyValueService {
+service Sample2Service {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
-    name: 'Key/Value Server',
+    name: 'Sample 2 Server',
     code_id: "app_api_roma_app_test_v1",
-    description: 'A key-value server built to operate within Trusted Execution Environments',
-    cpp_namespace: 'privacysandbox::kvserver::roma_app_api',
-    roma_app_name: 'KvServer'
+    description: 'A sample server showcasing how declarative APIs work',
+    cpp_namespace: 'privacysandbox::roma::app_api::sample_2_test',
+    roma_app_name: 'Sample2Server'
   };
 
-  rpc GetValues(GetValuesRequest) returns (GetValuesResponse) {
+  rpc GetSample2(GetSample2Request) returns (GetSample2Response) {
     option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
       description: 'MethodAnnotation'
     };
   }
 }
 
-message GetValuesRequest {
+message GetSample2Request {
   string key1 = 1;
   string key2 = 2;
   repeated string keys = 3;
 }
 
-message GetValuesResponse {
+message GetSample2Response {
   string value = 1;
   repeated string vals = 2;
   Foo foo = 3;

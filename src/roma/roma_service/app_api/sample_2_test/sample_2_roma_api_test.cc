@@ -20,16 +20,16 @@
 #include "absl/status/status.h"
 #include "absl/time/time.h"
 
-#include "kv_romav8_app_service.h"
+#include "sample_2_romav8_app_service.h"
 
 using ::testing::Contains;
 using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
-using ::privacysandbox::kvserver::roma_app_api::V8KeyValueService;
-using ::privacysandbox::roma::app_api::kv_test::v1::GetValuesRequest;
-using ::privacysandbox::roma::app_api::kv_test::v1::GetValuesResponse;
+using ::privacysandbox::roma::app_api::sample_2_test::V8Sample2Service;
+using ::privacysandbox::roma::app_api::sample_2_test::v1::GetSample2Request;
+using ::privacysandbox::roma::app_api::sample_2_test::v1::GetSample2Response;
 
 namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest {
 
@@ -41,11 +41,11 @@ constexpr std::string_view kCodeVersion = "v1";
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8Sample2Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    KvServer.GetValues = function(req) {
+    Sample2Server.GetSample2 = function(req) {
       return {
         abc: 123,
         unknown1: "An unknown field",
@@ -65,9 +65,9 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  GetValuesRequest req;
-  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
-  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
+  GetSample2Request req;
+  absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
+  ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
@@ -80,11 +80,11 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8Sample2Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    KvServer.GetValues = function(req) {
+    Sample2Server.GetSample2 = function(req) {
       return {
         foo: {},
         foos: [],
@@ -103,9 +103,9 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  GetValuesRequest req;
-  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
-  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
+  GetSample2Request req;
+  absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
+  ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
@@ -118,11 +118,11 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
 TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8Sample2Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    KvServer.GetValues = function(req) {
+    Sample2Server.GetSample2 = function(req) {
       return {
         vals: [
           "str1",
@@ -151,9 +151,9 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  GetValuesRequest req;
-  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
-  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
+  GetSample2Request req;
+  absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
+  ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
@@ -166,11 +166,11 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
 TEST(RomaV8AppTest, UseRequestField) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = V8KeyValueService<>::Create(std::move(config));
+  auto app_svc = V8Sample2Service<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
-    KvServer.GetValues = function(req) {
+    Sample2Server.GetSample2 = function(req) {
       return {
         value: "Something in the reply",
         vals: ["Hi " + req.keysList[0] + "!"],
@@ -187,12 +187,12 @@ TEST(RomaV8AppTest, UseRequestField) {
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
-  GetValuesRequest req;
+  GetSample2Request req;
   req.set_key1("abc123");
   req.set_key2("def123");
   req.add_keys("Foobar");
-  absl::StatusOr<std::unique_ptr<GetValuesResponse>> resp;
-  ASSERT_TRUE(app_svc->GetValues(completed, req, resp).ok());
+  absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
+  ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   ASSERT_TRUE(resp.ok());
