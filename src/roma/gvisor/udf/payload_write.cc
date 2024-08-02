@@ -20,7 +20,7 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
-#include "src/roma/gvisor/udf/kv.pb.h"
+#include "src/roma/gvisor/udf/sample.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::GeneratePayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::GeneratePayloadResponse;

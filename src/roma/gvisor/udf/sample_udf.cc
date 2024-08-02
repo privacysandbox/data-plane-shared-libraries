@@ -26,7 +26,7 @@
 #include "absl/strings/str_cat.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/host/callback.pb.h"
-#include "src/roma/gvisor/udf/kv.pb.h"
+#include "src/roma/gvisor/udf/sample.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::Callback;
 using ::privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;

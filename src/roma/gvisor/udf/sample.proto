@@ -18,13 +18,13 @@ package privacy_sandbox.server_common.gvisor;
 
 import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 
-service KeyValueService {
+service SampleService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
-    name: 'Key/Value Server',
+    name: 'Sample Server',
     code_id: "app_api_roma_app_test_v1",
-    description: 'A key-value server built to operate within Trusted Execution Environments',
-    cpp_namespace: 'privacy_sandbox::kv_server::roma_app_api',
-    roma_app_name: 'KvServer'
+    description: 'A sample server showcasing declarative APIs for gVisor',
+    cpp_namespace: 'privacy_sandbox::sample_server::roma_app_api',
+    roma_app_name: 'SampleServer'
   };
 
   rpc GetValues(GetValuesRequest) returns (GetValuesResponse) {

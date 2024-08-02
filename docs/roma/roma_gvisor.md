@@ -38,13 +38,12 @@ Roma gVisor uses declarative interfaces.
 
 Broadly, the steps for developing the interface are:
 
-1. Define your API as a proto. Example [kv.proto](/src/roma/gvisor/udf/kv.proto).
+1. Define your API as a proto. Example [sample.proto](/src/roma/gvisor/udf/sample.proto).
 1. Leverage this proto and generate Roma API code using
    [roma_app_api_cc_library](/src/roma/tools/api_plugin/roma_api.bzl). Example
-   [kv_roma_api](/src/roma/gvisor/udf/BUILD.bazel).
+   [sample_roma_api](/src/roma/gvisor/udf/BUILD.bazel).
 1. Add the target to your BUILD file that will be using the Roma API.
-1. Use the API. Example
-   [GvisorKeyValueService](/src/roma/gvisor/benchmark/roma_gvisor_benchmark.cc).
+1. Use the API. Example [GvisorSampleService](/src/roma/gvisor/benchmark/roma_gvisor_benchmark.cc).
 
 ### AdTechs
 

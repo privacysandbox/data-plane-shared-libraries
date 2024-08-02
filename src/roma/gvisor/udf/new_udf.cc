@@ -14,7 +14,7 @@
 
 #include "absl/log/check.h"
 #include "absl/strings/numbers.h"
-#include "src/roma/gvisor/udf/kv.pb.h"
+#include "src/roma/gvisor/udf/sample.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
 using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;

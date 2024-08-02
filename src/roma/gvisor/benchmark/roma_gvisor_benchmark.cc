@@ -33,14 +33,14 @@
 #include "absl/time/time.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
-#include "src/roma/gvisor/udf/kv.pb.h"
-#include "src/roma/gvisor/udf/kv_callback.pb.h"
-#include "src/roma/gvisor/udf/kv_roma_gvisor_app_service.h"
+#include "src/roma/gvisor/udf/sample.pb.h"
+#include "src/roma/gvisor/udf/sample_callback.pb.h"
+#include "src/roma/gvisor/udf/sample_roma_gvisor_app_service.h"
 
 namespace {
 using ::google::scp::roma::FunctionBindingObjectV2;
-using ::privacy_sandbox::kv_server::roma_app_api::GvisorKeyValueService;
-using ::privacy_sandbox::kv_server::roma_app_api::KeyValueService;
+using ::privacy_sandbox::sample_server::roma_app_api::GvisorSampleService;
+using ::privacy_sandbox::sample_server::roma_app_api::SampleService;
 using ::privacy_sandbox::server_common::gvisor::CallbackReadRequest;
 using ::privacy_sandbox::server_common::gvisor::CallbackReadResponse;
 using ::privacy_sandbox::server_common::gvisor::CallbackWriteRequest;
@@ -73,7 +73,7 @@ enum class Language {
 };
 
 GetValuesResponse SendRequestAndGetResponse(
-    GvisorKeyValueService<>& roma_service,
+    GvisorSampleService<>& roma_service,
     privacy_sandbox::server_common::gvisor::FunctionType func_type,
     std::string_view code_token) {
   // Data we are sending to the server.
@@ -89,7 +89,7 @@ GetValuesResponse SendRequestAndGetResponse(
   return *std::move((*response).get());
 }
 
-std::string LoadCode(GvisorKeyValueService<>& roma_service,
+std::string LoadCode(GvisorSampleService<>& roma_service,
                      std::string_view file_path) {
   absl::Notification notif;
   absl::Status notif_status;
@@ -101,16 +101,16 @@ std::string LoadCode(GvisorKeyValueService<>& roma_service,
   return *std::move(code_id);
 }
 
-GvisorKeyValueService<> GetRomaService(Mode mode, int num_workers) {
+GvisorSampleService<> GetRomaService(Mode mode, int num_workers) {
   privacy_sandbox::server_common::gvisor::Config<> config = {
       .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
-  absl::StatusOr<GvisorKeyValueService<>> kv_interface =
-      GvisorKeyValueService<>::Create(config, mode);
-  CHECK_OK(kv_interface);
-  return std::move(*kv_interface);
+  absl::StatusOr<GvisorSampleService<>> sample_interface =
+      GvisorSampleService<>::Create(config, mode);
+  CHECK_OK(sample_interface);
+  return std::move(*sample_interface);
 }
 
 void VerifyResponse(GetValuesResponse bin_response,
@@ -211,8 +211,7 @@ void WriteCallbackPayload(
 
 void BM_LoadBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  GvisorKeyValueService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/1);
+  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
   FunctionType func_type = FUNCTION_HELLO_WORLD;
 
   auto bin_response = SendRequestAndGetResponse(
@@ -231,8 +230,7 @@ void BM_LoadBinary(benchmark::State& state) {
 
 void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  GvisorKeyValueService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/2);
+  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
 
   std::string first_code_token = LoadCode(roma_service, kCPlusPlusBinaryPath);
   std::string second_code_token =
@@ -257,8 +255,7 @@ void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
 
 void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  GvisorKeyValueService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/2);
+  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
 
   std::string first_code_token = LoadCode(roma_service, kCPlusPlusBinaryPath);
   std::string second_code_token =
@@ -283,7 +280,7 @@ void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
 
 void BM_ExecuteBinaryAsyncUnaryGrpc(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  GvisorKeyValueService<> roma_service =
+  GvisorSampleService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
 
   std::string code_token = LoadCode(roma_service, kCPlusPlusBinaryPath);
@@ -301,7 +298,7 @@ void BM_ExecuteBinaryAsyncUnaryGrpc(benchmark::State& state) {
 
 void BM_GvisorCompareCPlusPlusAndGoLangBinary(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
-  GvisorKeyValueService<> roma_service =
+  GvisorSampleService<> roma_service =
       GetRomaService(Mode::kModeGvisor, /*num_workers=*/2);
 
   std::string code_token =
@@ -338,8 +335,7 @@ void BM_RequestPayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
-  GvisorKeyValueService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/2);
+  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
 
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
@@ -383,8 +379,7 @@ void BM_ResponsePayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
-  GvisorKeyValueService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/2);
+  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
 
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
@@ -435,10 +430,10 @@ void BM_CallbackRequestPayload(benchmark::State& state) {
       .function_bindings = {FunctionBindingObjectV2<>{"example",
                                                       ReadCallbackPayload}},
   };
-  absl::StatusOr<GvisorKeyValueService<>> kv_interface =
-      GvisorKeyValueService<>::Create(config, mode);
-  CHECK_OK(kv_interface);
-  GvisorKeyValueService<> roma_service = std::move(*kv_interface);
+  absl::StatusOr<GvisorSampleService<>> sample_interface =
+      GvisorSampleService<>::Create(config, mode);
+  CHECK_OK(sample_interface);
+  GvisorSampleService<> roma_service = std::move(*sample_interface);
 
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
@@ -485,10 +480,10 @@ void BM_CallbackResponsePayload(benchmark::State& state) {
       .function_bindings = {FunctionBindingObjectV2<>{"example",
                                                       WriteCallbackPayload}},
   };
-  absl::StatusOr<GvisorKeyValueService<>> kv_interface =
-      GvisorKeyValueService<>::Create(config, mode);
-  CHECK_OK(kv_interface);
-  GvisorKeyValueService<> roma_service = std::move(*kv_interface);
+  absl::StatusOr<GvisorSampleService<>> sample_interface =
+      GvisorSampleService<>::Create(config, mode);
+  CHECK_OK(sample_interface);
+  GvisorSampleService<> roma_service = std::move(*sample_interface);
 
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {

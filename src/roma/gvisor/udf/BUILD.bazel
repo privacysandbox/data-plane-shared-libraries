@@ -31,8 +31,8 @@ load(
 )
 
 proto_library(
-    name = "kv_proto",
-    srcs = ["kv.proto"],
+    name = "sample_proto",
+    srcs = ["sample.proto"],
     visibility = [
         "//src/roma/gvisor:__subpackages__",
     ],
@@ -40,51 +40,51 @@ proto_library(
 )
 
 cc_proto_library(
-    name = "kv_cc_proto",
+    name = "sample_cc_proto",
     visibility = [
         "//src/roma/gvisor:__subpackages__",
     ],
     deps = [
-        ":kv_proto",
+        ":sample_proto",
     ],
 )
 
 buf_lint_test(
-    name = "kv_proto_lint",
+    name = "sample_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
-    targets = [":kv_proto"],
+    targets = [":sample_proto"],
 )
 
 proto_library(
-    name = "kv_callback_proto",
-    srcs = ["kv_callback.proto"],
+    name = "sample_callback_proto",
+    srcs = ["sample_callback.proto"],
     visibility = [
         "//src/roma/gvisor:__subpackages__",
     ],
 )
 
 cc_proto_library(
-    name = "kv_callback_cc_proto",
+    name = "sample_callback_cc_proto",
     visibility = [
         "//src/roma/gvisor:__subpackages__",
     ],
     deps = [
-        ":kv_callback_proto",
+        ":sample_callback_proto",
     ],
 )
 
 buf_lint_test(
-    name = "kv_callback_proto_lint",
+    name = "sample_callback_proto_lint",
     size = "small",
     config = "//src:buf.yaml",
-    targets = [":kv_callback_proto"],
+    targets = [":sample_callback_proto"],
 )
 
 go_proto_library(
-    name = "kv_go_proto",
+    name = "sample_go_proto",
     importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example",
-    proto = ":kv_proto",
+    proto = ":sample_proto",
     deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_go"],
 )
 
@@ -95,7 +95,7 @@ go_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_go_proto",
+        ":sample_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )
@@ -107,7 +107,7 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_cc_proto",
+        ":sample_cc_proto",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",
     ],
@@ -120,7 +120,7 @@ cc_binary(
     ],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_cc_proto",
+        ":sample_cc_proto",
         "//src/roma/gvisor/host:callback_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
@@ -135,7 +135,7 @@ cc_binary(
     srcs = ["payload_read.cc"],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_cc_proto",
+        ":sample_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
@@ -149,8 +149,8 @@ cc_binary(
     srcs = ["callback_payload_read.cc"],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_callback_cc_proto",
-        ":kv_cc_proto",
+        ":sample_callback_cc_proto",
+        ":sample_cc_proto",
         "//src/roma/gvisor/host:callback_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
@@ -165,8 +165,8 @@ cc_binary(
     srcs = ["callback_payload_write.cc"],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_callback_cc_proto",
-        ":kv_cc_proto",
+        ":sample_callback_cc_proto",
+        ":sample_cc_proto",
         "//src/roma/gvisor/host:callback_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
@@ -181,7 +181,7 @@ cc_binary(
     srcs = ["payload_write.cc"],
     visibility = ["//visibility:public"],
     deps = [
-        ":kv_cc_proto",
+        ":sample_cc_proto",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
@@ -204,38 +204,38 @@ filegroup(
     visibility = ["//visibility:public"],
 )
 
-kv_api = declare_roma_api(
-    cc_protos = [":kv_cc_proto"],
-    proto_basename = "kv",
-    protos = [":kv_proto"],
+sample_api = declare_roma_api(
+    cc_protos = [":sample_cc_proto"],
+    proto_basename = "sample",
+    protos = [":sample_proto"],
 )
 
 js_proto_library(
-    name = "kv_js_proto_lib",
-    roma_api = kv_api,
+    name = "sample_js_proto_lib",
+    roma_api = sample_api,
 )
 
 roma_service_js_library(
-    name = "kv_js_library",
-    roma_app_api = kv_api,
-    deps = [":kv_js_proto_lib"],
+    name = "sample_js_library",
+    roma_app_api = sample_api,
+    deps = [":sample_js_proto_lib"],
 )
 
 closure_js_binary(
-    name = "kv_js",
+    name = "sample_js",
     compilation_level = "SIMPLE_OPTIMIZATIONS",
     debug = False,
     formatting = "PRETTY_PRINT",
     language = "ECMASCRIPT_NEXT",
     deps = [
-        ":kv_js_library",
+        ":sample_js_library",
     ],
 )
 
 roma_app_api_cc_library(
-    name = "kv_roma_api",
-    js_library = ":kv_js",
-    roma_app_api = kv_api,
+    name = "sample_roma_api",
+    js_library = ":sample_js",
+    roma_app_api = sample_api,
     tags = [
         "noasan",
         "notsan",
