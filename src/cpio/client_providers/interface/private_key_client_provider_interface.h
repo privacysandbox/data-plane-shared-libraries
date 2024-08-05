@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/service_interface.h"
@@ -56,11 +57,13 @@ class PrivateKeyClientProviderFactory {
    * @return std::unique_ptr<PrivateKeyClientProviderInterface> created
    * PrivateKeyClientProvider.
    */
-  static std::unique_ptr<PrivateKeyClientProviderInterface> Create(
-      PrivateKeyClientOptions options, core::HttpClientInterface* http_client,
-      RoleCredentialsProviderInterface* role_credentials_provider,
-      AuthTokenProviderInterface* auth_token_provider,
-      core::AsyncExecutorInterface* io_async_executor);
+  static absl::Nonnull<std::unique_ptr<PrivateKeyClientProviderInterface>>
+  Create(PrivateKeyClientOptions options,
+         absl::Nonnull<core::HttpClientInterface*> http_client,
+         absl::Nonnull<RoleCredentialsProviderInterface*>
+             role_credentials_provider,
+         absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+         absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

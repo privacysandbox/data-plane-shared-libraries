@@ -22,8 +22,6 @@
 #include <aws/core/auth/AWSAuthSigner.h>
 #include <aws/core/auth/AWSCredentialsProvider.h>
 #include <aws/core/http/standard/StandardHttpRequest.h>
-#include <boost/system/error_code.hpp>
-#include <nghttp2/asio_http2.h>
 
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
@@ -32,13 +30,13 @@
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider_utils.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 
 using Aws::Auth::AWSCredentials;
 using Aws::Auth::SimpleAWSCredentialsProvider;
 using Aws::Client::AWSAuthV4Signer;
-using boost::system::error_code;
 using google::scp::core::AsyncContext;
 using google::scp::core::AwsV4Signer;
 using google::scp::core::ExecutionResult;
@@ -60,7 +58,6 @@ using google::scp::core::errors::
 using google::scp::core::errors::
     SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_REGION_NOT_FOUND;
 using google::scp::core::utils::GetEscapedUriWithQuery;
-using nghttp2::asio_http2::host_service_from_uri;
 
 namespace {
 constexpr std::string_view kAwsPrivateKeyFetcherProvider =

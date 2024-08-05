@@ -23,6 +23,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "src/logger/request_context_logger.h"
 #include "src/public/core/interface/cloud_platform.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
 
@@ -54,7 +55,10 @@ class PublicKeyFetcherFactory {
       const absl::flat_hash_map<
           CloudPlatform,
           std::vector<google::scp::cpio::PublicKeyVendingServiceEndpoint>>&
-          endpoints);
+          endpoints,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 };
 
 }  // namespace privacy_sandbox::server_common

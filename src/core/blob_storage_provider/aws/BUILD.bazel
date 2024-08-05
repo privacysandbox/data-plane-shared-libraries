@@ -29,6 +29,7 @@ cc_library(
         "//src/core/common/global_logger",
         "//src/core/interface",
         "//src/core/utils:core_utils",
+        "//src/public/core/interface:execution_result",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:s3",
         "@com_google_absl//absl/functional:bind_front",

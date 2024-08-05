@@ -28,6 +28,7 @@ cc_library(
         "//src/cpio/client_providers/blob_storage_client_provider:blob_storage_client_provider_select",
         "//src/cpio/client_providers/global_cpio",
         "//src/public/cpio/interface:type_def",
+        "@com_google_absl//absl/status",
     ],
 )
 

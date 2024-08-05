@@ -14,13 +14,18 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:scp_internal_pkg"])
-
 cc_library(
     name = "aws_instance_client_provider",
     srcs = [
-        ":aws_instance_client_provider_srcs",
+        "aws_instance_client_provider.cc",
+        "aws_instance_client_provider.h",
+        "aws_instance_client_utils.cc",
+        "aws_instance_client_utils.h",
+        "ec2_error_converter.cc",
+        "ec2_error_converter.h",
+        "error_codes.h",
     ],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
         "//src/core/common/uuid",
@@ -28,10 +33,12 @@ cc_library(
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/common:cpio_utils",
         "//src/cpio/common/aws:aws_utils",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "@aws_sdk_cpp//:core",
         "@aws_sdk_cpp//:ec2",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:flat_hash_set",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings:str_format",
@@ -39,37 +46,16 @@ cc_library(
     ],
 )
 
-exports_files([
-    "aws_instance_client_provider.h",
-    "aws_instance_client_provider.cc",
-    "ec2_error_converter.h",
-    "ec2_error_converter.cc",
-    "error_codes.h",
-])
-
-filegroup(
-    name = "aws_instance_client_provider_srcs",
-    srcs = [
-        ":aws_instance_client_provider.cc",
-        ":aws_instance_client_provider.h",
-        ":aws_instance_client_utils.cc",
-        ":aws_instance_client_utils.h",
-        ":ec2_error_converter.cc",
-        ":ec2_error_converter.h",
-        ":error_codes.h",
-    ],
-)
-
 cc_test(
     name = "ec2_error_converter_test",
     size = "small",
-    srcs =
-        ["ec2_error_converter_test.cc"],
+    srcs = ["ec2_error_converter_test.cc"],
     deps = [
         ":aws_instance_client_provider",
         "//src/core/interface",
         "//src/cpio/common/aws:aws_utils",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -77,8 +63,7 @@ cc_test(
 cc_test(
     name = "aws_instance_client_utils_test",
     size = "small",
-    srcs =
-        ["aws_instance_client_utils_test.cc"],
+    srcs = ["aws_instance_client_utils_test.cc"],
     deps = [
         ":aws_instance_client_provider",
         "//src/core/curl_client/mock:mock_curl_client",
@@ -86,16 +71,18 @@ cc_test(
         "//src/core/test/utils",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
     name = "test_aws_instance_client_provider",
-    srcs = [
-        "test_aws_instance_client_provider.cc",
-    ],
+    srcs = ["test_aws_instance_client_provider.cc"],
     hdrs = ["test_aws_instance_client_provider.h"],
+    visibility = [
+        "//src/cpio/client_providers/global_cpio/cpio_provider:__pkg__",
+    ],
     deps = [
         "//src/cpio/client_providers/instance_client_provider:test_instance_client_provider",
         "@com_google_absl//absl/strings:str_format",

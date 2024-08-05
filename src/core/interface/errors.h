@@ -129,18 +129,18 @@ constexpr uint64_t MakeErrorCode(uint64_t component, uint64_t error) {
  */
 #define DEFINE_ERROR_CODE(error_name, component, error, message,               \
                           http_status_code)                                    \
-  static_assert(component > 0 && component < 0x8000,                           \
+  static_assert(((component) > 0) && ((component) < 0x8000),                   \
                 "Component code out of range. Valid range [0x0001, 0x7FFF)."); \
   static_assert(                                                               \
-      error > 0 && error < 0x10000,                                            \
+      ((error) > 0) && ((error) < 0x10000),                                    \
       "Error code is out of range. Valid range is [0x0001, 0xFFFF].");         \
   static constexpr uint64_t error_name =                                       \
-      ::google::scp::core::errors::MakeErrorCode(component, error);            \
+      ::google::scp::core::errors::MakeErrorCode((component), (error));        \
   static bool initialized_##component##error = []() {                          \
     ::google::scp::core::errors::GetGlobalErrorCodes()[component].emplace(     \
         error_name, ::google::scp::core::errors::SCPError{                     \
-                        .error_message = message,                              \
-                        .error_http_status_code = http_status_code,            \
+                        .error_message = (message),                            \
+                        .error_http_status_code = (http_status_code),          \
                     });                                                        \
     return true;                                                               \
   }();

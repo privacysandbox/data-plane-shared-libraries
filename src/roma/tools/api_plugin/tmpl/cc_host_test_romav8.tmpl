@@ -1,0 +1,158 @@
+/*
+ * Copyright 2023 Google LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+{{range $file := .Files}}
+{{$proto_basename := base $file.Name | trimSuffix (ext $file.Name)}}
+
+#include "{{$proto_basename}}_roma_host.h"
+#include "src/roma/roma_service/roma_service.h"
+#include "src/roma/roma_service/romav8_proto_utils.h"
+#include "src/roma/interface/roma.h"
+
+
+#include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+
+{{range $svc := .Services}}
+{{$svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
+
+using google::scp::roma::CodeObject;
+using google::scp::roma::ResponseObject;
+using google::scp::roma::InvocationStrRequest;
+using google::scp::roma::sandbox::roma_service::RomaService;
+using google::scp::roma::DefaultMetadata;
+
+namespace {{$svcopts.CppNamespace}}::test {
+
+namespace {
+  const absl::Duration kDefaultTimeout = absl::Seconds(10);
+}
+
+TEST(RomaV8{{$svc.Name}}HostApiTest, Register{{$svc.Name}}HostApi) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  {{$svcopts.CppNamespace}}::RegisterHostApi(config);
+
+  auto roma_service =
+      std::make_unique<RomaService<>>(std::move(config));
+  ASSERT_TRUE(roma_service->Init().ok());
+  absl::Notification load_finished;
+  const std::string js = R"(
+        function Handler() {
+          {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
+          {{$svcopts.Romav8AppName}}.{{$rpc.Name}}();
+          {{end}}{{/* rpc range */}}
+        })";
+
+  using google::scp::roma::CodeObject;
+  absl::Status load_status = roma_service->LoadCodeObj(
+      std::make_unique<CodeObject>(CodeObject{
+          .id = "foo",
+          .version_string = "v1",
+          .js = js,
+      }),
+      [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
+        ASSERT_TRUE(resp.ok());
+        load_finished.Notify();
+      });
+
+  ASSERT_TRUE(load_status.ok());
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kDefaultTimeout));
+
+  absl::Notification execute_finished;
+
+  auto execution_obj =
+      std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+          .id = "foo",
+          .version_string = "v1",
+          .handler_name = "Handler",
+          .input = {},
+      });
+  auto execution_status = roma_service->Execute(
+      std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+        ASSERT_TRUE(resp.ok());
+        execute_finished.Notify();
+      });
+
+  ASSERT_TRUE(execution_status.ok());
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kDefaultTimeout));
+
+  ASSERT_TRUE(roma_service->Stop().ok());
+}
+
+{{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
+  {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
+  {{- $respType := $rpc.ResponseFullType | replace "." "::" | printf "::%s" }}
+TEST(RomaV8{{$svc.Name}}HostApiTest, Register{{$rpc.Name}}FunctionBinding) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+    std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+        .function_name = "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}",
+        .function = {{$svcopts.CppNamespace}}::{{$rpc.Name}}FunctionBinding<DefaultMetadata>,
+    }));
+
+  auto roma_service =
+      std::make_unique<RomaService<>>(std::move(config));
+  ASSERT_TRUE(roma_service->Init().ok());
+
+  absl::Notification load_finished;
+  const std::string js = R"(
+        function Handler() {
+          return {{$svcopts.Romav8AppName}}.{{$rpc.Name}}();
+        })";
+
+  absl::Status load_status = roma_service->LoadCodeObj(
+      std::make_unique<CodeObject>(CodeObject{
+          .id = "foo",
+          .version_string = "v1",
+          .js = js,
+      }),
+      [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
+        ASSERT_TRUE(resp.ok());
+        load_finished.Notify();
+      });
+
+  ASSERT_TRUE(load_status.ok());
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kDefaultTimeout));
+
+  absl::Notification execute_finished;
+
+  auto execution_obj =
+      std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+          .id = "foo",
+          .version_string = "v1",
+          .handler_name = "Handler",
+          .input = {},
+      });
+  auto execution_status = roma_service->Execute(
+      std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
+        ASSERT_TRUE(resp.ok());
+        execute_finished.Notify();
+      });
+
+  ASSERT_TRUE(execution_status.ok());
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kDefaultTimeout));
+
+  ASSERT_TRUE(roma_service->Stop().ok());
+}
+{{end}}
+
+}  // {{$svcopts.CppNamespace}}::test
+
+{{end}}
+{{end}}

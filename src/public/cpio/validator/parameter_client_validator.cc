@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "absl/log/log.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -32,7 +33,6 @@ namespace {
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
-using google::scp::core::AsyncContext;
 using google::scp::cpio::ParameterClientFactory;
 using google::scp::cpio::validator::proto::GetParameterConfig;
 }  // namespace
@@ -47,50 +47,32 @@ void RunGetParameterValidator(std::string_view name,
   std::unique_ptr<google::scp::cpio::ParameterClientInterface>
       parameter_client =
           ParameterClientFactory::Create(std::move(parameter_client_options));
-  if (google::scp::core::ExecutionResult result = parameter_client->Init();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
-    return;
-  }
-
-  if (google::scp::core::ExecutionResult result = parameter_client->Run();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
+  if (absl::Status error = parameter_client->Init(); !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
   absl::Notification finished;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(
       get_parameter_config.parameter_name());
-  google::scp::core::ExecutionResult result = parameter_client->GetParameter(
-      std::move(get_parameter_request),
-      [&finished, &name](const google::scp::core::ExecutionResult result,
-                         GetParameterResponse response) {
-        if (!result.Successful()) {
-          std::cout << "[ FAILURE ] " << name << " "
-                    << google::scp::core::GetErrorMessage(result.status_code)
-                    << std::endl;
-        } else {
-          std::cout << "[ SUCCESS ] " << name << std::endl;
-          LOG(INFO) << " Parameter value: " << response.parameter_value();
-        }
-        finished.Notify();
-      });
-  if (!result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
+  if (absl::Status error = parameter_client->GetParameter(
+          std::move(get_parameter_request),
+          [&finished, &name](const google::scp::core::ExecutionResult result,
+                             GetParameterResponse response) {
+            if (!result.Successful()) {
+              std::cout << "[ FAILURE ] " << name << " "
+                        << google::scp::core::GetErrorMessage(
+                               result.status_code)
+                        << std::endl;
+            } else {
+              std::cout << "[ SUCCESS ] " << name << std::endl;
+              LOG(INFO) << " Parameter value: " << response.parameter_value();
+            }
+            finished.Notify();
+          });
+      !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
   }
   finished.WaitForNotification();
-  if (google::scp::core::ExecutionResult result = parameter_client->Stop();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << google::scp::core::GetErrorMessage(result.status_code)
-              << std::endl;
-  }
 }
 };  // namespace google::scp::cpio::validator

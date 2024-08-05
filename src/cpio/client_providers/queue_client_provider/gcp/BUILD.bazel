@@ -18,9 +18,31 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_queue_client_provider",
-    srcs = [
-        ":gcp_queue_client_provider_srcs",
+    srcs = ["gcp_queue_client_provider.cc"],
+    hdrs = ["gcp_queue_client_provider.h"],
+    deps = [
+        ":error_codes",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/common/gcp:gcp_utils",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
+        "//src/util/status_macro:status_macros",
+        "@com_github_googleapis_google_cloud_cpp//:pubsub",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/strings:str_format",
+        "@com_google_googleapis//google/pubsub/v1:pubsub_cc_grpc",
+        "@com_google_protobuf//:protobuf",
     ],
+)
+
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
     deps = [
         "//src/core/interface",
         "//src/core/interface:async_context",
@@ -33,34 +55,19 @@ cc_library(
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
         "//src/util/status_macro:status_macros",
         "@com_github_googleapis_google_cloud_cpp//:pubsub",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings:str_format",
         "@com_google_googleapis//google/pubsub/v1:pubsub_cc_grpc",
         "@com_google_protobuf//:protobuf",
     ],
 )
 
-exports_files([
-    "error_codes.h",
-    "gcp_queue_client_provider.cc",
-    "gcp_queue_client_provider.h",
-])
-
-filegroup(
-    name = "gcp_queue_client_provider_srcs",
-    srcs = [
-        ":error_codes.h",
-        ":gcp_queue_client_provider.cc",
-        ":gcp_queue_client_provider.h",
-    ],
-)
-
 cc_test(
     name = "gcp_queue_client_provider_test",
     size = "small",
-    srcs = [
-        "gcp_queue_client_provider_test.cc",
-    ],
+    srcs = ["gcp_queue_client_provider_test.cc"],
     deps = [
+        ":error_codes",
         ":gcp_queue_client_provider",
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/core/interface",

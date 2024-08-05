@@ -19,9 +19,8 @@
 #include "google/cloud/common_options.h"
 #include "google/cloud/credentials.h"
 #include "google/cloud/kms/key_management_client.h"
-
-#include "gcp_kms_client_provider.h"
-#include "tee_gcp_kms_client_provider_utils.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_client_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/tee_gcp_kms_client_provider_utils.h"
 
 using google::cloud::MakeExternalAccountCredentials;
 using google::cloud::UnifiedCredentialsOption;

@@ -29,10 +29,10 @@
 #include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
-
-using google::scp::roma::sandbox::roma_service::RomaService;
+#include "src/roma/roma_service/romav8_proto_utils.h"
 
 namespace google::scp::roma::romav8::app_api {
+<<<<<<< HEAD
 
 using TEncoded = std::string;
 
@@ -57,6 +57,8 @@ absl::Status Decode(const TEncoded& encoded, T& decoded) {
   return absl::UnknownError("unable to parse protobuf object");
 }
 
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaV8AppService {
  public:
@@ -64,6 +66,7 @@ class RomaV8AppService {
       google::scp::roma::sandbox::roma_service::RomaService<TMetadata>;
   using Config = google::scp::roma::Config<TMetadata>;
 
+<<<<<<< HEAD
   RomaV8AppService(Config config, std::string_view code_id)
       : code_id_(code_id) {
     roma_service_ = std::make_unique<RomaService>(std::move(config));
@@ -81,6 +84,27 @@ class RomaV8AppService {
       (void)roma_service_->Stop();
     }
   }
+=======
+  explicit RomaV8AppService(Config config, std::string_view code_id)
+      : roma_service_(std::make_unique<RomaService>(std::move(config))),
+        code_id_(code_id) {}
+
+  // RomaV8AppService is movable.
+  RomaV8AppService(RomaV8AppService&&) = default;
+  RomaV8AppService& operator=(RomaV8AppService&&) = default;
+
+  // RomaV8AppService is not copyable.
+  RomaV8AppService(const RomaV8AppService&) = delete;
+  RomaV8AppService& operator=(const RomaV8AppService&) = delete;
+
+  virtual ~RomaV8AppService() {
+    if (roma_service_) {
+      roma_service_->Stop().IgnoreError();
+    }
+  }
+
+  RomaService* GetRomaService() { return roma_service_.get(); }
+>>>>>>> upstream-3e92e75-3.10.0
 
   /*
    * Args:
@@ -114,21 +138,28 @@ class RomaV8AppService {
     LOG(INFO) << "code id: " << code_id_;
     LOG(INFO) << "code version: " << code_version_;
     LOG(INFO) << "handler fn: " << handler_fn_name;
+<<<<<<< HEAD
+=======
+
+    PS_ASSIGN_OR_RETURN(std::string encoded_request,
+                        google::scp::roma::romav8::Encode(request));
+
+>>>>>>> upstream-3e92e75-3.10.0
     InvocationStrRequest<TMetadata> execution_obj = {
         .id = code_id_,
         .version_string = std::string(code_version_),
         .handler_name = std::string(handler_fn_name),
-        .input = {*Encode(request)},
+        .input = {encoded_request},
         .treat_input_as_byte_str = true,
     };
     auto execute_cb = [&response,
                        &notification](absl::StatusOr<ResponseObject> resp) {
-      if (resp.ok()) {
-        if (auto decode = Decode(resp->resp, response); !decode.ok()) {
-          LOG(ERROR) << "error decoding response. response: " << resp->resp;
-        }
-      } else {
+      if (!resp.ok()) {
         LOG(ERROR) << "Error in Roma Execute()";
+      } else if (absl::Status decode =
+                     google::scp::roma::romav8::Decode(resp->resp, response);
+                 !decode.ok()) {
+        LOG(ERROR) << "error decoding response. response: " << resp->resp;
       }
       notification.Notify();
     };

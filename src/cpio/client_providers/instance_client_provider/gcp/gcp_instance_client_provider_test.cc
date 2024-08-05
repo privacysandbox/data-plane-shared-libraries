@@ -28,6 +28,7 @@
 #include "src/core/curl_client/mock/mock_curl_client.h"
 #include "src/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/gcp/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::cmrt::sdk::instance_service::v1::

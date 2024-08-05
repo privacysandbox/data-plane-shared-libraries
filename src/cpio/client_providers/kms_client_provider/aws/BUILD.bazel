@@ -23,11 +23,15 @@ load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
-aws_nitro_enclaves_cli_name = "aws_nitro_enclaves_cli"
+aws_nitro_kms_path = "/"
+
+aws_nitro_kms_cli_name = "aws_nitro_enclaves_cli"
+
+aws_nitro_kms_cli_path = aws_nitro_kms_path + aws_nitro_kms_cli_name
 
 alias(
     name = "kms_cli",
-    actual = "@nitrokmscli_aws_nitro_enclaves_sdk_c//:{}".format(aws_nitro_enclaves_cli_name),
+    actual = "@nitrokmscli_aws_nitro_enclaves_sdk_c//:{}".format(aws_nitro_kms_cli_name),
     visibility = ["//visibility:public"],
 )
 
@@ -72,43 +76,43 @@ sh_test(
 )
 
 pkg_files(
-    name = "cpio_kms_executables",
+    name = "kms_executables",
     srcs = [
         ":kms_cli",
     ],
     attributes = pkg_attributes(mode = "0555"),
-    prefix = "/cpio/bin",
+    prefix = aws_nitro_kms_path,
 )
 
 pkg_files(
-    name = "cpio_kms_libs",
+    name = "kms_libs",
     srcs = [
         ":libnsm_so",
         "@json_c//:json-c",
     ],
     attributes = pkg_attributes(mode = "0444"),
-    prefix = "/cpio/lib",
+    prefix = aws_nitro_kms_path,
 )
 
 pkg_tar(
-    name = "cpio_kms_binaries",
+    name = "kms_binaries",
     srcs = [
-        ":cpio_kms_executables",
-        ":cpio_kms_libs",
+        ":kms_executables",
+        ":kms_libs",
     ],
-    package_dir = "/",
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
     name = "nontee_aws_kms_client_provider",
     srcs = [
-        ":aws_kms_aead.cc",
-        ":nontee_aws_kms_client_provider.cc",
+        "aws_kms_aead.cc",
+        "nontee_aws_kms_client_provider.cc",
     ],
     hdrs = [
-        ":aws_kms_aead.h",
-        ":nontee_aws_kms_client_provider.h",
-        ":nontee_error_codes.h",
+        "aws_kms_aead.h",
+        "nontee_aws_kms_client_provider.h",
+        "nontee_error_codes.h",
     ],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
@@ -118,6 +122,7 @@ cc_library(
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/common/aws:aws_utils",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
         "@aws_sdk_cpp//:kms",
@@ -128,18 +133,17 @@ cc_library(
 cc_library(
     name = "tee_aws_kms_client_provider",
     srcs = [
-        ":tee_aws_kms_client_provider.cc",
-        ":tee_aws_kms_client_provider_utils.cc",
+        "tee_aws_kms_client_provider.cc",
+        "tee_aws_kms_client_provider_utils.cc",
     ],
     hdrs = [
-        ":tee_aws_kms_client_provider.h",
-        ":tee_aws_kms_client_provider_utils.h",
-        ":tee_error_codes.h",
+        "tee_aws_kms_client_provider.h",
+        "tee_aws_kms_client_provider_utils.h",
+        "tee_error_codes.h",
     ],
     defines = [
-        'AWS_NITRO_ENCLAVES_CLI_PATH=\\"{path}{filename}\\"'.format(
-            filename = aws_nitro_enclaves_cli_name,
-            path = "/",
+        'AWS_NITRO_ENCLAVES_CLI_PATH=\\"{path}\\"'.format(
+            path = aws_nitro_kms_cli_path,
         ),
     ],
     deps = [
@@ -159,19 +163,6 @@ cc_library(
         "@tink_cc",
     ],
 )
-
-exports_files([
-    "aws_kms_aead.h",
-    "aws_kms_aead.cc",
-    "nontee_aws_kms_client_provider.h",
-    "nontee_aws_kms_client_provider.cc",
-    "nontee_error_codes.h",
-    "tee_aws_kms_client_provider.h",
-    "tee_aws_kms_client_provider.cc",
-    "tee_aws_kms_client_provider_utils.h",
-    "tee_aws_kms_client_provider_utils.cc",
-    "tee_error_codes.h",
-])
 
 cc_binary(
     name = "true",
@@ -204,6 +195,7 @@ cc_test(
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -220,6 +212,7 @@ cc_test(
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
         "//src/cpio/client_providers/role_credentials_provider/mock:role_credentials_provider_mock",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
@@ -229,14 +222,12 @@ cc_test(
 cc_test(
     name = "aws_kms_aead_test",
     size = "small",
-    srcs =
-        ["aws_kms_aead_test.cc"],
+    srcs = ["aws_kms_aead_test.cc"],
     deps = [
         ":nontee_aws_kms_client_provider",
         "//src/core/interface",
         "//src/core/test/utils",
         "//src/cpio/client_providers/kms_client_provider/mock/aws:aws_kms_client_provider_mock",
-        "//src/public/core:test_execution_result_matchers",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -256,21 +247,5 @@ cc_test(
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "test_aws_kms_client_provider",
-    srcs = [
-        "test_aws_kms_client_provider.cc",
-    ],
-    hdrs = [
-        "test_aws_kms_client_provider.h",
-        "//src/cpio/client_providers/interface:kms_client_provider_interface.h",
-    ],
-    deps = [
-        ":nontee_aws_kms_client_provider",
-        "//src/cpio/common/aws:test_aws_utils",
-        "//src/public/cpio/test/kms_client:test_aws_kms_client_options",
     ],
 )

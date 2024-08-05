@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "gcp_key_management_service_client.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_key_management_service_client.h"
 
 #include "google/cloud/kms/key_management_client.h"
 

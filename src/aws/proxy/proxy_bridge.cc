@@ -270,7 +270,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
             cancel_signal_.slot(),
             [self = shared_from_this()](const error_code& ec, Socket sock) {
               if (ec.failed()) {
-                self->StopWaitingInbound(false /* client error */);
+                self->StopWaitingInbound(/*client_error=*/false);
                 return;
               }
               self->AcceptInboundConnection(std::move(sock));
@@ -291,8 +291,7 @@ void ProxyBridge::SetSocks5StateCallbacks() {
 }
 
 void ProxyBridge::AcceptInboundConnection(Socket sock) {
-  LOG(INFO) << "[" << connection_id_ << "]"
-            << "Accepted inbound connection.";
+  LOG(INFO) << "[" << connection_id_ << "]" << "Accepted inbound connection.";
   // Cancel the async_wait on errors
   error_code ec;
   client_sock_.cancel(ec);

@@ -19,28 +19,23 @@
 
 #include <gmock/gmock.h>
 
-#include <memory>
-
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/parameter_client/parameter_client_interface.h"
 
 namespace google::scp::cpio {
 class MockParameterClient : public ParameterClientInterface {
  public:
   MockParameterClient() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
+    ON_CALL(*this, Init).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Run).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Stop).WillByDefault(testing::Return(absl::OkStatus()));
   }
 
-  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Init, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Run, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Stop, (), (noexcept, override));
 
-  MOCK_METHOD(core::ExecutionResult, GetParameter,
+  MOCK_METHOD(absl::Status, GetParameter,
               (cmrt::sdk::parameter_service::v1::GetParameterRequest request,
                Callback<cmrt::sdk::parameter_service::v1::GetParameterResponse>
                    callback),

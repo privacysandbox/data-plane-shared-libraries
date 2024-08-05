@@ -38,27 +38,15 @@ namespace google::scp::core::test {
 namespace {
 
 using google::cloud::Options;
-using google::cloud::Status;
-using google::cloud::StatusOr;
 using google::cloud::storage::BucketLifecycle;
 using google::cloud::storage::BucketMetadata;
 using google::cloud::storage::Client;
-using google::cloud::storage::DisableCrc32cChecksum;
-using google::cloud::storage::DisableMD5Hash;
 using google::cloud::storage::LifecycleRule;
-using google::cloud::storage::MaxResults;
-using google::cloud::storage::MD5HashValue;
-using google::cloud::storage::ObjectMetadata;
-using google::cloud::storage::ObjectReadStream;
 using google::cloud::storage::Prefix;
 using google::cloud::storage::ProjectIdOption;
 using google::cloud::storage::StartOffset;
 using google::cloud::storage::internal::EmptyResponse;
 using google::cloud::storage::internal::HttpResponse;
-using google::cloud::storage::internal::InsertObjectMediaRequest;
-using google::cloud::storage::internal::ListObjectsResponse;
-using google::cloud::storage::internal::ObjectReadSource;
-using google::cloud::storage::internal::ReadSourceResult;
 using google::scp::core::AsyncExecutor;
 using google::scp::core::DeleteBlobRequest;
 using google::scp::core::DeleteBlobResponse;
@@ -81,7 +69,6 @@ using testing::IsNull;
 using testing::NotNull;
 using testing::Pointee;
 using testing::Pointwise;
-using CloudStatusCode = google::cloud::StatusCode;
 
 constexpr std::string_view kProject = "admcloud-coordinator1";
 constexpr std::string_view kBucketName = "test-bucket";

@@ -281,7 +281,11 @@ TEST(PrivateKeyClientUtilsTest,
 TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureNoFailure) {
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[0].fetch_result_key_id_map.insert(
@@ -293,7 +297,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureNoFailure) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert(
@@ -314,7 +322,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureReturnFetchFailure) {
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[0].fetch_result_key_id_map.insert(
@@ -327,7 +339,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureReturnFetchFailure) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert(
@@ -350,7 +366,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureReturnFetchFailureForOneKey) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert({"key1", failure});
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key2", SuccessExecutionResult()});
@@ -361,7 +381,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureReturnFetchFailureForOneKey) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert(
@@ -384,7 +408,11 @@ TEST(PrivateKeyClientUtilsTest,
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert({"key1", failure});
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key2", SuccessExecutionResult()});
@@ -395,7 +423,11 @@ TEST(PrivateKeyClientUtilsTest,
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert({"key2", failure});
@@ -418,7 +450,11 @@ TEST(PrivateKeyClientUtilsTest,
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[0].fetch_result_key_id_map.insert(
@@ -430,7 +466,11 @@ TEST(PrivateKeyClientUtilsTest,
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert(
@@ -453,7 +493,11 @@ TEST(PrivateKeyClientUtilsTest,
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[0].fetch_result_key_id_map.insert(
@@ -465,7 +509,11 @@ TEST(PrivateKeyClientUtilsTest,
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert(
@@ -488,7 +536,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureFetchResultNotFound) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert({"key1", failure});
     keys_result_list[0].fetch_result_key_id_map.insert({"key2", failure});
     keys_result_list[0].decrypt_result_key_id_map.insert(
@@ -498,7 +550,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureFetchResultNotFound) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert({"key1", failure});
     keys_result_list[1].fetch_result_key_id_map.insert({"key2", failure});
     keys_result_list[1].decrypt_result_key_id_map.insert(
@@ -515,7 +571,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureDecryptResultNotFound) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[0].fetch_result_key_id_map.insert(
@@ -527,7 +587,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureDecryptResultNotFound) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].fetch_result_key_id_map.insert(
         {"key1", SuccessExecutionResult()});
     keys_result_list[1].fetch_result_key_id_map.insert(
@@ -545,7 +609,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractAnyFailureDecryptResultNotFound) {
 TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnNoKey) {
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].decrypt_result_key_id_map.insert(
         {"key1", CreateDecryptResult("")});
     keys_result_list[0].decrypt_result_key_id_map.insert(
@@ -553,7 +621,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnNoKey) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].decrypt_result_key_id_map.insert(
         {"key1", CreateDecryptResult("")});
     keys_result_list[1].decrypt_result_key_id_map.insert(
@@ -575,7 +647,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnKey) {
   auto failure = FailureExecutionResult(SC_UNKNOWN);
   std::vector<KeysResultPerEndpoint> keys_result_list(2);
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[0].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[0].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[0].decrypt_result_key_id_map.insert(
         {"key1", CreateDecryptResult("", failure, false)});
     keys_result_list[0].decrypt_result_key_id_map.insert(
@@ -583,7 +659,11 @@ TEST(PrivateKeyClientUtilsTest, ExtractSinglePartyKeyReturnKey) {
   }
 
   {
+<<<<<<< HEAD
     absl::MutexLock l(&keys_result_list[1].mu);
+=======
+    absl::MutexLock lock(&keys_result_list[1].mu);
+>>>>>>> upstream-3e92e75-3.10.0
     keys_result_list[1].decrypt_result_key_id_map.insert(
         {"key1", CreateDecryptResult("", failure)});
     keys_result_list[1].decrypt_result_key_id_map.insert(

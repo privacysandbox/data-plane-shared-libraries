@@ -39,12 +39,15 @@ class PublicKeyClientProvider : public PublicKeyClientProviderInterface {
 
   explicit PublicKeyClientProvider(
       PublicKeyClientOptions public_key_client_options,
-      core::HttpClientInterface* http_client)
+      absl::Nonnull<core::HttpClientInterface*> http_client)
       : http_client_(http_client),
         public_key_client_options_(std::move(public_key_client_options)) {}
 
+<<<<<<< HEAD
   absl::Status Init() noexcept;
 
+=======
+>>>>>>> upstream-3e92e75-3.10.0
   absl::Status ListPublicKeys(
       core::AsyncContext<
           cmrt::sdk::public_key_service::v1::ListPublicKeysRequest,

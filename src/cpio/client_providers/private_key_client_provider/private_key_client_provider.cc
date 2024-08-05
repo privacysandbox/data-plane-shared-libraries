@@ -22,6 +22,10 @@
 #include <utility>
 #include <vector>
 
+<<<<<<< HEAD
+=======
+#include "absl/base/nullability.h"
+>>>>>>> upstream-3e92e75-3.10.0
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"
@@ -135,7 +139,11 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
   auto execution_result = fetch_private_key_context.result;
   if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
     {
+<<<<<<< HEAD
       absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
+=======
+      absl::MutexLock lock(&list_keys_status->result_list[uri_index].mu);
+>>>>>>> upstream-3e92e75-3.10.0
       list_keys_status->result_list[uri_index]
           .fetch_result_key_id_map[*fetch_private_key_context.request->key_id] =
           execution_result;
@@ -245,7 +253,11 @@ void PrivateKeyClientProvider::OnDecryptCallback(
       DecryptResult decrypt_result =
           MakeDecryptResult(*encryption_key, std::move(decrypt_context.result),
                             std::move(plaintext));
+<<<<<<< HEAD
       absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
+=======
+      absl::MutexLock lock(&list_keys_status->result_list[uri_index].mu);
+>>>>>>> upstream-3e92e75-3.10.0
       list_keys_status->result_list[uri_index]
           .decrypt_result_key_id_map[*decrypt_result.encryption_key.key_id] =
           std::move(decrypt_result);
@@ -291,7 +303,11 @@ void PrivateKeyClientProvider::OnDecryptCallback(
           std::optional<DecryptResult> decrypt_result;
           {
             auto& result = list_keys_status->result_list[i];
+<<<<<<< HEAD
             absl::MutexLock l(&result.mu);
+=======
+            absl::MutexLock lock(&result.mu);
+>>>>>>> upstream-3e92e75-3.10.0
             if (auto it = result.decrypt_result_key_id_map.find(key_id);
                 it != result.decrypt_result_key_id_map.end()) {
               decrypt_result = it->second;
@@ -345,20 +361,19 @@ void PrivateKeyClientProvider::OnDecryptCallback(
   }
 }
 
-std::unique_ptr<PrivateKeyClientProviderInterface>
+absl::Nonnull<std::unique_ptr<PrivateKeyClientProviderInterface>>
 PrivateKeyClientProviderFactory::Create(
-    PrivateKeyClientOptions options, core::HttpClientInterface* http_client,
-    RoleCredentialsProviderInterface* role_credentials_provider,
-    AuthTokenProviderInterface* auth_token_provider,
-    core::AsyncExecutorInterface* io_async_executor) {
-  auto kms_client_provider = KmsClientProviderFactory::Create(
-      KmsClientOptions(), role_credentials_provider, io_async_executor);
-  auto private_key_fetcher = PrivateKeyFetcherProviderFactory::Create(
-      http_client, role_credentials_provider, auth_token_provider);
-
+    PrivateKeyClientOptions options,
+    absl::Nonnull<core::HttpClientInterface*> http_client,
+    absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) {
   return std::make_unique<PrivateKeyClientProvider>(
-      std::move(options), http_client, std::move(private_key_fetcher),
-      std::move(kms_client_provider));
+      std::move(options),
+      PrivateKeyFetcherProviderFactory::Create(
+          http_client, role_credentials_provider, auth_token_provider),
+      KmsClientProviderFactory::Create(role_credentials_provider,
+                                       io_async_executor));
 }
 
 }  // namespace google::scp::cpio::client_providers

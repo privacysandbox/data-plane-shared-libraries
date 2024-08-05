@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 diff --git a/BUILD.bazel b/BUILD.bazel
 index b0cf80ede42..95ec2a9157e 100644
 --- a/BUILD.bazel
@@ -87,6 +88,14 @@ index 09844919a5b..33b96106dae 100644
 --- a/bazel/defs.bzl
 +++ b/bazel/defs.bzl
 @@ -121,6 +121,7 @@ def _default_args():
+=======
+ # Default setting for v8_enable_pointer_compression.
+diff --git a/bazel/defs.bzl b/bazel/defs.bzl
+index e957c0fad3..701651e0f2 100644
+--- a/bazel/defs.bzl
++++ b/bazel/defs.bzl
+@@ -116,6 +116,7 @@ def _default_args():
+>>>>>>> upstream-3e92e75-3.10.0
          }) + select({
              "@v8//bazel/config:is_clang": [
                  "-Wno-invalid-offsetof",
@@ -94,7 +103,11 @@ index 09844919a5b..33b96106dae 100644
                  "-std=c++17",
              ],
              "@v8//bazel/config:is_gcc": [
+<<<<<<< HEAD
 @@ -136,6 +137,7 @@ def _default_args():
+=======
+@@ -131,6 +132,7 @@ def _default_args():
+>>>>>>> upstream-3e92e75-3.10.0
                  "-Wno-redundant-move",
                  "-Wno-return-type",
                  "-Wno-stringop-overflow",
@@ -102,6 +115,7 @@ index 09844919a5b..33b96106dae 100644
                  # Use GNU dialect, because GCC doesn't allow using
                  # ##__VA_ARGS__ when in standards-conforming mode.
                  "-std=gnu++17",
+<<<<<<< HEAD
 diff --git a/src/compiler/graph-visualizer.cc b/src/compiler/graph-visualizer.cc
 index dfe935e8b67..60e5bf78b32 100644
 --- a/src/compiler/graph-visualizer.cc
@@ -115,3 +129,5 @@ index dfe935e8b67..60e5bf78b32 100644
      size_t source_id = source_map.find(positions[i].inlinee_func_index)->second;
      SourcePosition inlining_pos = positions[i].caller_pos;
      os << '"' << i << "\": {\"inliningId\": " << i
+=======
+>>>>>>> upstream-3e92e75-3.10.0

@@ -26,6 +26,7 @@ cc_library(
         "//src/core/logger/log_providers",
         "//src/core/logger/log_providers/syslog",
         "//src/core/logger/mock:logger_mock",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/base:no_destructor",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",

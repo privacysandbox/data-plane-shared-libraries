@@ -17,47 +17,25 @@
 #include "private_key_client.h"
 
 #include <memory>
-#include <string>
-#include <string_view>
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/common/global_logger/global_logger.h"
-#include "src/core/common/uuid/uuid.h"
-#include "src/core/interface/async_context.h"
-#include "src/core/interface/async_executor_interface.h"
-#include "src/core/interface/errors.h"
-#include "src/core/interface/http_client_interface.h"
-#include "src/core/utils/error_utils.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest;
 using google::cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse;
-using google::scp::core::AsyncContext;
-using google::scp::core::AsyncExecutorInterface;
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::HttpClientInterface;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::common::kZeroUuid;
-using google::scp::core::errors::GetPublicErrorCode;
-using google::scp::core::utils::ConvertToPublicExecutionResult;
-using google::scp::cpio::client_providers::AuthTokenProviderInterface;
 using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
-namespace {
-constexpr std::string_view kPrivateKeyClient = "PrivateKeyClient";
-}  // namespace
-
 namespace google::scp::cpio {
+<<<<<<< HEAD
 ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
   RoleCredentialsProviderInterface* role_credentials_provider;
@@ -94,6 +72,25 @@ ExecutionResult PrivateKeyClient::Stop() noexcept {
 }
 
 core::ExecutionResult PrivateKeyClient::ListPrivateKeys(
+=======
+absl::Status PrivateKeyClient::Init() noexcept {
+  PS_ASSIGN_OR_RETURN(
+      RoleCredentialsProviderInterface * role_credentials_provider,
+      GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider());
+  private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
+      options_, &GlobalCpio::GetGlobalCpio().GetHttpClient(),
+      role_credentials_provider,
+      &GlobalCpio::GetGlobalCpio().GetAuthTokenProvider(),
+      &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
+  return absl::OkStatus();
+}
+
+absl::Status PrivateKeyClient::Run() noexcept { return absl::OkStatus(); }
+
+absl::Status PrivateKeyClient::Stop() noexcept { return absl::OkStatus(); }
+
+absl::Status PrivateKeyClient::ListPrivateKeys(
+>>>>>>> upstream-3e92e75-3.10.0
     ListPrivateKeysRequest request,
     Callback<ListPrivateKeysResponse> callback) noexcept {
   return Execute<ListPrivateKeysRequest, ListPrivateKeysResponse>(

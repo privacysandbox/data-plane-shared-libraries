@@ -18,24 +18,10 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "no_op_initializer",
-    srcs = [
-        ":no_op_initializer_srcs",
-    ],
+    srcs = ["no_op_initializer.cc"],
+    hdrs = ["no_op_initializer.h"],
     deps = [
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/core/interface:execution_result",
-    ],
-)
-
-exports_files([
-    "no_op_initializer.h",
-    "no_op_initializer.cc",
-])
-
-filegroup(
-    name = "no_op_initializer_srcs",
-    srcs = [
-        ":no_op_initializer.cc",
-        ":no_op_initializer.h",
     ],
 )

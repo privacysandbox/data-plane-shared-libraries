@@ -71,7 +71,7 @@ void LoggingFunction(absl::LogSeverity verbosity, RequestContext context,
 ```cpp
 Config<RequestContext> config;
 config.SetLoggingFunction(LoggingFunction);
-auto roma_service = std::make_unique<RomaService<RequestContext>>(std::move(config));
+RomaService<RequestContext> roma_service(std::move(config));
 ```
 
 ```cpp
@@ -85,7 +85,7 @@ auto execution_obj =
               .min_log_level = absl::LogSeverity::kWarning,
             });
 
-auto status = roma_service->Execute(std::move(execution_obj), ...);
+auto status = roma_service.Execute(std::move(execution_obj), ...);
 ```
 
 ### Example 2: Wrapper containing RequestContext
@@ -107,7 +107,7 @@ struct ContextWrapper {
 
  Config<ContextWrapper> config;
  config.SetLoggingFunction(LoggingFunction);
- auto roma_service = std::make_unique<RomaService<ContextWrapper>>(std::move(config));
+ RomaService<ContextWrapper> roma_service(std::move(config));
 ```
 
 ```cpp
@@ -124,5 +124,5 @@ auto execution_obj =
               .min_log_level = absl::LogSeverity::kWarning,
             });
 
-auto status = roma_service->Execute(std::move(execution_obj), ...);
+auto status = roma_service.Execute(std::move(execution_obj), ...);
 ```

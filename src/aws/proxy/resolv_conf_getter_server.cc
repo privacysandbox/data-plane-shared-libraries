@@ -12,24 +12,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <stdlib.h>
+
 #include <fstream>
 #include <iostream>
 #include <memory>
 #include <string>
-#include <string_view>
-#include <utility>
 
 #include <grpcpp/security/server_credentials.h>
 #include <grpcpp/server.h>
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 
-#include "absl/flags/flag.h"
-#include "absl/flags/parse.h"
 #include "absl/strings/str_cat.h"
 #include "src/aws/proxy/resolv_conf_getter.grpc.pb.h"
-
-ABSL_FLAG(int, port, 1600, "Port on which client and server communicate.");
 
 namespace {
 
@@ -52,13 +48,20 @@ class ResolvConfGetterImpl final : public ResolvConfGetterService::Service {
 }  // namespace
 
 int main(int argc, char** argv) {
-  absl::ParseCommandLine(argc, argv);
-  const std::string server_address =
-      absl::StrCat("0.0.0.0:", absl::GetFlag(FLAGS_port));
-  ResolvConfGetterImpl service;
-
+  if (argc > 1) {
+    std::cerr << "Usage: resolv_conf_getter_server" << std::endl;
+    return EXIT_FAILURE;
+  }
   grpc::ServerBuilder builder;
+  std::string server_address = "0.0.0.0:";
+  if (char* port = ::getenv("PRIVACYSANDBOX_AWS_PROXY_RESOLV_CONF_SERVER_PORT");
+      port != nullptr) {
+    absl::StrAppend(&server_address, port);
+  } else {
+    absl::StrAppend(&server_address, 1600);
+  }
   builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
+  ResolvConfGetterImpl service;
   builder.RegisterService(&service);
   std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
   std::cout << "Server listening on " << server_address << std::endl;

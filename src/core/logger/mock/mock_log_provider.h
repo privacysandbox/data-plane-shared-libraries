@@ -29,7 +29,7 @@
 #include "src/core/logger/log_utils.h"
 
 namespace google::scp::core::logger::mock {
-class MockLogProvider : public ConsoleLogProvider {
+class MockLogProvider final : public ConsoleLogProvider {
  public:
   void Print(std::string_view output) noexcept override {
     messages_.emplace_back(output);

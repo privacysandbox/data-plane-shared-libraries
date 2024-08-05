@@ -44,7 +44,7 @@ Dispatcher::~Dispatcher() {
     return true;
   };
   {
-    absl::MutexLock l(&mu_);
+    absl::MutexLock lock(&mu_);
     mu_.Await(absl::Condition(&fn));
     requests_ = {};
     kill_consumers_ = true;
@@ -62,7 +62,7 @@ absl::Status Dispatcher::Load(
       RequestToProto(std::move(code_object));
   const int n_workers = workers_.size();
   if (n_workers == 1) {
-    absl::MutexLock l(&mu_);
+    absl::MutexLock lock(&mu_);
     per_worker_requests_.front().push(Request{
         .param = param,
         .callback =
@@ -75,14 +75,14 @@ absl::Status Dispatcher::Load(
     auto* const mu = new absl::Mutex;
     auto* const counter = new int(0);
     auto* const shared_callback = new decltype(callback)(std::move(callback));
-    absl::MutexLock l(&mu_);
+    absl::MutexLock lock(&mu_);
     for (auto& queue : per_worker_requests_) {
       queue.push(Request{
           .param = param,
           .callback =
               [=](auto response) {
                 const int count = [=] {
-                  absl::MutexLock l(mu);
+                  absl::MutexLock lock(mu);
                   return ++(*counter);
                 }();
                 if (count == 1) {
@@ -113,7 +113,7 @@ void Dispatcher::ConsumerImpl(int i) {
         return kill_consumers_ || !per_worker_requests_[i].empty() ||
                !requests_.empty();
       };
-      absl::MutexLock l(&mu_);
+      absl::MutexLock lock(&mu_);
       mu_.Await(absl::Condition(&fn));
       if (kill_consumers_) {
         break;
@@ -138,7 +138,7 @@ void Dispatcher::ConsumerImpl(int i) {
         // however, we need to reload the worker with the cached code.
         std::vector<::worker_api::WorkerParamsProto> params;
         {
-          absl::MutexLock l(&mu_);
+          absl::MutexLock lock(&mu_);
           params = params_;
         }
         for (::worker_api::WorkerParamsProto& param : params) {
@@ -159,18 +159,23 @@ void Dispatcher::ConsumerImpl(int i) {
       response.metrics[roma::sandbox::constants::
                            kExecutionMetricSandboxedJsEngineCallDuration] =
           std::move(run_code_duration);
-      for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
-        absl::StatusOr<absl::Duration> duration =
-            privacy_sandbox::server_common::DecodeGoogleApiProto(
-                proto_duration);
-        if (!duration.ok()) {
-          std::move(request).callback(std::move(duration).status());
+      absl::Status status = [&] {
+        for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
+          PS_ASSIGN_OR_RETURN(
+              response.metrics[std::move(key)],
+              privacy_sandbox::server_common::DecodeGoogleApiProto(
+                  proto_duration));
         }
-        response.metrics[std::move(key)] = std::move(duration).value();
+        return absl::OkStatus();
+      }();
+      if (!status.ok()) {
+        std::move(request).callback(std::move(status));
+      } else {
+        response.id =
+            std::move((*request.param.mutable_metadata())[kRequestId]);
+        response.resp = std::move(*request.param.mutable_response());
+        std::move(request).callback(std::move(response));
       }
-      response.id = std::move((*request.param.mutable_metadata())[kRequestId]);
-      response.resp = std::move(*request.param.mutable_response());
-      std::move(request).callback(std::move(response));
     }
   }
 }

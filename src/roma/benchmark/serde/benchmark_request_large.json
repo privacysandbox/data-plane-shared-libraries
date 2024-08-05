@@ -1,0 +1,523 @@
+{
+  "id": "large",
+  "tags": [
+    "tag1",
+    "tag2",
+    "tag3",
+    "tag4",
+    "tag5",
+    "tag6",
+    "tag7",
+    "tag8",
+    "tag9",
+    "tag10",
+    "tag11",
+    "tag12",
+    "tag13",
+    "tag14",
+    "tag15",
+    "tag16",
+    "tag17",
+    "tag18",
+    "tag19",
+    "tag20"
+  ],
+  "nested_objects": [
+    {
+      "count": 1,
+      "values": [
+        1.1
+      ]
+    },
+    {
+      "count": 2,
+      "values": [
+        2.2,
+        2.3
+      ],
+      "sub_data": {
+        "count": 1,
+        "values": [
+          1.1
+        ]
+      }
+    },
+    {
+      "count": 3,
+      "values": [
+        3.3,
+        3.4,
+        3.5
+      ],
+      "sub_data": {
+        "count": 2,
+        "values": [
+          2.2,
+          2.3
+        ],
+        "sub_data": {
+          "count": 1,
+          "values": [
+            1.1
+          ]
+        }
+      }
+    },
+    {
+      "count": 4,
+      "values": [
+        4.4,
+        4.5,
+        4.6,
+        4.7
+      ],
+      "sub_data": {
+        "count": 3,
+        "values": [
+          3.3,
+          3.4,
+          3.5
+        ],
+        "sub_data": {
+          "count": 2,
+          "values": [
+            2.2,
+            2.3
+          ],
+          "sub_data": {
+            "count": 1,
+            "values": [
+              1.1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "count": 5,
+      "values": [
+        5.5,
+        5.6,
+        5.7,
+        5.8,
+        5.9
+      ],
+      "sub_data": {
+        "count": 4,
+        "values": [
+          4.4,
+          4.5,
+          4.6,
+          4.7
+        ],
+        "sub_data": {
+          "count": 3,
+          "values": [
+            3.3,
+            3.4,
+            3.5
+          ],
+          "sub_data": {
+            "count": 2,
+            "values": [
+              2.2,
+              2.3
+            ],
+            "sub_data": {
+              "count": 1,
+              "values": [
+                1.1
+              ]
+            }
+          }
+        }
+      }
+    },
+    {
+      "count": 6,
+      "values": [
+        6.6,
+        6.7,
+        6.8,
+        6.9,
+        6,
+        6.1
+      ],
+      "sub_data": {
+        "count": 5,
+        "values": [
+          5.5,
+          5.6,
+          5.7,
+          5.8,
+          5.9
+        ],
+        "sub_data": {
+          "count": 4,
+          "values": [
+            4.4,
+            4.5,
+            4.6,
+            4.7
+          ],
+          "sub_data": {
+            "count": 3,
+            "values": [
+              3.3,
+              3.4,
+              3.5
+            ],
+            "sub_data": {
+              "count": 2,
+              "values": [
+                2.2,
+                2.3
+              ],
+              "sub_data": {
+                "count": 1,
+                "values": [
+                  1.1
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "count": 7,
+      "values": [
+        7.7,
+        7.8,
+        7.9,
+        7,
+        7.1,
+        7.2,
+        7.3
+      ],
+      "sub_data": {
+        "count": 6,
+        "values": [
+          6.6,
+          6.7,
+          6.8,
+          6.9,
+          6,
+          6.1
+        ],
+        "sub_data": {
+          "count": 5,
+          "values": [
+            5.5,
+            5.6,
+            5.7,
+            5.8,
+            5.9
+          ],
+          "sub_data": {
+            "count": 4,
+            "values": [
+              4.4,
+              4.5,
+              4.6,
+              4.7
+            ],
+            "sub_data": {
+              "count": 3,
+              "values": [
+                3.3,
+                3.4,
+                3.5
+              ],
+              "sub_data": {
+                "count": 2,
+                "values": [
+                  2.2,
+                  2.3
+                ],
+                "sub_data": {
+                  "count": 1,
+                  "values": [
+                    1.1
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "count": 8,
+      "values": [
+        8.8,
+        8.9,
+        8,
+        8.1,
+        8.2,
+        8.3,
+        8.4,
+        8.5
+      ],
+      "sub_data": {
+        "count": 7,
+        "values": [
+          7.7,
+          7.8,
+          7.9,
+          7,
+          7.1,
+          7.2,
+          7.3
+        ],
+        "sub_data": {
+          "count": 6,
+          "values": [
+            6.6,
+            6.7,
+            6.8,
+            6.9,
+            6,
+            6.1
+          ],
+          "sub_data": {
+            "count": 5,
+            "values": [
+              5.5,
+              5.6,
+              5.7,
+              5.8,
+              5.9
+            ],
+            "sub_data": {
+              "count": 4,
+              "values": [
+                4.4,
+                4.5,
+                4.6,
+                4.7
+              ],
+              "sub_data": {
+                "count": 3,
+                "values": [
+                  3.3,
+                  3.4,
+                  3.5
+                ],
+                "sub_data": {
+                  "count": 2,
+                  "values": [
+                    2.2,
+                    2.3
+                  ],
+                  "sub_data": {
+                    "count": 1,
+                    "values": [
+                      1.1
+                    ]
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "count": 9,
+      "values": [
+        9.9,
+        9,
+        9.1,
+        9.2,
+        9.3,
+        9.4,
+        9.5,
+        9.6,
+        9.7
+      ],
+      "sub_data": {
+        "count": 8,
+        "values": [
+          8.8,
+          8.9,
+          8,
+          8.1,
+          8.2,
+          8.3,
+          8.4,
+          8.5
+        ],
+        "sub_data": {
+          "count": 7,
+          "values": [
+            7.7,
+            7.8,
+            7.9,
+            7,
+            7.1,
+            7.2,
+            7.3
+          ],
+          "sub_data": {
+            "count": 6,
+            "values": [
+              6.6,
+              6.7,
+              6.8,
+              6.9,
+              6,
+              6.1
+            ],
+            "sub_data": {
+              "count": 5,
+              "values": [
+                5.5,
+                5.6,
+                5.7,
+                5.8,
+                5.9
+              ],
+              "sub_data": {
+                "count": 4,
+                "values": [
+                  4.4,
+                  4.5,
+                  4.6,
+                  4.7
+                ],
+                "sub_data": {
+                  "count": 3,
+                  "values": [
+                    3.3,
+                    3.4,
+                    3.5
+                  ],
+                  "sub_data": {
+                    "count": 2,
+                    "values": [
+                      2.2,
+                      2.3
+                    ],
+                    "sub_data": {
+                      "count": 1,
+                      "values": [
+                        1.1
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "count": 10,
+      "values": [
+        10,
+        10.1,
+        10.2,
+        10.3,
+        10.4,
+        10.5,
+        10.6,
+        10.7,
+        10.8,
+        10.9
+      ],
+      "sub_data": {
+        "count": 9,
+        "values": [
+          9.9,
+          9,
+          9.1,
+          9.2,
+          9.3,
+          9.4,
+          9.5,
+          9.6,
+          9.7
+        ],
+        "sub_data": {
+          "count": 8,
+          "values": [
+            8.8,
+            8.9,
+            8,
+            8.1,
+            8.2,
+            8.3,
+            8.4,
+            8.5
+          ],
+          "sub_data": {
+            "count": 7,
+            "values": [
+              7.7,
+              7.8,
+              7.9,
+              7,
+              7.1,
+              7.2,
+              7.3
+            ],
+            "sub_data": {
+              "count": 6,
+              "values": [
+                6.6,
+                6.7,
+                6.8,
+                6.9,
+                6,
+                6.1
+              ],
+              "sub_data": {
+                "count": 5,
+                "values": [
+                  5.5,
+                  5.6,
+                  5.7,
+                  5.8,
+                  5.9
+                ],
+                "sub_data": {
+                  "count": 4,
+                  "values": [
+                    4.4,
+                    4.5,
+                    4.6,
+                    4.7
+                  ],
+                  "sub_data": {
+                    "count": 3,
+                    "values": [
+                      3.3,
+                      3.4,
+                      3.5
+                    ],
+                    "sub_data": {
+                      "count": 2,
+                      "values": [
+                        2.2,
+                        2.3
+                      ],
+                      "sub_data": {
+                        "count": 1,
+                        "values": [
+                          1.1
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "text_data": "large text data"
+}

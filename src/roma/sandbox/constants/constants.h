@@ -38,6 +38,7 @@ inline constexpr std::string_view kRequestActionLoad = "Load";
 inline constexpr std::string_view kRequestActionExecute = "Execute";
 inline constexpr std::string_view kJsEngineOneTimeSetupWasmPagesKey =
     "MaxWasmNumberOfPages";
+inline constexpr std::string_view kJsEngineOneTimeSetupV8FlagsKey = "V8Flags";
 
 inline constexpr std::string_view kRequestId = "roma.request.id";
 

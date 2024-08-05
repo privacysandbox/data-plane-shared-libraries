@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/service_interface.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
@@ -117,12 +118,12 @@ class InstanceClientProviderFactory {
    * @param http_client instance of http_client.
    * @return std::unique_ptr<InstanceClientProviderInterface>
    */
-  static std::unique_ptr<InstanceClientProviderInterface> Create(
-      AuthTokenProviderInterface* auth_token_provider,
-      core::HttpClientInterface* http1_client,
-      core::HttpClientInterface* http2_client,
-      core::AsyncExecutorInterface* async_executor,
-      core::AsyncExecutorInterface* io_async_executor);
+  static absl::Nonnull<std::unique_ptr<InstanceClientProviderInterface>> Create(
+      absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+      absl::Nonnull<core::HttpClientInterface*> http1_client,
+      absl::Nonnull<core::HttpClientInterface*> http2_client,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

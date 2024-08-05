@@ -59,6 +59,8 @@ static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
   init_params.set_js_engine_max_wasm_memory_number_of_pages(0);
   init_params.set_request_and_response_data_buffer_fd(buffer_ptr_->fd());
   init_params.set_request_and_response_data_buffer_size_bytes(kBufferSize);
+  init_params.set_skip_v8_cleanup(true);
+  init_params.mutable_v8_flags()->Clear();
   return init_params;
 }
 

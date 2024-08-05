@@ -21,6 +21,7 @@
 #include <atomic>
 #include <chrono>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <string>
 
@@ -29,6 +30,7 @@
 #include "src/core/common/operation_dispatcher/error_codes.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/streaming_context.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;
@@ -299,7 +301,7 @@ TEST(OperationDispatcherTests, OperationExpiration) {
 
   absl::Notification condition;
   AsyncContext<std::string, std::string> context;
-  context.expiration_time = UINT64_MAX;
+  context.expiration_time = std::numeric_limits<uint64_t>::max();
 
   context.callback = [&](AsyncContext<std::string, std::string>& context) {
     EXPECT_THAT(context.result,

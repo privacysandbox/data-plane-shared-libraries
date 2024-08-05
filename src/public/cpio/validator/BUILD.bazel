@@ -105,6 +105,7 @@ cc_library(
         "//src/public/cpio/proto/blob_storage_service/v1:blob_storage_service_cc_proto",
         "//src/public/cpio/validator/proto:validator_config_cc_proto",
         "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -122,6 +123,7 @@ cc_library(
         "//src/public/cpio/validator/proto:validator_config_cc_proto",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -139,6 +141,7 @@ cc_library(
         "//src/public/cpio/validator/proto:validator_config_cc_proto",
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
         "@com_google_absl//absl/synchronization",
     ],
 )
@@ -148,7 +151,6 @@ cc_library(
     srcs = ["queue_client_validator.cc"],
     hdrs = ["queue_client_validator.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/queue_client_provider:queue_client_provider_select",
         "//src/public/core/interface:errors",
@@ -166,7 +168,6 @@ cc_library(
     srcs = ["key_fetcher_validator.cc"],
     hdrs = ["key_fetcher_validator.h"],
     deps = [
-        "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/private_key_fetcher_provider:private_key_fetcher_provider_select",
         "//src/public/core/interface:errors",

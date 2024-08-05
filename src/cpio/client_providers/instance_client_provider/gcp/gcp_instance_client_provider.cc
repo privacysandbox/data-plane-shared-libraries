@@ -25,6 +25,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -34,6 +35,7 @@
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/common/cpio_utils.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "gcp_instance_client_utils.h"
@@ -156,8 +158,9 @@ const auto& GetRequiredFieldsForResourceTags() {
 namespace google::scp::cpio::client_providers {
 
 GcpInstanceClientProvider::GcpInstanceClientProvider(
-    AuthTokenProviderInterface* auth_token_provider,
-    HttpClientInterface* http1_client, HttpClientInterface* http2_client)
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<HttpClientInterface*> http1_client,
+    absl::Nonnull<HttpClientInterface*> http2_client)
     : http1_client_(http1_client),
       http2_client_(http2_client),
       auth_token_provider_(auth_token_provider),
@@ -255,7 +258,7 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
   if (!execution_result.Successful()) {
     // If got_failure is false, then the other thread hasn't failed - we should
     // be the ones to log and finish the context.
-    if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+    if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
         !instance_resource_name_tracker->got_failure) {
       instance_resource_name_tracker->got_failure = true;
       SCP_ERROR_CONTEXT(
@@ -279,7 +282,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
     std::shared_ptr<InstanceResourceNameTracker> instance_resource_name_tracker,
     ResourceType type) noexcept {
   // If got_failure is true, no need to process this request.
-  if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+  if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
       instance_resource_name_tracker->got_failure) {
     return;
   }
@@ -288,7 +291,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
   if (!result.Successful()) {
     // If got_failure is false, then the other thread hasn't failed - we should
     // be the ones to log and finish the context.
-    if (absl::MutexLock l(&instance_resource_name_tracker->got_failure_mu);
+    if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
         !instance_resource_name_tracker->got_failure) {
       instance_resource_name_tracker->got_failure = true;
       SCP_ERROR_CONTEXT(
@@ -334,7 +337,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
 
   int num_outstanding_calls;
   {
-    absl::MutexLock l(
+    absl::MutexLock lock(
         &instance_resource_name_tracker->num_outstanding_calls_mu);
     num_outstanding_calls =
         --instance_resource_name_tracker->num_outstanding_calls;
@@ -865,12 +868,13 @@ void GcpInstanceClientProvider::OnListInstanceDetailsCallback(
   get_instance_details_context.Finish(SuccessExecutionResult());
 }
 
-std::unique_ptr<InstanceClientProviderInterface>
+absl::Nonnull<std::unique_ptr<InstanceClientProviderInterface>>
 InstanceClientProviderFactory::Create(
-    AuthTokenProviderInterface* auth_token_provider,
-    HttpClientInterface* http1_client, HttpClientInterface* http2_client,
-    AsyncExecutorInterface* async_executor,
-    AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+    absl::Nonnull<HttpClientInterface*> http1_client,
+    absl::Nonnull<HttpClientInterface*> http2_client,
+    absl::Nonnull<AsyncExecutorInterface*> /*async_executor*/,
+    absl::Nonnull<AsyncExecutorInterface*> /*io_async_executor*/) {
   return std::make_unique<GcpInstanceClientProvider>(
       auth_token_provider, http1_client, http2_client);
 }

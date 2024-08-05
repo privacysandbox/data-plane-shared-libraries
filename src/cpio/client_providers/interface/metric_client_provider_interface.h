@@ -20,6 +20,10 @@
 #include <memory>
 #include <string>
 
+<<<<<<< HEAD
+=======
+#include "absl/base/nullability.h"
+>>>>>>> upstream-3e92e75-3.10.0
 #include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
@@ -35,8 +39,6 @@ namespace google::scp::cpio::client_providers {
 
 /// Configurations for batching metrics.
 struct MetricBatchingOptions {
-  virtual ~MetricBatchingOptions() = default;
-
   /**
    * @brief The top level grouping for the application metrics. A
    * typical example would be "/application_name/environment_name".
@@ -67,8 +69,11 @@ class MetricClientProviderInterface {
   virtual ~MetricClientProviderInterface() = default;
 
   virtual absl::Status Init() noexcept = 0;
+<<<<<<< HEAD
   virtual absl::Status Run() noexcept = 0;
   virtual absl::Status Stop() noexcept = 0;
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 
   /**
    * @brief Records custom metrics on Cloud.
@@ -91,11 +96,15 @@ class MetricClientProviderFactory {
    * @return std::unique_ptr<MetricClientProviderInterface> created
    * MetricClientProvider.
    */
+<<<<<<< HEAD
   static std::unique_ptr<MetricClientProviderInterface> Create(
+=======
+  static absl::Nonnull<std::unique_ptr<MetricClientProviderInterface>> Create(
+>>>>>>> upstream-3e92e75-3.10.0
       MetricClientOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* async_executor,
-      core::AsyncExecutorInterface* io_async_executor);
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor);
 };
 }  // namespace google::scp::cpio::client_providers
 

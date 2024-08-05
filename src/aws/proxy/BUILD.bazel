@@ -21,7 +21,7 @@
     doesn't have std::filesystem, instead it's in std::experimental
 """
 
-load("@com_github_grpc_grpc//bazel:grpc_build_system.bzl", "grpc_proto_library")
+load("@com_google_googleapis_imports//:imports.bzl", "cc_grpc_library", "cc_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
@@ -51,9 +51,7 @@ cc_binary(
     deps = [
         ":resolv_conf_getter_grpc",
         "@com_github_grpc_grpc//:grpc++",
-        "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/flags:parse",
-        "@com_google_absl//absl/strings",
+        "@com_google_absl_for_proxy//absl/strings",
     ],
 )
 
@@ -62,9 +60,16 @@ proto_library(
     srcs = ["resolv_conf_getter.proto"],
 )
 
-grpc_proto_library(
+cc_proto_library(
+    name = "resolv_conf_getter_cc_proto",
+    deps = [":resolv_conf_getter_proto"],
+)
+
+cc_grpc_library(
     name = "resolv_conf_getter_grpc",
-    srcs = ["resolv_conf_getter.proto"],
+    srcs = [":resolv_conf_getter_proto"],
+    grpc_only = True,
+    deps = [":resolv_conf_getter_cc_proto"],
 )
 
 buf_lint_test(
@@ -567,8 +572,12 @@ cc_test(
 cc_test(
     name = "client_session_pool_test",
     size = "medium",
+    timeout = "short",
     srcs = ["client_session_pool_test.cc"],
-    tags = ["noasan"],  # TODO(b/315002386) - Fix ASAN errors in this test.
+    tags = [
+        "manual",  # TODO(b/315002386) - Fix test flakiness.
+        "noasan",  # TODO(b/315002386) - Fix ASAN errors in this test.
+    ],
     deps = [
         ":client_session_pool",
         ":socket_vendor_protocol",

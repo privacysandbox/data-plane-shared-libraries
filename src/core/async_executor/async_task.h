@@ -55,7 +55,7 @@ class AsyncTask {
 
   /// Calls the current task to be executed.
   void Execute() ABSL_LOCKS_EXCLUDED(cancellation_mutex_) {
-    if (absl::MutexLock l(&cancellation_mutex_); is_cancelled_) {
+    if (absl::MutexLock lock(&cancellation_mutex_); is_cancelled_) {
       return;
     }
     async_operation_();
@@ -63,7 +63,7 @@ class AsyncTask {
 
   /// Calls the current task to be cancelled.
   bool Cancel() ABSL_LOCKS_EXCLUDED(cancellation_mutex_) {
-    absl::MutexLock l(&cancellation_mutex_);
+    absl::MutexLock lock(&cancellation_mutex_);
     if (is_cancelled_) {
       return false;
     }

@@ -24,7 +24,8 @@
 #include "absl/functional/any_invocable.h"
 #include "absl/status/statusor.h"
 #include "include/grpc/event_engine/event_engine.h"
-#include "src/concurrent/event_engine_executor.h"
+
+#include "event_engine_executor.h"
 
 namespace privacy_sandbox::server_common {
 

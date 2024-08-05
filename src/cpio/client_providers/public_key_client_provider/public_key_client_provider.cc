@@ -56,10 +56,6 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED;
-using google::scp::core::errors::
-    SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED;
-using google::scp::core::errors::
-    SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
 
 namespace {
 constexpr std::string_view kPublicKeyClientProvider = "PublicKeyClientProvider";
@@ -67,6 +63,7 @@ constexpr std::string_view kPublicKeyClientProvider = "PublicKeyClientProvider";
 
 namespace google::scp::cpio::client_providers {
 
+<<<<<<< HEAD
 absl::Status PublicKeyClientProvider::Init() noexcept {
   if (public_key_client_options_.endpoints.empty()) {
     auto execution_result = FailureExecutionResult(
@@ -88,6 +85,8 @@ absl::Status PublicKeyClientProvider::Init() noexcept {
   return absl::OkStatus();
 }
 
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 void PublicKeyClientProvider::OnListPublicKeys(
     AsyncContext<Any, Any> any_context) noexcept {
   auto request = std::make_shared<ListPublicKeysRequest>();
@@ -209,6 +208,7 @@ void PublicKeyClientProvider::OnPerformRequestCallback(
   }
 }
 
+<<<<<<< HEAD
 absl::StatusOr<std::unique_ptr<PublicKeyClientProviderInterface>>
 PublicKeyClientProviderFactory::Create(PublicKeyClientOptions options,
                                        HttpClientInterface* http_client) {
@@ -216,6 +216,14 @@ PublicKeyClientProviderFactory::Create(PublicKeyClientOptions options,
                                                           http_client);
   PS_RETURN_IF_ERROR(client->Init());
   return client;
+=======
+absl::Nonnull<std::unique_ptr<PublicKeyClientProviderInterface>>
+PublicKeyClientProviderFactory::Create(
+    PublicKeyClientOptions options,
+    absl::Nonnull<HttpClientInterface*> http_client) {
+  return std::make_unique<PublicKeyClientProvider>(std::move(options),
+                                                   http_client);
+>>>>>>> upstream-3e92e75-3.10.0
 }
 
 }  // namespace google::scp::cpio::client_providers

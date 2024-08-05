@@ -23,46 +23,46 @@ using google::scp::roma::benchmark::RomaBenchmarkSuite;
 using google::scp::roma::benchmark::TestConfiguration;
 
 static void RomaPayloadTest(benchmark::State& state) {
+  TestConfiguration test_configuration = {
+      .inputs_type = InputsType::kSimpleString,
+      .input_payload_in_byte = static_cast<size_t>(state.range(0)),
+      .workers = 1,
+      .queue_size = 10,
+      .request_threads = 1,
+      .batch_size = 1,
+      .requests_per_thread = 10'000,
+  };
   for (auto _ : state) {
-    TestConfiguration test_configuration;
-    test_configuration.workers = 1;
-    test_configuration.inputs_type = InputsType::kSimpleString;
-    test_configuration.input_payload_in_byte = state.range(0);
-    test_configuration.queue_size = 10;
-    test_configuration.batch_size = 1;
-    test_configuration.request_threads = 1;
-    test_configuration.requests_per_thread = 10000;
-
     RomaBenchmarkSuite(test_configuration);
   }
 }
 
 static void RomaJsonInputParsingTest(benchmark::State& state) {
+  TestConfiguration test_configuration = {
+      .inputs_type = InputsType::kNestedJsonString,
+      .input_json_nested_depth = static_cast<size_t>(state.range(0)),
+      .workers = 1,
+      .queue_size = 100,
+      .request_threads = 1,
+      .batch_size = 1,
+      .requests_per_thread = 10'000,
+  };
   for (auto _ : state) {
-    TestConfiguration test_configuration;
-    test_configuration.workers = 1;
-    test_configuration.inputs_type = InputsType::kNestedJsonString;
-    test_configuration.input_json_nested_depth = state.range(0);
-    test_configuration.queue_size = 100;
-    test_configuration.batch_size = 1;
-    test_configuration.request_threads = 1;
-    test_configuration.requests_per_thread = 10000;
-
     RomaBenchmarkSuite(test_configuration);
   }
 }
 
 static void RomaWorkerAndQueueTest(benchmark::State& state) {
+  TestConfiguration test_configuration = {
+      .inputs_type = InputsType::kSimpleString,
+      .input_payload_in_byte = 500'000,
+      .workers = static_cast<size_t>(state.range(0)),
+      .queue_size = static_cast<size_t>(state.range(1)),
+      .request_threads = 1,
+      .batch_size = 1,
+      .requests_per_thread = 10'000,
+  };
   for (auto _ : state) {
-    TestConfiguration test_configuration;
-    test_configuration.workers = state.range(0);
-    test_configuration.inputs_type = InputsType::kSimpleString;
-    test_configuration.input_payload_in_byte = 500000;
-    test_configuration.queue_size = state.range(1);
-    test_configuration.batch_size = 1;
-    test_configuration.request_threads = 1;
-    test_configuration.requests_per_thread = 10000;
-
     RomaBenchmarkSuite(test_configuration);
   }
 }
@@ -79,16 +79,16 @@ static void CustomArgumentsForWorkerAndQueueTest(
 }
 
 static void RomaBatchSizeTest(benchmark::State& state) {
+  TestConfiguration test_configuration = {
+      .inputs_type = InputsType::kSimpleString,
+      .input_payload_in_byte = 500'000,
+      .workers = 16,
+      .queue_size = 10,
+      .request_threads = 1,
+      .batch_size = static_cast<size_t>(state.range(0)),
+      .requests_per_thread = 10'000,
+  };
   for (auto _ : state) {
-    TestConfiguration test_configuration;
-    test_configuration.workers = 16;
-    test_configuration.inputs_type = InputsType::kSimpleString;
-    test_configuration.input_payload_in_byte = 500000;
-    test_configuration.queue_size = 10;
-    test_configuration.batch_size = state.range(0);
-    test_configuration.request_threads = 1;
-    test_configuration.requests_per_thread = 10000;
-
     RomaBenchmarkSuite(test_configuration);
   }
 }
@@ -96,7 +96,7 @@ static void RomaBatchSizeTest(benchmark::State& state) {
 // Register the function as a benchmark
 BENCHMARK(RomaPayloadTest)->RangeMultiplier(10)->Range(1, 1024 * 1024 * 10);
 BENCHMARK(RomaJsonInputParsingTest)->RangeMultiplier(10)->Range(1, 1000);
-BENCHMARK(RomaJsonInputParsingTest)->RangeMultiplier(10)->Range(1, 100000);
+BENCHMARK(RomaJsonInputParsingTest)->RangeMultiplier(10)->Range(1, 100'000);
 BENCHMARK(RomaPayloadTest)->DenseRange(0, 1024 * 1024, 1024 * 500);
 BENCHMARK(RomaWorkerAndQueueTest)->Apply(CustomArgumentsForWorkerAndQueueTest);
 BENCHMARK(RomaBatchSizeTest)->RangeMultiplier(10)->Range(1, 100);

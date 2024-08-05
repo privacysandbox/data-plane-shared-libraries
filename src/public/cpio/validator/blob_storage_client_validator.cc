@@ -18,6 +18,7 @@
 #include <utility>
 
 #include "absl/log/log.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
 #include "src/public/core/interface/errors.h"
@@ -46,18 +47,11 @@ void RunListBlobsMetadataValidator(
   }
   auto blob_storage_client =
       google::scp::cpio::BlobStorageClientFactory::Create();
-  if (google::scp::core::ExecutionResult result = blob_storage_client->Init();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = blob_storage_client->Init(); !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
-  if (google::scp::core::ExecutionResult result = blob_storage_client->Run();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
-    return;
-  }
+
   // ListBlobsMetadata.
   absl::Notification finished;
   google::scp::core::ExecutionResult result;
@@ -76,21 +70,14 @@ void RunListBlobsMetadataValidator(
             }
             finished.Notify();
           });
-  if (auto list_blobs_metadata_result =
+  if (absl::Status error =
           blob_storage_client->ListBlobsMetadata(list_blobs_metadata_context);
-      !list_blobs_metadata_result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(
-                     list_blobs_metadata_result.status_code)
-              << std::endl;
+      !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
   }
   finished.WaitForNotification();
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
-  }
-  if (auto result = blob_storage_client->Stop(); !result.Successful()) {
-    std::cout << " [ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
 }
@@ -109,16 +96,8 @@ void RunGetBlobValidator(std::string_view name,
   }
   auto blob_storage_client =
       google::scp::cpio::BlobStorageClientFactory::Create();
-  if (google::scp::core::ExecutionResult result = blob_storage_client->Init();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
-    return;
-  }
-  if (google::scp::core::ExecutionResult result = blob_storage_client->Run();
-      !result.Successful()) {
-    std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = blob_storage_client->Init(); !error.ok()) {
+    std::cout << "[ FAILURE ] " << name << " " << error << std::endl;
     return;
   }
   absl::Notification finished;
@@ -137,19 +116,13 @@ void RunGetBlobValidator(std::string_view name,
         finished.Notify();
       });
 
-  if (auto get_blob_result = blob_storage_client->GetBlob(get_blob_context);
-      !get_blob_result.Successful()) {
-    std::cout << "[ FAILURE ]  " << name << " "
-              << core::errors::GetErrorMessage(get_blob_result.status_code)
-              << std::endl;
+  if (absl::Status error = blob_storage_client->GetBlob(get_blob_context);
+      !error.ok()) {
+    std::cout << "[ FAILURE ]  " << name << " " << error << std::endl;
   }
   finished.WaitForNotification();
   if (!result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "
-              << core::errors::GetErrorMessage(result.status_code) << std::endl;
-  }
-  if (auto result = blob_storage_client->Stop(); !result.Successful()) {
-    std::cout << " [ FAILURE ] " << name << " "
               << core::errors::GetErrorMessage(result.status_code) << std::endl;
   }
 }

@@ -18,12 +18,16 @@
 #define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_INSTANCE_CLIENT_H_
 
 #include <memory>
+<<<<<<< HEAD
 #include <string>
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 #include <utility>
 
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/instance_client/instance_client_interface.h"
 #include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
 
@@ -32,43 +36,51 @@ namespace google::scp::cpio {
  */
 class InstanceClient : public InstanceClientInterface {
  public:
+<<<<<<< HEAD
   explicit InstanceClient(InstanceClientOptions options)
       : options_(std::move(options)) {}
+=======
+  explicit InstanceClient(
+      absl::Nonnull<client_providers::InstanceClientProviderInterface*>
+          instance_client_provider)
+      : instance_client_provider_(instance_client_provider) {}
+>>>>>>> upstream-3e92e75-3.10.0
 
   virtual ~InstanceClient() = default;
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
+  absl::Status Run() noexcept override;
 
-  core::ExecutionResult Stop() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult GetCurrentInstanceResourceName(
+  absl::Status GetCurrentInstanceResourceName(
       cmrt::sdk::instance_service::v1::GetCurrentInstanceResourceNameRequest
           request,
       Callback<cmrt::sdk::instance_service::v1::
                    GetCurrentInstanceResourceNameResponse>
           callback) noexcept override;
 
-  core::ExecutionResult GetTagsByResourceName(
+  absl::Status GetTagsByResourceName(
       cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest request,
       Callback<cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse>
           callback) noexcept override;
 
-  core::ExecutionResult GetInstanceDetailsByResourceName(
+  absl::Status GetInstanceDetailsByResourceName(
       cmrt::sdk::instance_service::v1::GetInstanceDetailsByResourceNameRequest
           request,
       Callback<cmrt::sdk::instance_service::v1::
                    GetInstanceDetailsByResourceNameResponse>
           callback) noexcept override;
 
-  core::ExecutionResult ListInstanceDetailsByEnvironment(
+  absl::Status ListInstanceDetailsByEnvironment(
       cmrt::sdk::instance_service::v1::ListInstanceDetailsByEnvironmentRequest
           request,
       Callback<cmrt::sdk::instance_service::v1::
                    ListInstanceDetailsByEnvironmentResponse>
           callback) noexcept override;
 
+<<<<<<< HEAD
  protected:
   virtual void CreateInstanceClientProvider() noexcept;
 
@@ -77,6 +89,10 @@ class InstanceClient : public InstanceClientInterface {
  private:
   InstanceClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
+=======
+ private:
+  client_providers::InstanceClientProviderInterface* instance_client_provider_;
+>>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio
 

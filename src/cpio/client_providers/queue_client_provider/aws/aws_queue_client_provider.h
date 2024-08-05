@@ -23,6 +23,7 @@
 
 #include <aws/sqs/SQSClient.h>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/queue_client_provider_interface.h"
@@ -42,10 +43,10 @@ class AwsQueueClientProvider : public QueueClientProviderInterface {
 
   explicit AwsQueueClientProvider(
       QueueClientOptions queue_client_options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
-      std::shared_ptr<AwsSqsClientFactory> sqs_client_factory =
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
+      absl::Nonnull<std::shared_ptr<AwsSqsClientFactory>> sqs_client_factory =
           std::make_shared<AwsSqsClientFactory>())
       : queue_name_(std::move(queue_client_options).queue_name),
         instance_client_provider_(instance_client_provider),

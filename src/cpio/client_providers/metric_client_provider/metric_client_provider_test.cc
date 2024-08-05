@@ -47,7 +47,6 @@ using google::cmrt::sdk::metric_service::v1::PutMetricsRequest;
 using google::cmrt::sdk::metric_service::v1::PutMetricsResponse;
 using google::protobuf::Any;
 using google::scp::core::AsyncContext;
-using google::scp::core ::AsyncExecutorInterface;
 using google::scp::core::AsyncOperation;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::SuccessExecutionResult;
@@ -99,6 +98,7 @@ class MetricClientProviderTest : public ::testing::Test {
   MockAsyncExecutor mock_async_executor_;
 };
 
+<<<<<<< HEAD
 TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsNotOKWithBatchRecording) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
       nullptr, CreateMetricBatchingOptions(true));
@@ -133,6 +133,8 @@ TEST_F(MetricClientProviderTest, EmptyAsyncExecutorIsOKWithoutBatchRecording) {
   batch_push_called_count.Wait();
 }
 
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 TEST_F(MetricClientProviderTest,
        FailsWhenEnableBatchRecordingWithoutNamespace) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
@@ -150,9 +152,13 @@ TEST_F(MetricClientProviderTest,
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   ASSERT_TRUE(client->Init().ok());
+<<<<<<< HEAD
   ASSERT_TRUE(client->Run().ok());
   EXPECT_FALSE(client->PutMetrics(context).ok());
   EXPECT_TRUE(client->Stop().ok());
+=======
+  EXPECT_FALSE(client->PutMetrics(context).ok());
+>>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST_F(MetricClientProviderTest, FailsWhenNoMetricInRequest) {
@@ -166,6 +172,7 @@ TEST_F(MetricClientProviderTest, FailsWhenNoMetricInRequest) {
       [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {});
 
   ASSERT_TRUE(client->Init().ok());
+<<<<<<< HEAD
   ASSERT_TRUE(client->Run().ok());
   EXPECT_FALSE(client->PutMetrics(context).ok());
   EXPECT_TRUE(client->Stop().ok());
@@ -183,6 +190,8 @@ TEST_F(MetricClientProviderTest, FailedWithoutRunning) {
   EXPECT_THAT(client->ScheduleMetricsBatchPush(),
               ResultIs(FailureExecutionResult(
                   SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING)));
+=======
+>>>>>>> upstream-3e92e75-3.10.0
   EXPECT_FALSE(client->PutMetrics(context).ok());
 }
 
@@ -198,8 +207,12 @@ TEST_F(MetricClientProviderTest, LaunchScheduleMetricsBatchPushWithRun) {
         return FailureExecutionResult(SC_UNKNOWN);
       };
 
+<<<<<<< HEAD
   ASSERT_TRUE(client->Init().ok());
   EXPECT_FALSE(client->Run().ok());
+=======
+  EXPECT_FALSE(client->Init().ok());
+>>>>>>> upstream-3e92e75-3.10.0
   schedule_for_is_called.WaitForNotification();
 }
 
@@ -223,7 +236,10 @@ TEST_F(MetricClientProviderTest, RecordMetricWithoutBatch) {
       };
 
   ASSERT_TRUE(client->Init().ok());
+<<<<<<< HEAD
   ASSERT_TRUE(client->Run().ok());
+=======
+>>>>>>> upstream-3e92e75-3.10.0
   EXPECT_TRUE(client->PutMetrics(context).ok());
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
   EXPECT_TRUE(client->PutMetrics(context).ok());
@@ -241,7 +257,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
       [&](AsyncOperation work, Timestamp timestamp,
           std::function<bool()>& cancellation_callback) {
         {
-          absl::MutexLock l(&schedule_for_is_called_mu);
+          absl::MutexLock lock(&schedule_for_is_called_mu);
           schedule_for_is_called = true;
         }
         return SuccessExecutionResult();
@@ -259,7 +275,7 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
               cmrt::sdk::metric_service::v1::PutMetricsResponse>>>&
               metric_requests_vector) noexcept {
         {
-          absl::MutexLock l(&batch_push_called_mu);
+          absl::MutexLock lock(&batch_push_called_mu);
           batch_push_called = true;
         }
         EXPECT_EQ(metric_requests_vector->size(), kMetricsBatchSize);
@@ -267,18 +283,21 @@ TEST_F(MetricClientProviderTest, RecordMetricWithBatch) {
       };
 
   ASSERT_TRUE(client->Init().ok());
+<<<<<<< HEAD
   ASSERT_TRUE(client->Run().ok());
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 
   for (int i = 0; i <= 2001; i++) {
     EXPECT_TRUE(client->PutMetrics(context).ok());
   }
 
   {
-    absl::MutexLock l(&schedule_for_is_called_mu);
+    absl::MutexLock lock(&schedule_for_is_called_mu);
     schedule_for_is_called_mu.Await(absl::Condition(&schedule_for_is_called));
   }
 
-  absl::MutexLock l(&batch_push_called_mu);
+  absl::MutexLock lock(&batch_push_called_mu);
   batch_push_called_mu.Await(absl::Condition(&batch_push_called));
 }
 
@@ -308,13 +327,16 @@ TEST_F(MetricClientProviderTest, RunMetricsBatchPush) {
       };
 
   ASSERT_TRUE(client->Init().ok());
+<<<<<<< HEAD
   ASSERT_TRUE(client->Run().ok());
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 
   EXPECT_TRUE(client->PutMetrics(context).ok());
   EXPECT_TRUE(client->PutMetrics(context).ok());
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 2);
   {
-    absl::MutexLock l(client->mock_sync_mutex_);
+    absl::MutexLock lock(client->mock_sync_mutex_);
     client->RunMetricsBatchPush();
   }
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
@@ -326,7 +348,10 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
   auto client = std::make_unique<MockMetricClientWithOverrides>(
       nullptr, CreateMetricBatchingOptions(false));
   ASSERT_TRUE(client->Init().ok());
+<<<<<<< HEAD
   ASSERT_TRUE(client->Run().ok());
+=======
+>>>>>>> upstream-3e92e75-3.10.0
   auto request = CreatePutMetricsRequest(kMetricNamespace);
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
       std::move(request),
@@ -353,7 +378,10 @@ TEST_F(MetricClientProviderTest, PutMetricSuccessWithMultipleThreads) {
 
   EXPECT_EQ(client->GetSizeMetricRequestsVector(), 0);
   batch_push_called_count.Wait();
+<<<<<<< HEAD
   EXPECT_TRUE(client->Stop().ok());
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 }
 
 }  // namespace

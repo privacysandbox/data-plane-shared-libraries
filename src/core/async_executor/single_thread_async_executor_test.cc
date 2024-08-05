@@ -140,7 +140,7 @@ TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
     size_t callback_count = 0;
     auto request = std::make_shared<std::string>("request");
     auto callback = [&](AsyncContext<std::string, std::string>& context) {
-      absl::MutexLock l(&callback_count_mu);
+      absl::MutexLock lock(&callback_count_mu);
       callback_count++;
     };
     auto context = AsyncContext<std::string, std::string>(request, callback);
@@ -152,7 +152,7 @@ TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
         },
         AsyncPriority::Normal);
     {
-      absl::MutexLock l(&callback_count_mu);
+      absl::MutexLock lock(&callback_count_mu);
       auto condition_fn = [&] {
         callback_count_mu.AssertReaderHeld();
         return callback_count == 1;
@@ -167,7 +167,7 @@ TEST(SingleThreadAsyncExecutorTests, AsyncContextCallback) {
         },
         AsyncPriority::High);
     {
-      absl::MutexLock l(&callback_count_mu);
+      absl::MutexLock lock(&callback_count_mu);
       auto condition_fn = [&] {
         callback_count_mu.AssertReaderHeld();
         return callback_count == 2;
@@ -191,7 +191,7 @@ TEST(SingleThreadAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
     executor.Schedule(
         [&] {
           {
-            absl::MutexLock l(&count_mu);
+            absl::MutexLock lock(&count_mu);
             normal_count++;
           }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
@@ -201,7 +201,7 @@ TEST(SingleThreadAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
     executor.Schedule(
         [&] {
           {
-            absl::MutexLock l(&count_mu);
+            absl::MutexLock lock(&count_mu);
             medium_count++;
           }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
@@ -209,7 +209,7 @@ TEST(SingleThreadAsyncExecutorTests, FinishWorkWhenStopInMiddle) {
         AsyncPriority::High);
   }
   {
-    absl::MutexLock l(&count_mu);
+    absl::MutexLock lock(&count_mu);
     auto condition_fn = [&] {
       count_mu.AssertReaderHeld();
       return medium_count + normal_count == kQueueCap;

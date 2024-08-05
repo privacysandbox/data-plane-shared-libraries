@@ -18,14 +18,10 @@
 #define SCP_CPIO_INTERFACE_BLOB_STORAGE_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/common/concurrent_queue/concurrent_queue.h"
+#include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/streaming_context.h"
-#include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
 
 #include "type_def.h"
@@ -39,9 +35,13 @@ namespace google::scp::cpio {
  * actually using it, and call BlobStorageClientInterface::Stop when finished
  * using it.
  */
-class BlobStorageClientInterface : public core::ServiceInterface {
+class BlobStorageClientInterface {
  public:
   virtual ~BlobStorageClientInterface() = default;
+
+  virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Gets a Blob from storage.
@@ -49,7 +49,7 @@ class BlobStorageClientInterface : public core::ServiceInterface {
    * @param get_blob_context The context for the operation.
    * @return core::ExecutionResult Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult GetBlob(
+  virtual absl::Status GetBlob(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::GetBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::GetBlobResponse>
@@ -59,9 +59,9 @@ class BlobStorageClientInterface : public core::ServiceInterface {
    * @brief Lists Blobs metadata in storage.
    *
    * @param list_blobs_metadata_context The context for the operation.
-   * @return core::ExecutionResult Scheduling result returned synchronously.
+   * @return absl::Status Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult ListBlobsMetadata(
+  virtual absl::Status ListBlobsMetadata(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest,
           google::cmrt::sdk::blob_storage_service::v1::
@@ -72,9 +72,9 @@ class BlobStorageClientInterface : public core::ServiceInterface {
    * @brief Puts (inserts or updates) a Blob in storage.
    *
    * @param put_blob_context The context for the operation.
-   * @return core::ExecutionResult Scheduling result returned synchronously.
+   * @return absl::Status Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult PutBlob(
+  virtual absl::Status PutBlob(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse>
@@ -84,9 +84,9 @@ class BlobStorageClientInterface : public core::ServiceInterface {
    * @brief Deletes a Blob in storage.
    *
    * @param delete_blob_context The context for the operation.
-   * @return core::ExecutionResult Scheduling result returned synchronously.
+   * @return absl::Status Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult DeleteBlob(
+  virtual absl::Status DeleteBlob(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse>
@@ -98,9 +98,9 @@ class BlobStorageClientInterface : public core::ServiceInterface {
    * @brief Gets a Blob from storage in a streaming manner.
    *
    * @param get_blob_stream_context The context for the operation.
-   * @return core::ExecutionResult Scheduling result returned synchronously.
+   * @return absl::Status Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult GetBlobStream(
+  virtual absl::Status GetBlobStream(
       core::ConsumerStreamingContext<
           google::cmrt::sdk::blob_storage_service::v1::GetBlobStreamRequest,
           google::cmrt::sdk::blob_storage_service::v1::GetBlobStreamResponse>
@@ -110,9 +110,9 @@ class BlobStorageClientInterface : public core::ServiceInterface {
    * @brief Puts a Blob into storage in a streaming manner.
    *
    * @param put_blob_stream_context The context for the operation.
-   * @return core::ExecutionResult Scheduling result returned synchronously.
+   * @return absl::Status Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult PutBlobStream(
+  virtual absl::Status PutBlobStream(
       core::ProducerStreamingContext<
           google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamRequest,
           google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamResponse>

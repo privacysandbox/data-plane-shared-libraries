@@ -18,11 +18,8 @@
 #define SCP_CPIO_INTERFACE_PUBLIC_KEY_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/interface/service_interface.h"
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
@@ -38,9 +35,13 @@ namespace google::scp::cpio {
  * actually use it, and call PublicKeyClientInterface::Stop when finish using
  * it.
  */
-class PublicKeyClientInterface : public core::ServiceInterface {
+class PublicKeyClientInterface {
  public:
   virtual ~PublicKeyClientInterface() = default;
+
+  [[deprecated]] virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Lists a list of public keys.
@@ -48,9 +49,9 @@ class PublicKeyClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult ListPublicKeys(
+  virtual absl::Status ListPublicKeys(
       cmrt::sdk::public_key_service::v1::ListPublicKeysRequest request,
       Callback<cmrt::sdk::public_key_service::v1::ListPublicKeysResponse>
           callback) noexcept = 0;

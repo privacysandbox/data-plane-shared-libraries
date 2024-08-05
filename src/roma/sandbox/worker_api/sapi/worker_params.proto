@@ -17,6 +17,7 @@ package worker_api;
 
 import "google/protobuf/duration.proto";
 
+// Next field number: 11
 message WorkerParamsProto {
   reserved 2, 6;
 
@@ -38,4 +39,7 @@ message WorkerParamsProto {
   optional string response = 5;
   // Map of events to the duration they take to execute.
   map<string, google.protobuf.Duration> metrics = 7;
+
+  // Error details in case the program errored out.
+  optional bytes error_message = 10;
 }

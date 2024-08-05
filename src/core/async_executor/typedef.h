@@ -18,13 +18,14 @@
 #define CORE_ASYNC_EXECUTOR_TYPEDEF_H_
 
 #include <chrono>
+#include <limits>
 
 namespace google::scp::core {
 // TODO: Make the following configurable.
 // The maximum thread count could be set.
 inline constexpr size_t kMaxThreadCount = 10000;
 /// The maximum queue cap could be set.
-inline constexpr size_t kMaxQueueCap = UINT_MAX;
+inline constexpr size_t kMaxQueueCap = std::numeric_limits<uint64_t>::max();
 /// The sleep interval for shutting down threads in miliseconds.
 inline constexpr size_t kSleepDurationMs = 10;
 /// Indicates an infinite wait time.

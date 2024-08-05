@@ -136,7 +136,7 @@ class AwsQueueClientProviderTest : public ::testing::Test {
     update_message_visibility_timeout_context_.request =
         std::make_shared<UpdateMessageVisibilityTimeoutRequest>();
     update_message_visibility_timeout_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
@@ -226,7 +226,11 @@ TEST_F(AwsQueueClientProviderTest,
                    ->UpdateMessageVisibilityTimeout(
                        update_message_visibility_timeout_context_)
                    .ok());
+<<<<<<< HEAD
   absl::MutexLock l(&finish_called_mu_);
+=======
+  absl::MutexLock lock(&finish_called_mu_);
+>>>>>>> upstream-3e92e75-3.10.0
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -244,7 +248,11 @@ TEST_F(AwsQueueClientProviderTest,
                    ->UpdateMessageVisibilityTimeout(
                        update_message_visibility_timeout_context_)
                    .ok());
+<<<<<<< HEAD
   absl::MutexLock l(&finish_called_mu_);
+=======
+  absl::MutexLock lock(&finish_called_mu_);
+>>>>>>> upstream-3e92e75-3.10.0
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 

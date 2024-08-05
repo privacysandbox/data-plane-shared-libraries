@@ -31,5 +31,5 @@ void RunListBlobsMetadataValidator(
     const google::scp::cpio::validator::proto::ListBlobsMetadataConfig&
         list_blobs_metadata_config);
 
-};      // namespace google::scp::cpio::validator
+};  // namespace google::scp::cpio::validator
 #endif  // PUBLIC_CPIO_VALIDATOR_BLOB_STORAGE_CLIENT_VALIDATOR_H_

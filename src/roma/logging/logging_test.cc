@@ -47,8 +47,8 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
   Config config;
   config.number_of_workers = 2;
   config.SetLoggingFunction(LoggingFunction);
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  EXPECT_TRUE(roma_service->Init().ok());
+  RomaService<> roma_service(std::move(config));
+  EXPECT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -76,11 +76,11 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
     });
 
     EXPECT_TRUE(roma_service
-                    ->LoadCodeObj(std::move(code_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    load_finished.Notify();
-                                  })
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
                     .ok());
   }
 
@@ -94,20 +94,20 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
         });
 
     EXPECT_TRUE(roma_service
-                    ->Execute(std::move(execution_obj),
-                              [&](absl::StatusOr<ResponseObject> resp) {
-                                EXPECT_TRUE(resp.ok());
-                                if (resp.ok()) {
-                                  result = std::move(resp->resp);
-                                }
-                                execute_finished.Notify();
-                              })
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               EXPECT_TRUE(resp.ok());
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
                     .ok());
   }
   EXPECT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
 
-  EXPECT_TRUE(roma_service->Stop().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -115,8 +115,8 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
   Config config;
   config.number_of_workers = 2;
   config.SetLoggingFunction(LoggingFunction);
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
@@ -127,7 +127,8 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
   EXPECT_CALL(
       log, Log(absl::LogSeverity::kError, _,
                AllOf(HasSubstr(absl::StrCat("Uncaught Error: ", input)),
-                     HasSubstr("at ErrorFunction"), HasSubstr("at Handler"))));
+                     HasSubstr("at ErrorFunction"), HasSubstr("at Handler"))))
+      .Times(2);
   log.StartCapturingLogs();
 
   {
@@ -145,11 +146,11 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
     )JS_CODE",
     });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -162,7 +163,7 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
             .input = {absl::StrCat("\"", input, "\"")},
         });
 
-    status = roma_service->Execute(
+    status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           ASSERT_EQ(resp.status().code(), absl::StatusCode::kInternal);
           execute_failed.Notify();
@@ -173,7 +174,7 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
   log.StopCapturingLogs();
 }
@@ -192,8 +193,8 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
   config.worker_queue_max_items = 1;
   config.number_of_workers = 10;
   config.SetLoggingFunction(LogMetadataFunction);
-  auto roma_service = std::make_unique<RomaService<>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   absl::Notification load_finished;
@@ -219,11 +220,11 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
         .js = "var Handler = (input) => console.log(input);",
     });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -260,12 +261,12 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
               }
             }
             {
-              absl::MutexLock l(&res_count_mu);
+              absl::MutexLock lock(&res_count_mu);
               res_count += batch_resp.size();
             }
             local_execute.Notify();
           };
-      while (!roma_service->BatchExecute(batch, batch_callback).ok()) {
+      while (!roma_service.BatchExecute(batch, batch_callback).ok()) {
       }
 
       // Thread cannot join until batch_callback is called.
@@ -277,11 +278,11 @@ TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
     t.join();
   }
   {
-    absl::MutexLock l(&res_count_mu);
+    absl::MutexLock lock(&res_count_mu);
     EXPECT_EQ(res_count, kBatchSize * kNumThreads);
   }
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 
   log.StopCapturingLogs();

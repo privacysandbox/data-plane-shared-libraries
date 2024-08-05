@@ -17,14 +17,10 @@
 #ifndef SCP_CPIO_INTERFACE_METRIC_CLIENT_INTERFACE_H_
 #define SCP_CPIO_INTERFACE_METRIC_CLIENT_INTERFACE_H_
 
-#include <map>
 #include <memory>
-#include <string>
-#include <vector>
 
+#include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
-#include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/metric_service/v1/metric_service.pb.h"
 
 #include "type_def.h"
@@ -36,17 +32,21 @@ namespace google::scp::cpio {
  * Use Create to create the MetricClient. Call Init and Run before actually use
  * it, and call Stop when finish using it.
  */
-class MetricClientInterface : public core::ServiceInterface {
+class MetricClientInterface {
  public:
   virtual ~MetricClientInterface() = default;
+
+  virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Records custom metrics on Cloud.
    *
    * @param context put metric operation context.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult PutMetrics(
+  virtual absl::Status PutMetrics(
       core::AsyncContext<
           google::cmrt::sdk::metric_service::v1::PutMetricsRequest,
           google::cmrt::sdk::metric_service::v1::PutMetricsResponse>

@@ -1,0 +1,188 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_proto_library")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//src/roma/benchmark/serde:json_converter.bzl", "json_converter")
+load(
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
+    "js_proto_library",
+    "roma_app_api_cc_library",
+    "roma_service_js_library",
+)
+
+json_converter(
+    name = "benchmark_request_small_txtpb",
+    src = "benchmark_request_small.json",
+    out = "benchmark_request_small.txtpb",
+)
+
+json_converter(
+    name = "benchmark_request_medium_txtpb",
+    src = "benchmark_request_medium.json",
+    out = "benchmark_request_medium.txtpb",
+)
+
+json_converter(
+    name = "benchmark_request_large_txtpb",
+    src = "benchmark_request_large.json",
+    out = "benchmark_request_large.txtpb",
+)
+
+json_converter(
+    name = "benchmark_request_small_pb",
+    src = "benchmark_request_small.json",
+    out = "benchmark_request_small.pb",
+)
+
+json_converter(
+    name = "benchmark_request_medium_pb",
+    src = "benchmark_request_medium.json",
+    out = "benchmark_request_medium.pb",
+)
+
+json_converter(
+    name = "benchmark_request_large_pb",
+    src = "benchmark_request_large.json",
+    out = "benchmark_request_large.pb",
+)
+
+proto_library(
+    name = "benchmark_service_proto",
+    srcs = ["benchmark_service.proto"],
+    visibility = [
+        "//src/roma/benchmark:__pkg__",
+    ],
+    deps = [
+        "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "benchmark_service_cc_proto",
+    visibility = [
+        "//src/roma/benchmark:__pkg__",
+    ],
+    deps = [":benchmark_service_proto"],
+)
+
+buf_lint_test(
+    name = "benchmark_service_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":benchmark_service_proto"],
+)
+
+benchmark_service_app_api = declare_roma_api(
+    cc_protos = [":benchmark_service_cc_proto"],
+    proto_basename = "benchmark_service",
+    protos = [":benchmark_service_proto"],
+)
+
+js_proto_library(
+    name = "benchmark_service_app_js_proto_lib",
+    roma_api = benchmark_service_app_api,
+)
+
+roma_service_js_library(
+    name = "benchmark_service_js_library",
+    roma_app_api = benchmark_service_app_api,
+    deps = [
+        ":benchmark_service_app_js_proto_lib",
+    ],
+)
+
+closure_js_binary(
+    name = "benchmark_service_js",
+    compilation_level = "SIMPLE_OPTIMIZATIONS",
+    debug = False,
+    formatting = "PRETTY_PRINT",
+    language = "ECMASCRIPT_NEXT",
+    deps = [
+        ":benchmark_service_js_library",
+    ],
+)
+
+roma_app_api_cc_library(
+    name = "benchmark_service_roma_app_api",
+    js_library = ":benchmark_service_js",
+    roma_app_api = benchmark_service_app_api,
+    tags = [
+        "noasan",
+        "notsan-aarch64",
+    ],
+    visibility = [
+        "//src/roma/benchmark:__pkg__",
+    ],
+)
+
+cc_library(
+    name = "serde_utils",
+    hdrs = ["serde_utils.h"],
+    data = [
+        ":benchmark_request_large.json",
+        ":benchmark_request_large_pb",
+        ":benchmark_request_large_txtpb",
+        ":benchmark_request_medium.json",
+        ":benchmark_request_medium_pb",
+        ":benchmark_request_medium_txtpb",
+        ":benchmark_request_small.json",
+        ":benchmark_request_small_pb",
+        ":benchmark_request_small_txtpb",
+    ],
+    deps = [
+        ":benchmark_service_cc_proto",
+        ":benchmark_service_roma_app_api",
+        "//src/core/test/utils",
+        "//src/roma/benchmark:test_code",
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_binary(
+    name = "serialize_benchmark",
+    srcs = ["serialize_benchmark.cc"],
+    deps = [
+        ":benchmark_service_cc_proto",
+        ":serde_utils",
+        "//src/core/test/utils",
+        "//src/roma/benchmark:test_code",
+        "@com_google_absl//absl/strings",
+        "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_binary(
+    name = "deserialize_benchmark",
+    srcs = ["deserialize_benchmark.cc"],
+    deps = [
+        ":benchmark_service_cc_proto",
+        ":serde_utils",
+        "//src/core/test/utils",
+        "//src/roma/benchmark:test_code",
+        "@com_google_absl//absl/strings",
+        "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
+    ],
+)

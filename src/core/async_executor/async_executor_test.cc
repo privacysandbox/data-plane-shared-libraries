@@ -269,7 +269,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
     executor.Schedule(
         [&] {
           {
-            absl::MutexLock l(&count_mu);
+            absl::MutexLock lock(&count_mu);
             normal_count++;
           }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
@@ -282,7 +282,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
     executor.Schedule(
         [&] {
           {
-            absl::MutexLock l(&count_mu);
+            absl::MutexLock lock(&count_mu);
             urgent_count++;
           }
           std::this_thread::sleep_for(UNIT_TEST_SHORT_SLEEP_MS);
@@ -292,7 +292,7 @@ TEST(AsyncExecutorTests, FinishWorkWhenStopInMiddle) {
 
   // Waits some time to finish the work.
   {
-    absl::MutexLock l(&count_mu);
+    absl::MutexLock lock(&count_mu);
     auto condition_fn = [&] {
       count_mu.AssertReaderHeld();
       return urgent_count == kQueueCap && normal_count == kQueueCap;
@@ -313,6 +313,7 @@ void TestPickTaskExecutor(TaskExecutorPoolType pool_type,
 
   int num_executors =
       std::accumulate(pick_times_list.begin(), pick_times_list.end(), 0);
+  task_executor_pool.reserve(num_executors);
   for (int i = 0; i < num_executors; i++) {
     task_executor_pool.push_back(
         std::make_unique<TExecutor>(100 /* queue cap */));
@@ -328,7 +329,7 @@ void TestPickTaskExecutor(TaskExecutorPoolType pool_type,
           AsyncExecutorAffinitySetting::NonAffinitized, task_executor_pool,
           pool_type, scheme);
       ASSERT_SUCCESS(task_executor_or);
-      absl::MutexLock l(&task_executor_pool_picked_counts_mu);
+      absl::MutexLock lock(&task_executor_pool_picked_counts_mu);
       task_executor_pool_picked_counts[*task_executor_or] += 1;
     }
   };
@@ -382,6 +383,7 @@ TEST(AsyncExecutorTests, PickTaskExecutorRoundRobinThreadLocalUrgentPool) {
   int num_executors = 10;
   std::vector<std::unique_ptr<SingleThreadPriorityAsyncExecutor>>
       task_executor_pool;
+  task_executor_pool.reserve(num_executors);
   for (int i = 0; i < num_executors; i++) {
     task_executor_pool.push_back(
         std::make_unique<SingleThreadPriorityAsyncExecutor>(

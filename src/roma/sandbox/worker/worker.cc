@@ -97,7 +97,7 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
   // Only reuse the context if this is not a load request.
   // A load request for an existing version should overwrite the given version.
   if (action != kRequestActionLoad) {
-    absl::MutexLock l(&cache_mu_);
+    absl::MutexLock lock(&cache_mu_);
     if (const auto it = compilation_contexts_.find(code_version);
         it != compilation_contexts_.end()) {
       context = it->second.context;
@@ -135,7 +135,7 @@ absl::StatusOr<js_engine::ExecutionResponse> Worker::RunCode(
   }
 
   if (action == kRequestActionLoad && response_or->compilation_context) {
-    absl::MutexLock l(&cache_mu_);
+    absl::MutexLock lock(&cache_mu_);
     compilation_contexts_[code_version] = CacheEntry{
         .context = std::move(response_or)->compilation_context,
         .request_type = std::string(request_type),

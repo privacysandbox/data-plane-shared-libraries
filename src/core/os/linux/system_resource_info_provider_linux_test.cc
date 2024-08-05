@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 
 #include <string>
+#include <string_view>
 
 using ::testing::AllOf;
 using ::testing::Gt;
@@ -29,7 +30,7 @@ class SystemResourceInfoProviderLinuxForTests
     : public SystemResourceInfoProviderLinux {
  public:
   explicit SystemResourceInfoProviderLinuxForTests(
-      std::string mem_info_file_path)
+      std::string_view mem_info_file_path)
       : mem_info_file_path_(mem_info_file_path) {}
 
   std::string GetMemInfoFilePath() noexcept override {
@@ -40,49 +41,34 @@ class SystemResourceInfoProviderLinuxForTests
   std::string mem_info_file_path_;
 };
 
+TEST(SystemResourceInfoProviderLinux, ShouldReadMemInfoIfValidFile) {
+  SystemResourceInfoProviderLinuxForTests mem_info(
+      "src/core/os/linux/files/valid_meminfo_file.txt");
+  EXPECT_EQ(*mem_info.GetAvailableMemoryKb(), 7922601);
+}
+
 TEST(SystemResourceInfoProviderLinux, ShouldFailIfMemInfoFileIsInvalid) {
   SystemResourceInfoProviderLinuxForTests mem_info(
       "src/core/os/linux/files/invalid_format_meminfo_file.txt");
-
-  auto result_or = mem_info.GetAvailableMemoryKb();
-
-  EXPECT_FALSE(result_or.result().Successful());
+  EXPECT_FALSE(mem_info.GetAvailableMemoryKb().result().Successful());
 }
 
 TEST(SystemResourceInfoProviderLinux,
      ShouldFailIfExpectedFieldMissingInMemInfoFile) {
   SystemResourceInfoProviderLinuxForTests mem_info(
       "src/core/os/linux/files/missing_available_meminfo_file.txt");
-
-  auto result_or = mem_info.GetAvailableMemoryKb();
-
-  EXPECT_FALSE(result_or.result().Successful());
+  EXPECT_FALSE(mem_info.GetAvailableMemoryKb().result().Successful());
 }
 
 TEST(SystemResourceInfoProviderLinux, ShouldFailIfMemInfoFileDoesNotExist) {
   SystemResourceInfoProviderLinuxForTests mem_info(
-      "s/exists/exist/file/that/does/not/exists.txt");
-
-  auto result_or = mem_info.GetAvailableMemoryKb();
-
-  EXPECT_FALSE(result_or.result().Successful());
-}
-
-TEST(SystemResourceInfoProviderLinux, ShouldReadMemInfoIfValidFile) {
-  SystemResourceInfoProviderLinuxForTests mem_info(
-      "src/core/os/linux/files/valid_meminfo_file.txt");
-
-  auto result_or = mem_info.GetAvailableMemoryKb();
-
-  EXPECT_EQ(*result_or, 7922601);
+      "s/file/that/does/not/exist.txt");
+  EXPECT_FALSE(mem_info.GetAvailableMemoryKb().result().Successful());
 }
 
 TEST(SystemResourceInfoProviderLinux,
      ShouldReadActualMemInfoFileOnLinuxSystem) {
   SystemResourceInfoProviderLinux mem_info;
-
-  auto result_or = mem_info.GetAvailableMemoryKb();
-
-  ASSERT_THAT(*result_or, Gt(1));
+  ASSERT_THAT(*mem_info.GetAvailableMemoryKb(), Gt(1));
 }
 }  // namespace google::scp::core::os::linux::test

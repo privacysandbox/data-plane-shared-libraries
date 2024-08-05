@@ -18,9 +18,54 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "gcp_metric_client_provider",
-    srcs = [
-        ":gcp_metric_client_provider_srcs",
+    srcs = ["gcp_metric_client_provider.cc"],
+    hdrs = ["gcp_metric_client_provider.h"],
+    deps = [
+        ":error_codes",
+        ":gcp_metric_client_utils",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/client_providers/metric_client_provider",
+        "//src/cpio/common/gcp:gcp_utils",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/metric_client:type_def",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
     ],
+)
+
+cc_library(
+    name = "gcp_metric_client_utils",
+    srcs = ["gcp_metric_client_utils.cc"],
+    hdrs = ["gcp_metric_client_utils.h"],
+    deps = [
+        ":error_codes",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/cpio/client_providers/interface:type_def",
+        "//src/cpio/client_providers/metric_client_provider",
+        "//src/cpio/common/gcp:gcp_utils",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/metric_client:type_def",
+        "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
+        "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
     deps = [
         "//src/core/interface",
         "//src/core/interface:async_context",
@@ -33,27 +78,9 @@ cc_library(
         "//src/public/cpio/interface/metric_client:type_def",
         "//src/public/cpio/proto/metric_service/v1:metric_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:monitoring",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
-    ],
-)
-
-exports_files([
-    "gcp_metric_client_provider.h",
-    "gcp_metric_client_provider.cc",
-    "gcp_metric_client_utils.h",
-    "gcp_metric_client_utils.cc",
-    "error_codes.h",
-])
-
-filegroup(
-    name = "gcp_metric_client_provider_srcs",
-    srcs = [
-        ":error_codes.h",
-        ":gcp_metric_client_provider.cc",
-        ":gcp_metric_client_provider.h",
-        ":gcp_metric_client_utils.cc",
-        ":gcp_metric_client_utils.h",
     ],
 )
 

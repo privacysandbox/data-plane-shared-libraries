@@ -22,6 +22,7 @@ proto_library(
     visibility = ["//visibility:public"],
     deps = [
         "@com_google_googleapis//google/api:annotations_proto",
+        "@com_google_protobuf//:any_proto",
         "@com_google_protobuf//:struct_proto",
     ],
 )
@@ -39,73 +40,122 @@ cc_proto_library(
 )
 
 cc_library(
-    name = "request_context_logger",
-    hdrs = [
-        "request_context_logger.h",
-    ],
-    defines = select({
-        "//:non_prod_build": ["PS_LOG_NON_PROD=1"],
-        "//conditions:default": [],
-    }),
-    visibility = ["//visibility:public"],
+    name = "request_context_logger_non_prod",
+    hdrs = ["request_context_logger.h"],
+    defines = ["PS_LOG_NON_PROD=1"],
     deps = [
         "@com_google_absl//absl/log:absl_log",
     ],
 )
 
-cc_test(
-    name = "request_context_logger_test",
-    timeout = "short",
-    srcs = ["request_context_logger_test.h"] +
-           select({
-               "//:non_prod_build": ["request_context_logger_non_prod_test.cc"],
-               "//conditions:default": ["request_context_logger_prod_test.cc"],
-           }),
-    deps = [
-        ":request_context_logger",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/strings",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
 cc_library(
-    name = "request_context_impl",
-    srcs = ["request_context_impl.cc"],
-    hdrs = ["request_context_impl.h"],
-    visibility = ["//visibility:public"],
+    name = "request_context_logger_prod",
+    hdrs = ["request_context_logger.h"],
     deps = [
-        ":logger_cc_proto",
-        ":request_context_logger",
-        "//src/util/status_macro:source_location",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:globals",
-        "@com_google_absl//absl/log:initialize",
-        "@io_opentelemetry_cpp//api",
+        "@com_google_absl//absl/log:absl_log",
     ],
 )
 
-cc_test(
-    name = "request_context_impl_test",
-    timeout = "short",
-    srcs = [
-        "request_context_impl_test.h",
-        "request_context_logger_test.h",
-    ] + select({
-        "//:non_prod_build": ["request_context_impl_non_prod_test.cc"],
-        "//conditions:default": ["request_context_impl_prod_test.cc"],
+alias(
+    name = "request_context_logger",
+    actual = select({
+        "//:non_prod_build": ":request_context_logger_non_prod",
+        "//conditions:default": ":request_context_logger_prod",
     }),
-    deps = [
-        ":request_context_impl",
-        "//src/util:protoutil",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/strings",
-        "@com_google_googletest//:gtest_main",
-        "@io_opentelemetry_cpp//exporters/ostream:ostream_log_record_exporter",
-    ],
+    visibility = ["//visibility:public"],
 )
+
+[
+    cc_test(
+        name = "request_context_logger_{}_test".format(flavor),
+        timeout = "short",
+        srcs = [
+            "request_context_logger_test.h",
+            "request_context_logger_{}_test.cc".format(flavor),
+        ],
+        deps = [
+            ":request_context_logger_{}".format(flavor),
+            "@com_google_absl//absl/functional:any_invocable",
+            "@com_google_absl//absl/log:check",
+            "@com_google_absl//absl/strings",
+            "@com_google_googletest//:gtest_main",
+        ],
+    )
+    for flavor in ("non_prod", "prod")
+]
+
+[
+    cc_test(
+        name = "request_context_logger_force_otel_{}_test".format(flavor),
+        timeout = "short",
+        srcs = [
+            "request_context_logger_test.h",
+            "request_context_logger_force_otel_{}_test.cc".format(flavor),
+        ],
+        deps = [
+            ":request_context_logger_{}".format(flavor),
+            "@com_google_absl//absl/functional:any_invocable",
+            "@com_google_absl//absl/log:check",
+            "@com_google_absl//absl/strings",
+            "@com_google_googletest//:gtest_main",
+        ],
+    )
+    for flavor in ("non_prod", "prod")
+]
+
+[
+    cc_library(
+        name = "request_context_impl_{}".format(flavor),
+        srcs = [
+            "request_context_impl.cc",
+            "request_context_impl_{}.cc".format(flavor),
+        ],
+        hdrs = ["request_context_impl.h"],
+        deps = [
+            ":logger_cc_proto",
+            ":request_context_logger_{}".format(flavor),
+            "//src/util/status_macro:source_location",
+            "@com_google_absl//absl/base:no_destructor",
+            "@com_google_absl//absl/functional:any_invocable",
+            "@com_google_absl//absl/log:check",
+            "@com_google_absl//absl/log:globals",
+            "@com_google_absl//absl/log:initialize",
+            "@io_opentelemetry_cpp//api",
+        ],
+    )
+    for flavor in ("non_prod", "prod")
+]
+
+alias(
+    name = "request_context_impl",
+    actual = select({
+        "//:non_prod_build": ":request_context_impl_non_prod",
+        "//conditions:default": ":request_context_impl_prod",
+    }),
+    visibility = ["//visibility:public"],
+)
+
+[
+    cc_test(
+        name = "request_context_impl_{}_test".format(flavor),
+        timeout = "short",
+        srcs = [
+            "request_context_impl_test.h",
+            "request_context_logger_test.h",
+            "request_context_impl_{}_test.cc".format(flavor),
+        ],
+        deps = [
+            ":request_context_impl_{}".format(flavor),
+            "//src/core/test/utils",
+            "//src/util:protoutil",
+            "@com_google_absl//absl/functional:any_invocable",
+            "@com_google_absl//absl/strings",
+            "@com_google_googletest//:gtest_main",
+            "@io_opentelemetry_cpp//exporters/ostream:ostream_log_record_exporter",
+        ],
+    )
+    for flavor in ("non_prod", "prod")
+]
 
 cc_test(
     name = "request_context_impl_die_test",

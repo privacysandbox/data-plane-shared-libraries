@@ -17,16 +17,13 @@
 #include "blob_storage_client.h"
 
 #include <memory>
-#include <string_view>
 #include <utility>
 
-#include "src/core/common/global_logger/global_logger.h"
-#include "src/core/common/uuid/uuid.h"
-#include "src/core/interface/errors.h"
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
 #include "src/public/cpio/proto/blob_storage_service/v1/blob_storage_service.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse;
@@ -41,31 +38,27 @@ using google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamRequest;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamResponse;
 using google::scp::core::AsyncContext;
-using google::scp::core::AsyncExecutorInterface;
 using google::scp::core::ConsumerStreamingContext;
-using google::scp::core::ExecutionResult;
 using google::scp::core::ProducerStreamingContext;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::common::kZeroUuid;
 using google::scp::cpio::client_providers::BlobStorageClientProviderFactory;
 using google::scp::cpio::client_providers::GlobalCpio;
-using google::scp::cpio::client_providers::InstanceClientProviderInterface;
-
-namespace {
-constexpr std::string_view kBlobStorageClient = "BlobStorageClient";
-}  // namespace
 
 namespace google::scp::cpio {
 
-ExecutionResult BlobStorageClient::Init() noexcept {
+absl::Status BlobStorageClient::Init() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
+<<<<<<< HEAD
   BlobStorageClientOptions options = *options_;
+=======
+  BlobStorageClientOptions options = options_;
+>>>>>>> upstream-3e92e75-3.10.0
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
   }
   if (options.region.empty()) {
     options.region = cpio_->GetRegion();
   }
+<<<<<<< HEAD
   if (auto blob_storage_client_provider =
           BlobStorageClientProviderFactory::Create(
               std::move(options), &cpio_->GetInstanceClientProvider(),
@@ -88,15 +81,28 @@ ExecutionResult BlobStorageClient::Run() noexcept {
 ExecutionResult BlobStorageClient::Stop() noexcept {
   return SuccessExecutionResult();
 }
+=======
+  PS_ASSIGN_OR_RETURN(
+      blob_storage_client_provider_,
+      BlobStorageClientProviderFactory::Create(
+          std::move(options), &cpio_->GetInstanceClientProvider(),
+          &cpio_->GetCpuAsyncExecutor(), &cpio_->GetIoAsyncExecutor()));
+  return absl::OkStatus();
+}
 
-ExecutionResult BlobStorageClient::GetBlob(
+absl::Status BlobStorageClient::Run() noexcept { return absl::OkStatus(); }
+
+absl::Status BlobStorageClient::Stop() noexcept { return absl::OkStatus(); }
+>>>>>>> upstream-3e92e75-3.10.0
+
+absl::Status BlobStorageClient::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context) noexcept {
   return blob_storage_client_provider_->GetBlob(get_blob_context).ok()
              ? SuccessExecutionResult()
              : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
-ExecutionResult BlobStorageClient::ListBlobsMetadata(
+absl::Status BlobStorageClient::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
         list_blobs_metadata_context) noexcept {
   return blob_storage_client_provider_
@@ -106,14 +112,14 @@ ExecutionResult BlobStorageClient::ListBlobsMetadata(
              : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
-ExecutionResult BlobStorageClient::PutBlob(
+absl::Status BlobStorageClient::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context) noexcept {
   return blob_storage_client_provider_->PutBlob(put_blob_context).ok()
              ? SuccessExecutionResult()
              : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
-ExecutionResult BlobStorageClient::DeleteBlob(
+absl::Status BlobStorageClient::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>
         delete_blob_context) noexcept {
   return blob_storage_client_provider_->DeleteBlob(delete_blob_context).ok()
@@ -121,7 +127,7 @@ ExecutionResult BlobStorageClient::DeleteBlob(
              : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
-ExecutionResult BlobStorageClient::GetBlobStream(
+absl::Status BlobStorageClient::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
         get_blob_stream_context) noexcept {
   return blob_storage_client_provider_->GetBlobStream(get_blob_stream_context)
@@ -130,7 +136,7 @@ ExecutionResult BlobStorageClient::GetBlobStream(
              : core::FailureExecutionResult(SC_UNKNOWN);
 }
 
-ExecutionResult BlobStorageClient::PutBlobStream(
+absl::Status BlobStorageClient::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>
         put_blob_stream_context) noexcept {
   return blob_storage_client_provider_->PutBlobStream(put_blob_stream_context)
@@ -141,7 +147,6 @@ ExecutionResult BlobStorageClient::PutBlobStream(
 
 std::unique_ptr<BlobStorageClientInterface> BlobStorageClientFactory::Create(
     BlobStorageClientOptions options) {
-  return std::make_unique<BlobStorageClient>(
-      std::make_shared<BlobStorageClientOptions>(std::move(options)));
+  return std::make_unique<BlobStorageClient>(std::move(options));
 }
 }  // namespace google::scp::cpio

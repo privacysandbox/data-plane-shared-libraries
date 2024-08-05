@@ -17,15 +17,14 @@
 #ifndef SCP_CPIO_INTERFACE_METRIC_CLIENT_TYPE_DEF_H_
 #define SCP_CPIO_INTERFACE_METRIC_CLIENT_TYPE_DEF_H_
 
-#include <chrono>
-#include <map>
 #include <string>
-#include <vector>
 
 namespace google::scp::cpio {
 /// Configurations for MetricClient.
 struct MetricClientOptions {
-  virtual ~MetricClientOptions() = default;
+  // Location ID for GCP, region code for AWS. Overwrites region set at CPIO
+  // level.
+  std::string region;
 };
 }  // namespace google::scp::cpio
 

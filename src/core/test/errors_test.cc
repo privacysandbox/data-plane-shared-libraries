@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <limits>
 #include <string_view>
 
 #include "src/core/common/concurrent_queue/concurrent_queue.h"
@@ -58,7 +59,8 @@ TEST(ERRORS, ErrorMessageUnknownErrorCode) {
 }
 
 TEST(ERRORS, ErrorMessageUndefinedErrorCode) {
-  EXPECT_THAT(GetErrorMessage(UINT64_MAX).data(), StrEq("InvalidErrorCode"));
+  EXPECT_THAT(GetErrorMessage(std::numeric_limits<uint64_t>::max()).data(),
+              StrEq("InvalidErrorCode"));
 }
 
 TEST(ERRORS, MapErrorCodePublic) {

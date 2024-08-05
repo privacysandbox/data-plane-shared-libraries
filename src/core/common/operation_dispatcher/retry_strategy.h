@@ -21,7 +21,6 @@
 #include <cmath>
 
 #include "src/core/interface/type_def.h"
-#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::common {
 

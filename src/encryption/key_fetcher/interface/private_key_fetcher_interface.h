@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "absl/status/status.h"
+#include "src/logger/request_context_logger.h"
 #include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "src/public/cpio/interface/private_key_client/type_def.h"
 
@@ -66,7 +67,10 @@ class PrivateKeyFetcherFactory {
       const google::scp::cpio::PrivateKeyVendingEndpoint& primary_endpoint,
       const std::vector<google::scp::cpio::PrivateKeyVendingEndpoint>&
           secondary_endpoints,
-      absl::Duration key_ttl);
+      absl::Duration key_ttl,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 };
 
 }  // namespace privacy_sandbox::server_common

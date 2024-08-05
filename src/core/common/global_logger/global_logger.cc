@@ -24,6 +24,7 @@
 #include "src/core/logger/log_providers/console_log_provider.h"
 #include "src/core/logger/log_providers/syslog/syslog_log_provider.h"
 #include "src/core/logger/mock/mock_log_provider.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::logger::ConsoleLogProvider;
 using google::scp::core::logger::LogProviderInterface;
@@ -47,8 +48,8 @@ namespace internal::cpio_log {
       return &*provider;
     }
     case LogOption::kSysLog: {
-      static absl::NoDestructor<SyslogLogProvider> provider;
-      return &*provider;
+      static SyslogLogProvider provider;
+      return &provider;
     }
     default:
       return nullptr;

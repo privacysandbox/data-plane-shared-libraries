@@ -19,6 +19,7 @@
 
 #include <stddef.h>
 
+#include <cmath>
 #include <functional>
 #include <memory>
 #include <string>
@@ -35,8 +36,7 @@
 
 namespace google::scp::roma {
 
-inline constexpr size_t kKB = 1024u;
-inline constexpr size_t kMB = kKB * 1024;
+inline constexpr size_t kMB = 1 << 20;
 inline constexpr std::string_view kRomaVlogLevel = "ROMA_VLOG_LEVEL";
 inline constexpr size_t kDefaultBufferSizeInMb = 1;
 
@@ -61,9 +61,35 @@ struct JsEngineResourceConstraints {
   size_t maximum_heap_size_in_mb = 0;
 };
 
-template <typename TMetadata = DefaultMetadata>
+struct V8CompilerOptions {
+  /**
+   * @brief Enable Turbofan, one of V8's optimizing compilers.
+   *
+   */
+  bool enable_turbofan = false;
+
+  /**
+   * @brief Enable Maglev, one of V8's optimizing compilers.
+   *
+   */
+  bool enable_maglev = false;
+
+  /**
+   * @brief Enable Turboshaft, one of V8's optimizing compilers. Enabled by
+   * default.
+   *
+   */
+  bool enable_turboshaft = true;
+};
+
+template <typename T = DefaultMetadata>
 class Config {
  public:
+<<<<<<< HEAD
+=======
+  using TMetadata = T;
+
+>>>>>>> upstream-3e92e75-3.10.0
   Config()
       : factories_(std::make_unique<
                    std::vector<grpc_server::FactoryFunction<TMetadata>>>()),
@@ -222,6 +248,25 @@ class Config {
     logging_func_ = std::move(logging_func);
   }
 
+  void ConfigureV8Compilers(V8CompilerOptions opts = V8CompilerOptions()) {
+    if (opts.enable_turbofan) {
+      v8_flags_.push_back("--turbofan");
+    }
+    if (opts.enable_maglev) {
+      v8_flags_.push_back("--maglev");
+    }
+    if (opts.enable_turboshaft) {
+      v8_flags_.push_back("--turboshaft");
+    }
+  }
+
+  /* @brief Set flags on Roma's V8 Instance. Compiler related flags should be
+   * set using ConfigureV8Compilers.
+   */
+  std::vector<std::string>& SetV8Flags() { return v8_flags_; }
+
+  const std::vector<std::string>& GetV8Flags() const { return v8_flags_; }
+
   const LogCallback& GetLoggingFunction() const { return logging_func_; }
 
   /**
@@ -281,6 +326,10 @@ class Config {
   std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
       factories_;
   std::vector<std::string> rpc_method_names_;
+<<<<<<< HEAD
+=======
+  std::vector<std::string> v8_flags_;
+>>>>>>> upstream-3e92e75-3.10.0
 
   using CallbackService =
       privacy_sandbox::server_common::JSCallbackService::AsyncService;

@@ -36,8 +36,7 @@ void ExecutionWatchDog::Run() {
   absl::MutexLock lock(&mutex_);
   execution_watchdog_thread_ =
       std::thread(&ExecutionWatchDog::WaitForTimeout, this);
-  mutex_.Await(absl::Condition(
-      +[](bool* b) { return *b; }, &is_running_));
+  mutex_.Await(absl::Condition(+[](bool* b) { return *b; }, &is_running_));
 }
 
 void ExecutionWatchDog::Stop() {
@@ -59,7 +58,7 @@ bool ExecutionWatchDog::IsTerminateCalled() {
   return is_terminate_called_;
 }
 
-void ExecutionWatchDog::StartTimer(v8::Isolate* isolate,
+void ExecutionWatchDog::StartTimer(absl::Nonnull<v8::Isolate*> isolate,
                                    absl::Duration timeout) {
   absl::MutexLock lock(&mutex_);
   // Cancel TerminateExecution in case there was a previous

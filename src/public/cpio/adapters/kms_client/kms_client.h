@@ -18,15 +18,19 @@
 #define PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_KMS_CLIENT_H_
 
 #include <memory>
+<<<<<<< HEAD
 #include <string>
 #include <utility>
 #include <vector>
+=======
+#include <utility>
+>>>>>>> upstream-3e92e75-3.10.0
 
-#include "src/core/common/concurrent_queue/concurrent_queue.h"
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/kms_client/kms_client_interface.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 #include "src/public/cpio/interface/type_def.h"
@@ -37,15 +41,18 @@ namespace google::scp::cpio {
  */
 class KmsClient : public KmsClientInterface {
  public:
+<<<<<<< HEAD
   explicit KmsClient(KmsClientOptions options) : options_(std::move(options)) {}
+=======
+  // TODO(b/337035410): Pass provider in constructor and deprecate Init method.
+  ~KmsClient() override = default;
+>>>>>>> upstream-3e92e75-3.10.0
 
-  virtual ~KmsClient() = default;
+  absl::Status Init() noexcept override;
+  absl::Status Run() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
-
-  core::ExecutionResult Decrypt(
+  absl::Status Decrypt(
       core::AsyncContext<google::cmrt::sdk::kms_service::v1::DecryptRequest,
                          google::cmrt::sdk::kms_service::v1::DecryptResponse>
           decrypt_context) noexcept override;
@@ -53,10 +60,13 @@ class KmsClient : public KmsClientInterface {
  protected:
   std::unique_ptr<client_providers::KmsClientProviderInterface>
       kms_client_provider_;
+<<<<<<< HEAD
 
  private:
   KmsClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio
 

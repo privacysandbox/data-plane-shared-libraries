@@ -1,0 +1,60 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+# To build:
+# builders/tools/bazel-debian build --config local_gcp //src/public/cpio/cli/gcp:gcp_cpio_cli
+# Set variables:
+# PROJECT_ID=example-project
+# REGION=example-region
+# BLOB_PATH=gs://example-bucket/example-blob
+# Call GetBlob
+# bazel-bin/src/public/cpio/cli/gcp/gcp_cpio_cli \
+# blob get \
+# --project_id "${PROJECT_ID}" \
+# --region "${REGION}" \
+# --blob_paths "${BLOB_PATH}"
+# Call ListBlobs
+# bazel-bin/src/public/cpio/cli/gcp/gcp_cpio_cli \
+# blob list \
+# --project_id "${PROJECT_ID}" \
+# --region "${REGION}" \
+# --blob_paths "${BLOB_PATH}" \
+# --exclude_directories
+# Call PutBlob
+# bazel-bin/src/public/cpio/cli/gcp/gcp_cpio_cli \
+# blob put \
+# --project_id "${PROJECT_ID}" \
+# --region "${REGION}" \
+# --blob_paths "${BLOB_PATH}" \
+# --blob_data "example data"
+cc_binary(
+    name = "gcp_cpio_cli",
+    srcs = ["gcp_cpio_cli.cc"],
+    deps = [
+        "//src/public/core/interface:errors",
+        "//src/public/cpio/cli:blob_storage_cli",
+        "//src/public/cpio/interface:cpio",
+        "@com_google_absl//absl/base:no_destructor",
+        "@com_google_absl//absl/container:node_hash_set",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/flags:usage",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/status",
+    ],
+)

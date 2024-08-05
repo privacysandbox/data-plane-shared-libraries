@@ -94,7 +94,6 @@ cc_library(
         "//src/core/logger/log_providers/syslog",
         "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/global_cpio/cpio_provider",
-        "//src/public/cpio/core:cpio_utils",
     ],
 )
 

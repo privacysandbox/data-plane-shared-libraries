@@ -31,6 +31,7 @@ cc_library(
         "//src/core/common/global_logger",
         "//src/core/interface",
         "//src/core/utils:core_utils",
+        "//src/public/core/interface:execution_result",
         "@com_github_googleapis_google_cloud_cpp//:storage",
     ],
 )
@@ -48,6 +49,7 @@ cc_test(
         "//src/core/logger/log_providers",
         "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_github_googleapis_google_cloud_cpp//:storage",
         "@com_github_googleapis_google_cloud_cpp//google/cloud/storage:storage_client_testing",
         "@com_google_absl//absl/synchronization",
@@ -70,6 +72,7 @@ cc_library(
         "//src/core/logger/log_providers",
         "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_github_googleapis_google_cloud_cpp//:storage",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",

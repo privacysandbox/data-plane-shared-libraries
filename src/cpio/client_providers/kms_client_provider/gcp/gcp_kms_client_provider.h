@@ -25,10 +25,9 @@
 
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/error_codes.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_aead.h"
 #include "src/public/core/interface/execution_result.h"
-
-#include "error_codes.h"
-#include "gcp_kms_aead.h"
 
 namespace google::scp::cpio::client_providers {
 class GcpKmsAeadProvider;

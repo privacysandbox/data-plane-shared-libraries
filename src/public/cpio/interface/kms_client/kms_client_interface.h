@@ -18,14 +18,9 @@
 #define SCP_CPIO_INTERFACE_KMS_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/common/concurrent_queue/concurrent_queue.h"
+#include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
-#include "src/core/interface/streaming_context.h"
-#include "src/public/core/interface/execution_result.h"
-#include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/kms_service/v1/kms_service.pb.h"
 
 #include "type_def.h"
@@ -39,9 +34,13 @@ namespace google::scp::cpio {
  * actually using it, and call KmsClientInterface::Stop when finished
  * using it.
  */
-class KmsClientInterface : public core::ServiceInterface {
+class KmsClientInterface {
  public:
   virtual ~KmsClientInterface() = default;
+
+  virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Decrypts some data.
@@ -49,7 +48,7 @@ class KmsClientInterface : public core::ServiceInterface {
    * @param decrypt_context The context for the operation.
    * @return core::ExecutionResult Scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult Decrypt(
+  virtual absl::Status Decrypt(
       core::AsyncContext<google::cmrt::sdk::kms_service::v1::DecryptRequest,
                          google::cmrt::sdk::kms_service::v1::DecryptResponse>
           decrypt_context) noexcept = 0;

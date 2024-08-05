@@ -168,8 +168,8 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
     return;
   }
 
-  std::cout << "\nRoma RunTest config:"
-            << "\n\tworkers: " << test_configuration.workers
+  std::cout << "\nRoma RunTest config:" << "\n\tworkers: "
+            << test_configuration.workers
             << "\n\tqueue_size: " << test_configuration.queue_size
             << "\n\trequest_threads: " << test_configuration.request_threads
             << "\n\trequests per thread: "

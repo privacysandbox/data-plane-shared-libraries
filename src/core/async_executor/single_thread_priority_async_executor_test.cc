@@ -25,6 +25,7 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/async_executor/error_codes.h"
 #include "src/core/async_executor/typedef.h"
@@ -88,6 +89,33 @@ TEST_P(AffinityTest, CountWorkSingleThreadWithAffinity) {
         123456));
   }
   count.Wait();
+<<<<<<< HEAD
+=======
+}
+
+TEST(SingleThreadPriorityAsyncExecutorTests,
+     HandlesTaskInQueueAfterIdlePeriod) {
+  SingleThreadPriorityAsyncExecutor executor(1);
+  // Represents an idle time for the server (nothing calls ScheduleFor):
+  std::this_thread::sleep_for(std::chrono::seconds(1));
+
+  int64_t half_second = absl::ToInt64Nanoseconds(absl::Milliseconds(500));
+  int64_t two_seconds = absl::ToInt64Nanoseconds(absl::Seconds(2));
+
+  const Timestamp scheduled_for =
+      TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks() + two_seconds;
+
+  absl::BlockingCounter count(1);
+  ASSERT_SUCCESS(executor.ScheduleFor(
+      [&count, &scheduled_for, &half_second] {
+        const Timestamp executed_at =
+            TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks();
+        EXPECT_LT(executed_at - scheduled_for, half_second);
+        count.DecrementCount();
+      },
+      scheduled_for));
+  count.Wait();
+>>>>>>> upstream-3e92e75-3.10.0
 }
 
 // The test should work for any value, even an invalid CPU #.
@@ -113,25 +141,25 @@ TEST(SingleThreadPriorityAsyncExecutorTests, OrderedTasksExecution) {
   size_t counter = 0;
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
-        absl::MutexLock l(&counter_mu);
+        absl::MutexLock lock(&counter_mu);
         EXPECT_EQ(counter++, 2);
       },
       task.GetExecutionTimestamp() + two_seconds));
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
-        absl::MutexLock l(&counter_mu);
+        absl::MutexLock lock(&counter_mu);
         EXPECT_EQ(counter++, 1);
       },
       task.GetExecutionTimestamp() + one_second));
   ASSERT_SUCCESS(executor.ScheduleFor(
       [&] {
-        absl::MutexLock l(&counter_mu);
+        absl::MutexLock lock(&counter_mu);
         EXPECT_EQ(counter++, 0);
       },
       task.GetExecutionTimestamp() + half_second));
 
   {
-    absl::MutexLock l(&counter_mu);
+    absl::MutexLock lock(&counter_mu);
     auto condition_fn = [&] {
       counter_mu.AssertReaderHeld();
       return counter == 3;

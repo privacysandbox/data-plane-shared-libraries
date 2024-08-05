@@ -15,6 +15,20 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
+    name = "performance_now",
+    srcs = select({
+        "//:non_prod_build": ["performance_now_nonprod.cc"],
+        "//conditions:default": ["performance_now_prod.cc"],
+    }),
+    hdrs = ["performance_now.h"],
+    deps = [
+        "//src/util:duration",
+        "@com_google_absl//absl/time",
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "v8_isolate_wrapper",
     hdrs = ["v8_isolate_wrapper.h"],
     deps = [
@@ -27,6 +41,7 @@ cc_library(
     srcs = ["v8_isolate_function_binding.cc"],
     hdrs = ["v8_isolate_function_binding.h"],
     deps = [
+        ":performance_now",
         ":v8_isolate_wrapper",
         "//src/roma/config",
         "//src/roma/logging",
@@ -36,7 +51,9 @@ cc_library(
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/native_function_binding",
         "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
+        "//src/util:duration",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:flat_hash_map",
         "@v8//:v8_icu",
     ],
@@ -53,6 +70,7 @@ cc_library(
         "//src/roma/interface",
         "//src/roma/logging",
         "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
@@ -62,9 +80,7 @@ cc_library(
 
 cc_library(
     name = "snapshot_compilation_context",
-    hdrs = [
-        "snapshot_compilation_context.h",
-    ],
+    hdrs = ["snapshot_compilation_context.h"],
     deps = [
         ":v8_isolate_wrapper",
         "//src/roma/sandbox/js_engine",
@@ -75,14 +91,13 @@ cc_library(
 cc_library(
     name = "v8_js_engine",
     srcs = ["v8_js_engine.cc"],
-    hdrs = [
-        "v8_js_engine.h",
-    ],
+    hdrs = ["v8_js_engine.h"],
     copts = [
         "-Wno-macro-redefined",  # v8 and absl define redundant log macros
         "-Wno-unused-variable",
     ],
     visibility = [
+        "//src/roma/benchmark:__subpackages__",
         "//src/roma/sandbox/worker:__pkg__",
         "//src/roma/sandbox/worker_api/sapi:__pkg__",
     ],
@@ -162,7 +177,7 @@ cc_test(
 cc_test(
     name = "v8_basic",
     size = "small",
-    srcs = ["v8_basic.cc"],
+    srcs = ["v8_basic_test.cc"],
     deps = [
         "//src/util:process_util",
         "@com_google_absl//absl/log:check",

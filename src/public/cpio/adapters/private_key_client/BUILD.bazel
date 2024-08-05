@@ -57,5 +57,6 @@ cc_library(
         "//src/core/async_executor/mock:core_async_executor_mock",
         "//src/cpio/client_providers/private_key_client_provider/mock:private_key_client_provider_mock",
         "//src/public/cpio/interface/private_key_client",
+        "@com_google_absl//absl/status",
     ],
 )

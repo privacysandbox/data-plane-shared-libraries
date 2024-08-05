@@ -27,6 +27,7 @@
 #include <utility>
 
 #include "src/core/config_provider/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ConfigProvider;

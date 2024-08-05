@@ -24,6 +24,7 @@
 #include "absl/synchronization/notification.h"
 #include "src/core/curl_client/mock/mock_curl_client.h"
 #include "src/cpio/client_providers/auth_token_provider/aws/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;

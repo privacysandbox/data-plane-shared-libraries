@@ -19,6 +19,7 @@
 
 #include <list>
 #include <string>
+#include <utility>
 
 #include <nlohmann/json.hpp>
 
@@ -38,7 +39,9 @@ class ConfigProvider : public ConfigProviderInterface {
    * @param config_file The file path for the configuration .json file.
    */
   explicit ConfigProvider(std::filesystem::path config_file)
-      : config_file_(config_file) {}
+      : config_file_(std::move(config_file)) {}
+
+  ~ConfigProvider() override = default;
 
   ExecutionResult Init() noexcept override;
 

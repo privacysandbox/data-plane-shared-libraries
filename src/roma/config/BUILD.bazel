@@ -28,6 +28,7 @@ cc_library(
         "//src/roma/native_function_grpc_server:interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/strings",
         "@v8//:v8_icu",

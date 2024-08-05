@@ -19,36 +19,31 @@
 
 #include <gmock/gmock.h>
 
-#include <memory>
-
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
 
 namespace google::scp::cpio {
 class MockBlobStorageClient : public BlobStorageClientInterface {
  public:
   MockBlobStorageClient() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
+    ON_CALL(*this, Init).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Run).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Stop).WillByDefault(testing::Return(absl::OkStatus()));
   }
 
-  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Init, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Run, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Stop, (), (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, GetBlob,
+      absl::Status, GetBlob,
       ((core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::GetBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::GetBlobResponse>)),
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, ListBlobsMetadata,
+      absl::Status, ListBlobsMetadata,
       ((core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest,
           google::cmrt::sdk::blob_storage_service::v1::
@@ -56,14 +51,14 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, PutBlob,
+      absl::Status, PutBlob,
       ((core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse>)),
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, DeleteBlob,
+      absl::Status, DeleteBlob,
       ((core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse>)),
@@ -72,14 +67,14 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
   /// Streaming operations.
 
   MOCK_METHOD(
-      core::ExecutionResult, GetBlobStream,
+      absl::Status, GetBlobStream,
       ((core::ConsumerStreamingContext<
           google::cmrt::sdk::blob_storage_service::v1::GetBlobStreamRequest,
           google::cmrt::sdk::blob_storage_service::v1::GetBlobStreamResponse>)),
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, PutBlobStream,
+      absl::Status, PutBlobStream,
       ((core::ProducerStreamingContext<
           google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamRequest,
           google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamResponse>)),

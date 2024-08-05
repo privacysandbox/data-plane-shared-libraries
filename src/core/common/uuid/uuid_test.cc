@@ -22,6 +22,7 @@
 #include <string>
 
 #include "src/core/common/uuid/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;

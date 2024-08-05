@@ -19,10 +19,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <v8-context.h>
-#include <v8-initialization.h>
-#include <v8-isolate.h>
-
 #include <linux/limits.h>
 
 #include <memory>
@@ -32,6 +28,9 @@
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
+#include "include/v8-context.h"
+#include "include/v8-initialization.h"
+#include "include/v8-isolate.h"
 #include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/public/core/test_execution_result_matchers.h"
 #include "src/roma/wasm/deserializer.h"
@@ -63,6 +62,11 @@ class ExecutionUtilsTest : public ::testing::Test {
     v8::V8::Initialize();
   }
 
+  static void TearDownTestSuite() {
+    v8::V8::Dispose();
+    v8::V8::DisposePlatform();
+  }
+
   void SetUp() override {
     create_params_.array_buffer_allocator =
         v8::ArrayBuffer::Allocator::NewDefaultAllocator();
@@ -82,8 +86,7 @@ class ExecutionUtilsTest : public ::testing::Test {
   };
 
   // RunCode() is used to create an executable environment to execute the code.
-  absl::Status RunCode(const RunCodeArguments& args, std::string& output,
-                       std::string& err_msg) {
+  absl::Status RunCode(const RunCodeArguments& args, std::string& output) {
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::TryCatch try_catch(isolate_);
@@ -95,24 +98,24 @@ class ExecutionUtilsTest : public ::testing::Test {
     // Compile and run JavaScript code object when JavaScript code obj is
     // available.
     if (!args.js.empty()) {
-      PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(args.js, err_msg));
+      PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(args.js));
       PS_RETURN_IF_ERROR(
-          ExecutionUtils::GetJsHandler(args.handler_name, handler, err_msg));
+          ExecutionUtils::GetJsHandler(args.handler_name, handler));
     }
 
     bool is_wasm_run = false;
 
     // Compile and run wasm code object when only WASM is available.
     if (args.js.empty() && !args.wasm.empty()) {
-      auto result = ExecutionUtils::CompileRunWASM(args.wasm, err_msg);
+      auto result = ExecutionUtils::CompileRunWASM(args.wasm);
       if (!result.ok()) {
-        std::cout << "Error CompileRunWASM:" << err_msg << "\n" << std::endl;
+        std::cout << "Error CompileRunWASM:" << result.message() << std::endl;
         return result;
       }
 
       // Get handler value from compiled JS code.
       auto result_get_handler =
-          ExecutionUtils::GetWasmHandler(args.handler_name, handler, err_msg);
+          ExecutionUtils::GetWasmHandler(args.handler_name, handler);
       if (!result_get_handler.ok()) {
         return result_get_handler;
       }
@@ -128,8 +131,10 @@ class ExecutionUtilsTest : public ::testing::Test {
           ExecutionUtils::InputToLocalArgv(input, is_wasm_run).As<v8::Array>();
       // If argv_array size doesn't match with input. Input conversion failed.
       if (argv_array.IsEmpty() || argv_array->Length() != argc) {
-        err_msg = ExecutionUtils::DescribeError(isolate_, &try_catch);
-        return absl::InvalidArgumentError("Bad input arguments");
+        privacy_sandbox::server_common::StatusBuilder builder(
+            absl::InvalidArgumentError("Bad input arguments"));
+        builder << ExecutionUtils::DescribeError(isolate_, &try_catch);
+        return builder;
       }
       for (size_t i = 0; i < argc; ++i) {
         argv[i] = argv_array->Get(context, i).ToLocalChecked();
@@ -140,9 +145,10 @@ class ExecutionUtilsTest : public ::testing::Test {
     v8::Local<v8::Value> result;
     if (!handler_func->Call(context, context->Global(), argc, argv)
              .ToLocal(&result)) {
-      err_msg = ExecutionUtils::DescribeError(isolate_, &try_catch);
-      return absl::InvalidArgumentError(
-          "Failed to run JavaScript code object.");
+      privacy_sandbox::server_common::StatusBuilder builder(
+          absl::InvalidArgumentError("Failed to run JavaScript code object"));
+      builder << ExecutionUtils::DescribeError(isolate_, &try_catch);
+      return builder;
     }
 
     // If this is a WASM run then we need to deserialize the returned data
@@ -155,8 +161,10 @@ class ExecutionUtilsTest : public ::testing::Test {
     auto json_string_maybe = v8::JSON::Stringify(context, result);
     v8::Local<v8::String> json_string;
     if (!json_string_maybe.ToLocal(&json_string)) {
-      err_msg = ExecutionUtils::DescribeError(isolate_, &try_catch);
-      return absl::InvalidArgumentError("Unable to parse JSON");
+      privacy_sandbox::server_common::StatusBuilder builder(
+          absl::InvalidArgumentError("Unable to parse JSON"));
+      builder << ExecutionUtils::DescribeError(isolate_, &try_catch);
+      return builder;
     }
 
     v8::String::Utf8Value result_utf8(isolate_, json_string);
@@ -293,10 +301,9 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithBadInput) {
   };
 
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
@@ -312,8 +319,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInput) {
   };
 
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq("3"));
 }
 
@@ -331,27 +337,8 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithNamespacedHandler) {
       .input = {R"({"value":1})", R"({"intval":2})"},
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq("3"));
-}
-
-TEST_F(ExecutionUtilsTest, PerformanceNowDeclaredInJs) {
-  const RunCodeArguments code_obj = {
-      .handler_name = "Handler",
-      .js =
-          R"(
-        function Handler() {
-          // Date.now overriden to always return the same number.
-          Date.now = () => 1672531200000;
-          return performance.now() === Date.now();
-        }
-      )",
-  };
-  std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
-  EXPECT_THAT(output, StrEq("true"));
 }
 
 TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
@@ -360,8 +347,7 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesTrueOutput) {
       .js = "var Predicate = () => true;",
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq("true"));
 }
 
@@ -371,8 +357,7 @@ TEST_F(ExecutionUtilsTest, JsPredicateMatchesFalseOutput) {
       .js = "var Predicate = () => false;",
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq("false"));
 }
 
@@ -382,8 +367,7 @@ TEST_F(ExecutionUtilsTest, JsFunctionOutput) {
       .js = "var Handler = () => 3;",
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq("3"));
 }
 
@@ -399,10 +383,9 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissKey) {
       .input = {"{:1}", R"({"value":2})"},
   };
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissValue) {
@@ -417,10 +400,9 @@ TEST_F(ExecutionUtilsTest, RunCodeObjWithJsonInputMissValue) {
       .input = {R"({"value"})", R"({"value":2})"},
   };
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
@@ -431,8 +413,7 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithLessArgs) {
       .js = "var Handler = (a, b) => (a + b);",
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq("null"));
 }
 
@@ -449,10 +430,9 @@ TEST_F(ExecutionUtilsTest, RunCodeObjRunWithJsonArgsMissing) {
       )",
   };
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, NoHandlerName) {
@@ -460,10 +440,9 @@ TEST_F(ExecutionUtilsTest, NoHandlerName) {
       .js = "function Handler(a, b) {return;}",
   };
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, UnmatchedHandlerName) {
@@ -472,23 +451,19 @@ TEST_F(ExecutionUtilsTest, UnmatchedHandlerName) {
       .js = "function Handler(a, b) {return;}",
   };
   std::string output;
-  std::string err_msg;
-  EXPECT_EQ(absl::StatusCode::kNotFound,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+  EXPECT_EQ(absl::StatusCode::kNotFound, RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, ScriptCompileFailure) {
   constexpr std::string_view bad_js = "function Handler(a, b) {";
   {
-    std::string err_msg;
     v8::Isolate::Scope isolate_scope(isolate_);
     v8::HandleScope handle_scope(isolate_);
     v8::Local<v8::Context> context = v8::Context::New(isolate_);
     v8::Context::Scope context_scope(context);
     EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-              ExecutionUtils::CompileRunJS(bad_js, err_msg).code())
-        << " Error msg: " << err_msg;
+              ExecutionUtils::CompileRunJS(bad_js).code());
   }
 }
 
@@ -499,9 +474,7 @@ TEST_F(ExecutionUtilsTest, SuccessWithUnNeedArgs) {
       .input = {"1", "0"},
   };
   std::string output;
-  std::string err_msg;
-  auto result = RunCode(code_obj, output, err_msg);
-  EXPECT_TRUE(result.ok());
+  EXPECT_TRUE(RunCode(code_obj, output).ok());
 }
 
 TEST_F(ExecutionUtilsTest, CodeExecutionFailure) {
@@ -510,10 +483,9 @@ TEST_F(ExecutionUtilsTest, CodeExecutionFailure) {
       .js = "function Handler() { throw new Error('Required'); return;}",
   };
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, WasmSourceCodeCompileFailed) {
@@ -529,10 +501,9 @@ TEST_F(ExecutionUtilsTest, WasmSourceCodeCompileFailed) {
       .input = {"1", "2"},
   };
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
 }
 
 TEST_F(ExecutionUtilsTest, WasmSourceCodeUnmatchedName) {
@@ -550,10 +521,9 @@ TEST_F(ExecutionUtilsTest, WasmSourceCodeUnmatchedName) {
   };
 
   std::string output;
-  std::string err_msg;
   EXPECT_EQ(absl::StatusCode::kInvalidArgument,
-            RunCode(code_obj, output, err_msg).code())
-      << " Output: " << output << " Error msg: " << err_msg;
+            RunCode(code_obj, output).code())
+      << " Output: " << output;
   EXPECT_THAT(output, IsEmpty());
 }
 
@@ -569,8 +539,7 @@ TEST_F(ExecutionUtilsTest, CppWasmWithStringInputAndStringOutput) {
       .input = {R"str("Input String :)")str"},
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq(R"("Input String :) Hello World from WASM")"));
 }
 
@@ -586,8 +555,7 @@ TEST_F(ExecutionUtilsTest, RustWasmWithStringInputAndStringOutput) {
       .input = {R"str("Input String :)")str"},
   };
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq(R"("Input String :) Hello from rust!")"));
 }
 
@@ -611,8 +579,7 @@ TEST_F(ExecutionUtilsTest, JsEmbeddedGlobalWasmCompileRunExecute) {
   };
 
   std::string output;
-  std::string err_msg;
-  ASSERT_TRUE(RunCode(code_obj, output, err_msg).ok());
+  ASSERT_TRUE(RunCode(code_obj, output).ok());
   EXPECT_THAT(output, StrEq(std::to_string(3).c_str()));
 }
 

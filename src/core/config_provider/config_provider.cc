@@ -20,6 +20,8 @@
 #include <fstream>
 #include <list>
 
+#include "src/public/core/interface/execution_result.h"
+
 namespace google::scp::core {
 
 ExecutionResult ConfigProvider::Init() noexcept {

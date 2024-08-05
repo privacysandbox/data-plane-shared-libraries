@@ -56,7 +56,7 @@ std::string AwsErrorToString(Aws::Client::AWSError<Aws::KMS::KMSErrors> err) {
 namespace google::scp::cpio::client_providers {
 AwsKmsAead::AwsKmsAead(std::string_view key_arn,
                        std::shared_ptr<Aws::KMS::KMSClient> aws_client)
-    : key_arn_(key_arn), aws_client_(aws_client) {}
+    : key_arn_(key_arn), aws_client_(std::move(aws_client)) {}
 
 // static
 StatusOr<std::unique_ptr<Aead>> AwsKmsAead::New(

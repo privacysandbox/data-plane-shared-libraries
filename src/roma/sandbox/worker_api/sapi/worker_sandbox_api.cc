@@ -69,7 +69,8 @@ WorkerSandboxApi::WorkerSandboxApi(
     size_t js_engine_maximum_heap_size_mb,
     size_t js_engine_max_wasm_memory_number_of_pages,
     size_t sandbox_request_response_shared_buffer_size_mb,
-    bool enable_sandbox_sharing_request_response_with_buffer_only)
+    bool enable_sandbox_sharing_request_response_with_buffer_only,
+    const std::vector<std::string>& v8_flags)
     : require_preload_(require_preload),
       native_js_function_comms_fd_(native_js_function_comms_fd),
       native_js_function_names_(native_js_function_names),
@@ -81,7 +82,8 @@ WorkerSandboxApi::WorkerSandboxApi(
       js_engine_max_wasm_memory_number_of_pages_(
           js_engine_max_wasm_memory_number_of_pages),
       enable_sandbox_sharing_request_response_with_buffer_only_(
-          enable_sandbox_sharing_request_response_with_buffer_only) {
+          enable_sandbox_sharing_request_response_with_buffer_only),
+      v8_flags_(v8_flags) {
   // create a sandbox2 buffer
   request_and_response_data_buffer_size_bytes_ =
       sandbox_request_response_shared_buffer_size_mb > 0
@@ -178,6 +180,8 @@ absl::Status WorkerSandboxApi::Init() {
   worker_init_params.set_request_and_response_data_buffer_fd(buffer_remote_fd);
   worker_init_params.set_request_and_response_data_buffer_size_bytes(
       request_and_response_data_buffer_size_bytes_);
+  worker_init_params.mutable_v8_flags()->Assign(v8_flags_.begin(),
+                                                v8_flags_.end());
 
   const auto serialized_size = worker_init_params.ByteSizeLong();
   std::vector<char> serialized_data(serialized_size);
@@ -293,9 +297,12 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
       output_serialized_size_ptr.PtrAfter());
 
   if (!status_or.ok()) {
-    return WrapResultWithRetry(absl::InternalError(
-        "Sandbox worker crashed during execution of request."));
-  } else if (*status_or != SapiStatusCode::kOk) {
+    std::string err_msg = "Sandbox worker crashed during execution of request.";
+    return WrapResultWithRetry(absl::InternalError(err_msg));
+  } else if (*status_or != SapiStatusCode::kOk &&
+             // If execution failed then the output may contain forwardable
+             // error message.
+             *status_or != SapiStatusCode::kExecutionFailed) {
     return WrapResultWithNoRetry(
         SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
   }
@@ -321,6 +328,10 @@ WorkerSandboxApi::InternalRunCode(::worker_api::WorkerParamsProto& params) {
 
   params = std::move(out_params);
 
+  if (*status_or != SapiStatusCode::kOk) {
+    return WrapResultWithNoRetry(SapiStatusCodeToAbslStatus(
+        static_cast<int>(*status_or), params.error_message()));
+  }
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 
@@ -353,7 +364,10 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
   if (!status_or.ok()) {
     return WrapResultWithRetry(absl::InternalError(
         "Sandbox worker crashed during execution of request."));
-  } else if (*status_or != SapiStatusCode::kOk) {
+  } else if (*status_or != SapiStatusCode::kOk &&
+             // If execution failed then the output may contain forwardable
+             // error message.
+             *status_or != SapiStatusCode::kExecutionFailed) {
     return WrapResultWithNoRetry(
         SapiStatusCodeToAbslStatus(static_cast<int>(*status_or)));
   }
@@ -370,6 +384,10 @@ WorkerSandboxApi::InternalRunCodeBufferShareOnly(
 
   params = std::move(out_params);
 
+  if (*status_or != SapiStatusCode::kOk) {
+    return WrapResultWithNoRetry(SapiStatusCodeToAbslStatus(
+        static_cast<int>(*status_or), params.error_message()));
+  }
   return WrapResultWithNoRetry(absl::OkStatus());
 }
 

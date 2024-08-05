@@ -25,6 +25,7 @@ cc_library(
         "mock_http_connection_pool_with_overrides.h",
     ],
     deps = [
+        "//src/core/http2_client",
         "//src/core/interface",
         "//src/public/core:test_execution_result_matchers",
         "@com_google_absl//absl/container:flat_hash_map",

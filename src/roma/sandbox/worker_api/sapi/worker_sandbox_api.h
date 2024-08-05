@@ -72,6 +72,8 @@ class WorkerSandboxApi {
    * @param sandbox_request_response_shared_buffer_size_mb The size of the
    * Buffer in megabytes (MB). If the input value is equal to or less than zero,
    * the default value of 1MB will be used.
+   * @param v8_flags List of flags to pass into v8. (Ex. {"--FLAG_1",
+   * "--FLAG_2"})
    */
   WorkerSandboxApi(
       bool require_preload, int native_js_function_comms_fd,
@@ -82,7 +84,8 @@ class WorkerSandboxApi {
       size_t js_engine_maximum_heap_size_mb,
       size_t js_engine_max_wasm_memory_number_of_pages,
       size_t sandbox_request_response_shared_buffer_size_mb,
-      bool enable_sandbox_sharing_request_response_with_buffer_only);
+      bool enable_sandbox_sharing_request_response_with_buffer_only,
+      const std::vector<std::string>& v8_flags);
 
   absl::Status Init();
 
@@ -272,6 +275,7 @@ class WorkerSandboxApi {
   // The capacity size of the Buffer in bytes.
   size_t request_and_response_data_buffer_size_bytes_;
   const bool enable_sandbox_sharing_request_response_with_buffer_only_;
+  std::vector<std::string> v8_flags_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

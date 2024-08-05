@@ -30,64 +30,45 @@ namespace T = google::scp::core::common::test;
 const Uuid uuid = Uuid::GenerateUuid();
 
 void BM_UuidToString(benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      auto uuid_string = ToString(uuid);
-      benchmark::DoNotOptimize(uuid_string);
-    }
+    auto uuid_string = ToString(uuid);
+    benchmark::DoNotOptimize(uuid_string);
   }
 }
-
-BENCHMARK(BM_UuidToString)->RangeMultiplier(10)->Range(10, 1000);
 
 void BM_UuidToString_AbslFormat(benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      auto uuid_string = T::ToStringAbslFormat(uuid);
-      benchmark::DoNotOptimize(uuid_string);
-    }
+    auto uuid_string = T::ToStringAbslFormat(uuid);
+    benchmark::DoNotOptimize(uuid_string);
   }
 }
-
-BENCHMARK(BM_UuidToString_AbslFormat)->RangeMultiplier(10)->Range(10, 1000);
 
 void BM_UuidToString_AbslAppend(benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      auto uuid_string = T::ToStringAbslAppend(uuid);
-      benchmark::DoNotOptimize(uuid_string);
-    }
+    auto uuid_string = T::ToStringAbslAppend(uuid);
+    benchmark::DoNotOptimize(uuid_string);
   }
 }
-
-BENCHMARK(BM_UuidToString_AbslAppend)->RangeMultiplier(10)->Range(10, 1000);
 
 void BM_UuidToString_HexLookupMap(benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      auto uuid_string = T::ToStringFn(uuid, T::AppendHexLookupMap);
-      benchmark::DoNotOptimize(uuid_string);
-    }
+    auto uuid_string = T::ToStringFn(uuid, T::AppendHexLookupMap);
+    benchmark::DoNotOptimize(uuid_string);
   }
 }
-
-BENCHMARK(BM_UuidToString_HexLookupMap)->RangeMultiplier(10)->Range(10, 1000);
 
 void BM_UuidToString_AppendHexByte(benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      auto uuid_string = T::ToStringFn(uuid, T::AppendHexByte);
-      benchmark::DoNotOptimize(uuid_string);
-    }
+    auto uuid_string = T::ToStringFn(uuid, T::AppendHexByte);
+    benchmark::DoNotOptimize(uuid_string);
   }
 }
 
-BENCHMARK(BM_UuidToString_AppendHexByte)->RangeMultiplier(10)->Range(10, 1000);
+BENCHMARK(BM_UuidToString);
+BENCHMARK(BM_UuidToString_AbslFormat);
+BENCHMARK(BM_UuidToString_AbslAppend);
+BENCHMARK(BM_UuidToString_HexLookupMap);
+BENCHMARK(BM_UuidToString_AppendHexByte);
 
 }  // namespace
 

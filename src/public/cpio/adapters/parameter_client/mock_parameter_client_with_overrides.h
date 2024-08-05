@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/parameter_client_provider/mock/mock_parameter_client_provider.h"
 #include "src/public/cpio/adapters/parameter_client/parameter_client.h"
 
@@ -26,13 +27,21 @@ namespace google::scp::cpio::mock {
 class MockParameterClientWithOverrides : public ParameterClient {
  public:
   MockParameterClientWithOverrides()
+<<<<<<< HEAD
       : ParameterClient(ParameterClientOptions()) {}
 
   absl::Status CreateParameterClientProvider() noexcept override {
     parameter_client_provider_ =
         std::make_unique<client_providers::mock::MockParameterClientProvider>();
     return absl::OkStatus();
+=======
+      : ParameterClient(ParameterClientOptions()) {
+    parameter_client_provider_ =
+        std::make_unique<client_providers::mock::MockParameterClientProvider>();
+>>>>>>> upstream-3e92e75-3.10.0
   }
+
+  absl::Status Init() noexcept override { return absl::OkStatus(); }
 
   client_providers::mock::MockParameterClientProvider&
   GetParameterClientProvider() {

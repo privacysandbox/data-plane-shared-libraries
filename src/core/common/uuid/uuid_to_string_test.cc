@@ -21,7 +21,9 @@
 
 #include <string>
 
-#include "src/core/common/uuid/uuid.h"
+#include "src/public/core/interface/execution_result.h"
+
+#include "uuid.h"
 
 using testing::StrEq;
 
@@ -31,7 +33,8 @@ namespace google::scp::core::common::test {
 TEST(UuidToStringTests, UuidToString) {
   constexpr std::string_view uuid_str = "1794DACA-6CD8-0B88-E79E-8E4B730031C6";
   Uuid uuid;
-  FromString(std::string(uuid_str), uuid);
+  const ExecutionResult r = FromString(std::string(uuid_str), uuid);
+  EXPECT_TRUE(bool(r));
 
   EXPECT_THAT(ToString(uuid), StrEq(uuid_str));
   EXPECT_THAT(ToStringAbslFormat(uuid), StrEq(uuid_str));

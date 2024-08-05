@@ -17,6 +17,7 @@
 #include <memory>
 #include <string>
 
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -27,13 +28,10 @@
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
-using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
 using google::scp::core::GetErrorMessage;
-using google::scp::core::SuccessExecutionResult;
 using google::scp::cpio::LogOption;
 using google::scp::cpio::ParameterClientFactory;
-using google::scp::cpio::ParameterClientInterface;
 using google::scp::cpio::ParameterClientOptions;
 using google::scp::cpio::TestCpioOptions;
 using google::scp::cpio::TestLibCpio;
@@ -44,61 +42,34 @@ constexpr std::string_view kTestParameterName = "test_parameter";
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  cpio_options.region = kRegion;
-  auto result = TestLibCpio::InitCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to initialize CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
+  TestCpioOptions cpio_options{.options = {.log_option = LogOption::kConsoleLog,
+                                           .region = std::string{kRegion}}};
+  TestLibCpio::InitCpio(cpio_options);
   ParameterClientOptions parameter_client_options;
   auto parameter_client =
       ParameterClientFactory::Create(std::move(parameter_client_options));
-  result = parameter_client->Init();
-  if (!result.Successful()) {
-    std::cout << "Cannot init parameter client!"
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = parameter_client->Init(); !error.ok()) {
+    std::cout << "Cannot init parameter client!" << error << std::endl;
     return 0;
   }
-  result = parameter_client->Run();
-  if (!result.Successful()) {
-    std::cout << "Cannot run parameter client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-    return 0;
-  }
-
   absl::Notification finished;
   GetParameterRequest get_parameter_request;
   get_parameter_request.set_parameter_name(kTestParameterName);
-  result = parameter_client->GetParameter(
-      std::move(get_parameter_request),
-      [&](const ExecutionResult result, GetParameterResponse response) {
-        if (!result.Successful()) {
-          std::cout << "GetParameter failed: "
-                    << GetErrorMessage(result.status_code) << std::endl;
-        } else {
-          std::cout << "GetParameter succeeded, and parameter is: "
-                    << response.parameter_value() << std::endl;
-        }
-        finished.Notify();
-      });
-  if (!result.Successful()) {
-    std::cout << "GetParameter failed immediately: "
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = parameter_client->GetParameter(
+          std::move(get_parameter_request),
+          [&](const ExecutionResult result, GetParameterResponse response) {
+            if (!result.Successful()) {
+              std::cout << "GetParameter failed: "
+                        << GetErrorMessage(result.status_code) << std::endl;
+            } else {
+              std::cout << "GetParameter succeeded, and parameter is: "
+                        << response.parameter_value() << std::endl;
+            }
+            finished.Notify();
+          });
+      !error.ok()) {
+    std::cout << "GetParameter failed immediately: " << error << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(10));
-
-  result = parameter_client->Stop();
-  if (!result.Successful()) {
-    std::cout << "Cannot stop parameter client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
-  result = TestLibCpio::ShutdownCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to shutdown CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
+  TestLibCpio::ShutdownCpio(cpio_options);
 }

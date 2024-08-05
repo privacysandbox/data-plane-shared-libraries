@@ -31,20 +31,20 @@
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;
 
-namespace google::scp::roma::romav8::app_api {
+namespace google::scp::roma::romav8 {
 
 template <>
-absl::Status Decode(const TEncoded& encoded, std::string& decoded) {
+absl::Status Decode(const std::string& encoded, std::string& decoded) {
   decoded = encoded;
   return absl::OkStatus();
 }
 
 template <>
-absl::StatusOr<TEncoded> Encode(const std::string& obj) {
+absl::StatusOr<std::string> Encode(const std::string& obj) {
   return obj;
 }
 
-}  // namespace google::scp::roma::romav8::app_api
+}  // namespace google::scp::roma::romav8
 
 namespace google::scp::roma::test {
 
@@ -75,6 +75,7 @@ class HelloWorldApp
                          "fully-qualified-hello-world-name") {}
 };
 
+<<<<<<< HEAD
 TEST(RomaV8AppServiceTest, EncodeDecodeProtobuf) {
   ::romav8::app_api::test::HelloWorldRequest req;
   req.set_name("Foobar");
@@ -91,6 +92,8 @@ TEST(RomaV8AppServiceTest, EncodeDecodeProtobuf) {
   EXPECT_THAT(*encoded, testing::StrEq(*encoded2));
 }
 
+=======
+>>>>>>> upstream-3e92e75-3.10.0
 TEST(RomaV8AppServiceTest, HelloWorld) {
   absl::Notification load_finished;
   absl::Status load_status;

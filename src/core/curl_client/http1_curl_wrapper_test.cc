@@ -23,6 +23,7 @@
 
 #include "src/core/curl_client/error_codes.h"
 #include "src/core/test/utils/http1_helper/test_http1_server.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using boost::beast::http::status;

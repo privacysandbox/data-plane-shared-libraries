@@ -18,14 +18,12 @@
 #define PUBLIC_CPIO_ADAPTERS_BLOB_STORAGE_CLIENT_BLOB_STORAGE_CLIENT_H_
 
 #include <memory>
-#include <string>
-#include <vector>
+#include <utility>
 
-#include "src/core/common/concurrent_queue/concurrent_queue.h"
+#include "absl/status/status.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/blob_storage_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/blob_storage_client_interface.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
 #include "src/public/cpio/interface/type_def.h"
@@ -36,36 +34,35 @@ namespace google::scp::cpio {
  */
 class BlobStorageClient : public BlobStorageClientInterface {
  public:
-  explicit BlobStorageClient(
-      const std::shared_ptr<BlobStorageClientOptions>& options)
-      : options_(options) {}
+  explicit BlobStorageClient(BlobStorageClientOptions options)
+      : options_(std::move(options)) {}
 
   virtual ~BlobStorageClient() = default;
 
-  core::ExecutionResult Init() noexcept override;
-  core::ExecutionResult Run() noexcept override;
-  core::ExecutionResult Stop() noexcept override;
+  absl::Status Init() noexcept override;
+  absl::Status Run() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult GetBlob(
+  absl::Status GetBlob(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::GetBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::GetBlobResponse>
           get_blob_context) noexcept override;
 
-  core::ExecutionResult ListBlobsMetadata(
+  absl::Status ListBlobsMetadata(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataRequest,
           google::cmrt::sdk::blob_storage_service::v1::
               ListBlobsMetadataResponse>
           list_blobs_metadata_context) noexcept override;
 
-  core::ExecutionResult PutBlob(
+  absl::Status PutBlob(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse>
           put_blob_context) noexcept override;
 
-  core::ExecutionResult DeleteBlob(
+  absl::Status DeleteBlob(
       core::AsyncContext<
           google::cmrt::sdk::blob_storage_service::v1::DeleteBlobRequest,
           google::cmrt::sdk::blob_storage_service::v1::DeleteBlobResponse>
@@ -73,13 +70,13 @@ class BlobStorageClient : public BlobStorageClientInterface {
 
   /// Streaming operations.
 
-  core::ExecutionResult GetBlobStream(
+  absl::Status GetBlobStream(
       core::ConsumerStreamingContext<
           google::cmrt::sdk::blob_storage_service::v1::GetBlobStreamRequest,
           google::cmrt::sdk::blob_storage_service::v1::GetBlobStreamResponse>
           get_blob_stream_context) noexcept override;
 
-  core::ExecutionResult PutBlobStream(
+  absl::Status PutBlobStream(
       core::ProducerStreamingContext<
           google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamRequest,
           google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamResponse>
@@ -90,7 +87,7 @@ class BlobStorageClient : public BlobStorageClientInterface {
       blob_storage_client_provider_;
 
  private:
-  std::shared_ptr<BlobStorageClientOptions> options_;
+  BlobStorageClientOptions options_;
   client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio

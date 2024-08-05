@@ -20,6 +20,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/base/nullability.h"
 #include "absl/strings/substitute.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_context.h"
@@ -497,9 +498,15 @@ GcpPubSubStubFactory::CreateSubscriberStub(
 absl::StatusOr<std::unique_ptr<QueueClientProviderInterface>>
 QueueClientProviderFactory::Create(
     QueueClientOptions options,
+<<<<<<< HEAD
     InstanceClientProviderInterface* instance_client,
     AsyncExecutorInterface* cpu_async_executor,
     AsyncExecutorInterface* io_async_executor) noexcept {
+=======
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client,
+    absl::Nonnull<AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<AsyncExecutorInterface*> io_async_executor) noexcept {
+>>>>>>> upstream-3e92e75-3.10.0
   auto provider = std::make_unique<GcpQueueClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);

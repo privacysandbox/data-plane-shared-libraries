@@ -21,9 +21,8 @@
 
 #include <aws/sts/STSClient.h>
 
+#include "src/cpio/client_providers/role_credentials_provider/aws/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-
-#include "error_codes.h"
 
 namespace google::scp::cpio::client_providers {
 class STSErrorConverter {

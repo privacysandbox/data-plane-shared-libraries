@@ -24,6 +24,18 @@ cc_library(
         "//src/core/message_router",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/cpio/client_providers/metric_client_provider",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_library(
+    name = "mock_metric_client_provider",
+    hdrs = [
+        "mock_metric_client_provider.h",
+    ],
+    deps = [
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "@com_google_protobuf//:protobuf",
     ],
 )

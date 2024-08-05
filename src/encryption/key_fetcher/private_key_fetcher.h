@@ -21,6 +21,7 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
 #include "src/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
@@ -32,7 +33,7 @@ namespace privacy_sandbox::server_common {
 // Implementation of PrivateKeyFetcherInterface that fetches private keys from
 // the Private Key Service, caching them in memory, and maintains only the keys
 // fetched during a sliding window.
-class PrivateKeyFetcher : public PrivateKeyFetcherInterface {
+class PrivateKeyFetcher final : public PrivateKeyFetcherInterface {
  public:
   // Initializes an instance of PrivateKeyFetcher. `private_key_client` is an
   // instance of PrivateKeyClientInterface for communicating with the Private
@@ -40,10 +41,12 @@ class PrivateKeyFetcher : public PrivateKeyFetcherInterface {
   PrivateKeyFetcher(
       std::unique_ptr<google::scp::cpio::PrivateKeyClientInterface>
           private_key_client,
-      absl::Duration ttl);
+      absl::Duration ttl,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 
-  // Stops and terminates any resources used by the fetcher.
-  ~PrivateKeyFetcher();
+  ~PrivateKeyFetcher() override = default;
 
   // Blocking.
   // Calls the Private Key Service to fetch and store the private keys.
@@ -68,6 +71,9 @@ class PrivateKeyFetcher : public PrivateKeyFetcherInterface {
 
   // TTL of cached PrivateKey entries in private_keys_map_.
   absl::Duration ttl_;
+
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context_;
 };
 
 }  // namespace privacy_sandbox::server_common

@@ -33,6 +33,7 @@ cc_library(
         "//src/roma/wasm:deserializer",
         "//src/roma/wasm:serializer",
         "//src/roma/wasm:wasm_types",
+        "//src/util/status_macro:status_builder",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
@@ -49,6 +50,7 @@ cc_library(
     ],
     deps = [
         "//src/util:duration",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/synchronization",
         "@v8//:v8_icu",
     ],

@@ -19,6 +19,7 @@
 #include <memory>
 
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;

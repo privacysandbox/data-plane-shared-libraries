@@ -36,16 +36,13 @@ cc_library(
 
 cc_library(
     name = "test_instance_client_provider",
-    srcs = [
-        "test_instance_client_provider.cc",
-    ],
-    hdrs = [
-        "test_instance_client_provider.h",
-    ],
+    srcs = ["test_instance_client_provider.cc"],
+    hdrs = ["test_instance_client_provider.h"],
     deps = [
         "//src/core/interface",
         "//src/core/interface:async_context",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
         "//src/public/cpio/test/global_cpio:test_cpio_options",
         "@com_google_absl//absl/strings:str_format",

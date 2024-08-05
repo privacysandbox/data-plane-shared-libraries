@@ -19,6 +19,8 @@
 #include <list>
 #include <string>
 
+#include "src/public/core/interface/execution_result.h"
+
 namespace google::scp::core {
 
 ExecutionResult EnvConfigProvider::Init() noexcept {

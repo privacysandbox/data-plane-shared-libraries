@@ -16,44 +16,28 @@
 
 #include "parameter_client.h"
 
-#include <functional>
 #include <memory>
-#include <string>
-#include <string_view>
 #include <utility>
 
 #include "absl/functional/bind_front.h"
-#include "src/core/common/global_logger/global_logger.h"
-#include "src/core/common/uuid/uuid.h"
-#include "src/core/interface/errors.h"
-#include "src/core/utils/error_utils.h"
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/common/adapter_utils.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 #include "src/util/status_macro/status_macros.h"
 
 using google::cmrt::sdk::parameter_service::v1::GetParameterRequest;
 using google::cmrt::sdk::parameter_service::v1::GetParameterResponse;
-using google::scp::core::AsyncContext;
-using google::scp::core::AsyncExecutorInterface;
-using google::scp::core::ExecutionResult;
-using google::scp::core::FailureExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-using google::scp::core::common::kZeroUuid;
-using google::scp::core::errors::GetPublicErrorCode;
-using google::scp::core::utils::ConvertToPublicExecutionResult;
 using google::scp::cpio::client_providers::GlobalCpio;
-using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 using google::scp::cpio::client_providers::ParameterClientProviderFactory;
 using google::scp::cpio::client_providers::ParameterClientProviderInterface;
 
-namespace {
-constexpr std::string_view kParameterClient = "ParameterClient";
-}  // namespace
-
 namespace google::scp::cpio {
+<<<<<<< HEAD
 absl::Status ParameterClient::CreateParameterClientProvider() noexcept {
+=======
+absl::Status ParameterClient::Init() noexcept {
+>>>>>>> upstream-3e92e75-3.10.0
   cpio_ = &GlobalCpio::GetGlobalCpio();
   ParameterClientOptions options = options_;
   if (options.project_id.empty()) {
@@ -73,6 +57,7 @@ absl::Status ParameterClient::CreateParameterClientProvider() noexcept {
   return absl::OkStatus();
 }
 
+<<<<<<< HEAD
 ExecutionResult ParameterClient::Init() noexcept {
   if (absl::Status error = CreateParameterClientProvider(); !error.ok()) {
     SCP_ERROR(kParameterClient, kZeroUuid, error,
@@ -100,6 +85,19 @@ core::ExecutionResult ParameterClient::GetParameter(
                  .ok()
              ? SuccessExecutionResult()
              : FailureExecutionResult(SC_UNKNOWN);
+=======
+absl::Status ParameterClient::Run() noexcept { return absl::OkStatus(); }
+
+absl::Status ParameterClient::Stop() noexcept { return absl::OkStatus(); }
+
+absl::Status ParameterClient::GetParameter(
+    GetParameterRequest request,
+    Callback<GetParameterResponse> callback) noexcept {
+  return Execute<GetParameterRequest, GetParameterResponse>(
+      absl::bind_front(&ParameterClientProviderInterface::GetParameter,
+                       parameter_client_provider_.get()),
+      std::move(request), std::move(callback));
+>>>>>>> upstream-3e92e75-3.10.0
 }
 
 std::unique_ptr<ParameterClientInterface> ParameterClientFactory::Create(

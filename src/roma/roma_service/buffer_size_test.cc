@@ -31,6 +31,8 @@ using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::StrEq;
 
 namespace google::scp::roma::test {
+// This payload size is larger than the Buffer capacity.
+constexpr double kOversizedPayloadSize = 1024 * 1024 * 1.2;
 
 TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   Config config;
@@ -48,15 +50,14 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
   absl::Notification success_execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // The js payload size is larger than the Buffer capacity.
-    auto payload_size = 1024 * 1024 * 1.2;
-    std::string dummy_js_string(payload_size, 'a');
-    code_obj->js = "function Handler(input) { let x = \"" + dummy_js_string +
-                   "\"; return \"Hello world! \"}";
-    EXPECT_GE(code_obj->js.length(), payload_size);
+    std::string dummy_js_string(kOversizedPayloadSize, 'a');
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = absl::StrCat("function Handler(input) { let x = \"",
+                           dummy_js_string, "\"; return \"Hello world! \"}"),
+    });
+    EXPECT_GE(code_obj->js.length(), kOversizedPayloadSize);
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -68,11 +69,13 @@ TEST(BufferSizeTest, LoadingShouldSucceedIfPayloadLargerThanBufferSize) {
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back("\"Foobar\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -108,13 +111,14 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   absl::Notification oversize_execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler(input) { return "Hello world! " + JSON.stringify(input);
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+        function Handler(input) { return "Hello world! " + JSON.stringify(input);
+        }
+      )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -125,19 +129,19 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfRequestPayloadOversize) {
   }
 
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // The input payload size is larger than the Buffer capacity.
-    auto payload_size = 1024 * 1024 * 1.2;
-    std::string dummy_string(payload_size, 'A');
-    execution_obj->input.push_back("\"" + dummy_string + "\"");
+    std::string dummy_string(kOversizedPayloadSize, 'A');
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", dummy_string, "\"")},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           ASSERT_TRUE(resp.ok());
-          EXPECT_GE(resp->resp.length(), payload_size);
+          EXPECT_GE(resp->resp.length(), kOversizedPayloadSize);
           oversize_execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -166,16 +170,17 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   absl::Notification oversize_execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // Will generate a response with input size.
-    code_obj->js = R"JS_CODE(
-    function Handler(input) {
-      let dummy_string = 'x'.repeat(input);
-      return "Hello world! " + JSON.stringify(dummy_string);
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Will generate a response with input size.
+        .js = R"JS_CODE(
+          function Handler(input) {
+            let dummy_string = 'x'.repeat(input);
+            return "Hello world! " + JSON.stringify(dummy_string);
+          }
+        )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -188,18 +193,19 @@ TEST(BufferSizeTest, ExecutionShouldSucceedIfResponsePayloadOversize) {
   // execute success when the response payload size is larger than buffer
   // capacity.
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // The response payload size is larger than the Buffer capacity.
-    auto payload_size = 1024 * 1024 * 1.2;
-    execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", std::to_string(kOversizedPayloadSize),
+                                   "\"")},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
           ASSERT_TRUE(resp.ok());
-          EXPECT_GE(resp->resp.length(), payload_size);
+          EXPECT_GE(resp->resp.length(), kOversizedPayloadSize);
           oversize_execute_finished.Notify();
         });
     EXPECT_TRUE(status.ok());
@@ -229,13 +235,12 @@ TEST(BufferSizeTest,
   absl::Notification load_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // The js payload size is larger than the Buffer capacity.
-    auto payload_size = 1024 * 1024 * 1.2;
-    std::string dummy_js_string(payload_size, 'A');
-    code_obj->js = "\"" + dummy_js_string + "\"";
+    std::string dummy_js_string(kOversizedPayloadSize, 'A');
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = absl::StrCat("\"", dummy_js_string, "\""),
+    });
 
     status = roma_service.LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -274,13 +279,14 @@ TEST(BufferSizeTest,
   absl::Notification retry_success_execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    code_obj->js = R"JS_CODE(
-    function Handler(input) { return "Hello world! " + JSON.stringify(input);
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+      function Handler(input) { return "Hello world! " + JSON.stringify(input);
+      }
+    )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -292,11 +298,13 @@ TEST(BufferSizeTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back("\"Foobar\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -309,14 +317,15 @@ TEST(BufferSizeTest,
 
   // Failure in execution as oversize input.
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // The input payload size is larger than the Buffer capacity.
-    auto payload_size = 1024 * 1024 * 1.2;
-    std::string dummy_string(payload_size, 'A');
-    execution_obj->input.push_back("\"" + dummy_string + "\"");
+    std::string dummy_string(kOversizedPayloadSize, 'A');
+
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", dummy_string, "\"")},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -331,11 +340,13 @@ TEST(BufferSizeTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back("\"Foobar\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -378,16 +389,17 @@ TEST(BufferSizeTest,
   absl::Notification retry_success_execute_finished;
 
   {
-    auto code_obj = std::make_unique<CodeObject>();
-    code_obj->id = "foo";
-    code_obj->version_string = "v1";
-    // Will generate a response with input size.
-    code_obj->js = R"JS_CODE(
-    function Handler(input) {
-      let dummy_string = 'x'.repeat(input);
-      return "Hello world! " + JSON.stringify(dummy_string);
-    }
-  )JS_CODE";
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Will generate a response with input size.
+        .js = R"JS_CODE(
+        function Handler(input) {
+          let dummy_string = 'x'.repeat(input);
+          return "Hello world! " + JSON.stringify(dummy_string);
+        }
+      )JS_CODE",
+    });
 
     status = roma_service.LoadCodeObj(std::move(code_obj),
                                       [&](absl::StatusOr<ResponseObject> resp) {
@@ -399,11 +411,13 @@ TEST(BufferSizeTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    execution_obj->input.push_back("\"1024\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("1024")"},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {
@@ -416,13 +430,14 @@ TEST(BufferSizeTest,
   // execute failed as the response payload size is larger than buffer
   // capacity.
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
-    // The response payload size is larger than the Buffer capacity.
-    auto payload_size = 1024 * 1024 * 1.2;
-    execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", std::to_string(kOversizedPayloadSize),
+                                   "\"")},
+        });
 
     status = roma_service.Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
@@ -435,12 +450,14 @@ TEST(BufferSizeTest,
 
   // execute success
   {
-    auto execution_obj = std::make_unique<InvocationStrRequest<>>();
-    execution_obj->id = "foo";
-    execution_obj->version_string = "v1";
-    execution_obj->handler_name = "Handler";
     auto payload_size = 1024 * 800;
-    execution_obj->input.push_back("\"" + std::to_string(payload_size) + "\"");
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {absl::StrCat("\"", std::to_string(payload_size), "\"")},
+        });
 
     status = roma_service.Execute(std::move(execution_obj),
                                   [&](absl::StatusOr<ResponseObject> resp) {

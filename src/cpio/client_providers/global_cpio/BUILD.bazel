@@ -16,25 +16,10 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
-exports_files([
-    "global_cpio.h",
-    "global_cpio.cc",
-])
-
-filegroup(
-    name = "global_cpio_srcs",
-    srcs = [
-        ":global_cpio.cc",
-        ":global_cpio.h",
-    ],
-)
-
 cc_library(
     name = "global_cpio",
-    srcs =
-        [
-            ":global_cpio_srcs",
-        ],
+    srcs = [":global_cpio.cc"],
+    hdrs = [":global_cpio.h"],
     deps = [
         "//src/core/logger",
         "//src/core/logger/log_providers",

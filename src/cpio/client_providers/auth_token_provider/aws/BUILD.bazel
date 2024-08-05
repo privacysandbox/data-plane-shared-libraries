@@ -19,29 +19,18 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 cc_library(
     name = "aws_auth_token_provider",
     srcs = [
-        "//src/cpio/client_providers/auth_token_provider/aws:aws_auth_token_provider_srcs",
+        ":aws_auth_token_provider.cc",
+        ":aws_auth_token_provider.h",
+        ":error_codes.h",
     ],
     deps = [
         "//src/core/interface",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface:type_def",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/functional:bind_front",
-    ],
-)
-
-exports_files([
-    "error_codes.h",
-    "aws_auth_token_provider.h",
-    "aws_auth_token_provider.cc",
-])
-
-filegroup(
-    name = "aws_auth_token_provider_srcs",
-    srcs = [
-        ":aws_auth_token_provider.cc",
-        ":aws_auth_token_provider.h",
-        ":error_codes.h",
     ],
 )
 
@@ -55,6 +44,7 @@ cc_test(
         "//src/core/interface",
         "//src/core/test/utils",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

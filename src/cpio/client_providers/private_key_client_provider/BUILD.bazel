@@ -35,6 +35,7 @@ cc_library(
         "//src/cpio/client_providers/role_credentials_provider:role_credentials_provider_select",
         "//src/public/cpio/interface/private_key_client:type_def",
         "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:btree",
         "@com_google_absl//absl/strings",
         "@tink_cc//:json_keyset_reader",
