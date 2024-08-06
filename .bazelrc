@@ -4,7 +4,7 @@ common --@aspect_rules_ts//ts:default_to_tsc_transpiler
 build --announce_rc
 build --verbose_failures
 build --compilation_mode=opt
-build --output_filter='^//((?!(third_party):).)*$'`
+build --output_filter='^//((?!(third_party):).)*$'
 build --color=yes
 build --config=cpp
 build --config=roma_sandboxed
