@@ -13,25 +13,9 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-
-pkg_files(
-    name = "sample_udf_execs",
-    srcs = [
-        "//src/roma/gvisor/udf:udf_binaries",
-    ],
-    attributes = pkg_attributes(mode = "0555"),
-    prefix = "/server/bin",
-)
-
-pkg_tar(
-    name = "sample_udf_tar",
-    srcs = [
-        ":sample_udf_execs",
-    ],
-)
+load("//src/roma/gvisor:gvisor.bzl", "gvisor_image")
 
 cc_binary(
     name = "roma_gvisor_benchmark",
@@ -69,30 +53,18 @@ pkg_tar(
     ],
 )
 
-oci_image(
-    name = "roma_gvisor_benchmark_image",
-    base = select({
-        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
-        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
-    }),
-    cmd = ["/server/bin/run_roma_gvisor_benchmark"],
-    entrypoint = ["/bin/bash"],
-    tars = [
-        "//src/roma/gvisor/container:gvisor_tar",
-        "//src/roma/gvisor/container:gvisor_server_container.tar",
-        ":roma_gvisor_benchmark_tar",
-        ":sample_udf_tar",
-    ],
-)
-
 # Sample usage:
 # builders/tools/bazel-debian build //src/roma/gvisor/benchmark:roma_gvisor_benchmark_image_tarball
 # docker load -i bazel-bin/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image_tarball/tarball.tar
 # docker run -it --privileged --rm bazel/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image:v1
-oci_tarball(
-    name = "roma_gvisor_benchmark_image_tarball",
-    image = ":roma_gvisor_benchmark_image",
+gvisor_image(
+    name = "roma_gvisor_benchmark_image",
+    cmd = ["/server/bin/run_roma_gvisor_benchmark"],
+    layer_tars = [
+        ":roma_gvisor_benchmark_tar",
+    ],
     repo_tags = ["bazel/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image:v1"],
+    udf_binary_label = "//src/roma/gvisor/udf:udf_binaries",
 )
 
 genrule(
