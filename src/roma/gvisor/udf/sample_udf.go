@@ -26,12 +26,12 @@ import (
 
 const kPrimeCount = 100_000
 
-func runHelloWorld(binResponse *pb.GetValuesResponse) {
+func runHelloWorld(binResponse *pb.SampleResponse) {
 	message := "Hello, world from Go!"
 	binResponse.Greeting = []byte(message)
 }
 
-func runPrimeSieve(binResponse *pb.GetValuesResponse) {
+func runPrimeSieve(binResponse *pb.SampleResponse) {
 	// Create a boolean slice of size kPrimeCount+1
 	primes := make([]bool, kPrimeCount+1)
 	for i := range primes {
@@ -65,7 +65,7 @@ func main() {
 		log.Fatal("Missing write file descriptor: ", err)
 	}
 
-	binRequest := &pb.GetValuesRequest{}
+	binRequest := &pb.SampleRequest{}
 	buf := make([]byte, 10)
 	reader := bufio.NewReader(os.Stdin)
 	n, err := reader.Read(buf)
@@ -73,10 +73,10 @@ func main() {
 		log.Fatal("Failed to read from stdin: ", err)
 	}
 	if err := proto.Unmarshal(buf[:n], binRequest); err != nil {
-		log.Fatal("Failed to parse GetValuesRequest: ", err)
+		log.Fatal("Failed to parse SampleRequest: ", err)
 	}
 
-	binResponse := &pb.GetValuesResponse{}
+	binResponse := &pb.SampleResponse{}
 	switch binRequest.Function {
 	case pb.FunctionType_FUNCTION_HELLO_WORLD:
 		runHelloWorld(binResponse)
@@ -91,7 +91,7 @@ func main() {
 	defer writeFile.Close()
 	output, err := proto.Marshal(binResponse)
 	if err != nil {
-		log.Fatal("Failed to serialize GetValuesResponse: ", err)
+		log.Fatal("Failed to serialize SampleResponse: ", err)
 	}
 	_, err = writeFile.Write(output)
 	if err != nil {

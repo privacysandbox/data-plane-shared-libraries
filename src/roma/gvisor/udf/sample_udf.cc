@@ -34,17 +34,17 @@ using ::privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::server_common::gvisor::
     FUNCTION_TEN_CALLBACK_INVOCATIONS;
-using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
-using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;
+using ::privacy_sandbox::server_common::gvisor::SampleRequest;
+using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 
 // Find all prime numbers less than this:
 constexpr int kPrimeCount = 100'000;
 
-void RunHelloWorld(GetValuesResponse& bin_response) {
+void RunHelloWorld(SampleResponse& bin_response) {
   bin_response.set_greeting("Hello, world!");
 }
 
-void RunPrimeSieve(GetValuesResponse& bin_response) {
+void RunPrimeSieve(SampleResponse& bin_response) {
   // Create a boolean array of size n+1
   std::vector<bool> primes(kPrimeCount + 1, true);
   // Set first two values to false
@@ -86,12 +86,12 @@ int main(int argc, char* argv[]) {
   CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
       << "Conversion of comms file descriptor string to int failed";
 
-  GetValuesRequest bin_request;
+  SampleRequest bin_request;
   bin_request.ParseFromFileDescriptor(STDIN_FILENO);
   int32_t write_fd;
   CHECK(absl::SimpleAtoi(argv[1], &write_fd))
       << "Conversion of write file descriptor string to int failed";
-  GetValuesResponse bin_response;
+  SampleResponse bin_response;
   switch (bin_request.function()) {
     case FUNCTION_HELLO_WORLD:
       RunHelloWorld(bin_response);

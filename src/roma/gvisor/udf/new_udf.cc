@@ -16,20 +16,20 @@
 #include "absl/strings/numbers.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 
-using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
-using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;
+using ::privacy_sandbox::server_common::gvisor::SampleRequest;
+using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cout << "Not enough arguments!";
     return -1;
   }
-  GetValuesRequest bin_request;
+  SampleRequest bin_request;
   bin_request.ParseFromFileDescriptor(STDIN_FILENO);
   int32_t write_fd;
   CHECK(absl::SimpleAtoi(argv[1], &write_fd))
       << "Conversion of write file descriptor string to int failed";
-  GetValuesResponse bin_response;
+  SampleResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
 
   bin_response.SerializeToFileDescriptor(write_fd);

@@ -27,7 +27,7 @@ service SampleService {
     roma_app_name: 'SampleServer'
   };
 
-  rpc GetValues(GetValuesRequest) returns (GetValuesResponse) {
+  rpc Sample(SampleRequest) returns (SampleResponse) {
     option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
       description: 'MethodAnnotation'
     };
@@ -71,15 +71,15 @@ enum FunctionType {
 
 // Integrator teams will declare this interface message.
 // Roma untrusted binary is expected to deserialize this and get the
-// GetValuesRequest.
-message GetValuesRequest {
+// SampleRequest.
+message SampleRequest {
   FunctionType function = 1;
 }
 
 // Integrator teams will declare this interface message.
 // Roma untrusted binary is expected to provide serialized version of this as
-// GetValuesResponse.
-message GetValuesResponse {
+// SampleResponse.
+message SampleResponse {
   bytes greeting = 1;
   repeated int32 prime_number = 2;
 }

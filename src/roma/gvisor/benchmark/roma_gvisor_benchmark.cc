@@ -51,11 +51,11 @@ using ::privacy_sandbox::server_common::gvisor::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::server_common::gvisor::
     FUNCTION_TEN_CALLBACK_INVOCATIONS;
 using ::privacy_sandbox::server_common::gvisor::FunctionType;
-using ::privacy_sandbox::server_common::gvisor::GetValuesRequest;
-using ::privacy_sandbox::server_common::gvisor::GetValuesResponse;
 using ::privacy_sandbox::server_common::gvisor::Mode;
 using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse;
+using ::privacy_sandbox::server_common::gvisor::SampleRequest;
+using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
@@ -72,18 +72,18 @@ enum class Language {
   kGoLang = 1,
 };
 
-GetValuesResponse SendRequestAndGetResponse(
+SampleResponse SendRequestAndGetResponse(
     GvisorSampleService<>& roma_service,
     privacy_sandbox::server_common::gvisor::FunctionType func_type,
     std::string_view code_token) {
   // Data we are sending to the server.
-  GetValuesRequest bin_request;
+  SampleRequest bin_request;
   bin_request.set_function(func_type);
-  absl::StatusOr<std::unique_ptr<GetValuesResponse>> response;
+  absl::StatusOr<std::unique_ptr<SampleResponse>> response;
 
   absl::Notification notif;
-  CHECK_OK(roma_service.GetValues(notif, bin_request, response,
-                                  /*metadata=*/{}, code_token));
+  CHECK_OK(roma_service.Sample(notif, bin_request, response,
+                               /*metadata=*/{}, code_token));
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(response);
   return *std::move((*response).get());
@@ -113,7 +113,7 @@ GvisorSampleService<> GetRomaService(Mode mode, int num_workers) {
   return std::move(*sample_interface);
 }
 
-void VerifyResponse(GetValuesResponse bin_response,
+void VerifyResponse(SampleResponse bin_response,
                     std::string_view expected_response,
                     FunctionType func = FUNCTION_HELLO_WORLD) {
   switch (func) {
