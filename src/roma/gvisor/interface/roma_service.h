@@ -14,39 +14,64 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_SERVICE_H_
-#define SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_SERVICE_H_
+#ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_SERVICE_H_
+#define SRC_ROMA_GVISOR_INTERFACE_ROMA_SERVICE_H_
+
+#include <stdio.h>
+#include <sys/prctl.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <unistd.h>
 
 #include <filesystem>
+#include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
+#include <thread>
 #include <utility>
+#include <variant>
 #include <vector>
 
-#include <grpcpp/grpcpp.h>
-
-#include <google/protobuf/message_lite.h>
-
+#include "absl/container/flat_hash_map.h"
+#include "absl/log/check.h"
 #include "absl/log/log.h"
+#include "absl/memory/memory.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/synchronization/notification.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/gvisor/config/config.h"
-#include "src/roma/gvisor/config/utils.h"
-#include "src/roma/gvisor/host/native_function_handler.h"
-#include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
-#include "src/roma/gvisor/interface/roma_api.pb.h"
-#include "src/roma/gvisor/interface/roma_gvisor.h"
-#include "src/roma/gvisor/interface/roma_interface.h"
-#include "src/roma/gvisor/interface/roma_local.h"
-#include "src/roma/interface/roma.h"
-#include "src/roma/metadata_storage/metadata_storage.h"
+#include "src/roma/gvisor/dispatcher/dispatcher.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
-#include "src/util/status_macro/status_util.h"
 
 namespace privacy_sandbox::server_common::gvisor {
+
+namespace internal::roma_service {
+class LocalHandle final {
+ public:
+  LocalHandle(int pid, std::string_view mounts, std::string_view progdir,
+              std::string_view socket_name);
+  ~LocalHandle();
+
+ private:
+  int pid_;
+};
+
+class GvisorHandle final {
+ public:
+  GvisorHandle(int pid, std::string_view mounts, std::string_view progdir,
+               std::string_view socket_name, std::string_view sockdir,
+               std::string container_name);
+  ~GvisorHandle();
+
+ private:
+  int pid_;
+  std::string container_name_;
+};
+}  // namespace internal::roma_service
 
 enum class Mode {
   kModeGvisor = 0,
@@ -56,157 +81,149 @@ enum class Mode {
 template <typename TMetadata = ::google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
-  static absl::StatusOr<std::unique_ptr<RomaService<TMetadata>>> Create(
-      Config<TMetadata> config, Mode mode = Mode::kModeGvisor) {
-    std::unique_ptr<RomaInterface> roma_interface;
-    ConfigInternal config_internal;
-    config_internal.num_workers = config.num_workers;
-    config_internal.roma_container_name = std::move(config.roma_container_name);
-    config_internal.lib_mounts = std::move(config.lib_mounts);
-    PS_ASSIGN_OR_RETURN(config_internal.server_socket,
-                        CreateUniqueSocketName());
-    PS_ASSIGN_OR_RETURN(config_internal.callback_socket,
-                        CreateUniqueSocketName());
-    PS_ASSIGN_OR_RETURN(config_internal.prog_dir, CreateUniqueDirectory());
-    std::shared_ptr<::grpc::Channel> channel = ::grpc::CreateChannel(
-        absl::StrCat("unix://", config_internal.server_socket),
-        ::grpc::InsecureChannelCredentials());
-    if (mode == Mode::kModeGvisor) {
-      PS_ASSIGN_OR_RETURN(roma_interface,
-                          RomaGvisor::Create(config_internal, channel));
-    } else {
-      PS_ASSIGN_OR_RETURN(roma_interface,
-                          RomaLocal::Create(config_internal, channel));
+  absl::Status Init(Config<TMetadata> config, Mode mode) {
+    n_workers_ = config.num_workers > 0
+                     ? config.num_workers
+                     : static_cast<int>(std::thread::hardware_concurrency());
+    if (::mkdtemp(progdir_) == nullptr) {
+      return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/progdir_XXXXXX\")");
     }
-    return absl::WrapUnique(new RomaService(
-        std::move(roma_interface), std::move(config.function_bindings),
-        config_internal.callback_socket, std::move(channel),
-        std::filesystem::path(config_internal.prog_dir)));
+    if (::mkdtemp(sockdir_) == nullptr) {
+      return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/sockdir_XXXXXX\")");
+    }
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    if (fd == -1) {
+      return absl::ErrnoToStatus(errno, "socket()");
+    }
+    socket_name_ = ::tempnam(sockdir_, nullptr);
+    if (socket_name_ == nullptr) {
+      return absl::ErrnoToStatus(errno, "tempnam()");
+    }
+    {
+      sockaddr_un sa;
+      ::memset(&sa, 0, sizeof(sa));
+      sa.sun_family = AF_UNIX;
+      ::strncpy(sa.sun_path, socket_name_, sizeof(sa.sun_path));
+      if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
+        return absl::ErrnoToStatus(errno, "bind()");
+      }
+      if (::listen(fd, /*backlog=*/0) == -1) {
+        return absl::ErrnoToStatus(errno, "listen()");
+      }
+    }
+    // Need to set this to ensure all the children can be reaped
+    ::prctl(PR_SET_CHILD_SUBREAPER, 1);
+    const int pid = ::fork();
+    if (pid == -1) {
+      return absl::ErrnoToStatus(errno, "fork()");
+    }
+    switch (mode) {
+      case Mode::kModeGvisor:
+        handle_.emplace<internal::roma_service::GvisorHandle>(
+            pid, config.lib_mounts, progdir_, socket_name_, sockdir_,
+            std::move(config.roma_container_name));
+        break;
+      case Mode::kModeLocal:
+        handle_.emplace<internal::roma_service::LocalHandle>(
+            pid, config.lib_mounts, progdir_, socket_name_);
+        break;
+    }
+    dispatcher_.emplace();
+    PS_RETURN_IF_ERROR(dispatcher_->Init(fd));
+    function_bindings_.reserve(config.function_bindings.size());
+    for (auto& binding : config.function_bindings) {
+      function_bindings_[std::move(binding.function_name)] =
+          std::move(binding.function);
+    }
+    return absl::OkStatus();
   }
 
-  /**
-   * @brief Loads a new binary asynchronously from the provided code_path.
-   *
-   * @paragraph Once the load operation has been completed, notification will be
-   * sent via absl::Notification namely notif. If load is successful, the
-   * load_status will be populated with an ok status else with the error
-   * status and message. If load is successful, ExecuteBinary can be called on
-   * the code using the code_token returned by this function.
-   *
-   * @param code_path path to the binary to be loaded into the sandbox.
-   * @param notif notifies that load_status is available.
-   * @param load_status is populated with the status of load once load is
-   * completed. If the status is ok, then code_token returned by this function
-   * can be used for calling this binary in subsequent execute requests.
-   * @return absl::StatusOr<std::string> returns the code_token.
-   */
-  absl::StatusOr<std::string> LoadBinary(std::filesystem::path code_path,
-                                         absl::Notification& notif,
-                                         absl::Status& load_status) {
-    std::string code_token_str = ::google::scp::core::common::ToString(
-        ::google::scp::core::common::Uuid::GenerateUuid());
-    PS_RETURN_IF_ERROR(CopyFile(code_path, prog_dir_, code_token_str));
-
-    struct LoadBinaryArgs {
-      ::grpc::ClientContext context;
-      LoadBinaryRequest request;
-      LoadBinaryResponse response;
-    };
-
-    std::shared_ptr<LoadBinaryArgs> load_args =
-        std::make_shared<LoadBinaryArgs>();
-    load_args->request.set_code_token(code_token_str);
-    stub_->async()->LoadBinary(
-        &load_args->context, &load_args->request, &load_args->response,
-        // Load args are moved into the callback to extend the lifetime so that
-        // they are available when needed by the async gRPC.
-        [load_args = std::move(load_args), &notif,
-         &load_status](::grpc::Status status) {
-          load_status = ToAbslStatus(status);
-          // Once load_status is populated, notify load
-          // is complete and status is available.
-          notif.Notify();
-        });
-    return code_token_str;
+  ~RomaService() {
+    dispatcher_.reset();
+    handle_.emplace<std::monostate>();
+    if (std::error_code ec; !std::filesystem::remove_all(progdir_, ec)) {
+      LOG(ERROR) << "Failed to remove all " << progdir_ << ": " << ec;
+    }
+    if (::unlink(socket_name_) == -1) {
+      PLOG(ERROR) << "Failed to unlink " << socket_name_;
+    }
+    delete socket_name_;
+    if (std::error_code ec; !std::filesystem::remove(sockdir_, ec)) {
+      LOG(ERROR) << "Failed to remove " << sockdir_ << ": " << ec;
+    }
   }
 
-  /**
-   * @brief Executes the binary referred to by the provided code_token
-   * asynchronously.
-   *
-   * Once the async execute is complete, notification will be sent via the
-   * provided notif. If successful, the grpc::Status passed to the
-   * populate_response function will indicate the same the serialized_response
-   * can then be used processing the response.
-   *
-   * @param code_token identifier provided by load of the binary to be executed.
-   * @param request serialized proto for the binary.
-   * @param metadata for execution request. It is a templated type.
-   * @param populate_response invoked once the response is available.
-   * @return absl::Status
-   */
+  std::string LoadBinary(std::string_view code_path) {
+    std::filesystem::path new_path =
+        std::filesystem::path(progdir_) /
+        ToString(::google::scp::core::common::Uuid::GenerateUuid());
+    CHECK(std::filesystem::copy_file(code_path, new_path));
+    return dispatcher_->LoadBinary(new_path.c_str(), n_workers_);
+  }
+
+  template <typename Message>
   absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
       std::string_view code_token, std::string request, TMetadata metadata,
-      std::function<void(::grpc::Status status,
-                         const std::string& serialized_response)>
-          populate_response) {
-    std::string request_id = google::scp::core::common::ToString(
-        google::scp::core::common::Uuid::GenerateUuid());
-    PS_RETURN_IF_ERROR(metadata_storage_.Add(request_id, metadata));
-
-    struct ExecuteBinaryArgs {
-      ::grpc::ClientContext context;
-      ExecuteBinaryRequest request;
-      ExecuteBinaryResponse response;
-    };
-
-    std::shared_ptr<ExecuteBinaryArgs> exec_args =
-        std::make_shared<ExecuteBinaryArgs>();
-    exec_args->request.set_code_token(code_token);
-    exec_args->request.set_serialized_request(std::move(request));
-    exec_args->request.set_request_id(request_id);
-    stub_->async()->ExecuteBinary(
-        &exec_args->context, &exec_args->request, &exec_args->response,
-        // Exec args are moved into the callback to extend the lifetime so that
-        // they are available when needed by the async gRPC.
-        [&, request_id, exec_args = std::move(exec_args),
-         populate_response =
-             std::move(populate_response)](::grpc::Status status) {
-          populate_response(std::move(status),
-                            exec_args->response.serialized_response());
-          // Post-execution cleanup.
-          // Delete metadata from storage.
-          if (!metadata_storage_.Delete(request_id).ok()) {
-            LOG(ERROR) << "Failed to delete metadata for request " << request_id
-                       << " from metadata storage";
+      absl::AnyInvocable<void(absl::StatusOr<Message>) &&> callback) {
+    dispatcher_->ExecuteBinary(
+        code_token, std::move(request), std::move(metadata), function_bindings_,
+        [callback = std::move(callback)](
+            absl::StatusOr<std::string> response) mutable {
+          if (response.ok()) {
+            Message message;
+            if (!message.ParseFromString(*response)) {
+              std::move(callback)(absl::InternalError(
+                  "Failed to deserialize response to proto"));
+            }
+            std::move(callback)(std::move(message));
+          } else {
+            std::move(callback)(std::move(response).status());
           }
         });
-    return google::scp::roma::ExecutionToken(std::move(request_id));
+    return google::scp::roma::ExecutionToken(
+        ToString(::google::scp::core::common::Uuid::GenerateUuid()));
+  }
+
+  template <typename Message>
+  absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
+      std::string_view code_token, std::string request, TMetadata metadata,
+      absl::Notification& notif,
+      absl::StatusOr<std::unique_ptr<Message>>& output) {
+    dispatcher_->ExecuteBinary(
+        code_token, std::move(request), std::move(metadata), function_bindings_,
+        [&notif, &output](absl::StatusOr<std::string> response) {
+          if (response.ok()) {
+            // If response is uninitialized, initialize it with a unique_ptr.
+            if (!output.ok() || *output == nullptr) {
+              output = std::make_unique<Message>();
+            }
+            if (!(*output)->ParseFromString(*response)) {
+              response = absl::InternalError(
+                  "Failed to deserialize response to proto");
+            }
+          } else {
+            output = std::move(response).status();
+          }
+          notif.Notify();
+        });
+    return google::scp::roma::ExecutionToken("dummy_id");
   }
 
  private:
-  explicit RomaService(
-      std::unique_ptr<RomaInterface> roma_interface,
-      std::vector<::google::scp::roma::FunctionBindingObjectV2<TMetadata>>
-          function_bindings,
-      std::string callback_socket, std::shared_ptr<::grpc::Channel> channel,
-      std::string prog_dir) {
-    roma_interface_ = std::move(roma_interface);
-    stub_ = RomaGvisorService::NewStub(channel);
-    prog_dir_ = prog_dir;
-    native_function_handler_ =
-        std::make_unique<NativeFunctionHandler<TMetadata>>(
-            std::move(function_bindings), callback_socket, &metadata_storage_);
-  }
-
-  // Map of invocation request uuid to associated metadata.
-  ::google::scp::roma::metadata_storage::MetadataStorage<TMetadata>
-      metadata_storage_;
-  std::unique_ptr<RomaGvisorService::Stub> stub_;
-  std::filesystem::path prog_dir_;
-  std::unique_ptr<RomaInterface> roma_interface_;
-  std::unique_ptr<NativeFunctionHandler<TMetadata>> native_function_handler_;
+  int n_workers_;
+  char progdir_[20] = "/tmp/progdir_XXXXXX";
+  char sockdir_[20] = "/tmp/sockdir_XXXXXX";
+  const char* socket_name_ = nullptr;
+  std::variant<std::monostate, internal::roma_service::LocalHandle,
+               internal::roma_service::GvisorHandle>
+      handle_;
+  std::optional<Dispatcher> dispatcher_;
+  absl::flat_hash_map<
+      std::string, std::function<void(
+                       google::scp::roma::FunctionBindingPayload<TMetadata>&)>>
+      function_bindings_;
 };
+
 }  // namespace privacy_sandbox::server_common::gvisor
 
-#endif  // SRC_ROMA_GVISOR_INTERFACE_ROMA_GVISOR_SERVICE_H_
+#endif  // SRC_ROMA_GVISOR_INTERFACE_ROMA_SERVICE_H_

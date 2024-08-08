@@ -105,7 +105,7 @@ int main(int argc, char* argv[]) {
       }
       break;
     default:
-      abort();
+      LOG(INFO) << "Invalid function enum.";
   }
   PCHECK(::close(comms_fd) == 0);
 

@@ -32,7 +32,6 @@
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/function_binding_object_v2.h"
-#include "src/roma/gvisor/interface/roma_api.grpc.pb.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 #include "src/roma/gvisor/udf/sample_callback.pb.h"
 #include "src/roma/gvisor/udf/sample_roma_gvisor_app_service.h"
@@ -121,7 +120,7 @@ GvisorSampleService<> GetRomaService(Mode mode, int num_workers) {
   absl::StatusOr<GvisorSampleService<>> sample_interface =
       GvisorSampleService<>::Create(config, mode);
   CHECK_OK(sample_interface);
-  return std::move(*sample_interface);
+  return *std::move(sample_interface);
 }
 
 void VerifyResponse(SampleResponse bin_response,
@@ -646,7 +645,7 @@ BENCHMARK(BM_ExecuteBinary)
                                                 // callback hook
         },
         {
-            0, 1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
+            1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
         },
     })
     ->ArgNames({"mode", "udf", "num_workers"});
@@ -665,7 +664,7 @@ BENCHMARK(BM_ExecuteBinaryUsingCallback)
                                                 // callback hook
         },
         {
-            0, 1, 10,  // Number of pre-warmed workers
+            1, 10,  // Number of pre-warmed workers
         },
     })
     ->ArgNames({"mode", "udf", "num_workers"});

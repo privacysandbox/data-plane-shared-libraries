@@ -31,9 +31,7 @@
 #include <filesystem>
 #include <memory>
 
-#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/interface/roma_service.h"
-#include "src/roma/gvisor/config/config.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
@@ -65,8 +63,8 @@ class {{$svcName}} final :
 
   static absl::StatusOr<{{$svcName}}<TMetadata>> Create(Config config,
                                                         Mode mode = Mode::kModeGvisor) {
-    PS_ASSIGN_OR_RETURN(std::unique_ptr<AppService> roma_service,
-                        AppService::Create(std::move(config), std::move(mode)));
+    auto roma_service = std::make_unique<AppService>();
+    PS_RETURN_IF_ERROR(roma_service->Init(std::move(config), mode));
     return {{$svcName}}<TMetadata>(std::move(roma_service));
   }
 
@@ -89,10 +87,9 @@ class {{$svcName}} final :
   absl::StatusOr<std::string> Register(std::filesystem::path code_path,
                                        absl::Notification& notification,
                                        absl::Status& load_status) {
-    return roma_service_->LoadBinary(
-        code_path,
-        notification,
-        load_status);
+    notification.Notify();
+    load_status = absl::OkStatus();
+    return roma_service_->LoadBinary(code_path.c_str());
   }
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
@@ -120,27 +117,8 @@ class {{$svcName}} final :
       TMetadata metadata = TMetadata(), std::string_view code_token = "")
       override {
     return roma_service_->ExecuteBinary(
-        // TODO: ashruti - See if it makes sense to map code token to a
-        // rpc.Name when loading and call the function using the RPC name.
-        code_token, request.SerializeAsString(), std::move(metadata),
-        [&response, &notification](::grpc::Status status,
-                    const std::string& serialized_response) {
-          if (status.ok()) {
-            // If response is uninitialized, initialize it with a unique_ptr.
-            if (!response.ok() || *response == nullptr) {
-              response = std::make_unique<{{$respType}}>();
-            }
-            if (!(**response).ParseFromString(serialized_response)) {
-              response = absl::InternalError(
-                  "Failed to deserialize response to proto");
-            }
-          } else {
-            response = privacy_sandbox::server_common::ToAbslStatus(status);
-          }
-          // Once response has been populated, notify that
-          // execution has been completed.
-          notification.Notify();
-        });
+      code_token, request.SerializeAsString(), std::move(metadata),
+      notification, response);
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
@@ -148,24 +126,9 @@ class {{$svcName}} final :
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    return roma_service_->ExecuteBinary(
-        code_token, request.SerializeAsString(), std::move(metadata),
-        [&callback](::grpc::Status status,
-                    const std::string& serialized_response) {
-          absl::StatusOr<{{$respType}}> response;
-          if (status.ok()) {
-            {{$respType}} response_proto;
-            if (!response_proto.ParseFromString(serialized_response)) {
-              response = absl::InternalError(
-                  "Failed to deserialize response to proto");
-            } else {
-              response = std::move(response_proto);
-            }
-          } else {
-            response = ::privacy_sandbox::server_common::ToAbslStatus(status);
-          }
-          callback(response);
-        });
+    return roma_service_->template ExecuteBinary<{{$respType}}>(
+      code_token, request.SerializeAsString(), std::move(metadata),
+      std::move(callback));
   }
 {{end}}
 

@@ -15,6 +15,8 @@
 syntax = "proto3";
 package privacy_sandbox.server_common.gvisor;
 
-message Uuid {
-  bytes uuid = 1;
+message LoadRequest {
+  bytes code_token = 1;
+  bytes binary_path = 2;
+  int32 n_workers = 3;
 }

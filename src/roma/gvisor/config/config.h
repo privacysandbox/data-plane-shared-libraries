@@ -17,61 +17,19 @@
 #ifndef SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
 #define SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
 
-#include <filesystem>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "src/roma/config/function_binding_object_v2.h"
-#include "src/roma/gvisor/config/utils.h"
 
 namespace privacy_sandbox::server_common::gvisor {
-
-template <typename TMetadata = google::scp::roma::DefaultMetadata>
+template <typename TMetadata = ::google::scp::roma::DefaultMetadata>
 struct Config {
-  int num_workers = static_cast<int>(std::thread::hardware_concurrency());
-
-  std::string roma_container_name = "roma_server";
-
-  std::string lib_mounts = GetLibMounts();
-
+  int num_workers;
+  std::string roma_container_name;
+  std::string lib_mounts;
   std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>
       function_bindings;
-};
-
-struct ConfigInternal {
-  int num_workers = static_cast<int>(std::thread::hardware_concurrency());
-
-  std::string roma_container_name = "roma_server";
-
-  std::string lib_mounts = GetLibMounts();
-
-  // Path to gVisor runsc binary.
-  std::filesystem::path runsc_path = GetRunscPath();
-
-  // Absolute path to directory containing OCI container image for Roma Bring
-  // Your Own Binary.
-  std::filesystem::path roma_container_dir = GetRomaContainerDir();
-
-  std::filesystem::path roma_container_root_dir = GetRomaContainerRootDir();
-
-  std::filesystem::path roma_server_path = GetRomaServerPwd();
-
-  std::string lib_mounts_flag_name = "libs";
-
-  std::string socket_flag_name = "server_socket";
-
-  std::string worker_pool_size_flag_name = "worker_pool_size";
-
-  std::string server_socket;
-
-  std::string callback_socket_flag_name = "callback_socket";
-
-  std::string callback_socket;
-
-  std::string prog_dir_flag_name = "prog_dir";
-
-  std::string prog_dir;
 };
 }  // namespace privacy_sandbox::server_common::gvisor
 

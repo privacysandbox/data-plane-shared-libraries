@@ -33,17 +33,13 @@ load(
 proto_library(
     name = "sample_proto",
     srcs = ["sample.proto"],
-    visibility = [
-        "//src/roma/gvisor:__subpackages__",
-    ],
+    visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_proto"],
 )
 
 cc_proto_library(
     name = "sample_cc_proto",
-    visibility = [
-        "//src/roma/gvisor:__subpackages__",
-    ],
+    visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = [
         ":sample_proto",
     ],
@@ -59,16 +55,12 @@ buf_lint_test(
 proto_library(
     name = "sample_callback_proto",
     srcs = ["sample_callback.proto"],
-    visibility = [
-        "//src/roma/gvisor:__subpackages__",
-    ],
+    visibility = ["//src/roma/gvisor:__subpackages__"],
 )
 
 cc_proto_library(
     name = "sample_callback_cc_proto",
-    visibility = [
-        "//src/roma/gvisor:__subpackages__",
-    ],
+    visibility = ["//src/roma/gvisor:__subpackages__"],
     deps = [
         ":sample_callback_proto",
     ],

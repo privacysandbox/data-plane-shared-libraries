@@ -14,28 +14,8 @@
 
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
-
-cc_library(
-    name = "native_function_handler",
-    hdrs = [
-        "native_function_handler.h",
-    ],
-    visibility = ["//src/roma/gvisor:__subpackages__"],
-    deps = [
-        ":callback_cc_proto",
-        ":uuid_cc_proto",
-        "//src/roma/config",
-        "//src/roma/metadata_storage",
-        "//src/roma/sandbox/constants",
-        "//src/roma/sandbox/native_function_binding:native_function_table",
-        "@com_google_absl//absl/cleanup",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_protobuf//:protobuf",
-    ],
-)
 
 proto_library(
     name = "callback_proto",
@@ -63,24 +43,4 @@ go_proto_library(
     proto = ":callback_proto",
     visibility = ["//visibility:public"],
     deps = ["//src/roma/interface:function_binding_io_go_proto"],
-)
-
-proto_library(
-    name = "uuid_proto",
-    srcs = ["uuid.proto"],
-    visibility = ["//src/roma/gvisor:__subpackages__"],
-    deps = ["//src/roma/interface:function_binding_io_proto"],
-)
-
-buf_lint_test(
-    name = "uuid_proto_lint",
-    size = "small",
-    config = "//src:buf.yaml",
-    targets = [":uuid_proto"],
-)
-
-cc_proto_library(
-    name = "uuid_cc_proto",
-    visibility = ["//src/roma/gvisor:__subpackages__"],
-    deps = [":uuid_proto"],
 )

@@ -11,44 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//src/roma/gvisor/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
-
-cc_library(
-    name = "utils",
-    srcs = ["utils.cc"],
-    hdrs = ["utils.h"],
-    local_defines = [
-        "ROMA_CONTAINER_DIR={}".format(roma_container_dir),
-        "ROMA_CONTAINER_ROOT_DIR={}".format(roma_container_root_dir),
-        "ROMA_SERVER_PWD=server/bin/gvisor_server",
-        "RUNSC_PATH=/usr/bin/runsc",
-    ] + select({
-        "@platforms//cpu:arm64": [
-            'ROMA_LIB_MOUNTS=\\"/lib,/usr\\"',
-        ],
-        "@platforms//cpu:x86_64": [
-            'ROMA_LIB_MOUNTS=\\"/lib,/lib64,/usr\\"',
-        ],
-    }),
-    visibility = ["//src/roma/gvisor:__subpackages__"],
-    deps = [
-        "@com_github_grpc_grpc//:grpc++",
-        "@com_github_grpc_grpc//src/proto/grpc/health/v1:health_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-    ],
-)
 
 cc_library(
     name = "config",
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
-    deps = [
-        ":utils",
-        "//src/roma/config",
-    ],
+    deps = ["//src/roma/config"],
 )
