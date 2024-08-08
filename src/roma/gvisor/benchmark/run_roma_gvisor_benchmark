@@ -30,6 +30,7 @@ declare -r BENCHMARK_DIR=/dist/benchmarks
 mkdir -p "${BENCHMARK_DIR}"
 sleep 1
 /server/bin/roma_gvisor_benchmark \
+  --benchmark_counters_tabular=true \
   --benchmark_out_format=json \
   --benchmark_time_unit=ms \
   --benchmark_out="${BENCHMARK_DIR}/roma_gvisor_client_benchmark.json"
