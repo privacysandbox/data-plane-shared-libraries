@@ -387,8 +387,10 @@ void BM_RequestPayload(benchmark::State& state) {
   for (auto _ : state) {
     (void)rpc(request, code_tok);
   }
-  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
-                              " x ", elem_count));
+  state.counters["elem_byte_size"] = elem_size;
+  state.counters["elem_count"] = elem_count;
+  state.counters["payload_size"] = payload_size;
+  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           payload_size);
 }
@@ -433,8 +435,10 @@ void BM_ResponsePayload(benchmark::State& state) {
   for (auto _ : state) {
     (void)rpc(request, code_tok);
   }
-  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
-                              " x ", elem_count));
+  state.counters["elem_byte_size"] = elem_size;
+  state.counters["elem_count"] = elem_count;
+  state.counters["payload_size"] = req_payload_size;
+  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           req_payload_size);
 }
@@ -484,8 +488,10 @@ void BM_CallbackRequestPayload(benchmark::State& state) {
   for (auto _ : state) {
     (void)rpc(code_tok, request);
   }
-  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
-                              " x ", elem_count));
+  state.counters["elem_byte_size"] = elem_size;
+  state.counters["elem_count"] = elem_count;
+  state.counters["payload_size"] = payload_size;
+  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           payload_size);
 }
@@ -535,8 +541,10 @@ void BM_CallbackResponsePayload(benchmark::State& state) {
   for (auto _ : state) {
     (void)rpc(code_tok, request);
   }
-  state.SetLabel(absl::StrCat(GetModeStr(mode), " payload:", GetSize(elem_size),
-                              " x ", elem_count));
+  state.counters["elem_byte_size"] = elem_size;
+  state.counters["elem_count"] = elem_count;
+  state.counters["payload_size"] = payload_size;
+  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           payload_size);
 }
