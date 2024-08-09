@@ -22,7 +22,8 @@ def gvisor_image(
         cmd = [],
         udf_binary_label,
         layer_tars = [],
-        repo_tags = []):
+        repo_tags = [],
+        entrypoint = ["/bin/bash"]):
     pkg_files(
         name = "{}_sample_udf_execs".format(name),
         srcs = [
@@ -46,7 +47,7 @@ def gvisor_image(
             "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
         }),
         cmd = cmd,
-        entrypoint = ["/bin/bash"],
+        entrypoint = entrypoint,
         tars = [
             "//src/roma/gvisor/container:gvisor_tar",
             "//src/roma/gvisor/container:gvisor_server_container.tar",
