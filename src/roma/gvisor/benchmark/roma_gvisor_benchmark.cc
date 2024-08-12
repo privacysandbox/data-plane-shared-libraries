@@ -58,6 +58,8 @@ using ::privacy_sandbox::server_common::gvisor::RunPrimeSieveRequest;
 using ::privacy_sandbox::server_common::gvisor::RunPrimeSieveResponse;
 using ::privacy_sandbox::server_common::gvisor::SampleRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleResponse;
+using ::privacy_sandbox::server_common::gvisor::SortListRequest;
+using ::privacy_sandbox::server_common::gvisor::SortListResponse;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
@@ -585,6 +587,46 @@ void BM_PrimeSieveCppUdf(benchmark::State& state) {
   state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
 }
 
+void BM_ExecuteCppSortListUdf(benchmark::State& state) {
+  const Mode mode = static_cast<Mode>(state.range(0));
+  ::privacy_sandbox::server_common::gvisor::Config<> config = {
+      .num_workers = 2,
+      .roma_container_name = "roma_server",
+  };
+  absl::StatusOr<GvisorSampleService<>> sample_interface =
+      GvisorSampleService<>::Create(config, mode);
+  CHECK_OK(sample_interface);
+  GvisorSampleService<> roma_service = std::move(*sample_interface);
+  const auto rpc = [&roma_service](std::string_view code_token,
+                                   const auto& request) {
+    absl::StatusOr<std::unique_ptr<SortListResponse>> response;
+    absl::Notification notif;
+    CHECK_OK(roma_service.SortList(notif, request, response,
+                                   /*metadata=*/{}, code_token));
+    notif.WaitForNotification();
+    return response;
+  };
+  const std::string filename = [](int n_items) {
+    switch (n_items) {
+      case 10'000:
+        return "sort_list_10k_udf";
+      case 100'000:
+        return "sort_list_100k_udf";
+      case 1'000'000:
+        return "sort_list_1m_udf";
+      default:
+        LOG(FATAL) << "Unrecognized n_items=" << n_items;
+    }
+  }(state.range(1));
+  const std::string code_tok =
+      LoadCode(roma_service, std::filesystem::path(kUdfPath) / filename);
+  SortListRequest request;
+  for (auto _ : state) {
+    CHECK_OK(rpc(code_tok, request));
+  }
+  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+}
+
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
@@ -701,6 +743,16 @@ BENCHMARK(BM_PrimeSieveCppUdf)
         {100'000, 500'000, 1'000'000, 5'000'000, 10'000'000},
     })
     ->ArgNames({"mode", "prime_count"});
+
+BENCHMARK(BM_ExecuteCppSortListUdf)
+    ->ArgsProduct({
+        {
+            static_cast<int>(Mode::kModeGvisor),
+            static_cast<int>(Mode::kModeLocal),
+        },
+        {10'000, 100'000, 1'000'000},
+    })
+    ->ArgNames({"mode", "n_items"});
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();

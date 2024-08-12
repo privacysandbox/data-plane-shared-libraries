@@ -65,6 +65,12 @@ service SampleService {
       description: 'MethodAnnotation'
     };
   }
+
+  rpc SortList(SortListRequest) returns (SortListResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
 }
 
 enum FunctionType {
@@ -132,3 +138,7 @@ message RunPrimeSieveRequest {
 message RunPrimeSieveResponse {
   int32 largest_prime = 1;
 }
+
+message SortListRequest {}
+
+message SortListResponse {}
