@@ -54,6 +54,8 @@ using ::privacy_sandbox::server_common::gvisor::FunctionType;
 using ::privacy_sandbox::server_common::gvisor::Mode;
 using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse;
+using ::privacy_sandbox::server_common::gvisor::RunPrimeSieveRequest;
+using ::privacy_sandbox::server_common::gvisor::RunPrimeSieveResponse;
 using ::privacy_sandbox::server_common::gvisor::SampleRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
@@ -549,6 +551,40 @@ void BM_CallbackResponsePayload(benchmark::State& state) {
                           payload_size);
 }
 
+void BM_PrimeSieveCppUdf(benchmark::State& state) {
+  const Mode mode = static_cast<Mode>(state.range(0));
+  ::privacy_sandbox::server_common::gvisor::Config<> config = {
+      .num_workers = 2,
+      .roma_container_name = "roma_server",
+  };
+  absl::StatusOr<GvisorSampleService<>> sample_interface =
+      GvisorSampleService<>::Create(config, mode);
+  CHECK_OK(sample_interface);
+  GvisorSampleService<> roma_service = std::move(*sample_interface);
+  const auto rpc = [&roma_service](std::string_view code_token,
+                                   const auto& request) {
+    absl::StatusOr<std::unique_ptr<RunPrimeSieveResponse>> response;
+    absl::Notification notif;
+    CHECK_OK(roma_service.RunPrimeSieve(notif, request, response,
+                                        /*metadata=*/{}, code_token));
+    notif.WaitForNotification();
+    return response;
+  };
+  privacy_sandbox::server_common::gvisor::RunPrimeSieveRequest request;
+  request.set_prime_count(state.range(1));
+  const std::string code_tok = LoadCode(
+      roma_service, std::filesystem::path(kUdfPath) / "prime_sieve_udf");
+  {
+    const auto response = rpc(code_tok, request);
+    CHECK_OK(response);
+    CHECK_GT((*response)->largest_prime(), 0);
+  }
+  for (auto _ : state) {
+    CHECK_OK(rpc(code_tok, request));
+  }
+  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+}
+
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
@@ -656,6 +692,15 @@ static void ResponsePayloadArgs(benchmark::internal::Benchmark* b) {
 }
 
 BENCHMARK(BM_ResponsePayload)->Apply(ResponsePayloadArgs);
+BENCHMARK(BM_PrimeSieveCppUdf)
+    ->ArgsProduct({
+        {
+            static_cast<int>(Mode::kModeGvisor),
+            static_cast<int>(Mode::kModeLocal),
+        },
+        {100'000, 500'000, 1'000'000, 5'000'000, 10'000'000},
+    })
+    ->ArgNames({"mode", "prime_count"});
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();

@@ -25,6 +25,7 @@ build:cpp --copt=-Werror=thread-safety
 build:cpp --per_file_copt=external/com_github_google_quiche/quiche@-Wno-private-header
 build:cpp --per_file_copt=external/nitrokmscli_.*\.c@-Wno-int-conversion
 build:cpp --per_file_copt=src/roma/roma_service/.*@-fconstexpr-steps=1271242
+build:cpp --per_file_copt=src/roma/gvisor/.*@-fconstexpr-steps=1271242
 build:cpp --config=cpp_nowarn
 
 build:cpp_nowarn --copt=-Werror

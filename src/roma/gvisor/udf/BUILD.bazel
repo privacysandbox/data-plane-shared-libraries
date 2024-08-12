@@ -190,6 +190,19 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "prime_sieve_udf",
+    srcs = ["prime_sieve_udf.cc"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 filegroup(
     name = "udf_binaries",
     srcs = [
@@ -198,6 +211,7 @@ filegroup(
         ":new_udf",
         ":payload_read_udf",
         ":payload_write_udf",
+        ":prime_sieve_udf",
         ":sample_go_udf",
         ":sample_udf",
     ],

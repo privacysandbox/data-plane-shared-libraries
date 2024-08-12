@@ -59,6 +59,12 @@ service SampleService {
       description: 'MethodAnnotation'
     };
   }
+
+  rpc RunPrimeSieve(RunPrimeSieveRequest) returns (RunPrimeSieveResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
 }
 
 enum FunctionType {
@@ -117,4 +123,12 @@ message WriteCallbackPayloadRequest {
 
 message WriteCallbackPayloadResponse {
   uint64 payload_size = 1;
+}
+
+message RunPrimeSieveRequest {
+  int32 prime_count = 1;
+}
+
+message RunPrimeSieveResponse {
+  int32 largest_prime = 1;
 }
