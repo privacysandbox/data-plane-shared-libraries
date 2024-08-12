@@ -48,10 +48,10 @@ def container_deps():
         },
         # Non-distroless; only for debugging purposes
         "runtime-ubuntu-fulldist-debug-root": {
-            # Ubuntu 20.04 ubuntu:focal-20240216
+            # Ubuntu 20.04 ubuntu:focal-20240530
             "arch_hashes": {
-                "amd64": "48c35f3de33487442af224ed4aabac19fd9bfbd91ee90e9471d412706b20ba73",
-                "arm64": "4aa61d4985265be6d872cc214016f2f91a77b1c925dab5ce502db2edc4a7e5af",
+                "amd64": "d86db849e59626d94f768c679aba441163c996caf7a3426f44924d0239ffe03f",
+                "arm64": "6edb9576e2a2080a42e4e0e9a6bc0bd91a2bf06375f9832d400bf33841d35ece",
             },
             "registry": "docker.io",
             "repository": "library/ubuntu",
@@ -61,7 +61,7 @@ def container_deps():
     [
         oci_pull(
             name = "{}-{}".format(img_name, arch),
-            digest = "sha256:" + hash,
+            digest = "sha256:{}".format(hash),
             image = "{}/{}".format(image["registry"], image["repository"]),
         )
         for img_name, image in images.items()
