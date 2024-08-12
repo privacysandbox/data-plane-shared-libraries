@@ -128,9 +128,6 @@ void RunRomaJsBenchmark(::benchmark::State& state, std::string_view code,
     timing_sum += time;
     state.ResumeTiming();
   }
-
-  absl::Duration avg_time = timing_sum / state.iterations();
-  state.SetLabel(absl::StrCat("Average Time: ", avg_time));
 }
 
 }  // namespace google::scp::roma::benchmark::proto
