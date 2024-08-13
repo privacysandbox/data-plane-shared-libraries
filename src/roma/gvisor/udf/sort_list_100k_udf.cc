@@ -14,11 +14,8 @@
 
 #include <algorithm>
 #include <array>
+#include <iostream>
 
-#include "absl/log/check.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
-#include "absl/strings/numbers.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 
 namespace {
@@ -20030,17 +20027,8 @@ std::array<int, 100'000> items = {
 }  // namespace
 
 int main(int argc, char** argv) {
-  absl::InitializeLog();
-  if (argc < 2) {
-    LOG(ERROR) << "Not enough arguments!";
-    return -1;
-  }
-  int fd;
-  CHECK(absl::SimpleAtoi(argv[1], &fd))
-      << "Conversion of file descriptor string to int failed";
-  SortListRequest{}.ParseFromFileDescriptor(STDIN_FILENO);
+  SortListRequest{}.ParseFromIstream(&std::cin);
   std::sort(items.begin(), items.end());
-  SortListResponse{}.SerializeToFileDescriptor(fd);
-  ::close(fd);
+  SortListResponse{}.SerializeToOstream(&std::cout);
   return 0;
 }
