@@ -61,7 +61,7 @@ class {{$svcName}} final :
   using Mode = privacy_sandbox::server_common::gvisor::Mode;
 
   static absl::StatusOr<{{$svcName}}<TMetadata>> Create(Config config,
-                                                        Mode mode) {
+                                                        Mode mode = Mode::kModeGvisor) {
     PS_ASSIGN_OR_RETURN(std::unique_ptr<AppService> roma_service,
                         AppService::Create(std::move(config), std::move(mode)));
     return {{$svcName}}<TMetadata>(std::move(roma_service));
