@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <unistd.h>
-
 #include <iostream>
 
 #include "absl/log/check.h"
@@ -33,7 +31,7 @@ using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  if (argc < 3) {
+  if (argc < 2) {
     LOG(ERROR) << "Not enough arguments!";
     return -1;
   }
@@ -57,16 +55,12 @@ int main(int argc, char* argv[]) {
   CallbackWriteResponse response;
   response.ParseFromString(callback.io_proto().output_bytes());
 
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
   WriteCallbackPayloadResponse resp;
   int64_t payload_size = 0;
   for (const auto& p : response.payloads()) {
     payload_size += p.size();
   }
   resp.set_payload_size(payload_size);
-  resp.SerializeToFileDescriptor(write_fd);
-  ::close(write_fd);
+  resp.SerializeToOstream(&std::cout);
   return 0;
 }

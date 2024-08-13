@@ -12,8 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <unistd.h>
-
 #include <cmath>
 #include <cstring>
 #include <iostream>
@@ -23,7 +21,6 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
-#include "absl/strings/str_cat.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/host/callback.pb.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
@@ -78,19 +75,16 @@ void RunEchoCallback(int comms_fd) {
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  if (argc < 3) {
-    LOG(ERROR) << "Not enough arguments!";
+  if (argc < 2) {
+    std::cerr << "Not enough arguments!";
     return -1;
   }
   int comms_fd;
-  CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
+  CHECK(absl::SimpleAtoi(argv[1], &comms_fd))
       << "Conversion of comms file descriptor string to int failed";
 
   SampleRequest bin_request;
-  bin_request.ParseFromFileDescriptor(STDIN_FILENO);
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
+  bin_request.ParseFromIstream(&std::cin);
   SampleResponse bin_response;
   switch (bin_request.function()) {
     case FUNCTION_HELLO_WORLD:
@@ -112,7 +106,6 @@ int main(int argc, char* argv[]) {
   }
   PCHECK(::close(comms_fd) == 0);
 
-  bin_response.SerializeToFileDescriptor(write_fd);
-  close(write_fd);
+  bin_response.SerializeToOstream(&std::cout);
   return 0;
 }

@@ -12,10 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "absl/log/check.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
-#include "absl/strings/numbers.h"
+#include <iostream>
+
 #include "src/roma/gvisor/udf/sample.pb.h"
 
 namespace {
@@ -50,19 +48,10 @@ void RunPrimeSieve(int prime_count, RunPrimeSieveResponse& bin_response) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  absl::InitializeLog();
-  if (argc < 2) {
-    LOG(ERROR) << "Not enough arguments!";
-    return -1;
-  }
-  int fd;
-  CHECK(absl::SimpleAtoi(argv[1], &fd))
-      << "Conversion of file descriptor string to int failed";
   RunPrimeSieveRequest request;
-  request.ParseFromFileDescriptor(STDIN_FILENO);
+  request.ParseFromIstream(&std::cin);
   RunPrimeSieveResponse bin_response;
   RunPrimeSieve(request.prime_count(), bin_response);
-  bin_response.SerializeToFileDescriptor(fd);
-  ::close(fd);
+  bin_response.SerializeToOstream(&std::cout);
   return 0;
 }

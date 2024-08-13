@@ -12,27 +12,18 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "absl/log/check.h"
-#include "absl/strings/numbers.h"
+#include <iostream>
+
 #include "src/roma/gvisor/udf/sample.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::SampleRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    std::cout << "Not enough arguments!";
-    return -1;
-  }
   SampleRequest bin_request;
-  bin_request.ParseFromFileDescriptor(STDIN_FILENO);
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
+  bin_request.ParseFromIstream(&std::cin);
   SampleResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
-
-  bin_response.SerializeToFileDescriptor(write_fd);
-  close(write_fd);
+  bin_response.SerializeToOstream(&std::cout);
   return 0;
 }
