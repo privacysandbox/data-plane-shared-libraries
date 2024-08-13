@@ -243,7 +243,7 @@ void BM_LoadBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
+void BM_Load2BinariesAndExecute1stBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
   GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
 
@@ -270,7 +270,7 @@ void BM_LoadTwoBinariesAndExecuteFirstBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
+void BM_Load2BinariesAndExecute2ndBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
   GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
 
@@ -297,7 +297,7 @@ void BM_LoadTwoBinariesAndExecuteSecondBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_ExecuteBinaryAsyncUnaryGrpc(benchmark::State& state) {
+void BM_ExecuteBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
   GvisorSampleService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
@@ -317,7 +317,7 @@ void BM_ExecuteBinaryAsyncUnaryGrpc(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_GvisorCompareCPlusPlusAndGoLangBinary(benchmark::State& state) {
+void BM_ExecuteBinaryCppVsGoLang(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
   GvisorSampleService<> roma_service =
       GetRomaService(Mode::kModeGvisor, /*num_workers=*/2);
@@ -352,7 +352,7 @@ std::string GetSize(int64_t val) {
   return absl::StrCat(val / divisor, unit_qual, "B");
 }
 
-void BM_RequestPayload(benchmark::State& state) {
+void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -399,7 +399,7 @@ void BM_RequestPayload(benchmark::State& state) {
                           payload_size);
 }
 
-void BM_ResponsePayload(benchmark::State& state) {
+void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -447,7 +447,7 @@ void BM_ResponsePayload(benchmark::State& state) {
                           req_payload_size);
 }
 
-void BM_CallbackRequestPayload(benchmark::State& state) {
+void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -500,7 +500,7 @@ void BM_CallbackRequestPayload(benchmark::State& state) {
                           payload_size);
 }
 
-void BM_CallbackResponsePayload(benchmark::State& state) {
+void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -553,7 +553,7 @@ void BM_CallbackResponsePayload(benchmark::State& state) {
                           payload_size);
 }
 
-void BM_PrimeSieveCppUdf(benchmark::State& state) {
+void BM_ExecuteBinaryPrimeSieve(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
   ::privacy_sandbox::server_common::gvisor::Config<> config = {
       .num_workers = 2,
@@ -587,7 +587,7 @@ void BM_PrimeSieveCppUdf(benchmark::State& state) {
   state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
 }
 
-void BM_ExecuteCppSortListUdf(benchmark::State& state) {
+void BM_ExecuteBinarySortList(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
   ::privacy_sandbox::server_common::gvisor::Config<> config = {
       .num_workers = 2,
@@ -636,7 +636,7 @@ BENCHMARK(BM_LoadBinary)
     })
     ->ArgNames({"mode"});
 
-BENCHMARK(BM_GvisorCompareCPlusPlusAndGoLangBinary)
+BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
@@ -647,9 +647,9 @@ BENCHMARK(BM_GvisorCompareCPlusPlusAndGoLangBinary)
             FUNCTION_PRIME_SIEVE,  // Sieve of primes
         },
     })
-    ->ArgNames({"mode", "udf"});
+    ->ArgNames({"lang", "udf"});
 
-BENCHMARK(BM_LoadTwoBinariesAndExecuteFirstBinary)
+BENCHMARK(BM_Load2BinariesAndExecute1stBinary)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
@@ -658,7 +658,7 @@ BENCHMARK(BM_LoadTwoBinariesAndExecuteFirstBinary)
     })
     ->ArgNames({"mode"});
 
-BENCHMARK(BM_LoadTwoBinariesAndExecuteSecondBinary)
+BENCHMARK(BM_Load2BinariesAndExecute2ndBinary)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
@@ -667,7 +667,7 @@ BENCHMARK(BM_LoadTwoBinariesAndExecuteSecondBinary)
     })
     ->ArgNames({"mode"});
 
-BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
+BENCHMARK(BM_ExecuteBinary)
     ->ArgsProduct({
         {
             (int)Mode::kModeGvisor,
@@ -684,7 +684,7 @@ BENCHMARK(BM_ExecuteBinaryAsyncUnaryGrpc)
             0, 1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
         },
     })
-    ->ArgNames({"mode", "udf", "num_pre_warmed_workers"});
+    ->ArgNames({"mode", "udf", "num_workers"});
 
 static void PayloadArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000'000;
@@ -708,9 +708,9 @@ static void PayloadArguments(benchmark::internal::Benchmark* b) {
   }
 }
 
-BENCHMARK(BM_RequestPayload)->Apply(PayloadArguments);
-BENCHMARK(BM_CallbackRequestPayload)->Apply(PayloadArguments);
-BENCHMARK(BM_CallbackResponsePayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ExecuteBinaryRequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ExecuteBinaryCallbackRequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ExecuteBinaryCallbackResponsePayload)->Apply(PayloadArguments);
 
 static void ResponsePayloadArgs(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000;
@@ -733,8 +733,8 @@ static void ResponsePayloadArgs(benchmark::internal::Benchmark* b) {
   }
 }
 
-BENCHMARK(BM_ResponsePayload)->Apply(ResponsePayloadArgs);
-BENCHMARK(BM_PrimeSieveCppUdf)
+BENCHMARK(BM_ExecuteBinaryResponsePayload)->Apply(ResponsePayloadArgs);
+BENCHMARK(BM_ExecuteBinaryPrimeSieve)
     ->ArgsProduct({
         {
             static_cast<int>(Mode::kModeGvisor),
@@ -744,7 +744,7 @@ BENCHMARK(BM_PrimeSieveCppUdf)
     })
     ->ArgNames({"mode", "prime_count"});
 
-BENCHMARK(BM_ExecuteCppSortListUdf)
+BENCHMARK(BM_ExecuteBinarySortList)
     ->ArgsProduct({
         {
             static_cast<int>(Mode::kModeGvisor),
