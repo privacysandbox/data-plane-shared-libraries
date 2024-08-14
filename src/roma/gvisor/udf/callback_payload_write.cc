@@ -36,10 +36,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int comms_fd;
-  CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
+  CHECK(absl::SimpleAtoi(argv[1], &comms_fd))
       << "Conversion of comms file descriptor string to int failed";
   WriteCallbackPayloadRequest req;
-  req.ParseFromFileDescriptor(STDIN_FILENO);
+  req.ParseFromIstream(&std::cin);
   CallbackWriteRequest request;
   request.set_element_size(req.element_size());
   request.set_element_count(req.element_count());
