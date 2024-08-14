@@ -20,9 +20,17 @@ import (
 	pb "github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example"
 	"log"
 	"os"
+	"strconv"
 )
 
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Not enough input arguments")
+	}
+	writeFd, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		log.Fatal("Missing write file descriptor: ", err)
+	}
 	request := &pb.EchoRequest{}
 	buf := make([]byte, 10)
 	// Any initialization work can be done before this point.
@@ -41,14 +49,16 @@ func main() {
 
 	response := &pb.EchoResponse{}
 	response.Message = request.Message
+	writeFile := os.NewFile(uintptr(writeFd), "pipe")
+	defer writeFile.Close()
 	output, err := proto.Marshal(response)
 	if err != nil {
 		log.Fatal("Failed to serialize EchoResponse: ", err)
 	}
 
 	// Once the UDF is done executing, it should write the response (EchoResponse
-	// in this case) to the stdout.
-	_, err = os.Stdout.Write(output)
+	// in this case) to the provided writeFd.
+	_, err = writeFile.Write(output)
 	if err != nil {
 		log.Print("Failed to write output to pipe: ", err)
 	}

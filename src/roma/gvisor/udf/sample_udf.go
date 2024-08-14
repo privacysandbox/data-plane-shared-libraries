@@ -21,6 +21,7 @@ import (
 	"log"
 	"math"
 	"os"
+	"strconv"
 )
 
 const kPrimeCount = 100_000
@@ -56,6 +57,13 @@ func runPrimeSieve(binResponse *pb.SampleResponse) {
 }
 
 func main() {
+	if len(os.Args) < 2 {
+		log.Fatal("Not enough input arguments")
+	}
+	writeFd, err := strconv.Atoi(os.Args[1])
+	if err != nil {
+		log.Fatal("Missing write file descriptor: ", err)
+	}
 	binRequest := &pb.SampleRequest{}
 	buf := make([]byte, 10)
 	reader := bufio.NewReader(os.Stdin)
@@ -77,11 +85,13 @@ func main() {
 		log.Print("Unexpected input")
 		return
 	}
+	writeFile := os.NewFile(uintptr(writeFd), "pipe")
+	defer writeFile.Close()
 	output, err := proto.Marshal(binResponse)
 	if err != nil {
 		log.Fatal("Failed to serialize SampleResponse: ", err)
 	}
-	_, err = os.Stdout.Write(output)
+	_, err = writeFile.Write(output)
 	if err != nil {
 		log.Print("Failed to write output to pipe: ", err)
 	}

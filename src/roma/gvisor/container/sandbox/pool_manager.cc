@@ -157,8 +157,11 @@ int RunWorker(void* worker_arg) {
                           worker_args->prog_path));
   PCHECK(::dup2(worker_args->request_pipe[0], STDIN_FILENO) > -1)
       << "Failed to dup2 request pipe";
-  PCHECK(::dup2(worker_args->response_pipe[1], STDOUT_FILENO) > -1)
-      << "Failed to dup2 response pipe";
+  const std::string response_pipe = [worker_args] {
+    const int response_pipe = ::dup(worker_args->response_pipe[1]);
+    PCHECK(response_pipe > -1) << "Failed to dup reponse pipe";
+    return absl::StrCat(response_pipe);
+  }();
   const std::string comms_fd = [worker_args] {
     const int comms_fd = ::dup(worker_args->comms_fd);
     PCHECK(comms_fd > -1) << "Failed to dup comms fd";
@@ -166,6 +169,7 @@ int RunWorker(void* worker_arg) {
   }();
   const std::vector<const char*> argv = {
       worker_args->prog_path.data(),
+      response_pipe.c_str(),
       comms_fd.c_str(),
       nullptr,
   };

@@ -34,7 +34,14 @@ dependencies.
 
 ## Command-line flags
 
-UDFs are invoked without specifying any command-line flags.
+Command line flags are used to pass communication socket file descriptor(s) to the UDF. The UDF
+communicates over the provided sockets.
+
+The first argument to the UDF is a file descriptor (int) to which the output is written.
+
+For details about how to use the passed flag(s), see
+[communication interface](/docs/roma/byob/sdk/docs/udf/Communication%20Interface.md) doc and
+[examples](/src/roma/gvisor/udf/).
 
 ## gVisor
 

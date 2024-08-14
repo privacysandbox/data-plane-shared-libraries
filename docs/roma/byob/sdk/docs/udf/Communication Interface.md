@@ -12,7 +12,10 @@ Protocol buffer (protobuf) messages are used for requests and responses. These a
 by the protobuf client library for your language can convert protobuf message objects to this binary
 format. For example,
 [in C++](https://protobuf.dev/getting-started/cpptutorial/#parsing-serialization),
-`ParseFromIstream` and `SerializeToOstream`.
+`ParseFromIstream` and `SerializeToFileDescriptor`.
+
+The input is read from standard input and the output is written to the socket provided as the first
+argument to the UDF.
 
 ## Standard streams
 
@@ -22,8 +25,8 @@ The serialized request should be read from stdin.
 
 ### Standard output (stdout)
 
-The serialized response should be written to stdout. It is expected that only the response is
-written to stdout.
+Logs can be written to stdout. Currently, these logs are discarded. However, in future, logs may be
+made available for debugging.
 
 ### Standard error (stderr)
 
@@ -32,34 +35,45 @@ made available for debugging.
 
 ## Example UDF
 
-Largely, a binary's execution can be divided into four stages -
+Largely, a UDF's execution can be divided into four stages -
 
 1. Setup
 
-    During this stage, the binary can initialize any variables, structures it may need. Note that
-    this stage is optional.
+    During this stage, the UDF can initialize any variables, structures it may need. Note that this
+    stage is optional.
 
 1. Blocking read
 
-    As the name suggests, during this stage the binary is expected to wait for input to be written
-    to the STDIN. It can do so using methods like `ParseFromFileDescriptor`.
+    As the name suggests, during this stage the UDF is expected to wait for input to be written to
+    the STDIN. It can do so using methods like `ParseFromFileDescriptor`.
 
 1. Execution
 
-    Leveraging the input, the binary can execute the logic.
+    Leveraging the input, the UDF can execute the logic.
 
 1. Write response
 
-    Once the binary is done executing, the response needs to be written to a socket. The socket fd
-    will be provided as the first argument to the binary. Functions provided by protobuf client
-    library like `SerializeToFileDescriptor` can help with this.
+    Once the UDF is done executing, the response needs to be written to a socket. The socket fd will
+    be provided as the first argument to the UDF. Functions provided by protobuf client library like
+    `SerializeToFileDescriptor` can help with this.
 
-1. Cleanup and exit Close the socket to the binary, perform any cleanup tasks and exit.
+1. Cleanup and exit Close the socket to the UDF, perform any cleanup tasks and exit.
 
 A C++ example showcasing the stages. It can be extrapolated to other coding languages:
 
 ```cpp
 int main(int argc, char* argv[]) {
+  absl::InitializeLog();
+  if (argc < 3) {
+    LOG(ERROR) << "Not enough arguments!";
+    return -1;
+  }
+  int response_fd;
+  // The socket to which response should be written is the first arg to the
+  // UDF.
+  CHECK(absl::SimpleAtoi(argv[1], &response_fd))
+      << "Conversion of response file descriptor from string to int failed";
+
   EchoRequest request;
   // Read request from stdin.
   request.ParseFromIstream(&std::cin);
@@ -68,8 +82,8 @@ int main(int argc, char* argv[]) {
   EchoResponse response;
   response.set_message(request.message());
 
-  // Write response to stdout.
-  response.SerializeToOstream(&std::cout);
+  // Write response to provided response fd.
+  response.SerializeToFileDescriptor(response_fd);
   return 0;
 }
 ```

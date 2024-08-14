@@ -71,5 +71,9 @@ cc_binary(
     ],
     deps = [
         ":example_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
     ],
 )

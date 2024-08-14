@@ -75,12 +75,15 @@ void RunEchoCallback(int comms_fd) {
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  if (argc < 2) {
+  if (argc < 3) {
     std::cerr << "Not enough arguments!";
     return -1;
   }
+  int32_t write_fd;
+  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
+      << "Conversion of write file descriptor string to int failed";
   int comms_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &comms_fd))
+  CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
       << "Conversion of comms file descriptor string to int failed";
 
   SampleRequest bin_request;
@@ -106,6 +109,6 @@ int main(int argc, char* argv[]) {
   }
   PCHECK(::close(comms_fd) == 0);
 
-  bin_response.SerializeToOstream(&std::cout);
+  bin_response.SerializeToFileDescriptor(write_fd);
   return 0;
 }

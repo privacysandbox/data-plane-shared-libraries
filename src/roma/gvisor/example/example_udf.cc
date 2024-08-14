@@ -14,12 +14,24 @@
 
 #include <iostream>
 
+#include "absl/log/check.h"
+#include "absl/log/initialize.h"
+#include "absl/log/log.h"
+#include "absl/strings/numbers.h"
 #include "src/roma/gvisor/example/example.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::example::EchoRequest;
 using ::privacy_sandbox::server_common::gvisor::example::EchoResponse;
 
 int main(int argc, char* argv[]) {
+  absl::InitializeLog();
+  if (argc < 2) {
+    LOG(ERROR) << "Not enough arguments!";
+    return -1;
+  }
+  int32_t write_fd;
+  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
+      << "Conversion of write file descriptor string to int failed";
   EchoRequest request;
   // Any initialization work can be done before this point.
   // The following line will result in a blocking read being performed by the
@@ -32,7 +44,7 @@ int main(int argc, char* argv[]) {
   response.set_message(request.message());
 
   // Once the UDF is done executing, it should write the response (EchoResponse
-  // in this case) to the stdout.
-  response.SerializeToOstream(&std::cout);
+  // in this case) to the provided file descriptor.
+  response.SerializeToFileDescriptor(write_fd);
   return 0;
 }
