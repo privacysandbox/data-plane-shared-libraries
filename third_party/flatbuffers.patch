@@ -1,0 +1,83 @@
+diff --git a/ts/BUILD.bazel b/ts/BUILD.bazel
+index 9bd9f4be..9aef5fdb 100644
+--- a/ts/BUILD.bazel
++++ b/ts/BUILD.bazel
+@@ -1,5 +1,6 @@
+ load("@aspect_rules_js//npm:defs.bzl", "npm_package")
+ load("@aspect_rules_ts//ts:defs.bzl", "ts_project")
++load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
+ 
+ filegroup(
+     name = "distribution",
+@@ -62,19 +63,47 @@ npm_package(
+     visibility = ["//visibility:public"],
+ )
+ 
+-sh_binary(
+-    name = "compile_flat_file",
+-    srcs = ["compile_flat_file.sh"],
+-    data = [
+-        "@com_github_google_flatbuffers//:flatc",
+-        "@nodejs_linux_amd64//:node_bin",
+-    ],
+-    # We just depend directly on the linux amd64 nodejs binary, so only support
+-    # running this script on amd64 for now.
++expand_template(
++    name = "compile_flat_file_sh_amd64",
++    template = "compile_flat_file.sh.tmpl",
++    substitutions = {"{ARCH}": "amd64"},
+     target_compatible_with = [
+         "@platforms//cpu:x86_64",
+-        "@platforms//os:linux",
+     ],
++)
++
++expand_template(
++    name = "compile_flat_file_sh_arm64",
++    template = "compile_flat_file.sh.tmpl",
++    substitutions = {"{ARCH}": "arm64"},
++    target_compatible_with = [
++        "@platforms//cpu:aarch64",
++    ],
++)
++
++alias(
++    name = "compile_flat_file_sh",
++    actual = select({
++        "@platforms//cpu:x86_64": ":compile_flat_file_sh_amd64",
++        "@platforms//cpu:aarch64": ":compile_flat_file_sh_arm64",
++    }),
++)
++
++sh_binary(
++    name = "compile_flat_file",
++    srcs = [":compile_flat_file_sh"],
++    data = select({
++        "@platforms//cpu:x86_64": ["@nodejs_linux_amd64//:node_bin"],
++        "@platforms//cpu:aarch64": ["@nodejs_linux_arm64//:node_bin"],
++        "//conditions:default": [],
++    }) + ["@com_github_google_flatbuffers//:flatc"],
++    # We just depend directly on the linux nodejs binary, so only support
++    # running this script on amd64 or aarch64 for now.
++    target_compatible_with = select({
++        "@platforms//cpu:x86_64": ["@platforms//cpu:x86_64"],
++        "@platforms//cpu:aarch64": ["@platforms//cpu:aarch64"],
++        "//conditions:default": ["@platforms//:incompatible"],
++    }) + ["@platforms//os:linux"],
+     visibility = ["//visibility:public"],
+     deps = ["@bazel_tools//tools/bash/runfiles"],
+ )
+diff --git a/ts/compile_flat_file.sh b/ts/compile_flat_file.sh.tmpl
+similarity index 94%
+rename from ts/compile_flat_file.sh
+rename to ts/compile_flat_file.sh.tmpl
+index 43e0c391..2dc22094 100755
+--- a/ts/compile_flat_file.sh
++++ b/ts/compile_flat_file.sh.tmpl
+@@ -18,5 +18,5 @@ set -eu
+ runfiles_export_envvars
+ FLATC=$(rlocation com_github_google_flatbuffers/flatc)
+ TS_FILE=$(${FLATC}  $@  | grep  "Entry point.*generated" | grep -o "bazel-out.*ts")
+-export PATH="$(rlocation nodejs_linux_amd64/bin/nodejs/bin):${PATH}"
++export PATH="$(rlocation nodejs_linux_{ARCH}/bin/nodejs/bin):${PATH}"
+ ${ESBUILD_BIN} ${TS_FILE} --format=cjs --bundle --outfile="${OUTPUT_FILE}"  --external:flatbuffers --log-level=warning

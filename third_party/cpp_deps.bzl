@@ -176,6 +176,8 @@ def cpp_dependencies():
     maybe(
         http_archive,
         name = "com_github_google_flatbuffers",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:flatbuffers.patch")],
         sha256 = "e706f5eb6ca8f78e237bf3f7eccffa1c5ec9a96d3c1c938f08dc09aab1884528",
         strip_prefix = "flatbuffers-24.3.25",
         urls = ["https://github.com/google/flatbuffers/archive/refs/tags/v24.3.25.zip"],
