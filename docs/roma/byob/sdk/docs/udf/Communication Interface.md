@@ -2,7 +2,7 @@
 
 Communication interfaces provide a way for the UDF to receive a request and send a response.
 
-The communication to/from the UDF takes place over streams and sockets. The following sections will
+The communication to/from the UDF takes place over file descriptors (fd). The following sections
 list the available streams, sockets and the expected communication protocol.
 
 ## Communication protocol
@@ -14,7 +14,7 @@ format. For example,
 [in C++](https://protobuf.dev/getting-started/cpptutorial/#parsing-serialization),
 `ParseFromIstream` and `SerializeToFileDescriptor`.
 
-The input is read from standard input and the output is written to the socket provided as the first
+The input is read from standard input and the output is written to the fd provided as the first
 argument to the UDF.
 
 ## Standard streams
@@ -53,11 +53,13 @@ Largely, a UDF's execution can be divided into four stages -
 
 1. Write response
 
-    Once the UDF is done executing, the response needs to be written to a socket. The socket fd will
-    be provided as the first argument to the UDF. Functions provided by protobuf client library like
+    Once the UDF response is constructed, it needs to be written to an fd. The fd will be provided
+    as the first argument to the UDF. Functions provided by protobuf client library like
     `SerializeToFileDescriptor` can help with this.
 
-1. Cleanup and exit Close the socket to the UDF, perform any cleanup tasks and exit.
+1. Cleanup and exit
+
+    Close the fd passed to the UDF, perform any cleanup tasks then exit.
 
 A C++ example showcasing the stages. It can be extrapolated to other coding languages:
 
@@ -69,8 +71,7 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int response_fd;
-  // The socket to which response should be written is the first arg to the
-  // UDF.
+  // The fist arg is the file descriptor for the UDF response message.
   CHECK(absl::SimpleAtoi(argv[1], &response_fd))
       << "Conversion of response file descriptor from string to int failed";
 
