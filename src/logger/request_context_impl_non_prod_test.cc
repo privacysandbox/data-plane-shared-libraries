@@ -105,6 +105,27 @@ TEST_F(DebugResponseTest, LoggedIfSet) {
                                       "\\(id: 1234\\)[ \t]+", kLogContent))));
 }
 
+TEST_F(DebugResponseTest, NoDebugInfoProvided) {
+  // No DebugInfo is provided but debug_info_config set to true and
+  // matched token is passed
+  test_instance_ = std::make_unique<ContextImpl<>>(
+      absl::btree_map<std::string, std::string>{{"id", "1234"}},
+      matched_token_);
+  SetServerTokenForTestOnly(kServerToken);
+  PS_VLOG(kMaxV, *test_instance_) << kLogContent;
+  EXPECT_THAT(ReadSs(),
+              ContainsRegex(absl::StrCat("\\(id: 1234\\)[ \t]+", kLogContent)));
+
+  // No DebugInfo is provided but debug_info_config set to true with empty token
+  // config
+  test_instance_ = std::make_unique<ContextImpl<>>(
+      absl::btree_map<std::string, std::string>{{"id", "1234"}},
+      debug_info_config_);
+  SetServerTokenForTestOnly(kServerToken);
+  PS_VLOG(kMaxV, *test_instance_) << kLogContent;
+  EXPECT_THAT(ReadSs(), IsEmpty());
+}
+
 TEST_F(DebugResponseTest, EventMessageOn) {
   // debug_info turned on, it will store EventMessage
   {

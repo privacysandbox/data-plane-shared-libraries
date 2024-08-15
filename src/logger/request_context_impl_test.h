@@ -91,11 +91,14 @@ class DebugResponseTest : public ConsentedLogTest {
   void SetUp() override {
     ConsentedLogTest::SetUp();
     debug_info_config_.set_is_debug_info_in_response(true);
+    matched_token_debug_info_set_true_ = matched_token_;
+    matched_token_debug_info_set_true_.set_is_debug_info_in_response(true);
   }
 
   bool accessed_debug_info_ = false;
   DebugInfo debug_info_;
-  ConsentedDebugConfiguration debug_info_config_;
+  ConsentedDebugConfiguration debug_info_config_,
+      matched_token_debug_info_set_true_;
 };
 
 class MockEventMessageProvider {

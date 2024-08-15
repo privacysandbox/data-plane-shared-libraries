@@ -185,7 +185,10 @@ class ContextImpl final : public PSLogContext {
         : debug_info_(std::move(debug_info)) {}
 
     void Send(const absl::LogEntry& entry) override {
-      debug_info_()->add_logs(entry.text_message_with_prefix());
+      DebugInfo* debug_info_ptr = debug_info_();
+      if (debug_info_ptr != nullptr) {
+        debug_info_ptr->add_logs(entry.text_message_with_prefix());
+      }
     }
 
     void Flush() override {}
