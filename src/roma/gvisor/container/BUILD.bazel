@@ -17,6 +17,12 @@ load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/gvisor/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
 
+filegroup(
+    name = "container_config",
+    srcs = ["config.json"],
+    visibility = ["//visibility:public"],
+)
+
 pkg_files(
     name = "gvisor_execs",
     srcs = select({
@@ -87,19 +93,35 @@ genrule(
         "gvisor_server_container.tar",
     ],
     cmd_bash = """
-rm -rf "{roma_container_dir}"
 docker load -i "$(location :gvisor_server_image_tarball)"
 docker create --privileged --name "{container_name}" "{image_uri}"
-mkdir "{roma_container_dir}"
-cp "$(location config.json)" "{roma_container_dir}"/
-mkdir --mode=755 "{roma_container_dir}"/"{roma_container_root_dir}"
-docker export "{container_name}" \
-  | tar -xf - -C "{roma_container_dir}"/"{roma_container_root_dir}"/ --same-owner --same-permissions
-tar cfz $@ "{roma_container_dir}"/
+docker export "{container_name}" -o $@
 docker rm "{container_name}"
 """.format(
         container_name = "gvisor_server_container",
         image_uri = _server_image,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "gen_gvisor_server_container_with_dir_tar",
+    srcs = [
+        ":gvisor_server_container.tar",
+        ":config.json",
+    ],
+    outs = [
+        "gvisor_server_container_with_dir.tar",
+    ],
+    cmd_bash = """
+rm -rf /"{roma_container_dir}"
+mkdir /"{roma_container_dir}"
+cp "$(location config.json)" /"{roma_container_dir}"/
+mkdir --mode=755 /"{roma_container_dir}"/"{roma_container_root_dir}"
+tar -xf "$(location gvisor_server_container.tar)" -C /"{roma_container_dir}"/"{roma_container_root_dir}"/
+tar cfz $@ -C / "{roma_container_dir}"/
+""".format(
+        container_name = "gvisor_server_container",
         roma_container_dir = roma_container_dir,
         roma_container_root_dir = roma_container_root_dir,
     ),

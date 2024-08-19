@@ -50,7 +50,7 @@ def gvisor_image(
         entrypoint = entrypoint,
         tars = [
             "//src/roma/gvisor/container:gvisor_tar",
-            "//src/roma/gvisor/container:gvisor_server_container.tar",
+            "//src/roma/gvisor/container:gvisor_server_container_with_dir.tar",
         ] + layer_tars + [
             ":{}_sample_udf_tar".format(name),
         ],

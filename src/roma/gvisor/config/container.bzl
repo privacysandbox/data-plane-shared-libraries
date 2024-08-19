@@ -15,6 +15,6 @@
 """
 Defines constants used by gVisor Roma container
 """
-roma_container_dir = "/roma_container"
+roma_container_dir = "roma_container"
 
 roma_container_root_dir = "rootfs"
