@@ -12,22 +12,27 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/roma/gvisor/utility/utils.h"
+#include "src/roma/gvisor/utility/udf_blob.h"
 
 #include <stdlib.h>
 
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <string>
+#include <utility>
 
 #include "absl/log/log.h"
+#include "absl/memory/memory.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "src/util/status_macro/status_macros.h"
 
 namespace privacy_sandbox::server_common::gvisor {
 
-absl::StatusOr<std::filesystem::path> WriteBlobToFile(std::string blob) {
+namespace {
+absl::StatusOr<std::filesystem::path> CreateFileFromBlob(std::string blob) {
   char tmpfile[] = "/tmp/roma_gvisor_XXXXXX";
   char* filename = ::mktemp(tmpfile);
   if (filename == nullptr || *filename == '\0') {
@@ -55,5 +60,21 @@ absl::Status DeleteFile(std::filesystem::path& file_path) {
         "Failed to delete ", file_path.c_str(), " with error ", ec.message()));
   }
   return absl::OkStatus();
+}
+}  // namespace
+
+absl::StatusOr<UdfBlob> UdfBlob::Create(std::string blob) {
+  PS_ASSIGN_OR_RETURN(std::filesystem::path file_path,
+                      CreateFileFromBlob(std::move(blob)));
+  return UdfBlob(std::move(file_path));
+}
+
+UdfBlob::~UdfBlob() {
+  if (file_path_.empty()) {
+    return;
+  }
+  if (auto status = DeleteFile(file_path_); !status.ok()) {
+    LOG(ERROR) << status;
+  }
 }
 }  // namespace privacy_sandbox::server_common::gvisor

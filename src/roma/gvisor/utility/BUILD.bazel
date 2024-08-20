@@ -15,12 +15,14 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
-    name = "utils",
-    srcs = ["utils.cc"],
-    hdrs = ["utils.h"],
+    name = "udf_blob",
+    srcs = ["udf_blob.cc"],
+    hdrs = ["udf_blob.h"],
     visibility = ["//visibility:public"],
     deps = [
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/log",
+        "@com_google_absl//absl/memory",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
@@ -28,10 +30,10 @@ cc_library(
 )
 
 cc_test(
-    name = "utils_test",
-    srcs = ["utils_test.cc"],
+    name = "udf_blob_test",
+    srcs = ["udf_blob_test.cc"],
     deps = [
-        ":utils",
+        ":udf_blob",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest",
