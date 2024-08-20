@@ -23,6 +23,7 @@
 
 #include <grpcpp/channel.h>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 
 namespace privacy_sandbox::server_common::gvisor {
