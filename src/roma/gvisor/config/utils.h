@@ -44,7 +44,8 @@ absl::StatusOr<std::filesystem::path> CreateUniqueSocketName();
 absl::Status HealthCheckWithExponentialBackoff(
     std::shared_ptr<grpc::Channel> channel);
 
-absl::Status CopyFile(std::string_view src, std::string_view dest_dir,
+absl::Status CopyFile(std::filesystem::path& src,
+                      std::filesystem::path& dest_dir,
                       std::string_view dest_file_name);
 
 }  // namespace privacy_sandbox::server_common::gvisor

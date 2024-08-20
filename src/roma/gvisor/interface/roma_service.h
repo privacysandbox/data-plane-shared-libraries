@@ -80,7 +80,7 @@ class RomaService final {
     return absl::WrapUnique(new RomaService(
         std::move(roma_interface), std::move(config.function_bindings),
         config_internal.callback_socket, std::move(channel),
-        config_internal.prog_dir));
+        std::filesystem::path(config_internal.prog_dir)));
   }
 
   /**
@@ -99,7 +99,7 @@ class RomaService final {
    * can be used for calling this binary in subsequent execute requests.
    * @return absl::StatusOr<std::string> returns the code_token.
    */
-  absl::StatusOr<std::string> LoadBinary(std::string_view code_path,
+  absl::StatusOr<std::string> LoadBinary(std::filesystem::path code_path,
                                          absl::Notification& notif,
                                          absl::Status& load_status) {
     std::string code_token_str = ::google::scp::core::common::ToString(
@@ -208,7 +208,7 @@ class RomaService final {
   ::google::scp::roma::metadata_storage::MetadataStorage<TMetadata>
       metadata_storage_;
   std::unique_ptr<RomaGvisorService::Stub> stub_;
-  std::string prog_dir_;
+  std::filesystem::path prog_dir_;
   std::unique_ptr<RomaInterface> roma_interface_;
   std::unique_ptr<NativeFunctionHandler<TMetadata>> native_function_handler_;
 };

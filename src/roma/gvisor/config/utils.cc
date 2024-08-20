@@ -108,16 +108,16 @@ absl::Status HealthCheckWithExponentialBackoff(
   return absl::DeadlineExceededError("Server did not startup in time");
 }
 
-absl::Status CopyFile(std::string_view src, std::string_view dest_dir,
+absl::Status CopyFile(std::filesystem::path& src,
+                      std::filesystem::path& dest_dir,
                       std::string_view dest_file_name) {
-  std::filesystem::path dest = std::filesystem::path(dest_dir) / dest_file_name;
-  if (std::error_code ec;
-      !std::filesystem::copy_file(std::filesystem::path(src), dest, ec)) {
+  std::filesystem::path dest = dest_dir / dest_file_name;
+  if (std::error_code ec; !std::filesystem::copy_file(src, dest, ec)) {
     LOG(ERROR) << "Failed to copy " << src << " to " << dest << " with error "
                << ec.message() << std::endl;
-    return absl::InternalError(absl::StrCat("Failed to copy ", src, " to ",
-                                            dest.c_str(), " with error ",
-                                            ec.message()));
+    return absl::InternalError(absl::StrCat("Failed to copy ", src.c_str(),
+                                            " to ", dest.c_str(),
+                                            " with error ", ec.message()));
   }
   return absl::OkStatus();
 }

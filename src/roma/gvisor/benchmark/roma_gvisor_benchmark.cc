@@ -105,7 +105,7 @@ std::string LoadCode(GvisorSampleService<>& roma_service,
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(file_path.string(), notif, notif_status);
+      roma_service.Register(file_path, notif, notif_status);
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
   CHECK_OK(notif_status);
