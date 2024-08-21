@@ -142,15 +142,13 @@ class RomaService final {
    * @param request serialized proto for the binary.
    * @param metadata for execution request. It is a templated type.
    * @param populate_response invoked once the response is available.
-   * @param notif notifies that execution_status is available.
    * @return absl::Status
    */
   absl::Status ExecuteBinary(
       std::string_view code_token, std::string request, TMetadata metadata,
       std::function<void(::grpc::Status status,
                          const std::string& serialized_response)>
-          populate_response,
-      absl::Notification& notif) {
+          populate_response) {
     std::string request_id = google::scp::core::common::ToString(
         google::scp::core::common::Uuid::GenerateUuid());
     PS_RETURN_IF_ERROR(metadata_storage_.Add(request_id, metadata));
@@ -176,9 +174,6 @@ class RomaService final {
              std::move(populate_response)](::grpc::Status status) {
           populate_response(std::move(status),
                             exec_args->response.serialized_response());
-          // Once response and execution_status have been populated, notify that
-          // execution has been completed.
-          notif.Notify();
           // Post-execution cleanup.
           // Delete metadata from storage.
           if (!metadata_storage_.Delete(request_id).ok()) {

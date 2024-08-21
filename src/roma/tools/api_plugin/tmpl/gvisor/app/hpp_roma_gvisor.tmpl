@@ -122,7 +122,7 @@ class {{$svcName}} final :
         // TODO: ashruti - See if it makes sense to map code token to a
         // rpc.Name when loading and call the function using the RPC name.
         code_token, request.SerializeAsString(), std::move(metadata),
-        [&response](::grpc::Status status,
+        [&response, &notification](::grpc::Status status,
                     const std::string& serialized_response) {
           if (status.ok()) {
             // If response is uninitialized, initialize it with a unique_ptr.
@@ -136,8 +136,10 @@ class {{$svcName}} final :
           } else {
             response = privacy_sandbox::server_common::ToAbslStatus(status);
           }
-        },
-        notification);
+          // Once response has been populated, notify that
+          // execution has been completed.
+          notification.Notify();
+        });
   }
 
   absl::Status {{$rpc.Name}}(
@@ -145,7 +147,24 @@ class {{$svcName}} final :
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    return absl::UnimplementedError("Callback-based {{$rpc.Name}} cannot be used with BYOB");
+    return roma_service_->ExecuteBinary(
+        code_token, request.SerializeAsString(), std::move(metadata),
+        [&callback](::grpc::Status status,
+                    const std::string& serialized_response) {
+          absl::StatusOr<{{$respType}}> response;
+          if (status.ok()) {
+            {{$respType}} response_proto;
+            if (!response_proto.ParseFromString(serialized_response)) {
+              response = absl::InternalError(
+                  "Failed to deserialize response to proto");
+            } else {
+              response = std::move(response_proto);
+            }
+          } else {
+            response = ::privacy_sandbox::server_common::ToAbslStatus(status);
+          }
+          callback(response);
+        });
   }
 {{end}}
 

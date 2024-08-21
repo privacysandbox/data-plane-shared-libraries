@@ -317,6 +317,43 @@ void BM_ExecuteBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
+void BM_ExecuteBinaryUsingCallback(benchmark::State& state) {
+  Mode mode = static_cast<Mode>(state.range(0));
+  GvisorSampleService<> roma_service =
+      GetRomaService(mode, /*num_workers=*/state.range(2));
+
+  const std::filesystem::path base_path(kUdfPath);
+  std::string code_token =
+      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
+
+  FunctionType func_type = static_cast<FunctionType>(state.range(1));
+  // Data we are sending to the server.
+  SampleRequest bin_request;
+  bin_request.set_function(func_type);
+
+  const auto rpc = [&roma_service](const auto& bin_request,
+                                   std::string_view code_token) {
+    absl::Notification notif;
+    absl::StatusOr<SampleResponse> bin_response;
+    auto callback = [&notif,
+                     &bin_response](absl::StatusOr<SampleResponse> resp) {
+      bin_response = std::move(resp);
+      notif.Notify();
+    };
+    CHECK_OK(roma_service.Sample(callback, bin_request,
+                                 /*metadata=*/{}, code_token));
+    CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+    CHECK_OK(bin_response);
+  };
+  rpc(bin_request, code_token);
+
+  for (auto s : state) {
+    rpc(bin_request, code_token);
+  }
+  state.SetLabel(
+      absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
+}
+
 void BM_ExecuteBinaryCppVsGoLang(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
   GvisorSampleService<> roma_service =
@@ -627,6 +664,24 @@ void BM_ExecuteBinarySortList(benchmark::State& state) {
   state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
 }
 
+BENCHMARK(BM_ExecuteBinaryUsingCallback)
+    ->ArgsProduct({
+        {
+            (int)Mode::kModeGvisor,
+            (int)Mode::kModeLocal,
+        },
+        {
+            FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
+            FUNCTION_PRIME_SIEVE,               // Sieve of primes
+            FUNCTION_CALLBACK,                  // Generic callback hook
+            FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
+                                                // callback hook
+        },
+        {
+            0, 1, 10,  // Number of pre-warmed workers
+        },
+    })
+    ->ArgNames({"mode", "udf", "num_workers"});
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
