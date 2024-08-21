@@ -39,7 +39,7 @@ execution of arbitrary binaries written in any language.
 
     container_layer(
         name = "gvisor_config_layer",
-        directory = "/{}".format(roma_container_dir),
+        directory = "{}".format(roma_container_dir),
           tars = [
             ":gvisor_config_tar",
           ],
@@ -47,7 +47,7 @@ execution of arbitrary binaries written in any language.
 
     container_layer(
         name = "gvisor_server_container_layer",
-        directory = "/{roma_container_dir}/{root_dir}".format(roma_container_dir = roma_container_dir, root_dir = roma_container_root_dir),
+        directory = "{roma_container_dir}/{root_dir}".format(roma_container_dir = roma_container_dir, root_dir = roma_container_root_dir),
         tars = [
           "@google_privacysandbox_servers_common//src/roma/gvisor/container:gvisor_server_container.tar",
         ],

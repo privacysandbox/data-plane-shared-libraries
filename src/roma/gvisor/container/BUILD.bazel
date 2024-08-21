@@ -114,12 +114,12 @@ genrule(
         "gvisor_server_container_with_dir.tar",
     ],
     cmd_bash = """
-rm -rf /"{roma_container_dir}"
-mkdir /"{roma_container_dir}"
-cp "$(location config.json)" /"{roma_container_dir}"/
-mkdir --mode=755 /"{roma_container_dir}"/"{roma_container_root_dir}"
-tar -xf "$(location gvisor_server_container.tar)" -C /"{roma_container_dir}"/"{roma_container_root_dir}"/
-tar cfz $@ -C / "{roma_container_dir}"/
+rm -rf "{roma_container_dir}"
+mkdir "{roma_container_dir}"
+cp "$(location config.json)" "{roma_container_dir}"/
+mkdir --mode=755 "{roma_container_dir}"/"{roma_container_root_dir}"
+tar -xf "$(location gvisor_server_container.tar)" -C "{roma_container_dir}"/"{roma_container_root_dir}"/
+tar cfz $@ "{roma_container_dir}"/
 """.format(
         container_name = "gvisor_server_container",
         roma_container_dir = roma_container_dir,
