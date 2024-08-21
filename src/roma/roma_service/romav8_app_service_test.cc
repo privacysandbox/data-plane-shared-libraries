@@ -26,9 +26,9 @@
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
-#include "src/roma/interface/execution_token.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/helloworld.pb.h"
+#include "src/util/execution_token.h"
 
 using google::scp::roma::ExecutionToken;
 using ::testing::ElementsAreArray;

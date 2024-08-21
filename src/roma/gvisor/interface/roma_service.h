@@ -40,9 +40,9 @@
 #include "src/roma/gvisor/interface/roma_gvisor.h"
 #include "src/roma/gvisor/interface/roma_interface.h"
 #include "src/roma/gvisor/interface/roma_local.h"
-#include "src/roma/interface/execution_token.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
+#include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 #include "src/util/status_macro/status_util.h"
 

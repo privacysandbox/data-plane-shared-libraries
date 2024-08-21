@@ -86,10 +86,10 @@ cc_library(
         ":native_function_table",
         ":rpc_wrapper_cc_proto",
         "//src/roma/interface",
-        "//src/roma/interface:execution_token",
         "//src/roma/logging",
         "//src/roma/metadata_storage",
         "//src/roma/sandbox/constants",
+        "//src/util:execution_token",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )

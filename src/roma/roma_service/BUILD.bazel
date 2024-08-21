@@ -24,7 +24,6 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         "//src/core/os/linux:system_resource_info_provider_linux",
-        "//src/roma/interface:execution_token",
         "//src/roma/logging",
         "//src/roma/metadata_storage",
         "//src/roma/native_function_grpc_server",
@@ -33,6 +32,7 @@ cc_library(
         "//src/roma/sandbox/dispatcher",
         "//src/roma/sandbox/native_function_binding:native_function_handler_sapi_ipc",
         "//src/roma/sandbox/native_function_binding:native_function_table",
+        "//src/util:execution_token",
         "//src/util/status_macro:status_macros",
     ],
 )
