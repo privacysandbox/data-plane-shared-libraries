@@ -26,9 +26,9 @@ load(
     "declare_roma_api",
     "js_proto_library",
     "roma_host_api_cc_library",
-    "roma_sdk",
     "roma_service_js_library",
     "roma_v8_app_api_cc_library",
+    "roma_v8_sdk",
 )
 
 cc_library(
@@ -217,7 +217,7 @@ roma_v8_app_api_cc_library(
     visibility = ["//visibility:public"],
 )
 
-roma_sdk(
+roma_v8_sdk(
     name = "test_service_sdk",
     srcs = [
         ":test_service_js",

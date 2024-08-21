@@ -20,9 +20,9 @@ load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
     "declare_roma_api",
     "js_proto_library",
-    "roma_sdk",
     "roma_service_js_library",
     "roma_v8_app_api_cc_library",
+    "roma_v8_sdk",
 )
 
 proto_library(
@@ -84,7 +84,7 @@ roma_v8_app_api_cc_library(
     visibility = ["//visibility:public"],
 )
 
-roma_sdk(
+roma_v8_sdk(
     name = "sample_1_sdk",
     srcs = [
         ":sample_1_js",

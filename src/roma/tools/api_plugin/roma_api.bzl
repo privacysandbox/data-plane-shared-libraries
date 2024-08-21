@@ -476,7 +476,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], **kwargs):
+def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -511,4 +511,39 @@ def roma_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_a
             ":{}_doc_artifacts".format(name),
         ],
         package_dir = "/{}".format(name),
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+    )
+
+def roma_byob_sdk(*, name, srcs, byob_app_api_cc_library, **kwargs):
+    """
+    Top-level macro for the Roma BYOB SDK.
+
+    Generates a bundle of SDK artifacts for the specified Roma BYOB API.
+
+    Args:
+        name: name of sdk target, basename of ancillary targets.
+        srcs: label list of targets to include.
+        byob_app_api_cc_library: label of the associated byob_app_api_cc_library target.
+        **kwargs: attributes common to bazel build rules.
+
+    Targets:
+        <name>_doc_artifacts -- docs pkg_files
+        <name> -- sdk pkg_zip
+    """
+
+    pkg_files(
+        name = name + "_doc_artifacts",
+        srcs = ["{}_docs".format(byob_app_api_cc_library)],
+        prefix = "docs",
+    )
+
+    pkg_zip(
+        name = name,
+        srcs = srcs + [
+            "{}".format(byob_app_api_cc_library),
+            "{}_roma_byob_app_header".format(byob_app_api_cc_library),
+            ":{}_doc_artifacts".format(name),
+        ],
+        package_dir = "/{}".format(name),
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
