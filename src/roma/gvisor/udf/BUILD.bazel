@@ -16,7 +16,6 @@ load(
     "@com_google_googleapis_imports//:imports.bzl",
     "cc_proto_library",
 )
-load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
@@ -25,9 +24,7 @@ load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
     "declare_roma_api",
-    "js_proto_library",
-    "roma_app_api_cc_library",
-    "roma_service_js_library",
+    "roma_byob_app_api_cc_library",
 )
 
 proto_library(
@@ -263,31 +260,8 @@ sample_api = declare_roma_api(
     protos = [":sample_proto"],
 )
 
-js_proto_library(
-    name = "sample_js_proto_lib",
-    roma_api = sample_api,
-)
-
-roma_service_js_library(
-    name = "sample_js_library",
-    roma_app_api = sample_api,
-    deps = [":sample_js_proto_lib"],
-)
-
-closure_js_binary(
-    name = "sample_js",
-    compilation_level = "SIMPLE_OPTIMIZATIONS",
-    debug = False,
-    formatting = "PRETTY_PRINT",
-    language = "ECMASCRIPT_NEXT",
-    deps = [
-        ":sample_js_library",
-    ],
-)
-
-roma_app_api_cc_library(
+roma_byob_app_api_cc_library(
     name = "sample_roma_api",
-    js_library = ":sample_js",
     roma_app_api = sample_api,
     tags = [
         "noasan",

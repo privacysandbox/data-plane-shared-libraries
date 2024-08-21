@@ -21,8 +21,8 @@ load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
     "declare_roma_api",
     "js_proto_library",
-    "roma_app_api_cc_library",
     "roma_service_js_library",
+    "roma_v8_app_api_cc_library",
 )
 
 json_converter(
@@ -117,7 +117,7 @@ closure_js_binary(
     ],
 )
 
-roma_app_api_cc_library(
+roma_v8_app_api_cc_library(
     name = "benchmark_service_roma_app_api",
     js_library = ":benchmark_service_js",
     roma_app_api = benchmark_service_app_api,

@@ -20,9 +20,9 @@ load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
     "declare_roma_api",
     "js_proto_library",
-    "roma_app_api_cc_library",
     "roma_sdk",
     "roma_service_js_library",
+    "roma_v8_app_api_cc_library",
 )
 
 proto_library(
@@ -73,7 +73,7 @@ closure_js_binary(
     ],
 )
 
-roma_app_api_cc_library(
+roma_v8_app_api_cc_library(
     name = "sample_1_roma_api",
     js_library = ":sample_1_js",
     roma_app_api = sample_1_api,
