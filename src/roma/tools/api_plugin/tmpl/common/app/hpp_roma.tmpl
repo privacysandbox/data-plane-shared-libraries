@@ -31,18 +31,16 @@
 #include "src/roma/config/function_binding_object_v2.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
 
+#include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "src/roma/interface/roma.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 
 namespace {{$svcopts.CppNamespace}} {
-
-using Callback = google::scp::roma::Callback;
 
 /*
  * service: {{$svc.FullName}}
@@ -68,7 +66,7 @@ class {{$svc.Name}} {
       std::string_view code_token = "") = 0;
 
   virtual absl::Status {{$rpc.Name}}(
-      Callback callback,
+      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") = 0;

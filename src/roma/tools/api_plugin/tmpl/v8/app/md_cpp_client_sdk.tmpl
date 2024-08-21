@@ -67,7 +67,7 @@ class {{$svc.Name}} : public google::scp::roma::romav8::app_api::RomaV8AppServic
       TMetadata metadata = TMetadata());
 
   absl::Status {{$rpc.Name}}(
-      google::scp::roma::Callback callback,
+      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata());
 {{- end}}

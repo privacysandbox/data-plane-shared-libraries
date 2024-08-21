@@ -22,6 +22,7 @@
 #include <string_view>
 #include <utility>
 
+#include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
@@ -91,6 +92,16 @@ class RomaV8AppService {
                        const TRequest& request,
                        absl::StatusOr<std::unique_ptr<TResponse>>& response,
                        TMetadata metadata = TMetadata()) {
+    PS_ASSIGN_OR_RETURN(std::string encoded_request,
+                        google::scp::roma::romav8::Encode(request));
+    InvocationStrRequest<TMetadata> execution_obj = {
+        .id = code_id_,
+        .version_string = std::string(code_version_),
+        .handler_name = std::string(handler_fn_name),
+        .input = {encoded_request},
+        .treat_input_as_byte_str = true,
+        .metadata = std::move(metadata),
+    };
     auto execute_cb = [&response,
                        &notification](absl::StatusOr<ResponseObject> resp) {
       if (resp.ok()) {
@@ -111,14 +122,17 @@ class RomaV8AppService {
       }
       notification.Notify();
     };
-    return Execute(std::move(execute_cb), handler_fn_name, request,
-                   std::move(metadata));
+    return roma_service_->Execute(
+        std::make_unique<InvocationStrRequest<TMetadata>>(
+            std::move(execution_obj)),
+        std::move(execute_cb));
   }
 
-  template <typename TRequest>
-  absl::Status Execute(Callback callback, std::string_view handler_fn_name,
-                       const TRequest& request,
-                       TMetadata metadata = TMetadata()) {
+  template <typename TRequest, typename TResponse>
+  absl::Status Execute(
+      absl::AnyInvocable<void(absl::StatusOr<TResponse>)> callback,
+      std::string_view handler_fn_name, const TRequest& request,
+      TMetadata metadata = TMetadata()) {
     LOG(INFO) << "code id: " << code_id_;
     LOG(INFO) << "code version: " << code_version_;
     LOG(INFO) << "handler fn: " << handler_fn_name;
@@ -135,10 +149,33 @@ class RomaV8AppService {
         .metadata = std::move(metadata),
     };
 
+    Callback callback_wrapper =
+        [callback =
+             std::move(callback)](absl::StatusOr<ResponseObject> resp) mutable {
+          absl::StatusOr<TResponse> template_response;
+          if (resp.ok()) {
+            auto response_obj = TResponse();
+            if (absl::Status decode =
+                    google::scp::roma::romav8::Decode(resp->resp, response_obj);
+                decode.ok()) {
+              template_response = std::move(response_obj);
+            } else {
+              const std::string error_msg = absl::StrCat(
+                  "Error decoding response. response: ", resp->resp);
+              LOG(ERROR) << error_msg;
+              template_response = absl::InternalError(error_msg);
+            }
+          } else {
+            LOG(ERROR) << "Error in Roma Execute()";
+            template_response = resp.status();
+          }
+          callback(std::move(template_response));
+        };
+
     return roma_service_->Execute(
         std::make_unique<InvocationStrRequest<TMetadata>>(
             std::move(execution_obj)),
-        std::move(callback));
+        std::move(callback_wrapper));
   }
 
  protected:

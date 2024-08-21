@@ -37,6 +37,7 @@
 #include "src/util/status_macro/status_macros.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
 
+#include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
@@ -140,11 +141,10 @@ class {{$svcName}} final :
   }
 
   absl::Status {{$rpc.Name}}(
-      Callback callback,
+      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    absl::Notification execute_finished;
     return absl::UnimplementedError("Callback-based {{$rpc.Name}} cannot be used with BYOB");
   }
 {{end}}

@@ -393,6 +393,7 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
             Label("//src/roma/roma_service:romav8_app_service"),
             Label("//src/roma/gvisor/interface:roma_service"),
             Label("//src/roma/gvisor/config"),
+            "@com_google_absl//absl/functional:any_invocable",
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
         ],

@@ -17,6 +17,7 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/time/time.h"
 
@@ -68,7 +69,7 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   GetSample2Request req;
   absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
   ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
-  completed.WaitForNotificationWithTimeout(kDefaultTimeout);
+  ASSERT_TRUE(completed.WaitForNotificationWithTimeout(kDefaultTimeout));
 
   ASSERT_TRUE(resp.ok());
   EXPECT_THAT((*resp)->vals(), Contains("Hi Foobar!"));
@@ -106,7 +107,7 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   GetSample2Request req;
   absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
   ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
-  completed.WaitForNotificationWithTimeout(kDefaultTimeout);
+  ASSERT_TRUE(completed.WaitForNotificationWithTimeout(kDefaultTimeout));
 
   ASSERT_TRUE(resp.ok());
   EXPECT_THAT((*resp)->vals(), IsEmpty());
@@ -154,7 +155,7 @@ TEST(RomaV8AppTest, EncodeDecodeRepeatedMessageProtobuf) {
   GetSample2Request req;
   absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
   ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
-  completed.WaitForNotificationWithTimeout(kDefaultTimeout);
+  ASSERT_TRUE(completed.WaitForNotificationWithTimeout(kDefaultTimeout));
 
   ASSERT_TRUE(resp.ok());
   EXPECT_THAT((*resp)->vals_size(), Eq(4));
@@ -193,11 +194,54 @@ TEST(RomaV8AppTest, UseRequestField) {
   req.add_keys("Foobar");
   absl::StatusOr<std::unique_ptr<GetSample2Response>> resp;
   ASSERT_TRUE(app_svc->GetSample2(completed, req, resp).ok());
-  completed.WaitForNotificationWithTimeout(kDefaultTimeout);
+  ASSERT_TRUE(completed.WaitForNotificationWithTimeout(kDefaultTimeout));
 
   ASSERT_TRUE(resp.ok());
   EXPECT_THAT((*resp)->vals(), Contains("Hi Foobar!"));
   EXPECT_THAT((*resp)->value(), StrEq("Something in the reply"));
+}
+
+TEST(RomaV8AppTest, CallbackBasedExecute) {
+  google::scp::roma::Config config;
+  config.number_of_workers = 2;
+  auto app_svc = V8Sample2Service<>::Create(std::move(config));
+  EXPECT_TRUE(app_svc.ok());
+
+  constexpr std::string_view jscode = R"(
+    Sample2Server.GetSample2 = function(req) {
+      return {
+        value: "Something in the reply",
+        vals: ["Hi " + req.keysList[0] + "!"],
+      };
+    };
+  )";
+  absl::Notification register_finished;
+  absl::Status register_status;
+  ASSERT_TRUE(
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
+  register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
+  EXPECT_TRUE(register_status.ok());
+
+  GetSample2Request req;
+  req.set_key1("abc123");
+  req.set_key2("def123");
+  req.add_keys("Foobar");
+
+  absl::Notification completed;
+  absl::StatusOr<GetSample2Response> response;
+  auto callback = [&response,
+                   &completed](absl::StatusOr<GetSample2Response> resp) {
+    response = std::move(resp);
+    completed.Notify();
+  };
+  ASSERT_TRUE(app_svc->GetSample2(callback, req).ok());
+  ASSERT_TRUE(completed.WaitForNotificationWithTimeout(kDefaultTimeout));
+
+  ASSERT_TRUE(response.ok());
+  EXPECT_THAT(response->vals(), Contains("Hi Foobar!"));
+  EXPECT_THAT(response->value(), StrEq("Something in the reply"));
 }
 
 }  // namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest

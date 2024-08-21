@@ -95,6 +95,12 @@
       absl::Notification& notification, const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "");
+
+  absl::Status {{$rpc.Name}}(
+      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
+      const {{$reqType}}& request,
+      TMetadata metadata = TMetadata(),
+      std::string_view code_token);
 {{end}}
 
 };
