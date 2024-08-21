@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.68.1 (2024-08-21)
+
+### Bug Fixes
+
+* Fix load bazel_tools import for Python deps
+
+## 0.68.0 (2024-08-21)
+
+
+### Features
+
+* **deps:** Split python deps and registering toolchains
+* **deps:** Update rules_python to 0.35.0
+
 ## 0.67.0 (2024-07-31)
 
 

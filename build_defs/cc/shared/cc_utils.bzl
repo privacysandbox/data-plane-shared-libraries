@@ -44,9 +44,9 @@ def cc_utils():
     maybe(
         http_archive,
         name = "rules_fuzzing",
-        sha256 = "a5734cb42b1b69395c57e0bbd32ade394d5c3d6afbfe782b24816a96da24660d",
-        strip_prefix = "rules_fuzzing-0.1.1",
-        urls = ["https://github.com/bazelbuild/rules_fuzzing/archive/v0.1.1.zip"],
+        sha256 = "e6bc219bfac9e1f83b327dd090f728a9f973ee99b9b5d8e5a184a2732ef08623",
+        strip_prefix = "rules_fuzzing-0.5.2",
+        urls = ["https://github.com/bazelbuild/rules_fuzzing/archive/v0.5.2.zip"],
     )
 
     maybe(

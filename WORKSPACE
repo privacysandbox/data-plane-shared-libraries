@@ -1,8 +1,10 @@
 workspace(name = "google_privacysandbox_servers_common")
 
-load("//builders/bazel:deps.bzl", "python_deps")
+load("//builders/bazel:deps.bzl", "python_deps", "python_register_toolchains")
 
-python_deps("//builders/bazel")
+python_deps()
+
+python_register_toolchains("//builders/bazel")
 
 load("@google_privacysandbox_servers_common//third_party:cpp_deps.bzl", "cpp_dependencies")
 

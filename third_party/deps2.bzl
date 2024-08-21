@@ -114,6 +114,7 @@ def _emscripten_deps():
 def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
+    bazel_skylib_workspace()
     aspect_bazel_lib_dependencies()
     aspect_bazel_lib_register_toolchains()
     register_coreutils_toolchains()
@@ -125,7 +126,6 @@ def deps2(
     rpm()
     grpc_deps()
     scp_sdk_dependencies2()
-    bazel_skylib_workspace()
     gazelle_dependencies()
     rules_pkg_dependencies()
     import_v8()

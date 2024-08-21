@@ -21,6 +21,7 @@ load("@bazel_features//:deps.bzl", "bazel_features_deps")
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 load("@emsdk//:deps.bzl", emsdk_deps = "deps")
+load("@rules_python//python:repositories.bzl", "py_repositories")
 load("//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependencies")
 
 def _bazel_deps():
@@ -82,3 +83,4 @@ def deps1():
     _dwyu_deps()
     scp_sdk_dependencies()
     _js_deps()
+    py_repositories()
