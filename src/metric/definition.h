@@ -303,10 +303,9 @@ inline constexpr Definition<int, Privacy::kNonImpacting,
                        "Total number of requests received by the server");
 
 inline constexpr double kTimeHistogram[] = {
-    1,     2,     3,      4,      6,      9,      13,    18,
-    25,    35,    50,     71,     100,    141,    200,   283,
-    400,   566,   800,    1'131,  1'600,  2'263,  3'200, 4'512,
-    6'368, 8'987, 12'678, 17'877, 25'217, 35'556, 50'134};
+    1,    2,    3,    4,    6,     9,     13,    18,    25,   35,   50,
+    71,   100,  141,  200,  283,   400,   566,   800,   1131, 1600, 2263,
+    3200, 4525, 6400, 9051, 12800, 18102, 25600, 36204, 51200};
 inline constexpr Definition<int, Privacy::kNonImpacting, Instrument::kHistogram>
     kServerTotalTimeMs("request.duration_ms",
                        "Total time taken by the server to execute the request",
