@@ -243,60 +243,6 @@ void BM_LoadBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_Load2BinariesAndExecute1stBinary(benchmark::State& state) {
-  Mode mode = static_cast<Mode>(state.range(0));
-  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
-
-  const std::filesystem::path base_path(kUdfPath);
-  std::string first_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
-  std::string second_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusNewBinaryFilename);
-
-  FunctionType func_type = FUNCTION_HELLO_WORLD;
-  VerifyResponse(
-      SendRequestAndGetResponse(roma_service, func_type, first_code_token),
-      kFirstUdfOutput);
-
-  VerifyResponse(
-      SendRequestAndGetResponse(roma_service, func_type, second_code_token),
-      kNewUdfOutput);
-
-  for (auto _ : state) {
-    auto response =
-        SendRequestAndGetResponse(roma_service, func_type, first_code_token);
-  }
-  state.SetLabel(
-      absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
-}
-
-void BM_Load2BinariesAndExecute2ndBinary(benchmark::State& state) {
-  Mode mode = static_cast<Mode>(state.range(0));
-  GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
-
-  const std::filesystem::path base_path(kUdfPath);
-  std::string first_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
-  std::string second_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusNewBinaryFilename);
-
-  FunctionType func_type = FUNCTION_HELLO_WORLD;
-  VerifyResponse(
-      SendRequestAndGetResponse(roma_service, func_type, first_code_token),
-      kFirstUdfOutput);
-
-  VerifyResponse(
-      SendRequestAndGetResponse(roma_service, func_type, second_code_token),
-      kNewUdfOutput);
-
-  for (auto _ : state) {
-    auto response =
-        SendRequestAndGetResponse(roma_service, func_type, second_code_token);
-  }
-  state.SetLabel(
-      absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
-}
-
 void BM_ExecuteBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
   GvisorSampleService<> roma_service =
@@ -664,24 +610,6 @@ void BM_ExecuteBinarySortList(benchmark::State& state) {
   state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
 }
 
-BENCHMARK(BM_ExecuteBinaryUsingCallback)
-    ->ArgsProduct({
-        {
-            (int)Mode::kModeGvisor,
-            (int)Mode::kModeLocal,
-        },
-        {
-            FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
-            FUNCTION_PRIME_SIEVE,               // Sieve of primes
-            FUNCTION_CALLBACK,                  // Generic callback hook
-            FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
-                                                // callback hook
-        },
-        {
-            0, 1, 10,  // Number of pre-warmed workers
-        },
-    })
-    ->ArgNames({"mode", "udf", "num_workers"});
 BENCHMARK(BM_LoadBinary)
     ->ArgsProduct({
         {
@@ -704,24 +632,6 @@ BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
     })
     ->ArgNames({"lang", "udf"});
 
-BENCHMARK(BM_Load2BinariesAndExecute1stBinary)
-    ->ArgsProduct({
-        {
-            (int)Mode::kModeGvisor,
-            (int)Mode::kModeLocal,
-        },
-    })
-    ->ArgNames({"mode"});
-
-BENCHMARK(BM_Load2BinariesAndExecute2ndBinary)
-    ->ArgsProduct({
-        {
-            (int)Mode::kModeGvisor,
-            (int)Mode::kModeLocal,
-        },
-    })
-    ->ArgNames({"mode"});
-
 BENCHMARK(BM_ExecuteBinary)
     ->ArgsProduct({
         {
@@ -737,6 +647,25 @@ BENCHMARK(BM_ExecuteBinary)
         },
         {
             0, 1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
+        },
+    })
+    ->ArgNames({"mode", "udf", "num_workers"});
+
+BENCHMARK(BM_ExecuteBinaryUsingCallback)
+    ->ArgsProduct({
+        {
+            (int)Mode::kModeGvisor,
+            (int)Mode::kModeLocal,
+        },
+        {
+            FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
+            FUNCTION_PRIME_SIEVE,               // Sieve of primes
+            FUNCTION_CALLBACK,                  // Generic callback hook
+            FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
+                                                // callback hook
+        },
+        {
+            0, 1, 10,  // Number of pre-warmed workers
         },
     })
     ->ArgNames({"mode", "udf", "num_workers"});

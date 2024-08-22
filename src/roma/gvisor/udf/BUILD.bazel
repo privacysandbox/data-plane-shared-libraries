@@ -96,6 +96,7 @@ go_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":sample_go_proto",
+        "//src/roma/gvisor/host:callback_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
     ],
 )
