@@ -62,17 +62,17 @@ using ::privacy_sandbox::server_common::gvisor::SortListResponse;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse;
 
-constexpr int kPrimeCount = 9592;
-constexpr std::string_view kUdfPath = "/udf";
-constexpr std::string_view kGoLangBinaryFilename = "sample_go_udf";
-constexpr std::string_view kCPlusPlusBinaryFilename = "sample_udf";
-constexpr std::string_view kCPlusPlusNewBinaryFilename = "new_udf";
-constexpr std::string_view kPayloadUdfFilename = "payload_read_udf";
-constexpr std::string_view kPayloadWriteUdfFilename = "payload_write_udf";
-constexpr std::string_view kCallbackPayloadReadUdfFilename =
+const std::filesystem::path kUdfPath = "/udf";
+const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
+const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
+const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
+const std::filesystem::path kPayloadUdfFilename = "payload_read_udf";
+const std::filesystem::path kPayloadWriteUdfFilename = "payload_write_udf";
+const std::filesystem::path kCallbackPayloadReadUdfFilename =
     "callback_payload_read_udf";
-constexpr std::string_view kCallbackPayloadWriteUdfFilename =
+const std::filesystem::path kCallbackPayloadWriteUdfFilename =
     "callback_payload_write_udf";
+constexpr int kPrimeCount = 9592;
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
@@ -84,7 +84,7 @@ enum class Language {
 
 SampleResponse SendRequestAndGetResponse(
     GvisorSampleService<>& roma_service,
-    privacy_sandbox::server_common::gvisor::FunctionType func_type,
+    ::privacy_sandbox::server_common::gvisor::FunctionType func_type,
     std::string_view code_token) {
   // Data we are sending to the server.
   SampleRequest bin_request;
@@ -112,7 +112,7 @@ std::string LoadCode(GvisorSampleService<>& roma_service,
 }
 
 GvisorSampleService<> GetRomaService(Mode mode, int num_workers) {
-  privacy_sandbox::server_common::gvisor::Config<> config = {
+  ::privacy_sandbox::server_common::gvisor::Config<> config = {
       .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
@@ -143,12 +143,11 @@ void VerifyResponse(SampleResponse bin_response,
 }
 
 std::filesystem::path GetFilePathFromLanguage(Language lang) {
-  const std::filesystem::path base_path(kUdfPath);
   switch (lang) {
     case Language::kCPlusPlus:
-      return base_path / kCPlusPlusBinaryFilename;
+      return kUdfPath / kCPlusPlusBinaryFilename;
     case Language::kGoLang:
-      return base_path / kGoLangBinaryFilename;
+      return kUdfPath / kGoLangBinaryFilename;
     default:
       return std::filesystem::path();
   }
@@ -225,16 +224,14 @@ void BM_LoadBinary(benchmark::State& state) {
   GvisorSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
   FunctionType func_type = FUNCTION_HELLO_WORLD;
 
-  const std::filesystem::path base_path(kUdfPath);
   auto bin_response = SendRequestAndGetResponse(
       roma_service, func_type,
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename));
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename));
   VerifyResponse(bin_response, kFirstUdfOutput);
 
   std::string code_token;
   for (auto _ : state) {
-    code_token =
-        LoadCode(roma_service, base_path / kCPlusPlusNewBinaryFilename);
+    code_token = LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
   }
   bin_response = SendRequestAndGetResponse(roma_service, func_type, code_token);
   VerifyResponse(bin_response, kNewUdfOutput);
@@ -247,9 +244,8 @@ void BM_ExecuteBinary(benchmark::State& state) {
   GvisorSampleService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
   auto response =
@@ -267,9 +263,8 @@ void BM_ExecuteBinaryUsingCallback(benchmark::State& state) {
   GvisorSampleService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
   // Data we are sending to the server.
@@ -343,7 +338,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
     absl::StatusOr<std::unique_ptr<
-        privacy_sandbox::server_common::gvisor::ReadPayloadResponse>>
+        ::privacy_sandbox::server_common::gvisor::ReadPayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.ReadPayload(notif, request, response,
@@ -352,7 +347,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
     return response;
   };
 
-  privacy_sandbox::server_common::gvisor::ReadPayloadRequest request;
+  ::privacy_sandbox::server_common::gvisor::ReadPayloadRequest request;
   std::string payload(elem_size, char(10));
   auto payloads = request.mutable_payloads();
   payloads->Reserve(elem_count);
@@ -360,8 +355,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
     payloads->Add(payload.data());
   }
 
-  std::string code_tok = LoadCode(
-      roma_service, std::filesystem::path(kUdfPath) / kPayloadUdfFilename);
+  std::string code_tok = LoadCode(roma_service, kUdfPath / kPayloadUdfFilename);
 
   const int64_t payload_size = elem_size * elem_count;
   if (const auto response = rpc(request, code_tok); response.ok()) {
@@ -390,7 +384,7 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
     absl::StatusOr<std::unique_ptr<
-        privacy_sandbox::server_common::gvisor::GeneratePayloadResponse>>
+        ::privacy_sandbox::server_common::gvisor::GeneratePayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.GeneratePayload(notif, request, response,
@@ -399,14 +393,13 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
     return response;
   };
 
-  privacy_sandbox::server_common::gvisor::GeneratePayloadRequest request;
+  ::privacy_sandbox::server_common::gvisor::GeneratePayloadRequest request;
   request.set_element_size(elem_size);
   request.set_element_count(elem_count);
   const int64_t req_payload_size = elem_size * elem_count;
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string code_tok =
-      LoadCode(roma_service, base_path / kPayloadWriteUdfFilename);
+      LoadCode(roma_service, kUdfPath / kPayloadWriteUdfFilename);
 
   int64_t response_payload_size = 0;
   if (const auto response = rpc(request, code_tok); response.ok()) {
@@ -447,7 +440,7 @@ void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<
-        privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse>>
+        ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
@@ -456,14 +449,13 @@ void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
     return response;
   };
 
-  privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest request;
+  ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest request;
   request.set_element_size(elem_size);
   request.set_element_count(elem_count);
   const int64_t payload_size = elem_size * elem_count;
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string code_tok =
-      LoadCode(roma_service, base_path / kCallbackPayloadReadUdfFilename);
+      LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename);
 
   if (const auto response = rpc(code_tok, request); response.ok()) {
     CHECK((*response)->payload_size() == payload_size);
@@ -500,7 +492,7 @@ void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<
-        privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse>>
+        ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.WriteCallbackPayload(notif, request, response,
@@ -509,14 +501,13 @@ void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
     return response;
   };
 
-  privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest request;
+  ::privacy_sandbox::server_common::gvisor::WriteCallbackPayloadRequest request;
   request.set_element_size(elem_size);
   request.set_element_count(elem_count);
   const int64_t payload_size = elem_size * elem_count;
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string code_tok =
-      LoadCode(roma_service, base_path / kCallbackPayloadWriteUdfFilename);
+      LoadCode(roma_service, kUdfPath / kCallbackPayloadWriteUdfFilename);
 
   if (const auto response = rpc(code_tok, request); response.ok()) {
     CHECK((*response)->payload_size() == payload_size);
@@ -554,7 +545,7 @@ void BM_ExecuteBinaryPrimeSieve(benchmark::State& state) {
     notif.WaitForNotification();
     return response;
   };
-  privacy_sandbox::server_common::gvisor::RunPrimeSieveRequest request;
+  ::privacy_sandbox::server_common::gvisor::RunPrimeSieveRequest request;
   request.set_prime_count(state.range(1));
   const std::string code_tok = LoadCode(
       roma_service, std::filesystem::path(kUdfPath) / "prime_sieve_udf");

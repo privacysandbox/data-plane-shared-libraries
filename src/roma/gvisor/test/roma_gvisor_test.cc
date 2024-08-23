@@ -50,15 +50,12 @@ using ::privacy_sandbox::server_common::gvisor::ReadCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 
-const std::filesystem::path kUdfPath = std::filesystem::path("/udf");
-const std::filesystem::path kGoLangBinaryFilename =
-    std::filesystem::path("sample_go_udf");
-const std::filesystem::path kCPlusPlusBinaryFilename =
-    std::filesystem::path("sample_udf");
-const std::filesystem::path kCPlusPlusNewBinaryFilename =
-    std::filesystem::path("new_udf");
+const std::filesystem::path kUdfPath = "/udf";
+const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
+const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
+const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCallbackPayloadReadUdfFilename =
-    std::filesystem::path("callback_payload_read_udf");
+    "callback_payload_read_udf";
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
@@ -150,11 +147,10 @@ TEST(RomaGvisorTest, ExecuteMultipleCppBinariesInSandboxMode) {
   GvisorSampleService<> roma_service = GetRomaService(Mode::kModeGvisor,
                                                       /*num_workers=*/2);
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string first_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
   std::string second_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusNewBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
 
   EXPECT_THAT(
       SendRequestAndGetResponse(roma_service, first_code_token).greeting(),
@@ -168,11 +164,10 @@ TEST(RomaGvisorTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
   GvisorSampleService<> roma_service = GetRomaService(Mode::kModeLocal,
                                                       /*num_workers=*/2);
 
-  const std::filesystem::path base_path(kUdfPath);
   std::string first_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
   std::string second_code_token =
-      LoadCode(roma_service, base_path / kCPlusPlusNewBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
 
   EXPECT_THAT(
       SendRequestAndGetResponse(roma_service, first_code_token).greeting(),
