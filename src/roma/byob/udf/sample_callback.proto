@@ -16,6 +16,40 @@ syntax = "proto3";
 
 package privacy_sandbox.server_common.byob;
 
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
+service SampleHostService {
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Sample Host Server',
+    description: 'Sample Host Server',
+    cpp_namespace: 'privacy_sandbox::server_common::byob',
+    roma_app_name: 'SampleHostServer',
+    cpp_host_process_callback_includes: [
+      'src/roma/byob/udf/sample_service_native_functions.h'
+    ],
+  };
+
+  rpc SampleCallback(SampleCallbackRequest) returns (SampleCallbackResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacy_sandbox::server_common::byob::HandleSampleCallback',
+    };
+  }
+  rpc CallbackRead(CallbackReadRequest) returns (CallbackReadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacy_sandbox::server_common::byob::HandleCallbackRead',
+    };
+  }
+  rpc CallbackWrite(CallbackWriteRequest) returns (CallbackWriteResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacy_sandbox::server_common::byob::HandleCallbackWrite',
+    };
+  }
+}
+
+message SampleCallbackRequest {}
+
+message SampleCallbackResponse {}
+
 message CallbackReadRequest {
   repeated bytes payloads = 1;
 }
