@@ -34,6 +34,7 @@
 #include "absl/container/flat_hash_set.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
+#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/dispatcher/dispatcher.pb.h"
@@ -131,9 +132,6 @@ TEST(DispatcherTest, LoadGoesToWorker) {
       ASSERT_NE(fd, -1);
       ConnectToPath(fd, "abcd.sock");
       EXPECT_EQ(::write(fd, request.code_token().c_str(), 36), 36);
-      const int callback_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-      ASSERT_NE(callback_fd, -1);
-      ConnectToPath(callback_fd, "abcd.sock");
     }
     EXPECT_EQ(::close(fd), 0);
   });
@@ -164,27 +162,26 @@ TEST(DispatcherTest, LoadAndExecute) {
     EXPECT_EQ(request.n_workers(), 1);
 
     // Process execution request.
-    const int io_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-    ASSERT_NE(io_fd, -1);
-    ConnectToPath(io_fd, "abcd.sock");
-    EXPECT_EQ(::write(io_fd, request.code_token().c_str(), 36), 36);
-    const int callback_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-    EXPECT_NE(callback_fd, -1);
-    ConnectToPath(callback_fd, "abcd.sock");
+    const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(connection_fd, -1);
+    ConnectToPath(connection_fd, "abcd.sock");
+    EXPECT_EQ(::write(connection_fd, request.code_token().c_str(), 36), 36);
     {
       // Read UDF input.
       SampleRequest request;
-      ASSERT_TRUE(request.ParseFromFileDescriptor(io_fd));
+      FileInputStream input(connection_fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       EXPECT_EQ(request.function(), FUNCTION_HELLO_WORLD);
     }
     {
       // Write UDF output.
       SampleResponse response;
       response.set_greeting("dummy greeting");
-      ASSERT_TRUE(response.SerializeToFileDescriptor(io_fd));
+      google::protobuf::Any any;
+      ASSERT_TRUE(any.PackFrom(std::move(response)));
+      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
     }
-    EXPECT_EQ(::close(io_fd), 0);
-    EXPECT_EQ(::close(callback_fd), 0);
+    EXPECT_EQ(::close(connection_fd), 0);
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
@@ -236,18 +233,16 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     EXPECT_EQ(request.n_workers(), 1);
 
     // Process execution request.
-    const int io_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-    ASSERT_NE(io_fd, -1);
-    ConnectToPath(io_fd, "abcd.sock");
-    EXPECT_EQ(::write(io_fd, request.code_token().c_str(), 36), 36);
-    const int callback_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-    ASSERT_NE(callback_fd, -1);
-    ConnectToPath(callback_fd, "abcd.sock");
+    const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(connection_fd, -1);
+    ConnectToPath(connection_fd, "abcd.sock");
+    EXPECT_EQ(::write(connection_fd, request.code_token().c_str(), 36), 36);
 
     // Read UDF input.
+    FileInputStream input(connection_fd);
     {
       SampleRequest request;
-      ASSERT_TRUE(request.ParseFromFileDescriptor(io_fd));
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       EXPECT_EQ(request.function(), FUNCTION_PRIME_SIEVE);
     }
 
@@ -256,11 +251,12 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       Callback callback;
       callback.set_id(id);
       callback.set_function_name("example_function");
-      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(callback, callback_fd));
+      google::protobuf::Any any;
+      ASSERT_TRUE(any.PackFrom(std::move(callback)));
+      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
     }
 
     // Accept callback responses.
-    FileInputStream input(callback_fd);
     std::vector<std::string> response_ids(2);
     for (std::string& id : response_ids) {
       Callback callback;
@@ -274,10 +270,11 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       // Write UDF output.
       SampleResponse response;
       response.set_greeting("dummy greeting");
-      ASSERT_TRUE(response.SerializeToFileDescriptor(io_fd));
+      google::protobuf::Any any;
+      ASSERT_TRUE(any.PackFrom(std::move(response)));
+      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
     }
-    EXPECT_EQ(::close(io_fd), 0);
-    EXPECT_EQ(::close(callback_fd), 0);
+    EXPECT_EQ(::close(connection_fd), 0);
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
@@ -340,39 +337,40 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
 
     // Process execution requests.
     for (int i = 0; i < 100; ++i) {
-      const int io_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-      ASSERT_NE(io_fd, -1);
-      ConnectToPath(io_fd, "abcd.sock");
-      EXPECT_EQ(::write(io_fd, code_token.c_str(), 36), 36);
-      const int callback_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-      ASSERT_NE(callback_fd, -1);
-      ConnectToPath(callback_fd, "abcd.sock");
+      const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+      ASSERT_NE(connection_fd, -1);
+      ConnectToPath(connection_fd, "abcd.sock");
+      EXPECT_EQ(::write(connection_fd, code_token.c_str(), 36), 36);
 
       // Read UDF input.
+      FileInputStream input(connection_fd);
       {
         SampleRequest request;
-        ASSERT_TRUE(request.ParseFromFileDescriptor(io_fd));
+        ASSERT_TRUE(
+            ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       }
       {
         // Initiate host callback from UDF.
         Callback callback;
         callback.set_function_name("example_function");
-        ASSERT_TRUE(SerializeDelimitedToFileDescriptor(callback, callback_fd));
+        google::protobuf::Any any;
+        ASSERT_TRUE(any.PackFrom(std::move(callback)));
+        ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
       }
       {
         // Accept callback response.
         Callback callback;
-        FileInputStream input(callback_fd);
         ASSERT_TRUE(
             ParseDelimitedFromZeroCopyStream(&callback, &input, nullptr));
       }
       {
         // Write UDF output.
         SampleResponse response;
-        ASSERT_TRUE(response.SerializeToFileDescriptor(io_fd));
+        google::protobuf::Any any;
+        ASSERT_TRUE(any.PackFrom(std::move(response)));
+        ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
       }
-      EXPECT_EQ(::close(io_fd), 0);
-      EXPECT_EQ(::close(callback_fd), 0);
+      EXPECT_EQ(::close(connection_fd), 0);
     }
     EXPECT_EQ(::close(fd), 0);
   });

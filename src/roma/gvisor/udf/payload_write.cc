@@ -18,6 +18,8 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
+#include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::GeneratePayloadRequest;
@@ -29,18 +31,23 @@ int main(int argc, char* argv[]) {
     LOG(ERROR) << "Not enough arguments!";
     return -1;
   }
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
+  int32_t fd;
+  CHECK(absl::SimpleAtoi(argv[1], &fd))
+      << "Conversion of file descriptor string to int failed";
   GeneratePayloadRequest req;
-  req.ParseFromIstream(&std::cin);
-
+  {
+    google::protobuf::io::FileInputStream input(fd);
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &input,
+                                                             nullptr);
+  }
   GeneratePayloadResponse response;
   auto* payloads = response.mutable_payloads();
   payloads->Reserve(req.element_count());
   for (auto i = 0; i < req.element_count(); ++i) {
     payloads->Add(std::string(req.element_size(), 'a'));
   }
-  response.SerializeToFileDescriptor(write_fd);
+  google::protobuf::Any any;
+  any.PackFrom(std::move(response));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

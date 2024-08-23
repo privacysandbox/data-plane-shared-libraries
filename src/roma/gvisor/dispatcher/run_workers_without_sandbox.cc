@@ -26,7 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -54,55 +53,40 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
   return ::connect(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)) == 0;
 }
 struct WorkerImplArg {
-  int io_fd;
-  int callback_fd;
+  std::string_view socket_name;
   std::string_view code_token;
   std::string_view binary_path;
 };
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
-  PCHECK(::write(worker_impl_arg.io_fd, worker_impl_arg.code_token.data(),
-                 worker_impl_arg.code_token.size()) ==
-         worker_impl_arg.code_token.size());
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  PCHECK(fd != -1);
+  if (!ConnectToPath(fd, worker_impl_arg.socket_name)) {
+    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << "failed";
+    return -1;
+  }
+  PCHECK(::write(fd, worker_impl_arg.code_token.data(), 36) == 36);
 
   // Exec binary.
-  PCHECK(::dup2(worker_impl_arg.io_fd, STDIN_FILENO) != -1);
-  const std::string io_fd = [=] {
-    const int io_fd = ::dup(worker_impl_arg.io_fd);
-    PCHECK(io_fd != -1);
-    return absl::StrCat(io_fd);
-  }();
-  const std::string callback_fd = [=] {
-    const int callback_fd = ::dup(worker_impl_arg.callback_fd);
-    PCHECK(callback_fd != -1);
-    return absl::StrCat(callback_fd);
+  const std::string connection_fd = [fd] {
+    const int connection_fd = ::dup(fd);
+    PCHECK(connection_fd != -1);
+    return absl::StrCat(connection_fd);
   }();
   ::execl(worker_impl_arg.binary_path.data(),
-          worker_impl_arg.binary_path.data(), io_fd.c_str(),
-          callback_fd.c_str(), nullptr);
+          worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
   PLOG(FATAL) << "execl() failed";
 }
-bool ConnectAndExec(std::string_view socket_name, std::string_view code_token,
-                    std::string_view binary_path, int* output_pid) {
-  const int io_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  PCHECK(io_fd != -1);
-  const int callback_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  PCHECK(callback_fd != -1);
-  if (!ConnectToPath(io_fd, socket_name) ||
-      !ConnectToPath(callback_fd, socket_name)) {
-    PLOG(INFO) << "connect() to " << socket_name << "failed";
-    return false;
-  }
-  WorkerImplArg worker_impl_arg{io_fd, callback_fd, code_token, binary_path};
+int ConnectSendCloneAndExec(std::string_view socket_name,
+                            std::string_view code_token,
+                            std::string_view binary_path) {
+  WorkerImplArg worker_impl_arg{socket_name, code_token, binary_path};
   char stack[1 << 20];
   const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
                             CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
-  PCHECK(::close(io_fd) == 0);
-  PCHECK(::close(callback_fd) == 0);
   PCHECK(pid != -1);
-  *output_pid = pid;
-  return true;
+  return pid;
 }
 }  // namespace
 
@@ -151,32 +135,17 @@ int main(int argc, char** argv) {
         }
         udf = std::move(it->second);
         pid_to_udf.erase(it);
-        CHECK(WIFEXITED(status) && WEXITSTATUS(status) == 0);
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+          break;
+        }
       }
-
       // Start a new worker with the same UDF as the most-recently ended worker.
+      const int pid =
+          ConnectSendCloneAndExec(socket_name, udf.code_token, udf.binary_path);
       absl::MutexLock lock(&mu);
-      int pid;
-      if (!ConnectAndExec(socket_name, udf.code_token, udf.binary_path, &pid)) {
-        return;
-      }
       CHECK(pid_to_udf.insert({pid, std::move(udf)}).second);
     }
   });
-  absl::Cleanup cleanup = [&] {
-    {
-      absl::MutexLock lock(&mu);
-      shutdown = true;
-    }
-    reloader.join();
-    ::close(fd);
-
-    // Kill extant workers before exit.
-    for (const auto& [pid, _] : pid_to_udf) {
-      PCHECK(::kill(pid, SIGKILL) == 0);
-      PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
-    }
-  };
   FileInputStream input(fd);
   while (true) {
     LoadRequest request;
@@ -184,31 +153,37 @@ int main(int argc, char** argv) {
       break;
     }
     for (int i = 0; i < request.n_workers() - 1; ++i) {
-      absl::MutexLock lock(&mu);
-      int pid;
-      if (!ConnectAndExec(socket_name, request.code_token(),
-                          request.binary_path(), &pid)) {
-        return -1;
-      }
+      const int pid = ConnectSendCloneAndExec(socket_name, request.code_token(),
+                                              request.binary_path());
       UdfInstanceMetadata udf{
           .code_token = request.code_token(),
           .binary_path = request.binary_path(),
       };
+      absl::MutexLock lock(&mu);
       pid_to_udf[pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
-    absl::MutexLock lock(&mu);
-    int pid;
-    if (!ConnectAndExec(socket_name, request.code_token(),
-                        request.binary_path(), &pid)) {
-      return -1;
-    }
+    const int pid = ConnectSendCloneAndExec(socket_name, request.code_token(),
+                                            request.binary_path());
     UdfInstanceMetadata udf{
         .code_token = std::move(*request.mutable_code_token()),
         .binary_path = std::move(*request.mutable_binary_path()),
     };
+    absl::MutexLock lock(&mu);
     pid_to_udf[pid] = std::move(udf);
+  }
+  {
+    absl::MutexLock lock(&mu);
+    shutdown = true;
+  }
+  reloader.join();
+  ::close(fd);
+
+  // Kill extant workers before exit.
+  for (const auto& [pid, _] : pid_to_udf) {
+    PCHECK(::kill(pid, SIGKILL) == 0);
+    PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
   }
   return 0;
 }

@@ -29,7 +29,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -64,17 +63,20 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
 struct WorkerImplArg {
   absl::Span<const std::string> mounts;
   std::string_view pivot_root_dir;
-  int io_fd;
-  int callback_fd;
+  std::string_view socket_name;
   std::string_view code_token;
   std::string_view binary_path;
 };
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
-  PCHECK(::write(worker_impl_arg.io_fd, worker_impl_arg.code_token.data(),
-                 worker_impl_arg.code_token.size()) ==
-         worker_impl_arg.code_token.size());
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  PCHECK(fd != -1);
+  if (!ConnectToPath(fd, worker_impl_arg.socket_name)) {
+    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << "failed";
+    return -1;
+  }
+  PCHECK(::write(fd, worker_impl_arg.code_token.data(), 36) == 36);
 
   // Set up restricted filesystem for worker using pivot_root
   // pivot_root doesn't work under an MS_SHARED mount point.
@@ -121,43 +123,31 @@ int WorkerImpl(void* arg) {
   }
 
   // Exec binary.
-  PCHECK(::dup2(worker_impl_arg.io_fd, STDIN_FILENO) != -1);
-  const std::string io_fd = [=] {
-    const int io_fd = ::dup(worker_impl_arg.io_fd);
-    PCHECK(io_fd != -1);
-    return absl::StrCat(io_fd);
-  }();
-  const std::string callback_fd = [=] {
-    const int callback_fd = ::dup(worker_impl_arg.callback_fd);
-    PCHECK(callback_fd != -1);
-    return absl::StrCat(callback_fd);
+  const std::string connection_fd = [fd] {
+    const int connection_fd = ::dup(fd);
+    PCHECK(connection_fd != -1);
+    return absl::StrCat(connection_fd);
   }();
   ::execl(worker_impl_arg.binary_path.data(),
-          worker_impl_arg.binary_path.data(), io_fd.c_str(),
-          callback_fd.c_str(), nullptr);
+          worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
   PLOG(FATAL) << "execl() failed";
 }
-bool ConnectAndExec(absl::Span<const std::string> mounts,
-                    std::string_view socket_name, std::string_view code_token,
-                    std::string_view binary_path, int* output_pid,
-                    std::string* output_pivot_root_dir) {
-  const int io_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  PCHECK(io_fd != -1);
-  const int callback_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  PCHECK(callback_fd != -1);
-  if (!ConnectToPath(io_fd, socket_name) ||
-      !ConnectToPath(callback_fd, socket_name)) {
-    PLOG(INFO) << "connect() to " << socket_name << "failed";
-    return false;
-  }
+struct PidAndPivotRootDir {
+  int pid;
+  std::string pivot_root_dir;
+};
+
+PidAndPivotRootDir ConnectSendCloneAndExec(absl::Span<const std::string> mounts,
+                                           std::string_view socket_name,
+                                           std::string_view code_token,
+                                           std::string_view binary_path) {
   char tmp_file[] = "/tmp/roma_app_server_XXXXXX";
   const char* pivot_root_dir = ::mkdtemp(tmp_file);
   PCHECK(pivot_root_dir != nullptr);
   WorkerImplArg worker_impl_arg{
       .mounts = mounts,
       .pivot_root_dir = pivot_root_dir,
-      .io_fd = io_fd,
-      .callback_fd = callback_fd,
+      .socket_name = socket_name,
       .code_token = code_token,
       .binary_path = binary_path,
   };
@@ -167,12 +157,11 @@ bool ConnectAndExec(absl::Span<const std::string> mounts,
               CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |
                   CLONE_NEWUTS | CLONE_NEWNS,
               &worker_impl_arg);
-  PCHECK(::close(io_fd) == 0);
-  PCHECK(::close(callback_fd) == 0);
   PCHECK(pid != -1);
-  *output_pid = pid;
-  *output_pivot_root_dir = pivot_root_dir;
-  return true;
+  return PidAndPivotRootDir{
+      .pid = pid,
+      .pivot_root_dir = std::string(pivot_root_dir),
+  };
 }
 }  // namespace
 
@@ -224,35 +213,21 @@ int main(int argc, char** argv) {
         }
         udf = std::move(it->second);
         pid_to_udf.erase(it);
-        CHECK(WIFEXITED(status) && WEXITSTATUS(status) == 0);
+        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
+          CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
+          break;
+        }
       }
-      CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
-
       // Start a new worker with the same UDF as the most-recently ended worker.
+      PidAndPivotRootDir pid_and_pivot_root_dir = ConnectSendCloneAndExec(
+          mounts, socket_name, udf.code_token, udf.binary_path);
+      CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
+      udf.pivot_root_dir = std::move(pid_and_pivot_root_dir.pivot_root_dir);
       absl::MutexLock lock(&mu);
-      int pid;
-      if (!ConnectAndExec(mounts, socket_name, udf.code_token, udf.binary_path,
-                          &pid, &udf.pivot_root_dir)) {
-        return;
-      }
-      CHECK(pid_to_udf.insert({pid, std::move(udf)}).second);
+      CHECK(pid_to_udf.insert({pid_and_pivot_root_dir.pid, std::move(udf)})
+                .second);
     }
   });
-  absl::Cleanup cleanup = [&] {
-    {
-      absl::MutexLock lock(&mu);
-      shutdown = true;
-    }
-    reloader.join();
-    ::close(fd);
-
-    // Kill extant workers before exit.
-    for (const auto& [pid, udf] : pid_to_udf) {
-      PCHECK(::kill(pid, SIGKILL) == 0);
-      PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
-      CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
-    }
-  };
   FileInputStream input(fd);
   while (true) {
     LoadRequest request;
@@ -260,35 +235,40 @@ int main(int argc, char** argv) {
       break;
     }
     for (int i = 0; i < request.n_workers() - 1; ++i) {
-      absl::MutexLock lock(&mu);
-      int pid;
-      std::string pivot_root_dir;
-      if (!ConnectAndExec(mounts, socket_name, request.code_token(),
-                          request.binary_path(), &pid, &pivot_root_dir)) {
-        return -1;
-      }
+      PidAndPivotRootDir pid_and_pivot_root_dir = ConnectSendCloneAndExec(
+          mounts, socket_name, request.code_token(), request.binary_path());
       UdfInstanceMetadata udf{
-          .pivot_root_dir = std::move(pivot_root_dir),
+          .pivot_root_dir = std::move(pid_and_pivot_root_dir.pivot_root_dir),
           .code_token = request.code_token(),
           .binary_path = request.binary_path(),
       };
-      pid_to_udf[pid] = std::move(udf);
+      absl::MutexLock lock(&mu);
+      pid_to_udf[pid_and_pivot_root_dir.pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
-    absl::MutexLock lock(&mu);
-    int pid;
-    std::string pivot_root_dir;
-    if (!ConnectAndExec(mounts, socket_name, request.code_token(),
-                        request.binary_path(), &pid, &pivot_root_dir)) {
-      return -1;
-    }
+    PidAndPivotRootDir pid_and_pivot_root_dir = ConnectSendCloneAndExec(
+        mounts, socket_name, request.code_token(), request.binary_path());
     UdfInstanceMetadata udf{
-        .pivot_root_dir = std::move(pivot_root_dir),
+        .pivot_root_dir = std::move(pid_and_pivot_root_dir.pivot_root_dir),
         .code_token = std::move(*request.mutable_code_token()),
         .binary_path = std::move(*request.mutable_binary_path()),
     };
-    pid_to_udf[pid] = std::move(udf);
+    absl::MutexLock lock(&mu);
+    pid_to_udf[pid_and_pivot_root_dir.pid] = std::move(udf);
+  }
+  {
+    absl::MutexLock lock(&mu);
+    shutdown = true;
+  }
+  reloader.join();
+  ::close(fd);
+
+  // Kill extant workers before exit.
+  for (const auto& [pid, udf] : pid_to_udf) {
+    PCHECK(::kill(pid, SIGKILL) == 0);
+    PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
+    CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
   }
   return 0;
 }

@@ -17,11 +17,10 @@ package main
 import (
 	"bufio"
 	"encoding/binary"
-	"errors"
 	proto "github.com/golang/protobuf/proto"
+	ptypes "github.com/golang/protobuf/ptypes/any"
 	cbpb "github.com/privacysandbox/data-plane-shared/apis/roma/binary/callback"
 	pb "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example"
-	"io"
 	"log"
 	"math"
 	"os"
@@ -84,7 +83,11 @@ func parseDelimitedFromFile(msg proto.Message, file *os.File) error {
 
 func runEchoCallback(file *os.File) {
 	callback := &cbpb.Callback{FunctionName: "example"}
-	if err := serializeDelimitedToFile(callback, file); err != nil {
+	var any ptypes.Any
+	if err := any.MarshalFrom(callback); err != nil {
+		log.Fatal("Failed to marshal callback: ", err)
+	}
+	if err := serializeDelimitedToFile(&any, file); err != nil {
 		log.Fatal("Failed to write callback request: ", err)
 	}
 	if err := parseDelimitedFromFile(callback, file); err != nil {
@@ -93,30 +96,18 @@ func runEchoCallback(file *os.File) {
 }
 
 func main() {
-	if len(os.Args) < 3 {
+	if len(os.Args) < 2 {
 		log.Fatal("Not enough input arguments")
 	}
-	writeFd, err := strconv.Atoi(os.Args[1])
+	fd, err := strconv.Atoi(os.Args[1])
 	if err != nil {
-		log.Fatal("Missing write file descriptor: ", err)
+		log.Fatal("Missing file descriptor: ", err)
 	}
-	writeFile := os.NewFile(uintptr(writeFd), "write file descriptor")
-	defer writeFile.Close()
-	callbackFd, err := strconv.Atoi(os.Args[2])
-	if err != nil {
-		log.Fatal("Missing callback file descriptor: ", err)
-	}
-	callbackFile := os.NewFile(uintptr(callbackFd), "callback file descriptor")
-	defer callbackFile.Close()
+	file := os.NewFile(uintptr(fd), "socket")
+	defer file.Close()
 	binRequest := &pb.SampleRequest{}
-	buf := make([]byte, 10)
-	reader := bufio.NewReader(os.Stdin)
-	n, err := reader.Read(buf)
-	if err != nil && !errors.Is(err, io.EOF) {
-		log.Fatal("Failed to read from stdin: ", err)
-	}
-	if err := proto.Unmarshal(buf[:n], binRequest); err != nil {
-		log.Fatal("Failed to parse SampleRequest: ", err)
+	if err := parseDelimitedFromFile(binRequest, file); err != nil {
+		os.Exit(-1)
 	}
 
 	binResponse := &pb.SampleResponse{}
@@ -126,21 +117,20 @@ func main() {
 	case pb.FunctionType_FUNCTION_PRIME_SIEVE:
 		runPrimeSieve(binResponse)
 	case pb.FunctionType_FUNCTION_CALLBACK:
-		runEchoCallback(callbackFile)
+		runEchoCallback(file)
 	case pb.FunctionType_FUNCTION_TEN_CALLBACK_INVOCATIONS:
 		for i := 0; i < 10; i++ {
-			runEchoCallback(callbackFile)
+			runEchoCallback(file)
 		}
 	default:
 		log.Print("Unexpected input")
 		return
 	}
-	output, err := proto.Marshal(binResponse)
-	if err != nil {
-		log.Fatal("Failed to serialize SampleResponse: ", err)
+	var any ptypes.Any
+	if err := any.MarshalFrom(binResponse); err != nil {
+		log.Fatal("Failed to marshal callback: ", err)
 	}
-	_, err = writeFile.Write(output)
-	if err != nil {
-		log.Print("Failed to write output to fd: ", err)
+	if err := serializeDelimitedToFile(&any, file); err != nil {
+		log.Fatal("Failed to write output: ", err)
 	}
 }

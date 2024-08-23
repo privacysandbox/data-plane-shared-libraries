@@ -20,6 +20,8 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
+#include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 
 namespace {
@@ -20036,11 +20038,18 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Not enough arguments!";
     return -1;
   }
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
-  SortListRequest{}.ParseFromIstream(&std::cin);
+  int32_t fd;
+  CHECK(absl::SimpleAtoi(argv[1], &fd))
+      << "Conversion of file descriptor string to int failed";
+  {
+    SortListRequest req;
+    google::protobuf::io::FileInputStream input(fd);
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &input,
+                                                             nullptr);
+  }
   std::sort(items.begin(), items.end());
-  SortListResponse{}.SerializeToFileDescriptor(write_fd);
+  google::protobuf::Any any;
+  any.PackFrom(SortListResponse{});
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

@@ -27,6 +27,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/functional/function_ref.h"
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
@@ -49,7 +50,7 @@ class Dispatcher {
       Metadata metadata, const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback)
       ABSL_LOCKS_EXCLUDED(mu_) {
-    Fds fds;
+    int fd;
     {
       auto fn = [&] {
         mu_.AssertReaderHeld();
@@ -57,15 +58,13 @@ class Dispatcher {
       };
       absl::MutexLock l(&mu_);
       mu_.Await(absl::Condition(&fn));
-      const auto it = code_token_to_fds_.find(code_token);
-      fds = it->second.front();
-      it->second.pop();
-      ++handler_threads_in_flight_;
+      auto& fds = code_token_to_fds_[code_token];
+      fd = fds.front();
+      fds.pop();
+      ++executor_threads_in_flight_;
     }
-    std::thread(&Dispatcher::ExecutorImpl, fds.io_fd,
-                std::move(serialized_request), std::move(callback))
-        .detach();
-    std::thread(&Dispatcher::HandlerImpl, this, fds.callback_fd,
+    std::thread(&Dispatcher::ExecutorImpl, this, fd, serialized_request,
+                std::move(callback),
                 [&table, metadata = std::move(metadata)](
                     std::string_view function, auto& io_proto) {
                   if (const auto it = table.find(function); it != table.end()) {
@@ -86,11 +85,9 @@ class Dispatcher {
   // Accepts connections from newly created UDF instances, reads code tokens,
   // and pushes file descriptors to the queue.
   void AcceptorImpl() ABSL_LOCKS_EXCLUDED(mu_);
-  static void ExecutorImpl(
-      int io_fd, std::string serialized_request,
-      absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback);
-  void HandlerImpl(
-      int callback_fd,
+  void ExecutorImpl(
+      int fd, std::string_view serialized_request,
+      absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
       absl::FunctionRef<void(std::string_view,
                              google::scp::roma::proto::FunctionBindingIoProto&)>
           handler) ABSL_LOCKS_EXCLUDED(mu_);
@@ -101,13 +98,8 @@ class Dispatcher {
   int connection_fd_;
   std::optional<std::thread> acceptor_;
   absl::Mutex mu_;
-  int handler_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
-
-  struct Fds {
-    int io_fd;
-    int callback_fd;
-  };
-  absl::flat_hash_map<std::string, std::queue<Fds>> code_token_to_fds_
+  int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
+  absl::flat_hash_map<std::string, std::queue<int>> code_token_to_fds_
       ABSL_GUARDED_BY(mu_);
 };
 }  // namespace privacy_sandbox::server_common::gvisor

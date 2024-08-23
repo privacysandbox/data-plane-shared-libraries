@@ -18,8 +18,13 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
+#include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 
+using ::google::protobuf::io::FileInputStream;
+using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
+using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::privacy_sandbox::server_common::gvisor::SampleRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 
@@ -29,13 +34,18 @@ int main(int argc, char* argv[]) {
     LOG(ERROR) << "Not enough arguments!";
     return -1;
   }
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
-  SampleRequest bin_request;
-  bin_request.ParseFromIstream(&std::cin);
+  int32_t fd;
+  CHECK(absl::SimpleAtoi(argv[1], &fd))
+      << "Conversion of file descriptor string to int failed";
+  {
+    SampleRequest bin_request;
+    FileInputStream input(fd);
+    ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
+  }
   SampleResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
-  bin_response.SerializeToFileDescriptor(write_fd);
+  google::protobuf::Any any;
+  any.PackFrom(std::move(bin_response));
+  SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

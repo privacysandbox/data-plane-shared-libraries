@@ -21,10 +21,14 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
+#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/host/callback.pb.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
 
+using ::google::protobuf::io::FileInputStream;
+using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
+using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::privacy_sandbox::server_common::gvisor::Callback;
 using ::privacy_sandbox::server_common::gvisor::FUNCTION_CALLBACK;
 using ::privacy_sandbox::server_common::gvisor::FUNCTION_HELLO_WORLD;
@@ -63,31 +67,34 @@ void RunPrimeSieve(SampleResponse& bin_response) {
   }
 }
 
-void RunEchoCallback(int comms_fd) {
+void RunEchoCallback(int fd) {
+  {
+    Callback callback;
+    callback.set_function_name("example");
+    google::protobuf::Any any;
+    CHECK(any.PackFrom(std::move(callback)));
+    CHECK(SerializeDelimitedToFileDescriptor(any, fd));
+  }
   Callback callback;
-  callback.set_function_name("example");
-  CHECK(google::protobuf::util::SerializeDelimitedToFileDescriptor(callback,
-                                                                   comms_fd));
-  google::protobuf::io::FileInputStream input(comms_fd);
-  CHECK(google::protobuf::util::ParseDelimitedFromZeroCopyStream(
-      &callback, &input, nullptr));
+  FileInputStream input(fd);
+  CHECK(ParseDelimitedFromZeroCopyStream(&callback, &input, nullptr));
 }
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
-  if (argc < 3) {
+  if (argc < 2) {
     std::cerr << "Not enough arguments!";
     return -1;
   }
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
-      << "Conversion of write file descriptor string to int failed";
-  int comms_fd;
-  CHECK(absl::SimpleAtoi(argv[2], &comms_fd))
-      << "Conversion of comms file descriptor string to int failed";
+  int32_t fd;
+  CHECK(absl::SimpleAtoi(argv[1], &fd))
+      << "Conversion of file descriptor string to int failed";
 
   SampleRequest bin_request;
-  bin_request.ParseFromIstream(&std::cin);
+  {
+    FileInputStream input(fd);
+    ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
+  }
   SampleResponse bin_response;
   switch (bin_request.function()) {
     case FUNCTION_HELLO_WORLD:
@@ -97,18 +104,18 @@ int main(int argc, char* argv[]) {
       RunPrimeSieve(bin_response);
       break;
     case FUNCTION_CALLBACK:
-      RunEchoCallback(comms_fd);
+      RunEchoCallback(fd);
       break;
     case FUNCTION_TEN_CALLBACK_INVOCATIONS:
       for (int i = 0; i < 10; ++i) {
-        RunEchoCallback(comms_fd);
+        RunEchoCallback(fd);
       }
       break;
     default:
       LOG(INFO) << "Invalid function enum.";
   }
-  PCHECK(::close(comms_fd) == 0);
-
-  bin_response.SerializeToFileDescriptor(write_fd);
+  google::protobuf::Any any;
+  any.PackFrom(std::move(bin_response));
+  SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }
