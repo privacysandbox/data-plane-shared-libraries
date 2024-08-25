@@ -94,7 +94,7 @@ SampleResponse SendRequestAndGetResponse(
   absl::Notification notif;
   CHECK_OK(roma_service.Sample(notif, bin_request, response,
                                /*metadata=*/{}, code_token));
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
   CHECK_OK(response);
   return *std::move((*response).get());
 }
@@ -216,6 +216,28 @@ void WriteCallbackPayload(
   }
   wrapper.io_proto.clear_input_bytes();
   resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
+}
+
+static void PayloadArguments(benchmark::internal::Benchmark* b) {
+  constexpr int64_t kMaxPayloadSize = 50'000'000;
+  constexpr int modes[] = {
+      static_cast<int>(Mode::kModeGvisor),
+      static_cast<int>(Mode::kModeLocal),
+  };
+  constexpr int64_t elem_counts[] = {1, 10, 100, 1'000};
+  constexpr int64_t elem_sizes[] = {
+      1,       1'000,   5'000,     10'000,    50'000,
+      100'000, 500'000, 1'000'000, 5'000'000, 50'000'000,
+  };
+  for (auto mode : modes) {
+    for (auto elem_count : elem_counts) {
+      for (auto elem_size : elem_sizes) {
+        if (elem_count * elem_size <= kMaxPayloadSize) {
+          b->Args({elem_size, elem_count, mode});
+        }
+      }
+    }
+  }
 }
 }  // namespace
 
@@ -660,54 +682,10 @@ BENCHMARK(BM_ExecuteBinaryUsingCallback)
     })
     ->ArgNames({"mode", "udf", "num_workers"});
 
-static void PayloadArguments(benchmark::internal::Benchmark* b) {
-  constexpr int64_t kMaxPayloadSize = 50'000'000;
-  constexpr int modes[] = {
-      static_cast<int>(Mode::kModeGvisor),
-      static_cast<int>(Mode::kModeLocal),
-  };
-  constexpr int64_t elem_counts[] = {1, 10, 100, 1'000};
-  constexpr int64_t elem_sizes[] = {
-      1,       1'000,   5'000,     10'000,    50'000,
-      100'000, 500'000, 1'000'000, 5'000'000, 50'000'000,
-  };
-  for (auto mode : modes) {
-    for (auto elem_count : elem_counts) {
-      for (auto elem_size : elem_sizes) {
-        if (elem_count * elem_size <= kMaxPayloadSize) {
-          b->Args({elem_size, elem_count, mode});
-        }
-      }
-    }
-  }
-}
-
 BENCHMARK(BM_ExecuteBinaryRequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ExecuteBinaryResponsePayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ExecuteBinaryCallbackRequestPayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ExecuteBinaryCallbackResponsePayload)->Apply(PayloadArguments);
-
-static void ResponsePayloadArgs(benchmark::internal::Benchmark* b) {
-  constexpr int64_t kMaxPayloadSize = 50'000;
-  constexpr int modes[] = {
-      static_cast<int>(Mode::kModeGvisor),
-      static_cast<int>(Mode::kModeLocal),
-  };
-  constexpr int64_t elem_counts[] = {1, 10, 100, 1'000};
-  constexpr int64_t elem_sizes[] = {
-      1, 1'000, 5'000, 10'000, 50'000,
-  };
-  for (auto mode : modes) {
-    for (auto elem_count : elem_counts) {
-      for (auto elem_size : elem_sizes) {
-        if (elem_count * elem_size <= kMaxPayloadSize) {
-          b->Args({elem_size, elem_count, mode});
-        }
-      }
-    }
-  }
-}
-
-BENCHMARK(BM_ExecuteBinaryResponsePayload)->Apply(ResponsePayloadArgs);
 BENCHMARK(BM_ExecuteBinaryPrimeSieve)
     ->ArgsProduct({
         {
