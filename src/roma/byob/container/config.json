@@ -1,0 +1,54 @@
+{
+  "ociVersion": "1.0.2-dev",
+  "process": {
+    "terminal": true,
+    "user": {
+      "uid": 0,
+      "gid": 0,
+      "additionalGids": [
+        0
+      ]
+    },
+    "env": [
+      "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+      "TERM=xterm"
+    ],
+    "cwd": "/",
+    "capabilities": {
+      "bounding": [
+        "CAP_SYS_ADMIN"
+      ],
+      "effective": [
+        "CAP_SYS_ADMIN"
+      ],
+      "permitted": [
+        "CAP_SYS_ADMIN"
+      ]
+    },
+    "apparmorProfile": "unconfined",
+    "oomScoreAdj": 0
+  },
+  "hostname": "runsc",
+  "linux": {
+    "namespaces": [
+      {
+        "type": "mount"
+      },
+      {
+        "type": "network"
+      },
+      {
+        "type": "uts"
+      },
+      {
+        "type": "pid"
+      },
+      {
+        "type": "ipc"
+      },
+      {
+        "type": "cgroup"
+      }
+    ]
+  }
+}

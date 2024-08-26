@@ -93,14 +93,14 @@ _cc_app_template_plugins = [
             sub_directory = "common/app",
         ),
         struct(
-            template_file = "hpp_roma_gvisor.tmpl",
-            suffix = "_roma_gvisor_app_service.h",
-            sub_directory = "gvisor/app",
+            template_file = "hpp_roma_byob.tmpl",
+            suffix = "_roma_byob_app_service.h",
+            sub_directory = "byob/app",
         ),
         struct(
             template_file = "md_cpp_client_sdk.tmpl",
-            suffix = "_cc_gvisor_app_api_client_sdk.md",
-            sub_directory = "gvisor/app",
+            suffix = "_cc_byob_app_api_client_sdk.md",
+            sub_directory = "byob/app",
         ),
     ])
 ]

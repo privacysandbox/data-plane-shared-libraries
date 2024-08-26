@@ -1,0 +1,84 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//src/roma/byob:byob.bzl", "byob_image")
+
+cc_binary(
+    name = "roma_byob_benchmark",
+    srcs = ["roma_byob_benchmark.cc"],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/roma/byob/udf:sample_callback_cc_proto",
+        "//src/roma/byob/udf:sample_cc_proto",
+        "//src/roma/byob/udf:sample_roma_api",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+pkg_files(
+    name = "roma_byob_benchmark_execs",
+    srcs = [
+        ":roma_byob_benchmark",
+        ":run_roma_byob_benchmark",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "roma_byob_benchmark_tar",
+    srcs = [
+        ":roma_byob_benchmark_execs",
+    ],
+)
+
+# Sample usage:
+# builders/tools/bazel-debian build //src/roma/byob/benchmark:roma_byob_benchmark_image_tarball
+# docker load -i bazel-bin/src/roma/byob/benchmark/roma_byob_benchmark_image_tarball/tarball.tar
+# docker run -it --privileged --rm bazel/src/roma/byob/benchmark/roma_byob_benchmark_image:v1
+byob_image(
+    name = "roma_byob_benchmark_image",
+    cmd = ["/server/bin/run_roma_byob_benchmark"],
+    layer_tars = [
+        ":roma_byob_benchmark_tar",
+    ],
+    repo_tags = ["bazel/src/roma/byob/benchmark/roma_byob_benchmark_image:v1"],
+    udf_binary_label = "//src/roma/byob/udf:udf_binaries",
+)
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":roma_byob_benchmark_image_tarball",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+mkdir -p {dir}
+cp $(execpath :roma_byob_benchmark_image_tarball) {dir}/roma_byob_image.tar
+builders/tools/normalize-dist
+EOF""".format(dir = "dist/roma_byob"),
+    executable = True,
+    local = True,
+    message = "copying aws artifacts to dist directory",
+)

@@ -1,0 +1,61 @@
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacy_sandbox.server_common.byob.example;
+
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
+service ExampleService {
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Example Service'
+    roma_app_name: 'ExampleServer'
+    code_id: "app_api_roma_app_test_v1",
+    description: 'An example service demonstrating how Roma Bring Your Own Binary works.',
+    cpp_namespace: 'privacy_sandbox::server_common::byob::example',
+    go_package: 'github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example',
+    csharp_namespace: 'DataPlaneShared.Apis.Roma.Binary.Example',
+  };
+
+  rpc Echo(EchoRequest) returns (EchoResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'An API which reads the request and echoes the response.'
+    };
+  }
+}
+
+message EchoRequest {
+  option (privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation) = {
+    description: 'Request message for the Echo function.'
+  };
+
+  string message = 1
+      [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+        description: "The message string to be echoed. Any UTF-8 values are "
+                     "accepted. The EchoResponse should return an identical "
+                     "message string, which the caller may verify."
+      }];
+}
+
+message EchoResponse {
+  option (privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation) = {
+    description: 'Response message for the Echo function.'
+  };
+
+  string message = 1
+      [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+        description: 'Message to be echoed.'
+      }];
+}

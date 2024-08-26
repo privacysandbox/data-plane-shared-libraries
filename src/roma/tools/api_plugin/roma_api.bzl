@@ -426,9 +426,9 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         **kwargs: attributes for cc_library and those common to bazel build rules.
 
     Generates:
-        <name>_cc_gvisor_app_api_client_sdk.md
+        <name>_cc_byob_app_api_client_sdk.md
         <name>_roma_app_service.h
-        <name>_roma_gvisor_app_service.h
+        <name>_roma_byob_app_service.h
 
     Targets:
         <name> -- cc_library
@@ -456,7 +456,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
     _filter_files_suffix(
         name = name + "_docs",
         targets = [name_proto],
-        suffixes = ["c_gvisor_app_api_client_sdk.md"],
+        suffixes = ["cc_byob_app_api_client_sdk.md"],
     )
 
     cc_library(
@@ -467,8 +467,8 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
             Label("//src/roma/roma_service:romav8_app_service"),
-            Label("//src/roma/gvisor/interface:roma_service"),
-            Label("//src/roma/gvisor/config"),
+            Label("//src/roma/byob/interface:roma_service"),
+            Label("//src/roma/byob/config"),
             "@com_google_absl//absl/functional:any_invocable",
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",

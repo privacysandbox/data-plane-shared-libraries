@@ -1,0 +1,145 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
+
+filegroup(
+    name = "container_config",
+    srcs = ["config.json"],
+    visibility = ["//visibility:public"],
+)
+
+pkg_files(
+    name = "gvisor_execs",
+    srcs = select({
+        "@platforms//cpu:arm64": [
+            "@gvisor_containerd_arm64//file",
+            "@gvisor_runsc_arm64//file",
+        ],
+        "@platforms//cpu:x86_64": [
+            "@gvisor_containerd_amd64//file",
+            "@gvisor_runsc_amd64//file",
+        ],
+    }),
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/usr/bin",
+)
+
+pkg_tar(
+    name = "gvisor_tar",
+    srcs = [
+        ":gvisor_execs",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
+    name = "run_workers",
+    srcs = ["run_workers.cc"],
+    deps = [
+        "//src/roma/byob/dispatcher:dispatcher_cc_proto",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/types:span",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+pkg_files(
+    name = "byob_server_execs",
+    srcs = [":run_workers"],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "byob_server_tar",
+    srcs = [
+        ":byob_server_execs",
+    ],
+)
+
+oci_image(
+    name = "byob_server_image",
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-debian-nondebug-nonroot-arm64",
+        "@platforms//cpu:x86_64": "@runtime-debian-nondebug-nonroot-amd64",
+    }),
+    cmd = ["/server/bin/run_workers"],
+    tars = [
+        ":byob_server_tar",
+    ],
+)
+
+_server_image = "bazel/src/roma/byob_server:v1"
+
+oci_tarball(
+    name = "byob_server_image_tarball",
+    image = ":byob_server_image",
+    repo_tags = [_server_image],
+)
+
+genrule(
+    name = "gen_byob_server_container_tar",
+    srcs = [
+        ":byob_server_image_tarball",
+        ":config.json",
+    ],
+    outs = [
+        "byob_server_container.tar",
+    ],
+    cmd_bash = """
+docker load -i "$(location :byob_server_image_tarball)"
+docker create --privileged --name "{container_name}" "{image_uri}"
+docker export "{container_name}" -o $@
+docker rm "{container_name}"
+""".format(
+        container_name = "byob_server_container",
+        image_uri = _server_image,
+    ),
+    visibility = ["//visibility:public"],
+)
+
+genrule(
+    name = "gen_byob_server_container_with_dir_tar",
+    srcs = [
+        ":byob_server_container.tar",
+        ":config.json",
+    ],
+    outs = [
+        "byob_server_container_with_dir.tar",
+    ],
+    cmd_bash = """
+rm -rf "{roma_container_dir}"
+mkdir "{roma_container_dir}"
+cp "$(location config.json)" "{roma_container_dir}"/
+mkdir --mode=755 "{roma_container_dir}"/"{roma_container_root_dir}"
+tar -xf "$(location byob_server_container.tar)" -C "{roma_container_dir}"/"{roma_container_root_dir}"/
+tar cfz $@ "{roma_container_dir}"/
+""".format(
+        roma_container_dir = roma_container_dir,
+        roma_container_root_dir = roma_container_root_dir,
+    ),
+    visibility = ["//visibility:public"],
+)

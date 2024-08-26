@@ -1,0 +1,110 @@
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+
+cc_library(
+    name = "dispatcher",
+    srcs = ["dispatcher.cc"],
+    hdrs = ["dispatcher.h"],
+    visibility = ["//src/roma/byob/interface:__subpackages__"],
+    deps = [
+        ":dispatcher_cc_proto",
+        "//src/core/common/uuid",
+        "//src/roma/byob/host:callback_cc_proto",
+        "//src/roma/config",
+        "//src/roma/interface:function_binding_io_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/functional:function_ref",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "run_workers_without_sandbox",
+    testonly = True,
+    srcs = ["run_workers_without_sandbox.cc"],
+    deps = [
+        ":dispatcher_cc_proto",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "dispatcher_test",
+    size = "small",
+    srcs = ["dispatcher_test.cc"],
+    deps = [
+        ":dispatcher",
+        ":dispatcher_cc_proto",
+        "//src/roma/byob/host:callback_cc_proto",
+        "//src/roma/byob/udf:sample_cc_proto",
+        "//src/roma/config",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_test(
+    name = "dispatcher_udf_test",
+    size = "medium",
+    timeout = "short",
+    srcs = ["dispatcher_udf_test.cc"],
+    data = [
+        ":run_workers_without_sandbox",
+        "//src/roma/byob/udf:new_udf",
+        "//src/roma/byob/udf:sample_go_udf",
+        "//src/roma/byob/udf:sample_udf",
+    ],
+    tags = [
+        "noasan",
+        "notsan",
+    ],
+    deps = [
+        ":dispatcher",
+        "//src/roma/byob/udf:sample_cc_proto",
+        "//src/roma/config",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+proto_library(
+    name = "dispatcher_proto",
+    srcs = ["dispatcher.proto"],
+)
+
+cc_proto_library(
+    name = "dispatcher_cc_proto",
+    visibility = ["//src/roma/byob/container:__subpackages__"],
+    deps = [":dispatcher_proto"],
+)
+
+buf_lint_test(
+    name = "dispatcher_proto_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":dispatcher_proto"],
+)

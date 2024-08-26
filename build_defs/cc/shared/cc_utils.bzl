@@ -57,9 +57,9 @@ def cc_utils():
         urls = ["https://github.com/google/tcmalloc/archive/cda5074afb75ab02cf4d621986308ab7421dbbf8.zip"],
     )
 
-    _gvisor()
+    _gvisor_utils()
 
-def _gvisor(version = GVISOR_VERSION):
+def _gvisor_utils(version = GVISOR_VERSION):
     release_url = "https://storage.googleapis.com/gvisor/releases/release/{}".format(version)
     maybe(
         http_file,

@@ -34,7 +34,7 @@ cc_library(
     name = "metadata_storage",
     hdrs = ["metadata_storage.h"],
     visibility = [
-        "//src/roma/gvisor:__subpackages__",
+        "//src/roma/byob:__subpackages__",
         "//src/roma/native_function_grpc_server:__subpackages__",
         "//src/roma/roma_service:__subpackages__",
         "//src/roma/sandbox/native_function_binding:__subpackages__",

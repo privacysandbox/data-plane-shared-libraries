@@ -1,0 +1,144 @@
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacy_sandbox.server_common.byob;
+
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
+service SampleService {
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Sample Server',
+    code_id: "app_api_roma_app_test_v1",
+    description: 'A sample server showcasing declarative APIs for BYOB',
+    cpp_namespace: 'privacy_sandbox::sample_server::roma_app_api',
+    roma_app_name: 'SampleServer'
+  };
+
+  rpc Sample(SampleRequest) returns (SampleResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc ReadPayload(ReadPayloadRequest) returns (ReadPayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc GeneratePayload(GeneratePayloadRequest)
+      returns (GeneratePayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc ReadCallbackPayload(ReadCallbackPayloadRequest)
+      returns (ReadCallbackPayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc WriteCallbackPayload(WriteCallbackPayloadRequest)
+      returns (WriteCallbackPayloadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc RunPrimeSieve(RunPrimeSieveRequest) returns (RunPrimeSieveResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+
+  rpc SortList(SortListRequest) returns (SortListResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
+}
+
+enum FunctionType {
+  FUNCTION_UNSPECIFIED = 0;
+  FUNCTION_HELLO_WORLD = 1;
+  FUNCTION_PRIME_SIEVE = 2;
+  FUNCTION_CALLBACK = 3;
+  FUNCTION_TEN_CALLBACK_INVOCATIONS = 4;
+}
+
+// Integrator teams will declare this interface message.
+// Roma untrusted binary is expected to deserialize this and get the
+// SampleRequest.
+message SampleRequest {
+  FunctionType function = 1;
+}
+
+// Integrator teams will declare this interface message.
+// Roma untrusted binary is expected to provide serialized version of this as
+// SampleResponse.
+message SampleResponse {
+  bytes greeting = 1;
+  repeated int32 prime_number = 2;
+}
+
+message ReadPayloadRequest {
+  repeated bytes payloads = 1;
+}
+
+message ReadPayloadResponse {
+  uint64 payload_size = 1;
+}
+
+message GeneratePayloadRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message GeneratePayloadResponse {
+  repeated bytes payloads = 1;
+}
+
+message ReadCallbackPayloadRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message ReadCallbackPayloadResponse {
+  uint64 payload_size = 1;
+}
+
+message WriteCallbackPayloadRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message WriteCallbackPayloadResponse {
+  uint64 payload_size = 1;
+}
+
+message RunPrimeSieveRequest {
+  int32 prime_count = 1;
+}
+
+message RunPrimeSieveResponse {
+  int32 largest_prime = 1;
+}
+
+message SortListRequest {}
+
+message SortListResponse {}

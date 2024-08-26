@@ -1,0 +1,36 @@
+#!/bin/bash
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+set -o errexit
+
+function _cleanup() {
+  # shellcheck disable=SC2207
+  declare -a -r pids=($(jobs -pr))
+  if [[ ${#pids[*]} -gt 0 ]]; then
+    kill "${pids[@]}" || true
+  fi
+}
+trap _cleanup EXIT
+
+declare -r BENCHMARK_DIR=/dist/benchmarks
+# /dist/benchmarks dir is mounted into this container when running benchmarks.
+# Else, create it.
+mkdir -p "${BENCHMARK_DIR}"
+sleep 1
+/server/bin/roma_byob_benchmark \
+  --benchmark_counters_tabular=true \
+  --benchmark_out_format=json \
+  --benchmark_time_unit=ms \
+  --benchmark_out="${BENCHMARK_DIR}/roma_byob_client_benchmark.json"

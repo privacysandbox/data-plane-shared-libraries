@@ -1,0 +1,271 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load(
+    "@com_google_googleapis_imports//:imports.bzl",
+    "cc_proto_library",
+)
+load("@io_bazel_rules_go//go:def.bzl", "go_binary")
+load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load(
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
+    "roma_byob_app_api_cc_library",
+)
+
+proto_library(
+    name = "sample_proto",
+    srcs = ["sample.proto"],
+    visibility = ["//src/roma/byob:__subpackages__"],
+    deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_proto"],
+)
+
+cc_proto_library(
+    name = "sample_cc_proto",
+    visibility = ["//src/roma/byob:__subpackages__"],
+    deps = [
+        ":sample_proto",
+    ],
+)
+
+buf_lint_test(
+    name = "sample_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":sample_proto"],
+)
+
+proto_library(
+    name = "sample_callback_proto",
+    srcs = ["sample_callback.proto"],
+    visibility = ["//src/roma/byob:__subpackages__"],
+)
+
+cc_proto_library(
+    name = "sample_callback_cc_proto",
+    visibility = ["//src/roma/byob:__subpackages__"],
+    deps = [
+        ":sample_callback_proto",
+    ],
+)
+
+buf_lint_test(
+    name = "sample_callback_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":sample_callback_proto"],
+)
+
+go_proto_library(
+    name = "sample_go_proto",
+    importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example",
+    proto = ":sample_proto",
+    deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_go"],
+)
+
+go_binary(
+    name = "sample_go_udf",
+    srcs = [
+        "sample_udf.go",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_go_proto",
+        "//src/roma/byob/host:callback_go_proto",
+        "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/any",
+    ],
+)
+
+cc_binary(
+    name = "new_udf",
+    srcs = [
+        "new_udf.cc",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "sample_udf",
+    srcs = [
+        "sample_udf.cc",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "//src/roma/byob/host:callback_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "payload_read_udf",
+    srcs = ["payload_read.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "callback_payload_read_udf",
+    srcs = ["callback_payload_read.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_callback_cc_proto",
+        ":sample_cc_proto",
+        "//src/roma/byob/host:callback_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "callback_payload_write_udf",
+    srcs = ["callback_payload_write.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_callback_cc_proto",
+        ":sample_cc_proto",
+        "//src/roma/byob/host:callback_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "payload_write_udf",
+    srcs = ["payload_write.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "prime_sieve_udf",
+    srcs = ["prime_sieve_udf.cc"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "sort_list_10k_udf",
+    srcs = ["sort_list_10k_udf.cc"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "sort_list_100k_udf",
+    srcs = ["sort_list_100k_udf.cc"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "sort_list_1m_udf",
+    srcs = ["sort_list_1m_udf.cc"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+filegroup(
+    name = "udf_binaries",
+    srcs = [
+        ":callback_payload_read_udf",
+        ":callback_payload_write_udf",
+        ":new_udf",
+        ":payload_read_udf",
+        ":payload_write_udf",
+        ":prime_sieve_udf",
+        ":sample_go_udf",
+        ":sample_udf",
+        ":sort_list_100k_udf",
+        ":sort_list_10k_udf",
+        ":sort_list_1m_udf",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+sample_api = declare_roma_api(
+    cc_protos = [":sample_cc_proto"],
+    proto_basename = "sample",
+    protos = [":sample_proto"],
+)
+
+roma_byob_app_api_cc_library(
+    name = "sample_roma_api",
+    roma_app_api = sample_api,
+    tags = [
+        "noasan",
+        "notsan",
+    ],
+    visibility = ["//visibility:public"],
+)

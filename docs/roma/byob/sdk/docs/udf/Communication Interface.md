@@ -89,4 +89,4 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-See more [example UDFs](/src/roma/gvisor/udf/).
+See more [example UDFs](/src/roma/byob/udf/).
