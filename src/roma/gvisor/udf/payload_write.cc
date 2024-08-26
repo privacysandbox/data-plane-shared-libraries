@@ -36,9 +36,11 @@ int main(int argc, char* argv[]) {
       << "Conversion of file descriptor string to int failed";
   GeneratePayloadRequest req;
   {
+    google::protobuf::Any any;
     google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &input,
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
                                                              nullptr);
+    any.UnpackTo(&req);
   }
   GeneratePayloadResponse response;
   auto* payloads = response.mutable_payloads();

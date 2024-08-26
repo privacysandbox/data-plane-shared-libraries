@@ -41,8 +41,12 @@ int main(int argc, char* argv[]) {
       << "Conversion of file descriptor string to int failed";
   google::protobuf::io::FileInputStream input(fd);
   ReadCallbackPayloadRequest req;
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &input,
-                                                           nullptr);
+  {
+    google::protobuf::Any any;
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                             nullptr);
+    any.UnpackTo(&req);
+  }
   CallbackReadRequest request;
   std::string payload(req.element_size(), char(10));
   auto payloads = request.mutable_payloads();

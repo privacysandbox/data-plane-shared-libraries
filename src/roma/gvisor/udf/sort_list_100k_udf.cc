@@ -25,7 +25,6 @@
 #include "src/roma/gvisor/udf/sample.pb.h"
 
 namespace {
-using ::privacy_sandbox::server_common::gvisor::SortListRequest;
 using ::privacy_sandbox::server_common::gvisor::SortListResponse;
 
 std::array<int, 100'000> items = {
@@ -20042,9 +20041,9 @@ int main(int argc, char** argv) {
   CHECK(absl::SimpleAtoi(argv[1], &fd))
       << "Conversion of file descriptor string to int failed";
   {
-    SortListRequest req;
+    google::protobuf::Any any;
     google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &input,
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
                                                              nullptr);
   }
   std::sort(items.begin(), items.end());

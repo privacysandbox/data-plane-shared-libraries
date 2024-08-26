@@ -65,8 +65,10 @@ int main(int argc, char** argv) {
   RunPrimeSieveRequest request;
   {
     google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&request, &input,
+    google::protobuf::Any any;
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
                                                              nullptr);
+    any.UnpackTo(&request);
   }
   RunPrimeSieveResponse bin_response;
   RunPrimeSieve(request.prime_count(), bin_response);

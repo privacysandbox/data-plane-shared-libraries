@@ -31,6 +31,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
+#include "google/protobuf/any.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 
@@ -46,7 +47,7 @@ class Dispatcher {
 
   template <typename Table, typename Metadata>
   void ExecuteBinary(
-      std::string_view code_token, std::string serialized_request,
+      std::string_view code_token, google::protobuf::Any request,
       Metadata metadata, const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback)
       ABSL_LOCKS_EXCLUDED(mu_) {
@@ -54,8 +55,8 @@ class Dispatcher {
       absl::MutexLock l(&mu_);
       ++executor_threads_in_flight_;
     }
-    std::thread(&Dispatcher::ExecutorImpl, this, code_token,
-                std::move(serialized_request), std::move(callback),
+    std::thread(&Dispatcher::ExecutorImpl, this, code_token, std::move(request),
+                std::move(callback),
                 [&table, metadata = std::move(metadata)](
                     std::string_view function, auto& io_proto) {
                   if (const auto it = table.find(function); it != table.end()) {
@@ -77,7 +78,7 @@ class Dispatcher {
   // and pushes file descriptors to the queue.
   void AcceptorImpl() ABSL_LOCKS_EXCLUDED(mu_);
   void ExecutorImpl(
-      std::string_view code_token, std::string_view serialized_request,
+      std::string_view code_token, google::protobuf::Any request,
       absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
       absl::FunctionRef<void(std::string_view,
                              google::scp::roma::proto::FunctionBindingIoProto&)>

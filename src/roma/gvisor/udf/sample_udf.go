@@ -106,8 +106,14 @@ func main() {
 	file := os.NewFile(uintptr(fd), "socket")
 	defer file.Close()
 	binRequest := &pb.SampleRequest{}
-	if err := parseDelimitedFromFile(binRequest, file); err != nil {
-		os.Exit(-1)
+	{
+		var any ptypes.Any
+		if err := parseDelimitedFromFile(&any, file); err != nil {
+			os.Exit(-1)
+		}
+		if err := any.UnmarshalTo(binRequest); err != nil {
+			log.Fatal("Failed to unmarshal input: ", err)
+		}
 	}
 
 	binResponse := &pb.SampleResponse{}
@@ -128,7 +134,7 @@ func main() {
 	}
 	var any ptypes.Any
 	if err := any.MarshalFrom(binResponse); err != nil {
-		log.Fatal("Failed to marshal callback: ", err)
+		log.Fatal("Failed to marshal output: ", err)
 	}
 	if err := serializeDelimitedToFile(&any, file); err != nil {
 		log.Fatal("Failed to write output: ", err)

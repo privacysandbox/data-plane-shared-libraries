@@ -92,8 +92,10 @@ int main(int argc, char* argv[]) {
 
   SampleRequest bin_request;
   {
+    google::protobuf::Any any;
     FileInputStream input(fd);
-    ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
+    ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
+    any.UnpackTo(&bin_request);
   }
   SampleResponse bin_response;
   switch (bin_request.function()) {

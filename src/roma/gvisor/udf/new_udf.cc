@@ -25,7 +25,6 @@
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
-using ::privacy_sandbox::server_common::gvisor::SampleRequest;
 using ::privacy_sandbox::server_common::gvisor::SampleResponse;
 
 int main(int argc, char* argv[]) {
@@ -38,7 +37,7 @@ int main(int argc, char* argv[]) {
   CHECK(absl::SimpleAtoi(argv[1], &fd))
       << "Conversion of file descriptor string to int failed";
   {
-    SampleRequest bin_request;
+    google::protobuf::Any bin_request;
     FileInputStream input(fd);
     ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
   }

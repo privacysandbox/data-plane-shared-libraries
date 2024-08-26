@@ -61,6 +61,7 @@ go_binary(
     deps = [
         ":example_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
+        "@com_github_golang_protobuf//ptypes/any",
     ],
 )
 
@@ -75,5 +76,6 @@ cc_binary(
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
     ],
 )

@@ -16,7 +16,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/binary"
 	proto "github.com/golang/protobuf/proto"
+	ptypes "github.com/golang/protobuf/ptypes/any"
 	pb "github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example"
 	"log"
 	"os"
@@ -27,39 +29,50 @@ func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("Not enough input arguments")
 	}
-	writeFd, err := strconv.Atoi(os.Args[1])
+	fd, err := strconv.Atoi(os.Args[1])
 	if err != nil {
-		log.Fatal("Missing write file descriptor: ", err)
+		log.Fatal("Missing file descriptor: ", err)
 	}
 	request := &pb.EchoRequest{}
-	buf := make([]byte, 10)
+	file := os.NewFile(uintptr(fd), "socket")
+	defer file.Close()
 	// Any initialization work can be done before this point.
 	// The following line will result in a blocking read being performed by the
 	// binary i.e. waiting for input before execution.
 	// The EchoRequest proto is defined by the Trusted Server team.
-	// The UDF reads request from stdin.
-	reader := bufio.NewReader(os.Stdin)
-	n, err := reader.Read(buf)
+	// The UDF reads request from the provided fd.
+	reader := bufio.NewReader(file)
+	n, err := binary.ReadUvarint(reader)
 	if err != nil {
-		log.Fatal("Failed to read from stdin: ", err)
+		log.Fatal("Failed to read varint from stdin: ", err)
 	}
-	if err := proto.Unmarshal(buf[:n], request); err != nil {
-		log.Fatal("Failed to parse SampleRequest: ", err)
+	buf := make([]byte, n)
+	_, err = reader.Read(buf)
+	if err != nil {
+		log.Fatal("Failed to read proto from stdin: ", err)
 	}
-
+	{
+		var any ptypes.Any
+		if err := proto.Unmarshal(buf, &any); err != nil {
+			log.Fatal("Failed to unmarshal any: ", err)
+		}
+		if err := any.UnmarshalTo(request); err != nil {
+			log.Fatal("Failed to unmarshal input: ", err)
+		}
+	}
 	response := &pb.EchoResponse{}
 	response.Message = request.Message
-	writeFile := os.NewFile(uintptr(writeFd), "pipe")
-	defer writeFile.Close()
-	output, err := proto.Marshal(response)
-	if err != nil {
-		log.Fatal("Failed to serialize EchoResponse: ", err)
-	}
-
 	// Once the UDF is done executing, it should write the response (EchoResponse
-	// in this case) to the provided writeFd.
-	_, err = writeFile.Write(output)
-	if err != nil {
-		log.Print("Failed to write output to pipe: ", err)
+	// in this case) to the provided fd.
+	var any ptypes.Any
+	if err := any.MarshalFrom(response); err != nil {
+		log.Fatal("Failed to marshal output: ", err)
+	}
+	buffer := proto.NewBuffer([]byte{})
+	if err := buffer.EncodeMessage(&any); err != nil {
+		log.Fatal("Failed to encode output: ", err)
+	}
+	if _, err := file.Write(buffer.Bytes()); err != nil {
+		log.Fatal("Failed to write output: ", err)
 	}
 }

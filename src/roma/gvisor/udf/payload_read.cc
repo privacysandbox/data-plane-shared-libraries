@@ -36,9 +36,11 @@ int main(int argc, char* argv[]) {
       << "Conversion of file descriptor string to int failed";
   ReadPayloadRequest req;
   {
+    google::protobuf::Any any;
     google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &input,
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
                                                              nullptr);
+    any.UnpackTo(&req);
   }
   ReadPayloadResponse response;
   int64_t payload_size = 0;

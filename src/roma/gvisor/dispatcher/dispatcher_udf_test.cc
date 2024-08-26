@@ -31,6 +31,7 @@
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "google/protobuf/any.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/gvisor/dispatcher/dispatcher.h"
 #include "src/roma/gvisor/udf/sample.pb.h"
@@ -77,11 +78,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
-  {
-    SampleRequest request;
-    serialized_request = request.SerializeAsString();
-  }
+  google::protobuf::Any serialized_request;
+  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
@@ -121,11 +119,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_HELLO_WORLD);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -167,11 +165,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_PRIME_SIEVE);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -212,11 +210,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_CALLBACK);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -257,11 +255,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -302,11 +300,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/new_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
-  {
-    SampleRequest request;
-    serialized_request = request.SerializeAsString();
-  }
+  google::protobuf::Any serialized_request;
+  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
@@ -347,11 +342,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
-  {
-    SampleRequest request;
-    serialized_request = request.SerializeAsString();
-  }
+  google::protobuf::Any serialized_request;
+  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
@@ -391,11 +383,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_HELLO_WORLD);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -437,11 +429,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_PRIME_SIEVE);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -482,11 +474,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_CALLBACK);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -527,11 +519,11 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/gvisor/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  std::string serialized_request;
+  google::protobuf::Any serialized_request;
   {
     SampleRequest request;
     request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
-    serialized_request = request.SerializeAsString();
+    ASSERT_TRUE(serialized_request.PackFrom(request));
   }
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>

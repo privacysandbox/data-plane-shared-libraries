@@ -18,6 +18,8 @@
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/strings/numbers.h"
+#include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/gvisor/example/example.pb.h"
 
 using ::privacy_sandbox::server_common::gvisor::example::EchoRequest;
@@ -29,22 +31,30 @@ int main(int argc, char* argv[]) {
     LOG(ERROR) << "Not enough arguments!";
     return -1;
   }
-  int32_t write_fd;
-  CHECK(absl::SimpleAtoi(argv[1], &write_fd))
+  int32_t fd;
+  CHECK(absl::SimpleAtoi(argv[1], &fd))
       << "Conversion of write file descriptor string to int failed";
   EchoRequest request;
   // Any initialization work can be done before this point.
   // The following line will result in a blocking read being performed by the
   // binary i.e. waiting for input before execution.
   // The EchoRequest proto is defined by the Trusted Server team. The UDF reads
-  // request from stdin.
-  request.ParseFromIstream(&std::cin);
+  // request from the provided file descriptor.
+  {
+    ::google::protobuf::Any any;
+    ::google::protobuf::io::FileInputStream input(fd);
+    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                               nullptr);
+    any.UnpackTo(&request);
+  }
 
   EchoResponse response;
   response.set_message(request.message());
 
   // Once the UDF is done executing, it should write the response (EchoResponse
   // in this case) to the provided file descriptor.
-  response.SerializeToFileDescriptor(write_fd);
+  ::google::protobuf::Any any;
+  any.PackFrom(response);
+  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

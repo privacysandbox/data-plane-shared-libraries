@@ -41,6 +41,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
+#include "google/protobuf/any.pb.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/gvisor/config/config.h"
 #include "src/roma/gvisor/dispatcher/dispatcher.h"
@@ -163,7 +164,8 @@ class RomaService final {
 
   template <typename Message>
   absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
-      std::string_view code_token, std::string request, TMetadata metadata,
+      std::string_view code_token, google::protobuf::Any request,
+      TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Message>) &&> callback) {
     dispatcher_->ExecuteBinary(
         code_token, std::move(request), std::move(metadata), function_bindings_,
@@ -186,8 +188,8 @@ class RomaService final {
 
   template <typename Message>
   absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
-      std::string_view code_token, std::string request, TMetadata metadata,
-      absl::Notification& notif,
+      std::string_view code_token, google::protobuf::Any request,
+      TMetadata metadata, absl::Notification& notif,
       absl::StatusOr<std::unique_ptr<Message>>& output) {
     dispatcher_->ExecuteBinary(
         code_token, std::move(request), std::move(metadata), function_bindings_,

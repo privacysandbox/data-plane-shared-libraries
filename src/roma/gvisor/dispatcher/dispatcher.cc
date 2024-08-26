@@ -37,9 +37,7 @@
 
 namespace privacy_sandbox::server_common::gvisor {
 namespace {
-using ::google::protobuf::io::CodedOutputStream;
 using ::google::protobuf::io::FileInputStream;
-using ::google::protobuf::io::FileOutputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::google::scp::core::common::Uuid;
@@ -117,7 +115,7 @@ void RunCallback(
 }  // namespace
 
 void Dispatcher::ExecutorImpl(
-    std::string_view code_token, std::string_view serialized_request,
+    std::string_view code_token, google::protobuf::Any request,
     absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
         handler) {
@@ -133,12 +131,7 @@ void Dispatcher::ExecutorImpl(
     fd = fds.front();
     fds.pop();
   }
-  {
-    FileOutputStream output(fd);
-    CodedOutputStream coded_output(&output);
-    coded_output.WriteVarint32(serialized_request.size());
-    coded_output.WriteRaw(serialized_request.data(), serialized_request.size());
-  }
+  SerializeDelimitedToFileDescriptor(request, fd);
   FileInputStream input(fd);
   absl::Mutex mu;
   int outstanding_threads = 0;  // Guarded by mu.

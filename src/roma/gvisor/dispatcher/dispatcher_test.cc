@@ -168,9 +168,11 @@ TEST(DispatcherTest, LoadAndExecute) {
     EXPECT_EQ(::write(connection_fd, request.code_token().c_str(), 36), 36);
     {
       // Read UDF input.
-      SampleRequest request;
+      google::protobuf::Any any;
       FileInputStream input(connection_fd);
-      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
+      SampleRequest request;
+      ASSERT_TRUE(any.UnpackTo(&request));
       EXPECT_EQ(request.function(), FUNCTION_HELLO_WORLD);
     }
     {
@@ -189,11 +191,11 @@ TEST(DispatcherTest, LoadAndExecute) {
   const std::string code_token =
       dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
   {
-    std::string serialized_request;
+    google::protobuf::Any serialized_request;
     {
       SampleRequest request;
       request.set_function(FUNCTION_HELLO_WORLD);
-      serialized_request = request.SerializeAsString();
+      ASSERT_TRUE(serialized_request.PackFrom(request));
     }
     absl::flat_hash_map<std::string,
                         std::function<void(FunctionBindingPayload<int>&)>>
@@ -241,8 +243,10 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     // Read UDF input.
     FileInputStream input(connection_fd);
     {
+      google::protobuf::Any any;
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
       SampleRequest request;
-      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+      ASSERT_TRUE(any.UnpackTo(&request));
       EXPECT_EQ(request.function(), FUNCTION_PRIME_SIEVE);
     }
 
@@ -282,11 +286,11 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   const std::string code_token =
       dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
   {
-    std::string serialized_request;
+    google::protobuf::Any serialized_request;
     {
       SampleRequest request;
       request.set_function(FUNCTION_PRIME_SIEVE);
-      serialized_request = request.SerializeAsString();
+      ASSERT_TRUE(serialized_request.PackFrom(request));
     }
     absl::Mutex mu;
     int count = 0;  // Guarded by mu.
@@ -345,9 +349,9 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       // Read UDF input.
       FileInputStream input(connection_fd);
       {
-        SampleRequest request;
-        ASSERT_TRUE(
-            ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+        google::protobuf::Any any;
+        ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
+        EXPECT_TRUE(any.Is<SampleRequest>());
       }
       {
         // Initiate host callback from UDF.
@@ -378,11 +382,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const std::string code_token =
       dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
-  std::string serialized_request;
-  {
-    SampleRequest request;
-    serialized_request = request.SerializeAsString();
-  }
+  google::protobuf::Any serialized_request;
+  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
   absl::Mutex mu;
   absl::flat_hash_set<int> metadatas;  // Guarded by mu.
   metadatas.reserve(100);
