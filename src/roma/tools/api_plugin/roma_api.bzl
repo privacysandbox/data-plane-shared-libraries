@@ -16,7 +16,9 @@
 
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_pkg//pkg:mappings.bzl", "pkg_files")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 load("@rules_proto_grpc//:defs.bzl", "bazel_build_rule_common_attrs", "filter_files")
 load(
@@ -477,7 +479,56 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], **kwargs):
+def romav8_image(*, name, cc_binary, version):
+    _roma_image(name = name, cc_binary = cc_binary, version = version, type = "v8")
+
+def _roma_image(*, name, cc_binary, version, type):
+    type_str = "roma" + type
+    path = "/usr/bin"
+    pkg_files(
+        name = "{}_{}_cli_execs".format(name, type_str),
+        srcs = [
+            cc_binary,
+        ],
+        attributes = pkg_attributes(mode = "0555"),
+        prefix = path,
+    )
+    pkg_tar(
+        name = "{}_{}_cli_tar".format(name, type_str),
+        srcs = [
+            ":{}_{}_cli_execs".format(name, type_str),
+        ],
+    )
+    oci_image(
+        name = "{}_image".format(name),
+        base = select({
+            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
+            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
+        }),
+        entrypoint = ["{}/{}".format(path, cc_binary.split(":")[-1])],
+        tars = [
+            ":{}_{}_cli_tar".format(name, type_str),
+        ],
+    )
+    oci_tarball(
+        name = "{}_tarball".format(name),
+        image = ":{}_image".format(name),
+        repo_tags = ["privacy_sandbox/udf_sdk/{}:{}".format(name, version)],
+    )
+    native.genrule(
+        name = name,
+        srcs = [
+            "{}_tarball".format(name),
+        ],
+        outs = ["{}_tarball.tar".format(name)],
+        cmd_bash = """
+        cp $(execpath :{name}_tarball) $@
+    """.format(name = name),
+        executable = True,
+        local = True,
+    )
+
+def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], version = "v1", **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -503,6 +554,25 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, hos
         prefix = "docs",
     )
 
+    romav8_image(
+        name = name + "_roma_shell",
+        cc_binary = "//src/roma/tools/v8_cli:roma_shell",
+        version = version,
+    )
+    romav8_image(
+        name = name + "_roma_benchmark",
+        cc_binary = "//src/roma/tools/v8_cli:roma_benchmark",
+        version = version,
+    )
+    pkg_files(
+        name = name + "_tools_artifacts",
+        srcs = [
+            ":{}_roma_shell".format(name),
+            ":{}_roma_benchmark".format(name),
+        ],
+        prefix = "tools",
+    )
+
     pkg_zip(
         name = name,
         srcs = srcs + [
@@ -510,6 +580,7 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, hos
             "{}_cc_service_hdrs".format(app_api_cc_library),
             "{}_cc_hdrs".format(app_api_cc_library),
             ":{}_doc_artifacts".format(name),
+            ":{}_tools_artifacts".format(name),
         ],
         package_dir = "/{}".format(name),
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
