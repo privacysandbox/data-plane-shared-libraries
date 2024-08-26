@@ -392,7 +392,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
   state.counters["elem_byte_size"] = elem_size;
   state.counters["elem_count"] = elem_count;
   state.counters["payload_size"] = payload_size;
-  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+  state.SetLabel(GetModeStr(mode));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           payload_size);
 }
@@ -439,7 +439,7 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
   state.counters["elem_byte_size"] = elem_size;
   state.counters["elem_count"] = elem_count;
   state.counters["payload_size"] = req_payload_size;
-  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+  state.SetLabel(GetModeStr(mode));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           req_payload_size);
 }
@@ -491,7 +491,7 @@ void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
   state.counters["elem_byte_size"] = elem_size;
   state.counters["elem_count"] = elem_count;
   state.counters["payload_size"] = payload_size;
-  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+  state.SetLabel(GetModeStr(mode));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           payload_size);
 }
@@ -543,7 +543,7 @@ void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
   state.counters["elem_byte_size"] = elem_size;
   state.counters["elem_count"] = elem_count;
   state.counters["payload_size"] = payload_size;
-  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+  state.SetLabel(GetModeStr(mode));
   state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
                           payload_size);
 }
@@ -579,7 +579,7 @@ void BM_ExecuteBinaryPrimeSieve(benchmark::State& state) {
   for (auto _ : state) {
     CHECK_OK(rpc(code_tok, request));
   }
-  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+  state.SetLabel(GetModeStr(mode));
 }
 
 void BM_ExecuteBinarySortList(benchmark::State& state) {
@@ -619,7 +619,7 @@ void BM_ExecuteBinarySortList(benchmark::State& state) {
   for (auto _ : state) {
     CHECK_OK(rpc(code_tok, request));
   }
-  state.SetLabel(absl::StrCat("mode: ", GetModeStr(mode)));
+  state.SetLabel(GetModeStr(mode));
 }
 
 BENCHMARK(BM_LoadBinary)
