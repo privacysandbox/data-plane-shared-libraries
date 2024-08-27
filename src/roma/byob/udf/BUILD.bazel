@@ -25,7 +25,9 @@ load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
     "declare_roma_api",
     "roma_byob_app_api_cc_library",
+    "roma_byob_sdk",
     "roma_host_api_cc_library",
+    "roma_integrator_docs",
 )
 
 proto_library(
@@ -258,4 +260,17 @@ roma_byob_app_api_cc_library(
         "notsan",
     ],
     visibility = ["//visibility:public"],
+)
+
+roma_byob_sdk(
+    name = "sample_byob_sdk",
+    srcs = [],
+    byob_app_api_cc_library = ":sample_roma_api",
+    roma_app_api = sample_api,
+    visibility = ["//visibility:public"],
+)
+
+roma_integrator_docs(
+    name = "sample_byob_integrator_docs",
+    app_api_cc_library = ":sample_roma_api",
 )

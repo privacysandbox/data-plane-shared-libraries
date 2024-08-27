@@ -644,10 +644,19 @@ def roma_byob_sdk(*, name, srcs, byob_app_api_cc_library, **kwargs):
         <name>_doc_artifacts -- docs pkg_files
         <name> -- sdk pkg_zip
     """
-
+    pkg_files(
+        name = name + "_doc_udf_artifacts",
+        srcs = [
+            # Uncomment when UDF Interface Specifications.md has been written.
+            # "//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md",
+            "//docs/roma:byob/sdk/docs/udf/Execution Environment and Interface.md",
+            "//docs/roma:byob/sdk/docs/udf/Communication Interface.md",
+        ],
+        prefix = "docs/udf",
+    )
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["{}_docs".format(byob_app_api_cc_library)],
+        srcs = ["//docs/roma:byob/sdk/docs/Guide to the SDK.md"],
         prefix = "docs",
     )
 
@@ -657,6 +666,7 @@ def roma_byob_sdk(*, name, srcs, byob_app_api_cc_library, **kwargs):
             "{}".format(byob_app_api_cc_library),
             "{}_roma_byob_app_header".format(byob_app_api_cc_library),
             ":{}_doc_artifacts".format(name),
+            ":{}_doc_udf_artifacts".format(name),
         ],
         package_dir = "/{}".format(name),
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
