@@ -115,7 +115,7 @@ void RunCallback(
 }  // namespace
 
 void Dispatcher::ExecutorImpl(
-    std::string_view code_token, google::protobuf::Any request,
+    std::string_view code_token, ::google::protobuf::Any request,
     absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
         handler) {
@@ -136,7 +136,7 @@ void Dispatcher::ExecutorImpl(
   absl::Mutex mu;
   int outstanding_threads = 0;  // Guarded by mu.
   while (true) {
-    google::protobuf::Any any;
+    ::google::protobuf::Any any;
     ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
     if (any.Is<Callback>()) {
       {

@@ -163,7 +163,7 @@ class RomaService final {
   }
 
   template <typename Response, typename Request>
-  absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
+  absl::StatusOr<::google::scp::roma::ExecutionToken> ExecuteBinary(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
     dispatcher_->ExecuteBinary(
@@ -181,12 +181,12 @@ class RomaService final {
             std::move(callback)(std::move(response).status());
           }
         });
-    return google::scp::roma::ExecutionToken(
+    return ::google::scp::roma::ExecutionToken(
         ToString(::google::scp::core::common::Uuid::GenerateUuid()));
   }
 
   template <typename Response, typename Request>
-  absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
+  absl::StatusOr<::google::scp::roma::ExecutionToken> ExecuteBinary(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::Notification& notif,
       absl::StatusOr<std::unique_ptr<Response>>& output) {
@@ -207,7 +207,7 @@ class RomaService final {
           }
           notif.Notify();
         });
-    return google::scp::roma::ExecutionToken(
+    return ::google::scp::roma::ExecutionToken(
         ToString(::google::scp::core::common::Uuid::GenerateUuid()));
   }
 
@@ -221,8 +221,9 @@ class RomaService final {
       handle_;
   std::optional<Dispatcher> dispatcher_;
   absl::flat_hash_map<
-      std::string, std::function<void(
-                       google::scp::roma::FunctionBindingPayload<TMetadata>&)>>
+      std::string,
+      std::function<void(
+          ::google::scp::roma::FunctionBindingPayload<TMetadata>&)>>
       function_bindings_;
 };
 

@@ -101,10 +101,6 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -118,10 +114,6 @@ cc_binary(
     deps = [
         ":sample_cc_proto",
         "//src/roma/byob/host:callback_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -132,10 +124,6 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -148,10 +136,6 @@ cc_binary(
         ":sample_callback_cc_proto",
         ":sample_cc_proto",
         "//src/roma/byob/host:callback_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -164,10 +148,6 @@ cc_binary(
         ":sample_callback_cc_proto",
         ":sample_cc_proto",
         "//src/roma/byob/host:callback_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -178,10 +158,6 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -191,10 +167,6 @@ cc_binary(
     srcs = ["prime_sieve_udf.cc"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -204,10 +176,6 @@ cc_binary(
     srcs = ["sort_list_10k_udf.cc"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -217,10 +185,6 @@ cc_binary(
     srcs = ["sort_list_100k_udf.cc"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )
@@ -230,10 +194,6 @@ cc_binary(
     srcs = ["sort_list_1m_udf.cc"],
     deps = [
         ":sample_cc_proto",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_protobuf//:protobuf",
     ],
 )

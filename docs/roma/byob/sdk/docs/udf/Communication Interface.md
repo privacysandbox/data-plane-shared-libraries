@@ -86,15 +86,21 @@ Largely, a UDF's execution can be divided into following stages -
 A C++ example showcasing the stages. It can be extrapolated to other coding languages:
 
 ```cpp
+#include <iostream>
+
+#include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/delimited_message_util.h"
+#include "src/roma/byob/example/example.pb.h"
+
+using ::privacy_sandbox::server_common::byob::example::EchoRequest;
+using ::privacy_sandbox::server_common::byob::example::EchoResponse;
+
 int main(int argc, char* argv[]) {
-  absl::InitializeLog();
   if (argc < 2) {
-    LOG(ERROR) << "Not enough arguments!";
+    std::cerr << "Not enough arguments!";
     return -1;
   }
-  int32_t fd;
-  CHECK(absl::SimpleAtoi(argv[1], &fd))
-      << "Conversion of write file descriptor string to int failed";
+  int fd = std::stoi(argv[1]);
   EchoRequest request;
   // Any initialization work can be done before this point.
   // The following line will result in a blocking read being performed by the
@@ -105,7 +111,7 @@ int main(int argc, char* argv[]) {
     ::google::protobuf::Any any;
     ::google::protobuf::io::FileInputStream input(fd);
     ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                               nullptr);
+                                                             nullptr);
     any.UnpackTo(&request);
   }
 

@@ -14,10 +14,6 @@
 
 #include <iostream>
 
-#include "absl/log/check.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
-#include "absl/strings/numbers.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/udf/sample.pb.h"
@@ -28,22 +24,19 @@ using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::privacy_sandbox::server_common::byob::SampleResponse;
 
 int main(int argc, char* argv[]) {
-  absl::InitializeLog();
   if (argc < 2) {
-    LOG(ERROR) << "Not enough arguments!";
+    std::cerr << "Not enough arguments!";
     return -1;
   }
-  int32_t fd;
-  CHECK(absl::SimpleAtoi(argv[1], &fd))
-      << "Conversion of file descriptor string to int failed";
+  int fd = std::stoi(argv[1]);
   {
-    google::protobuf::Any bin_request;
+    ::google::protobuf::Any bin_request;
     FileInputStream input(fd);
     ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
   }
   SampleResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
-  google::protobuf::Any any;
+  ::google::protobuf::Any any;
   any.PackFrom(std::move(bin_response));
   SerializeDelimitedToFileDescriptor(any, fd);
   return 0;

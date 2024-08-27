@@ -16,10 +16,6 @@
 #include <array>
 #include <iostream>
 
-#include "absl/log/check.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
-#include "absl/strings/numbers.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/udf/sample.pb.h"
@@ -20032,23 +20028,20 @@ std::array<int, 100'000> items = {
 }  // namespace
 
 int main(int argc, char** argv) {
-  absl::InitializeLog();
   if (argc < 2) {
-    LOG(ERROR) << "Not enough arguments!";
+    std::cerr << "Not enough arguments!";
     return -1;
   }
-  int32_t fd;
-  CHECK(absl::SimpleAtoi(argv[1], &fd))
-      << "Conversion of file descriptor string to int failed";
+  int fd = std::stoi(argv[1]);
   {
-    google::protobuf::Any any;
-    google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
+    ::google::protobuf::Any any;
+    ::google::protobuf::io::FileInputStream input(fd);
+    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                               nullptr);
   }
   std::sort(items.begin(), items.end());
-  google::protobuf::Any any;
+  ::google::protobuf::Any any;
   any.PackFrom(SortListResponse{});
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

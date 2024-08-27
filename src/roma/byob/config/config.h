@@ -28,7 +28,7 @@ struct Config {
   int num_workers;
   std::string roma_container_name;
   std::string lib_mounts;
-  std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>
+  std::vector<::google::scp::roma::FunctionBindingObjectV2<TMetadata>>
       function_bindings;
 };
 }  // namespace privacy_sandbox::server_common::byob

@@ -14,10 +14,6 @@
 
 #include <iostream>
 
-#include "absl/log/check.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
-#include "absl/strings/numbers.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/host/callback.pb.h"
@@ -31,20 +27,17 @@ using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadResponse;
 
 int main(int argc, char* argv[]) {
-  absl::InitializeLog();
   if (argc < 2) {
-    LOG(ERROR) << "Not enough arguments!";
+    std::cerr << "Not enough arguments!";
     return -1;
   }
-  int32_t fd;
-  CHECK(absl::SimpleAtoi(argv[1], &fd))
-      << "Conversion of file descriptor string to int failed";
-  google::protobuf::io::FileInputStream input(fd);
+  int fd = std::stoi(argv[1]);
+  ::google::protobuf::io::FileInputStream input(fd);
   WriteCallbackPayloadRequest req;
   {
-    google::protobuf::Any any;
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
+    ::google::protobuf::Any any;
+    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                               nullptr);
     any.UnpackTo(&req);
   }
   CallbackWriteRequest request;
@@ -55,13 +48,13 @@ int main(int argc, char* argv[]) {
     callback.set_function_name("example");
     request.SerializeToString(
         callback.mutable_io_proto()->mutable_input_bytes());
-    google::protobuf::Any any;
+    ::google::protobuf::Any any;
     any.PackFrom(std::move(callback));
-    google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+    ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   }
   Callback callback;
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&callback, &input,
-                                                           nullptr);
+  ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&callback, &input,
+                                                             nullptr);
   CallbackWriteResponse response;
   response.ParseFromString(callback.io_proto().output_bytes());
 
@@ -71,8 +64,8 @@ int main(int argc, char* argv[]) {
     payload_size += p.size();
   }
   resp.set_payload_size(payload_size);
-  google::protobuf::Any any;
+  ::google::protobuf::Any any;
   any.PackFrom(std::move(resp));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

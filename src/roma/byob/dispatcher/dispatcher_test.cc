@@ -167,7 +167,7 @@ TEST(DispatcherTest, LoadAndExecute) {
     EXPECT_EQ(::write(connection_fd, request.code_token().c_str(), 36), 36);
     {
       // Read UDF input.
-      google::protobuf::Any any;
+      ::google::protobuf::Any any;
       FileInputStream input(connection_fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
       SampleRequest request;
@@ -178,7 +178,7 @@ TEST(DispatcherTest, LoadAndExecute) {
       // Write UDF output.
       SampleResponse response;
       response.set_greeting("dummy greeting");
-      google::protobuf::Any any;
+      ::google::protobuf::Any any;
       ASSERT_TRUE(any.PackFrom(std::move(response)));
       ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
     }
@@ -238,7 +238,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     // Read UDF input.
     FileInputStream input(connection_fd);
     {
-      google::protobuf::Any any;
+      ::google::protobuf::Any any;
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
       SampleRequest request;
       ASSERT_TRUE(any.UnpackTo(&request));
@@ -250,7 +250,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       Callback callback;
       callback.set_id(id);
       callback.set_function_name("example_function");
-      google::protobuf::Any any;
+      ::google::protobuf::Any any;
       ASSERT_TRUE(any.PackFrom(std::move(callback)));
       ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
     }
@@ -269,7 +269,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       // Write UDF output.
       SampleResponse response;
       response.set_greeting("dummy greeting");
-      google::protobuf::Any any;
+      ::google::protobuf::Any any;
       ASSERT_TRUE(any.PackFrom(std::move(response)));
       ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
     }
@@ -340,7 +340,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       // Read UDF input.
       FileInputStream input(connection_fd);
       {
-        google::protobuf::Any any;
+        ::google::protobuf::Any any;
         ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
         EXPECT_TRUE(any.Is<SampleRequest>());
       }
@@ -348,7 +348,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
         // Initiate host callback from UDF.
         Callback callback;
         callback.set_function_name("example_function");
-        google::protobuf::Any any;
+        ::google::protobuf::Any any;
         ASSERT_TRUE(any.PackFrom(std::move(callback)));
         ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
       }
@@ -361,7 +361,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       {
         // Write UDF output.
         SampleResponse response;
-        google::protobuf::Any any;
+        ::google::protobuf::Any any;
         ASSERT_TRUE(any.PackFrom(std::move(response)));
         ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
       }
