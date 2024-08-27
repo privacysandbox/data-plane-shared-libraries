@@ -570,13 +570,28 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
 
     Targets:
         <name>_doc_artifacts -- docs pkg_files
+        <name>_doc_tools_artifacts -- CLI tools docs pkg_files
+        <name>_doc_udf_artifacts -- js_library docs pkg_files
         <name> -- sdk pkg_zip
     """
-
+    pkg_files(
+        name = name + "_doc_tools_artifacts",
+        srcs = [
+            "//docs/roma:v8/sdk/docs/tools/shell_cli.md",
+            "//docs/roma:v8/sdk/docs/tools/udf_benchmark_cli.md",
+            "//docs/roma:v8/sdk/docs/tools/logging.md",
+        ],
+        prefix = "docs/tools",
+    )
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["{}_docs".format(js_library)] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
+        srcs = ["//docs/roma:v8/sdk/docs/Guide to the SDK.md"],
         prefix = "docs",
+    )
+    pkg_files(
+        name = name + "_doc_udf_artifacts",
+        srcs = ["{}_docs".format(js_library)] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
+        prefix = "docs/udf",
     )
 
     romav8_image(
@@ -606,6 +621,8 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
             "{}_cc_hdrs".format(app_api_cc_library),
             ":{}_doc_artifacts".format(name),
             ":{}_tools_artifacts".format(name),
+            ":{}_doc_tools_artifacts".format(name),
+            ":{}_doc_udf_artifacts".format(name),
         ],
         package_dir = "/{}".format(name),
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}

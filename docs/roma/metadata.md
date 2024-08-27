@@ -30,7 +30,7 @@ in any function that accepts:
 -   `std::string_view` - The message to be logged
 
 This function will be invoked whenever the provided Roma logging functions are invoked from JS code
-(see [here](logging.md) for more details).
+(see [here](/docs/roma/v8/sdk/docs/tools/logging.md) for more details).
 
 Logging is, by default, a no-op unless a logging function is set on the `Config<T>`.
 
