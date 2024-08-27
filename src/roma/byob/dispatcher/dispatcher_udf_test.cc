@@ -77,15 +77,14 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
+  SampleRequest bin_request;
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -118,19 +117,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_HELLO_WORLD);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_HELLO_WORLD);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -164,19 +159,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_PRIME_SIEVE);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_PRIME_SIEVE);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -209,19 +200,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_CALLBACK);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_CALLBACK);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -254,19 +241,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -299,15 +282,14 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/new_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
+  SampleRequest bin_request;
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -341,15 +323,14 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
+  SampleRequest bin_request;
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -382,19 +363,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_HELLO_WORLD);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_HELLO_WORLD);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -428,19 +405,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_PRIME_SIEVE);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_PRIME_SIEVE);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -473,19 +446,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_CALLBACK);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_CALLBACK);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;
@@ -518,19 +487,15 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
   const std::string code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
                             /*n_workers=*/10);
-  google::protobuf::Any serialized_request;
-  {
-    SampleRequest request;
-    request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
-    ASSERT_TRUE(serialized_request.PackFrom(request));
-  }
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) {
           ASSERT_TRUE(response.ok());
           SampleResponse bin_response;

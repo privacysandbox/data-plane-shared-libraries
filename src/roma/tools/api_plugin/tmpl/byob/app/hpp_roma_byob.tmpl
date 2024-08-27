@@ -41,7 +41,6 @@
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "google/protobuf/any.pb.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -118,11 +117,8 @@ class {{$svcName}} final :
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "")
       override {
-    google::protobuf::Any any;
-    any.PackFrom(request);
     return roma_service_->ExecuteBinary(
-      code_token, std::move(any), std::move(metadata),
-      notification, response);
+      code_token, request, std::move(metadata), notification, response);
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
@@ -130,11 +126,8 @@ class {{$svcName}} final :
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    google::protobuf::Any any;
-    any.PackFrom(request);
     return roma_service_->template ExecuteBinary<{{$respType}}>(
-      code_token, std::move(any), std::move(metadata),
-      std::move(callback));
+      code_token, request, std::move(metadata), std::move(callback));
   }
 {{end}}
 

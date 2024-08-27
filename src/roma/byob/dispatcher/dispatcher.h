@@ -45,17 +45,19 @@ class Dispatcher {
 
   std::string LoadBinary(std::string_view binary_path, int n_workers);
 
-  template <typename Table, typename Metadata>
+  template <typename Table, typename Metadata, typename Request>
   void ExecuteBinary(
-      std::string_view code_token, google::protobuf::Any request,
-      Metadata metadata, const Table& table,
+      std::string_view code_token, const Request& request, Metadata metadata,
+      const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback)
       ABSL_LOCKS_EXCLUDED(mu_) {
+    google::protobuf::Any any;
+    any.PackFrom(request);
     {
       absl::MutexLock l(&mu_);
       ++executor_threads_in_flight_;
     }
-    std::thread(&Dispatcher::ExecutorImpl, this, code_token, std::move(request),
+    std::thread(&Dispatcher::ExecutorImpl, this, code_token, std::move(any),
                 std::move(callback),
                 [&table, metadata = std::move(metadata)](
                     std::string_view function, auto& io_proto) {

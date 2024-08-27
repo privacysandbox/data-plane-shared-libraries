@@ -190,18 +190,14 @@ TEST(DispatcherTest, LoadAndExecute) {
   const std::string code_token =
       dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
   {
-    google::protobuf::Any serialized_request;
-    {
-      SampleRequest request;
-      request.set_function(FUNCTION_HELLO_WORLD);
-      ASSERT_TRUE(serialized_request.PackFrom(request));
-    }
+    SampleRequest bin_request;
+    bin_request.set_function(FUNCTION_HELLO_WORLD);
     absl::flat_hash_map<std::string,
                         std::function<void(FunctionBindingPayload<int>&)>>
         function_table;
     absl::StatusOr<std::string> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(code_token, serialized_request, /*metadata=*/0,
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/0,
                              function_table, [&](auto response) {
                                bin_response = std::move(response);
                                done.Notify();
@@ -285,12 +281,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   const std::string code_token =
       dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
   {
-    google::protobuf::Any serialized_request;
-    {
-      SampleRequest request;
-      request.set_function(FUNCTION_PRIME_SIEVE);
-      ASSERT_TRUE(serialized_request.PackFrom(request));
-    }
+    SampleRequest bin_request;
+    bin_request.set_function(FUNCTION_PRIME_SIEVE);
     absl::Mutex mu;
     int count = 0;  // Guarded by mu.
     absl::flat_hash_map<
@@ -302,7 +294,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                            }}};
     absl::StatusOr<std::string> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(code_token, serialized_request,
+    dispatcher.ExecuteBinary(code_token, bin_request,
                              /*metadata=*/std::string{"dummy_data"},
                              function_table, [&](auto response) {
                                bin_response = std::move(response);
@@ -381,8 +373,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const std::string code_token =
       dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
-  google::protobuf::Any serialized_request;
-  ASSERT_TRUE(serialized_request.PackFrom(SampleRequest{}));
+  SampleRequest bin_request;
   absl::Mutex mu;
   absl::flat_hash_set<int> metadatas;  // Guarded by mu.
   metadatas.reserve(100);
@@ -395,7 +386,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, serialized_request, /*metadata=*/i, function_table,
+        code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) { counter.DecrementCount(); });
   }
   counter.Wait();

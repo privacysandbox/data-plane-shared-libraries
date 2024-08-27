@@ -162,17 +162,16 @@ class RomaService final {
     return dispatcher_->LoadBinary(new_path.c_str(), n_workers_);
   }
 
-  template <typename Message>
+  template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
-      std::string_view code_token, google::protobuf::Any request,
-      TMetadata metadata,
-      absl::AnyInvocable<void(absl::StatusOr<Message>) &&> callback) {
+      std::string_view code_token, const Request& request, TMetadata metadata,
+      absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
     dispatcher_->ExecuteBinary(
-        code_token, std::move(request), std::move(metadata), function_bindings_,
+        code_token, request, std::move(metadata), function_bindings_,
         [callback = std::move(callback)](
             absl::StatusOr<std::string> response) mutable {
           if (response.ok()) {
-            Message message;
+            Response message;
             if (!message.ParseFromString(*response)) {
               std::move(callback)(absl::InternalError(
                   "Failed to deserialize response to proto"));
@@ -186,18 +185,18 @@ class RomaService final {
         ToString(::google::scp::core::common::Uuid::GenerateUuid()));
   }
 
-  template <typename Message>
+  template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
-      std::string_view code_token, google::protobuf::Any request,
-      TMetadata metadata, absl::Notification& notif,
-      absl::StatusOr<std::unique_ptr<Message>>& output) {
+      std::string_view code_token, const Request& request, TMetadata metadata,
+      absl::Notification& notif,
+      absl::StatusOr<std::unique_ptr<Response>>& output) {
     dispatcher_->ExecuteBinary(
-        code_token, std::move(request), std::move(metadata), function_bindings_,
+        code_token, request, std::move(metadata), function_bindings_,
         [&notif, &output](absl::StatusOr<std::string> response) {
           if (response.ok()) {
             // If response is uninitialized, initialize it with a unique_ptr.
             if (!output.ok() || *output == nullptr) {
-              output = std::make_unique<Message>();
+              output = std::make_unique<Response>();
             }
             if (!(*output)->ParseFromString(*response)) {
               response = absl::InternalError(
@@ -208,7 +207,8 @@ class RomaService final {
           }
           notif.Notify();
         });
-    return google::scp::roma::ExecutionToken("dummy_id");
+    return google::scp::roma::ExecutionToken(
+        ToString(::google::scp::core::common::Uuid::GenerateUuid()));
   }
 
  private:
