@@ -26,6 +26,7 @@ load(
     "declare_roma_api",
     "js_proto_library",
     "roma_host_api_cc_library",
+    "roma_integrator_docs",
     "roma_service_js_library",
     "roma_v8_app_api_cc_library",
     "roma_v8_sdk",
@@ -223,13 +224,18 @@ roma_v8_sdk(
         ":test_service_js",
     ],
     app_api_cc_library = ":test_service_roma_app_api",
+    js_library = ":test_service_js_library",
+    roma_app_api = test_service_app_api,
+    visibility = ["//visibility:public"],
+)
+
+roma_integrator_docs(
+    name = "test_service_integrator_docs",
+    app_api_cc_library = ":test_service_roma_app_api",
     host_api_cc_libraries = [
         ":test_service_roma_host_api",
         ":multi_service_roma_host_api",
     ],
-    js_library = ":test_service_js_library",
-    roma_app_api = test_service_app_api,
-    visibility = ["//visibility:public"],
 )
 
 cc_test(

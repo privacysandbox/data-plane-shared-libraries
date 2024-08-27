@@ -381,7 +381,6 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
     pkg_files(
         name = name + "_cc_service_hdrs",
         srcs = [":{}".format(service_h)],
-        prefix = "docs",
     )
 
     cc_library(
@@ -527,7 +526,34 @@ def _roma_image(*, name, cc_binary, version, type):
         local = True,
     )
 
-def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, host_api_cc_libraries = [], version = "v1", **kwargs):
+def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = [], **kwargs):
+    """
+    Generates a bundle of docs for C++ integrators of the specified Roma API.
+
+    Args:
+        name: name of sdk target, basename of ancillary targets.
+        app_api_cc_library: label of the associated roma_app_api_cc_library target.
+        host_api_cc_libraries: labels of the associated roma_host_api_cc_library targets.
+        **kwargs: attributes common to bazel build rules.
+
+    Targets:
+        <name>_doc_artifacts -- docs pkg_files
+        <name> -- docs pkg_zip
+    """
+    pkg_files(
+        name = name + "_doc_artifacts",
+        srcs = ["{}_docs".format(lib) for lib in host_api_cc_libraries + [app_api_cc_library]],
+    )
+    pkg_zip(
+        name = name,
+        srcs = [
+            ":{}_doc_artifacts".format(name),
+        ],
+        package_dir = "/{}".format(name),
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+    )
+
+def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, version = "v1", **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -549,7 +575,7 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, hos
 
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["{}_docs".format(tgt) for tgt in (host_api_cc_libraries + [app_api_cc_library, js_library])] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
+        srcs = ["{}_docs".format(js_library)] + (["{}_host_api_docs".format(js_library)] if roma_app_api.host_apis else []),
         prefix = "docs",
     )
 
