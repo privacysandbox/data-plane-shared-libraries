@@ -38,8 +38,8 @@ void WriteResponseToFd(int fd, EchoResponse resp) {
 }
 
 int main(int argc, char* argv[]) {
-  if (argc < 2) {
-    std::cerr << "Not enough arguments!";
+  if (argc != 2) {
+    std::cerr << "Expecting exactly one argument";
     return -1;
   }
   int fd = std::stoi(argv[1]);

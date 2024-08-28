@@ -12,25 +12,61 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob:byob.bzl", "byob_image")
+
+cc_library(
+    name = "example_roma_app_service",
+    hdrs = ["example_roma_app_service.h"],
+    deps = [
+        "//src/roma/byob/example:example_cc_proto",
+        "//src/roma/config",
+        "//src/util:execution_token",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_library(
+    name = "example_roma_byob_app_service",
+    hdrs = ["example_roma_byob_app_service.h"],
+    deps = [
+        ":example_roma_app_service",
+        "//src/roma/byob/config",
+        "//src/roma/byob/example:example_cc_proto",
+        "//src/roma/byob/interface:roma_service",
+        "//src/roma/config",
+        "//src/util:execution_token",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+    ],
+)
+
+cc_binary(
+    name = "example_test",
+    srcs = ["example_test.cc"],
+    deps = [
+        ":example_roma_byob_app_service",
+        "//src/roma/byob/example:example_cc_proto",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
 
 cc_binary(
     name = "roma_byob_test",
     srcs = ["roma_byob_test.cc"],
     tags = ["manual"],
     visibility = ["//visibility:public"],
-    # testonly = False,
     deps = [
         "//src/roma/byob/udf:sample_callback_cc_proto",
         "//src/roma/byob/udf:sample_cc_proto",
         "//src/roma/byob/udf:sample_roma_api",
-        "@com_google_absl//absl/log",
-        "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/log:initialize",
-        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -39,7 +75,9 @@ cc_binary(
 pkg_files(
     name = "roma_byob_test_execs",
     srcs = [
+        ":example_test",
         ":roma_byob_test",
+        ":run_tests",
     ],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/server/bin",
@@ -58,8 +96,7 @@ pkg_tar(
 # docker run -it --privileged --rm bazel/src/roma/byob/test/roma_byob_test_image:v1
 byob_image(
     name = "roma_byob_test_image",
-    cmd = ["/server/bin/roma_byob_test"],
-    entrypoint = ["/server/bin/roma_byob_test"],
+    cmd = ["/server/bin/run_tests"],
     layer_tars = [
         ":roma_byob_test_tar",
     ],

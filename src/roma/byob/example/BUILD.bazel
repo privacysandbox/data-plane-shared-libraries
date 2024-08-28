@@ -35,6 +35,7 @@ proto_library(
 
 cc_proto_library(
     name = "example_cc_proto",
+    visibility = ["//src/roma/byob:__subpackages__"],
     deps = [
         ":example_proto",
     ],
@@ -58,6 +59,7 @@ go_binary(
     srcs = [
         "example_udf.go",
     ],
+    visibility = ["//src/roma/byob:__subpackages__"],
     deps = [
         ":example_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
@@ -70,6 +72,7 @@ cc_binary(
     srcs = [
         "example_udf.cc",
     ],
+    visibility = ["//src/roma/byob:__subpackages__"],
     deps = [
         ":example_cc_proto",
         "@com_google_protobuf//:protobuf",

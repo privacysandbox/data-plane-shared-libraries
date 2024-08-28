@@ -1,0 +1,5 @@
+set -o errexit
+set -o xtrace
+
+/server/bin/roma_byob_test
+/server/bin/example_test

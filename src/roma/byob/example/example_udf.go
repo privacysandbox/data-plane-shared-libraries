@@ -20,14 +20,15 @@ import (
 	proto "github.com/golang/protobuf/proto"
 	ptypes "github.com/golang/protobuf/ptypes/any"
 	pb "github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example"
+	"io"
 	"log"
 	"os"
 	"strconv"
 )
 
 func main() {
-	if len(os.Args) < 2 {
-		log.Fatal("Not enough input arguments")
+	if len(os.Args) != 2 {
+		log.Fatal("Expecting exactly one argument")
 	}
 	fd, err := strconv.Atoi(os.Args[1])
 	if err != nil {
@@ -43,13 +44,15 @@ func main() {
 	// The UDF reads request from the provided fd.
 	reader := bufio.NewReader(file)
 	n, err := binary.ReadUvarint(reader)
-	if err != nil {
-		log.Fatal("Failed to read varint from stdin: ", err)
+	if err == io.EOF {
+		os.Exit(-1)
+	} else if err != nil {
+		log.Fatal("Failed to read varint from fd: ", err)
 	}
 	buf := make([]byte, n)
 	_, err = reader.Read(buf)
 	if err != nil {
-		log.Fatal("Failed to read proto from stdin: ", err)
+		log.Fatal("Failed to read proto from fd: ", err)
 	}
 	{
 		var any ptypes.Any

@@ -238,6 +238,8 @@ filegroup(
         ":sort_list_100k_udf",
         ":sort_list_10k_udf",
         ":sort_list_1m_udf",
+        "//src/roma/byob/example:example_cc_udf",
+        "//src/roma/byob/example:example_go_udf",
     ],
     visibility = ["//visibility:public"],
 )

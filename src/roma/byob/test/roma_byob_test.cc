@@ -20,18 +20,13 @@
 #include <string>
 #include <string_view>
 
-#include "absl/log/check.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
-#include "absl/strings/match.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
-#include "absl/time/time.h"
 #include "src/roma/byob/udf/sample.pb.h"
 #include "src/roma/byob/udf/sample_callback.pb.h"
 #include "src/roma/byob/udf/sample_roma_byob_app_service.h"
 #include "src/roma/config/function_binding_object_v2.h"
+
+namespace privacy_sandbox::server_common::byob::test {
 
 namespace {
 using ::google::scp::roma::FunctionBindingObjectV2;
@@ -111,9 +106,8 @@ void ReadCallbackPayload(google::scp::roma::FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.clear_input_bytes();
   resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
 }
-}  // namespace
 
-TEST(RomaByobTest, LoadingBinaryInSandboxMode) {
+TEST(RomaByobTest, LoadBinaryInSandboxMode) {
   Mode mode = Mode::kModeSandbox;
   ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
 
@@ -127,7 +121,7 @@ TEST(RomaByobTest, LoadingBinaryInSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobTest, LoadingBinaryInNonSandboxMode) {
+TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
   ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
 
@@ -175,7 +169,7 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
       ::testing::StrEq(kNewUdfOutput));
 }
 
-TEST(RomaByobTest, ExecuteCppBinaryUsingCallback) {
+TEST(RomaByobTest, AsyncCallbackExecuteCppBinary) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
 
   std::string code_token =
@@ -209,7 +203,7 @@ TEST(RomaByobTest, ExecuteGoLangBinaryInSandboxMode) {
               kGoBinaryOutput);
 }
 
-TEST(RomaByobTest, ExecuteCppBinaryWithCallbackInSandboxMode) {
+TEST(RomaByobTest, ExecuteCppBinaryWithHostCallbackInSandboxMode) {
   int64_t elem_size = 5;
   int64_t elem_count = 10;
   ::privacy_sandbox::server_common::byob::Config<> config = {
@@ -240,3 +234,5 @@ TEST(RomaByobTest, ExecuteCppBinaryWithCallbackInSandboxMode) {
   ASSERT_TRUE(response.ok());
   EXPECT_EQ((*response)->payload_size(), payload_size);
 }
+}  // namespace
+}  // namespace privacy_sandbox::server_common::byob::test
