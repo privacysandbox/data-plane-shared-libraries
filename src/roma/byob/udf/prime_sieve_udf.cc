@@ -57,16 +57,16 @@ int main(int argc, char** argv) {
   int fd = std::stoi(argv[1]);
   RunPrimeSieveRequest request;
   {
-    ::google::protobuf::io::FileInputStream input(fd);
-    ::google::protobuf::Any any;
-    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                               nullptr);
+    google::protobuf::io::FileInputStream input(fd);
+    google::protobuf::Any any;
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                             nullptr);
     any.UnpackTo(&request);
   }
   RunPrimeSieveResponse bin_response;
   RunPrimeSieve(request.prime_count(), bin_response);
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(std::move(bin_response));
-  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

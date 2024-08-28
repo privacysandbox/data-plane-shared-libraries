@@ -66,7 +66,7 @@ void RunEchoCallback(int fd) {
   {
     Callback callback;
     callback.set_function_name("example");
-    ::google::protobuf::Any any;
+    google::protobuf::Any any;
     any.PackFrom(std::move(callback));
     SerializeDelimitedToFileDescriptor(any, fd);
   }
@@ -84,7 +84,7 @@ int main(int argc, char* argv[]) {
 
   SampleRequest bin_request;
   {
-    ::google::protobuf::Any any;
+    google::protobuf::Any any;
     FileInputStream input(fd);
     ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
     any.UnpackTo(&bin_request);
@@ -108,7 +108,7 @@ int main(int argc, char* argv[]) {
     default:
       break;
   }
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(std::move(bin_response));
   SerializeDelimitedToFileDescriptor(any, fd);
   return 0;

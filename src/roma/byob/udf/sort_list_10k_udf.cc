@@ -2034,14 +2034,14 @@ int main(int argc, char** argv) {
   }
   int fd = std::stoi(argv[1]);
   {
-    ::google::protobuf::Any any;
-    ::google::protobuf::io::FileInputStream input(fd);
-    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                               nullptr);
+    google::protobuf::Any any;
+    google::protobuf::io::FileInputStream input(fd);
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                             nullptr);
   }
   std::sort(items.begin(), items.end());
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(SortListResponse{});
-  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

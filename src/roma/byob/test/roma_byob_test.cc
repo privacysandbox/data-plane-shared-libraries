@@ -99,8 +99,7 @@ ByobSampleService<> GetRomaService(Mode mode, int num_workers) {
   return std::move(*sample_interface);
 }
 
-void ReadCallbackPayload(
-    ::google::scp::roma::FunctionBindingPayload<>& wrapper) {
+void ReadCallbackPayload(google::scp::roma::FunctionBindingPayload<>& wrapper) {
   CallbackReadRequest req;
   CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
   int64_t payload_size = 0;

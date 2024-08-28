@@ -30,13 +30,13 @@ int main(int argc, char* argv[]) {
   }
   int fd = std::stoi(argv[1]);
   {
-    ::google::protobuf::Any bin_request;
+    google::protobuf::Any bin_request;
     FileInputStream input(fd);
     ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
   }
   SampleResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(std::move(bin_response));
   SerializeDelimitedToFileDescriptor(any, fd);
   return 0;

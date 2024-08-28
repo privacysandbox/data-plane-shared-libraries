@@ -32,12 +32,12 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  ::google::protobuf::io::FileInputStream input(fd);
+  google::protobuf::io::FileInputStream input(fd);
   WriteCallbackPayloadRequest req;
   {
-    ::google::protobuf::Any any;
-    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                               nullptr);
+    google::protobuf::Any any;
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                             nullptr);
     any.UnpackTo(&req);
   }
   CallbackWriteRequest request;
@@ -48,13 +48,13 @@ int main(int argc, char* argv[]) {
     callback.set_function_name("example");
     request.SerializeToString(
         callback.mutable_io_proto()->mutable_input_bytes());
-    ::google::protobuf::Any any;
+    google::protobuf::Any any;
     any.PackFrom(std::move(callback));
-    ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+    google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   }
   Callback callback;
-  ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&callback, &input,
-                                                             nullptr);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&callback, &input,
+                                                           nullptr);
   CallbackWriteResponse response;
   response.ParseFromString(callback.io_proto().output_bytes());
 
@@ -64,8 +64,8 @@ int main(int argc, char* argv[]) {
     payload_size += p.size();
   }
   resp.set_payload_size(payload_size);
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(std::move(resp));
-  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

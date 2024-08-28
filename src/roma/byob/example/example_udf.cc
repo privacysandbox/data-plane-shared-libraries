@@ -34,10 +34,10 @@ int main(int argc, char* argv[]) {
   // The EchoRequest proto is defined by the Trusted Server team. The UDF reads
   // request from the provided file descriptor.
   {
-    ::google::protobuf::Any any;
-    ::google::protobuf::io::FileInputStream input(fd);
-    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                               nullptr);
+    google::protobuf::Any any;
+    google::protobuf::io::FileInputStream input(fd);
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                             nullptr);
     any.UnpackTo(&request);
   }
 
@@ -46,8 +46,8 @@ int main(int argc, char* argv[]) {
 
   // Once the UDF is done executing, it should write the response (EchoResponse
   // in this case) to the provided file descriptor.
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(response);
-  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

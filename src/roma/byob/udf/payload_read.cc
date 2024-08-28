@@ -29,10 +29,10 @@ int main(int argc, char* argv[]) {
   int fd = std::stoi(argv[1]);
   ReadPayloadRequest req;
   {
-    ::google::protobuf::Any any;
-    ::google::protobuf::io::FileInputStream input(fd);
-    ::google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                               nullptr);
+    google::protobuf::Any any;
+    google::protobuf::io::FileInputStream input(fd);
+    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
+                                                             nullptr);
     any.UnpackTo(&req);
   }
   ReadPayloadResponse response;
@@ -41,8 +41,8 @@ int main(int argc, char* argv[]) {
     payload_size += p.size();
   }
   response.set_payload_size(payload_size);
-  ::google::protobuf::Any any;
+  google::protobuf::Any any;
   any.PackFrom(std::move(response));
-  ::google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   return 0;
 }

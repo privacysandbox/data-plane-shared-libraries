@@ -189,8 +189,7 @@ std::string GetFunctionTypeStr(FunctionType func_type) {
   }
 }
 
-void ReadCallbackPayload(
-    ::google::scp::roma::FunctionBindingPayload<>& wrapper) {
+void ReadCallbackPayload(google::scp::roma::FunctionBindingPayload<>& wrapper) {
   CallbackReadRequest req;
   CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
   int64_t payload_size = 0;
@@ -204,7 +203,7 @@ void ReadCallbackPayload(
 }
 
 void WriteCallbackPayload(
-    ::google::scp::roma::FunctionBindingPayload<>& wrapper) {
+    google::scp::roma::FunctionBindingPayload<>& wrapper) {
   CallbackWriteRequest req;
   CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
   CallbackWriteResponse resp;

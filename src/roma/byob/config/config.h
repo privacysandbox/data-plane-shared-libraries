@@ -23,12 +23,12 @@
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob {
-template <typename TMetadata = ::google::scp::roma::DefaultMetadata>
+template <typename TMetadata = google::scp::roma::DefaultMetadata>
 struct Config {
   int num_workers;
   std::string roma_container_name;
   std::string lib_mounts;
-  std::vector<::google::scp::roma::FunctionBindingObjectV2<TMetadata>>
+  std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>
       function_bindings;
 };
 }  // namespace privacy_sandbox::server_common::byob

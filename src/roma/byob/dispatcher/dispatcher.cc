@@ -115,7 +115,7 @@ void RunCallback(
 }  // namespace
 
 void Dispatcher::ExecutorImpl(
-    std::string_view code_token, ::google::protobuf::Any request,
+    std::string_view code_token, google::protobuf::Any request,
     absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
         handler) {
