@@ -2025,6 +2025,19 @@ std::array<int, 10'000> items = {
     1897819698,  -506666335,  495147623,   -1012796856, 2118455524,
     -144933065,  -998621960,  973845483,   -801106781,  -1666782962,
 };
+
+void ReadRequestFromFd(int fd) {
+  google::protobuf::Any any;
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+                                                           nullptr);
+}
+
+void WriteResponseToFd(int fd) {
+  google::protobuf::Any any;
+  any.PackFrom(SortListResponse{});
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -2033,15 +2046,8 @@ int main(int argc, char** argv) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  {
-    google::protobuf::Any any;
-    google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
-  }
+  ReadRequestFromFd(fd);
   std::sort(items.begin(), items.end());
-  google::protobuf::Any any;
-  any.PackFrom(SortListResponse{});
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd);
   return 0;
 }

@@ -21,33 +21,40 @@
 using ::privacy_sandbox::server_common::byob::example::EchoRequest;
 using ::privacy_sandbox::server_common::byob::example::EchoResponse;
 
+EchoRequest ReadRequestFromFd(int fd) {
+  google::protobuf::Any any;
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+                                                           nullptr);
+  EchoRequest req;
+  any.UnpackTo(&req);
+  return req;
+}
+
+void WriteResponseToFd(int fd, EchoResponse resp) {
+  google::protobuf::Any any;
+  any.PackFrom(std::move(resp));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "Not enough arguments!";
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  EchoRequest request;
   // Any initialization work can be done before this point.
   // The following line will result in a blocking read being performed by the
   // binary i.e. waiting for input before execution.
   // The EchoRequest proto is defined by the Trusted Server team. The UDF reads
   // request from the provided file descriptor.
-  {
-    google::protobuf::Any any;
-    google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
-    any.UnpackTo(&request);
-  }
+  EchoRequest request = ReadRequestFromFd(fd);
 
   EchoResponse response;
   response.set_message(request.message());
 
   // Once the UDF is done executing, it should write the response (EchoResponse
   // in this case) to the provided file descriptor.
-  google::protobuf::Any any;
-  any.PackFrom(response);
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd, std::move(response));
   return 0;
 }

@@ -47,6 +47,22 @@ void RunPrimeSieve(int prime_count, RunPrimeSieveResponse& bin_response) {
     }
   }
 }
+
+RunPrimeSieveRequest ReadRequestFromFd(int fd) {
+  google::protobuf::Any any;
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+                                                           nullptr);
+  RunPrimeSieveRequest req;
+  any.UnpackTo(&req);
+  return req;
+}
+
+void WriteResponseToFd(int fd, RunPrimeSieveResponse resp) {
+  google::protobuf::Any any;
+  any.PackFrom(std::move(resp));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -55,18 +71,9 @@ int main(int argc, char** argv) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  RunPrimeSieveRequest request;
-  {
-    google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::Any any;
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
-    any.UnpackTo(&request);
-  }
+  RunPrimeSieveRequest request = ReadRequestFromFd(fd);
   RunPrimeSieveResponse bin_response;
   RunPrimeSieve(request.prime_count(), bin_response);
-  google::protobuf::Any any;
-  any.PackFrom(std::move(bin_response));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd, std::move(bin_response));
   return 0;
 }

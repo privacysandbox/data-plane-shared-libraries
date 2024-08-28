@@ -62,6 +62,22 @@ void RunPrimeSieve(SampleResponse& bin_response) {
   }
 }
 
+SampleRequest ReadRequestFromFd(int fd) {
+  google::protobuf::Any any;
+  FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+                                                           nullptr);
+  SampleRequest req;
+  any.UnpackTo(&req);
+  return req;
+}
+
+void WriteResponseToFd(int fd, SampleResponse resp) {
+  google::protobuf::Any any;
+  any.PackFrom(std::move(resp));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
+
 void RunEchoCallback(int fd) {
   {
     Callback callback;
@@ -81,14 +97,7 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
-
-  SampleRequest bin_request;
-  {
-    google::protobuf::Any any;
-    FileInputStream input(fd);
-    ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
-    any.UnpackTo(&bin_request);
-  }
+  SampleRequest bin_request = ReadRequestFromFd(fd);
   SampleResponse bin_response;
   switch (bin_request.function()) {
     case FUNCTION_HELLO_WORLD:
@@ -108,8 +117,6 @@ int main(int argc, char* argv[]) {
     default:
       break;
   }
-  google::protobuf::Any any;
-  any.PackFrom(std::move(bin_response));
-  SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd, std::move(bin_response));
   return 0;
 }

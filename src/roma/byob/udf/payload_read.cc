@@ -21,28 +21,35 @@
 using ::privacy_sandbox::server_common::byob::ReadPayloadRequest;
 using ::privacy_sandbox::server_common::byob::ReadPayloadResponse;
 
+ReadPayloadRequest ReadRequestFromFd(int fd) {
+  ReadPayloadRequest req;
+  google::protobuf::Any any;
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+                                                           nullptr);
+  any.UnpackTo(&req);
+  return req;
+}
+
+void WriteResponseToFd(int fd, ReadPayloadResponse resp) {
+  google::protobuf::Any any;
+  any.PackFrom(std::move(resp));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "Not enough arguments!";
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  ReadPayloadRequest req;
-  {
-    google::protobuf::Any any;
-    google::protobuf::io::FileInputStream input(fd);
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
-    any.UnpackTo(&req);
-  }
+  ReadPayloadRequest req = ReadRequestFromFd(fd);
   ReadPayloadResponse response;
   int64_t payload_size = 0;
   for (const auto& p : req.payloads()) {
     payload_size += p.size();
   }
   response.set_payload_size(payload_size);
-  google::protobuf::Any any;
-  any.PackFrom(std::move(response));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd, std::move(response));
   return 0;
 }

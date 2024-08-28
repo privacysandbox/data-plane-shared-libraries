@@ -26,20 +26,30 @@ using ::privacy_sandbox::server_common::byob::CallbackWriteResponse;
 using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadResponse;
 
+WriteCallbackPayloadRequest ReadRequestFromFd(
+    google::protobuf::io::FileInputStream& stream) {
+  WriteCallbackPayloadRequest req;
+  google::protobuf::Any any;
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+                                                           nullptr);
+  any.UnpackTo(&req);
+  return req;
+}
+
+void WriteResponseToFd(int fd, WriteCallbackPayloadResponse resp) {
+  google::protobuf::Any any;
+  any.PackFrom(std::move(resp));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "Not enough arguments!";
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  google::protobuf::io::FileInputStream input(fd);
-  WriteCallbackPayloadRequest req;
-  {
-    google::protobuf::Any any;
-    google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &input,
-                                                             nullptr);
-    any.UnpackTo(&req);
-  }
+  google::protobuf::io::FileInputStream stream(fd);
+  WriteCallbackPayloadRequest req = ReadRequestFromFd(stream);
   CallbackWriteRequest request;
   request.set_element_size(req.element_size());
   request.set_element_count(req.element_count());
@@ -53,7 +63,7 @@ int main(int argc, char* argv[]) {
     google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
   }
   Callback callback;
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&callback, &input,
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&callback, &stream,
                                                            nullptr);
   CallbackWriteResponse response;
   response.ParseFromString(callback.io_proto().output_bytes());
@@ -64,8 +74,6 @@ int main(int argc, char* argv[]) {
     payload_size += p.size();
   }
   resp.set_payload_size(payload_size);
-  google::protobuf::Any any;
-  any.PackFrom(std::move(resp));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd, std::move(resp));
   return 0;
 }

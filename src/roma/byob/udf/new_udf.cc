@@ -23,21 +23,27 @@ using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::privacy_sandbox::server_common::byob::SampleResponse;
 
+void ReadRequestFromFd(int fd) {
+  google::protobuf::Any bin_request;
+  FileInputStream input(fd);
+  ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
+}
+
+void WriteResponseToFd(int fd, SampleResponse resp) {
+  google::protobuf::Any any;
+  any.PackFrom(std::move(resp));
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+}
+
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "Not enough arguments!";
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  {
-    google::protobuf::Any bin_request;
-    FileInputStream input(fd);
-    ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
-  }
+  ReadRequestFromFd(fd);
   SampleResponse bin_response;
   bin_response.set_greeting("I am a new UDF!");
-  google::protobuf::Any any;
-  any.PackFrom(std::move(bin_response));
-  SerializeDelimitedToFileDescriptor(any, fd);
+  WriteResponseToFd(fd, std::move(bin_response));
   return 0;
 }
