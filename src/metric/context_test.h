@@ -54,6 +54,8 @@ using DefinitionHistogram =
     Definition<int, Privacy::kNonImpacting, Instrument::kHistogram>;
 using DefinitionGauge =
     Definition<int, Privacy::kNonImpacting, Instrument::kGauge>;
+using DefinitionCustom =
+    Definition<double, Privacy::kImpacting, Instrument::kUpDownCounter>;
 
 inline constexpr DefinitionSafe kIntExactCounter("kIntExactCounter", "");
 inline constexpr DefinitionSafe kIntExactCounter2("kIntExactCounter2", "");
@@ -73,7 +75,6 @@ inline constexpr DefinitionPartitionUnsafe kIntUnSafePartitioned(
 inline constexpr DefinitionPartitionUnsafe kIntUnSafePrivatePartitioned(
     "kIntUnSafePrivatePartitioned", "", "buyer_name", 5, kEmptyPublicPartition,
     1, 1);
-
 inline constexpr double hb[] = {50, 100, 200};
 inline constexpr DefinitionHistogram kIntExactHistogram("kIntExactHistogram",
                                                         "", hb);
@@ -81,9 +82,18 @@ inline constexpr DefinitionHistogram kIntExactHistogram("kIntExactHistogram",
 inline constexpr DefinitionGauge kIntExactGauge("kIntExactGauge", "");
 
 inline constexpr const DefinitionName* metric_list[] = {
-    &kIntExactCounter,        &kIntExactCounter2,    &kIntApproximateCounter,
-    &kIntApproximateCounter2, &kIntExactPartitioned, &kIntUnSafePartitioned,
-    &kIntExactHistogram,      &kIntExactGauge,       &kIntExactAnyPartitioned};
+    &kIntExactCounter,
+    &kIntExactCounter2,
+    &kIntApproximateCounter,
+    &kIntApproximateCounter2,
+    &kIntExactPartitioned,
+    &kIntUnSafePartitioned,
+    &kIntExactHistogram,
+    &kIntExactGauge,
+    &kIntExactAnyPartitioned,
+    &kCustom1,
+    &kCustom2,
+    &kCustom3};
 inline constexpr absl::Span<const DefinitionName* const> metric_list_span =
     metric_list;
 [[maybe_unused]] inline constexpr DefinitionSafe kNotInList("kNotInList", "");
@@ -121,7 +131,12 @@ class MockMetricRouter {
               ((const DefinitionHistogram&), int, std::string_view));
   MOCK_METHOD(absl::Status, LogUnSafe,
               ((const DefinitionGauge&), int, std::string_view));
-  MOCK_METHOD(const telemetry::BuildDependentConfig&, metric_config, ());
+  MOCK_METHOD(telemetry::BuildDependentConfig&, metric_config, ());
+  MOCK_METHOD(absl::Status, LogUnSafe,
+              ((const DefinitionCustom&), double, std::string_view));
+  MOCK_METHOD(absl::Status, LogSafe,
+              ((const DefinitionCustom&), double, std::string_view,
+               (absl::flat_hash_map<std::string, std::string>)));
 };
 
 class BaseTest : public ::testing::Test {
@@ -129,6 +144,19 @@ class BaseTest : public ::testing::Test {
   void InitConfig(telemetry::TelemetryConfig::TelemetryMode mode) {
     telemetry::TelemetryConfig config_proto;
     config_proto.set_mode(mode);
+    auto proto1 = config_proto.add_custom_metric();
+    auto proto2 = config_proto.add_custom_metric();
+
+    proto1->set_name("udf_1");
+    proto1->set_description("log_1");
+    proto1->set_upper_bound(1);
+    proto1->set_lower_bound(0);
+
+    proto2->set_name("udf_2");
+    proto2->set_description("log_2");
+    proto2->set_upper_bound(2);
+    proto2->set_lower_bound(0);
+
     metric_config_ =
         std::make_unique<telemetry::BuildDependentConfig>(config_proto);
     EXPECT_CALL(mock_metric_router_, metric_config())
@@ -213,7 +241,7 @@ class ContextTest : public BaseTest {
 
 class MetricConfigTest : public ::testing::Test {
  protected:
-  void SetUpWithConfig(const telemetry::BuildDependentConfig& metric_config) {
+  void SetUpWithConfig(telemetry::BuildDependentConfig& metric_config) {
     EXPECT_CALL(mock_metric_router_, metric_config())
         .WillRepeatedly(ReturnRef(metric_config));
     context_ = Context<metric_list_span, MockMetricRouter>::GetContext(

@@ -83,6 +83,8 @@ class DpAggregator : public DpAggregatorBase {
       // scope than the following if clause to keep the `all_partitions` valid.
       std::unique_ptr<telemetry::BuildDependentConfig::PartitionView>
           partition_view;
+      auto bound =
+          metric_router_.metric_config().template GetBound(definition_);
       if constexpr (instrument == Instrument::kPartitionedCounter) {
         max_partitions_contributed =
             metric_router_.metric_config().template GetMaxPartitionsContributed(
@@ -96,8 +98,6 @@ class DpAggregator : public DpAggregatorBase {
       } else {
         max_partitions_contributed = 1;
       }
-      auto bound =
-          metric_router_.metric_config().template GetBound(definition_);
       for (absl::string_view each : all_partitions) {
         PS_ASSIGN_OR_RETURN(
             std::unique_ptr<differential_privacy::BoundedSum<TValue>>

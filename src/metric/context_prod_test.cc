@@ -49,6 +49,37 @@ TEST_F(BaseTest, FilterNotDefinedPartition) {
               SizeIs(1));
 }
 
+TEST_F(BaseTest, LogUDFMetrics) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom1)), Eq(1), _))
+      .WillOnce(Return(absl::OkStatus()));
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom2)), Eq(5), _))
+      .WillOnce(Return(absl::OkStatus()));
+
+  BatchUDFMetric udf_metrics1, udf_metrics2;
+  auto udf_metric1 = udf_metrics1.add_udf_metric();
+  auto udf_metric2 = udf_metrics1.add_udf_metric();
+  auto udf_metric3 = udf_metrics2.add_udf_metric();
+  auto udf_metric2a = udf_metrics2.add_udf_metric();
+  auto udf_metric4 = udf_metrics2.add_udf_metric();
+
+  udf_metric1->set_name("udf_1");
+  udf_metric1->set_value(1);
+  udf_metric2->set_name("udf_2");
+  udf_metric2->set_value(2);
+  udf_metric2a->set_name("udf_2");
+  udf_metric2a->set_value(3);
+  udf_metric3->set_name("undefined_1");
+  udf_metric4->set_name("undefined_2");
+
+  CHECK_OK(context_->LogUDFMetrics(udf_metrics1));
+  EXPECT_THAT(context_->LogUDFMetrics(udf_metrics2).message(),
+              "name not found: undefined_1,undefined_2");
+}
+
 TEST_F(BaseTest, LogUpDownCounter) {
   EXPECT_CALL(mock_metric_router_,
               LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),

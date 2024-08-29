@@ -166,13 +166,15 @@ auto* MetricRouter::GetCounterInstrument(const DefinitionName& definition,
     using U = api::UpDownCounter<int64_t>;
     return GetInstrument<U>(definition.name_, [&definition, this]() {
       return std::unique_ptr<U>(meter_->CreateInt64UpDownCounter(
-          definition.name_.data(), definition.description_.data()));
+          metric_config_->GetName(definition).data(),
+          metric_config_->GetDescription(definition).data()));
     });
   } else if constexpr (std::is_same_v<double, T>) {
     using U = api::UpDownCounter<double>;
     return GetInstrument<U>(definition.name_, [&definition, this]() {
       return std::unique_ptr<U>(meter_->CreateDoubleUpDownCounter(
-          definition.name_.data(), definition.description_.data()));
+          metric_config_->GetName(definition).data(),
+          metric_config_->GetDescription(definition).data()));
     });
   } else {
     static_assert(dependent_false_v<T>);

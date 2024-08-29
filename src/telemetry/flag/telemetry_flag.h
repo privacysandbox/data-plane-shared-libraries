@@ -188,6 +188,29 @@ class BuildDependentConfig {
     return definition.privacy_budget_weight_;
   }
 
+  absl::Status SetCustomConfig(const UDFMetricDefinition& proto)
+      ABSL_LOCKS_EXCLUDED(partition_mutex_);
+
+  const metrics::Definition<double, metrics::Privacy::kImpacting,
+                            metrics::Instrument::kUpDownCounter>*
+  GetCustomDefinition(absl::string_view udf_name) {
+    return custom_def_map_[udf_name];
+  }
+
+  std::string_view GetName(const metrics::DefinitionName& definition) const;
+
+  std::string_view GetDescription(
+      const metrics::DefinitionName& definition) const;
+
+  // max number of custom metrics to be defined.
+  int CustomMetricCount() {
+    if (server_config_.custom_metric().size() < metrics::CountOfCustomList()) {
+      return server_config_.custom_metric().size();
+    } else {
+      return metrics::CountOfCustomList();
+    }
+  }
+
   // Return lower_bound and upper_bound of a metric.
   template <typename MetricT>
   BoundOverride GetBound(const MetricT& definition) const {
@@ -199,18 +222,32 @@ class BuildDependentConfig {
       const metrics::internal::DifferentialPrivacy<T>& definition,
       absl::string_view name) const {
     absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
-    if (metric_config.ok()) {
-      double new_lower_bound = definition.lower_bound_;
-      double new_upper_bound = definition.upper_bound_;
-      if (metric_config->has_lower_bound())
-        new_lower_bound = metric_config->lower_bound();
-      if (metric_config->has_upper_bound())
-        new_upper_bound = metric_config->upper_bound();
-      if (new_lower_bound < new_upper_bound)
+    absl::StatusOr<const MetricConfig*> internal_config =
+        GetInternalConfig(name);
+    double new_lower_bound = definition.lower_bound_;
+    double new_upper_bound = definition.upper_bound_;
+    if (internal_config.ok()) {
+      if ((*internal_config)->has_lower_bound())
+        new_lower_bound = (*internal_config)->lower_bound();
+      if ((*internal_config)->has_upper_bound())
+        new_upper_bound = (*internal_config)->upper_bound();
+      if (new_lower_bound < new_upper_bound) {
         return BoundOverride{
             .lower_bound_ = new_lower_bound,
             .upper_bound_ = new_upper_bound,
         };
+      }
+    } else if (metric_config.ok()) {
+      if (metric_config->has_lower_bound())
+        new_lower_bound = metric_config->lower_bound();
+      if (metric_config->has_upper_bound())
+        new_upper_bound = metric_config->upper_bound();
+      if (new_lower_bound < new_upper_bound) {
+        return BoundOverride{
+            .lower_bound_ = new_lower_bound,
+            .upper_bound_ = new_upper_bound,
+        };
+      }
     }
     return BoundOverride{
         .lower_bound_ = double(definition.lower_bound_),
@@ -226,6 +263,13 @@ class BuildDependentConfig {
       ABSL_GUARDED_BY(partition_mutex_);
   absl::flat_hash_map<std::string, std::vector<std::string_view>>
       partition_config_view_ ABSL_GUARDED_BY(partition_mutex_);
+
+  absl::flat_hash_map<std::string, const metrics::Definition<
+                                       double, metrics::Privacy::kImpacting,
+                                       metrics::Instrument::kUpDownCounter>*>
+      custom_def_map_;
+  absl::StatusOr<const MetricConfig*> GetInternalConfig(
+      std::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_);
 };
 
 }  // namespace privacy_sandbox::server_common::telemetry

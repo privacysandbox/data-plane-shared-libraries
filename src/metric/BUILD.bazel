@@ -12,7 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 
 cc_library(
     name = "definition",
@@ -78,6 +80,7 @@ cc_library(
     hdrs = ["context.h"],
     deps = [
         ":definition",
+        ":udf_cc_proto",
         "//src/telemetry/flag:telemetry_flag",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -192,4 +195,21 @@ cc_test(
         ":key_fetch",
         "@com_google_googletest//:gtest_main",
     ],
+)
+
+proto_library(
+    name = "udf_proto",
+    srcs = ["udf.proto"],
+)
+
+cc_proto_library(
+    name = "udf_cc_proto",
+    deps = [":udf_proto"],
+)
+
+buf_lint_test(
+    name = "udf_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":udf_proto"],
 )

@@ -364,6 +364,27 @@ inline constexpr Definition<int, Privacy::kNonImpacting,
                                 "Total number of errors occurred for the "
                                 "requests received by the server");
 
+inline constexpr Definition<double, Privacy::kImpacting,
+                            Instrument::kUpDownCounter>
+    kCustom1("placeholder_1", "No. of times metric 1 return udf request", 1, 0);
+inline constexpr Definition<double, Privacy::kImpacting,
+                            Instrument::kUpDownCounter>
+    kCustom2("placeholder_2", "No. of times metric 2 return udf request", 1, 0);
+inline constexpr Definition<double, Privacy::kImpacting,
+                            Instrument::kUpDownCounter>
+    kCustom3("placeholder_3", "No. of times metric 3 return udf request", 1, 0);
+
+inline constexpr const Definition<double, Privacy::kImpacting,
+                                  Instrument::kUpDownCounter>* kCustomList[] = {
+    &kCustom1,
+    &kCustom2,
+    &kCustom3,
+};
+
+constexpr int CountOfCustomList() {
+  return std::end(kCustomList) - std::begin(kCustomList);
+}
+
 }  // namespace privacy_sandbox::server_common::metrics
 
 #endif  // METRIC_DEFINITION_H_

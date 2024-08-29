@@ -33,6 +33,7 @@
 #include "absl/strings/string_view.h"
 #include "absl/synchronization/mutex.h"
 #include "src/metric/definition.h"
+#include "src/metric/udf.pb.h"
 #include "src/telemetry/flag/telemetry_flag.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -214,6 +215,30 @@ class Context {
       std::enable_if_t<!std::is_lvalue_reference_v<T>>* = nullptr) {
     static_assert(definition.type_instrument == Instrument::kGauge);
     return LogMetricDeferred<definition>(std::forward<T>(callback));
+  }
+
+  // Log UDF Metrics
+  absl::Status LogUDFMetrics(const BatchUDFMetric& metrics) {
+    absl::Status status;
+    std::string not_found;
+    for (const auto& metric : metrics.udf_metric()) {
+      const auto& definition =
+          metric_router_->metric_config().GetCustomDefinition(metric.name());
+      if (definition == &kCustom1) {
+        status = AccumulateMetric<kCustom1>(metric.value());
+      } else if (definition == &kCustom2) {
+        status = AccumulateMetric<kCustom2>(metric.value());
+      } else if (definition == &kCustom3) {
+        status = AccumulateMetric<kCustom3>(metric.value());
+      } else {
+        not_found += metric.name() + ",";
+      }
+    }
+    if (not_found != "") {
+      not_found.pop_back();
+      status = absl::NotFoundError(absl::StrCat("name not found: ", not_found));
+    }
+    return status;
   }
 
   // Accumulate metric values, they can be accumulated multiple times during

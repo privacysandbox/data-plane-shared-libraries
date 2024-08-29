@@ -72,6 +72,17 @@ BuildDependentConfig::BuildDependentConfig(TelemetryConfig config)
   for (const MetricConfig& m : server_config_.metric()) {
     metric_config_.emplace(m.name(), m);
   }
+  for (const auto& m : server_config_.custom_metric()) {
+    auto metric = SetCustomConfig(m);
+    if (!metric.ok()) {
+      if (metric.code() == absl::StatusCode::kAlreadyExists) {
+        continue;
+      } else {
+        ABSL_LOG(ERROR) << metric.message();
+        break;
+      }
+    }
+  }
 }
 
 TelemetryConfig::TelemetryMode BuildDependentConfig::MetricMode() const {
@@ -164,6 +175,66 @@ void BuildDependentConfig::SetMaxPartitionsContributed(
   absl::MutexLock lock(&partition_mutex_);
   internal_config_[name].set_max_partitions_contributed(
       max_partitions_contributed);
+}
+
+absl::Status BuildDependentConfig::SetCustomConfig(
+    const UDFMetricDefinition& proto) ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+  absl::MutexLock lock(&partition_mutex_);
+  for (int i = 0; i < CustomMetricCount(); i++) {
+    const server_common::metrics::Definition<
+        double, server_common::metrics::Privacy::kImpacting,
+        server_common::metrics::Instrument::kUpDownCounter>* kCustom =
+        server_common::metrics::kCustomList[i];
+    if (internal_config_.find(kCustom->name_) == internal_config_.end()) {
+      // udf name should be defined only once
+      if (GetCustomDefinition(proto.name()) == nullptr) {
+        *internal_config_[kCustom->name_].mutable_name() = proto.name();
+        *internal_config_[kCustom->name_].mutable_description() =
+            proto.description();
+        internal_config_[kCustom->name_].set_lower_bound(proto.lower_bound());
+        internal_config_[kCustom->name_].set_upper_bound(proto.upper_bound());
+        custom_def_map_[proto.name()] = kCustom;
+        return absl::OkStatus();
+      } else {
+        return absl::AlreadyExistsError(
+            absl::StrCat(proto.name(), " has already been defined"));
+      }
+    }
+  }
+  return absl::ResourceExhaustedError(
+      "max number of custom metrics has been reached");
+}
+
+absl::StatusOr<const MetricConfig*> BuildDependentConfig::GetInternalConfig(
+    std::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+  absl::MutexLock lock(&partition_mutex_);
+  auto it = internal_config_.find(name);
+  if (it == internal_config_.end()) {
+    return absl::NotFoundError(name);
+  }
+  return &(it->second);
+}
+
+std::string_view BuildDependentConfig::GetName(
+    const metrics::DefinitionName& definition) const {
+  absl::StatusOr<const MetricConfig*> internal_config =
+      GetInternalConfig(definition.name_);
+  if (internal_config.ok() && (*internal_config)->has_name()) {
+    return (*internal_config)->name();
+  } else {
+    return definition.name_;
+  }
+}
+
+std::string_view BuildDependentConfig::GetDescription(
+    const metrics::DefinitionName& definition) const {
+  absl::StatusOr<const MetricConfig*> internal_config =
+      GetInternalConfig(definition.name_);
+  if (internal_config.ok() && (*internal_config)->has_description()) {
+    return (*internal_config)->description();
+  } else {
+    return definition.description_;
+  }
 }
 
 }  // namespace privacy_sandbox::server_common::telemetry
