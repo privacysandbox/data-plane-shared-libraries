@@ -16,11 +16,11 @@ package main
 
 import (
 	"bufio"
-	"encoding/binary"
-	proto "github.com/golang/protobuf/proto"
 	ptypes "github.com/golang/protobuf/ptypes/any"
 	cbpb "github.com/privacysandbox/data-plane-shared/apis/roma/binary/callback"
 	pb "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example"
+	protodelim "google.golang.org/protobuf/encoding/protodelim"
+	"io"
 	"log"
 	"math"
 	"os"
@@ -28,6 +28,31 @@ import (
 )
 
 const kPrimeCount = 100_000
+
+func readRequestFromFd(reader protodelim.Reader) pb.SampleRequest {
+	var any ptypes.Any
+	err := protodelim.UnmarshalFrom(reader, &any)
+	if err == io.EOF {
+		os.Exit(-1)
+	} else if err != nil {
+		log.Fatal("Failed to read proto: ", err)
+	}
+	request := pb.SampleRequest{}
+	if err := any.UnmarshalTo(&request); err != nil {
+		log.Fatal("Failed to unmarshal request proto: ", err)
+	}
+	return request
+}
+
+func writeResponseToFd(writer io.Writer, response pb.SampleResponse) {
+	var any ptypes.Any
+	if err := any.MarshalFrom(&response); err != nil {
+		log.Fatal("Failed to marshal output: ", err)
+	}
+	if _, err := protodelim.MarshalTo(writer, &any); err != nil {
+		log.Fatal("Failed to write response proto: %v", err)
+	}
+}
 
 func runHelloWorld(binResponse *pb.SampleResponse) {
 	message := "Hello, world from Go!"
@@ -59,38 +84,16 @@ func runPrimeSieve(binResponse *pb.SampleResponse) {
 	}
 }
 
-func serializeDelimitedToFile(msg proto.Message, file *os.File) error {
-	buffer := proto.NewBuffer([]byte{})
-	if err := buffer.EncodeMessage(msg); err != nil {
-		return err
-	}
-	_, err := file.Write(buffer.Bytes())
-	return err
-}
-
-func parseDelimitedFromFile(msg proto.Message, file *os.File) error {
-	reader := bufio.NewReader(file)
-	length, err := binary.ReadUvarint(reader)
-	if err != nil {
-		return err
-	}
-	data := make([]byte, length)
-	if _, err = reader.Read(data); err != nil {
-		return err
-	}
-	return proto.Unmarshal(data, msg)
-}
-
 func runEchoCallback(file *os.File) {
 	callback := &cbpb.Callback{FunctionName: "example"}
 	var any ptypes.Any
 	if err := any.MarshalFrom(callback); err != nil {
 		log.Fatal("Failed to marshal callback: ", err)
 	}
-	if err := serializeDelimitedToFile(&any, file); err != nil {
+	if _, err := protodelim.MarshalTo(file, &any); err != nil {
 		log.Fatal("Failed to write callback request: ", err)
 	}
-	if err := parseDelimitedFromFile(callback, file); err != nil {
+	if err := protodelim.UnmarshalFrom(bufio.NewReader(file), callback); err != nil {
 		log.Fatal("Failed to read callback response: ", err)
 	}
 }
@@ -105,23 +108,14 @@ func main() {
 	}
 	file := os.NewFile(uintptr(fd), "socket")
 	defer file.Close()
-	binRequest := &pb.SampleRequest{}
-	{
-		var any ptypes.Any
-		if err := parseDelimitedFromFile(&any, file); err != nil {
-			os.Exit(-1)
-		}
-		if err := any.UnmarshalTo(binRequest); err != nil {
-			log.Fatal("Failed to unmarshal input: ", err)
-		}
-	}
+	binRequest := readRequestFromFd(bufio.NewReader(file))
 
-	binResponse := &pb.SampleResponse{}
+	binResponse := pb.SampleResponse{}
 	switch binRequest.Function {
 	case pb.FunctionType_FUNCTION_HELLO_WORLD:
-		runHelloWorld(binResponse)
+		runHelloWorld(&binResponse)
 	case pb.FunctionType_FUNCTION_PRIME_SIEVE:
-		runPrimeSieve(binResponse)
+		runPrimeSieve(&binResponse)
 	case pb.FunctionType_FUNCTION_CALLBACK:
 		runEchoCallback(file)
 	case pb.FunctionType_FUNCTION_TEN_CALLBACK_INVOCATIONS:
@@ -132,11 +126,5 @@ func main() {
 		log.Print("Unexpected input")
 		return
 	}
-	var any ptypes.Any
-	if err := any.MarshalFrom(binResponse); err != nil {
-		log.Fatal("Failed to marshal output: ", err)
-	}
-	if err := serializeDelimitedToFile(&any, file); err != nil {
-		log.Fatal("Failed to write output: ", err)
-	}
+	writeResponseToFd(file, binResponse)
 }

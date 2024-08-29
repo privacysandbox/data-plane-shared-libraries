@@ -16,15 +16,39 @@ package main
 
 import (
 	"bufio"
-	"encoding/binary"
-	proto "github.com/golang/protobuf/proto"
 	ptypes "github.com/golang/protobuf/ptypes/any"
 	pb "github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example"
+	protodelim "google.golang.org/protobuf/encoding/protodelim"
 	"io"
 	"log"
 	"os"
 	"strconv"
 )
+
+func ReadRequestFromFd(reader protodelim.Reader) pb.EchoRequest {
+	var any ptypes.Any
+	err := protodelim.UnmarshalFrom(reader, &any)
+	if err == io.EOF {
+		os.Exit(-1)
+	} else if err != nil {
+		log.Fatal("Failed to read proto: ", err)
+	}
+	request := pb.EchoRequest{}
+	if err := any.UnmarshalTo(&request); err != nil {
+		log.Fatal("Failed to unmarshal request proto: ", err)
+	}
+	return request
+}
+
+func WriteResponseToFd(writer io.Writer, response pb.EchoResponse) {
+	var any ptypes.Any
+	if err := any.MarshalFrom(&response); err != nil {
+		log.Fatal("Failed to marshal output: ", err)
+	}
+	if _, err := protodelim.MarshalTo(writer, &any); err != nil {
+		log.Fatal("Failed to write response proto: %v", err)
+	}
+}
 
 func main() {
 	if len(os.Args) != 2 {
@@ -34,7 +58,6 @@ func main() {
 	if err != nil {
 		log.Fatal("Missing file descriptor: ", err)
 	}
-	request := &pb.EchoRequest{}
 	file := os.NewFile(uintptr(fd), "socket")
 	defer file.Close()
 	// Any initialization work can be done before this point.
@@ -42,40 +65,11 @@ func main() {
 	// binary i.e. waiting for input before execution.
 	// The EchoRequest proto is defined by the Trusted Server team.
 	// The UDF reads request from the provided fd.
-	reader := bufio.NewReader(file)
-	n, err := binary.ReadUvarint(reader)
-	if err == io.EOF {
-		os.Exit(-1)
-	} else if err != nil {
-		log.Fatal("Failed to read varint from fd: ", err)
-	}
-	buf := make([]byte, n)
-	_, err = reader.Read(buf)
-	if err != nil {
-		log.Fatal("Failed to read proto from fd: ", err)
-	}
-	{
-		var any ptypes.Any
-		if err := proto.Unmarshal(buf, &any); err != nil {
-			log.Fatal("Failed to unmarshal any: ", err)
-		}
-		if err := any.UnmarshalTo(request); err != nil {
-			log.Fatal("Failed to unmarshal input: ", err)
-		}
-	}
-	response := &pb.EchoResponse{}
+	request := ReadRequestFromFd(bufio.NewReader(file))
+	response := pb.EchoResponse{}
 	response.Message = request.Message
 	// Once the UDF is done executing, it should write the response (EchoResponse
 	// in this case) to the provided fd.
-	var any ptypes.Any
-	if err := any.MarshalFrom(response); err != nil {
-		log.Fatal("Failed to marshal output: ", err)
-	}
-	buffer := proto.NewBuffer([]byte{})
-	if err := buffer.EncodeMessage(&any); err != nil {
-		log.Fatal("Failed to encode output: ", err)
-	}
-	if _, err := file.Write(buffer.Bytes()); err != nil {
-		log.Fatal("Failed to write output: ", err)
-	}
+	WriteResponseToFd(file, response)
+
 }

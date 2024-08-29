@@ -92,6 +92,7 @@ go_binary(
         "//src/roma/byob/host:callback_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
         "@com_github_golang_protobuf//ptypes/any",
+        "@org_golang_google_protobuf//encoding/protodelim",
     ],
 )
 
