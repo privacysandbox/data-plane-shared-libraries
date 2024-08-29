@@ -18,6 +18,8 @@
 #define LOGGER_REQUEST_CONTEXT_LOGGER_H_
 
 #include <optional>
+#include <string>
+#include <utility>
 
 #include "absl/log/absl_log.h"
 #include "absl/log/log_sink.h"
@@ -90,6 +92,19 @@ class PSLogMessage : public absl::log_internal::LogMessage {
       ToSinkAlso(sink);
     }
     return *this;
+  }
+};
+
+class PSLogMessageFatal final : public PSLogMessage {
+ public:
+  PSLogMessageFatal(const char* file, int line,
+                    absl::string_view failure_msg) ABSL_ATTRIBUTE_COLD
+      : PSLogMessage(file, line, absl::LogSeverity::kFatal) {
+    *this << "Check failed: " << failure_msg << "; ";
+  }
+  [[noreturn]] ~PSLogMessageFatal() {
+    Flush();
+    FailWithoutStackTrace();
   }
 };
 
@@ -213,5 +228,71 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   GET_PS_LOG(__VA_ARGS__, PS_LOG_CONTEXT_INTERNAL, PS_LOG_NO_CONTEXT_INTERNAL) \
   (__VA_ARGS__)
 #define GET_PS_LOG(_1, _2, NAME, ...) NAME
+
+#define PS_CHECK(...)                                              \
+  GET_PS_CHECK(__VA_ARGS__, PS_CHECK_CONTEXT, PS_CHECK_NO_CONTEXT) \
+  (__VA_ARGS__)
+#define GET_PS_CHECK(_1, _2, NAME, ...) NAME
+
+#define PS_CHECK_NO_CONTEXT(condition)                                 \
+  PS_CHECK_CONTEXT(                                                    \
+      condition,                                                       \
+      const_cast<::privacy_sandbox::server_common::log::NoOpContext&>( \
+          ::privacy_sandbox::server_common::log::kNoOpContext))
+
+#define PS_CHECK_CONTEXT(condition, ps_log_context)                         \
+  switch (::privacy_sandbox::server_common::log::                           \
+              PSLogContext& ps_logging_internal_context = (ps_log_context); \
+          0)                                                                \
+  default:                                                                  \
+    PS_INTERNAL_CHECK_IMPL((condition), #condition,                         \
+                           ps_logging_internal_context)                     \
+        << ps_logging_internal_context.ContextStr()
+
+#define PS_INTERNAL_CHECK_IMPL(condition, condition_text, ps_log_context) \
+  PS_LOG_INTERNAL_CONDITION(ABSL_PREDICT_FALSE(!(condition)))             \
+  PS_INTERNAL_CHECK(condition_text, ps_log_context).InternalStream()
+
+#define PS_INTERNAL_CHECK(failure_message, ps_log_context)                     \
+  ::privacy_sandbox::server_common::log::PSLogMessageFatal(__FILE__, __LINE__, \
+                                                           failure_message)    \
+      .ToSinkAlsoIf((ps_log_context).is_consented(),                           \
+                    (ps_log_context).ConsentedSink())
+
+#define PS_CHECK_OK(...)                                                    \
+  GET_PS_CHECK_OK(__VA_ARGS__, PS_CHECK_OK_CONTEXT, PS_CHECK_OK_NO_CONTEXT) \
+  (__VA_ARGS__)
+#define GET_PS_CHECK_OK(_1, _2, NAME, ...) NAME
+
+#define PS_CHECK_OK_NO_CONTEXT(condition)                              \
+  PS_CHECK_OK_CONTEXT(                                                 \
+      condition,                                                       \
+      const_cast<::privacy_sandbox::server_common::log::NoOpContext&>( \
+          ::privacy_sandbox::server_common::log::kNoOpContext))
+
+#define PS_CHECK_OK_CONTEXT(status, ps_log_context)                           \
+  switch (::privacy_sandbox::server_common::log::                             \
+              PSLogContext& ps_logging_internal_context = (ps_log_context);   \
+          0)                                                                  \
+  default:                                                                    \
+    PS_INTERNAL_CHECK_OK_IMPL((status), #status, ps_logging_internal_context) \
+        << ps_logging_internal_context.ContextStr()
+
+#define PS_INTERNAL_CHECK_OK_IMPL(val, val_text, ps_log_context)            \
+  for (::std::pair<const ::absl::Status*, ::std::string*>                   \
+           absl_log_internal_check_ok_goo;                                  \
+       absl_log_internal_check_ok_goo.first =                               \
+           ::absl::log_internal::AsStatus(val),                             \
+       absl_log_internal_check_ok_goo.second =                              \
+           ABSL_PREDICT_TRUE(absl_log_internal_check_ok_goo.first->ok())    \
+               ? nullptr                                                    \
+               : ::absl::status_internal::MakeCheckFailString(              \
+                     absl_log_internal_check_ok_goo.first,                  \
+                     ABSL_LOG_INTERNAL_STRIP_STRING_LITERAL(val_text        \
+                                                            " is OK")),     \
+       !ABSL_PREDICT_TRUE(absl_log_internal_check_ok_goo.first->ok());)     \
+    PS_LOG_INTERNAL_CONDITION(true)                                         \
+  PS_INTERNAL_CHECK(*absl_log_internal_check_ok_goo.second, ps_log_context) \
+      .InternalStream()
 
 #endif  // LOGGER_REQUEST_CONTEXT_LOGGER_H_

@@ -254,9 +254,16 @@ class SafePathContext : public PSLogContext {
    public:
     OtelSinkImpl() = default;
     void Send(const absl::LogEntry& entry) override {
-      logger_private->EmitLogRecord(
-          entry.text_message_with_prefix_and_newline_c_str(),
-          ToOtelSeverity(entry.log_severity()));
+      if (!entry.stacktrace().empty()) {
+        logger_private->EmitLogRecord(entry.stacktrace().data(),
+                                      ToOtelSeverity(entry.log_severity()));
+      } else {
+        // TODO(b/226937039): do this outside else condition once we avoid
+        // ReprintFatalMessage
+        logger_private->EmitLogRecord(
+            entry.text_message_with_prefix_and_newline_c_str(),
+            ToOtelSeverity(entry.log_severity()));
+      }
     }
     void Flush() override {}
   };

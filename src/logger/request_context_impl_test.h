@@ -142,5 +142,21 @@ class SafePathLogTest : public ConsentedLogTest {
 
 class SystemLogTest : public ConsentedLogTest {};
 
+class PsCheckTest : public test::LogTest {
+ protected:
+  void SetUp() override {
+    // initialize max verbosity = kMaxV
+    SetGlobalPSVLogLevel(kMaxV);
+
+    logger_ = logs_sdk::LoggerProviderFactory::Create(
+        logs_sdk::SimpleLogRecordProcessorFactory::Create(
+            std::make_unique<logs_exporter::OStreamLogRecordExporter>(
+                std::cerr)));
+    logger_private = logger_->GetLogger("default").get();
+  }
+
+  std::unique_ptr<logs_api::LoggerProvider> logger_;
+};
+
 }  // namespace privacy_sandbox::server_common::log
 #endif  // LOGGER_REQUEST_CONTEXT_IMPL_TEST_H_

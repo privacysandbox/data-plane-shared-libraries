@@ -313,6 +313,48 @@ TEST_F(SystemLogTest, LogMessage) {
   EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
 }
 
+TEST_F(PsCheckTest, CheckOkPrintToStderr) {
+  auto failure_status = absl::NotFoundError("test123");
+  EXPECT_DEATH(
+      PS_CHECK_OK(failure_status),
+      testing::AllOf(
+          ContainsRegex("[ :*]* Check failure stack trace"),
+          ContainsRegex("[0-9F:. ]* "
+                        "request_context_impl_prod_test[.]cc:[0-9]*\\] Check "
+                        "failed: failure_status is OK")));
+}
+
+TEST_F(PsCheckTest, CheckOkPrintToOtel) {
+  auto failure_status = absl::NotFoundError("test123");
+  EXPECT_DEATH(
+      PS_CHECK_OK(failure_status, SystemLogContext::Get()),
+      testing::AllOf(
+          ContainsRegex("body[ :*]* Check failure stack trace"),
+          ContainsRegex("body[0-9F:. ]* "
+                        "request_context_impl_prod_test[.]cc:[0-9]*\\] Check "
+                        "failed: failure_status is OK")));
+}
+
+TEST_F(PsCheckTest, CheckPrintToStderr) {
+  EXPECT_DEATH(
+      PS_CHECK(1 == 2),
+      testing::AllOf(
+          ContainsRegex("Check failure stack trace"),
+          ContainsRegex(
+              "[0-9F:. ]* request_context_impl_prod_test[.]cc:[0-9]*\\] "
+              "Check failed: 1 == 2")));
+}
+
+TEST_F(PsCheckTest, CheckPrintToOtel) {
+  EXPECT_DEATH(
+      PS_CHECK(1 == 2, SystemLogContext::Get()),
+      testing::AllOf(
+          ContainsRegex("body[ :*]* Check failure stack trace"),
+          ContainsRegex(
+              "body[0-9F:. ]* request_context_impl_prod_test[.]cc:[0-9]*\\] "
+              "Check failed: 1 == 2")));
+}
+
 TEST(IsProd, TrueInProd) { EXPECT_TRUE(IsProd()); }
 
 }  // namespace
