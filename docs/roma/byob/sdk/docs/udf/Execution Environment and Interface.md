@@ -39,7 +39,7 @@ first positional argument to the UDF is the fd for communication.
 
 For details about how to use the passed flag(s), see
 [communication interface](/docs/roma/byob/sdk/docs/udf/Communication%20Interface.md) doc and
-[examples](/src/roma/byob/udf/).
+[examples](/src/roma/byob/example/).
 
 ## gVisor
 

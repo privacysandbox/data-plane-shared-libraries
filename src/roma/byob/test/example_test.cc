@@ -32,6 +32,7 @@ using ::privacy_sandbox::server_common::byob::Mode;
 using ::privacy_sandbox::server_common::byob::example::ByobEchoService;
 using ::privacy_sandbox::server_common::byob::example::EchoRequest;
 using ::privacy_sandbox::server_common::byob::example::EchoResponse;
+using ::testing::StrEq;
 
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "example_go_udf";
@@ -132,7 +133,7 @@ TEST(RomaByobExampleTest, NotifExecuteCppBinary) {
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(response);
   CHECK(*response != nullptr);
-  EXPECT_THAT((*response)->message(), message);
+  EXPECT_THAT((*response)->message(), StrEq(message));
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackExecuteCppBinary) {
@@ -154,7 +155,7 @@ TEST(RomaByobExampleTest, AsyncCallbackExecuteCppBinary) {
 
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(bin_response);
-  EXPECT_THAT(bin_response->message(), message);
+  EXPECT_THAT(bin_response->message(), StrEq(message));
 }
 
 TEST(RomaByobExampleTest, NotifExecuteGoBinary) {
@@ -173,7 +174,7 @@ TEST(RomaByobExampleTest, NotifExecuteGoBinary) {
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(response);
   CHECK(*response != nullptr);
-  EXPECT_THAT((*response)->message(), message);
+  EXPECT_THAT((*response)->message(), StrEq(message));
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackExecuteGoBinary) {
@@ -195,7 +196,7 @@ TEST(RomaByobExampleTest, AsyncCallbackExecuteGoBinary) {
 
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(bin_response);
-  EXPECT_THAT(bin_response->message(), message);
+  EXPECT_THAT(bin_response->message(), StrEq(message));
 }
 
 }  // namespace
