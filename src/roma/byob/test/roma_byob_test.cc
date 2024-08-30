@@ -16,14 +16,18 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
+#include <fstream>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <string_view>
 
+#include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/byob/udf/sample.pb.h"
 #include "src/roma/byob/udf/sample_callback.pb.h"
 #include "src/roma/byob/udf/sample_roma_byob_app_service.h"
+#include "src/roma/byob/utility/udf_blob.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob::test {
@@ -68,6 +72,19 @@ SampleResponse SendRequestAndGetResponse(
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   CHECK_OK(response);
   return *std::move((*response).get());
+}
+
+absl::StatusOr<std::string> GetContentsOfFile(std::filesystem::path filename) {
+  std::ifstream file(filename);
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to open file: ", filename.c_str()));
+  }
+  std::string content((std::istreambuf_iterator<char>(file)),
+                      std::istreambuf_iterator<char>());
+
+  file.close();
+  return content;
 }
 
 std::string LoadCode(ByobSampleService<>& roma_service,
@@ -167,6 +184,22 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
   EXPECT_THAT(
       SendRequestAndGetResponse(roma_service, second_code_token).greeting(),
       ::testing::StrEq(kNewUdfOutput));
+}
+
+TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeNoSandbox,
+                                                    /*num_workers=*/2);
+
+  auto content = GetContentsOfFile(kUdfPath / kCPlusPlusBinaryFilename);
+  CHECK_OK(content);
+  auto udf_blob = UdfBlob::Create(*std::move(content));
+  CHECK_OK(udf_blob);
+
+  std::string first_code_token = LoadCode(roma_service, (*udf_blob)());
+
+  EXPECT_THAT(
+      SendRequestAndGetResponse(roma_service, first_code_token).greeting(),
+      ::testing::StrEq(kFirstUdfOutput));
 }
 
 TEST(RomaByobTest, AsyncCallbackExecuteCppBinary) {

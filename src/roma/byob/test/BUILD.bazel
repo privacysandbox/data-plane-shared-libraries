@@ -67,6 +67,8 @@ cc_binary(
         "//src/roma/byob/udf:sample_callback_cc_proto",
         "//src/roma/byob/udf:sample_cc_proto",
         "//src/roma/byob/udf:sample_roma_api",
+        "//src/roma/byob/utility:udf_blob",
+        "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],

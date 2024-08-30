@@ -45,6 +45,10 @@ absl::StatusOr<std::filesystem::path> CreateFileFromBlob(std::string blob) {
   }
   file_stream << blob;
   file_stream.close();
+  std::filesystem::permissions(std::filesystem::path(tmpfile),
+                               std::filesystem::perms::owner_exec |
+                                   std::filesystem::perms::group_exec |
+                                   std::filesystem::perms::others_exec);
   return std::filesystem::path(tmpfile);
 }
 
