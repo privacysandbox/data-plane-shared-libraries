@@ -29,8 +29,7 @@ UDFs must be provided as a single, self-contained executable file. The executabl
 shared libraries contained within the base distroless image, for example, `glibc`, `libgcc1` and its
 dependencies.
 
-> An easy way of ensuring all the required dependencies are available is to statically compile the
-> binary.
+Build toolchain base image: `ubuntu:20.04`
 
 ## Command-line flags
 
