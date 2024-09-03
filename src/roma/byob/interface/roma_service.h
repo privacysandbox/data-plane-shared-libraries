@@ -159,6 +159,13 @@ class RomaService final {
         std::filesystem::path(progdir_) /
         ToString(google::scp::core::common::Uuid::GenerateUuid());
     CHECK(std::filesystem::copy_file(code_path, new_path));
+    std::filesystem::permissions(new_path,
+                                 std::filesystem::perms::owner_exec |
+                                     std::filesystem::perms::owner_read |
+                                     std::filesystem::perms::group_exec |
+                                     std::filesystem::perms::group_read |
+                                     std::filesystem::perms::others_exec |
+                                     std::filesystem::perms::others_read);
     return dispatcher_->LoadBinary(new_path.c_str(), n_workers_);
   }
 
