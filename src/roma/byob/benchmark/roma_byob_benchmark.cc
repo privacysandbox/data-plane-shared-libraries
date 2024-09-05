@@ -645,8 +645,8 @@ BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
 BENCHMARK(BM_ExecuteBinary)
     ->ArgsProduct({
         {
-            (int)Mode::kModeSandbox,
-            (int)Mode::kModeNoSandbox,
+            static_cast<int>(Mode::kModeSandbox),
+            static_cast<int>(Mode::kModeNoSandbox),
         },
         {
             FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
@@ -664,8 +664,8 @@ BENCHMARK(BM_ExecuteBinary)
 BENCHMARK(BM_ExecuteBinaryUsingCallback)
     ->ArgsProduct({
         {
-            (int)Mode::kModeSandbox,
-            (int)Mode::kModeNoSandbox,
+            static_cast<int>(Mode::kModeSandbox),
+            static_cast<int>(Mode::kModeNoSandbox),
         },
         {
             FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"

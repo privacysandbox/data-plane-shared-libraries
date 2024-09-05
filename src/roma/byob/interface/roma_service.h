@@ -107,6 +107,17 @@ class RomaService final {
         return absl::ErrnoToStatus(errno, "listen()");
       }
     }
+    std::filesystem::permissions(
+        std::filesystem::path(socket_name_).parent_path(),
+        std::filesystem::perms::owner_all | std::filesystem::perms::group_all |
+            std::filesystem::perms::others_all);
+    std::filesystem::permissions(std::filesystem::path(socket_name_),
+                                 std::filesystem::perms::owner_read |
+                                     std::filesystem::perms::group_read |
+                                     std::filesystem::perms::others_read |
+                                     std::filesystem::perms::owner_write |
+                                     std::filesystem::perms::group_write |
+                                     std::filesystem::perms::others_write);
     // Need to set this to ensure all the children can be reaped
     ::prctl(PR_SET_CHILD_SUBREAPER, 1);
     const int pid = ::fork();

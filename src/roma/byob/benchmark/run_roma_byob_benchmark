@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/busybox/sh
 # Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,22 +13,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o errexit
-
-function _cleanup() {
-  # shellcheck disable=SC2207
-  declare -a -r pids=($(jobs -pr))
-  if [[ ${#pids[*]} -gt 0 ]]; then
-    kill "${pids[@]}" || true
-  fi
-}
-trap _cleanup EXIT
-
-declare -r BENCHMARK_DIR=/dist/benchmarks
-# /dist/benchmarks dir is mounted into this container when running benchmarks.
-# Else, create it.
+BENCHMARK_DIR=/dist/benchmarks
 mkdir -p "${BENCHMARK_DIR}"
-sleep 1
+
 /server/bin/roma_byob_benchmark \
   --benchmark_counters_tabular=true \
   --benchmark_out_format=json \

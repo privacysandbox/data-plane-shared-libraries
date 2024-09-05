@@ -23,7 +23,7 @@ def byob_image(
         udf_binary_label,
         layer_tars = [],
         repo_tags = [],
-        entrypoint = ["/bin/bash"]):
+        entrypoint = ["/busybox/sh"]):
     pkg_files(
         name = "{}_sample_udf_execs".format(name),
         srcs = [
@@ -43,12 +43,13 @@ def byob_image(
     oci_image(
         name = name,
         base = select({
-            "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
-            "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
+            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
+            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
         }),
         cmd = cmd,
         entrypoint = entrypoint,
         tars = [
+            "//src/roma/byob/container:var_run_runsc_tar",
             "//src/roma/byob/container:gvisor_tar",
             "//src/roma/byob/container:byob_server_container_with_dir.tar",
         ] + layer_tars + [

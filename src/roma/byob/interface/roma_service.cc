@@ -92,8 +92,12 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
       ofs << config.dump();
     }
     PCHECK(::chdir(CONTAINER_PATH) == 0);
+    // Note: Rootless runsc should be used judiciously. Since we have disabled
+    // network stack (--network=none), rootless runsc should be side-effect
+    // free.
     const char* argv[] = {
-        "/usr/bin/runsc",        "--host-uds=all", "--ignore-cgroups", "run",
+        "/usr/bin/runsc",        "--host-uds=all", "--ignore-cgroups",
+        "--network=none",        "--rootless",     "run",
         container_name_.c_str(), nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);

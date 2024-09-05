@@ -14,7 +14,7 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
-load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
 
@@ -45,6 +45,18 @@ pkg_tar(
     srcs = [
         ":gvisor_execs",
     ],
+    visibility = ["//visibility:public"],
+)
+
+pkg_mkdirs(
+    name = "var_run_runsc_dir",
+    attributes = pkg_attributes(mode = "0777"),
+    dirs = ["/var/run/runsc"],
+)
+
+pkg_tar(
+    name = "var_run_runsc_tar",
+    srcs = [":var_run_runsc_dir"],
     visibility = ["//visibility:public"],
 )
 
@@ -105,7 +117,6 @@ genrule(
     name = "gen_byob_server_container_tar",
     srcs = [
         ":byob_server_image_tarball",
-        ":config.json",
     ],
     outs = [
         "byob_server_container.tar",
@@ -135,7 +146,8 @@ genrule(
 rm -rf "{roma_container_dir}"
 mkdir "{roma_container_dir}"
 cp "$(location config.json)" "{roma_container_dir}"/
-mkdir --mode=755 "{roma_container_dir}"/"{roma_container_root_dir}"
+chmod a+rw "{roma_container_dir}"/config.json
+mkdir --mode=777 "{roma_container_dir}"/"{roma_container_root_dir}"
 tar -xf "$(location byob_server_container.tar)" -C "{roma_container_dir}"/"{roma_container_root_dir}"/
 tar cfz $@ "{roma_container_dir}"/
 """.format(

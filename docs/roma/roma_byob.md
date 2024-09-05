@@ -38,7 +38,7 @@ execution of arbitrary binaries written in any language.
     pkg_files(
       name = "gvisor_config_file",
       srcs = ["@google_privacysandbox_servers_common//src/roma/byob/container:container_config"],
-      attributes = pkg_attributes(mode = "0777"),
+      attributes = pkg_attributes(mode = "0666"),
     )
 
     pkg_tar(
@@ -75,6 +75,7 @@ execution of arbitrary binaries written in any language.
     ```bazel
     tars = [
           "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar",
+          "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar",
       ],
     ```
 
@@ -82,6 +83,7 @@ execution of arbitrary binaries written in any language.
 
     ```bazel
     "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar",
+    "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar",
     "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container_with_dir.tar",
     ```
 
