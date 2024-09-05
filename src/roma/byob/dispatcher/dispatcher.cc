@@ -18,7 +18,9 @@
 #include <sys/socket.h>
 #include <unistd.h>
 
+#include <fstream>
 #include <queue>
+#include <string>
 #include <string_view>
 #include <thread>
 #include <utility>
@@ -75,11 +77,15 @@ absl::Status Dispatcher::Init(const int listen_fd) {
   return absl::OkStatus();
 }
 
-std::string Dispatcher::LoadBinary(std::string_view binary_path,
+std::string Dispatcher::LoadBinary(std::filesystem::path binary_path,
                                    const int n_workers) {
   std::string code_token = ToString(Uuid::GenerateUuid());
   LoadRequest payload;
-  payload.set_binary_path(binary_path);
+  {
+    std::ifstream ifs(std::move(binary_path), std::ios::binary);
+    payload.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
+                                           std::istreambuf_iterator<char>()));
+  }
   payload.set_code_token(code_token);
   payload.set_n_workers(n_workers);
   SerializeDelimitedToFileDescriptor(payload, connection_fd_);

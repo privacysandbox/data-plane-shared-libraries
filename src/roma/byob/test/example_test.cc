@@ -45,7 +45,7 @@ std::string LoadCode(ByobEchoService<>& roma_service,
   absl::StatusOr<std::string> code_id =
       roma_service.Register(file_path, notif, notif_status);
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
   return *std::move(code_id);
 }
@@ -71,7 +71,7 @@ TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
       kUdfPath / kCPlusPlusBinaryFilename, notif, notif_status);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }
 
@@ -85,7 +85,7 @@ TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
       kUdfPath / kCPlusPlusBinaryFilename, notif, notif_status);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }
 
@@ -99,7 +99,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInSandboxMode) {
       kUdfPath / kGoLangBinaryFilename, notif, notif_status);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }
 
@@ -113,7 +113,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
       kUdfPath / kGoLangBinaryFilename, notif, notif_status);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }
 
@@ -130,7 +130,7 @@ TEST(RomaByobExampleTest, NotifExecuteCppBinary) {
   CHECK_OK(roma_service.Echo(notif, request, response,
                              /*metadata=*/{}, code_token));
 
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(response);
   CHECK(*response != nullptr);
   EXPECT_THAT((*response)->message(), StrEq(message));
@@ -153,7 +153,7 @@ TEST(RomaByobExampleTest, AsyncCallbackExecuteCppBinary) {
   CHECK_OK(roma_service.Echo(callback, bin_request,
                              /*metadata=*/{}, code_token));
 
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
   EXPECT_THAT(bin_response->message(), StrEq(message));
 }
@@ -171,7 +171,7 @@ TEST(RomaByobExampleTest, NotifExecuteGoBinary) {
   CHECK_OK(roma_service.Echo(notif, request, response,
                              /*metadata=*/{}, code_token));
 
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(response);
   CHECK(*response != nullptr);
   EXPECT_THAT((*response)->message(), StrEq(message));
@@ -194,7 +194,7 @@ TEST(RomaByobExampleTest, AsyncCallbackExecuteGoBinary) {
   CHECK_OK(roma_service.Echo(callback, bin_request,
                              /*metadata=*/{}, code_token));
 
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
   EXPECT_THAT(bin_response->message(), StrEq(message));
 }

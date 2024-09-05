@@ -20,6 +20,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <filesystem>
+#include <fstream>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -35,6 +37,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 
 ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
@@ -94,6 +97,9 @@ int main(int argc, char** argv) {
   std::vector<char*> args = absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
+  const std::filesystem::path progdir =
+      std::filesystem::temp_directory_path() / "progdir";
+  CHECK(std::filesystem::create_directory(progdir));
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   PCHECK(fd != -1);
   PCHECK(ConnectToPath(fd, socket_name));
@@ -152,12 +158,22 @@ int main(int argc, char** argv) {
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
+    const std::filesystem::path binary_path =
+        progdir / ToString(google::scp::core::common::Uuid::GenerateUuid());
+    {
+      std::ofstream ofs(binary_path, std::ios::binary);
+      ofs.write(request.binary_content().c_str(),
+                request.binary_content().size());
+    }
+    std::filesystem::permissions(binary_path,
+                                 std::filesystem::perms::owner_exec |
+                                     std::filesystem::perms::owner_read);
     for (int i = 0; i < request.n_workers() - 1; ++i) {
       const int pid = ConnectSendCloneAndExec(socket_name, request.code_token(),
-                                              request.binary_path());
+                                              binary_path.native());
       UdfInstanceMetadata udf{
           .code_token = request.code_token(),
-          .binary_path = request.binary_path(),
+          .binary_path = binary_path,
       };
       absl::MutexLock lock(&mu);
       pid_to_udf[pid] = std::move(udf);
@@ -165,10 +181,10 @@ int main(int argc, char** argv) {
 
     // Start n-th worker out of loop.
     const int pid = ConnectSendCloneAndExec(socket_name, request.code_token(),
-                                            request.binary_path());
+                                            binary_path.native());
     UdfInstanceMetadata udf{
         .code_token = std::move(*request.mutable_code_token()),
-        .binary_path = std::move(*request.mutable_binary_path()),
+        .binary_path = binary_path,
     };
     absl::MutexLock lock(&mu);
     pid_to_udf[pid] = std::move(udf);
@@ -184,6 +200,9 @@ int main(int argc, char** argv) {
   for (const auto& [pid, _] : pid_to_udf) {
     PCHECK(::kill(pid, SIGKILL) == 0);
     PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
+  }
+  if (std::error_code ec; !std::filesystem::remove_all(progdir, ec)) {
+    LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
   }
   return 0;
 }

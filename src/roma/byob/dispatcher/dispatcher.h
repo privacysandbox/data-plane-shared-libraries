@@ -43,7 +43,7 @@ class Dispatcher {
   // Takes ownership of `listen_fd`. Blocks until a connection is established.
   absl::Status Init(int listen_fd);
 
-  std::string LoadBinary(std::string_view binary_path, int n_workers);
+  std::string LoadBinary(std::filesystem::path binary_path, int n_workers);
 
   template <typename Table, typename Metadata, typename Request>
   void ExecuteBinary(

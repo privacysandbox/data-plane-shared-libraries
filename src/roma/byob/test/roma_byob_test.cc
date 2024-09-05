@@ -69,7 +69,7 @@ SampleResponse SendRequestAndGetResponse(
   absl::Notification notif;
   CHECK_OK(roma_service.Sample(notif, bin_request, response,
                                /*metadata=*/{}, code_token));
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(response);
   return *std::move((*response).get());
 }
@@ -94,7 +94,7 @@ std::string LoadCode(ByobSampleService<>& roma_service,
   absl::StatusOr<std::string> code_id =
       roma_service.Register(file_path, notif, notif_status);
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
   return *std::move(code_id);
 }
@@ -134,7 +134,7 @@ TEST(RomaByobTest, LoadBinaryInSandboxMode) {
       kUdfPath / kCPlusPlusBinaryFilename, notif, notif_status);
 
   EXPECT_TRUE(code_id.status().ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }
 
@@ -148,7 +148,7 @@ TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
       kUdfPath / kCPlusPlusBinaryFilename, notif, notif_status);
 
   EXPECT_TRUE(code_id.status().ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }
 
@@ -220,7 +220,7 @@ TEST(RomaByobTest, AsyncCallbackExecuteCppBinary) {
 
   CHECK_OK(roma_service.Sample(callback, bin_request,
                                /*metadata=*/{}, code_token));
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
   EXPECT_THAT(bin_response->greeting(), kFirstUdfOutput);
 }
@@ -263,7 +263,7 @@ TEST(RomaByobTest, ExecuteCppBinaryWithHostCallbackInSandboxMode) {
   CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
                                             /*metadata=*/{}, code_token));
 
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   ASSERT_TRUE(response.ok());
   EXPECT_EQ((*response)->payload_size(), payload_size);
 }

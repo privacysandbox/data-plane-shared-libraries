@@ -123,7 +123,6 @@ TEST(DispatcherTest, LoadGoesToWorker) {
     LoadRequest request;
     FileInputStream input(fd);
     ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
-    EXPECT_THAT(request.binary_path(), StrEq("dummy_code_path"));
     ASSERT_EQ(request.code_token().size(), 36);
     EXPECT_EQ(request.n_workers(), 7);
     for (int i = 0; i < request.n_workers(); ++i) {
@@ -136,7 +135,7 @@ TEST(DispatcherTest, LoadGoesToWorker) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/7);
+  dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/7);
   worker.join();
 }
 
@@ -156,7 +155,6 @@ TEST(DispatcherTest, LoadAndExecute) {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    EXPECT_THAT(request.binary_path(), StrEq("dummy_code_path"));
     ASSERT_EQ(request.code_token().size(), 36);
     EXPECT_EQ(request.n_workers(), 1);
 
@@ -188,7 +186,7 @@ TEST(DispatcherTest, LoadAndExecute) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const std::string code_token =
-      dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_HELLO_WORLD);
@@ -225,7 +223,6 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    EXPECT_THAT(request.binary_path(), StrEq("dummy_code_path"));
     ASSERT_EQ(request.code_token().size(), 36);
     EXPECT_EQ(request.n_workers(), 1);
 
@@ -279,7 +276,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const std::string code_token =
-      dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
@@ -324,7 +321,6 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       LoadRequest request;
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
-      EXPECT_THAT(request.binary_path(), StrEq("dummy_code_path"));
       ASSERT_EQ(request.code_token().size(), 36);
       code_token = std::move(*request.mutable_code_token());
       EXPECT_EQ(request.n_workers(), 1);
@@ -372,7 +368,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const std::string code_token =
-      dispatcher.LoadBinary("dummy_code_path", /*n_workers=*/1);
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
   SampleRequest bin_request;
   absl::Mutex mu;
   absl::flat_hash_set<int> metadatas;  // Guarded by mu.

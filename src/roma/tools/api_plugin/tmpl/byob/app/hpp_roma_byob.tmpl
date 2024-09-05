@@ -30,6 +30,7 @@
 
 #include <filesystem>
 #include <memory>
+#include <utility>
 
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/interface/roma_service.h"
@@ -90,7 +91,7 @@ class {{$svcName}} final :
                                        absl::Status& load_status) {
     notification.Notify();
     load_status = absl::OkStatus();
-    return roma_service_->LoadBinary(code_path.c_str());
+    return roma_service_->LoadBinary(std::move(code_path));
   }
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}

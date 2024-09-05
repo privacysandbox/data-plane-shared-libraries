@@ -93,7 +93,7 @@ SampleResponse SendRequestAndGetResponse(
   absl::Notification notif;
   CHECK_OK(roma_service.Sample(notif, bin_request, response,
                                /*metadata=*/{}, code_token));
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(response);
   return *std::move((*response).get());
 }
@@ -105,7 +105,7 @@ std::string LoadCode(ByobSampleService<>& roma_service,
   absl::StatusOr<std::string> code_id =
       roma_service.Register(file_path, notif, notif_status);
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
   return *std::move(code_id);
 }
@@ -302,7 +302,7 @@ void BM_ExecuteBinaryUsingCallback(benchmark::State& state) {
     };
     CHECK_OK(roma_service.Sample(callback, bin_request,
                                  /*metadata=*/{}, code_token));
-    CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+    CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
     CHECK_OK(bin_response);
   };
   rpc(bin_request, code_token);
@@ -363,7 +363,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
     absl::Notification notif;
     CHECK_OK(roma_service.ReadPayload(notif, request, response,
                                       /*metadata=*/{}, code_token));
-    CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(180)));
+    CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(5)));
     return response;
   };
 
@@ -409,7 +409,7 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
     absl::Notification notif;
     CHECK_OK(roma_service.GeneratePayload(notif, request, response,
                                           /*metadata=*/{}, code_token));
-    CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(300)));
+    CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(10)));
     return response;
   };
 

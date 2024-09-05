@@ -23,6 +23,7 @@
 #include <unistd.h>
 
 #include <filesystem>
+#include <fstream>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -39,9 +40,9 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
 #include "google/protobuf/util/delimited_message_util.h"
+#include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 
-ABSL_FLAG(std::string, progdir, "/progdir", "Directory containing binaries.");
 ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
           "Server socket for reaching Roma app API");
 ABSL_FLAG(std::vector<std::string>, mounts,
@@ -170,7 +171,10 @@ int main(int argc, char** argv) {
   absl::InitializeLog();
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
   std::vector<std::string> mounts = absl::GetFlag(FLAGS_mounts);
-  mounts.push_back(absl::GetFlag(FLAGS_progdir));
+  const std::filesystem::path progdir =
+      std::filesystem::temp_directory_path() / "progdir";
+  CHECK(std::filesystem::create_directory(progdir));
+  mounts.push_back(progdir);
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   PCHECK(fd != -1);
   PCHECK(ConnectToPath(fd, socket_name));
@@ -234,13 +238,23 @@ int main(int argc, char** argv) {
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
+    const std::filesystem::path binary_path =
+        progdir / ToString(google::scp::core::common::Uuid::GenerateUuid());
+    {
+      std::ofstream ofs(binary_path, std::ios::binary);
+      ofs.write(request.binary_content().c_str(),
+                request.binary_content().size());
+    }
+    std::filesystem::permissions(binary_path,
+                                 std::filesystem::perms::owner_exec |
+                                     std::filesystem::perms::owner_read);
     for (int i = 0; i < request.n_workers() - 1; ++i) {
       PidAndPivotRootDir pid_and_pivot_root_dir = ConnectSendCloneAndExec(
-          mounts, socket_name, request.code_token(), request.binary_path());
+          mounts, socket_name, request.code_token(), binary_path.native());
       UdfInstanceMetadata udf{
           .pivot_root_dir = std::move(pid_and_pivot_root_dir.pivot_root_dir),
           .code_token = request.code_token(),
-          .binary_path = request.binary_path(),
+          .binary_path = binary_path,
       };
       absl::MutexLock lock(&mu);
       pid_to_udf[pid_and_pivot_root_dir.pid] = std::move(udf);
@@ -248,11 +262,11 @@ int main(int argc, char** argv) {
 
     // Start n-th worker out of loop.
     PidAndPivotRootDir pid_and_pivot_root_dir = ConnectSendCloneAndExec(
-        mounts, socket_name, request.code_token(), request.binary_path());
+        mounts, socket_name, request.code_token(), binary_path.native());
     UdfInstanceMetadata udf{
         .pivot_root_dir = std::move(pid_and_pivot_root_dir.pivot_root_dir),
         .code_token = std::move(*request.mutable_code_token()),
-        .binary_path = std::move(*request.mutable_binary_path()),
+        .binary_path = binary_path,
     };
     absl::MutexLock lock(&mu);
     pid_to_udf[pid_and_pivot_root_dir.pid] = std::move(udf);
@@ -269,6 +283,9 @@ int main(int argc, char** argv) {
     PCHECK(::kill(pid, SIGKILL) == 0);
     PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
     CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
+  }
+  if (std::error_code ec; !std::filesystem::remove_all(progdir, ec)) {
+    LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
   }
   return 0;
 }

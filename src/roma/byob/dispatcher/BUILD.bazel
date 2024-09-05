@@ -30,6 +30,7 @@ cc_binary(
     srcs = ["run_workers_without_sandbox.cc"],
     deps = [
         ":dispatcher_cc_proto",
+        "//src/core/common/uuid",
         "@com_google_absl//absl/cleanup",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
@@ -47,6 +48,7 @@ cc_test(
     name = "dispatcher_test",
     size = "small",
     srcs = ["dispatcher_test.cc"],
+    data = ["//src/roma/byob/udf:new_udf"],
     deps = [
         ":dispatcher",
         ":dispatcher_cc_proto",

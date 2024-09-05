@@ -53,8 +53,7 @@ namespace privacy_sandbox::server_common::byob {
 namespace internal::roma_service {
 class LocalHandle final {
  public:
-  LocalHandle(int pid, std::string_view mounts, std::string_view progdir,
-              std::string_view socket_name);
+  LocalHandle(int pid, std::string_view mounts, std::string_view socket_name);
   ~LocalHandle();
 
  private:
@@ -63,9 +62,8 @@ class LocalHandle final {
 
 class ByobHandle final {
  public:
-  ByobHandle(int pid, std::string_view mounts, std::string_view progdir,
-             std::string_view socket_name, std::string_view sockdir,
-             std::string container_name);
+  ByobHandle(int pid, std::string_view mounts, std::string_view socket_name,
+             std::string_view sockdir, std::string container_name);
   ~ByobHandle();
 
  private:
@@ -86,9 +84,6 @@ class RomaService final {
     n_workers_ = config.num_workers > 0
                      ? config.num_workers
                      : static_cast<int>(std::thread::hardware_concurrency());
-    if (::mkdtemp(progdir_) == nullptr) {
-      return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/progdir_XXXXXX\")");
-    }
     if (::mkdtemp(sockdir_) == nullptr) {
       return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/sockdir_XXXXXX\")");
     }
@@ -121,12 +116,12 @@ class RomaService final {
     switch (mode) {
       case Mode::kModeSandbox:
         handle_.emplace<internal::roma_service::ByobHandle>(
-            pid, config.lib_mounts, progdir_, socket_name_, sockdir_,
+            pid, config.lib_mounts, socket_name_, sockdir_,
             std::move(config.roma_container_name));
         break;
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
-            pid, config.lib_mounts, progdir_, socket_name_);
+            pid, config.lib_mounts, socket_name_);
         break;
     }
     dispatcher_.emplace();
@@ -142,31 +137,17 @@ class RomaService final {
   ~RomaService() {
     dispatcher_.reset();
     handle_.emplace<std::monostate>();
-    if (std::error_code ec; !std::filesystem::remove_all(progdir_, ec)) {
-      LOG(ERROR) << "Failed to remove all " << progdir_ << ": " << ec;
-    }
     if (::unlink(socket_name_) == -1) {
       PLOG(ERROR) << "Failed to unlink " << socket_name_;
     }
-    delete socket_name_;
+    ::free(socket_name_);
     if (std::error_code ec; !std::filesystem::remove(sockdir_, ec)) {
       LOG(ERROR) << "Failed to remove " << sockdir_ << ": " << ec;
     }
   }
 
-  std::string LoadBinary(std::string_view code_path) {
-    std::filesystem::path new_path =
-        std::filesystem::path(progdir_) /
-        ToString(google::scp::core::common::Uuid::GenerateUuid());
-    CHECK(std::filesystem::copy_file(code_path, new_path));
-    std::filesystem::permissions(new_path,
-                                 std::filesystem::perms::owner_exec |
-                                     std::filesystem::perms::owner_read |
-                                     std::filesystem::perms::group_exec |
-                                     std::filesystem::perms::group_read |
-                                     std::filesystem::perms::others_exec |
-                                     std::filesystem::perms::others_read);
-    return dispatcher_->LoadBinary(new_path.c_str(), n_workers_);
+  std::string LoadBinary(std::filesystem::path code_path) {
+    return dispatcher_->LoadBinary(std::move(code_path), n_workers_);
   }
 
   template <typename Response, typename Request>
@@ -220,9 +201,8 @@ class RomaService final {
 
  private:
   int n_workers_;
-  char progdir_[20] = "/tmp/progdir_XXXXXX";
   char sockdir_[20] = "/tmp/sockdir_XXXXXX";
-  const char* socket_name_ = nullptr;
+  char* socket_name_ = nullptr;
   std::variant<std::monostate, internal::roma_service::LocalHandle,
                internal::roma_service::ByobHandle>
       handle_;
