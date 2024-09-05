@@ -109,12 +109,6 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     # TODO: b/303250465 - Turn this back on once the segfault is fixed.
     # //src/roma/benchmark:benchmark_suite_test
   )
-  arch="$("${TOOLS_DIR}"/get-architecture)"
-  if [[ ${arch} == amd64 ]]; then
-    targets+=(
-      //src/roma/sandbox/js_engine/v8_engine:arraybuffer_benchmark
-    )
-  fi
 fi
 
 mkdir -p "${WORKSPACE}"/dist/benchmarks
