@@ -51,6 +51,9 @@
 using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
+using ::testing::AnyOf;
+using ::testing::DoubleNear;
+using ::testing::Gt;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
@@ -60,6 +63,17 @@ namespace {
 
 TEST(SandboxedServiceTest, InitStop) {
   Config config;
+  config.number_of_workers = 2;
+
+  RomaService roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
+TEST(SandboxedServiceTest, CanSetV8FlagsFromConfig) {
+  Config config;
+  std::vector<std::string>& v8_flags = config.SetV8Flags();
+  v8_flags.push_back("--no-turbofan");
   config.number_of_workers = 2;
 
   RomaService roma_service(std::move(config));
@@ -120,9 +134,8 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
       "TestHostServer.NativeMethod",
       privacysandbox::test_host_server::NativeMethodHandler<std::string>());
 
-  auto roma_service =
-      std::make_unique<RomaService<std::string>>(std::move(config));
-  auto status = roma_service->Init();
+  RomaService<std::string> roma_service(std::move(config));
+  auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
 
   std::string result;
@@ -149,11 +162,11 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
       )JS_CODE",
     });
 
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
     EXPECT_TRUE(status.ok());
   }
 
@@ -172,14 +185,14 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
             .input = {request_bytes},
         });
 
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     EXPECT_TRUE(resp.ok());
-                                     if (resp.ok()) {
-                                       result = std::move(resp->resp);
-                                     }
-                                     execute_finished.Notify();
-                                   });
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    if (resp.ok()) {
+                                      result = std::move(resp->resp);
+                                    }
+                                    execute_finished.Notify();
+                                  });
     EXPECT_TRUE(status.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -199,7 +212,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
 
   EXPECT_THAT(response.output(), StrEq("Hello World. From NativeMethod"));
 
-  status = roma_service->Stop();
+  status = roma_service.Stop();
   EXPECT_TRUE(status.ok());
 }
 
@@ -885,7 +898,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
               }
             }
             {
-              absl::MutexLock l(&res_count_mu);
+              absl::MutexLock lock(&res_count_mu);
               res_count += batch_resp.size();
             }
             local_execute.Notify();
@@ -902,7 +915,7 @@ TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
     t.join();
   }
   {
-    absl::MutexLock l(&res_count_mu);
+    absl::MutexLock lock(&res_count_mu);
     EXPECT_EQ(res_count, kBatchSize * kNumThreads);
   }
 
@@ -1471,13 +1484,14 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
     absl::Notification execute_finished;
     // Should not timeout since we only sleep for 9 sec but the timeout is 10
     // sec.
+    constexpr int kTimeoutInMs = 9000;
     auto execution_obj =
         std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
             .id = "foo",
             .version_string = "v1",
             .handler_name = "Handler",
             .tags = {{std::string(kTimeoutDurationTag), "10000ms"}},
-            .input = {R"("9000")"},
+            .input = {absl::StrCat("\"", kTimeoutInMs, "\"")},
         });
 
     EXPECT_TRUE(roma_service
@@ -1492,14 +1506,16 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
                     .ok());
     ASSERT_TRUE(
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30)));
-  }
 
-  auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
-  // Should have elapsed more than 9sec.
-  EXPECT_GE(elapsed_time_ms, 9000);
-  // But less than 10.
-  EXPECT_LE(elapsed_time_ms, 10000);
-  EXPECT_THAT(result, StrEq(R"("Hello world!")"));
+    auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
+    // Should have elapsed more than 9sec.
+    EXPECT_THAT(elapsed_time_ms,
+                AnyOf(DoubleNear(kTimeoutInMs, /*max_abs_error=*/10),
+                      Gt(kTimeoutInMs)));
+    // But less than 10.
+    EXPECT_LT(elapsed_time_ms, 10000);
+    EXPECT_THAT(result, StrEq(R"("Hello world!")"));
+  }
 
   result = "";
   timer.Reset();
@@ -1528,12 +1544,13 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(30)));
   }
 
-  elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
+  auto elapsed_time_ms = absl::ToDoubleMilliseconds(timer.GetElapsedTime());
   // Should have elapsed more than 10sec since that's our
   // timeout.
-  EXPECT_GE(elapsed_time_ms, 10000);
+  EXPECT_THAT(elapsed_time_ms,
+              AnyOf(DoubleNear(10000, /*max_abs_error=*/10), Gt(10000)));
   // But less than 11
-  EXPECT_LE(elapsed_time_ms, 11000);
+  EXPECT_LT(elapsed_time_ms, 11000);
   EXPECT_THAT(result, IsEmpty());
 
   EXPECT_TRUE(roma_service.Stop().ok());
@@ -2050,5 +2067,40 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 
+TEST(SandboxedServiceTest, CompilationFailureReturnsDetailedError) {
+  Config config;
+  config.number_of_workers = 1;
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::string result;
+
+  // Load v1
+  {
+    absl::Notification load_finished;
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        // Since 'apples' is not defined, the statement 'console.log(apples)'
+        // should cause a compilation error.
+        .js = R"JS_CODE(console.log(apples)
+function Handler(input) { return "version 1"; }
+    )JS_CODE",
+    });
+
+    EXPECT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_EQ(resp.status().code(),
+                                             absl::StatusCode::kInternal);
+                                   EXPECT_THAT(
+                                       resp.status().message(),
+                                       HasSubstr("Uncaught ReferenceError: "
+                                                 "apples is not defined"));
+                                 })
+                    .ok());
+  }
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
 }  // namespace
 }  // namespace google::scp::roma::test

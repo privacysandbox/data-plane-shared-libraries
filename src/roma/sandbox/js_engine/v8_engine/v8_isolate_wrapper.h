@@ -25,9 +25,9 @@
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
 // V8 has funky memory management so wrap inside a RAII class.
-class V8IsolateWrapper {
+class V8IsolateWrapper final {
  public:
-  V8IsolateWrapper(v8::Isolate* isolate,
+  V8IsolateWrapper(absl::Nonnull<v8::Isolate*> isolate,
                    std::unique_ptr<v8::ArrayBuffer::Allocator> allocator)
       : isolate_(isolate), allocator_(std::move(allocator)) {}
 

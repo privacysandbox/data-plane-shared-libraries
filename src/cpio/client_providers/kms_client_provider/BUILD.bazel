@@ -40,6 +40,6 @@ cc_library(
                     "//src/cpio/client_providers/kms_client_provider/gcp:nontee_gcp_kms_client_provider",
                 ],
             },
-            no_match_error = "Please build for AWS or GCP, inside TEE or outside TEE",
+            no_match_error = "Please build for AWS, Azure or GCP, inside TEE or outside TEE",
         ),
 )

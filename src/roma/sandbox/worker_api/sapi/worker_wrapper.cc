@@ -26,6 +26,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/escaping.h"
+#include "absl/strings/str_join.h"
 #include "src/core/interface/errors.h"
 #include "src/roma/config/config.h"
 #include "src/roma/logging/logging.h"
@@ -41,6 +42,7 @@ using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::kBadFd;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricJsEngineCallDuration;
+using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupV8FlagsKey;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     V8IsolateFunctionBinding;
@@ -61,6 +63,8 @@ struct V8WorkerEngineParams {
   size_t max_wasm_memory_number_of_pages;
   bool require_preload = true;
   size_t compilation_context_cache_size;
+  bool skip_v8_cleanup = false;
+  std::vector<std::string> v8_flags;
 };
 
 // the pointer of the data shared sandbox2::Buffer which is used to share
@@ -72,8 +76,12 @@ std::unique_ptr<Worker> worker_{nullptr};
 
 absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
     const V8WorkerEngineParams& params) {
-  return {{std::string(kJsEngineOneTimeSetupWasmPagesKey),
-           std::to_string(params.max_wasm_memory_number_of_pages)}};
+  return {
+      {std::string(kJsEngineOneTimeSetupWasmPagesKey),
+       std::to_string(params.max_wasm_memory_number_of_pages)},
+      {std::string(kJsEngineOneTimeSetupV8FlagsKey),
+       absl::StrJoin(params.v8_flags, " ")},
+  };
 }
 
 std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
@@ -85,11 +93,9 @@ std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
       std::move(native_function_invoker), params.server_address);
 
   auto v8_engine = std::make_unique<V8JsEngine>(
-      std::move(isolate_function_binding), params.resource_constraints);
-
-  auto one_time_setup = GetEngineOneTimeSetup(params);
-  v8_engine->OneTimeSetup(one_time_setup);
-
+      std::move(isolate_function_binding), params.skip_v8_cleanup,
+      params.resource_constraints);
+  v8_engine->OneTimeSetup(GetEngineOneTimeSetup(params));
   return std::make_unique<Worker>(std::move(v8_engine), params.require_preload);
 }
 
@@ -99,7 +105,8 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
     // If we fail to stop the previous worker then log but keep going because
     // we'll be recreating it momentarily.
     if (status != SapiStatusCode::kOk) {
-      ROMA_VLOG(1) << SapiStatusCodeToAbslStatus(static_cast<int>(status));
+      ROMA_VLOG(1) << SapiStatusCodeToAbslStatus(
+          static_cast<int>(status), "Failed to stop previous worker");
     }
   }
 
@@ -111,13 +118,16 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       init_params->rpc_method_names().begin(),
       init_params->rpc_method_names().end());
 
+  std::vector<std::string> v8_flags(init_params->v8_flags().begin(),
+                                    init_params->v8_flags().end());
+
   JsEngineResourceConstraints resource_constraints;
   resource_constraints.initial_heap_size_in_mb =
       static_cast<size_t>(init_params->js_engine_initial_heap_size_mb());
   resource_constraints.maximum_heap_size_in_mb =
       static_cast<size_t>(init_params->js_engine_maximum_heap_size_mb());
 
-  V8WorkerEngineParams v8_params{
+  V8WorkerEngineParams v8_params = {
       .native_js_function_comms_fd = init_params->native_js_function_comms_fd(),
       .native_js_function_names = std::move(native_js_function_names),
       .rpc_method_names = std::move(rpc_method_names),
@@ -125,7 +135,10 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       .resource_constraints = resource_constraints,
       .max_wasm_memory_number_of_pages = static_cast<size_t>(
           init_params->js_engine_max_wasm_memory_number_of_pages()),
-      .require_preload = init_params->require_code_preload_for_execution()};
+      .require_preload = init_params->require_code_preload_for_execution(),
+      .skip_v8_cleanup = init_params->skip_v8_cleanup(),
+      .v8_flags = std::move(v8_flags),
+  };
 
   worker_ = CreateWorker(v8_params);
 
@@ -186,6 +199,7 @@ SapiStatusCode RunCode(worker_api::WorkerParamsProto* params) {
       std::move(js_duration).value();
 
   if (!response_or.ok()) {
+    params->set_error_message(std::string(response_or.status().message()));
     return SapiStatusCode::kExecutionFailed;
   }
 
@@ -266,7 +280,8 @@ SapiStatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
     return SapiStatusCode::kCouldNotDeserializeRunData;
   }
 
-  if (const auto result = RunCode(&params); result != SapiStatusCode::kOk) {
+  const auto result = RunCode(&params);
+  if (result != SapiStatusCode::kOk && params.error_message().empty()) {
     return result;
   }
 
@@ -323,7 +338,7 @@ SapiStatusCode RunCodeFromSerializedData(sapi::LenValStruct* data,
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully executed the request";
-  return SapiStatusCode::kOk;
+  return result;
 }
 
 SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
@@ -342,8 +357,8 @@ SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
   }
 
   ROMA_VLOG(1) << "Worker wrapper successfully received the request data";
-  auto result = RunCode(&params);
-  if (result != SapiStatusCode::kOk) {
+  const auto result = RunCode(&params);
+  if (result != SapiStatusCode::kOk && params.error_message().empty()) {
     return result;
   }
 

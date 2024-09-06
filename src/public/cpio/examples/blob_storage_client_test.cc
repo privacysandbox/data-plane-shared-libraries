@@ -15,6 +15,7 @@
 #include <memory>
 #include <utility>
 
+#include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
@@ -70,17 +71,9 @@ int main(int argc, char* argv[]) {
   }
 
   auto blob_storage_client = BlobStorageClientFactory::Create();
-  result = blob_storage_client->Init();
-  if (!result.Successful()) {
-    std::cerr << "Failed to Init BlobStorageClient: "
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = blob_storage_client->Init(); !error.ok()) {
+    std::cerr << "Failed to Init BlobStorageClient: " << error << std::endl;
   }
-  result = blob_storage_client->Run();
-  if (!result.Successful()) {
-    std::cerr << "Failed to Run BlobStorageClient: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
   {
     // PutBlob.
     auto data = "some data string";
@@ -98,10 +91,9 @@ int main(int argc, char* argv[]) {
           // No other contents in PutBlobResponse.
           finished.Notify();
         });
-    auto put_blob_result = blob_storage_client->PutBlob(put_blob_context);
-    if (!put_blob_result.Successful()) {
-      std::cerr << "Putting blob failed: "
-                << GetErrorMessage(put_blob_result.status_code) << std::endl;
+    if (absl::Status error = blob_storage_client->PutBlob(put_blob_context);
+        !error.ok()) {
+      std::cerr << "Putting blob failed: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
     finished.WaitForNotification();
@@ -126,10 +118,9 @@ int main(int argc, char* argv[]) {
           }
           finished.Notify();
         });
-    auto get_blob_result = blob_storage_client->GetBlob(get_blob_context);
-    if (!get_blob_result.Successful()) {
-      std::cerr << "Getting blob failed: "
-                << GetErrorMessage(get_blob_result.status_code) << std::endl;
+    if (absl::Status error = blob_storage_client->GetBlob(get_blob_context);
+        !error.ok()) {
+      std::cerr << "Getting blob failed: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
     finished.WaitForNotification();
@@ -158,12 +149,10 @@ int main(int argc, char* argv[]) {
                                       }
                                       finished.Notify();
                                     });
-    auto list_blobs_metadata_result =
-        blob_storage_client->ListBlobsMetadata(list_blobs_metadata_context);
-    if (!list_blobs_metadata_result.Successful()) {
-      std::cerr << "Listing blobs failed: "
-                << GetErrorMessage(list_blobs_metadata_result.status_code)
-                << std::endl;
+    if (absl::Status error =
+            blob_storage_client->ListBlobsMetadata(list_blobs_metadata_context);
+        !error.ok()) {
+      std::cerr << "Listing blobs failed: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
     finished.WaitForNotification();
@@ -186,11 +175,10 @@ int main(int argc, char* argv[]) {
           // No other contents in DeleteBlobResponse.
           finished.Notify();
         });
-    auto delete_blob_result =
-        blob_storage_client->DeleteBlob(delete_blob_context);
-    if (!delete_blob_result.Successful()) {
-      std::cerr << "Deleting blob failed: "
-                << GetErrorMessage(delete_blob_result.status_code) << std::endl;
+    if (absl::Status error =
+            blob_storage_client->DeleteBlob(delete_blob_context);
+        !error.ok()) {
+      std::cerr << "Deleting blob failed: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
     finished.WaitForNotification();
@@ -225,12 +213,10 @@ int main(int argc, char* argv[]) {
       finished.Notify();
     };
 
-    auto put_blob_stream_result =
-        blob_storage_client->PutBlobStream(put_blob_stream_context);
-    if (!put_blob_stream_result.Successful()) {
-      std::cerr << "Putting blob failed: "
-                << GetErrorMessage(put_blob_stream_result.status_code)
-                << std::endl;
+    if (absl::Status error =
+            blob_storage_client->PutBlobStream(put_blob_stream_context);
+        !error.ok()) {
+      std::cerr << "Putting blob failed: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
     // After this point, the client is waiting for elements to be pushed
@@ -328,12 +314,10 @@ int main(int argc, char* argv[]) {
           }
         };
 
-    auto get_blob_stream_result =
-        blob_storage_client->GetBlobStream(get_blob_stream_context);
-    if (!get_blob_stream_result.Successful()) {
-      std::cerr << "Getting blob stream failed: "
-                << GetErrorMessage(get_blob_stream_result.status_code)
-                << std::endl;
+    if (absl::Status error =
+            blob_storage_client->GetBlobStream(get_blob_stream_context);
+        !error.ok()) {
+      std::cerr << "Getting blob stream failed: " << error << std::endl;
       exit(EXIT_FAILURE);
     }
 

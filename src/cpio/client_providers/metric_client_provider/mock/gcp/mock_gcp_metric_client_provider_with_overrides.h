@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/metric_client_provider/gcp/gcp_metric_client_provider.h"
@@ -35,11 +36,10 @@ class MockGcpMetricClientProviderOverrides : public GcpMetricClientProvider {
       std::shared_ptr<google::cloud::monitoring::MetricServiceClient>
           metric_service_client,
       MetricBatchingOptions metric_batching_options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* async_executor = nullptr)
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor)
       : GcpMetricClientProvider(std::move(metric_service_client),
-                                MetricClientOptions(), instance_client_provider,
-                                async_executor,
+                                instance_client_provider, async_executor,
                                 std::move(metric_batching_options)) {}
 
   core::ExecutionResult MetricsBatchPush(

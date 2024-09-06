@@ -25,7 +25,6 @@
 #ifndef {{$defineGuard}}
 #define {{$defineGuard}}
 
-#include "src/util/status_macro/status_macros.h"
 {{- $filePath := $file.Name | trimSuffix (ext $file.Name)}}
 #include "{{$filePath}}.pb.h"
 #include "{{$filePath}}_native_request_handler.h"
@@ -34,18 +33,24 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 
+using google::scp::roma::Config;
+using google::scp::roma::FunctionBindingObjectV2;
+
 namespace {{$svcopts.CppNamespace}} {
 
 template <typename TMetadata>
-void RegisterHostApi(google::scp::roma::Config<TMetadata>& config) {
-  config.enable_native_function_grpc_server = true;
-
+void RegisterHostApi(Config<TMetadata>& config) {
   {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-  config.RegisterRpcHandler("{{$svcopts.Romav8AppName}}.{{$rpc.Name}}", {{$rpc.Name}}Handler<TMetadata>());
+  config.RegisterFunctionBinding(
+    std::make_unique<FunctionBindingObjectV2<TMetadata>>(FunctionBindingObjectV2<TMetadata>{
+        .function_name = "{{$svcopts.Romav8AppName}}.{{$rpc.Name}}",
+        .function = {{$rpc.Name}}FunctionBinding<TMetadata>,
+    }));
   {{end}}{{/*rpc range*/}}
 }
 

@@ -25,6 +25,7 @@
 #include <aws/monitoring/CloudWatchClient.h>
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/message_router_interface.h"
@@ -52,16 +53,17 @@ class AwsMetricClientProvider : public MetricClientProvider {
    */
   explicit AwsMetricClientProvider(
       MetricClientOptions metric_client_options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
-      : MetricClientProvider(async_executor, std::move(metric_client_options),
-                             instance_client_provider,
+      : MetricClientProvider(async_executor,
                              std::move(metric_batching_options)),
-        io_async_executor_(io_async_executor) {}
+        instance_client_provider_(instance_client_provider),
+        io_async_executor_(io_async_executor),
+        region_(std::move(metric_client_options).region) {}
 
-  absl::Status Run() noexcept override;
+  absl::Status Init() noexcept override;
 
  protected:
   core::ExecutionResult MetricsBatchPush(
@@ -75,11 +77,9 @@ class AwsMetricClientProvider : public MetricClientProvider {
    * @brief Creates a Client Configuration object.
    *
    * @param region input region.
-   * @param client_config returned Client Configuration.
    */
-  virtual void CreateClientConfiguration(
-      std::string_view region,
-      Aws::Client::ClientConfiguration& client_config) noexcept;
+  virtual Aws::Client::ClientConfiguration GetClientConfig(
+      std::string_view region) noexcept;
 
   /// CloudWatchClient.
   std::optional<Aws::CloudWatch::CloudWatchClient> cloud_watch_client_;
@@ -103,8 +103,12 @@ class AwsMetricClientProvider : public MetricClientProvider {
       const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept
       ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
+  /// Instance client provider to fetch cloud metadata.
+  InstanceClientProviderInterface* instance_client_provider_;
+
   /// An instance of the IO async executor.
   core::AsyncExecutorInterface* io_async_executor_;
+  std::string region_;
 };
 }  // namespace google::scp::cpio::client_providers
 

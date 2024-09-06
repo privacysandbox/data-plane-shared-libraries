@@ -22,8 +22,10 @@
 #include <string_view>
 #include <utility>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/public/core/interface/execution_result.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::ExecutionResult;
@@ -115,7 +117,8 @@ ExecutionResult AwsAuthTokenProvider::GetSessionTokenForTargetAudience(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
+absl::Nonnull<std::unique_ptr<AuthTokenProviderInterface>>
+AuthTokenProviderFactory::Create(
     absl::Nonnull<core::HttpClientInterface*> http1_client) {
   return std::make_unique<AwsAuthTokenProvider>(http1_client);
 }

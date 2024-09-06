@@ -13,7 +13,7 @@
 # limitations under the License.
 
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ubuntu:20.04
+FROM ${DOCKER_REGISTRY}ubuntu:24.04
 
 COPY install_apps install_go.sh .pre-commit-config.yaml /scripts/
 COPY gitconfig /etc

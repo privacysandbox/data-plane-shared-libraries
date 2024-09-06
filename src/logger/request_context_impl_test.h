@@ -37,7 +37,7 @@ namespace logs_api = opentelemetry::logs;
 namespace logs_sdk = opentelemetry::sdk::logs;
 namespace logs_exporter = opentelemetry::exporter::logs;
 
-class ConsentedLogTest : public LogTest {
+class ConsentedLogTest : public test::LogTest {
  protected:
   void SetUp() override {
     // initialize max verbosity = kMaxV
@@ -80,7 +80,7 @@ class ConsentedLogTest : public LogTest {
   }
 
   std::unique_ptr<logs_api::LoggerProvider> logger_;
-  std::unique_ptr<ContextImpl> test_instance_;
+  std::unique_ptr<ContextImpl<>> test_instance_;
   ConsentedDebugConfiguration matched_token_, mismatched_token_;
 
   const std::string_view kServerToken = "server_tok";
@@ -96,6 +96,28 @@ class DebugResponseTest : public ConsentedLogTest {
   bool accessed_debug_info_ = false;
   DebugInfo debug_info_;
   ConsentedDebugConfiguration debug_info_config_;
+};
+
+class MockEventMessageProvider {
+ public:
+  const ::google::protobuf::Message& Get() { return event_message_; }
+
+  void Set(const std::string& field) {
+    event_message_.set_generation_id(field);
+  }
+
+ private:
+  LogContext event_message_;
+};
+
+class SafePathLogTest : public ConsentedLogTest {
+ protected:
+  static std::unique_ptr<SafePathContext> CreateTestInstance() {
+    return std::unique_ptr<SafePathContext>(new SafePathContext());
+  }
+  void SetUp() override { ConsentedLogTest::SetUp(); }
+  std::unique_ptr<logs_api::LoggerProvider> logger_;
+  std::unique_ptr<SafePathContext> test_instance_;
 };
 
 }  // namespace privacy_sandbox::server_common::log

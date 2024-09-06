@@ -18,12 +18,10 @@
 #define SCP_CPIO_INTERFACE_PARAMETER_CLIENT_TYPE_DEF_H_
 
 #include <string>
-#include <vector>
 
 namespace google::scp::cpio {
 /// Configurations for ParameterClient.
 struct ParameterClientOptions {
-  virtual ~ParameterClientOptions() = default;
   // Project ID for GCP. Overwrites project ID set at CPIO level.
   std::string project_id;
   // Location ID for GCP, region code for AWS. Overwrites region set at CPIO

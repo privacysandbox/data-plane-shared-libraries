@@ -28,6 +28,15 @@ load(
     "roma_js_proto_library",
 )
 
+_closure_js_attrs = {
+    "convention": "None",
+    "data": [],
+    "exports": [],
+    "lenient": True,
+    "no_closure_library": False,
+    "suppress": [],
+}
+
 def _filter_files_suffix_impl(ctx):
     """Filter the files in DefaultInfo."""
     return [DefaultInfo(
@@ -135,11 +144,13 @@ def js_proto_library(*, name, roma_api, **kwargs):
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)],
-        convention = "NONE",
-        lenient = True,
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
+        **{
+            k: kwargs.get(k, v)
+            for (k, v) in _closure_js_attrs.items()
+        }
     )
 
 def roma_service_js_library(*, name, roma_app_api, **kwargs):
@@ -187,23 +198,15 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         target = name_proto,
         extensions = ["md"],
     )
-    closure_js_attrs = {
-        "convention": "None",
-        "data": [],
-        "exports": [],
-        "no_closure_library": False,
-        "suppress": [],
-    }
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)] + ([":{}_host_js_srcs".format(name)] if host_api_targets else []),
-        lenient = True,
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
         **{
             k: kwargs.get(k, v)
-            for (k, v) in closure_js_attrs.items()
+            for (k, v) in _closure_js_attrs.items()
         }
     )
 
@@ -256,6 +259,12 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         roma_host_api = roma_host_api,
     )
 
+    # Filter files to sources and headers
+    _filter_files_suffix(
+        name = name + "_cc_test_srcs",
+        targets = [name_proto],
+        suffixes = ["_test.cc"],
+    )
     filter_files(
         name = name + "_cc_hdrs",
         target = name_proto,
@@ -276,6 +285,25 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         deps = kwargs.get("deps", []) + roma_host_api.cc_protos + [
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
+            "@com_github_grpc_grpc//:grpc++",
+            Label("//src/util/status_macro:status_util"),
+            Label("//src/roma/config"),
+            Label("//src/roma/interface"),
+            Label("//src/roma/roma_service:romav8_proto_utils"),
+        ],
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+    )
+    cc_test(
+        name = name + "_rpc_cc_test",
+        size = "small",
+        srcs = [":{}_cc_test_srcs".format(name)],
+        deps = kwargs.get("deps", []) + [
+            ":{}".format(name),
+            "@com_google_absl//absl/log:scoped_mock_log",
+            "@com_google_absl//absl/strings",
+            "@com_google_absl//absl/synchronization",
+            "@com_google_googletest//:gtest_main",
+            Label("//src/roma/roma_service"),
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
@@ -362,7 +390,7 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         ],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
-            "//src/roma/roma_service:romav8_app_service",
+            Label("//src/roma/roma_service:romav8_app_service"),
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
         ],

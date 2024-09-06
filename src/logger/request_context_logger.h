@@ -40,8 +40,27 @@ inline bool PS_VLOG_IS_ON(int verbose_level,
   return verbose_level <= max_verbosity;
 }
 
+// Set to true to always log to OTel in non_prod. Calling first time sets
+// `always_log_otel`, after first time `log_otel` is ignored.
+inline bool AlwaysLogOtel(std::optional<bool> log_otel = std::nullopt) {
+  static bool always_log_otel = [log_otel]() {
+    if (log_otel == std::nullopt) {
+      fprintf(stderr,
+              "Info: always_log_otel is not set, only consented is logged to "
+              "OTel.\n");
+      return false;
+    } else {
+      return *log_otel;
+    }
+  }();
+  return always_log_otel;
+}
+
 // Used by `PS_VLOG`, to provide the context of how to log a request.
-class RequestContext {
+class PSLogContext {
+ protected:
+  ~PSLogContext() = default;
+
  public:
   // `ContextStr()` will be added to the front of log message.
   virtual std::string_view ContextStr() const = 0;
@@ -53,8 +72,10 @@ class RequestContext {
   virtual absl::LogSink* DebugResponseSink() = 0;
 };
 
-class NoOpContext : public RequestContext {
+class NoOpContext final : public PSLogContext {
  public:
+  // note: base class PSLogContext has no virtual destructor!
+
   std::string_view ContextStr() const override { return ""; }
 
   bool is_consented() const override { return false; }
@@ -84,40 +105,57 @@ class PSLogMessage : public absl::log_internal::LogMessage {
 }  // namespace privacy_sandbox::server_common::log
 
 #ifdef PS_LOG_NON_PROD
-#define PS_VLOG_INTERNAL(verbose_level, request_context)                       \
-  switch (::privacy_sandbox::server_common::log::                              \
-              RequestContext& ps_logging_internal_context = (request_context); \
-          const int ps_logging_internal_verbose_level = (verbose_level))       \
-  default:                                                                     \
-    PS_LOG_INTERNAL_LOG_IF_IMPL(                                               \
-        _INFO,                                                                 \
-        ::privacy_sandbox::server_common::log::PS_VLOG_IS_ON(                  \
-            ps_logging_internal_verbose_level),                                \
-        ps_logging_internal_context)                                           \
+#define PS_VLOG_INTERNAL(verbose_level, ps_log_context)                     \
+  switch (::privacy_sandbox::server_common::log::                           \
+              PSLogContext& ps_logging_internal_context = (ps_log_context); \
+          const int ps_logging_internal_verbose_level = (verbose_level))    \
+  default:                                                                  \
+    PS_LOG_INTERNAL_LOG_IF_IMPL(                                            \
+        _INFO,                                                              \
+        ::privacy_sandbox::server_common::log::PS_VLOG_IS_ON(               \
+            ps_logging_internal_verbose_level),                             \
+        ps_logging_internal_context)                                        \
         .WithVerbosity(ps_logging_internal_verbose_level)
+
+#define PS_LOG_INTERNAL(severity, ps_log_context)                           \
+  switch (::privacy_sandbox::server_common::log::                           \
+              PSLogContext& ps_logging_internal_context = (ps_log_context); \
+          0)                                                                \
+  default:                                                                  \
+    PS_LOG_INTERNAL_LOG_IF_IMPL(_##severity, true, ps_logging_internal_context)
+
 #else
-#define PS_VLOG_INTERNAL(verbose_level, request_context)                       \
-  switch (::privacy_sandbox::server_common::log::                              \
-              RequestContext& ps_logging_internal_context = (request_context); \
-          const int ps_logging_internal_verbose_level = (verbose_level))       \
-  default:                                                                     \
-    ABSL_LOG_IF(INFO, ::privacy_sandbox::server_common::log::PS_VLOG_IS_ON(    \
-                          ps_logging_internal_verbose_level) &&                \
-                          ps_logging_internal_context.is_consented())          \
+#define PS_VLOG_INTERNAL(verbose_level, ps_log_context)                     \
+  switch (::privacy_sandbox::server_common::log::                           \
+              PSLogContext& ps_logging_internal_context = (ps_log_context); \
+          const int ps_logging_internal_verbose_level = (verbose_level))    \
+  default:                                                                  \
+    ABSL_LOG_IF(INFO, ::privacy_sandbox::server_common::log::PS_VLOG_IS_ON( \
+                          ps_logging_internal_verbose_level) &&             \
+                          ps_logging_internal_context.is_consented())       \
         .ToSinkOnly(ps_logging_internal_context.ConsentedSink())
+
+#define PS_LOG_INTERNAL(severity, ps_log_context)                           \
+  switch (::privacy_sandbox::server_common::log::                           \
+              PSLogContext& ps_logging_internal_context = (ps_log_context); \
+          0)                                                                \
+  default:                                                                  \
+    ABSL_LOG_IF(severity, ps_logging_internal_context.is_consented())       \
+        .ToSinkOnly(ps_logging_internal_context.ConsentedSink())
+
 #endif
 
-#define PS_LOG_INTERNAL_LOG_IF_IMPL(severity, condition, request_context) \
-  PS_LOG_INTERNAL_CONDITION(condition)                                    \
-  PS_LOGGING_INTERNAL_LOG##severity(request_context).InternalStream()
+#define PS_LOG_INTERNAL_LOG_IF_IMPL(severity, condition, ps_log_context) \
+  PS_LOG_INTERNAL_CONDITION(condition)                                   \
+  PS_LOGGING_INTERNAL_LOG##severity(ps_log_context).InternalStream()
 
-// The `switch` ensures that this expansion is the begnning of a statement.
+// The `switch` ensures that this expansion is the beginning of a statement.
 //
 // The tenary evaluates to either
 //   (void)0;
 // or
 //   ::absl::log_internal::Voidify() &&
-//       PS_LOGGING_INTERNAL_LOG_INFO(request_context) << "log message";
+//       PS_LOGGING_INTERNAL_LOG_INFO(ps_log_context) << "log message";
 //
 // `Voidify()` is to avoid compiler wanring.
 #define PS_LOG_INTERNAL_CONDITION(condition) \
@@ -126,25 +164,35 @@ class PSLogMessage : public absl::log_internal::LogMessage {
   default:                                   \
     !(condition) ? (void)0 : ::absl::log_internal::Voidify()&&
 
-#define PS_LOGGING_INTERNAL_LOG_INFO(request_context)    \
-  ::privacy_sandbox::server_common::log::PSLogMessage(   \
-      __FILE__, __LINE__, ::absl ::LogSeverity ::kInfo)  \
-      .ToSinkAlsoIf(request_context.is_consented(),      \
-                    request_context.ConsentedSink())     \
-      .ToSinkAlsoIf(request_context.is_debug_response(), \
-                    request_context.DebugResponseSink())
+// This must only be used in non_prod.
+#define PS_LOGGING_INTERNAL_LOG_SEVERITY(ps_log_context, absl_log_severity) \
+  ::privacy_sandbox::server_common::log::PSLogMessage(__FILE__, __LINE__,   \
+                                                      absl_log_severity)    \
+      .ToSinkAlsoIf(                                                        \
+          (ps_log_context).is_consented() ||                                \
+              ::privacy_sandbox::server_common::log::AlwaysLogOtel() &&     \
+                  (ps_log_context).ConsentedSink() != nullptr,              \
+          (ps_log_context).ConsentedSink())                                 \
+      .ToSinkAlsoIf((ps_log_context).is_debug_response(),                   \
+                    (ps_log_context).DebugResponseSink())
 
-#define PS_VLOG_CONTEXT_INTERNAL(verbose_level, request_context) \
-  PS_VLOG_INTERNAL(verbose_level, request_context)               \
+#define PS_LOGGING_INTERNAL_LOG_INFO(ps_log_context) \
+  PS_LOGGING_INTERNAL_LOG_SEVERITY(ps_log_context, ::absl::LogSeverity::kInfo)
+
+#define PS_LOGGING_INTERNAL_LOG_WARNING(ps_log_context) \
+  PS_LOGGING_INTERNAL_LOG_SEVERITY(ps_log_context,      \
+                                   ::absl::LogSeverity::kWarning)
+
+#define PS_LOGGING_INTERNAL_LOG_ERROR(ps_log_context) \
+  PS_LOGGING_INTERNAL_LOG_SEVERITY(ps_log_context, ::absl::LogSeverity::kError)
+
+#define PS_VLOG_CONTEXT_INTERNAL(verbose_level, ps_log_context) \
+  PS_VLOG_INTERNAL(verbose_level, ps_log_context)               \
       << ps_logging_internal_context.ContextStr()
 
-// Same as ABSL_LOG, just log with extra request_context.ContextStr()
-#define PS_LOG(severity, request_context)                                      \
-  switch (::privacy_sandbox::server_common::log::                              \
-              RequestContext& ps_logging_internal_context = (request_context); \
-          0)                                                                   \
-  default:                                                                     \
-    ABSL_LOG(severity) << ps_logging_internal_context.ContextStr()
+#define PS_LOG_CONTEXT_INTERNAL(severity, ps_log_context) \
+  PS_LOG_INTERNAL(severity, ps_log_context)               \
+      << ps_logging_internal_context.ContextStr()
 
 #define PS_VLOG_NO_CONTEXT_INTERNAL(verbose_level)                     \
   PS_VLOG_INTERNAL(                                                    \
@@ -152,16 +200,27 @@ class PSLogMessage : public absl::log_internal::LogMessage {
       const_cast<::privacy_sandbox::server_common::log::NoOpContext&>( \
           ::privacy_sandbox::server_common::log::kNoOpContext))
 
+#define PS_LOG_NO_CONTEXT_INTERNAL(severity)                           \
+  PS_LOG_INTERNAL(                                                     \
+      severity,                                                        \
+      const_cast<::privacy_sandbox::server_common::log::NoOpContext&>( \
+          ::privacy_sandbox::server_common::log::kNoOpContext))
+
 // It can have 1 or 2 arguments. i.e.
 // PS_VLOG(verbose_level)
 //   Same as ABSL_VLOG(verbose_level), but only log in `non_prod`
-// PS_VLOG(verbose_level, request_context)
+// PS_VLOG(verbose_level, ps_log_context)
 //   Similar to ABSL_VLOG(verbose_level), but with extra functionality using
-//   `request_context` (as `RequestContext&`)
+//   `ps_log_context` (as `PSLogContext&`)
 #define PS_VLOG(...)                                 \
   GET_PS_VLOG(__VA_ARGS__, PS_VLOG_CONTEXT_INTERNAL, \
               PS_VLOG_NO_CONTEXT_INTERNAL)           \
   (__VA_ARGS__)
 #define GET_PS_VLOG(_1, _2, NAME, ...) NAME
+
+#define PS_LOG(...)                                                            \
+  GET_PS_LOG(__VA_ARGS__, PS_LOG_CONTEXT_INTERNAL, PS_LOG_NO_CONTEXT_INTERNAL) \
+  (__VA_ARGS__)
+#define GET_PS_LOG(_1, _2, NAME, ...) NAME
 
 #endif  // LOGGER_REQUEST_CONTEXT_LOGGER_H_

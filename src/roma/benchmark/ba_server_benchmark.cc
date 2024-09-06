@@ -47,7 +47,7 @@ void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
   // If the code is being padded with extra bytes then add a comment at the end
   // and fill it with extra zeroes.
   std::string padded_code = std::string(code);
-  if (const int extra_padding_bytes = state.range(1); extra_padding_bytes > 0) {
+  if (const int extra_padding_bytes = state.range(0); extra_padding_bytes > 0) {
     constexpr std::string_view extra_prefix = " // ";
     const int total_size =
         padded_code.size() + extra_prefix.size() + extra_padding_bytes;
@@ -58,14 +58,11 @@ void LoadCodeBenchmark(std::string_view code, benchmark::State& state) {
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
-  const int number_of_loads = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_loads; ++i) {
-      server.LoadSync(kVersionString, padded_code);
-    }
+    server.LoadSync(kVersionString, padded_code);
   }
-  state.SetItemsProcessed(number_of_loads);
-  state.SetBytesProcessed(number_of_loads * padded_code.length());
+  state.SetItemsProcessed(state.iterations());
+  state.SetBytesProcessed(state.iterations() * padded_code.length());
 }
 
 void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
@@ -84,11 +81,8 @@ void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
       // .input = { std::make_shared(my_input_value_one) },
   };
 
-  std::vector<DispatchRequest> batch;
   const int batch_size = state.range(0);
-  for (int i = 0; i < batch_size; ++i) {
-    batch.push_back(request);
-  }
+  std::vector<DispatchRequest> batch(batch_size, request);
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
@@ -124,15 +118,12 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
 // Register the function as a benchmark
 BENCHMARK(BM_LoadHelloWorld)
     ->ArgsProduct({
-        // Run this many loads of the code.
-        {1, 10, 100},
         // Pad with this many extra bytes.
         {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
     });
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
-        {1, 10, 100},  // Run this many loads of the code.
-        {0},           // No need to pad this code with extra bytes.
+        {0},  // No need to pad this code with extra bytes.
     });
 
 // Run these benchmarks with {1, 10, 100} requests in each batch.

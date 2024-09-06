@@ -17,6 +17,8 @@
 #ifndef CORE_INTERFACE_CONFIGURATION_KEYS_H_
 #define CORE_INTERFACE_CONFIGURATION_KEYS_H_
 
+#include <string_view>
+
 namespace google::scp::core {
 // AWS/GCP cloud region name
 inline constexpr std::string_view kCloudServiceRegion =

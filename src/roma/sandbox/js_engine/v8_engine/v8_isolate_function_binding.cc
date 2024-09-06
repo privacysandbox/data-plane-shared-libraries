@@ -23,12 +23,15 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_split.h"
+#include "include/v8.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/js_engine/v8_engine/performance_now.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
+#include "src/util/duration.h"
 
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::proto::RpcWrapper;
@@ -50,6 +53,16 @@ constexpr char kCouldNotConvertJsFunctionInputToNative[] =
     "ROMA: Could not convert JS function input to native C++ type.";
 constexpr char kErrorInFunctionBindingInvocation[] =
     "ROMA: Error while executing native function binding.";
+
+v8::Local<v8::ObjectTemplate> CreatePerformanceTemplate(v8::Isolate* isolate) {
+  v8::Local<v8::ObjectTemplate> performance_template =
+      v8::ObjectTemplate::New(isolate);
+  performance_template->Set(isolate, "now",
+                            v8::FunctionTemplate::New(isolate, PerformanceNow));
+  performance_template->Set(isolate, "timeOrigin",
+                            GetPerformanceStartTime(isolate));
+  return performance_template;
+}
 
 bool V8TypesToProto(const v8::FunctionCallbackInfo<v8::Value>& info,
                     FunctionBindingIoProto& proto) {
@@ -302,7 +315,7 @@ void V8IsolateFunctionBinding::BindFunction(
 
 // BindFunctions does not guarantee thread safety, but it is not a requirement.
 bool V8IsolateFunctionBinding::BindFunctions(
-    v8::Isolate* isolate,
+    absl::Nonnull<v8::Isolate*> isolate,
     v8::Local<v8::ObjectTemplate>& global_object_template) {
   if (!isolate) {
     return false;
@@ -314,7 +327,9 @@ bool V8IsolateFunctionBinding::BindFunctions(
                  reinterpret_cast<void*>(&binding), binding.callback,
                  binding.function_name, child_templates);
   }
-
+  const auto& binding_name =
+      TypeConverter<std::string>::ToV8(isolate, "performance").As<v8::String>();
+  global_object_template->Set(binding_name, CreatePerformanceTemplate(isolate));
   return true;
 }
 
@@ -340,6 +355,7 @@ void V8IsolateFunctionBinding::AddExternalReferences(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GrpcServerCallback));
+  external_references.push_back(reinterpret_cast<intptr_t>(&PerformanceNow));
 }
 
 absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {

@@ -23,6 +23,7 @@
 
 #include <aws/ec2/EC2Client.h>
 
+#include "absl/base/nullability.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -46,10 +47,10 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
  public:
   /// Constructs a new Aws Instance Client Provider object
   AwsInstanceClientProvider(
-      AuthTokenProviderInterface* auth_token_provider,
-      core::HttpClientInterface* http1_client,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
+      absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+      absl::Nonnull<core::HttpClientInterface*> http1_client,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
       AwsEC2ClientFactory ec2_factory = AwsEC2ClientFactory())
       : auth_token_provider_(auth_token_provider),
         http1_client_(http1_client),

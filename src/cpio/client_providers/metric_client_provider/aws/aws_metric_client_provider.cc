@@ -25,6 +25,7 @@
 #include <aws/monitoring/CloudWatchErrors.h>
 #include <aws/monitoring/model/PutMetricDataRequest.h>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "src/core/async_executor/aws/aws_async_executor.h"
 #include "src/core/common/uuid/uuid.h"
@@ -79,39 +80,39 @@ constexpr std::string_view kAwsMetricClientProvider = "AwsMetricClientProvider";
 }  // namespace
 
 namespace google::scp::cpio::client_providers {
-void AwsMetricClientProvider::CreateClientConfiguration(
-    std::string_view region, ClientConfiguration& client_config) noexcept {
+ClientConfiguration AwsMetricClientProvider::GetClientConfig(
+    std::string_view region) noexcept {
+  ClientConfiguration client_config;
   client_config = common::CreateClientConfiguration(region);
   client_config.executor =
       std::make_shared<AwsAsyncExecutor>(io_async_executor_);
   client_config.maxConnections = kCloudwatchMaxConcurrentConnections;
+  return client_config;
 }
 
-absl::Status AwsMetricClientProvider::Run() noexcept {
-  if (absl::Status error = MetricClientProvider::Run(); !error.ok()) {
+absl::Status AwsMetricClientProvider::Init() noexcept {
+  if (absl::Status error = MetricClientProvider::Init(); !error.ok()) {
     SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, error,
               "Failed to initialize MetricClientProvider");
     return error;
   }
+  if (region_.empty()) {
+    auto region_code_or = AwsInstanceClientUtils::GetCurrentRegionCode(
+        *instance_client_provider_);
 
-  auto region_code_or =
-      AwsInstanceClientUtils::GetCurrentRegionCode(*instance_client_provider_);
+    if (!region_code_or.Successful()) {
+      SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, region_code_or.result(),
+                "Failed to get region code for current instance");
+      return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
+          region_code_or.result().status_code));
+    }
 
-  if (!region_code_or.Successful()) {
-    SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, region_code_or.result(),
-              "Failed to get region code for current instance");
-    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
-        region_code_or.result().status_code));
+    SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
+             region_code_or->c_str());
+    cloud_watch_client_.emplace(GetClientConfig(*region_code_or));
+  } else {
+    cloud_watch_client_.emplace(GetClientConfig(region_));
   }
-
-  SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
-           region_code_or->c_str());
-
-  ClientConfiguration client_config;
-  CreateClientConfiguration(*region_code_or, client_config);
-
-  cloud_watch_client_.emplace(std::move(client_config));
-
   return absl::OkStatus();
 }
 
@@ -187,7 +188,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
               &AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
               context_chunk));
       {
-        absl::MutexLock l(&sync_mutex_);
+        absl::MutexLock lock(&sync_mutex_);
         active_push_count_++;
       }
 
@@ -212,7 +213,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
         request_chunk,
         absl::bind_front(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback,
                          this, context_chunk));
-    absl::MutexLock l(&sync_mutex_);
+    absl::MutexLock lock(&sync_mutex_);
     active_push_count_++;
   }
 
@@ -226,7 +227,7 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
     const PutMetricDataOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   {
-    absl::MutexLock l(&sync_mutex_);
+    absl::MutexLock lock(&sync_mutex_);
     active_push_count_--;
   }
   if (outcome.IsSuccess()) {
@@ -254,9 +255,9 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
 std::unique_ptr<MetricClientProviderInterface>
 MetricClientProviderFactory::Create(
     MetricClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* async_executor,
-    AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<AsyncExecutorInterface*> async_executor,
+    absl::Nonnull<AsyncExecutorInterface*> io_async_executor) {
   return std::make_unique<AwsMetricClientProvider>(
       std::move(options), instance_client_provider, async_executor,
       io_async_executor);

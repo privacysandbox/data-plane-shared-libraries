@@ -20,15 +20,13 @@
 #include <memory>
 
 #include "src/cpio/client_providers/crypto_client_provider/mock/mock_crypto_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::mock {
-class MockCryptoClientWithOverrides : public CryptoClient {
+class MockCryptoClientWithOverrides final : public CryptoClient {
  public:
-  MockCryptoClientWithOverrides() : CryptoClient(CryptoClientOptions()) {
-    crypto_client_provider_ =
-        std::make_unique<client_providers::mock::MockCryptoClientProvider>();
-  }
+  MockCryptoClientWithOverrides()
+      : CryptoClient(std::make_unique<
+                     client_providers::mock::MockCryptoClientProvider>()) {}
 
   client_providers::mock::MockCryptoClientProvider& GetCryptoClientProvider() {
     return dynamic_cast<client_providers::mock::MockCryptoClientProvider&>(

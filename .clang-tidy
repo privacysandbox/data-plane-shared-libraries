@@ -1,1 +1,19 @@
-builders/etc/.clang-tidy
+ExtraArgs:
+  - -Wno-unknown-warning-option
+  - -Wno-unused-result
+  - -Wno-macro-redefined
+  - -Wno-deprecated-declarations
+  - -Wno-unused-const-variable
+  - -Wno-format
+  - -Wno-unused-function
+
+Checks: >
+    -*,
+    abseil-*,
+    bugprone-*,
+    -bugprone-narrowing-conversions,
+    -bugprone-exception-escape,
+    performance-*,
+
+WarningsAsErrors: '*'
+...

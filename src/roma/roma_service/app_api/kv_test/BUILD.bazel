@@ -79,6 +79,7 @@ roma_app_api_cc_library(
     roma_app_api = kv_api,
     tags = [
         "noasan",
+        "notsan-aarch64",
     ],
     visibility = ["//visibility:public"],
 )
@@ -100,6 +101,7 @@ cc_test(
     srcs = [":kv_roma_api_test.cc"],
     tags = [
         "noasan",
+        "notsan-aarch64",
     ],
     deps = [
         ":kv_roma_api",

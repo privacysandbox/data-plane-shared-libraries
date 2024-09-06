@@ -58,6 +58,7 @@ cc_library(
 cc_library(
     name = "test_code",
     hdrs = ["test_code.h"],
+    visibility = ["//src/roma/benchmark:__subpackages__"],
 )
 
 cc_binary(
@@ -116,12 +117,16 @@ cc_binary(
 cc_binary(
     name = "kv_server_udf_benchmark_test",
     srcs = ["kv_server_udf_benchmark.cc"],
+    data = [
+        "//src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example",
+    ],
     malloc = "@com_google_tcmalloc//tcmalloc",
     deps = [
         ":fake_kv_server",
         ":test_code",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "//src/roma/wasm:wasm_testing",
         "@google_benchmark//:benchmark",
     ],
 )

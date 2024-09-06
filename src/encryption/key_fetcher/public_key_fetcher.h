@@ -34,16 +34,19 @@ namespace privacy_sandbox::server_common {
 
 // Implementation of PublicKeyFetcherInterface that fetches the latest set of
 // (5) public keys from the Public Key Service and caches them in memory.
-class PublicKeyFetcher : public PublicKeyFetcherInterface {
+class PublicKeyFetcher final : public PublicKeyFetcherInterface {
  public:
   // Initializes an instance of PublicKeyFetcher.
-  PublicKeyFetcher(absl::flat_hash_map<
-                   CloudPlatform,
-                   std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
-                       public_key_clients);
+  PublicKeyFetcher(
+      absl::flat_hash_map<
+          CloudPlatform,
+          std::unique_ptr<google::scp::cpio::PublicKeyClientInterface>>
+          public_key_clients,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 
-  // Stops and terminates any resources used by the fetcher.
-  ~PublicKeyFetcher();
+  ~PublicKeyFetcher() override = default;
 
   // Blocking.
   // Calls the Public Key Service to refresh the fetcher's list of the latest
@@ -77,6 +80,9 @@ class PublicKeyFetcher : public PublicKeyFetcherInterface {
 
   // BitGen for randomly choosing a public key to return in GetKey().
   absl::BitGen bitgen_;
+
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context_;
 };
 
 }  // namespace privacy_sandbox::server_common

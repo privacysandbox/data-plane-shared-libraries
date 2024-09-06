@@ -18,11 +18,8 @@
 #define SCP_CPIO_INTERFACE_CRYPTO_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/interface/service_interface.h"
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/crypto_service/v1/crypto_service.pb.h"
 
@@ -37,9 +34,13 @@ namespace google::scp::cpio {
  * actually use it, and call CryptoClientInterface::Stop when finish using
  * it.
  */
-class CryptoClientInterface : public core::ServiceInterface {
+class CryptoClientInterface {
  public:
   virtual ~CryptoClientInterface() = default;
+
+  [[deprecated]] virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Encrypts payload using HPKE.
@@ -47,9 +48,9 @@ class CryptoClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult HpkeEncrypt(
+  virtual absl::Status HpkeEncrypt(
       cmrt::sdk::crypto_service::v1::HpkeEncryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::HpkeEncryptResponse>
           callback) noexcept = 0;
@@ -60,9 +61,9 @@ class CryptoClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult HpkeDecrypt(
+  virtual absl::Status HpkeDecrypt(
       cmrt::sdk::crypto_service::v1::HpkeDecryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::HpkeDecryptResponse>
           callback) noexcept = 0;
@@ -73,9 +74,9 @@ class CryptoClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult AeadEncrypt(
+  virtual absl::Status AeadEncrypt(
       cmrt::sdk::crypto_service::v1::AeadEncryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::AeadEncryptResponse>
           callback) noexcept = 0;
@@ -86,9 +87,9 @@ class CryptoClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult AeadDecrypt(
+  virtual absl::Status AeadDecrypt(
       cmrt::sdk::crypto_service::v1::AeadDecryptRequest request,
       Callback<cmrt::sdk::crypto_service::v1::AeadDecryptResponse>
           callback) noexcept = 0;

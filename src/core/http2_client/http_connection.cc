@@ -401,8 +401,9 @@ void HttpConnection::OnResponseCallback(
   if (http_response.status_code() !=
       static_cast<int>(errors::HttpStatusCode::OK)) {
     std::string headers_string;
-    for (auto header : http_response.header()) {
-      headers_string += header.first + " " + header.second.value + "|";
+    for (auto& header : http_response.header()) {
+      absl::StrAppend(&headers_string, header.first, " ", header.second.value,
+                      "|");
     }
     SCP_DEBUG_CONTEXT(kHttp2Client, http_context,
                       "Http response is not OK. Endpoint: %s, status code: %d, "

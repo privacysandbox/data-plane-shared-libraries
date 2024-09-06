@@ -51,4 +51,10 @@ message WorkerInitParamsProto {
   // A list of rpc methods for registered services. Will allow clients to invoke
   // services via gRPC in UDF
   repeated string rpc_method_names = 12;
+
+  // only set to true for testing or unless you really don't want to clean up v8 instance
+  bool skip_v8_cleanup = 13;
+
+  // List of flags to pass into v8. (Ex. {"--FLAG_1", "--FLAG_2"}
+  repeated string v8_flags = 14;
 }

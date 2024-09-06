@@ -29,7 +29,7 @@
 #include "absl/strings/str_cat.h"
 #include "src/logger/request_context_logger.h"
 
-namespace privacy_sandbox::server_common::log {
+namespace privacy_sandbox::test {
 
 using ::testing::StrictMock;
 
@@ -39,7 +39,7 @@ class LogSinkMock : public absl::LogSink {
   MOCK_METHOD(void, Flush, (), (override));
 };
 
-class TestContext : public RequestContext {
+class TestContext : public server_common::log::PSLogContext {
  public:
   // implement interface
   std::string_view ContextStr() const override { return context_str_; }
@@ -64,7 +64,7 @@ class LogTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // initialize max verbosity = kMaxV
-    PS_VLOG_IS_ON(0, kMaxV);
+    server_common::log::PS_VLOG_IS_ON(0, kMaxV);
   }
 
   std::string LogWithCapturedStderr(absl::AnyInvocable<void() &&> logging) {
@@ -82,11 +82,13 @@ MATCHER_P(LogEntryHas, value, "") {
   return absl::StrContains(arg.text_message(), value);
 }
 
+MATCHER_P(LogEntrySeverity, value, "") { return arg.log_severity() == value; }
+
 inline std::string Crash() {
   CHECK(false) << "  This should not be called";
   return "";
 }
 
-}  // namespace privacy_sandbox::server_common::log
+}  // namespace privacy_sandbox::test
 
 #endif  // LOGGER_REQUEST_CONTEXT_LOGGER_TEST_H_

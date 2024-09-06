@@ -91,8 +91,7 @@ TEST(AzureKmsClientProviderUtilsTest, WrapUnwrap) {
 }
 
 TEST(AzureKmsClientProviderUtilsTest, GenerateWrappingKeyHash) {
-  auto public_pem_key =
-      google::scp::cpio::client_providers::GetTestPemPublicWrapKey();
+  auto public_pem_key = AzureKmsClientProviderUtils::GetTestPemPublicWrapKey();
   std::cout << "Test GenerateWrappingKeyHash PEM key: " << public_pem_key
             << std::endl;
   auto public_key =

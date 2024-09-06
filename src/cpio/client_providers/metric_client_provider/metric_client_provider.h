@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/any.pb.h"
@@ -38,28 +39,19 @@ namespace google::scp::cpio::client_providers {
  */
 class MetricClientProvider : public MetricClientProviderInterface {
  public:
-  virtual ~MetricClientProvider() = default;
-
   explicit MetricClientProvider(
-      core::AsyncExecutorInterface* async_executor,
-      MetricClientOptions metric_client_options,
-      InstanceClientProviderInterface* instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
       MetricBatchingOptions metric_batching_options = MetricBatchingOptions())
       : async_executor_(async_executor),
-        metric_client_options_(std::move(metric_client_options)),
         metric_batching_options_(std::move(metric_batching_options)),
         is_batch_recording_enable(
             metric_batching_options_.enable_batch_recording),
-        instance_client_provider_(instance_client_provider),
-        is_running_(false),
         active_push_count_(0),
         number_metrics_in_vector_(0) {}
 
+  ~MetricClientProvider() override;
+
   absl::Status Init() noexcept override;
-
-  absl::Status Run() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
-
-  absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
 
   absl::Status PutMetrics(
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
@@ -97,8 +89,7 @@ class MetricClientProvider : public MetricClientProviderInterface {
    *
    * @return core::ExecutionResult
    */
-  virtual core::ExecutionResult ScheduleMetricsBatchPush() noexcept
-      ABSL_LOCKS_EXCLUDED(sync_mutex_);
+  virtual core::ExecutionResult ScheduleMetricsBatchPush() noexcept;
 
   /**
    * @brief The helper function for ScheduleMetricsBatchPush to do the actual
@@ -110,17 +101,10 @@ class MetricClientProvider : public MetricClientProviderInterface {
 
   /// An instance to the async executor.
   core::AsyncExecutorInterface* async_executor_;
-
-  /// The configuration for metric client.
-  MetricClientOptions metric_client_options_;
-
   MetricBatchingOptions metric_batching_options_;
 
   /// Whether metric client enables batch recording.
   bool is_batch_recording_enable;
-
-  /// Instance client provider to fetch cloud metadata.
-  InstanceClientProviderInterface* instance_client_provider_;
 
   /// The vector stores the metric record requests received. Any changes to this
   /// vector should be thread-safe.
@@ -129,8 +113,6 @@ class MetricClientProvider : public MetricClientProviderInterface {
                          cmrt::sdk::metric_service::v1::PutMetricsResponse>>
       metric_requests_vector_ ABSL_GUARDED_BY(sync_mutex_);
 
-  /// Indicates whther the component stopped
-  bool is_running_ ABSL_GUARDED_BY(sync_mutex_);
   /// Number of active metric push.
   size_t active_push_count_ ABSL_GUARDED_BY(sync_mutex_);
   /// Number of metrics received in metric_requests_vector_.

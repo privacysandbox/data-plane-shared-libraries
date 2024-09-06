@@ -25,6 +25,7 @@
 #include <aws/sqs/model/ReceiveMessageRequest.h>
 #include <aws/sqs/model/SendMessageRequest.h>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "src/core/async_executor/aws/aws_async_executor.h"
 #include "src/core/common/uuid/uuid.h"
@@ -431,9 +432,9 @@ std::shared_ptr<SQSClient> AwsSqsClientFactory::CreateSqsClient(
 absl::StatusOr<std::unique_ptr<QueueClientProviderInterface>>
 QueueClientProviderFactory::Create(
     QueueClientOptions options,
-    InstanceClientProviderInterface* instance_client,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) noexcept {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client,
+    absl::Nonnull<AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<AsyncExecutorInterface*> io_async_executor) noexcept {
   auto provider = std::make_unique<AwsQueueClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);

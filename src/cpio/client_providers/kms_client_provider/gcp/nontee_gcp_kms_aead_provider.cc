@@ -17,8 +17,7 @@
 #include <memory>
 
 #include "google/cloud/kms/key_management_client.h"
-
-#include "gcp_kms_client_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_client_provider.h"
 
 using google::cloud::kms::KeyManagementServiceClient;
 using google::cloud::kms::MakeKeyManagementServiceConnection;

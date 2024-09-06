@@ -18,17 +18,19 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_role_credentials_provider",
-    srcs = [
-        ":aws_role_credentials_provider_srcs",
-    ],
+    srcs = ["aws_role_credentials_provider.cc"],
     hdrs = [
+        "aws_role_credentials_provider.h",
         "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
     deps = [
+        ":error_codes",
+        ":sts_error_converter",
         "//src/core/async_executor/aws:aws_async_executor",
         "//src/core/interface",
         "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
         "//src/cpio/common/aws:aws_utils",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:type_def",
         "//src/util/status_macro:status_macros",
         "@aws_sdk_cpp//:core",
@@ -36,54 +38,57 @@ cc_library(
     ],
 )
 
-exports_files([
-    "aws_role_credentials_provider.h",
-    "aws_role_credentials_provider.cc",
-    "sts_error_converter.h",
-    "sts_error_converter.cc",
-    "error_codes.h",
-])
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
+    deps = [
+        "//src/core/interface:errors",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:cpio_errors",
+    ],
+)
 
-filegroup(
-    name = "aws_role_credentials_provider_srcs",
-    srcs = [
-        ":aws_role_credentials_provider.cc",
-        ":aws_role_credentials_provider.h",
-        ":error_codes.h",
-        ":sts_error_converter.cc",
-        ":sts_error_converter.h",
+cc_library(
+    name = "sts_error_converter",
+    srcs = ["sts_error_converter.cc"],
+    hdrs = ["sts_error_converter.h"],
+    deps = [
+        ":error_codes",
+        "//src/core/async_executor/aws:aws_async_executor",
+        "//src/core/interface",
+        "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
+        "//src/cpio/common/aws:aws_utils",
+        "//src/public/core/interface:execution_result",
+        "//src/public/cpio/interface:type_def",
+        "//src/util/status_macro:status_macros",
+        "@aws_sdk_cpp//:core",
+        "@aws_sdk_cpp//:sts",
     ],
 )
 
 cc_test(
     name = "sts_error_converter_test",
     size = "small",
-    srcs = [
-        "sts_error_converter_test.cc",
-    ],
+    srcs = ["sts_error_converter_test.cc"],
     deps = [
-        ":aws_role_credentials_provider",
-        "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface",
+        ":sts_error_converter",
         "//src/cpio/common/aws:aws_utils",
         "//src/public/core:test_execution_result_matchers",
-        "@aws_sdk_cpp//:sts",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
 cc_library(
     name = "test_aws_role_credentials_provider",
-    srcs = [
-        "test_aws_role_credentials_provider.cc",
-        ":aws_role_credentials_provider_srcs",
-    ],
+    srcs = ["test_aws_role_credentials_provider.cc"],
     hdrs = [
         "test_aws_role_credentials_provider.h",
         "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
     deps = [
         ":aws_role_credentials_provider",
+        ":error_codes",
         "//src/cpio/common/aws:test_aws_utils",
         "//src/public/cpio/test/global_cpio:test_cpio_options",
     ],

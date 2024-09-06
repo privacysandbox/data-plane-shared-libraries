@@ -14,22 +14,14 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:scp_internal_pkg"])
-
-exports_files([
-    "instance_client.cc",
-    "instance_client.h",
-])
-
 filegroup(
     name = "instance_client_srcs",
     srcs = [
         ":instance_client.cc",
         ":instance_client.h",
     ],
+    visibility = ["//src:scp_internal_pkg"],
 )
-
-exports_files(["test_aws_instance_client.h"])
 
 cc_test(
     name = "instance_client_test",
@@ -41,6 +33,7 @@ cc_test(
         "//src/core/test/utils",
         "//src/cpio/client_providers/instance_client_provider:instance_client_provider_select",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/instance_client",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",
@@ -52,8 +45,10 @@ cc_test(
 cc_library(
     name = "instance_client_mock",
     hdrs = ["mock_instance_client_with_overrides.h"],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/public/cpio/interface/instance_client",
+        "@com_google_absl//absl/status",
     ],
 )

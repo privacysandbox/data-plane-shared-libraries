@@ -19,6 +19,7 @@
 #include <string_view>
 
 #include "src/core/common/global_logger/global_logger.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

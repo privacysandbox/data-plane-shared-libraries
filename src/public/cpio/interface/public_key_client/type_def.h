@@ -25,7 +25,6 @@ using PublicKeyVendingServiceEndpoint = std::string;
 
 // Configuration for public key vending endpoint.
 struct PublicKeyClientOptions {
-  virtual ~PublicKeyClientOptions() = default;
   /// This list of endpoints host the public key.
   std::vector<PublicKeyVendingServiceEndpoint> endpoints;
 };

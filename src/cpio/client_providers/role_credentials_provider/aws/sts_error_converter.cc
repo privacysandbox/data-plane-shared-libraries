@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-#include "sts_error_converter.h"
+#include "src/cpio/client_providers/role_credentials_provider/aws/sts_error_converter.h"
 
 #include <string>
 
 #include "src/core/common/global_logger/global_logger.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/cpio/client_providers/role_credentials_provider/aws/error_codes.h"
 #include "src/cpio/common/aws/error_codes.h"
-
-#include "error_codes.h"
+#include "src/public/core/interface/execution_result.h"
 
 using Aws::STS::STSErrors;
 using google::scp::core::FailureExecutionResult;

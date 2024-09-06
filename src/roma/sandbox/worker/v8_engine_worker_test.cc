@@ -56,15 +56,18 @@ constexpr std::array<uint8_t, 41> kWasmBin = {
 
 class V8EngineWorkerTest : public ::testing::Test {
  public:
-  static void SetUpTestSuite() {
-    auto engine = std::make_unique<V8JsEngine>();
-    engine->OneTimeSetup();
+  static std::unique_ptr<V8JsEngine> CreateEngine() {
+    static constexpr bool skip_v8_cleanup = true;
+    return std::make_unique<V8JsEngine>(nullptr, skip_v8_cleanup);
   }
+
+  static void SetUpTestSuite() { CreateEngine()->OneTimeSetup(); }
+
+  static void TearDownTestSuite() { std::make_unique<V8JsEngine>(nullptr); }
 };
 
 TEST_F(V8EngineWorkerTest, CanRunJsCode) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), false /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/false);
   worker.Run();
 
   constexpr std::string_view js_code =
@@ -87,8 +90,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
 
   // Load v1
@@ -146,8 +148,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
 
   // Load v1
@@ -235,8 +236,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 }
 
 TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
 
   // Load v1
@@ -332,8 +332,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
 }
 
 TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), false /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/false);
   worker.Run();
 
   auto js_code = R"""(
@@ -361,8 +360,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
 }
 
 TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
-  auto engine = std::make_unique<V8JsEngine>();
-  Worker worker(std::move(engine), true /*require_preload*/);
+  Worker worker(CreateEngine(), /*require_preload=*/true);
   worker.Run();
   std::vector<std::string_view> input;
 

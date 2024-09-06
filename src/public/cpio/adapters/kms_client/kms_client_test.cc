@@ -38,7 +38,7 @@ namespace google::scp::cpio::test {
 class KmsClientTest : public ::testing::Test {
  protected:
   KmsClientTest() {
-    CHECK(client_.Init().Successful()) << "client_ initialization unsuccessful";
+    CHECK(client_.Init().ok()) << "client_ initialization unsuccessful";
   }
 
   MockKmsClientWithOverrides client_;
@@ -53,7 +53,7 @@ TEST_F(KmsClientTest, DecryptSuccess) {
     called = true;
     return absl::OkStatus();
   });
-  EXPECT_THAT(client_.Decrypt(context), IsSuccessful());
+  EXPECT_TRUE(client_.Decrypt(context).ok());
   EXPECT_TRUE(called);
 }
 

@@ -34,7 +34,6 @@
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
 
@@ -78,37 +77,41 @@ namespace google::scp::cpio::client_providers {
 
 absl::Status AzureBlobStorageClientProvider::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) noexcept {
-  const auto& request = *get_blob_context.request;
+  // Not implemented
   return absl::OkStatus();
 }
 
 absl::Status AzureBlobStorageClientProvider::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>&
         get_blob_stream_context) noexcept {
+  // Not implemented
   return absl::OkStatus();
 }
 
 absl::Status AzureBlobStorageClientProvider::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>&
         list_blobs_context) noexcept {
+  // Not implemented
   return absl::OkStatus();
 }
 
 absl::Status AzureBlobStorageClientProvider::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) noexcept {
-  const auto& request = *put_blob_context.request;
+  // Not implemented
   return absl::OkStatus();
 }
 
 absl::Status AzureBlobStorageClientProvider::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>&
         put_blob_stream_context) noexcept {
+  // Not implemented
   return absl::OkStatus();
 }
 
 absl::Status AzureBlobStorageClientProvider::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>&
         delete_blob_context) noexcept {
+  // Not implemented
   return absl::OkStatus();
 }
 

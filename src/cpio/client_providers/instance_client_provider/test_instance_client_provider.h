@@ -31,16 +31,6 @@
 namespace google::scp::cpio::client_providers {
 /// Configurations for Test InstanceClientProvider.
 struct TestInstanceClientOptions {
-  TestInstanceClientOptions() = default;
-
-  explicit TestInstanceClientOptions(const TestCpioOptions& cpio_options)
-      : region(cpio_options.region),
-        instance_id(cpio_options.instance_id),
-        public_ipv4_address(cpio_options.public_ipv4_address),
-        private_ipv4_address(cpio_options.private_ipv4_address),
-        project_id(cpio_options.project_id),
-        zone(cpio_options.zone) {}
-
   /// Cloud region.
   std::string region;
   /// Instance ID.

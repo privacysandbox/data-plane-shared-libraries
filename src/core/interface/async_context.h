@@ -26,7 +26,9 @@
 #include "src/core/common/time_provider/time_provider.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/interface/async_executor_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
+#include "async_executor_interface.h"
 #include "errors.h"
 #include "type_def.h"
 
@@ -146,7 +148,7 @@ struct AsyncContext {
 
   /// Sets `result` and finishes the async operation by calling the callback.
   void Finish(ExecutionResult execution_result) noexcept {
-    result = std::move(execution_result);
+    result = execution_result;
     Finish();
   }
 

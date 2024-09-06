@@ -86,7 +86,8 @@ if ! [[ -f ${ENCLAVE_NAME}.eif ]]; then
   docker create --name "${CONTAINER_NAME}" "${DOCKER_IMAGE_URI}" >/dev/null
   docker cp "${VALIDATOR_CONFIG_PATH}" "${CONTAINER_NAME}":/etc/validator_config.txtpb
   if [[ ${DEBUG_MODE} -eq 1 ]]; then
-    readonly INIT_SERVER_ENCLAVE_TMPFILE="$(mktemp)"
+    INIT_SERVER_ENCLAVE_TMPFILE="$(mktemp)"
+    readonly INIT_SERVER_ENCLAVE_TMPFILE
     docker cp "${CONTAINER_NAME}":/server/bin/init_server_enclave \
       "${INIT_SERVER_ENCLAVE_TMPFILE}"
     sed -i \

@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
@@ -118,10 +119,11 @@ class BlobStorageClientProviderInterface {
 class BlobStorageClientProviderFactory {
  public:
   static absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
-  Create(BlobStorageClientOptions options,
-         InstanceClientProviderInterface* instance_client,
-         core::AsyncExecutorInterface* cpu_async_executor,
-         core::AsyncExecutorInterface* io_async_executor) noexcept;
+  Create(
+      BlobStorageClientOptions options,
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept;
 };
 
 }  // namespace google::scp::cpio::client_providers

@@ -30,6 +30,7 @@
 #include <aws/s3/model/GetObjectRequest.h>
 #include <aws/s3/model/ListObjectsRequest.h>
 
+#include "absl/base/nullability.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/config_provider_interface.h"
 #include "src/core/interface/streaming_context.h"
@@ -47,10 +48,10 @@ class AwsBlobStorageClientProvider : public BlobStorageClientProviderInterface {
  public:
   explicit AwsBlobStorageClientProvider(
       BlobStorageClientOptions options,
-      InstanceClientProviderInterface* instance_client,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
-      std::unique_ptr<AwsS3Factory> s3_factory =
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client,
+      absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
+      absl::Nonnull<std::unique_ptr<AwsS3Factory>> s3_factory =
           std::make_unique<AwsS3Factory>())
       : instance_client_(instance_client),
         cpu_async_executor_(cpu_async_executor),

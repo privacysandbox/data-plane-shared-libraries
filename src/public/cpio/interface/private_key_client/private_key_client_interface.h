@@ -18,11 +18,8 @@
 #define SCP_CPIO_INTERFACE_PRIVATE_KEY_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/interface/service_interface.h"
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
@@ -38,9 +35,13 @@ namespace google::scp::cpio {
  * actually use it, and call PrivateKeyClientInterface::Stop when finish using
  * it.
  */
-class PrivateKeyClientInterface : public core::ServiceInterface {
+class PrivateKeyClientInterface {
  public:
   virtual ~PrivateKeyClientInterface() = default;
+
+  virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Lists a list of private keys for the given list of IDs. The
@@ -50,9 +51,9 @@ class PrivateKeyClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult ListPrivateKeys(
+  virtual absl::Status ListPrivateKeys(
       cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest request,
       Callback<cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>
           callback) noexcept = 0;

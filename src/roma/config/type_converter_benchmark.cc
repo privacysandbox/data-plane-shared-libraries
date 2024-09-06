@@ -25,12 +25,12 @@
 #include <vector>
 
 #include <benchmark/benchmark.h>
-#include <libplatform/libplatform.h>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
@@ -42,18 +42,6 @@ using ::testing::ElementsAreArray;
 using ::testing::StrEq;
 
 namespace {
-
-v8::Platform* platform_ = []() -> v8::Platform* {
-  absl::StatusOr<std::string> my_path =
-      ::privacy_sandbox::server_common::GetExePath();
-  CHECK_OK(my_path) << my_path.status();
-  v8::V8::InitializeICUDefaultLocation(my_path->data());
-  v8::V8::InitializeExternalStartupData(my_path->data());
-  v8::Platform* platform = v8::platform::NewDefaultPlatform().release();
-  v8::V8::InitializePlatform(platform);
-  v8::V8::Initialize();
-  return platform;
-}();
 
 // Utility class to handle cleaning up V8 objects.
 class V8Deleter {
@@ -330,4 +318,14 @@ BENCHMARK(BM_NativeUint8PointerToV8);
 BENCHMARK(BM_V8Uint8ArrayToNativeUint8Pointer);
 
 // Run the benchmarks
-BENCHMARK_MAIN();
+int main(int argc, char* argv[]) {
+  std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+  v8::V8::InitializePlatform(platform.get());
+  v8::V8::Initialize();
+  benchmark::Initialize(&argc, argv);
+  benchmark::RunSpecifiedBenchmarks();
+  benchmark::Shutdown();
+  v8::V8::Dispose();
+  v8::V8::DisposePlatform();
+  return 0;
+}

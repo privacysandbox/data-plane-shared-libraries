@@ -19,21 +19,18 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/kms_client_provider/mock/mock_kms_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/adapters/kms_client/kms_client.h"
 
 namespace google::scp::cpio::mock {
-class MockKmsClientWithOverrides : public KmsClient {
+class MockKmsClientWithOverrides final : public KmsClient {
  public:
-  MockKmsClientWithOverrides() : KmsClient(KmsClientOptions()) {}
-
-  core::ExecutionResult Init() noexcept override {
+  MockKmsClientWithOverrides() {
     kms_client_provider_ =
         std::make_unique<client_providers::mock::MockKmsClientProvider>();
-    return core::SuccessExecutionResult();
   }
-
+  absl::Status Init() noexcept override { return absl::OkStatus(); }
   client_providers::mock::MockKmsClientProvider& GetKmsClientProvider() {
     return dynamic_cast<client_providers::mock::MockKmsClientProvider&>(
         *kms_client_provider_);

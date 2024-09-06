@@ -41,6 +41,7 @@
 namespace {
 
 using google::scp::roma::Config;
+using google::scp::roma::DefaultMetadata;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
@@ -74,14 +75,26 @@ void DoSetup(typename RomaService<>::Config config) {
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
-void DoGrpcServerSetup(const benchmark::State& state) {
+void SetupDeclarativeApiGrpcServer(const benchmark::State& state) {
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
   config.enable_native_function_grpc_server = true;
   config.RegisterRpcHandler(
       "TestHostServer.NativeMethod",
-      privacysandbox::test_host_server::NativeMethodHandler<
-          google::scp::roma::DefaultMetadata>());
+      privacysandbox::test_host_server::NativeMethodHandler<DefaultMetadata>());
+  DoSetup(std::move(config));
+}
+
+void SetupDeclarativeApiNativeFunctionHandler(const benchmark::State& state) {
+  typename RomaService<>::Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "TestHostServer.NativeMethod",
+          .function =
+              privacysandbox::test_host_server::NativeMethodFunctionBinding<
+                  DefaultMetadata>,
+      }));
   DoSetup(std::move(config));
 }
 
@@ -91,7 +104,8 @@ void StringInStringOutFunction(
                                      "World. From SERVER");
 }
 
-void DoNativeFunctionHandlerSetup(const benchmark::State& state) {
+void SetupNonDeclarativeApiNativeFunctionHandler(
+    const benchmark::State& state) {
   using google::scp::roma::FunctionBindingObjectV2;
   typename RomaService<>::Config config;
   config.number_of_workers = 2;
@@ -136,26 +150,38 @@ void RunBenchmark(benchmark::State& state, std::string_view input,
   }
 }
 
-void BM_GrpcServer(benchmark::State& state) {
+void BM_NonDeclarativeApiNativeFunctionHandler(benchmark::State& state) {
+  constexpr std::string_view input = R"("Hello ")";
+  constexpr std::string_view output = R"("Hello World. From SERVER")";
+  RunBenchmark(state, input, output);
+}
+
+BENCHMARK(BM_NonDeclarativeApiNativeFunctionHandler)
+    ->Setup(SetupNonDeclarativeApiNativeFunctionHandler)
+    ->Teardown(DoTeardown)
+    ->Unit(benchmark::kMillisecond);
+
+void BM_DeclarativeApiNativeFunctionHandler(benchmark::State& state) {
   constexpr std::string_view input = R"("\n\u0006Hello ")";
   constexpr std::string_view output =
       R"("\n\u001eHello World. From NativeMethod")";
   RunBenchmark(state, input, output);
 }
 
-void BM_NativeFunctionHandler(benchmark::State& state) {
-  constexpr std::string_view input = R"("Hello ")";
-  constexpr std::string_view output = R"("Hello World. From SERVER")";
-  RunBenchmark(state, input, output);
-}
-
-BENCHMARK(BM_GrpcServer)
-    ->Setup(DoGrpcServerSetup)
+BENCHMARK(BM_DeclarativeApiNativeFunctionHandler)
+    ->Setup(SetupDeclarativeApiNativeFunctionHandler)
     ->Teardown(DoTeardown)
     ->Unit(benchmark::kMillisecond);
 
-BENCHMARK(BM_NativeFunctionHandler)
-    ->Setup(DoNativeFunctionHandlerSetup)
+void BM_DeclarativeApiGrpcServer(benchmark::State& state) {
+  constexpr std::string_view input = R"("\n\u0006Hello ")";
+  constexpr std::string_view output =
+      R"("\n\u001eHello World. From NativeMethod")";
+  RunBenchmark(state, input, output);
+}
+
+BENCHMARK(BM_DeclarativeApiGrpcServer)
+    ->Setup(SetupDeclarativeApiGrpcServer)
     ->Teardown(DoTeardown)
     ->Unit(benchmark::kMillisecond);
 

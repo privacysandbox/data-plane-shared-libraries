@@ -22,7 +22,7 @@
 
 namespace google::scp::cpio {
 /// Global CPIO options to test CPIO.
-struct TestCpioOptions : public CpioOptions {
+struct TestCpioOptions {
   /// Cloud zone.
   std::string zone;
   /// Instance ID.
@@ -33,12 +33,7 @@ struct TestCpioOptions : public CpioOptions {
   std::string private_ipv4_address;
   /// STS client endpoint override.
   std::string sts_endpoint_override;
-
-  CpioOptions ToCpioOptions() {
-    CpioOptions cpio_options;
-    cpio_options.log_option = CpioOptions::log_option;
-    return cpio_options;
-  }
+  CpioOptions options;
 };
 }  // namespace google::scp::cpio
 

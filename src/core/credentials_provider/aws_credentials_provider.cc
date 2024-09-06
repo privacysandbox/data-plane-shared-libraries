@@ -19,6 +19,8 @@
 #include <memory>
 #include <string>
 
+#include "src/public/core/interface/execution_result.h"
+
 #include "error_codes.h"
 
 namespace google::scp::core {

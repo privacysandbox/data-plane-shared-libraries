@@ -138,25 +138,25 @@ class GcpBlobStorageClientProviderTest
     instance_client_.instance_resource_name = kInstanceResourceName;
     get_blob_context_.request = std::make_shared<GetBlobRequest>();
     get_blob_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
     list_blobs_context_.request = std::make_shared<ListBlobsMetadataRequest>();
     list_blobs_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
     put_blob_context_.request = std::make_shared<PutBlobRequest>();
     put_blob_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
     delete_blob_context_.request = std::make_shared<DeleteBlobRequest>();
     delete_blob_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
@@ -277,13 +277,13 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlob) {
     ASSERT_THAT(context.response, NotNull());
     EXPECT_THAT(context.response->blob(), BlobEquals(expected_blob));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -332,13 +332,13 @@ TEST_P(GcpBlobStorageClientProviderTest, GetBlobWithByteRange) {
     ASSERT_THAT(context.response, NotNull());
     EXPECT_THAT(context.response->blob(), BlobEquals(expected_blob));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -388,13 +388,13 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlobHashMismatchFails) {
                 ResultIs(FailureExecutionResult(SC_GCP_DATA_LOSS)));
     EXPECT_THAT(context.response, IsNull());
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -413,13 +413,13 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlobNotFound) {
                 ResultIs(FailureExecutionResult(SC_GCP_NOT_FOUND)));
     EXPECT_THAT(context.response, IsNull());
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -493,14 +493,14 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsNoPrefix) {
                             BlobMetadataEquals(expected_metadata2)));
     EXPECT_FALSE(context.response->has_next_page_token());
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->ListBlobsMetadata(list_blobs_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -574,14 +574,14 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithPrefix) {
                             BlobMetadataEquals(expected_metadata2)));
     EXPECT_FALSE(context.response->has_next_page_token());
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->ListBlobsMetadata(list_blobs_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -648,14 +648,14 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarker) {
                 ElementsAre(BlobMetadataEquals(expected_metadata)));
     EXPECT_FALSE(context.response->has_next_page_token());
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->ListBlobsMetadata(list_blobs_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -694,14 +694,14 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarkerSkipsFirstObject) {
                 ElementsAre(BlobMetadataEquals(expected_metadata)));
     EXPECT_FALSE(context.response->has_next_page_token());
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->ListBlobsMetadata(list_blobs_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -756,14 +756,14 @@ TEST_F(GcpBlobStorageClientProviderTest,
                 Pointwise(BlobMetadatasEqual(), expected_blobs));
     EXPECT_THAT(context.response->next_page_token(), "blob_100");
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->ListBlobsMetadata(list_blobs_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -782,14 +782,14 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsPropagatesFailure) {
                 ResultIs(FailureExecutionResult(
                     SC_BLOB_STORAGE_PROVIDER_UNRETRIABLE_ERROR)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->ListBlobsMetadata(list_blobs_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -844,13 +844,13 @@ TEST_F(GcpBlobStorageClientProviderTest, PutBlob) {
   put_blob_context_.callback = [this](auto& context) {
     EXPECT_SUCCESS(context.result);
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->PutBlob(put_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -881,13 +881,13 @@ TEST_F(GcpBlobStorageClientProviderTest, PutBlobPropagatesFailure) {
                 ResultIs(FailureExecutionResult(
                     SC_BLOB_STORAGE_PROVIDER_UNRETRIABLE_ERROR)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->PutBlob(put_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -918,13 +918,13 @@ TEST_F(GcpBlobStorageClientProviderTest, DeleteBlob) {
   delete_blob_context_.callback = [this](auto& context) {
     EXPECT_SUCCESS(context.result);
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(gcp_cloud_storage_client_->DeleteBlob(delete_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 

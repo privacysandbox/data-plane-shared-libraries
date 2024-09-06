@@ -24,12 +24,9 @@
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
-#include "src/core/interface/message_router_interface.h"
-#include "src/core/interface/service_interface.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio::client_providers {
@@ -39,12 +36,12 @@ namespace google::scp::cpio::client_providers {
  * process is running.
  *
  */
-class CpioProviderInterface : public core::ServiceInterface {
+class CpioProviderInterface {
  public:
   virtual ~CpioProviderInterface() = default;
 
   /**
-   * @brief Gets the global Async Executor. Only create it when it is
+   * @brief Gets the global Async Executor.
    * needed.
    *
    * @return cpu_async_executor the CPU Async Executor.
@@ -52,7 +49,7 @@ class CpioProviderInterface : public core::ServiceInterface {
   virtual core::AsyncExecutorInterface& GetCpuAsyncExecutor() noexcept = 0;
 
   /**
-   * @brief Gets the global IO Async Executor. Only create it when it is
+   * @brief Gets the global IO Async Executor.
    * needed.
    *
    * @return io_async_executor the IO Async Executor.
@@ -60,7 +57,7 @@ class CpioProviderInterface : public core::ServiceInterface {
   virtual core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept = 0;
 
   /**
-   * @brief Get the Http2 Client object. Only create it when it is needed.
+   * @brief Get the Http2 Client object.
    * TODO: rename to GetHttp2Client.
    *
    * @return http_client output Http2 Client
@@ -68,7 +65,7 @@ class CpioProviderInterface : public core::ServiceInterface {
   virtual core::HttpClientInterface& GetHttpClient() noexcept = 0;
 
   /**
-   * @brief Get the Http1 Client object. Only create it when it is needed.
+   * @brief Get the Http1 Client object.
    *
    * @return http_client output Http1 Client
    */
@@ -83,7 +80,7 @@ class CpioProviderInterface : public core::ServiceInterface {
   GetInstanceClientProvider() noexcept = 0;
 
   /**
-   * @brief Gets the Role Credentials Provider object when it is needed.
+   * @brief Gets the Role Credentials Provider.
    *
    * @return credentials_provider output role credentials provider.
    */
@@ -115,7 +112,8 @@ class CpioProviderFactory {
    *
    * @return std::unique_ptr<CpioProviderInterface> CpioProvider.
    */
-  static std::unique_ptr<CpioProviderInterface> Create(CpioOptions options);
+  static absl::StatusOr<std::unique_ptr<CpioProviderInterface>> Create(
+      CpioOptions options);
 };
 }  // namespace google::scp::cpio::client_providers
 

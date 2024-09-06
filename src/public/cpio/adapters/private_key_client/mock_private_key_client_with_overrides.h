@@ -19,24 +19,21 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/private_key_client_provider/mock/mock_private_key_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::mock {
 class MockPrivateKeyClientWithOverrides : public PrivateKeyClient {
  public:
   MockPrivateKeyClientWithOverrides()
-      : PrivateKeyClient(PrivateKeyClientOptions()) {}
+      : PrivateKeyClient(PrivateKeyClientOptions{}) {
+    private_key_client_provider_ = std::make_unique<
+        client_providers::mock::MockPrivateKeyClientProvider>();
+  }
 
-  core::ExecutionResult create_private_key_client_provider_result =
-      core::SuccessExecutionResult();
+  absl::Status create_private_key_client_provider_result = absl::OkStatus();
 
-  core::ExecutionResult CreatePrivateKeyClientProvider() noexcept override {
-    if (create_private_key_client_provider_result.Successful()) {
-      private_key_client_provider_ = std::make_unique<
-          client_providers::mock::MockPrivateKeyClientProvider>();
-      return create_private_key_client_provider_result;
-    }
+  absl::Status Init() noexcept override {
     return create_private_key_client_provider_result;
   }
 

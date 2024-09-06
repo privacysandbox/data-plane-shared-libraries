@@ -29,6 +29,7 @@
 #include "src/roma/benchmark/fake_kv_server.h"
 #include "src/roma/benchmark/test_code.h"
 #include "src/roma/config/config.h"
+#include "src/roma/wasm/testing_utils.h"
 
 namespace {
 
@@ -50,7 +51,7 @@ void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
 
   // If the code is being padded with extra bytes then add a comment at the end
   // and fill it with extra zeroes.
-  if (const int extra_padding_bytes = state.range(1); extra_padding_bytes > 0) {
+  if (const int extra_padding_bytes = state.range(0); extra_padding_bytes > 0) {
     constexpr std::string_view extra_prefix = " // ";
     const int total_size =
         code_config.js.size() + extra_prefix.size() + extra_padding_bytes;
@@ -61,19 +62,14 @@ void LoadCodeBenchmark(std::string_view code, std::string_view handler_name,
 
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
-  const int number_of_loads = state.range(0);
   for (auto _ : state) {
-    for (int i = 0; i < number_of_loads; ++i) {
-      server.SetCodeObject(code_config);
-    }
+    server.SetCodeObject(code_config);
   }
-  state.SetItemsProcessed(number_of_loads);
-  state.SetBytesProcessed(number_of_loads * code_config.js.length());
+  state.SetBytesProcessed(code_config.js.length() * state.iterations());
 }
 
 void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
                           benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   Config config;
   FakeKvServer server(std::move(config));
 
@@ -85,11 +81,9 @@ void ExecuteCodeBenchmark(std::string_view code, std::string_view handler_name,
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      benchmark::DoNotOptimize(server.ExecuteCode({}));
-    }
+    benchmark::DoNotOptimize(server.ExecuteCode({}));
   }
-  state.SetItemsProcessed(number_of_calls);
+  state.SetItemsProcessed(state.iterations());
 }
 
 // This C++ callback function is called in the benchmark below:
@@ -98,7 +92,6 @@ static void HelloWorldCallback(FunctionBindingPayload<>& wrapper) {
 }
 
 void BM_ExecuteHelloWorldCallback(benchmark::State& state) {
-  const int number_of_calls = state.range(0);
   Config config;
   {
     auto function_object = std::make_unique<FunctionBindingObjectV2<>>();
@@ -117,11 +110,9 @@ void BM_ExecuteHelloWorldCallback(benchmark::State& state) {
   // Each benchmark routine has exactly one `for (auto s : state)` loop, this
   // is what's timed.
   for (auto _ : state) {
-    for (int i = 0; i < number_of_calls; ++i) {
-      benchmark::DoNotOptimize(server.ExecuteCode({}));
-    }
+    benchmark::DoNotOptimize(server.ExecuteCode({}));
   }
-  state.SetItemsProcessed(number_of_calls);
+  state.SetItemsProcessed(state.iterations());
 }
 
 void BM_LoadHelloWorld(benchmark::State& state) {
@@ -149,24 +140,42 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
                        state);
 }
 
+void BM_ExecuteWasmPrimeSieve(benchmark::State& state) {
+  const std::string inline_wasm_js =
+      google::scp::roma::wasm::testing::WasmTestingUtils::LoadJsWithWasmFile(
+          "./src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example/"
+          "cpp_wasm_sieve_of_eratosthenes_example_generated.js");
+
+  const std::string udf = R"(
+async function HandleRequest() {
+  const module = await getModule();
+
+  const result = module.PrimeClass.SieveOfEratosthenes();
+  return result;
+}
+)";
+
+  std::string code = absl::StrCat(inline_wasm_js, udf);
+  std::string handler_name = "HandleRequest";
+  ExecuteCodeBenchmark(code, handler_name, state);
+}
+
 }  // namespace
 
 // Register the function as a benchmark
 BENCHMARK(BM_LoadHelloWorld)
     ->ArgsProduct({
-        // Run this many loads of the code.
-        {1, 10, 100},
         // Pad with this many extra bytes.
         {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
     });
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
-        {1, 10, 100},  // Run this many loads of the code.
-        {0},           // No need to pad this code with extra bytes.
+        {0},  // No need to pad this code with extra bytes.
     });
-BENCHMARK(BM_ExecuteHelloWorld)->RangeMultiplier(10)->Range(1, 100);
-BENCHMARK(BM_ExecuteHelloWorldCallback)->RangeMultiplier(10)->Range(1, 100);
-BENCHMARK(BM_ExecutePrimeSieve)->RangeMultiplier(10)->Range(1, 100);
+BENCHMARK(BM_ExecuteHelloWorld);
+BENCHMARK(BM_ExecuteHelloWorldCallback);
+BENCHMARK(BM_ExecutePrimeSieve);
+BENCHMARK(BM_ExecuteWasmPrimeSieve);
 
 // Run the benchmark
 BENCHMARK_MAIN();

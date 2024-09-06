@@ -36,6 +36,7 @@
 #include "src/core/interface/configuration_keys.h"
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
+#include "src/public/core/interface/execution_result.h"
 
 using Aws::MakeShared;
 using Aws::String;

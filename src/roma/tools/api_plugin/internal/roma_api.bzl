@@ -76,7 +76,7 @@ _cc_app_template_plugins = [
             suffix = "_cpp_app_api_client_sdk.md",
         ),
         struct(
-            template_file = "cc_test_romav8.tmpl",
+            template_file = "cc_app_test_romav8.tmpl",
             suffix = "_romav8_app_test.cc",
         ),
         struct(
@@ -174,6 +174,10 @@ _cc_host_template_plugins = [
             suffix = "_cpp_host_api_client_sdk.md",
         ),
         struct(
+            template_file = "cc_host_test_romav8.tmpl",
+            suffix = "_romav8_host_test.cc",
+        ),
+        struct(
             template_file = "hpp_host_romav8.tmpl",
             suffix = "_roma_host.h",
         ),
@@ -217,6 +221,10 @@ _host_api_js_plugins = [
         struct(
             template_file = "js_pb_helpers.tmpl",
             suffix = "_pb_helpers.js",
+        ),
+        struct(
+            template_file = "js_callback_wrappers.tmpl",
+            suffix = "_callback_wrappers.js",
         ),
     ])
 ]

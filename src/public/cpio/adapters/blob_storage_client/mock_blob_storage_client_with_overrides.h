@@ -19,21 +19,19 @@
 
 #include <memory>
 
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/mock/mock_blob_storage_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::mock {
-class MockBlobStorageClientWithOverrides : public BlobStorageClient {
+class MockBlobStorageClientWithOverrides final : public BlobStorageClient {
  public:
-  explicit MockBlobStorageClientWithOverrides(
-      const std::shared_ptr<BlobStorageClientOptions>& options =
-          std::make_shared<BlobStorageClientOptions>())
-      : BlobStorageClient(options) {}
+  MockBlobStorageClientWithOverrides()
+      : BlobStorageClient(BlobStorageClientOptions()) {}
 
-  core::ExecutionResult Init() noexcept override {
+  absl::Status Init() noexcept override {
     blob_storage_client_provider_ = std::make_unique<
         client_providers::mock::MockBlobStorageClientProvider>();
-    return core::SuccessExecutionResult();
+    return absl::OkStatus();
   }
 
   client_providers::mock::MockBlobStorageClientProvider&

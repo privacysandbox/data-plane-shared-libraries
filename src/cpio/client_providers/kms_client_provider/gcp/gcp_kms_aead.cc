@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "gcp_kms_aead.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_aead.h"
 
 #include <memory>
 #include <string>
@@ -30,8 +30,7 @@
 #include "absl/strings/string_view.h"
 #include "google/cloud/kms/key_management_client.h"
 #include "google/cloud/kms/v1/service.grpc.pb.h"
-
-#include "gcp_key_management_service_client.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_key_management_service_client.h"
 
 using crypto::tink::Aead;
 using crypto::tink::util::Status;

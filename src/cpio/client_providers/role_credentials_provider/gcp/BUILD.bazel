@@ -14,32 +14,20 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//src:scp_internal_pkg"])
-
 cc_library(
     name = "gcp_role_credentials_provider",
     srcs = [
-        "//src/cpio/client_providers/role_credentials_provider/gcp:gcp_role_credentials_provider_srcs",
+        "gcp_role_credentials_provider.cc",
+        "gcp_role_credentials_provider.h",
     ],
     hdrs = [
         "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
     ],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/core/interface",
         "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:type_def",
-    ],
-)
-
-exports_files([
-    "gcp_role_credentials_provider.h",
-    "gcp_role_credentials_provider.cc",
-])
-
-filegroup(
-    name = "gcp_role_credentials_provider_srcs",
-    srcs = [
-        ":gcp_role_credentials_provider.cc",
-        ":gcp_role_credentials_provider.h",
     ],
 )

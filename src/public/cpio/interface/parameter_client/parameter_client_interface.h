@@ -18,11 +18,8 @@
 #define SCP_CPIO_INTERFACE_PARAMETER_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/interface/async_context.h"
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 
@@ -38,9 +35,13 @@ namespace google::scp::cpio {
  * actually use it, and call ParameterClientInterface::Stop when finish using
  * it.
  */
-class ParameterClientInterface : public core::ServiceInterface {
+class ParameterClientInterface {
  public:
   virtual ~ParameterClientInterface() = default;
+
+  virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Gets parameter value for a given name.
@@ -48,9 +49,9 @@ class ParameterClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult GetParameter(
+  virtual absl::Status GetParameter(
       cmrt::sdk::parameter_service::v1::GetParameterRequest request,
       Callback<cmrt::sdk::parameter_service::v1::GetParameterResponse>
           callback) noexcept = 0;

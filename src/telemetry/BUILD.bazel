@@ -1,5 +1,4 @@
 # Copyright 2023 Google LLC
-# Copyright (C) Microsoft Corporation. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,8 +12,53 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@bazel_skylib//lib:selects.bzl", "selects")
 load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+string_flag(
+    name = "local_otel_export",
+    build_setting_default = "ostream",
+    values = [
+        "ostream",
+        "otlp",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "local_otel_export_ostream",
+    flag_values = {
+        ":local_otel_export": "ostream",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "local_otel_export_otlp",
+    flag_values = {
+        ":local_otel_export": "otlp",
+    },
+    visibility = ["//visibility:public"],
+)
+
+selects.config_setting_group(
+    name = "local_otel_ostream",
+    match_all = [
+        ":local_otel_export_ostream",
+        "//:local_instance",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+selects.config_setting_group(
+    name = "local_otel_otlp",
+    match_all = [
+        ":local_otel_export_otlp",
+        "//:local_instance",
+    ],
+    visibility = ["//visibility:public"],
+)
 
 cc_library(
     name = "telemetry",
@@ -90,53 +134,30 @@ cc_library(
     ],
 )
 
-config_setting(
-    name = "local_otel_export_otlp",
-    flag_values = {
-        ":local_otel_export": "otlp",
-    },
-    visibility = ["//visibility:public"],
-)
-
-config_setting(
-    name = "local_otel_export_ostream",
-    flag_values = {
-        ":local_otel_export": "ostream",
-    },
-    visibility = ["//visibility:public"],
-)
-
-string_flag(
-    name = "local_otel_export",
-    build_setting_default = "ostream",
-    values = [
-        "ostream",
-        "otlp",
-    ],
-    visibility = ["//visibility:public"],
-)
-
 cc_library(
-    name = "init_local",
-    srcs = select({
-        ":local_otel_export_ostream": ["init_local_ostream.cc"],
-        ":local_otel_export_otlp": ["init_local_otlp.cc"],
-    }),
+    name = "init_local_ostream",
+    srcs = ["init_local_ostream.cc"],
     hdrs = ["init.h"],
     deps = [
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/types:optional",
         "@io_opentelemetry_cpp//exporters/ostream:ostream_log_record_exporter",
         "@io_opentelemetry_cpp//exporters/ostream:ostream_metric_exporter",
-    ] + select({
-        ":local_otel_export_ostream": [
-            "@io_opentelemetry_cpp//exporters/ostream:ostream_span_exporter",
-        ],
-        ":local_otel_export_otlp": [
-            "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
-            "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
-        ],
-    }),
+        "@io_opentelemetry_cpp//exporters/ostream:ostream_span_exporter",
+    ],
+)
+
+cc_library(
+    name = "init_local_otlp",
+    srcs = ["init_local_otlp.cc"],
+    hdrs = ["init.h"],
+    deps = [
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/types:optional",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_log_record_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
+    ],
 )
 
 cc_library(
@@ -164,24 +185,16 @@ cc_library(
     ],
 )
 
-cc_library(
+alias(
     name = "init",
-    visibility = ["//visibility:public"],
-    deps = select({
-        "//:aws_instance": [
-            ":init_aws",
-        ],
-        "//:azure_instance": [
-            ":init_aws",
-        ],
-        "//:gcp_instance": [
-            ":init_gcp",
-        ],
-        "//:local_instance": [
-            ":init_local",
-        ],
-        "//conditions:default": [],
+    actual = select({
+        "//:aws_instance": ":init_aws",
+        "//:azure_instance": ":init_aws",
+        "//:gcp_instance": ":init_gcp",
+        ":local_otel_ostream": ":init_local_ostream",
+        ":local_otel_otlp": ":init_local_otlp",
     }),
+    visibility = ["//visibility:public"],
 )
 
 cc_library(

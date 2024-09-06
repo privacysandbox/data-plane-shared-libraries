@@ -41,8 +41,13 @@ namespace google::scp::roma::sandbox::js_engine::test {
 class V8IsolateFunctionBindingTest : public ::testing::Test {
  public:
   static void SetUpTestSuite() {
-    js_engine::v8_js_engine::V8JsEngine engine;
-    engine.OneTimeSetup();
+    static constexpr bool skip_v8_cleanup = true;
+    js_engine::v8_js_engine::V8JsEngine(nullptr, skip_v8_cleanup)
+        .OneTimeSetup();
+  }
+
+  static void TearDownTestSuite() {
+    js_engine::v8_js_engine::V8JsEngine(nullptr);
   }
 };
 
@@ -63,7 +68,9 @@ TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
       function_names, /*rpc_method_names=*/std::vector<std::string>(),
       std::move(function_invoker), /*server_address=*/"");
 
-  js_engine::v8_js_engine::V8JsEngine js_engine(std::move(visitor));
+  static constexpr bool skip_v8_cleanup = true;
+  js_engine::v8_js_engine::V8JsEngine js_engine(std::move(visitor),
+                                                skip_v8_cleanup);
   js_engine.Run();
 
   auto result_or = js_engine.CompileAndRunJs(
@@ -71,6 +78,28 @@ TEST_F(V8IsolateFunctionBindingTest, FunctionBecomesAvailableInJavascript) {
   ASSERT_TRUE(result_or.ok());
   const auto& response_string = result_or->execution_response.response;
   EXPECT_THAT(response_string, StrEq(R"("")"));
+  js_engine.Stop();
+}
+
+TEST_F(V8IsolateFunctionBindingTest, PerformanceNowDeclaredInJs) {
+  auto function_invoker = std::make_unique<NativeFunctionInvokerMock>();
+  auto visitor = std::make_unique<v8_js_engine::V8IsolateFunctionBinding>(
+      /*function_names=*/std::vector<std::string>(),
+      /*rpc_method_names=*/std::vector<std::string>(),
+      std::move(function_invoker), /*server_address=*/"");
+
+  static constexpr bool skip_v8_cleanup = true;
+  js_engine::v8_js_engine::V8JsEngine js_engine(std::move(visitor),
+                                                skip_v8_cleanup);
+  js_engine.Run();
+
+  auto result_or = js_engine.CompileAndRunJs(
+      R"(function Handler() { return performance.now(); })", "Handler", {}, {});
+  ASSERT_TRUE(result_or.ok());
+  const auto& response_string = result_or->execution_response.response;
+  double response;
+  EXPECT_TRUE(absl::SimpleAtod(response_string, &response));
+  EXPECT_GT(response, 0);
   js_engine.Stop();
 }
 

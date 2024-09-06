@@ -30,6 +30,7 @@ cc_library(
     deps = [
         "//src/core/interface",
         "//src/core/utils:core_utils",
+        "//src/public/core/interface:execution_result",
         "@nlohmann_json//:lib",
     ],
 )
@@ -42,6 +43,7 @@ cc_test(
     deps = [
         ":config_provider",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -53,6 +55,7 @@ cc_test(
     deps = [
         ":config_provider",
         "//src/public/core:test_execution_result_matchers",
+        "//src/public/core/interface:execution_result",
         "@com_google_googletest//:gtest_main",
     ],
 )

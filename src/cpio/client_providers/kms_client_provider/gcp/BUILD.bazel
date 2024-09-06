@@ -17,101 +17,134 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "nontee_gcp_kms_client_provider",
-    srcs = [
-        ":nontee_gcp_kms_client_provider_srcs",
-    ],
+    name = "tee_gcp_kms_client_provider",
     deps = [
-        "//src/core/common/uuid",
-        "//src/core/interface",
-        "//src/core/interface:async_context",
-        "//src/core/utils:core_utils",
-        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
-        "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
-        "//src/public/cpio/interface:cpio_errors",
-        "//src/public/cpio/interface/kms_client:type_def",
-        "@com_github_googleapis_google_cloud_cpp//:kms",
-        "@com_google_absl//absl/strings",
-        "@nlohmann_json//:lib",
-        "@tink_cc",
+        ":error_codes",
+        ":gcp_key_management_service_client",
+        ":gcp_kms_aead",
+        ":gcp_kms_client_provider",
+        ":tee_gcp_kms_aead_provider",
+        ":tee_gcp_kms_client_provider_utils",
     ],
 )
 
 cc_library(
-    name = "tee_gcp_kms_client_provider",
-    srcs = [
-        ":tee_gcp_kms_client_provider_srcs",
-    ],
+    name = "nontee_gcp_kms_client_provider",
     deps = [
-        "//src/core/common/uuid",
-        "//src/core/interface",
+        ":error_codes",
+        ":gcp_key_management_service_client",
+        ":gcp_kms_aead",
+        ":gcp_kms_client_provider",
+        ":nontee_gcp_kms_aead_provider",
+    ],
+)
+
+cc_library(
+    name = "error_codes",
+    hdrs = ["error_codes.h"],
+    deps = [
+        "//src/core/interface:errors",
+        "//src/public/cpio/interface:cpio_errors",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_library(
+    name = "gcp_key_management_service_client",
+    srcs = ["gcp_key_management_service_client.cc"],
+    hdrs = ["gcp_key_management_service_client.h"],
+    deps = [
+        "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
+        "@com_github_googleapis_google_cloud_cpp//:kms",
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_library(
+    name = "gcp_kms_aead",
+    srcs = ["gcp_kms_aead.cc"],
+    hdrs = ["gcp_kms_aead.h"],
+    deps = [
+        ":gcp_key_management_service_client",
+        "@com_github_googleapis_google_cloud_cpp//:kms",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:lib",
+        "@tink_cc//:aead",
+        "@tink_cc//util:status",
+        "@tink_cc//util:statusor",
+    ],
+)
+
+cc_library(
+    name = "gcp_kms_client_provider",
+    srcs = ["gcp_kms_client_provider.cc"],
+    hdrs = ["gcp_kms_client_provider.h"],
+    deps = [
+        ":error_codes",
+        ":gcp_key_management_service_client",
+        ":gcp_kms_aead",
         "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
-        "//src/cpio/client_providers/kms_client_provider/interface/gcp:gcp_kms_client_provider_interface",
-        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface/kms_client:type_def",
-        "@com_github_googleapis_google_cloud_cpp//:kms",
-        "@com_google_absl//absl/strings",
         "@nlohmann_json//:lib",
         "@tink_cc",
     ],
 )
 
-exports_files([
-    "error_codes.h",
-    "gcp_key_management_service_client.cc",
-    "gcp_key_management_service_client.h",
-    "gcp_kms_aead.cc",
-    "gcp_kms_aead.h",
-    "gcp_kms_client_provider.cc",
-    "gcp_kms_client_provider.h",
-    "nontee_gcp_kms_provider.cc",
-    "tee_gcp_kms_client_provider_utils.cc",
-    "tee_gcp_kms_client_provider_utils.h",
-    "tee_gcp_kms_provider.cc",
-])
-
-filegroup(
-    name = "gcp_kms_client_provider_srcs",
-    srcs = [
-        ":error_codes.h",
-        ":gcp_key_management_service_client.cc",
-        ":gcp_key_management_service_client.h",
-        ":gcp_kms_aead.cc",
-        ":gcp_kms_aead.h",
-        ":gcp_kms_client_provider.cc",
-        ":gcp_kms_client_provider.h",
+# TEE dependencies and tests:
+cc_library(
+    name = "tee_gcp_kms_aead_provider",
+    srcs = ["tee_gcp_kms_aead_provider.cc"],
+    deps = [
+        ":gcp_kms_client_provider",
+        ":tee_gcp_kms_client_provider_utils",
+        "@com_github_googleapis_google_cloud_cpp//:kms",
+        "@nlohmann_json//:lib",
     ],
 )
 
-filegroup(
-    name = "nontee_gcp_kms_client_provider_srcs",
-    srcs = [
-        ":gcp_kms_client_provider_srcs",
-        ":nontee_gcp_kms_aead_provider.cc",
+cc_library(
+    name = "tee_gcp_kms_client_provider_utils",
+    srcs = ["tee_gcp_kms_client_provider_utils.cc"],
+    hdrs = ["tee_gcp_kms_client_provider_utils.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+        "@nlohmann_json//:lib",
     ],
 )
 
-filegroup(
-    name = "tee_gcp_kms_client_provider_srcs",
-    srcs = [
-        ":gcp_kms_client_provider_srcs",
-        ":tee_gcp_kms_aead_provider.cc",
-        ":tee_gcp_kms_client_provider_utils.cc",
-        ":tee_gcp_kms_client_provider_utils.h",
+cc_test(
+    name = "tee_gcp_kms_client_provider_utils_test",
+    size = "small",
+    srcs = ["tee_gcp_kms_client_provider_utils_test.cc"],
+    deps = [
+        ":tee_gcp_kms_client_provider_utils",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+# nonTEE dependencies and tests:
+cc_library(
+    name = "nontee_gcp_kms_aead_provider",
+    srcs = ["nontee_gcp_kms_aead_provider.cc"],
+    deps = [
+        ":gcp_kms_client_provider",
+        "@com_github_googleapis_google_cloud_cpp//:kms",
+        "@nlohmann_json//:lib",
     ],
 )
 
 cc_test(
     name = "gcp_kms_aead_test",
     size = "small",
-    srcs =
-        ["gcp_kms_aead_test.cc"],
+    srcs = ["gcp_kms_aead_test.cc"],
     deps = [
-        ":nontee_gcp_kms_client_provider",
-        "//src/core/interface",
-        "//src/core/test/utils",
+        ":gcp_kms_aead",
         "//src/cpio/client_providers/kms_client_provider/mock/gcp:gcp_kms_client_provider_mock",
         "@com_github_googleapis_google_cloud_cpp//:kms",
         "@com_google_googletest//:gtest_main",
@@ -121,27 +154,18 @@ cc_test(
 cc_test(
     name = "gcp_kms_client_provider_test",
     size = "small",
-    srcs =
-        ["gcp_kms_client_provider_test.cc"],
+    srcs = ["gcp_kms_client_provider_test.cc"],
     deps = [
-        ":nontee_gcp_kms_client_provider",
-        "//src/core/interface",
-        "//src/core/test/utils",
+        ":error_codes",
+        ":gcp_kms_aead",
+        ":gcp_kms_client_provider",
+        ":nontee_gcp_kms_aead_provider",
+        "//src/core/interface:async_context",
+        "//src/core/utils:core_utils",
         "//src/cpio/client_providers/kms_client_provider/mock/gcp:gcp_kms_client_provider_mock",
         "//src/public/core:test_execution_result_matchers",
-        "@com_github_googleapis_google_cloud_cpp//:kms",
+        "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_test(
-    name = "tee_gcp_kms_client_provider_utils_test",
-    size = "small",
-    srcs =
-        ["tee_gcp_kms_client_provider_utils_test.cc"],
-    deps = [
-        ":tee_gcp_kms_client_provider",
         "@com_google_googletest//:gtest_main",
     ],
 )

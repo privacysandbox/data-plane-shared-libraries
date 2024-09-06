@@ -33,6 +33,7 @@
 
 using google::scp::roma::sandbox::roma_service::RomaService;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
+using ::testing::HasSubstr;
 using ::testing::StrEq;
 
 namespace google::scp::roma::test {
@@ -100,6 +101,65 @@ TEST(WasmTest, CanExecuteWasmCode) {
   ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
 
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
+TEST(WasmTest, ReportsWasmStacktrace) {
+  Config config;
+  config.number_of_workers = 2;
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  auto wasm_bin = WasmTestingUtils::LoadWasmFile(
+      "./src/roma/testing/"
+      "cpp_wasm_erroneous_code_example/"
+      "erroneous_code.wasm");
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .wasm = std::string(reinterpret_cast<char*>(wasm_bin.data()),
+                            wasm_bin.size()),
+    });
+
+    EXPECT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   EXPECT_TRUE(resp.ok());
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
+
+    EXPECT_TRUE(
+        roma_service
+            .Execute(
+                std::move(execution_obj),
+                [&](absl::StatusOr<ResponseObject> resp) {
+                  EXPECT_EQ(resp.status().code(), absl::StatusCode::kInternal);
+                  EXPECT_THAT(
+                      resp.status().message(),
+                      // Since abort() causes the code to terminate
+                      // unexpectedly, it throws a runtime error: unreachable.
+                      // https://developer.mozilla.org/en-US/docs/WebAssembly/Reference/Control_flow/unreachable
+                      HasSubstr("Uncaught RuntimeError: unreachable"));
+                  execute_finished.Notify();
+                })
+            .ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+  ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   EXPECT_TRUE(roma_service.Stop().ok());
 }
 

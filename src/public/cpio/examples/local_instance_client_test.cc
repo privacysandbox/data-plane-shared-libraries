@@ -19,6 +19,7 @@
 #include <string>
 
 #include "absl/functional/bind_front.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -63,53 +64,20 @@ void GetCurrentInstanceResourceNameCallback(
 }  // namespace
 
 int main(int argc, char* argv[]) {
-  TestCpioOptions cpio_options;
-  cpio_options.log_option = LogOption::kConsoleLog;
-  cpio_options.region = kRegion;
-  cpio_options.instance_id = kInstanceId;
-  auto result = TestLibCpio::InitCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to initialize CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
-  InstanceClientOptions instance_client_options;
-  auto instance_client =
-      InstanceClientFactory::Create(std::move(instance_client_options));
-  result = instance_client->Init();
-  if (!result.Successful()) {
-    std::cout << "Cannot init instance client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-    return 0;
-  }
-  result = instance_client->Run();
-  if (!result.Successful()) {
-    std::cout << "Cannot run instance client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-    return 0;
-  }
-
+  TestCpioOptions cpio_options{.instance_id = std::string{kInstanceId},
+                               .options = {.log_option = LogOption::kConsoleLog,
+                                           .region = std::string{kRegion}}};
+  TestLibCpio::InitCpio(cpio_options);
+  auto instance_client = InstanceClientFactory::Create();
   absl::Notification finished;
-  result = instance_client->GetCurrentInstanceResourceName(
-      GetCurrentInstanceResourceNameRequest(),
-      absl::bind_front(GetCurrentInstanceResourceNameCallback,
-                       std::ref(finished)));
-
-  if (!result.Successful()) {
-    std::cout << "GetCurrentInstanceResourceName failed immediately: "
-              << GetErrorMessage(result.status_code) << std::endl;
+  if (absl::Status error = instance_client->GetCurrentInstanceResourceName(
+          GetCurrentInstanceResourceNameRequest(),
+          absl::bind_front(GetCurrentInstanceResourceNameCallback,
+                           std::ref(finished)));
+      !error.ok()) {
+    std::cout << "GetCurrentInstanceResourceName failed immediately: " << error
+              << std::endl;
   }
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
-
-  result = instance_client->Stop();
-  if (!result.Successful()) {
-    std::cout << "Cannot stop instance client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
-  result = TestLibCpio::ShutdownCpio(cpio_options);
-  if (!result.Successful()) {
-    std::cout << "Failed to shutdown CPIO: "
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
+  TestLibCpio::ShutdownCpio(cpio_options);
 }

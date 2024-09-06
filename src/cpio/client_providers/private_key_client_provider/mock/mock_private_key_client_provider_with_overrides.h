@@ -37,7 +37,7 @@ class MockPrivateKeyClientProviderWithOverrides
   explicit MockPrivateKeyClientProviderWithOverrides(
       PrivateKeyClientOptions private_key_client_options)
       : PrivateKeyClientProvider(
-            std::move(private_key_client_options), &mock_http_client_,
+            std::move(private_key_client_options),
             std::make_unique<MockPrivateKeyFetcherProvider>(),
             std::make_unique<MockKmsClientProvider>()) {}
 
@@ -74,9 +74,6 @@ class MockPrivateKeyClientProviderWithOverrides
   MockPrivateKeyFetcherProvider& GetPrivateKeyFetcherProvider() {
     return dynamic_cast<MockPrivateKeyFetcherProvider&>(*private_key_fetcher_);
   }
-
- private:
-  core::http2_client::mock::MockHttpClient mock_http_client_;
 };
 
 }  // namespace google::scp::cpio::client_providers::mock

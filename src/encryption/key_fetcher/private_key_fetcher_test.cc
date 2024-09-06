@@ -18,6 +18,7 @@
 
 #include <utility>
 
+#include "absl/status/status.h"
 #include "absl/strings/escaping.h"
 #include "absl/time/clock.h"
 #include "include/gtest/gtest.h"
@@ -47,20 +48,20 @@ constexpr std::string_view kPrivateKey = "privkey";
 class MockPrivateKeyClient
     : public google::scp::cpio::PrivateKeyClientInterface {
  public:
-  ExecutionResult init_result_mock = SuccessExecutionResult();
+  absl::Status init_result_mock = absl::OkStatus();
 
-  ExecutionResult Init() noexcept override { return init_result_mock; }
+  absl::Status Init() noexcept override { return init_result_mock; }
 
-  ExecutionResult run_result_mock = SuccessExecutionResult();
+  absl::Status run_result_mock = absl::OkStatus();
 
-  ExecutionResult Run() noexcept override { return run_result_mock; }
+  absl::Status Run() noexcept override { return run_result_mock; }
 
-  ExecutionResult stop_result_mock = SuccessExecutionResult();
+  absl::Status stop_result_mock = absl::OkStatus();
 
-  ExecutionResult Stop() noexcept override { return stop_result_mock; }
+  absl::Status Stop() noexcept override { return stop_result_mock; }
 
   MOCK_METHOD(
-      ExecutionResult, ListPrivateKeys,
+      absl::Status, ListPrivateKeys,
       (google::cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest
            request,
        google::scp::cpio::Callback<
@@ -95,21 +96,19 @@ TEST(PrivateKeyFetcherTest, SuccessfulRefresh_SuccessfulPKSCall) {
       CreateFakePrivateKey(kPrivateKey, kPublicKey, "FF0000000"));
 
   EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
-      .WillOnce(
-          [&](ListPrivateKeysRequest request,
-              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
-            // We pass 1 hour as the TTL below when we construct the fetcher.
-            // For the first fetch, we should not be fetching all keys, not just
-            // the ones passed into the method.
-            EXPECT_EQ(request.max_age_seconds(),
-                      ToInt64Seconds(absl::Hours(1)));
-            EXPECT_EQ(request.key_ids().size(), 0);
-            callback(SuccessExecutionResult(), response);
-            return SuccessExecutionResult();
-          });
+      .WillOnce([&](ListPrivateKeysRequest request,
+                    Callback<ListPrivateKeysResponse> callback) {
+        // We pass 1 hour as the TTL below when we construct the fetcher.
+        // For the first fetch, we should not be fetching all keys, not just
+        // the ones passed into the method.
+        EXPECT_EQ(request.max_age_seconds(), ToInt64Seconds(absl::Hours(1)));
+        EXPECT_EQ(request.key_ids().size(), 0);
+        callback(SuccessExecutionResult(), response);
+        return absl::OkStatus();
+      });
 
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client), absl::Hours(1));
-  (void)fetcher.Refresh();
+  fetcher.Refresh().IgnoreError();
 
   // Verify all fields were initialized correctly.
   EXPECT_TRUE(fetcher.GetKey("255").has_value());
@@ -127,30 +126,28 @@ TEST(PrivateKeyFetcherTest,
   // The key fetcher will save the private key on the first refresh and clear
   // it out on the second refresh.
   EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
-      .WillOnce(
-          [&](ListPrivateKeysRequest request,
-              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
-            ListPrivateKeysResponse response;
-            response.mutable_private_keys()->Add(
-                CreateFakePrivateKey(kPrivateKey, kPublicKey, "000000"));
+      .WillOnce([&](ListPrivateKeysRequest request,
+                    Callback<ListPrivateKeysResponse> callback) {
+        ListPrivateKeysResponse response;
+        response.mutable_private_keys()->Add(
+            CreateFakePrivateKey(kPrivateKey, kPublicKey, "000000"));
 
-            callback(SuccessExecutionResult(), response);
-            return SuccessExecutionResult();
-          })
-      .WillOnce(
-          [&](ListPrivateKeysRequest request,
-              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
-            callback(SuccessExecutionResult(), ListPrivateKeysResponse());
-            return SuccessExecutionResult();
-          });
+        callback(SuccessExecutionResult(), response);
+        return absl::OkStatus();
+      })
+      .WillOnce([&](ListPrivateKeysRequest request,
+                    Callback<ListPrivateKeysResponse> callback) {
+        callback(SuccessExecutionResult(), ListPrivateKeysResponse());
+        return absl::OkStatus();
+      });
 
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client),
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
   // booted from the cache.
-  (void)fetcher.Refresh();
+  fetcher.Refresh().IgnoreError();
   absl::SleepFor(absl::Milliseconds(1));
-  (void)fetcher.Refresh();
+  fetcher.Refresh().IgnoreError();
 
   EXPECT_FALSE(fetcher.GetKey("000000").has_value());
 }
@@ -162,29 +159,27 @@ TEST(PrivateKeyFetcherTest, UnsuccessfulSyncPKSCall_CleansOldKeys) {
   // The key fetcher will save the private key on the first refresh and clear
   // it out on the second refresh.
   EXPECT_CALL(*mock_private_key_client, ListPrivateKeys)
-      .WillOnce(
-          [&](ListPrivateKeysRequest request,
-              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
-            ListPrivateKeysResponse response;
-            response.mutable_private_keys()->Add(
-                CreateFakePrivateKey(kPrivateKey, kPublicKey, "000000"));
-            callback(SuccessExecutionResult(), response);
-            return SuccessExecutionResult();
-          })
-      .WillOnce(
-          [&](ListPrivateKeysRequest request,
-              Callback<ListPrivateKeysResponse> callback) -> ExecutionResult {
-            callback(FailureExecutionResult(0), ListPrivateKeysResponse());
-            return FailureExecutionResult(0);
-          });
+      .WillOnce([&](ListPrivateKeysRequest request,
+                    Callback<ListPrivateKeysResponse> callback) {
+        ListPrivateKeysResponse response;
+        response.mutable_private_keys()->Add(
+            CreateFakePrivateKey(kPrivateKey, kPublicKey, "000000"));
+        callback(SuccessExecutionResult(), response);
+        return absl::OkStatus();
+      })
+      .WillOnce([&](ListPrivateKeysRequest request,
+                    Callback<ListPrivateKeysResponse> callback) {
+        callback(FailureExecutionResult(0), ListPrivateKeysResponse());
+        return absl::UnknownError("");
+      });
 
   PrivateKeyFetcher fetcher(std::move(mock_private_key_client),
                             absl::Nanoseconds(1));
   // TTL is 1 nanosecond and we wait 1 millisecond to refresh, so the key is
   // booted from the cache.
-  (void)fetcher.Refresh();
+  fetcher.Refresh().IgnoreError();
   absl::SleepFor(absl::Milliseconds(1));
-  (void)fetcher.Refresh();
+  fetcher.Refresh().IgnoreError();
 
   EXPECT_FALSE(fetcher.GetKey("000000").has_value());
 }

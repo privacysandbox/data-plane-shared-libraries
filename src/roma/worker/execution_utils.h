@@ -41,49 +41,42 @@ class ExecutionUtils {
    * @brief Compiles and runs JavaScript code object.
    *
    * @param js the string object of JavaScript code.
-   * @param err_msg
    * @param[out] unbound_script this is optional output. If unbound_script is
    * provided, a local UnboundScript will be assigned to unbound_script.
    * @return absl::Status
    */
   static absl::Status CompileRunJS(
-      std::string_view js, std::string& err_msg,
-      v8::Local<v8::UnboundScript>* unbound_script = nullptr);
+      std::string_view js,
+      absl::Nullable<v8::Local<v8::UnboundScript>*> unbound_script = nullptr);
 
   /**
    * @brief Get JS handler from context.
    *
    * @param handler_name the name of the handler.
    * @param handler the handler of the code object.
-   * @param err_msg the error message to output.
    * @return absl::Status
    */
   static absl::Status GetJsHandler(std::string_view handler_name,
-                                   v8::Local<v8::Value>& handler,
-                                   std::string& err_msg);
+                                   v8::Local<v8::Value>& handler);
 
   /**
    * @brief Compiles and runs WASM code object.
    *
    * @param wasm the byte object of WASM code.
-   * @param err_msg the error message to output.
    * @return absl::Status the execution result of JavaScript code
    * object compile and run.
    */
-  static absl::Status CompileRunWASM(std::string_view wasm,
-                                     std::string& err_msg);
+  static absl::Status CompileRunWASM(std::string_view wasm);
 
   /**
    * @brief Get handler from WASM export object.
    *
    * @param handler_name the name of the handler.
    * @param handler the handler of the code object.
-   * @param err_msg the error message to output.
    * @return absl::Status
    */
   static absl::Status GetWasmHandler(std::string_view handler_name,
-                                     v8::Local<v8::Value>& handler,
-                                     std::string& err_msg);
+                                     v8::Local<v8::Value>& handler);
 
   /**
    * @brief Converts string vector to v8 Array.
@@ -108,7 +101,8 @@ class ExecutionUtils {
    * @return v8::Local<v8::Value>
    */
   static v8::Local<v8::Value> ReadFromWasmMemory(
-      v8::Isolate* isolate, v8::Local<v8::Context>& context, int32_t offset);
+      absl::Nonnull<v8::Isolate*> isolate, v8::Local<v8::Context>& context,
+      int32_t offset);
 
   /**
    * @brief Extract the error message from v8::Message object.
@@ -117,7 +111,7 @@ class ExecutionUtils {
    * @param message
    * @return std::string
    */
-  static std::string ExtractMessage(v8::Isolate* isolate,
+  static std::string ExtractMessage(absl::Nonnull<v8::Isolate*> isolate,
                                     v8::Local<v8::Message> message);
 
   /**
@@ -142,7 +136,7 @@ class ExecutionUtils {
    * handler.
    */
   static v8::Local<v8::Array> ParseAsWasmInput(
-      v8::Isolate* isolate, v8::Local<v8::Context>& context,
+      absl::Nonnull<v8::Isolate*> isolate, v8::Local<v8::Context>& context,
       const std::vector<std::string_view>& input);
 
   /**
@@ -152,7 +146,7 @@ class ExecutionUtils {
    * @return true
    * @return false
    */
-  static bool CheckErrorWithWebAssembly(std::string& err_msg) {
+  static bool CheckErrorWithWebAssembly(std::string_view err_msg) {
     constexpr std::string_view kJsWasmMixedError =
         "ReferenceError: WebAssembly is not defined";
     return err_msg.find(kJsWasmMixedError) != std::string::npos;
@@ -162,22 +156,19 @@ class ExecutionUtils {
    * @brief Create an Unbound Script object.
    *
    * @param js
-   * @param err_msg
    * @return absl::Status
    */
   static absl::Status CreateUnboundScript(
-      v8::Global<v8::UnboundScript>& unbound_script, v8::Isolate* isolate,
-      std::string_view js, std::string& err_msg);
+      v8::Global<v8::UnboundScript>& unbound_script,
+      absl::Nonnull<v8::Isolate*> isolate, std::string_view js);
 
   /**
    * @brief Bind UnboundScript to current context and run it.
    *
-   * @param err_msg
    * @return bool success
    */
-  static bool BindUnboundScript(
-      const v8::Global<v8::UnboundScript>& global_unbound_script,
-      std::string& err_msg);
+  static absl::Status BindUnboundScript(
+      const v8::Global<v8::UnboundScript>& global_unbound_script);
 
   /**
    * @brief Generate an object that represents the WASM imports modules
@@ -185,10 +176,11 @@ class ExecutionUtils {
    * @param isolate
    * @return Local<Object>
    */
-  static v8::Local<v8::Object> GenerateWasmImports(v8::Isolate* isolate);
+  static v8::Local<v8::Object> GenerateWasmImports(
+      absl::Nonnull<v8::Isolate*> isolate);
 
-  static std::string DescribeError(v8::Isolate* isolate,
-                                   v8::TryCatch* try_catch);
+  static std::string DescribeError(absl::Nonnull<v8::Isolate*> isolate,
+                                   absl::Nonnull<v8::TryCatch*> try_catch);
 
   /**
    * @brief Get the WASM memory object that was registered in the global context
@@ -198,11 +190,10 @@ class ExecutionUtils {
    * @return Local<Value> The WASM memory object
    */
   static v8::Local<v8::Value> GetWasmMemoryObject(
-      v8::Isolate* isolate, v8::Local<v8::Context>& context);
+      absl::Nonnull<v8::Isolate*> isolate, v8::Local<v8::Context>& context);
 
-  static bool V8PromiseHandler(v8::Isolate* isolate,
-                               v8::Local<v8::Value>& result,
-                               std::string& err_msg);
+  static absl::Status V8PromiseHandler(absl::Nonnull<v8::Isolate*> isolate,
+                                       v8::Local<v8::Value>& result);
 };
 }  // namespace google::scp::roma::worker
 

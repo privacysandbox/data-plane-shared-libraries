@@ -20,22 +20,15 @@
 #include <gtest/gtest.h>
 
 #include <memory>
-#include <utility>
 
-#include "src/core/async_executor/mock/mock_async_executor.h"
-#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/metric_client_provider/mock/mock_metric_client_provider.h"
-#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::cpio::mock {
 class MockMetricClientWithOverrides : public MetricClient {
  public:
-  explicit MockMetricClientWithOverrides(MetricClientOptions options)
-      : MetricClient(std::move(options)) {}
-
-  void CreateMetricClientProvider() noexcept override {
-    metric_client_provider_ = std::make_unique<
-        testing::NiceMock<client_providers::mock::MockMetricClientProvider>>();
+  MockMetricClientWithOverrides()
+      : MetricClient(std::make_unique<testing::NiceMock<
+                         client_providers::mock::MockMetricClientProvider>>()) {
   }
 
   client_providers::mock::MockMetricClientProvider& GetMetricClientProvider() {

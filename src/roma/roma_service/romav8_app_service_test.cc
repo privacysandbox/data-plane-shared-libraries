@@ -31,20 +31,20 @@
 using ::testing::ElementsAreArray;
 using ::testing::StrEq;
 
-namespace google::scp::roma::romav8::app_api {
+namespace google::scp::roma::romav8 {
 
 template <>
-absl::Status Decode(const TEncoded& encoded, std::string& decoded) {
+absl::Status Decode(const std::string& encoded, std::string& decoded) {
   decoded = encoded;
   return absl::OkStatus();
 }
 
 template <>
-absl::StatusOr<TEncoded> Encode(const std::string& obj) {
+absl::StatusOr<std::string> Encode(const std::string& obj) {
   return obj;
 }
 
-}  // namespace google::scp::roma::romav8::app_api
+}  // namespace google::scp::roma::romav8
 
 namespace google::scp::roma::test {
 
@@ -74,22 +74,6 @@ class HelloWorldApp
       : RomaV8AppService(std::move(config),
                          "fully-qualified-hello-world-name") {}
 };
-
-TEST(RomaV8AppServiceTest, EncodeDecodeProtobuf) {
-  ::romav8::app_api::test::HelloWorldRequest req;
-  req.set_name("Foobar");
-
-  using google::scp::roma::romav8::app_api::Decode;
-  using google::scp::roma::romav8::app_api::Encode;
-
-  const auto encoded = Encode(req);
-  EXPECT_TRUE(encoded.ok());
-  std::string decoded;
-  EXPECT_TRUE(Decode<>(*encoded, decoded).ok());
-  const auto encoded2 = Encode(decoded);
-  EXPECT_TRUE(encoded2.ok());
-  EXPECT_THAT(*encoded, testing::StrEq(*encoded2));
-}
 
 TEST(RomaV8AppServiceTest, HelloWorld) {
   absl::Notification load_finished;

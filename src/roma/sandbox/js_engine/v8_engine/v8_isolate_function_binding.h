@@ -24,6 +24,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/base/nullability.h"
 #include "include/v8.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
@@ -48,16 +49,8 @@ class V8IsolateFunctionBinding {
   V8IsolateFunctionBinding(const V8IsolateFunctionBinding&) = delete;
   V8IsolateFunctionBinding& operator=(const V8IsolateFunctionBinding&) = delete;
 
-  void BindFunction(
-      v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template, void* binding,
-      void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
-      std::string_view function_name,
-      absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>&
-          child_templates);
-
   // Returns success
-  bool BindFunctions(v8::Isolate* isolate,
+  bool BindFunctions(absl::Nonnull<v8::Isolate*> isolate,
                      v8::Local<v8::ObjectTemplate>& global_object_template);
 
   void AddExternalReferences(std::vector<intptr_t>& external_references);
@@ -72,10 +65,6 @@ class V8IsolateFunctionBinding {
     V8IsolateFunctionBinding* instance;
     void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&);
   };
-  std::vector<Binding> binding_references_;
-  std::string invocation_req_uuid_;
-  std::string invocation_req_id_;
-
   static void GlobalV8FunctionCallback(
       const v8::FunctionCallbackInfo<v8::Value>& info);
 
@@ -86,6 +75,17 @@ class V8IsolateFunctionBinding {
                                   proto::FunctionBindingIoProto& function_proto,
                                   proto::RpcWrapper& rpc_proto);
 
+  void BindFunction(
+      v8::Isolate* isolate,
+      v8::Local<v8::ObjectTemplate>& global_object_template, void* binding,
+      void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
+      std::string_view function_name,
+      absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>&
+          child_templates);
+
+  std::vector<Binding> binding_references_;
+  std::string invocation_req_uuid_;
+  std::string invocation_req_id_;
   const std::vector<std::string> function_names_;
   std::unique_ptr<native_function_binding::NativeFunctionInvoker>
       function_invoker_;

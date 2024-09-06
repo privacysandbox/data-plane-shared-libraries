@@ -21,9 +21,10 @@
 #include "src/logger/request_context_logger.h"
 #include "src/logger/request_context_logger_test.h"
 
-namespace privacy_sandbox::server_common::log {
+namespace privacy_sandbox::test {
 
 namespace {
+using ::testing::AllOf;
 using ::testing::ContainsRegex;
 using ::testing::HasSubstr;
 using ::testing::IsEmpty;
@@ -32,16 +33,38 @@ TEST_F(LogTest, NothingIfNotConsented) {
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
       IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
+      IsEmpty());
+
   tc.is_debug_response_ = true;
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
       IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      IsEmpty());
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
+      IsEmpty());
 }
 
-TEST_F(LogTest, OnlyConsentSinkIfConsented) {
+TEST_F(LogTest, VlogOnlyConsentSinkIfConsented) {
   tc.is_consented_ = true;
-  EXPECT_CALL(tc.consent_sink_,
-              Send(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent))))
+  EXPECT_CALL(
+      tc.consent_sink_,
+
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
@@ -49,11 +72,82 @@ TEST_F(LogTest, OnlyConsentSinkIfConsented) {
 
   // is_debug_response_ doesn't do anything
   tc.is_debug_response_ = true;
-  EXPECT_CALL(tc.consent_sink_,
-              Send(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent))))
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
       .Times(1);
   EXPECT_THAT(
       LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      IsEmpty());
+}
+
+TEST_F(LogTest, InfoOnlyConsentSinkIfConsented) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      IsEmpty());
+
+  // is_debug_response_ doesn't do anything
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(INFO, tc) << kLogContent; }),
+      IsEmpty());
+}
+
+TEST_F(LogTest, WarningOnlyConsentSinkIfConsented) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kWarning))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      IsEmpty());
+
+  // is_debug_response_ doesn't do anything
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kWarning))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; }),
+      IsEmpty());
+}
+
+TEST_F(LogTest, ErrorOnlyConsentSinkIfConsented) {
+  tc.is_consented_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kError))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
+      IsEmpty());
+
+  // is_debug_response_ doesn't do anything
+  tc.is_debug_response_ = true;
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kError))))
+      .Times(1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; }),
       IsEmpty());
 }
 
@@ -75,31 +169,25 @@ TEST_F(LogTest, SkipStreamingIfNotLog) {
   // will not hit Crash(), because no logger is logging
   tc.is_consented_ = false;
   PS_VLOG(kMaxV, tc) << Crash();
-}
-
-TEST_F(LogTest, Warning) {
-  tc.is_consented_ = true;
-  tc.is_debug_response_ = true;
-  std::string log =
-      LogWithCapturedStderr([this]() { PS_LOG(WARNING, tc) << kLogContent; });
-  EXPECT_THAT(log, HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
-  EXPECT_THAT(log, ContainsRegex("W[0-9]{4}"));
-}
-
-TEST_F(LogTest, Error) {
-  tc.is_consented_ = true;
-  tc.is_debug_response_ = true;
-  std::string log =
-      LogWithCapturedStderr([this]() { PS_LOG(ERROR, tc) << kLogContent; });
-  EXPECT_THAT(log, HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
-  EXPECT_THAT(log, ContainsRegex("E[0-9]{4}"));
+  PS_LOG(INFO, tc) << Crash();
+  PS_LOG(WARNING, tc) << Crash();
+  PS_LOG(ERROR, tc) << Crash();
 }
 
 TEST_F(LogTest, NoContext) {
   std::string log =
       LogWithCapturedStderr([]() { PS_VLOG(kMaxV) << kLogContent; });
   EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(INFO) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(WARNING) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
+
+  log = LogWithCapturedStderr([]() { PS_LOG(ERROR) << kLogContent; });
+  EXPECT_THAT(log, IsEmpty());
 }
 
 }  // namespace
-}  // namespace privacy_sandbox::server_common::log
+}  // namespace privacy_sandbox::test

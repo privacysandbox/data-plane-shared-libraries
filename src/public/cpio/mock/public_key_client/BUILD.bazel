@@ -25,6 +25,7 @@ cc_library(
         ],
     deps = [
         "//src/public/cpio/interface/public_key_client",
+        "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest",
     ],
 )

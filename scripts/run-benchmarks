@@ -24,7 +24,21 @@ usage:
   ${BASH_SOURCE[0]} <options>
     --verbose                       Enable xtrace verbose output
     --target <name>                 Name of a benchmark target to run. Can be specified multiple times.
-    --benchmark_time_unit <unit>    Specify benchmark units
+    --benchmark_time_unit={ns|us|ms|s}
+    --benchmark_list_tests={true|false}
+    --benchmark_filter=<regex>
+    --benchmark_min_time=<integer>x OR <float>s
+    --benchmark_min_warmup_time=<min_warmup_time>
+    --benchmark_repetitions=<num_repetitions>
+    --benchmark_enable_random_interleaving={true|false}
+    --benchmark_report_aggregates_only={true|false}
+    --benchmark_display_aggregates_only={true|false}
+    --benchmark_format=<console|json|csv>
+    --benchmark_out=<filename>
+    --benchmark_out_format=<json|console|csv>  default: json
+    --benchmark_color={auto|true|false}
+    --benchmark_counters_tabular={true|false}  default: true
+    --benchmark_context=<key>=<value>,...
 
 environment variables (all optional):
     WORKSPACE                    Set the path to the workspace (repo root)
@@ -42,6 +56,7 @@ source "${TOOLS_DIR}"/builder.sh
 declare -a targets
 declare -a benchmark_args=(
   "--benchmark_out_format=json"
+  "--benchmark_counters_tabular=true"
 )
 
 while [[ $# -gt 0 ]]; do
@@ -54,9 +69,9 @@ while [[ $# -gt 0 ]]; do
       targets+=("$2")
       shift 2 || usage
       ;;
-    --benchmark_time_unit)
-      benchmark_args+=("--benchmark_time_unit=$2")
-      shift 2 || usage
+    --benchmark_*)
+      benchmark_args+=("$1")
+      shift
       ;;
     -h | --help) usage 0 ;;
     *) usage ;;
@@ -78,10 +93,13 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/aws/proxy:benchmark_test
     //src/core/common/uuid:uuid_benchmark
     //src/roma/benchmark:ba_server_benchmark
-    //src/roma/benchmark:kv_server_udf_benchmark_test
     //src/roma/benchmark:host_api_grpc_benchmark
-    # TODO: b/328056518 - Turn this back on once v8 upgrade is complete.
-    # //src/roma/config:type_converter_benchmark
+    //src/roma/benchmark:kv_server_udf_benchmark_test
+    //src/roma/benchmark/serde:serialize_benchmark
+    //src/roma/benchmark/serde:deserialize_benchmark
+    //src/roma/benchmark/compiler:execute_benchmark
+    //src/roma/benchmark/compiler:load_benchmark
+    //src/roma/config:type_converter_benchmark
     //src/roma/sandbox/dispatcher:dispatcher_benchmark
     //src/roma/sandbox/worker_api/sapi:worker_wrapper_benchmark
     # TODO: Enable logging benchmark after reducing volume of log output.
@@ -103,7 +121,7 @@ for tgt in "${targets[@]}"; do
     --benchmark_out="/src/workspace/dist/benchmarks/${out_fname}" \
     "${benchmark_args[@]}" \
     2>/dev/null \
-    | grep -Fv sandbox2.cc
+    | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc"
 done
 
-"${TOOLS_DIR}"/normalize-dist || true
+"${TOOLS_DIR}"/normalize-dist

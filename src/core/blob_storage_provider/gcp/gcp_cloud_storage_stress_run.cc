@@ -20,6 +20,7 @@
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/blob_storage_provider/gcp/gcp_cloud_storage.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core::test {
 namespace {

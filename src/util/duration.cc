@@ -151,7 +151,7 @@ SteadyClock& SteadyClock::RealClock() {
 }
 
 SteadyTime SimulatedSteadyClock::Now() {
-  absl::MutexLock l(&lock_);
+  absl::MutexLock lock(&lock_);
   return now_;
 }
 
@@ -159,12 +159,12 @@ void SimulatedSteadyClock::AdvanceTime(absl::Duration d) {
   // Steady clocks are (by definition) monotonic.
   assert(d >= absl::ZeroDuration());
 
-  absl::MutexLock l(&lock_);
+  absl::MutexLock lock(&lock_);
   now_ += d;
 }
 
 void SimulatedSteadyClock::SetTime(SteadyTime t) {
-  absl::MutexLock l(&lock_);
+  absl::MutexLock lock(&lock_);
 
   // Steady clocks are (by definition) monotonic.
   assert(t >= now_);

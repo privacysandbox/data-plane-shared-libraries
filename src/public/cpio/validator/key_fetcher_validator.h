@@ -17,13 +17,14 @@
 #ifndef PUBLIC_CPIO_VALIDATOR_KEY_FETCHER_VALIDATOR_H_
 #define PUBLIC_CPIO_VALIDATOR_KEY_FETCHER_VALIDATOR_H_
 
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
 #include "src/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 
 void RunFetchPrivateKeyValidator(
-    std::string_view name,
+    client_providers::CpioProviderInterface& cpio, std::string_view name,
     const google::scp::cpio::validator::proto::FetchPrivateKeyConfig&
         key_fetcher_config);
 

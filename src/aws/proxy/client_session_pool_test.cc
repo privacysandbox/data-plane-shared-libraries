@@ -74,7 +74,8 @@ TEST(ClientSessionPoolTest, TestBind) {
   asio::write(client_sock0, const_buffer(&listen_req, sizeof(listen_req)), ec);
   ASSERT_FALSE(ec.failed()) << "Bind request error: " << ec.message();
 
-  pid_t client_pid = fork();
+  const pid_t client_pid = fork();
+  ASSERT_NE(client_pid, -1);
   if (client_pid == 0) {
     socket_vendor::BindResponse bind_resp;
     asio::read(client_sock0, mutable_buffer(&bind_resp, sizeof(bind_resp)), ec);
@@ -149,8 +150,8 @@ TEST(ClientSessionPoolTest, TestBind) {
   ASSERT_FALSE(ec.failed()) << "Proxy write error: " << ec.message();
 
   int wstatus = 0;
-  waitpid(client_pid, &wstatus, 0);
-  EXPECT_TRUE(WIFEXITED(wstatus));
+  ASSERT_EQ(waitpid(client_pid, &wstatus, 0), client_pid);
+  ASSERT_TRUE(WIFEXITED(wstatus));
   EXPECT_EQ(WEXITSTATUS(wstatus), 0);
   initiator.join();
   work.reset();

@@ -33,6 +33,7 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/aws/mock_s3_client.h"
 #include "src/cpio/client_providers/instance_client_provider/mock/mock_instance_client_provider.h"
 #include "src/cpio/common/aws/error_codes.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using Aws::InitAPI;
@@ -101,13 +102,13 @@ class AwsBlobStorageClientProviderTest : public ::testing::Test {
 
     get_blob_context_.request = std::make_shared<GetBlobRequest>();
     get_blob_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
     put_blob_context_.request = std::make_shared<PutBlobRequest>();
     put_blob_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
@@ -158,7 +159,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
         EXPECT_THAT(
             get_blob_context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
-        absl::MutexLock l(&finish_called_mu_);
+        absl::MutexLock lock(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -174,7 +175,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobFailure) {
 
   EXPECT_TRUE(provider_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -195,7 +196,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
                     StrEq(blob_name));
         EXPECT_THAT(get_blob_context.response->blob().data(), StrEq(blob_data));
 
-        absl::MutexLock l(&finish_called_mu_);
+        absl::MutexLock lock(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -216,7 +217,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobSuccess) {
 
   EXPECT_TRUE(provider_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -245,7 +246,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
                     StrEq(blob_name));
         EXPECT_THAT(get_blob_context.response->blob().data(), StrEq(blob_data));
 
-        absl::MutexLock l(&finish_called_mu_);
+        absl::MutexLock lock(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -268,7 +269,7 @@ TEST_F(AwsBlobStorageClientProviderTest, GetBlobWithByteRange) {
 
   EXPECT_TRUE(provider_->GetBlob(get_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -297,7 +298,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
         EXPECT_THAT(
             put_blob_context.result,
             ResultIs(FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR)));
-        absl::MutexLock l(&finish_called_mu_);
+        absl::MutexLock lock(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -314,7 +315,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobFailure) {
 
   EXPECT_TRUE(provider_->PutBlob(put_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -333,7 +334,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
   put_blob_context_.callback =
       [this](AsyncContext<PutBlobRequest, PutBlobResponse>& put_blob_context) {
         EXPECT_SUCCESS(put_blob_context.result);
-        absl::MutexLock l(&finish_called_mu_);
+        absl::MutexLock lock(&finish_called_mu_);
         finish_called_ = true;
       };
 
@@ -350,7 +351,7 @@ TEST_F(AwsBlobStorageClientProviderTest, PutBlobSuccess) {
 
   EXPECT_TRUE(provider_->PutBlob(put_blob_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 

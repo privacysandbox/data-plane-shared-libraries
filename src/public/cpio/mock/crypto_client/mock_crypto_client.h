@@ -19,47 +19,42 @@
 
 #include <gmock/gmock.h>
 
-#include <memory>
-
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
 
 namespace google::scp::cpio {
 class MockCryptoClient : public CryptoClientInterface {
  public:
   MockCryptoClient() {
-    ON_CALL(*this, Init)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Run)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
-    ON_CALL(*this, Stop)
-        .WillByDefault(testing::Return(core::SuccessExecutionResult()));
+    ON_CALL(*this, Init).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Run).WillByDefault(testing::Return(absl::OkStatus()));
+    ON_CALL(*this, Stop).WillByDefault(testing::Return(absl::OkStatus()));
   }
 
-  MOCK_METHOD(core::ExecutionResult, Init, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Run, (), (noexcept, override));
-  MOCK_METHOD(core::ExecutionResult, Stop, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Init, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Run, (), (noexcept, override));
+  MOCK_METHOD(absl::Status, Stop, (), (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, HpkeEncrypt,
+      absl::Status, HpkeEncrypt,
       (cmrt::sdk::crypto_service::v1::HpkeEncryptRequest request,
        Callback<cmrt::sdk::crypto_service::v1::HpkeEncryptResponse> callback),
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, HpkeDecrypt,
+      absl::Status, HpkeDecrypt,
       (cmrt::sdk::crypto_service::v1::HpkeDecryptRequest request,
        Callback<cmrt::sdk::crypto_service::v1::HpkeDecryptResponse> callback),
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, AeadEncrypt,
+      absl::Status, AeadEncrypt,
       (cmrt::sdk::crypto_service::v1::AeadEncryptRequest request,
        Callback<cmrt::sdk::crypto_service::v1::AeadEncryptResponse> callback),
       (noexcept, override));
 
   MOCK_METHOD(
-      core::ExecutionResult, AeadDecrypt,
+      absl::Status, AeadDecrypt,
       (cmrt::sdk::crypto_service::v1::AeadDecryptRequest request,
        Callback<cmrt::sdk::crypto_service::v1::AeadDecryptResponse> callback),
       (noexcept, override));

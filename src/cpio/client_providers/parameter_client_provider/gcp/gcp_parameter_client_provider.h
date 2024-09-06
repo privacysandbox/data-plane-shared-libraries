@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/base/nullability.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"
@@ -46,14 +47,14 @@ class GcpParameterClientProvider : public ParameterClientProviderInterface {
    * @param options configurations for ParameterClient.
    */
   GcpParameterClientProvider(
-      core::AsyncExecutorInterface* async_executor,
-      core::AsyncExecutorInterface* io_async_executor,
-      InstanceClientProviderInterface* instance_client_provider,
+      absl::Nonnull<core::AsyncExecutorInterface*> async_executor,
+      absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor,
+      absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
       ParameterClientOptions options)
-      : async_executor_(async_executor),
+      : project_id_(std::move(options).project_id),
+        async_executor_(async_executor),
         io_async_executor_(io_async_executor),
-        instance_client_provider_(instance_client_provider),
-        project_id_(std::move(options).project_id) {}
+        instance_client_provider_(instance_client_provider) {}
 
   absl::Status Init() noexcept;
 

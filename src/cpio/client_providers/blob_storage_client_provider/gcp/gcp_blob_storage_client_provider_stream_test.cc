@@ -138,13 +138,13 @@ class GcpBlobStorageClientProviderStreamTest : public testing::Test {
     instance_client_.instance_resource_name = kInstanceResourceName;
     get_blob_stream_context_.request = std::make_unique<GetBlobStreamRequest>();
     get_blob_stream_context_.process_callback = [this](auto, bool) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
     put_blob_stream_context_.request = std::make_unique<PutBlobStreamRequest>();
     put_blob_stream_context_.callback = [this](auto) {
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     };
 
@@ -286,7 +286,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -295,7 +295,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStream) {
       gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -346,7 +346,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -355,7 +355,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamMultipleResponses) {
       gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -407,7 +407,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
         ADD_FAILURE();
       }
       EXPECT_SUCCESS(context.result);
-      absl::MutexLock l(&finish_called_mu_);
+      absl::MutexLock lock(&finish_called_mu_);
       finish_called_ = true;
     }
   };
@@ -416,7 +416,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamByteRange) {
       gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -441,7 +441,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
   get_blob_stream_context_.process_callback = [this](auto& context, bool) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(SC_STREAMING_CONTEXT_DONE)));
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -449,7 +449,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, GetBlobStreamFailsIfQueueDone) {
       gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -474,7 +474,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(
                     SC_BLOB_STORAGE_PROVIDER_STREAM_SESSION_CANCELLED)));
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -482,7 +482,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
       gcp_cloud_storage_client_->GetBlobStream(get_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(get_blob_stream_context_.IsMarkedDone());
@@ -605,14 +605,14 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStream) {
   put_blob_stream_context_.callback = [this](auto& context) {
     EXPECT_SUCCESS(context.result);
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -646,14 +646,14 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamMultiplePortions) {
   put_blob_stream_context_.callback = [this](auto& context) {
     EXPECT_SUCCESS(context.result);
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 
@@ -680,7 +680,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(SC_GCP_UNKNOWN)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -688,7 +688,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
       gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
@@ -720,7 +720,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(SC_GCP_UNKNOWN)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -728,7 +728,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
       gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
@@ -762,7 +762,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
     EXPECT_THAT(context.result, ResultIs(RetryExecutionResult(
                                     SC_BLOB_STORAGE_PROVIDER_RETRIABLE_ERROR)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -770,7 +770,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
       gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
   {
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_mu_.Await(absl::Condition(&finish_called_));
   }
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
@@ -804,7 +804,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
                 ResultIs(FailureExecutionResult(
                     SC_BLOB_STORAGE_PROVIDER_STREAM_SESSION_EXPIRED)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
@@ -813,7 +813,7 @@ TEST_F(GcpBlobStorageClientProviderStreamTest,
 
   std::this_thread::sleep_for(
       std::chrono::microseconds(kStreamKeepAliveMicrosCount));
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   EXPECT_TRUE(finish_called_);
   EXPECT_TRUE(put_blob_stream_context_.IsMarkedDone());
 }
@@ -843,14 +843,14 @@ TEST_F(GcpBlobStorageClientProviderStreamTest, PutBlobStreamFailsIfCancelled) {
                 ResultIs(FailureExecutionResult(
                     SC_BLOB_STORAGE_PROVIDER_STREAM_SESSION_CANCELLED)));
 
-    absl::MutexLock l(&finish_called_mu_);
+    absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
   };
 
   EXPECT_TRUE(
       gcp_cloud_storage_client_->PutBlobStream(put_blob_stream_context_).ok());
 
-  absl::MutexLock l(&finish_called_mu_);
+  absl::MutexLock lock(&finish_called_mu_);
   finish_called_mu_.Await(absl::Condition(&finish_called_));
 }
 

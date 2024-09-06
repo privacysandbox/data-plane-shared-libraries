@@ -19,6 +19,7 @@
 
 #include <functional>
 #include <memory>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -27,10 +28,7 @@
 
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
-#include "src/core/async_executor/async_executor.h"
-#include "src/core/interface/service_interface.h"
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/native_function_grpc_server.h"
@@ -61,9 +59,10 @@ constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
  * @brief The template parameter, TMetadata, needs to be default assignable and
  * movable.
  */
-template <typename TMetadata = google::scp::roma::DefaultMetadata>
+template <typename T = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
+  using TMetadata = T;
   using Config = Config<TMetadata>;
 
   explicit RomaService(Config config = Config()) : config_(std::move(config)) {}
@@ -138,7 +137,7 @@ class RomaService {
     native_function_binding_handler_->Run();
 
     // TODO: Make max_pending_requests configurable
-    dispatcher_ = std::make_unique<class Dispatcher>(
+    dispatcher_.emplace(
         absl::MakeSpan(workers_),
         concurrency * worker_queue_cap /*max_pending_requests*/);
     ROMA_VLOG(1) << "RomaService Init with " << config_.number_of_workers
@@ -166,9 +165,8 @@ class RomaService {
   void SetupNativeFunctionGrpcServer() {
     native_function_server_addresses_ = {
         absl::StrCat("unix:", std::tmpnam(nullptr), ".sock")};
-    native_function_server_ =
-        std::make_unique<grpc_server::NativeFunctionGrpcServer<TMetadata>>(
-            &metadata_storage_, native_function_server_addresses_);
+    native_function_server_.emplace(&metadata_storage_,
+                                    native_function_server_addresses_);
 
     config_.RegisterService(
         std::make_unique<grpc_server::AsyncLoggingService>(),
@@ -230,15 +228,14 @@ class RomaService {
       remote_fds.push_back(fd_pair[1]);
     }
 
-    native_function_binding_handler_ =
-        std::make_unique<NativeFunctionHandlerSapiIpc<TMetadata>>(
-            &native_function_binding_table_, &metadata_storage_, local_fds,
-            remote_fds);
+    native_function_binding_handler_.emplace(&native_function_binding_table_,
+                                             &metadata_storage_, local_fds,
+                                             remote_fds);
 
     NativeFunctionBindingSetup setup{
         .remote_file_descriptors = std::move(remote_fds),
-        .local_file_descriptors = local_fds,
-        .js_function_names = function_names,
+        .local_file_descriptors = std::move(local_fds),
+        .js_function_names = std::move(function_names),
     };
     return setup;
   }
@@ -268,6 +265,7 @@ class RomaService {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
     const auto& rpc_method_names = config_.GetRpcMethodNames();
+    const auto& v8_flags = config_.GetV8Flags();
     std::string server_address = native_function_server_addresses_.empty()
                                      ? ""
                                      : native_function_server_addresses_[0];
@@ -293,7 +291,8 @@ class RomaService {
           /*sandbox_request_response_shared_buffer_size_mb=*/
           config_.sandbox_request_response_shared_buffer_size_mb,
           /*enable_sandbox_sharing_request_response_with_buffer_only=*/
-          config_.enable_sandbox_sharing_request_response_with_buffer_only);
+          config_.enable_sandbox_sharing_request_response_with_buffer_only,
+          /*v8_flags=*/v8_flags);
       PS_RETURN_IF_ERROR(workers_.back().Init());
       PS_RETURN_IF_ERROR(workers_.back().Run());
     }
@@ -450,12 +449,12 @@ class RomaService {
       native_function_binding_table_;
   // Map of invocation request uuid to associated metadata.
   MetadataStorage<TMetadata> metadata_storage_;
-  std::shared_ptr<
+  std::optional<
       native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
       native_function_binding_handler_;
-  std::unique_ptr<dispatcher::Dispatcher> dispatcher_;
+  std::optional<dispatcher::Dispatcher> dispatcher_;
   std::vector<std::string> native_function_server_addresses_;
-  std::unique_ptr<grpc_server::NativeFunctionGrpcServer<TMetadata>>
+  std::optional<grpc_server::NativeFunctionGrpcServer<TMetadata>>
       native_function_server_;
 };
 }  // namespace google::scp::roma::sandbox::roma_service

@@ -49,7 +49,7 @@ namespace google::scp::cpio::test {
 class BlobStorageClientTest : public ::testing::Test {
  protected:
   BlobStorageClientTest() {
-    CHECK(client_.Init().Successful()) << "client_ initialization unsuccessful";
+    CHECK(client_.Init().ok()) << "client_ initialization unsuccessful";
   }
 
   MockBlobStorageClientWithOverrides client_;
@@ -59,42 +59,42 @@ TEST_F(BlobStorageClientTest, GetBlobSuccess) {
   AsyncContext<GetBlobRequest, GetBlobResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), GetBlob)
       .WillOnce(Return(absl::OkStatus()));
-  EXPECT_THAT(client_.GetBlob(context), IsSuccessful());
+  EXPECT_TRUE(client_.GetBlob(context).ok());
 }
 
 TEST_F(BlobStorageClientTest, ListBlobsMetadataSuccess) {
   AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), ListBlobsMetadata)
       .WillOnce(Return(absl::OkStatus()));
-  EXPECT_THAT(client_.ListBlobsMetadata(context), IsSuccessful());
+  EXPECT_TRUE(client_.ListBlobsMetadata(context).ok());
 }
 
 TEST_F(BlobStorageClientTest, PutBlobSuccess) {
   AsyncContext<PutBlobRequest, PutBlobResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), PutBlob)
       .WillOnce(Return(absl::OkStatus()));
-  EXPECT_THAT(client_.PutBlob(context), IsSuccessful());
+  EXPECT_TRUE(client_.PutBlob(context).ok());
 }
 
 TEST_F(BlobStorageClientTest, DeleteBlobSuccess) {
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), DeleteBlob)
       .WillOnce(Return(absl::OkStatus()));
-  EXPECT_THAT(client_.DeleteBlob(context), IsSuccessful());
+  EXPECT_TRUE(client_.DeleteBlob(context).ok());
 }
 
 TEST_F(BlobStorageClientTest, GetBlobStreamSuccess) {
   ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), GetBlobStream)
       .WillOnce(Return(absl::OkStatus()));
-  EXPECT_THAT(client_.GetBlobStream(context), IsSuccessful());
+  EXPECT_TRUE(client_.GetBlobStream(context).ok());
 }
 
 TEST_F(BlobStorageClientTest, PutBlobStreamSuccess) {
   ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), PutBlobStream)
       .WillOnce(Return(absl::OkStatus()));
-  EXPECT_THAT(client_.PutBlobStream(context), IsSuccessful());
+  EXPECT_TRUE(client_.PutBlobStream(context).ok());
 }
 
 }  // namespace google::scp::cpio::test

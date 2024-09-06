@@ -19,14 +19,15 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 cc_library(
     name = "azure_kms_client_provider",
     srcs = [
-        ":azure_kms_client_provider_srcs",
+        ":azure_kms_client_provider.cc",
     ],
-    copts = [
-        "-std=c++17",
+    hdrs = [
+        ":azure_kms_client_provider.h",
+        ":error_codes.h",
     ],
     deps = [
+        ":azure_kms_client_provider_utils",
         "//src/azure:attestation",
-        "//src/core/common/uuid",
         "//src/core/interface",
         "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
@@ -34,30 +35,25 @@ cc_library(
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/kms_client:type_def",
-        "@com_github_googleapis_google_cloud_cpp//:kms",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/strings",
-        "@nlohmann_json//:lib",
         "@tink_cc",
     ],
 )
 
-exports_files(
-    [
-        "azure_kms_client_provider.cc",
-        "azure_kms_client_provider.h",
-        "error_codes.h",
-    ],
-)
-
-filegroup(
-    name = "azure_kms_client_provider_srcs",
+cc_library(
+    name = "azure_kms_client_provider_utils",
     srcs = [
-        ":azure_kms_client_provider.cc",
-        ":azure_kms_client_provider.h",
         ":azure_kms_client_provider_utils.cc",
+    ],
+    hdrs = [
         ":azure_kms_client_provider_utils.h",
-        ":error_codes.h",
+    ],
+    deps = [
+        "@boringssl//:crypto",
+        "@boringssl//:ssl",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
     ],
 )
 
@@ -76,7 +72,6 @@ cc_test(
         "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
         "//src/cpio/client_providers/kms_client_provider/azure:azure_kms_client_provider",
         "//src/public/core:test_execution_result_matchers",
-        "@com_github_googleapis_google_cloud_cpp//:kms",
         "@com_google_googletest//:gtest_main",
     ],
 )

@@ -28,6 +28,8 @@ cc_library(
         "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/kms_client_provider:kms_client_provider_select",
         "//src/public/cpio/interface:type_def",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/status",
     ],
 )
 

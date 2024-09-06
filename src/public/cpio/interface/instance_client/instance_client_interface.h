@@ -18,11 +18,8 @@
 #define SCP_CPIO_INTERFACE_INSTANCE_CLIENT_INTERFACE_H_
 
 #include <memory>
-#include <string>
-#include <vector>
 
-#include "src/core/interface/async_context.h"
-#include "src/public/core/interface/execution_result.h"
+#include "absl/status/status.h"
 #include "src/public/cpio/interface/type_def.h"
 #include "src/public/cpio/proto/instance_service/v1/instance_service.pb.h"
 
@@ -36,9 +33,13 @@ namespace google::scp::cpio {
  * InstanceClientInterface::Init and InstanceClientInterface::Run before
  * actually use it, and call InstanceClientInterface::Stop when finish using it.
  */
-class InstanceClientInterface : public core::ServiceInterface {
+class InstanceClientInterface {
  public:
   virtual ~InstanceClientInterface() = default;
+
+  [[deprecated]] virtual absl::Status Init() noexcept = 0;
+  [[deprecated]] virtual absl::Status Run() noexcept = 0;
+  [[deprecated]] virtual absl::Status Stop() noexcept = 0;
 
   /**
    * @brief Gets the resource name for the instance where the code is running
@@ -47,9 +48,9 @@ class InstanceClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult GetCurrentInstanceResourceName(
+  virtual absl::Status GetCurrentInstanceResourceName(
       cmrt::sdk::instance_service::v1::GetCurrentInstanceResourceNameRequest
           request,
       Callback<cmrt::sdk::instance_service::v1::
@@ -62,9 +63,9 @@ class InstanceClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult GetTagsByResourceName(
+  virtual absl::Status GetTagsByResourceName(
       cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest request,
       Callback<cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse>
           callback) noexcept = 0;
@@ -75,9 +76,9 @@ class InstanceClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult GetInstanceDetailsByResourceName(
+  virtual absl::Status GetInstanceDetailsByResourceName(
       cmrt::sdk::instance_service::v1::GetInstanceDetailsByResourceNameRequest
           request,
       Callback<cmrt::sdk::instance_service::v1::
@@ -90,9 +91,9 @@ class InstanceClientInterface : public core::ServiceInterface {
    * @param request request for the call.
    * @param callback callback will be triggered when the call completes
    * including when the call fails.
-   * @return core::ExecutionResult scheduling result returned synchronously.
+   * @return absl::Status scheduling result returned synchronously.
    */
-  virtual core::ExecutionResult ListInstanceDetailsByEnvironment(
+  virtual absl::Status ListInstanceDetailsByEnvironment(
       cmrt::sdk::instance_service::v1::ListInstanceDetailsByEnvironmentRequest
           request,
       Callback<cmrt::sdk::instance_service::v1::
@@ -109,8 +110,7 @@ class InstanceClientFactory {
    * @param options configurations for InstanceClient.
    * @return std::unique_ptr<InstanceClientInterface> InstanceClient object.
    */
-  static std::unique_ptr<InstanceClientInterface> Create(
-      InstanceClientOptions options);
+  static std::unique_ptr<InstanceClientInterface> Create();
 };
 }  // namespace google::scp::cpio
 

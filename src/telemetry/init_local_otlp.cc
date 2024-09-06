@@ -27,9 +27,9 @@
 // --environment="test"`
 namespace privacy_sandbox::server_common {
 
-std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter() {
-  return opentelemetry::exporter::otlp::OtlpGrpcExporterFactory::Create(
-      absl::optional<std::string> collector_endpoint);
+std::unique_ptr<opentelemetry::sdk::trace::SpanExporter> CreateSpanExporter(
+    absl::optional<std::string> collector_endpoint) {
+  return opentelemetry::exporter::otlp::OtlpGrpcExporterFactory::Create();
 }
 
 std::unique_ptr<opentelemetry::sdk::trace::IdGenerator> CreateIdGenerator() {

@@ -24,11 +24,13 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/utils/base64.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 
@@ -318,7 +320,8 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
   get_token_context.Finish(SuccessExecutionResult());
 }
 
-std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
+absl::Nonnull<std::unique_ptr<AuthTokenProviderInterface>>
+AuthTokenProviderFactory::Create(
     absl::Nonnull<core::HttpClientInterface*> http1_client) {
   return std::make_unique<GcpAuthTokenProvider>(http1_client);
 }

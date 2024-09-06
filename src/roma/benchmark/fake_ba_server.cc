@@ -55,13 +55,12 @@ void FakeBaServer::LoadSync(std::string_view version,
   // what B&A uses.
   absl::BlockingCounter is_loading(1);
 
-  absl::Status try_load = roma_service_->LoadCodeObj(
+  CHECK_OK(roma_service_->LoadCodeObj(
       std::make_unique<LoadRequest>(request),
       [&is_loading](absl::StatusOr<LoadResponse> res) {
         CHECK_OK(res);
         is_loading.DecrementCount();
-      });
-  CHECK_OK(try_load);
+      }));
   is_loading.Wait();
 }
 

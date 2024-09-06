@@ -67,7 +67,7 @@ class Dispatcher {
       ABSL_LOCKS_EXCLUDED(mu_) {
     PS_RETURN_IF_ERROR(AssertRequestIsValid(request));
     ::worker_api::WorkerParamsProto param = RequestToProto(std::move(request));
-    absl::MutexLock l(&mu_);
+    absl::MutexLock lock(&mu_);
     if (requests_.size() == max_pending_requests_) {
       return absl::ResourceExhaustedError(
           "Dispatch is disallowed since the number of unfinished requests is "

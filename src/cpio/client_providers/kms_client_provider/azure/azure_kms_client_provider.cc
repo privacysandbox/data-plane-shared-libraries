@@ -21,17 +21,18 @@
 #include <vector>
 
 #include <nlohmann/json.hpp>
+#include <tink/aead.h>
 
 #include "absl/functional/bind_front.h"
 #include "absl/log/check.h"
 #include "proto/hpke.pb.h"
+#include "src/azure/attestation/src/attestation.h"
 #include "src/core/utils/base64.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
-#include "azure_kms_client_provider_utils.h"
 #include "error_codes.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
@@ -82,7 +83,8 @@ using std::placeholders::_1;
 
 namespace google::scp::cpio::client_providers {
 
-static constexpr char kAzureKmsClientProvider[] = "AzureKmsClientProvider";
+constexpr char kAttestation[] = "attestation";
+constexpr char kAzureKmsClientProvider[] = "AzureKmsClientProvider";
 
 constexpr char kDefaultKmsUnwrapPath[] =
     "https://127.0.0.1:8000/app/unwrapKey?fmt=tink";
@@ -210,7 +212,7 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   } else {
     // Get test PEM public key
     const auto public_pem_key =
-        google::scp::cpio::client_providers::GetTestPemPublicWrapKey();
+        AzureKmsClientProviderUtils::GetTestPemPublicWrapKey();
     const auto public_key_or =
         AzureKmsClientProviderUtils::PemToEvpPkey(public_pem_key);
     CHECK(public_key_or.ok()) << "Failed to parse public PEM key: "
@@ -218,7 +220,8 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
     public_key = public_key_or.value();
 
     // Get test PEM private key and convert it to EVP_PKEY*
-    const auto private_key_pem = GetTestPemPrivWrapKey();
+    const auto private_key_pem =
+        AzureKmsClientProviderUtils::GetTestPemPrivWrapKey();
     // Add the constant to avoid the key detection precommit
     const auto to_test = std::string("-----") + std::string("BEGIN PRIVATE") +
                          std::string(" KEY-----");
@@ -356,9 +359,9 @@ void AzureKmsClientProvider::OnDecryptCallback(
 }
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    KmsClientOptions options,
-    RoleCredentialsProviderInterface* role_credentials_provider,
-    AsyncExecutorInterface* io_async_executor) noexcept {
+    absl::Nonnull<
+        RoleCredentialsProviderInterface*> /*role_credentials_provider*/,
+    AsyncExecutorInterface* /*io_async_executor*/) noexcept {
   // We uses GlobalCpio::GetGlobalCpio()->GetHttpClient() to get http_client
   // object instead of adding it to KmsClientProviderFactory::Create() as a new
   // parameter. This is to prevent the existing GCP and AWS implementations from

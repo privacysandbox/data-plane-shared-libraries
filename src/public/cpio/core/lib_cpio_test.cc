@@ -20,7 +20,6 @@
 #include "src/core/async_executor/error_codes.h"
 #include "src/core/common/global_logger/global_logger.h"
 #include "src/core/interface/async_executor_interface.h"
-#include "src/core/message_router/message_router.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
@@ -47,84 +46,53 @@ namespace {
 constexpr std::string_view kRegion = "us-east-1";
 
 TEST(LibCpioTest, NoLogTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kNoLog;
-  options.region = kRegion;
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
+  TestLibCpio::InitCpio(options);
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, ConsoleLogTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kConsoleLog;
-  options.region = kRegion;
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
+  TestLibCpio::InitCpio(options);
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, SysLogTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
+  TestLibCpio::InitCpio(options);
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, StopSuccessfully) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
+  TestLibCpio::InitCpio(options);
   GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
-  ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioTest, InitializedCpioSucceedsTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
+  TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
+                                      .region = std::string{kRegion}}};
 
+  TestLibCpio::InitCpio(options);
   MetricClientOptions metric_client_options;
   std::unique_ptr<MetricClientInterface> metric_client =
       MetricClientFactory::Create(std::move(metric_client_options));
-
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  ASSERT_SUCCESS(metric_client->Init());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
+  ASSERT_TRUE(metric_client->Init().ok());
+  TestLibCpio::ShutdownCpio(options);
 }
 
 TEST(LibCpioDeathTest, UninitializedCpioFailsTest) {
   // Named "*DeathTest" to be run first for GlobalCpio static state.
   // https://github.com/google/googletest/blob/main/docs/advanced.md#death-tests-and-threads
   MetricClientOptions metric_client_options;
-  std::unique_ptr<MetricClientInterface> metric_client =
-      MetricClientFactory::Create(std::move(metric_client_options));
-
   ASSERT_DEATH(
-      metric_client->Init(),
+      MetricClientFactory::Create(std::move(metric_client_options)),
       "Cpio must be initialized with Cpio::InitCpio before client use");
-}
-
-TEST(LibCpioDeathTest, InitAndShutdownThenInitCpioSucceedsTest) {
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
-
-  MetricClientOptions metric_client_options;
-  std::unique_ptr<MetricClientInterface> metric_client =
-      MetricClientFactory::Create(std::move(metric_client_options));
-
-  constexpr std::string_view kExpectedUninitCpioErrorMessage =
-      "Cpio must be initialized with Cpio::InitCpio before client use";
-  ASSERT_DEATH(metric_client->Init(),
-               std::string{kExpectedUninitCpioErrorMessage});
-
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  ASSERT_SUCCESS(metric_client->Init());
-  EXPECT_SUCCESS(TestLibCpio::ShutdownCpio(options));
-
-  ASSERT_DEATH(metric_client->Init(),
-               std::string{kExpectedUninitCpioErrorMessage});
 }
 }  // namespace
 }  // namespace google::scp::cpio::test

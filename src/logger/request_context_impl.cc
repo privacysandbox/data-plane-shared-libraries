@@ -18,9 +18,12 @@
 
 #include <vector>
 
+#include "absl/base/no_destructor.h"
 #include "absl/strings/str_join.h"
 
 namespace privacy_sandbox::server_common::log {
+
+using OtelSeverity = ::opentelemetry::logs::Severity;
 
 std::string FormatContext(
     const absl::btree_map<std::string, std::string>& context_map) {
@@ -37,7 +40,19 @@ std::string FormatContext(
   if (pairs.empty()) {
     return "";
   }
-  return absl::StrCat(" (", absl::StrJoin(std::move(pairs), ", "), ") ");
+  return absl::StrCat(" (", absl::StrJoin(pairs, ", "), ") ");
+}
+
+OtelSeverity ToOtelSeverity(absl::LogSeverity severity) {
+  static const absl::NoDestructor<
+      absl::btree_map<absl::LogSeverity, OtelSeverity>>
+      m({
+          {absl::LogSeverity::kInfo, OtelSeverity::kInfo},
+          {absl::LogSeverity::kWarning, OtelSeverity::kWarn},
+          {absl::LogSeverity::kError, OtelSeverity::kError},
+          {absl::LogSeverity::kFatal, OtelSeverity::kFatal},
+      });
+  return m->at(severity);
 }
 
 }  // namespace privacy_sandbox::server_common::log

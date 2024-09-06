@@ -17,17 +17,19 @@
 #ifndef PUBLIC_CPIO_VALIDATOR_QUEUE_CLIENT_VALIDATOR_H_
 #define PUBLIC_CPIO_VALIDATOR_QUEUE_CLIENT_VALIDATOR_H_
 
+#include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/queue_client_provider_interface.h"
 #include "src/public/cpio/validator/proto/validator_config.pb.h"
 
 namespace google::scp::cpio::validator {
 
 void RunEnqueueMessageValidator(
-    std::string_view name,
+    client_providers::CpioProviderInterface& cpio, std::string_view name,
     const google::scp::cpio::validator::proto::EnqueueMessageConfig&
         enqueue_message_config);
 
-void RunGetTopMessageValidator(std::string_view name);
+void RunGetTopMessageValidator(client_providers::CpioProviderInterface& cpio,
+                               std::string_view name);
 
 }  // namespace google::scp::cpio::validator
 

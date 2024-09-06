@@ -14,31 +14,17 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//src:scp_internal_pkg"])
-
 cc_library(
     name = "azure_role_credentials_provider",
     srcs = [
-        "//src/cpio/client_providers/interface:role_credentials_provider_interface.h",
-        "//src/cpio/client_providers/role_credentials_provider/azure:azure_role_credentials_provider_srcs",
+        ":azure_role_credentials_provider.cc",
+        ":azure_role_credentials_provider.h",
     ],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/core/interface",
         "//src/cpio/client_providers/instance_client_provider/azure:azure_instance_client_provider",
         "//src/public/core/interface:execution_result",
         "//src/public/cpio/interface:type_def",
-    ],
-)
-
-exports_files([
-    "azure_role_credentials_provider.h",
-    "azure_role_credentials_provider.cc",
-])
-
-filegroup(
-    name = "azure_role_credentials_provider_srcs",
-    srcs = [
-        ":azure_role_credentials_provider.cc",
-        ":azure_role_credentials_provider.h",
     ],
 )

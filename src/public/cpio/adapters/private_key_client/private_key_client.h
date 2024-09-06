@@ -20,9 +20,10 @@
 #include <memory>
 #include <utility>
 
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"
 #include "src/cpio/client_providers/interface/private_key_client_provider_interface.h"
-#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/private_key_client/private_key_client_interface.h"
 #include "src/public/cpio/proto/private_key_service/v1/private_key_service.pb.h"
 
@@ -31,31 +32,29 @@ namespace google::scp::cpio {
  */
 class PrivateKeyClient : public PrivateKeyClientInterface {
  public:
+  // TODO(b/337035410): Pass provider in constructor and deprecate Init method.
   explicit PrivateKeyClient(PrivateKeyClientOptions options)
       : options_(std::move(options)) {}
 
-  virtual ~PrivateKeyClient() = default;
+  ~PrivateKeyClient() override = default;
 
-  core::ExecutionResult Init() noexcept override;
+  absl::Status Init() noexcept override;
 
-  core::ExecutionResult Run() noexcept override;
+  absl::Status Run() noexcept override;
 
-  core::ExecutionResult Stop() noexcept override;
+  absl::Status Stop() noexcept override;
 
-  core::ExecutionResult ListPrivateKeys(
+  absl::Status ListPrivateKeys(
       cmrt::sdk::private_key_service::v1::ListPrivateKeysRequest request,
       Callback<cmrt::sdk::private_key_service::v1::ListPrivateKeysResponse>
           callback) noexcept override;
 
  protected:
-  virtual core::ExecutionResult CreatePrivateKeyClientProvider() noexcept;
-
   std::unique_ptr<client_providers::PrivateKeyClientProviderInterface>
       private_key_client_provider_;
 
  private:
   PrivateKeyClientOptions options_;
-  client_providers::CpioProviderInterface* cpio_;
 };
 }  // namespace google::scp::cpio
 

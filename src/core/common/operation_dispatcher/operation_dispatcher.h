@@ -24,6 +24,7 @@
 #include "src/core/common/time_provider/time_provider.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/streaming_context.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 #include "retry_strategy.h"

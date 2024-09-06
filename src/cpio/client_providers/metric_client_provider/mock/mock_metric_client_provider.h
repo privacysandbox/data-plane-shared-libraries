@@ -28,14 +28,9 @@ class MockMetricClientProvider : public MetricClientProviderInterface {
  public:
   MockMetricClientProvider() {
     ON_CALL(*this, Init).WillByDefault(testing::Return(absl::OkStatus()));
-    ON_CALL(*this, Run).WillByDefault(testing::Return(absl::OkStatus()));
-    ON_CALL(*this, Stop).WillByDefault(testing::Return(absl::OkStatus()));
   }
 
   MOCK_METHOD(absl::Status, Init, (), (override, noexcept));
-  MOCK_METHOD(absl::Status, Run, (), (override, noexcept));
-  MOCK_METHOD(absl::Status, Stop, (), (override, noexcept));
-
   MOCK_METHOD(
       absl::Status, PutMetrics,
       ((core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,

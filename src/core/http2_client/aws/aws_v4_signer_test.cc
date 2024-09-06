@@ -25,6 +25,7 @@
 #include "src/core/http2_client/error_codes.h"
 #include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::test::ResultIs;

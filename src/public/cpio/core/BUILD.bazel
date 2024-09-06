@@ -12,23 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 exports_files(["cpio.cc"])
-
-cc_library(
-    name = "cpio_utils",
-    srcs = ["cpio_utils.cc"],
-    hdrs = ["cpio_utils.h"],
-    deps = [
-        "//src/core/interface",
-        "//src/core/logger/interface:logger_interface",
-        "//src/cpio/client_providers/global_cpio",
-        "//src/cpio/client_providers/global_cpio/cpio_provider",
-    ],
-)
 
 cc_test(
     name = "lib_cpio_test",
@@ -40,15 +28,5 @@ cc_test(
         "//src/public/cpio/interface/metric_client",
         "//src/public/cpio/test/global_cpio:test_lib_cpio",
         "@com_google_googletest//:gtest_main",
-    ],
-)
-
-cc_library(
-    name = "lib_cpio_mock",
-    testonly = True,
-    hdrs = ["mock_lib_cpio.h"],
-    deps = [
-        "//src/cpio/client_providers/global_cpio",
-        "//src/cpio/client_providers/global_cpio/mock:global_cpio_mock",
     ],
 )

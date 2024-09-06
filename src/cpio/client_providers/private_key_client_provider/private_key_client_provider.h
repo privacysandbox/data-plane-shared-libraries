@@ -22,6 +22,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/container/btree_set.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/any.pb.h"
@@ -45,9 +46,9 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
 
   explicit PrivateKeyClientProvider(
       PrivateKeyClientOptions private_key_client_options,
-      core::HttpClientInterface* http_client,
-      std::unique_ptr<PrivateKeyFetcherProviderInterface> private_key_fetcher,
-      std::unique_ptr<KmsClientProviderInterface> kms_client)
+      absl::Nonnull<std::unique_ptr<PrivateKeyFetcherProviderInterface>>
+          private_key_fetcher,
+      absl::Nonnull<std::unique_ptr<KmsClientProviderInterface>> kms_client)
       : private_key_fetcher_(std::move(private_key_fetcher)),
         kms_client_provider_(std::move(kms_client)) {
     endpoint_list_.reserve(1 +

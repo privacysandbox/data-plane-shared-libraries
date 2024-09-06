@@ -24,6 +24,7 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
@@ -218,7 +219,8 @@ ExecutionResult AzureAuthTokenProvider::GetSessionTokenForTargetAudience(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
+absl::Nonnull<std::unique_ptr<AuthTokenProviderInterface>>
+AuthTokenProviderFactory::Create(
     absl::Nonnull<core::HttpClientInterface*> http1_client) {
   return std::make_unique<AzureAuthTokenProvider>(http1_client);
 }

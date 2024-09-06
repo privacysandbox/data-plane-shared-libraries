@@ -12,7 +12,7 @@
 //  See the License for the specific language governing permissions and
 //  limitations under the License.
 
-#include "src/concurrent/event_engine_executor.h"
+#include "event_engine_executor.h"
 
 #include <utility>
 
@@ -35,8 +35,10 @@ TaskId EventEngineExecutor::RunAfter(const absl::Duration duration,
 
 bool EventEngineExecutor::Cancel(TaskId task_id) {
   grpc_event_engine::experimental::EventEngine::TaskHandle handle = {
-      task_id.keys[0], task_id.keys[1]};
-  return event_engine_->Cancel(std::move(handle));
+      task_id.keys[0],
+      task_id.keys[1],
+  };
+  return event_engine_->Cancel(handle);
 }
 
 }  // namespace privacy_sandbox::server_common

@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <functional>
+#include <limits>
 #include <memory>
 #include <queue>
 #include <thread>
@@ -23,6 +24,7 @@
 #include <vector>
 
 #include "src/core/common/time_provider/time_provider.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "async_executor_utils.h"
 #include "error_codes.h"
@@ -31,13 +33,14 @@
 using google::scp::core::common::TimeProvider;
 
 namespace google::scp::core {
+
 SingleThreadPriorityAsyncExecutor::SingleThreadPriorityAsyncExecutor(
     size_t queue_cap, std::optional<size_t> affinity_cpu_number)
     : is_running_(true),
       worker_thread_started_(false),
       worker_thread_stopped_(false),
       update_wait_time_(false),
-      next_scheduled_task_timestamp_(UINT64_MAX),
+      next_scheduled_task_timestamp_(std::numeric_limits<uint64_t>::max()),
       queue_cap_(queue_cap),
       affinity_cpu_number_(affinity_cpu_number) {
   working_thread_.emplace(
@@ -48,12 +51,12 @@ SingleThreadPriorityAsyncExecutor::SingleThreadPriorityAsyncExecutor(
           AsyncExecutorUtils::SetAffinity(*affinity_cpu_number);
         }
         {
-          absl::MutexLock l(&ptr->mutex_);
+          absl::MutexLock lock(&ptr->mutex_);
           ptr->worker_thread_started_ = true;
         }
         ptr->StartWorker();
         {
-          absl::MutexLock l(&ptr->mutex_);
+          absl::MutexLock lock(&ptr->mutex_);
           ptr->worker_thread_stopped_ = true;
         }
       },
@@ -66,10 +69,10 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
   absl::Duration wait_timeout_duration = absl::InfiniteDuration();
   while (true) {
     std::shared_ptr<AsyncTask> top;
-    const Timestamp current_timestamp =
+    Timestamp current_timestamp =
         TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks();
     {
-      absl::MutexLock l(&mutex_);
+      absl::MutexLock lock(&mutex_);
       auto fn = [this, current_timestamp] {
         mutex_.AssertReaderHeld();
         return !is_running_ || update_wait_time_ ||
@@ -89,13 +92,15 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
         if (!is_running_) {
           break;
         }
-        next_scheduled_task_timestamp_ = UINT64_MAX;
+        next_scheduled_task_timestamp_ = std::numeric_limits<uint64_t>::max();
         wait_timeout_duration = absl::InfiniteDuration();
         continue;
       }
 
       next_scheduled_task_timestamp_ = queue_.top()->GetExecutionTimestamp();
       wait_timeout_duration = absl::ZeroDuration();
+      current_timestamp =
+          TimeProvider::GetSteadyTimestampInNanosecondsAsClockTicks();
       if (current_timestamp < next_scheduled_task_timestamp_) {
         wait_timeout_duration = absl::Nanoseconds(
             next_scheduled_task_timestamp_ - current_timestamp);
@@ -109,7 +114,7 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
 }
 
 SingleThreadPriorityAsyncExecutor::~SingleThreadPriorityAsyncExecutor() {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   is_running_ = false;
 
   // To ensure stop can happen cleanly, it is required to wait for the thread to
@@ -132,7 +137,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     AsyncOperation work, Timestamp timestamp,
     std::function<bool()>& cancellation_callback) noexcept {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   if (queue_.size() >= queue_cap_) {
     return RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP);
   }

@@ -19,7 +19,9 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 cc_library(
     name = "azure_parameter_client_provider",
     srcs = [
-        ":azure_parameter_client_provider_srcs",
+        ":azure_parameter_client_provider.cc",
+        ":azure_parameter_client_provider.h",
+        ":error_codes.h",
     ],
     deps = [
         "//src/cpio/client_providers/instance_client_provider/azure:azure_instance_client_provider",
@@ -28,22 +30,8 @@ cc_library(
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/proto/parameter_service/v1:parameter_service_cc_proto",
         "@com_github_googleapis_google_cloud_cpp//:secretmanager",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/log:check",
-    ],
-)
-
-exports_files([
-    "azure_parameter_client_provider.h",
-    "azure_parameter_client_provider.cc",
-    "error_codes.h",
-])
-
-filegroup(
-    name = "azure_parameter_client_provider_srcs",
-    srcs = [
-        ":azure_parameter_client_provider.cc",
-        ":azure_parameter_client_provider.h",
-        ":error_codes.h",
     ],
 )
 

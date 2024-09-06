@@ -23,6 +23,7 @@ cc_library(
         "//src/core/interface",
         "//src/core/message_router",
         "//src/cpio/client_providers/metric_client_provider/gcp:gcp_metric_client_provider",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_protobuf//:protobuf",
     ],
 )

@@ -29,6 +29,7 @@
 #include "src/core/common/global_logger/global_logger.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/core/utils/http.h"
+#include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
 

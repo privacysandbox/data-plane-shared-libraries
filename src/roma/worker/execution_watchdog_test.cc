@@ -18,10 +18,6 @@
 
 #include <gtest/gtest.h>
 
-#include <v8-context.h>
-#include <v8-initialization.h>
-#include <v8-isolate.h>
-
 #include <linux/limits.h>
 
 #include <string>
@@ -31,6 +27,9 @@
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
 #include "include/libplatform/libplatform.h"
+#include "include/v8-context.h"
+#include "include/v8-initialization.h"
+#include "include/v8-isolate.h"
 #include "src/util/process_util.h"
 
 namespace google::scp::roma::worker::test {
@@ -46,6 +45,11 @@ class ExecutionWatchdogTest : public ::testing::Test {
     platform_ = v8::platform::NewDefaultPlatform().release();
     v8::V8::InitializePlatform(platform_);
     v8::V8::Initialize();
+  }
+
+  static void TearDownTestSuite() {
+    v8::V8::Dispose();
+    v8::V8::DisposePlatform();
   }
 
   void SetUp() override {

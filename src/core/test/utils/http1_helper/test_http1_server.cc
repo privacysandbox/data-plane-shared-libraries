@@ -83,7 +83,7 @@ TestHttp1Server::TestHttp1Server() {
         }
       });
       {
-        absl::MutexLock l(&has_run_mu_);
+        absl::MutexLock lock(&has_run_mu_);
         has_run_ = true;
       }
       ioc.run_for(std::chrono::milliseconds(100));
@@ -92,7 +92,7 @@ TestHttp1Server::TestHttp1Server() {
   });
 
   // Ensure `thread_` runs at least once before constructor completes.
-  absl::MutexLock l(&has_run_mu_);
+  absl::MutexLock lock(&has_run_mu_);
   has_run_mu_.Await(absl::Condition(&has_run_));
 }
 

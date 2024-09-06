@@ -271,7 +271,7 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
               }
             }
             {
-              absl::MutexLock l(&res_count_mu);
+              absl::MutexLock lock(&res_count_mu);
               res_count += batch_resp.size();
             }
             local_execute.Notify();
@@ -288,7 +288,7 @@ TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
     t.join();
   }
   {
-    absl::MutexLock l(&res_count_mu);
+    absl::MutexLock lock(&res_count_mu);
     EXPECT_EQ(res_count, kBatchSize * kNumThreads);
   }
 

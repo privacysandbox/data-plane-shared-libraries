@@ -98,7 +98,6 @@ class GcpMetricClientProviderTest : public ::testing::Test {
 
     metric_client_provider_ = CreateClient(false);
     ASSERT_TRUE(metric_client_provider_->Init().ok());
-    ASSERT_TRUE(metric_client_provider_->Run().ok());
   }
 
   std::unique_ptr<MockGcpMetricClientProviderOverrides> CreateClient(
@@ -197,7 +196,6 @@ TEST_F(GcpMetricClientProviderTest,
 TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
   metric_client_provider_ = CreateClient(true);
   ASSERT_TRUE(metric_client_provider_->Init().ok());
-  ASSERT_TRUE(metric_client_provider_->Run().ok());
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
@@ -228,7 +226,6 @@ TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
 TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
   metric_client_provider_ = CreateClient(true);
   ASSERT_TRUE(metric_client_provider_->Init().ok());
-  ASSERT_TRUE(metric_client_provider_->Run().ok());
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
@@ -261,30 +258,6 @@ TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
   EXPECT_SUCCESS(result);
   EXPECT_EQ(metric_responses, 5);
   EXPECT_EQ(received_metrics, 5);
-}
-
-TEST_F(GcpMetricClientProviderTest, AsyncCreateTimeSeriesCallback) {
-  std::atomic<int> received_responses = 0;
-  PutMetricsRequest record_metric_request;
-  SetPutMetricsRequest(record_metric_request);
-  AsyncContext<PutMetricsRequest, PutMetricsResponse> context(
-      std::make_shared<PutMetricsRequest>(record_metric_request),
-      [&](AsyncContext<PutMetricsRequest, PutMetricsResponse>& context) {
-        received_responses++;
-        EXPECT_SUCCESS(context.result);
-      });
-
-  std::vector<AsyncContext<PutMetricsRequest, PutMetricsResponse>>
-      requests_vector;
-  for (auto i = 0; i < 5; i++) {
-    requests_vector.emplace_back(context);
-  }
-
-  auto outcome = make_ready_future(Status(StatusCode::kOk, ""));
-
-  metric_client_provider_->OnAsyncCreateTimeSeriesCallback(requests_vector,
-                                                           std::move(outcome));
-  EXPECT_EQ(received_responses, 5);
 }
 }  // namespace
 }  // namespace google::scp::cpio::client_providers::gcp_metric_client::test

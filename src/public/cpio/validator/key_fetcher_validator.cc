@@ -21,7 +21,6 @@
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/interface/async_context.h"
-#include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/validator/proto/validator_config.pb.h"
@@ -31,7 +30,6 @@ namespace google::scp::cpio::validator {
 namespace {
 using google::scp::core::AsyncContext;
 using google::scp::cpio::client_providers::AuthTokenProviderInterface;
-using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::PrivateKeyFetchingRequest;
 using google::scp::cpio::client_providers::PrivateKeyFetchingResponse;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
@@ -55,7 +53,8 @@ std::shared_ptr<PrivateKeyFetchingRequest> CreatePKRequest(
 }  // namespace
 
 void RunFetchPrivateKeyValidator(
-    std::string_view name, const FetchPrivateKeyConfig& key_fetcher_config) {
+    client_providers::CpioProviderInterface& cpio, std::string_view name,
+    const FetchPrivateKeyConfig& key_fetcher_config) {
   if (key_fetcher_config.key_id().empty()) {
     std::cout << "[ FAILURE ] " << name << " No key id provided." << std::endl;
     return;
@@ -79,25 +78,16 @@ void RunFetchPrivateKeyValidator(
               << std::endl;
     return;
   }
-  RoleCredentialsProviderInterface* role_credentials_provider;
-  AuthTokenProviderInterface* auth_token_provider;
-
-  if (auto res = GlobalCpio::GetGlobalCpio().GetRoleCredentialsProvider();
-      !res.ok()) {
-    std::cout << "[ FAILURE ] Unable to get Role Credentials Provider."
-              << std::endl
+  auto role_credentials_provider = cpio.GetRoleCredentialsProvider();
+  if (!role_credentials_provider.ok()) {
+    std::cout << "[ FAILURE ] " << role_credentials_provider.status()
               << std::endl;
     return;
-  } else {
-    role_credentials_provider = *res;
   }
-
   auto key_fetcher =
       google::scp::cpio::client_providers::PrivateKeyFetcherProviderFactory::
-          Create(&GlobalCpio::GetGlobalCpio().GetHttp1Client(),
-                 role_credentials_provider,
-                 &GlobalCpio::GetGlobalCpio().GetAuthTokenProvider());
-
+          Create(&cpio.GetHttp1Client(), *role_credentials_provider,
+                 &cpio.GetAuthTokenProvider());
   if (google::scp::core::ExecutionResult result = key_fetcher->Init();
       !result.Successful()) {
     std::cout << "[ FAILURE ] " << name << " "

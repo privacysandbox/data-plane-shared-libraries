@@ -26,6 +26,7 @@
 #include "absl/strings/strip.h"
 #include "src/core/utils/base64.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
 #include "tee_aws_kms_client_provider_utils.h"
@@ -222,9 +223,8 @@ TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
 }
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    KmsClientOptions options,
     absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
+    core::AsyncExecutorInterface* /*io_async_executor*/) noexcept {
   return std::make_unique<TeeAwsKmsClientProvider>(role_credentials_provider);
 }
 }  // namespace google::scp::cpio::client_providers

@@ -32,13 +32,14 @@ namespace privacy_sandbox::server_common::metrics {
 
 // ContextMap provide a thread-safe map between T* and `Context`.
 // T should be a request received by server, i.e. `GenerateBidsRequest`.
-// See detail docs about `L` and `U` at `Context`.
-template <typename T, const absl::Span<const DefinitionName* const>& L,
+// See detail docs about `definition_list` and `U` at `Context`.
+template <typename T,
+          const absl::Span<const DefinitionName* const>& definition_list,
           typename U>
 class ContextMap {
  public:
-  using ContextT = Context<L, U>;
-  using SafeContextT = Context<L, U, /*safe_metric_only=*/true>;
+  using ContextT = Context<definition_list, U>;
+  using SafeContextT = Context<definition_list, U, /*safe_metric_only=*/true>;
 
   explicit ContextMap(std::unique_ptr<U> metric_router)
       : metric_router_(std::move(metric_router)),
@@ -92,7 +93,7 @@ class ContextMap {
   const U& metric_router() const { return *metric_router_.get(); }
 
   absl::Status CheckListOrder() {
-    for (auto* definition : L) {
+    for (auto* definition : definition_list) {
       if (!std::is_sorted(definition->histogram_boundaries_copy_.begin(),
                           definition->histogram_boundaries_copy_.end())) {
         return absl::InvalidArgumentError(absl::StrCat(
@@ -108,7 +109,7 @@ class ContextMap {
   }
 
   absl::Status CheckDropNoisyValuesProbability() {
-    for (auto* definition : L) {
+    for (auto* definition : definition_list) {
       absl::StatusOr<telemetry::MetricConfig> config =
           metric_config().GetMetricConfig(definition->name_);
       if (config.ok() && config->has_drop_noisy_values_probability()) {
@@ -137,7 +138,8 @@ class ContextMap {
 // `config` must have a value at first call, in following calls can be omitted
 // or has a same value. `provider` being null will be initialized with default
 // MeterProvider without metric exporting.
-template <typename T, const absl::Span<const DefinitionName* const>& L>
+template <typename T,
+          const absl::Span<const DefinitionName* const>& definition_list>
 inline auto* GetContextMap(
     std::optional<telemetry::BuildDependentConfig> config,
     std::unique_ptr<MetricRouter::MeterProvider> provider,
@@ -145,17 +147,27 @@ inline auto* GetContextMap(
   static auto* context_map = [config, &provider, service, version,
                               budget]() mutable {
     CHECK(config != std::nullopt) << "cannot be null at initialization";
-    absl::Status config_status = config->CheckMetricConfig(L);
+    absl::Status config_status = config->CheckMetricConfig(definition_list);
     ABSL_LOG_IF(WARNING, !config_status.ok()) << config_status;
-    double total_weight = absl::c_accumulate(
-        L, 0.0, [&config](double total, const DefinitionName* definition) {
-          return total += config->GetMetricConfig(definition->name_).ok()
-                              ? definition->privacy_budget_weight_copy_
-                              : 0;
+    const double total_weight = absl::c_accumulate(
+        definition_list, 0.0,
+        [&config](double total, const DefinitionName* definition) {
+          double privacy_budget_weight = 0;
+          if (absl::StatusOr<telemetry::MetricConfig> metric_config =
+                  config->GetMetricConfig(definition->name_);
+              metric_config.ok()) {
+            if (metric_config->has_privacy_budget_weight()) {
+              privacy_budget_weight = metric_config->privacy_budget_weight();
+            } else {
+              privacy_budget_weight = definition->privacy_budget_weight_copy_;
+            }
+          }
+          return total += privacy_budget_weight;
         });
     budget.epsilon /= total_weight;
-    return new ContextMap<T, L, MetricRouter>(std::make_unique<MetricRouter>(
-        std::move(provider), service, version, budget, *std::move(config)));
+    return new ContextMap<T, definition_list, MetricRouter>(
+        std::make_unique<MetricRouter>(std::move(provider), service, version,
+                                       budget, *std::move(config)));
   }();
   CHECK(config == std::nullopt ||
         config->IsDebug() == context_map->metric_config().IsDebug())
@@ -163,11 +175,11 @@ inline auto* GetContextMap(
   return context_map;
 }
 
-template <const absl::Span<const DefinitionName* const>& L>
-using ServerContext = Context<L, MetricRouter>;
+template <const absl::Span<const DefinitionName* const>& definition_list>
+using ServerContext = Context<definition_list, MetricRouter>;
 
-template <const absl::Span<const DefinitionName* const>& L>
-using ServerSafeContext = Context<L, MetricRouter, true>;
+template <const absl::Span<const DefinitionName* const>& definition_list>
+using ServerSafeContext = Context<definition_list, MetricRouter, true>;
 
 }  // namespace privacy_sandbox::server_common::metrics
 

@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package privacy_sandbox.server_common;
 
+import "google/protobuf/any.proto";
+
 // Consented debugging configuration.
 // Example:
 // The Chrome browser can set the following two fields:
@@ -39,6 +41,9 @@ message DebugInfo {
 
   // DebugInfo for downstream servers that receive requests from current server
   repeated DebugInfo downstream_servers = 3;
+
+  // Debug data in proto format
+  google.protobuf.Any event_message = 4;
 }
 
 // Context useful for logging and debugging requests.

@@ -23,8 +23,6 @@
 
 #include <nlohmann/json.hpp>
 
-#include "glog/logging.h"
-
 namespace google::scp::azure::attestation {
 
 /* from SEV-SNP Firmware ABI Specification Table 20 */

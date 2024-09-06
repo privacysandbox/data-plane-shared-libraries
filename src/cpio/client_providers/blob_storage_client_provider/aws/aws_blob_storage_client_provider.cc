@@ -36,6 +36,7 @@
 #include <aws/s3/model/UploadPartRequest.h>
 #include <google/protobuf/util/time_util.h>
 
+#include "absl/base/nullability.h"
 #include "absl/functional/bind_front.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_split.h"
@@ -46,6 +47,7 @@
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
 #include "src/cpio/client_providers/instance_client_provider/aws/aws_instance_client_utils.h"
 #include "src/cpio/common/aws/aws_utils.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/blob_storage_client/type_def.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -562,6 +564,10 @@ void AwsBlobStorageClientProvider::OnListObjectsMetadataCallback(
   auto* blob_metadatas =
       list_blobs_metadata_context.response->mutable_blob_metadatas();
   for (auto& object : list_objects_outcome.GetResult().GetContents()) {
+    if (((*list_blobs_metadata_context.request).exclude_directories()) &&
+        (object.GetKey().back() == '/')) {
+      continue;
+    }
     BlobMetadata metadata;
     metadata.set_blob_name(object.GetKey());
     metadata.set_bucket_name(
@@ -1140,9 +1146,9 @@ ExecutionResultOr<std::shared_ptr<S3Client>> AwsS3Factory::CreateClient(
 absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
-    InstanceClientProviderInterface* instance_client,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client,
+    absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept {
   auto provider = std::make_unique<AwsBlobStorageClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);

@@ -24,6 +24,7 @@ cc_library(
         "//src/core/message_router",
         "//src/cpio/client_providers/instance_client_provider/mock:instance_client_provider_mock",
         "//src/cpio/client_providers/metric_client_provider",
+        "@com_google_absl//absl/base:nullability",
         "@com_google_protobuf//:protobuf",
     ],
 )

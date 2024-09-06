@@ -20,6 +20,7 @@
 
 #include "src/core/async_executor/single_thread_async_executor.h"
 #include "src/core/common/time_provider/time_provider.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::ExecutionResult;
@@ -63,6 +64,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTask) {
   };
 
   std::vector<std::thread> threads;
+  threads.reserve(num_threads_scheduling_tasks_);
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }
@@ -106,6 +108,7 @@ TEST_F(SingleThreadAsyncExecutorBenchmarkTest, PerfTestSmallTaskMixedPriority) {
   };
 
   std::vector<std::thread> threads;
+  threads.reserve(num_threads_scheduling_tasks_);
   for (int i = 0; i < num_threads_scheduling_tasks_; i++) {
     threads.emplace_back(task_queueing_function, i);
   }

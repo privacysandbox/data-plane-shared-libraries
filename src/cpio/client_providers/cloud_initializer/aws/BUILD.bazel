@@ -18,25 +18,11 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "aws_initializer",
-    srcs = [
-        ":aws_initializer_srcs",
-    ],
+    srcs = ["aws_initializer.cc"],
+    hdrs = ["aws_initializer.h"],
     deps = [
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/public/core/interface:execution_result",
         "@aws_sdk_cpp//:core",
-    ],
-)
-
-exports_files([
-    "aws_initializer.h",
-    "aws_initializer.cc",
-])
-
-filegroup(
-    name = "aws_initializer_srcs",
-    srcs = [
-        ":aws_initializer.cc",
-        ":aws_initializer.h",
     ],
 )

@@ -21,6 +21,7 @@
 #include <string>
 
 #include "absl/functional/bind_front.h"
+#include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
 #include "src/public/core/interface/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -78,9 +79,10 @@ void AeadEncryptCallback(absl::Notification& finished, std::string& secret,
     aead_decrypt_request.set_secret(secret);
     aead_decrypt_request.mutable_encrypted_data()->set_ciphertext(
         aead_encrypt_response.encrypted_data().ciphertext());
-    crypto_client->AeadDecrypt(
-        std::move(aead_decrypt_request),
-        absl::bind_front(AeadDecryptCallback, std::ref(finished)));
+    crypto_client
+        ->AeadDecrypt(std::move(aead_decrypt_request),
+                      absl::bind_front(AeadDecryptCallback, std::ref(finished)))
+        .IgnoreError();
   } else {
     finished.Notify();
     std::cout << "Aead encrypt failure!" << GetErrorMessage(result.status_code)
@@ -103,10 +105,12 @@ void HpkeDecryptCallback(bool is_bidirectional, absl::Notification& finished,
       aead_encrypt_request.set_payload(std::string(kResponsePayload));
       auto secret = hpke_decrypt_response.secret();
       aead_encrypt_request.set_secret(secret);
-      crypto_client->AeadEncrypt(
-          std::move(aead_encrypt_request),
-          absl::bind_front(AeadEncryptCallback, std::ref(finished), secret,
-                           crypto_client));
+      crypto_client
+          ->AeadEncrypt(
+              std::move(aead_encrypt_request),
+              absl::bind_front(AeadEncryptCallback, std::ref(finished), secret,
+                               crypto_client))
+          .IgnoreError();
     } else {
       finished.Notify();
     }
@@ -131,10 +135,11 @@ void HpkeEncryptCallback(bool is_bidirectional, absl::Notification& finished,
         hpke_encrypt_response.encrypted_data().ciphertext());
     hpke_decrypt_request.mutable_encrypted_data()->set_key_id(
         hpke_encrypt_response.encrypted_data().key_id());
-    crypto_client->HpkeDecrypt(
-        std::move(hpke_decrypt_request),
-        absl::bind_front(HpkeDecryptCallback, is_bidirectional,
-                         std::ref(finished), crypto_client));
+    crypto_client
+        ->HpkeDecrypt(std::move(hpke_decrypt_request),
+                      absl::bind_front(HpkeDecryptCallback, is_bidirectional,
+                                       std::ref(finished), crypto_client))
+        .IgnoreError();
   } else {
     std::cout << "Hpke encrypt failure!" << GetErrorMessage(result.status_code)
               << std::endl;
@@ -160,19 +165,6 @@ int main(int argc, char* argv[]) {
 
   auto crypto_client =
       CryptoClientFactory::Create(std::move(crypto_client_options));
-  result = crypto_client->Init();
-  if (!result.Successful()) {
-    std::cout << "Cannot init crypto client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-    return 0;
-  }
-  result = crypto_client->Run();
-  if (!result.Successful()) {
-    std::cout << "Cannot run crypto client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-    return 0;
-  }
-
   std::cout << "Run crypto client successfully!" << std::endl;
 
   absl::Notification finished;
@@ -182,18 +174,12 @@ int main(int argc, char* argv[]) {
   hpke_encrypt_request.set_shared_info(std::string(kSharedInfo));
   hpke_encrypt_request.set_payload(std::string(kRequestPayload));
   hpke_encrypt_request.set_is_bidirectional(is_bidirectional);
-  crypto_client->HpkeEncrypt(
-      std::move(hpke_encrypt_request),
-      absl::bind_front(HpkeEncryptCallback, is_bidirectional,
-                       std::ref(finished), crypto_client.get()));
+  crypto_client
+      ->HpkeEncrypt(std::move(hpke_encrypt_request),
+                    absl::bind_front(HpkeEncryptCallback, is_bidirectional,
+                                     std::ref(finished), crypto_client.get()))
+      .IgnoreError();
   finished.WaitForNotificationWithTimeout(absl::Seconds(3));
-
-  result = crypto_client->Stop();
-  if (!result.Successful()) {
-    std::cout << "Cannot stop crypto client!"
-              << GetErrorMessage(result.status_code) << std::endl;
-  }
-
   result = Cpio::ShutdownCpio(cpio_options);
   if (!result.Successful()) {
     std::cout << "Failed to shutdown CPIO: "

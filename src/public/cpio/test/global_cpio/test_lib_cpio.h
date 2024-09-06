@@ -17,8 +17,6 @@
 #ifndef SCP_CPIO_TEST_LIB_CPIO_H_
 #define SCP_CPIO_TEST_LIB_CPIO_H_
 
-#include "src/public/core/interface/execution_result.h"
-
 #include "test_cpio_options.h"
 
 namespace google::scp::cpio {
@@ -32,17 +30,15 @@ class TestLibCpio {
    * @brief Initializes global CPIO objects for testing.
    *
    * @param options global configurations for testing.
-   * @return core::ExecutionResult result of initializing CPIO.
    */
-  static core::ExecutionResult InitCpio(TestCpioOptions options);
+  static void InitCpio(TestCpioOptions options);
 
   /**
    * @brief Shuts down global CPIO objects for testing.
    *
    * @param options global configurations for testing.
-   * @return core::ExecutionResult result of terminating CPIO.
    */
-  static core::ExecutionResult ShutdownCpio(TestCpioOptions options);
+  static void ShutdownCpio(TestCpioOptions options);
 };
 }  // namespace google::scp::cpio
 

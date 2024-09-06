@@ -38,5 +38,7 @@ cc_library(
         "//src/public/cpio/adapters/common:adapter_utils",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/status",
     ],
 )

@@ -21,9 +21,8 @@
 
 #include <aws/ssm/SSMClient.h>
 
+#include "src/cpio/client_providers/parameter_client_provider/aws/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
-
-#include "error_codes.h"
 
 namespace google::scp::cpio::client_providers {
 class SSMErrorConverter {

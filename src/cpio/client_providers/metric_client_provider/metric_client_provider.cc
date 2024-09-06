@@ -53,7 +53,6 @@ using google::scp::core::errors::SC_METRIC_CLIENT_PROVIDER_NAMESPACE_NOT_SET;
 
 namespace {
 constexpr std::string_view kMetricClientProvider = "MetricClientProvider";
-constexpr size_t kShutdownWaitIntervalMilliseconds = 100;
 // The metrics size to trigger a batch push.
 constexpr size_t kMetricsBatchSize = 1000;
 }  // namespace
@@ -70,26 +69,6 @@ absl::Status MetricClientProvider::Init() noexcept {
               "Invalid namespace.");
     return absl::InvalidArgumentError("Namespace not set.");
   }
-
-  if (is_batch_recording_enable && !async_executor_) {
-    return absl::InvalidArgumentError(
-        "Batch recording enabled but async executor unavailable.");
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status MetricClientProvider::Run() noexcept {
-  if (absl::MutexLock l(&sync_mutex_); is_running_) {
-    auto execution_result =
-        FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING);
-    SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
-              "Failed to run MetricClientProvider.");
-    return absl::FailedPreconditionError("Metric client is already running.");
-  } else {
-    is_running_ = true;
-  }
-
   if (is_batch_recording_enable) {
     if (const auto result = ScheduleMetricsBatchPush(); !result.Successful()) {
       return absl::UnknownError(
@@ -99,11 +78,11 @@ absl::Status MetricClientProvider::Run() noexcept {
   return absl::OkStatus();
 }
 
-absl::Status MetricClientProvider::Stop() noexcept {
-  absl::MutexLock l(&sync_mutex_);
-  is_running_ = false;
-  if (is_batch_recording_enable) {
+MetricClientProvider::~MetricClientProvider() {
+  absl::MutexLock lock(&sync_mutex_);
+  if (is_batch_recording_enable && current_cancellation_callback_) {
     current_cancellation_callback_();
+
     // To push the remaining metrics in the vector.
     RunMetricsBatchPush();
   }
@@ -112,22 +91,11 @@ absl::Status MetricClientProvider::Stop() noexcept {
     return active_push_count_ == 0;
   };
   sync_mutex_.Await(absl::Condition(&condition_fn));
-  return absl::OkStatus();
 }
 
 absl::Status MetricClientProvider::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>
         record_metric_context) noexcept {
-  absl::MutexLock l(&sync_mutex_);
-  if (!is_running_) {
-    auto execution_result =
-        FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
-    SCP_ERROR_CONTEXT(kMetricClientProvider, record_metric_context,
-                      execution_result, "Failed to record metric.");
-    record_metric_context.Finish(execution_result);
-    return absl::FailedPreconditionError("Metric client isn't running.");
-  }
-
   auto execution_result = MetricClientUtils::ValidateRequest(
       *record_metric_context.request, metric_batching_options_);
   if (!execution_result.Successful()) {
@@ -143,6 +111,7 @@ absl::Status MetricClientProvider::PutMetrics(
   //    RunMetricsBatchPush() swaps metric_requests_vector_ for a vector being
   //    pushed to the cloud.
   // The above two actions should be atomic, so the mutex is protecting them.
+  absl::MutexLock lock(&sync_mutex_);
   metric_requests_vector_.push_back(record_metric_context);
   number_metrics_in_vector_ += record_metric_context.request->metrics().size();
 
@@ -176,14 +145,6 @@ void MetricClientProvider::RunMetricsBatchPush() noexcept {
 }
 
 ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
-  if (absl::MutexLock l(&sync_mutex_); !is_running_) {
-    auto execution_result =
-        FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
-    SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
-              "Failed to schedule metric batch push.");
-    return execution_result;
-  }
-
   auto next_push_time = (TimeProvider::GetSteadyTimestampInNanoseconds() +
                          metric_batching_options_.batch_recording_time_duration)
                             .count();
@@ -191,7 +152,7 @@ ExecutionResult MetricClientProvider::ScheduleMetricsBatchPush() noexcept {
       [this]() {
         ScheduleMetricsBatchPush();
 
-        absl::MutexLock l(&sync_mutex_);
+        absl::MutexLock lock(&sync_mutex_);
         RunMetricsBatchPush();
       },
       next_push_time, current_cancellation_callback_);

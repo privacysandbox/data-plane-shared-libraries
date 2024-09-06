@@ -20,6 +20,8 @@
 #include <thread>
 #include <utility>
 
+#include "src/public/core/interface/execution_result.h"
+
 #include "async_executor_utils.h"
 #include "error_codes.h"
 #include "typedef.h"
@@ -48,12 +50,12 @@ SingleThreadAsyncExecutor::SingleThreadAsyncExecutor(
           AsyncExecutorUtils::SetAffinity(*affinity_cpu_number);
         }
         {
-          absl::MutexLock l(&ptr->mutex_);
+          absl::MutexLock lock(&ptr->mutex_);
           ptr->worker_thread_started_ = true;
         }
         ptr->StartWorker();
         {
-          absl::MutexLock l(&ptr->mutex_);
+          absl::MutexLock lock(&ptr->mutex_);
           ptr->worker_thread_stopped_ = true;
         }
       },
@@ -66,7 +68,7 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
   while (true) {
     std::unique_ptr<AsyncTask> task;
     {
-      absl::MutexLock l(&mutex_);
+      absl::MutexLock lock(&mutex_);
       auto fn = [this] {
         mutex_.AssertReaderHeld();
         return !is_running_ || high_pri_queue_.Size() > 0 ||
@@ -92,7 +94,7 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
 }
 
 SingleThreadAsyncExecutor::~SingleThreadAsyncExecutor() {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   is_running_ = false;
 
   // To ensure stop can happen cleanly, it is required to wait for the thread to
@@ -108,7 +110,7 @@ SingleThreadAsyncExecutor::~SingleThreadAsyncExecutor() {
 
 ExecutionResult SingleThreadAsyncExecutor::Schedule(
     AsyncOperation work, AsyncPriority priority) noexcept {
-  absl::MutexLock l(&mutex_);
+  absl::MutexLock lock(&mutex_);
   if (priority != AsyncPriority::Normal && priority != AsyncPriority::High) {
     return FailureExecutionResult(
         errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);

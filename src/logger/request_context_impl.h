@@ -51,6 +51,22 @@ inline std::string_view ServerToken(
   return *server_token;
 }
 
+inline void LogWithPSLog(
+    absl::LogSeverity severity,
+    privacy_sandbox::server_common::log::PSLogContext& log_context,
+    std::string_view msg) {
+  switch (severity) {
+    case absl::LogSeverity::kInfo:
+      PS_LOG(INFO, log_context) << msg;
+      break;
+    case absl::LogSeverity::kWarning:
+      PS_LOG(WARNING, log_context) << msg;
+      break;
+    default:
+      PS_LOG(ERROR, log_context) << msg;
+  }
+}
+
 ABSL_CONST_INIT inline opentelemetry::logs::Logger* logger_private = nullptr;
 
 // Utility method to format the context provided as key/value pair into a
@@ -58,7 +74,20 @@ ABSL_CONST_INIT inline opentelemetry::logs::Logger* logger_private = nullptr;
 std::string FormatContext(
     const absl::btree_map<std::string, std::string>& context_map);
 
-class ContextImpl : public RequestContext {
+opentelemetry::logs::Severity ToOtelSeverity(absl::LogSeverity);
+
+void AddEventMessage(const ::google::protobuf::Message& msg,
+                     absl::AnyInvocable<DebugInfo*()>& debug_info);
+
+bool IsProd();
+
+// EventMessageProvider has following interface:
+// 1. ::google::protobuf::Message Get()
+//  this return the proto message to export
+// 2. void Set (const T& field)
+//  this sets one of its field
+template <typename EventMessageProvider = std::nullptr_t>
+class ContextImpl final : public PSLogContext {
  public:
   ContextImpl(
       const absl::btree_map<std::string, std::string>& context_map,
@@ -69,7 +98,7 @@ class ContextImpl : public RequestContext {
     Update(context_map, debug_config);
   }
 
-  virtual ~ContextImpl() = default;
+  // note: base class PSLogContext has no virtual destructor!
 
   std::string_view ContextStr() const override { return context_; }
 
@@ -91,6 +120,23 @@ class ContextImpl : public RequestContext {
     debug_response_sink_.should_log_ = debug_config.is_debug_info_in_response();
   }
 
+  template <typename T>
+  void SetEventMessageField(const T& field) {
+    if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
+      if (is_debug_response() && !IsProd()) {
+        provider_.Set(field);
+      }
+    }
+  }
+
+  void ExportEventMessage() {
+    if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
+      if (is_debug_response()) {
+        AddEventMessage(provider_.Get(), debug_response_sink_.debug_info_);
+      }
+    }
+  }
+
  private:
   friend class ConsentedLogTest;
 
@@ -101,7 +147,8 @@ class ContextImpl : public RequestContext {
 
     void Send(const absl::LogEntry& entry) override {
       logger_private->EmitLogRecord(
-          entry.text_message_with_prefix_and_newline_c_str());
+          entry.text_message_with_prefix_and_newline_c_str(),
+          ToOtelSeverity(entry.log_severity()));
     }
 
     void Flush() override {}
@@ -140,6 +187,42 @@ class ContextImpl : public RequestContext {
   std::string context_;
   ConsentedSinkImpl consented_sink;
   DebugResponseSinkImpl debug_response_sink_;
+  EventMessageProvider provider_;
+};
+
+// Defines SafePathContext class to always log to otel for safe code path
+class SafePathContext : public PSLogContext {
+ public:
+  // note: base class PSLogContext has no virtual destructor!
+  virtual ~SafePathContext() = default;
+
+  std::string_view ContextStr() const override { return ""; }
+
+  bool is_consented() const override { return true; }
+
+  absl::LogSink* ConsentedSink() override { return &otel_sink_; }
+
+  bool is_debug_response() const override { return false; };
+  absl::LogSink* DebugResponseSink() override { return nullptr; };
+
+ protected:
+  SafePathContext() = default;
+  friend class SafePathLogTest;
+
+ private:
+  // OpenTelemetry log sink
+  class OtelSinkImpl : public absl::LogSink {
+   public:
+    OtelSinkImpl() = default;
+    void Send(const absl::LogEntry& entry) override {
+      logger_private->EmitLogRecord(
+          entry.text_message_with_prefix_and_newline_c_str(),
+          ToOtelSeverity(entry.log_severity()));
+    }
+    void Flush() override {}
+  };
+
+  OtelSinkImpl otel_sink_;
 };
 
 }  // namespace privacy_sandbox::server_common::log

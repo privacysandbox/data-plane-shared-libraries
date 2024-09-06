@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "gcp_kms_client_provider.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_client_provider.h"
 
 #include <memory>
 #include <string_view>
@@ -24,11 +24,11 @@
 
 #include "src/core/utils/base64.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/error_codes.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_key_management_service_client.h"
+#include "src/cpio/client_providers/kms_client_provider/gcp/gcp_kms_aead.h"
+#include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
-
-#include "error_codes.h"
-#include "gcp_key_management_service_client.h"
-#include "gcp_kms_aead.h"
 
 using crypto::tink::Aead;
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
@@ -147,9 +147,9 @@ ExecutionResultOr<std::shared_ptr<Aead>> GcpKmsAeadProvider::CreateAead(
 }
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-    KmsClientOptions options,
-    absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
-    AsyncExecutorInterface* io_async_executor) noexcept {
+    absl::Nonnull<
+        RoleCredentialsProviderInterface*> /*role_credentials_provider*/,
+    AsyncExecutorInterface* /*io_async_executor*/) noexcept {
   return std::make_unique<GcpKmsClientProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

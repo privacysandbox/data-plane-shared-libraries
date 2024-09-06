@@ -56,37 +56,12 @@ using google::scp::core::Uri;
 using google::scp::core::common::kZeroUuid;
 using google::scp::core::errors::
     SC_PUBLIC_KEY_CLIENT_PROVIDER_ALL_URIS_REQUEST_PERFORM_FAILED;
-using google::scp::core::errors::
-    SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED;
-using google::scp::core::errors::
-    SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS;
 
 namespace {
 constexpr std::string_view kPublicKeyClientProvider = "PublicKeyClientProvider";
 }
 
 namespace google::scp::cpio::client_providers {
-
-absl::Status PublicKeyClientProvider::Init() noexcept {
-  if (public_key_client_options_.endpoints.empty()) {
-    auto execution_result = FailureExecutionResult(
-        SC_PUBLIC_KEY_CLIENT_PROVIDER_INVALID_CONFIG_OPTIONS);
-    SCP_ERROR(kPublicKeyClientProvider, kZeroUuid, execution_result,
-              "Failed to init PublicKeyClientProvider.");
-    return absl::InvalidArgumentError(
-        "PublicKeyClientProvider endpoints must be non-empty.");
-  }
-
-  if (!http_client_) {
-    auto execution_result = FailureExecutionResult(
-        SC_PUBLIC_KEY_CLIENT_PROVIDER_HTTP_CLIENT_REQUIRED);
-    SCP_ERROR(kPublicKeyClientProvider, kZeroUuid, execution_result,
-              "Failed to init PublicKeyClientProvider.");
-    return absl::InvalidArgumentError("HttpClient must be non-null.");
-  }
-
-  return absl::OkStatus();
-}
 
 void PublicKeyClientProvider::OnListPublicKeys(
     AsyncContext<Any, Any> any_context) noexcept {
@@ -209,13 +184,12 @@ void PublicKeyClientProvider::OnPerformRequestCallback(
   }
 }
 
-absl::StatusOr<std::unique_ptr<PublicKeyClientProviderInterface>>
-PublicKeyClientProviderFactory::Create(PublicKeyClientOptions options,
-                                       HttpClientInterface* http_client) {
-  auto client = std::make_unique<PublicKeyClientProvider>(std::move(options),
-                                                          http_client);
-  PS_RETURN_IF_ERROR(client->Init());
-  return client;
+absl::Nonnull<std::unique_ptr<PublicKeyClientProviderInterface>>
+PublicKeyClientProviderFactory::Create(
+    PublicKeyClientOptions options,
+    absl::Nonnull<HttpClientInterface*> http_client) {
+  return std::make_unique<PublicKeyClientProvider>(std::move(options),
+                                                   http_client);
 }
 
 }  // namespace google::scp::cpio::client_providers
