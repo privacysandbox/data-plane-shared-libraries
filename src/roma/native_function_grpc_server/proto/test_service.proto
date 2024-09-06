@@ -27,7 +27,7 @@ service TestService {
     code_id: "app_api_roma_app_test_v1",
     description: 'Test Server',
     cpp_namespace: 'privacysandbox::test_server',
-    romav8_app_name: 'TestServer',
+    roma_app_name: 'TestServer',
   };
 
   rpc TestMethod(TestMethodRequest) returns (TestMethodResponse) {

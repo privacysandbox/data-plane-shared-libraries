@@ -19,7 +19,6 @@
 
 #include <utility>
 
-#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "src/roma/native_function_grpc_server/proto/multi_service.pb.h"

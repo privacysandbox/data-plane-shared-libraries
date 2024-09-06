@@ -21,16 +21,14 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include <google/protobuf/util/json_util.h>
-
-#include "absl/container/node_hash_set.h"
+#include "absl/base/log_severity.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
 #include "absl/log/globals.h"
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
-#include "absl/strings/numbers.h"
+#include "absl/strings/str_cat.h"
 #include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/native_function_grpc_server/proto/multi_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/multi_service.pb.h"

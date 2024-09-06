@@ -58,7 +58,10 @@ class KeyFetcherManagerFactory {
       absl::Duration key_refresh_period,
       std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
       std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-      std::shared_ptr<Executor> executor);
+      std::shared_ptr<Executor> executor,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 };
 
 }  // namespace privacy_sandbox::server_common

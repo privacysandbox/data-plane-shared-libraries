@@ -21,14 +21,16 @@
  * --test_output=all
  */
 
-#include <gtest/gtest.h>
-
 #include <benchmark/benchmark.h>
 
 #include "absl/cleanup/cleanup.h"
+#include "absl/log/check.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/blocking_counter.h"
+#include "absl/types/span.h"
+#include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/dispatcher/dispatcher.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 
 namespace {
 
@@ -53,9 +55,10 @@ std::vector<WorkerSandboxApi> Workers(int num_workers) {
         /*js_engine_max_wasm_memory_number_of_pages=*/0,
         /*sandbox_request_response_shared_buffer_size_mb=*/0,
         /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
-        /*v8_flags=*/std::vector<std::string>());
-    CHECK(workers.back().Init().ok());
-    CHECK(workers.back().Run().ok());
+        /*v8_flags=*/std::vector<std::string>(),
+        /*enable_profilers=*/false);
+    CHECK_OK(workers.back().Init());
+    CHECK_OK(workers.back().Run());
   }
   return workers;
 }
@@ -65,7 +68,7 @@ void BM_Dispatch(benchmark::State& state) {
   std::vector<WorkerSandboxApi> workers = Workers(/*num_workers=*/1);
   absl::Cleanup cleanup = [&] {
     for (WorkerSandboxApi& worker : workers) {
-      CHECK(worker.Stop().ok());
+      CHECK_OK(worker.Stop());
     }
   };
 
@@ -82,14 +85,12 @@ void BM_Dispatch(benchmark::State& state) {
           .version_string = "v1",
           .js = R"(function test() { return 'Hello World'; })",
       };
-      ASSERT_TRUE(
-          dispatcher
-              .Invoke(std::move(load_request),
-                      [&is_loading](absl::StatusOr<ResponseObject> resp) {
-                        ASSERT_TRUE(resp.ok());
-                        is_loading.DecrementCount();
-                      })
-              .ok());
+      CHECK_OK(
+          dispatcher.Invoke(std::move(load_request),
+                            [&is_loading](absl::StatusOr<ResponseObject> resp) {
+                              CHECK_OK(resp);
+                              is_loading.DecrementCount();
+                            }));
     }
     is_loading.Wait();
   }

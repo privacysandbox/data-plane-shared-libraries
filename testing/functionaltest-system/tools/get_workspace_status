@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This script will be run bazel when building process starts to
+# generate key-value information that represents the status of the
+# workspace. The output should be like
+#
+# KEY1 VALUE1
+# KEY2 VALUE2
+#
+# We want to force binaries to relink when the Git SHA changes. This can be
+# done by prefixing keys with "STABLE_". To avoid breaking compatibility with
+# other status scripts, this one still echos the non-stable ("volatile") names.
+
+if ! command -v git >/dev/null; then
+  exit 0
+fi
+
+if [[ -f /.dockerenv ]] && [[ -d /src/workspace ]]; then
+  TOPLEVEL_DIR=/src/workspace
+else
+  TOPLEVEL_DIR="$(git rev-parse --show-toplevel)"
+fi
+readonly TOPLEVEL_DIR
+readonly BUILDERS_DIR="${TOPLEVEL_DIR}"/builders
+
+readonly VERSION_PATH="${TOPLEVEL_DIR}"/version.txt
+if [[ -s ${VERSION_PATH} ]]; then
+  printf "STABLE_VERSION %s\n" "$(<"${VERSION_PATH}")"
+fi
+
+readonly BUILD_VERSION_PATH="${BUILDERS_DIR}"/version.txt
+if [[ -s ${BUILD_VERSION_PATH} ]]; then
+  printf "STABLE_BUILD_VERSION %s\n" "$(<"${BUILD_VERSION_PATH}")"
+fi
+
+if [[ -f /.dockerenv ]] && [[ -s /etc/bazel.bazelrc ]]; then
+  printf "STABLE_%s\n" "$(grep -o 'TOOLCHAINS_HASH.*$' /etc/bazel.bazelrc | tr '=' ' ')"
+fi
+
+TOOLS_IMAGE_URI="$("${BUILDERS_DIR}"/tools/get-builder-image-tagged --image test-tools)"
+readonly TOOLS_IMAGE_URI
+if [[ -n ${TOOLS_IMAGE_URI} ]]; then
+  printf "STABLE_TEST_TOOLS_IMAGE_URI %s\n" "${TOOLS_IMAGE_URI}"
+fi

@@ -26,8 +26,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/base/thread_annotations.h"
-#include "absl/synchronization/mutex.h"
 #include "src/core/os/linux/system_resource_info_provider_linux.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
@@ -53,7 +51,8 @@ constexpr int kWorkerQueueMax = 100;
 // This value does not account for runtime memory usage and is only a generic
 // estimate based on the memory needed by roma and the steady-state memory
 // needed by v8.
-constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
+constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKB = 400 * 1024;
+constexpr uint64_t kMinWorkerVirtualMemoryMB = 10 * 1024;  // 10 GB
 
 /**
  * @brief The template parameter, TMetadata, needs to be default assignable and
@@ -75,6 +74,13 @@ class RomaService {
     if (!RomaHasEnoughMemoryForStartup()) {
       return absl::InternalError(
           "Roma startup failed due to insufficient system memory.");
+    }
+    if (!RomaWorkersHaveEnoughAddressSpace()) {
+      return absl::InternalError(absl::StrCat(
+          "Roma startup failed due to insufficient address space for workers. "
+          "Please increase config.max_worker_virtual_memory_mb above ",
+          kMinWorkerVirtualMemoryMB, " MB. Current value is ",
+          config_.max_worker_virtual_memory_mb, " MB."));
     }
     PS_RETURN_IF_ERROR(InitInternal());
     return absl::OkStatus();
@@ -219,7 +225,7 @@ class RomaService {
     remote_fds.reserve(concurrency);
     for (int i = 0; i < concurrency; i++) {
       int fd_pair[2];
-      if (socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
+      if (::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair) != 0) {
         return absl::InternalError(
             absl::StrCat("Failed to create socket for native function binding "
                          "communication."));
@@ -292,7 +298,9 @@ class RomaService {
           config_.sandbox_request_response_shared_buffer_size_mb,
           /*enable_sandbox_sharing_request_response_with_buffer_only=*/
           config_.enable_sandbox_sharing_request_response_with_buffer_only,
-          /*v8_flags=*/v8_flags);
+          /*v8_flags=*/v8_flags,
+          /*enable_profilers=*/config_.enable_profilers,
+          /*logging_function_set=*/config_.logging_function_set);
       PS_RETURN_IF_ERROR(workers_.back().Init());
       PS_RETURN_IF_ERROR(workers_.back().Run());
     }
@@ -400,6 +408,13 @@ class RomaService {
     return absl::OkStatus();
   }
 
+  // V8 fails to initialize if Roma workers aren't given at least
+  // kMinWorkerVirtualMemoryMB of address space.
+  bool RomaWorkersHaveEnoughAddressSpace() {
+    return config_.max_worker_virtual_memory_mb == 0 ||
+           config_.max_worker_virtual_memory_mb >= kMinWorkerVirtualMemoryMB;
+  }
+
   bool RomaHasEnoughMemoryForStartup() {
     if (!config_.enable_startup_memory_check) {
       return true;
@@ -428,7 +443,7 @@ class RomaService {
     ROMA_VLOG(1) << "Number of workers is " << num_processes;
 
     auto minimum_memory_needed =
-        num_processes * kDefaultMinStartupMemoryNeededPerWorkerKb;
+        num_processes * kDefaultMinStartupMemoryNeededPerWorkerKB;
 
     return minimum_memory_needed < *available_memory;
   }

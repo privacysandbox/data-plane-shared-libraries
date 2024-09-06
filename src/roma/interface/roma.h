@@ -25,9 +25,8 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/functional/any_invocable.h"
-#include "absl/status/status.h"
 #include "absl/status/statusor.h"
-#include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 
 namespace google::scp::roma {
 /// @brief The key of timeout tag for request. This tag should be set with a
@@ -126,6 +125,8 @@ struct ResponseObject {
   std::string id;
   // The response of the execution.
   std::string resp;
+  // the output from V8's Heap and Sample-based CPU profiler
+  std::string profiler_output;
   // Execution metrics. Any key should be checked for existence.
   absl::flat_hash_map<std::string, absl::Duration> metrics;
 };

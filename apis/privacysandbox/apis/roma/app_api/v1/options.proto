@@ -54,7 +54,7 @@ message RomaServiceAnnotation {
   string description = 3;
   // Each namespace can only have a single Roma Host api
   string cpp_namespace = 4;
-  string romav8_app_name = 5;
+  string roma_app_name = 5;
   // Include paths for all cpp_host_process_callback defined on
   // RomaFunctionAnnotation. For example, if the below cpp_host_process_callback
   // was defined in `foo/bar/foobar_native_functions.h`,

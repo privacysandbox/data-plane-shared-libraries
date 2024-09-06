@@ -35,6 +35,8 @@ syntax = "proto3";
 
 package google.scp.roma.proto;
 
+option go_package = "github.com/privacysandbox/data-plane-shared/apis/roma/function_binding_io";
+
 message ListOfStringProto {
   repeated string data = 1;
 }

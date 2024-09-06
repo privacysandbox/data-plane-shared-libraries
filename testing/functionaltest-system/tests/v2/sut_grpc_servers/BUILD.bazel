@@ -1,0 +1,35 @@
+load("//bazel:ssl_cert.bzl", "generate_ssl_certificate")
+load("//sut:sut.bzl", "sut")
+
+generate_ssl_certificate("test_cert", "test_domain")
+
+sut(
+    name = "sut_grpc_servers",
+    custom_file_mappings = {
+        "docker_image_": "docker_images/",
+        "helloworld_descriptor_set.pb": "data/helloworld_descriptor_set.pb",
+        "routeguide_descriptor_set.pb": "data/routeguide_descriptor_set.pb",
+        "test_cert_": "certs/test_cert_",
+    },
+    sut_labels = [
+        "//tests:helloworld_descriptor_set",
+        "//tests:routeguide_descriptor_set",
+        ":test_cert",
+    ],
+)
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":sut_grpc_servers",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+mkdir -p dist/tests/v2
+cp $(execpath :sut_grpc_servers) dist/tests/v2
+builders/tools/normalize-dist
+EOF""",
+    executable = True,
+    local = True,
+    message = "copy tests-v2 sut artifact to the dist directory",
+)

@@ -1,0 +1,20 @@
+local_repository(
+    name = "google_privacysandbox_functionaltest_system",
+    path = "functionaltest-system",
+)
+
+load("@google_privacysandbox_functionaltest_system//:repos.bzl", functest_repo_repositories = "repositories")
+
+functest_repo_repositories()
+
+load("@aspect_bazel_lib//lib:repositories.bzl", "aspect_bazel_lib_dependencies", "aspect_bazel_lib_register_toolchains", "register_jq_toolchains")
+
+aspect_bazel_lib_dependencies()
+
+aspect_bazel_lib_register_toolchains()
+
+register_jq_toolchains()
+
+load("deps.bzl", "deps")
+
+deps()

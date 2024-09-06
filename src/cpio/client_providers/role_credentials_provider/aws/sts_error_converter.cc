@@ -48,15 +48,19 @@ FailureExecutionResult STSErrorConverter::ConvertSTSError(
       failure = FailureExecutionResult(SC_AWS_VALIDATION_FAILED);
       break;
     case STSErrors::ACCESS_DENIED:
+      [[fallthrough]];
     case STSErrors::MISSING_AUTHENTICATION_TOKEN:
       failure = FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS);
       break;
     case STSErrors::INVALID_PARAMETER_COMBINATION:
+      [[fallthrough]];
     case STSErrors::INVALID_QUERY_PARAMETER:
+      [[fallthrough]];
     case STSErrors::INVALID_PARAMETER_VALUE:
       failure = FailureExecutionResult(SC_AWS_INVALID_REQUEST);
       break;
     case STSErrors::SERVICE_UNAVAILABLE:
+      [[fallthrough]];
     case STSErrors::NETWORK_CONNECTION:
       failure = FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE);
       break;
@@ -64,6 +68,7 @@ FailureExecutionResult STSErrorConverter::ConvertSTSError(
       failure = FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED);
       break;
     case STSErrors::INTERNAL_FAILURE:
+      [[fallthrough]];
     default:
       failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   }

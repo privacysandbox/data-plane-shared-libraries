@@ -16,7 +16,10 @@
 
 #include "native_function_invoker_sapi_ipc.h"
 
-#include "absl/log/log.h"
+#include <memory>
+
+#include "absl/status/status.h"
+#include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/sandbox/constants/constants.h"
 
 using google::scp::roma::proto::RpcWrapper;

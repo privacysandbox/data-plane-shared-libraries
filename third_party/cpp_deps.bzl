@@ -40,6 +40,13 @@ def cpp_dependencies():
     )
     maybe(
         http_archive,
+        name = "bazel_features",
+        sha256 = "3aa581fef51598772c094b6b7b82004ce3fbb46d9fdc17edde410f901e4f2fea",
+        strip_prefix = "bazel_features-1.13.0",
+        urls = ["https://github.com/bazel-contrib/bazel_features/archive/refs/tags/v1.13.0.zip"],
+    )
+    maybe(
+        http_archive,
         name = "rules_pkg",
         sha256 = "8f9ee2dc10c1ae514ee599a8b42ed99fa262b757058f65ad3c384289ff70c4b8",
         urls = [
@@ -134,7 +141,7 @@ def cpp_dependencies():
         http_archive,
         name = "build_bazel_rules_swift",
         sha256 = "bf2861de6bf75115288468f340b0c4609cc99cc1ccc7668f0f71adfd853eedb3",
-        url = "https://github.com/bazelbuild/rules_swift/releases/download/1.7.1/rules_swift.1.7.1.tar.gz",
+        urls = ["https://github.com/bazelbuild/rules_swift/releases/download/1.7.1/rules_swift.1.7.1.tar.gz"],
     )
     maybe(
         http_archive,
@@ -157,14 +164,70 @@ def cpp_dependencies():
         name = "emsdk",
         sha256 = "293eb67df598f44b23a07e247fc81107029eff7cd3b38d4ff531e32bf8a951eb",
         strip_prefix = "emsdk-{ver}/bazel".format(ver = EMSCRIPTEN_VER),
-        url = "https://github.com/emscripten-core/emsdk/archive/refs/tags/{ver}.zip".format(ver = EMSCRIPTEN_VER),
+        urls = ["https://github.com/emscripten-core/emsdk/archive/refs/tags/{ver}.zip".format(ver = EMSCRIPTEN_VER)],
     )
     maybe(
         http_archive,
         name = "bazel_clang_tidy",
         sha256 = "352aeb57ad7ed53ff6e02344885de426421fb6fd7a3890b04d14768d759eb598",
         strip_prefix = "bazel_clang_tidy-4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39",
-        urls = [
-            "https://github.com/erenon/bazel_clang_tidy/archive/4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39.zip",
-        ],
+        urls = ["https://github.com/erenon/bazel_clang_tidy/archive/4884c32e09c1ea9ac96b3f08c3004f3ac4c3fe39.zip"],
+    )
+    maybe(
+        http_archive,
+        name = "com_github_google_flatbuffers",
+        sha256 = "e706f5eb6ca8f78e237bf3f7eccffa1c5ec9a96d3c1c938f08dc09aab1884528",
+        strip_prefix = "flatbuffers-24.3.25",
+        urls = ["https://github.com/google/flatbuffers/archive/refs/tags/v24.3.25.zip"],
+    )
+    _bazel_deps()
+    _container_deps()
+    _ts_js_deps()
+
+def _bazel_deps():
+    maybe(
+        http_archive,
+        name = "aspect_bazel_lib",
+        sha256 = "f5ea76682b209cc0bd90d0f5a3b26d2f7a6a2885f0c5f615e72913f4805dbb0d",
+        strip_prefix = "bazel-lib-2.5.0",
+        urls = ["https://github.com/aspect-build/bazel-lib/releases/download/v2.5.0/bazel-lib-v2.5.0.tar.gz"],
+    )
+
+def _container_deps():
+    maybe(
+        http_archive,
+        name = "rules_oci",
+        sha256 = "4a276e9566c03491649eef63f27c2816cc222f41ccdebd97d2c5159e84917c3b",
+        strip_prefix = "rules_oci-1.7.4",
+        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.7.4/rules_oci-v1.7.4.tar.gz",
+    )
+    maybe(
+        http_archive,
+        name = "container_structure_test",
+        sha256 = "978db1ed0f802120fb0308b08b5c1e38ea81377944cc7a2fb727529815e4ed09",
+        strip_prefix = "container-structure-test-1.17.0",
+        urls = ["https://github.com/GoogleContainerTools/container-structure-test/archive/v1.17.0.zip"],
+    )
+
+def _ts_js_deps():
+    maybe(
+        http_archive,
+        name = "aspect_rules_js",
+        sha256 = "1b3efc640f6168bd2ff68d86b67e331e8f4747e70b36cb2e713f4ecc46f13e62",
+        strip_prefix = "rules_js-1.42.3",
+        urls = ["https://github.com/aspect-build/rules_js/archive/refs/tags/v1.42.3.zip"],
+    )
+    maybe(
+        http_archive,
+        name = "aspect_rules_ts",
+        sha256 = "e1e3fd09f9cc3b12ea9eb0472920e5213fe595504cda516716d5707f41863567",
+        strip_prefix = "rules_ts-2.4.2",
+        urls = ["https://github.com/aspect-build/rules_ts/archive/refs/tags/v2.4.2.zip"],
+    )
+    maybe(
+        http_archive,
+        name = "aspect_rules_esbuild",
+        sha256 = "f0f957410368a0ffc2ea923bceedf02e17b4b5d508553989e349f8c764d41bb8",
+        strip_prefix = "rules_esbuild-0.20.1",
+        urls = ["https://github.com/aspect-build/rules_esbuild/archive/refs/tags/v0.20.1.zip"],
     )

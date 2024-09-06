@@ -29,9 +29,28 @@ cc_library(
 )
 
 cc_library(
+    name = "heap_snapshot_parser",
+    hdrs = ["heap_snapshot_parser.h"],
+    deps = [
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
     name = "v8_isolate_wrapper",
     hdrs = ["v8_isolate_wrapper.h"],
     deps = [
+        "@v8//:v8_icu",
+    ],
+)
+
+cc_library(
+    name = "profiler_isolate_wrapper",
+    hdrs = ["profiler_isolate_wrapper.h"],
+    deps = [
+        ":heap_snapshot_parser",
+        ":v8_isolate_wrapper",
+        "//src/core/common/uuid",
         "@v8//:v8_icu",
     ],
 )
@@ -102,12 +121,11 @@ cc_library(
         "//src/roma/sandbox/worker_api/sapi:__pkg__",
     ],
     deps = [
+        ":profiler_isolate_wrapper",
         ":snapshot_compilation_context",
         ":v8_console",
         ":v8_isolate_function_binding",
         ":v8_isolate_wrapper",
-        "//src/core/interface",
-        "//src/core/interface:type_def",
         "//src/logger:request_context_logger",
         "//src/roma/config",
         "//src/roma/logging",
@@ -144,7 +162,6 @@ cc_test(
     ],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils",
         "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_googletest//:gtest_main",
@@ -157,7 +174,6 @@ cc_test(
     srcs = ["v8_console_test.cc"],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -168,7 +184,6 @@ cc_test(
     srcs = ["v8_isolate_function_binding_test.cc"],
     deps = [
         ":v8_js_engine",
-        "//src/core/test/utils",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],

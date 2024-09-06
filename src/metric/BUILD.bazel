@@ -16,9 +16,7 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "definition",
-    hdrs = [
-        "definition.h",
-    ],
+    hdrs = ["definition.h"],
     visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/log:check",
@@ -77,9 +75,7 @@ cc_test(
 
 cc_library(
     name = "context",
-    hdrs = [
-        "context.h",
-    ],
+    hdrs = ["context.h"],
     deps = [
         ":definition",
         "//src/telemetry/flag:telemetry_flag",
@@ -94,13 +90,30 @@ cc_library(
 )
 
 cc_test(
-    name = "context_test",
+    name = "context_nonprod_test",
     timeout = "short",
-    srcs = ["context_test.h"] +
-           select({
-               "//:non_prod_build": ["context_nonprod_test.cc"],
-               "//conditions:default": ["context_test.cc"],
-           }),
+    srcs = [
+        "context_nonprod_test.cc",
+        "context_test.h",
+    ],
+    target_compatible_with = select({
+        "//:non_prod_build": [],
+        "//conditions:default": ["@platforms//:incompatible"],
+    }),
+    deps = [
+        ":context",
+        "@com_google_absl//absl/log:check",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "context_prod_test",
+    timeout = "short",
+    srcs = [
+        "context_prod_test.cc",
+        "context_test.h",
+    ],
     deps = [
         ":context",
         "@com_google_absl//absl/log:check",
@@ -110,9 +123,7 @@ cc_test(
 
 cc_library(
     name = "context_map",
-    hdrs = [
-        "context_map.h",
-    ],
+    hdrs = ["context_map.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":context",
@@ -136,9 +147,7 @@ cc_test(
 
 cc_library(
     name = "dp",
-    hdrs = [
-        "dp.h",
-    ],
+    hdrs = ["dp.h"],
     deps = [
         ":definition",
         "//src/util/status_macro:status_macros",
@@ -166,9 +175,7 @@ cc_test(
 
 cc_library(
     name = "key_fetch",
-    hdrs = [
-        "key_fetch.h",
-    ],
+    hdrs = ["key_fetch.h"],
     visibility = ["//visibility:public"],
     deps = [
         "//src/public/core/interface:cloud_platform",

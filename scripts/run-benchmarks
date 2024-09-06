@@ -93,6 +93,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/aws/proxy:benchmark_test
     //src/core/common/uuid:uuid_benchmark
     //src/roma/benchmark:ba_server_benchmark
+    //src/roma/benchmark:isolate_restoration_benchmark
     //src/roma/benchmark:host_api_grpc_benchmark
     //src/roma/benchmark:kv_server_udf_benchmark_test
     //src/roma/benchmark/serde:serialize_benchmark
@@ -101,7 +102,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/roma/benchmark/compiler:load_benchmark
     //src/roma/config:type_converter_benchmark
     //src/roma/sandbox/dispatcher:dispatcher_benchmark
-    //src/roma/sandbox/worker_api/sapi:worker_wrapper_benchmark
+    //src/roma/sandbox/worker_api/sapi:worker_wrapper_impl_benchmark
     # TODO: Enable logging benchmark after reducing volume of log output.
     # //src/roma/benchmark:logging_benchmark
     # TODO: b/303250465 - Turn this back on once the segfault is fixed.
@@ -116,6 +117,7 @@ for tgt in "${targets[@]}"; do
   out_fname="${label%_test}".json
   # The logs are noisy from this test so use "grep -Fv" to hide them:
   "${TOOLS_DIR}"/bazel-debian run \
+    --config=benchmark \
     "${tgt}" \
     -- \
     --benchmark_out="/src/workspace/dist/benchmarks/${out_fname}" \

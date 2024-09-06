@@ -17,6 +17,8 @@
 #ifndef ROMA_SANDBOX_WORKER_API_SAPI_ERROR_CODES_H_
 #define ROMA_SANDBOX_WORKER_API_SAPI_ERROR_CODES_H_
 
+#include <string_view>
+
 #include "absl/status/status.h"
 
 // It would be preferable to pass an absl::Status in and out of SAPI, but that's

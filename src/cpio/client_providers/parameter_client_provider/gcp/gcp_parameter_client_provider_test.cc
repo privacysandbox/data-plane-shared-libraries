@@ -34,7 +34,6 @@ namespace {
 
 using google::cloud::Status;
 using google::cloud::StatusCode;
-using google::cloud::StatusOr;
 using google::cloud::secretmanager::SecretManagerServiceClient;
 using google::cloud::secretmanager::v1::AccessSecretVersionRequest;
 using google::cloud::secretmanager::v1::AccessSecretVersionResponse;

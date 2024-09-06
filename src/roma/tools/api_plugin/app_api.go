@@ -15,12 +15,30 @@
 package main
 
 import (
+	_ "embed"
 	romaApi "github.com/privacysandbox/data-plane-shared/apis/roma/v1"
+	gendoc "github.com/pseudomuto/protoc-gen-doc"
 	"github.com/pseudomuto/protoc-gen-doc/extensions"
+	"strings"
 )
 
+//go:embed embed/version.txt
+var version string
+
+//go:embed embed/roma_generator.txt
+var romaGenerator string
+
+func getVersion() string {
+	return strings.TrimSpace(version)
+}
+
+func getRomaGenerator() string {
+	return strings.TrimSpace(romaGenerator)
+}
+
 func init() {
-	// src/roma/tools/api_plugin/cmd.AddFunctions("squote_esc", squoteEscape)
+	gendoc.AddFunction("getVersion", getVersion)
+	gendoc.AddFunction("getRomaGenerator", getRomaGenerator)
 	extensions.SetTransformer(
 		"privacysandbox.apis.roma.app_api.v1.roma_svc_annotation",
 		func(payload interface{}) interface{} {

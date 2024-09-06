@@ -44,25 +44,43 @@ sapi_proto_library(
 )
 
 cc_library(
+    name = "utils",
+    srcs = ["utils.cc"],
+    hdrs = ["utils.h"],
+    visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
+    deps = [
+        ":worker_params_cc_proto",
+        "//src/roma/config",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/native_function_binding:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/worker",
+        "//src/util/status_macro:status_builder",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
+cc_library(
     name = "error_codes",
     srcs = ["error_codes.cc"],
     hdrs = ["error_codes.h"],
     deps = [
-        "//src/roma/config",
+        "//src/util/status_macro:status_builder",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
     ],
 )
 
 cc_library(
-    name = "worker_wrapper",
-    srcs = ["worker_wrapper.cc"],
-    hdrs = ["worker_wrapper.h"],
+    name = "worker_wrapper_impl",
+    srcs = ["worker_wrapper_impl.cc"],
+    hdrs = ["worker_wrapper_impl.h"],
     copts = [
         "-Wno-deprecated-declarations",
     ],
     deps = [
         ":error_codes",
+        ":utils",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
         "//src/roma/config",
@@ -74,13 +92,15 @@ cc_library(
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/strings",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api:vars",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )
 
 sapi_library(
     name = "worker_wrapper-sapi",
-    hdrs = ["worker_wrapper.h"],
+    hdrs = ["worker_wrapper_impl.h"],
     functions = [
         "InitFromSerializedData",
         "Run",
@@ -89,9 +109,10 @@ sapi_library(
         "Stop",
     ],
     generator_version = 1,
-    input_files = ["worker_wrapper.cc"],
-    lib = ":worker_wrapper",
+    input_files = ["worker_wrapper_impl.cc"],
+    lib = ":worker_wrapper_impl",
     lib_name = "WorkerWrapper",
+    malloc = "@com_google_tcmalloc//tcmalloc",
     namespace = "google::scp::roma::sandbox::worker_api",
     tags = [
         "noasan",
@@ -99,7 +120,44 @@ sapi_library(
     deps = [
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
-        "//src/core/interface",
+    ],
+)
+
+cc_library(
+    name = "worker_wrapper",
+    srcs = ["worker_wrapper_prod.cc"],
+    hdrs = ["worker_wrapper.h"],
+    deps = [
+        ":error_codes",
+        ":utils",
+        ":worker_init_params_cc_proto",
+        ":worker_params_cc_proto",
+        ":worker_sapi_sandbox",
+        ":worker_wrapper-sapi",
+        "//src/roma/config",
+        "//src/roma/logging",
+        "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
+        "//src/roma/sandbox/native_function_binding:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/worker",
+        "//src/util:protoutil",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/strings",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api:vars",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
+    ],
+)
+
+cc_library(
+    name = "worker_sapi_sandbox",
+    hdrs = ["worker_sapi_sandbox.h"],
+    deps = [
+        ":worker_wrapper-sapi",
+        "//src/roma/config",
+        "//src/roma/logging",
+        "@com_google_absl//absl/strings",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2",
     ],
 )
 
@@ -110,14 +168,17 @@ cc_library(
     visibility = ["//src/roma/sandbox/dispatcher:__subpackages__"],
     deps = [
         ":error_codes",
+        ":utils",
         ":worker_init_params_cc_proto",
         ":worker_params_cc_proto",
+        ":worker_sapi_sandbox",
+        ":worker_wrapper",
         ":worker_wrapper-sapi",
-        "//src/core/interface",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
         "//src/roma/sandbox/worker",
         "@com_google_absl//absl/status",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )
@@ -127,6 +188,34 @@ buf_lint_test(
     size = "small",
     config = "//src:buf.yaml",
     targets = [":worker_api_proto"],
+)
+
+cc_test(
+    name = "worker_sandbox_api_sapi_test",
+    size = "small",
+    srcs = ["worker_sandbox_api_sapi_test.cc"],
+    # Run with TCMalloc in this test to make sure that everything works with
+    # the allocator that we'll be using in benchmarks and production.
+    malloc = "@com_google_tcmalloc//tcmalloc",
+    tags = [
+        # This test has a translation unit too big for the debug ASAN build,
+        # run it in optimized mode:
+        "asanopt",
+        "noasan",
+        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+    ],
+    target_compatible_with = select({
+        "//:non_prod_build": ["@platforms//:incompatible"],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":worker_sandbox_api",
+        "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
+    ],
 )
 
 cc_test(
@@ -140,43 +229,49 @@ cc_test(
         # This test has a translation unit too big for the debug ASAN build,
         # run it in optimized mode:
         "asanopt",
-        "noasan",
-        "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
+        "noasan",  # TODO: b/354929154 - Create SAPI sandbox only in non_prod mode
+        "notsan",  # TODO: b/354929154 - Create SAPI sandbox only in non_prod mode
     ],
     deps = [
-        ":error_codes",
+        ":utils",
         ":worker_sandbox_api",
-        "//src/core/test/utils",
         "//src/roma/sandbox/constants",
+        "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
+        "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
     ],
 )
 
 cc_test(
-    name = "worker_wrapper_benchmark",
+    name = "worker_wrapper_impl_benchmark",
     timeout = "eternal",
-    srcs = ["worker_wrapper_benchmark.cc"],
+    srcs = ["worker_wrapper_impl_benchmark.cc"],
     malloc = "@com_google_tcmalloc//tcmalloc",
     tags = ["manual"],
     deps = [
+        ":error_codes",
         ":worker_init_params_cc_proto",
-        ":worker_wrapper",
-        "//src/core/test/utils",
+        ":worker_wrapper_impl",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
         "@google_benchmark//:benchmark",
     ],
 )
 
 cc_test(
-    name = "worker_wrapper_test",
+    name = "worker_wrapper_impl_test",
     size = "medium",
-    srcs = ["worker_wrapper_test.cc"],
+    srcs = ["worker_wrapper_impl_test.cc"],
     deps = [
+        ":error_codes",
         ":worker_init_params_cc_proto",
-        ":worker_wrapper",
-        "//src/core/test/utils",
+        ":worker_wrapper_impl",
         "//src/roma/sandbox/constants",
         "@com_google_googletest//:gtest_main",
+        "@com_google_sandboxed_api//sandboxed_api:lenval_core",
+        "@com_google_sandboxed_api//sandboxed_api/sandbox2:buffer",
     ],
 )

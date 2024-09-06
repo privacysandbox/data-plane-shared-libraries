@@ -391,6 +391,8 @@ def roma_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
             Label("//src/roma/roma_service:romav8_app_service"),
+            Label("//src/roma/gvisor/interface:roma_service"),
+            Label("//src/roma/gvisor/config"),
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
         ],

@@ -97,6 +97,7 @@ class RetryStrategy {
       case RetryStrategyType::Linear:
         return retry_count * delay_duration_ms_;
       case RetryStrategyType::Exponential:
+        [[fallthrough]];
       default:
         return pow(2, retry_count - 1) * delay_duration_ms_;
     }

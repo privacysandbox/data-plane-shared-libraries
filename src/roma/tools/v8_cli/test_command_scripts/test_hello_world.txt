@@ -1,0 +1,3 @@
+load v1 src/roma/tools/v8_cli/test_udfs/hello_world_udf.js
+execute v1 helloworld foobar
+exit

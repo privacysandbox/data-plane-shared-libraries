@@ -13,16 +13,33 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("//src/roma/tools/v8_cli:template_replace.bzl", "template_replace")
+
+cc_binary(
+    name = "sort_list_benchmark",
+    srcs = ["sort_list_benchmark.cc"],
+    deps = [
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+    ],
+)
 
 cc_library(
     name = "fake_ba_server",
     srcs = ["fake_ba_server.cc"],
     hdrs = ["fake_ba_server.h"],
     deps = [
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
-        "//src/roma/sandbox/constants",
-        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
     ],
@@ -33,10 +50,12 @@ cc_library(
     srcs = ["fake_kv_server.cc"],
     hdrs = ["fake_kv_server.h"],
     deps = [
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
-        "//src/roma/sandbox/constants",
+        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
     ],
@@ -50,7 +69,11 @@ cc_library(
         "//src/roma/interface",
         "//src/roma/roma_service",
         "//src/roma/sandbox/constants",
+        "//src/util:duration",
         "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/time",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -66,9 +89,6 @@ cc_binary(
     srcs = ["benchmark_suite_test.cc"],
     deps = [
         ":benchmark",
-        "//src/roma/interface",
-        "//src/roma/roma_service",
-        "//src/roma/sandbox/constants",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -83,7 +103,7 @@ cc_test(
     ],
     deps = [
         ":fake_kv_server",
-        "//src/core/test/utils",
+        "//src/roma/config",
         "@com_google_googletest//:gtest_main",
     ],
 )
@@ -92,10 +112,12 @@ cc_binary(
     name = "logging_benchmark",
     srcs = ["logging_benchmark.cc"],
     deps = [
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -104,12 +126,14 @@ cc_binary(
     name = "host_api_grpc_benchmark",
     srcs = ["host_api_grpc_benchmark.cc"],
     deps = [
-        "//src/core/test/utils",
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/roma/roma_service",
-        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -118,15 +142,16 @@ cc_binary(
     name = "kv_server_udf_benchmark_test",
     srcs = ["kv_server_udf_benchmark.cc"],
     data = [
+        "//src/roma/testing/cpp_wasm_hello_world_example",
         "//src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example",
     ],
     malloc = "@com_google_tcmalloc//tcmalloc",
     deps = [
         ":fake_kv_server",
         ":test_code",
-        "//src/roma/interface",
-        "//src/roma/roma_service",
+        "//src/roma/config",
         "//src/roma/wasm:wasm_testing",
+        "@com_google_absl//absl/strings",
         "@google_benchmark//:benchmark",
     ],
 )
@@ -138,8 +163,116 @@ cc_binary(
     deps = [
         ":fake_ba_server",
         ":test_code",
+        "//src/roma/config",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+# Declare materialized JS code for benchmarks
+# Benchmark iterations go up by multiples of 8 to max
+MIN_LENGTH = 4096
+
+MAX_LENGTH = 1000000
+
+iterations = (MIN_LENGTH, 32768, 262144, MAX_LENGTH)
+
+[
+    template_replace(
+        name = "global_string_%d" % i,
+        out = "global_string_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_string_tmpl.js",
+        val = str(i),
+    )
+    for i in iterations
+]
+
+[
+    template_replace(
+        name = "global_structure_%d" % i,
+        out = "global_structure_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_tmpl.js",
+        val = str(i),
+    )
+    for i in iterations
+]
+
+[
+    template_replace(
+        name = "global_inline_int_array_%d" % i,
+        out = "global_inline_int_array_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_inline_tmpl.js",
+        val = str(list(range(i))),
+    )
+    for i in iterations
+]
+
+[
+    template_replace(
+        name = "global_inline_float_array_%d" % i,
+        out = "global_inline_float_array_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_inline_tmpl.js",
+        val = str([float("%d.%d" % (i, i)) for i in range(i)]),
+    )
+    for i in iterations
+]
+
+[
+    template_replace(
+        name = "global_inline_structure_array_%d" % i,
+        out = "global_inline_structure_array_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_structure_inline_tmpl.js",
+        val = str([{"x": i} for j in range(i)]).replace("\"", ""),
+    )
+    for i in iterations
+]
+
+ARRAY_BUFFER_MIN_LENGTH = 1024 * 4
+
+ARRAY_BUFFER_MAX_LENGTH = 1024 * 512
+
+array_buffer_iterations = (ARRAY_BUFFER_MIN_LENGTH, 32768, 262144, ARRAY_BUFFER_MAX_LENGTH)
+
+[
+    template_replace(
+        name = "global_array_buffer_%d" % i,
+        out = "global_array_buffer_%d.js" % i,
+        template = "//src/roma/tools/v8_cli:test_udfs/global_vars/global_array_buffer_tmpl.js",
+        val = str(list(range(i))),
+    )
+    for i in array_buffer_iterations
+]
+
+cc_binary(
+    name = "isolate_restoration_benchmark",
+    srcs = ["isolate_restoration_benchmark.cc"],
+    data = [
+               ":global_{}_{}".format(kind, i)
+               for i in iterations
+               for kind in (
+                   "string",
+                   "structure",
+                   "inline_int_array",
+                   "inline_float_array",
+                   "inline_structure_array",
+               )
+           ] +
+           [":global_array_buffer_{}".format(i) for i in array_buffer_iterations] + [
+        "//src/roma/tools/v8_cli:test_udfs",
+    ],
+    local_defines = [
+        "MIN_LENGTH=%d" % MIN_LENGTH,
+        "MAX_LENGTH=%d" % MAX_LENGTH,
+        "ARRAY_BUFFER_MIN_LENGTH=%d" % ARRAY_BUFFER_MIN_LENGTH,
+        "ARRAY_BUFFER_MAX_LENGTH=%d" % ARRAY_BUFFER_MAX_LENGTH,
+    ],
+    deps = [
+        "//src/roma/config",
         "//src/roma/interface",
         "//src/roma/roma_service",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
         "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
     ],
 )

@@ -20,7 +20,10 @@
 #include <nlohmann/json.hpp>
 
 #include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/config/config.h"
 
 #include "multi_service_roma_host.h"
 #include "test_host_service_roma_host.h"
@@ -33,18 +36,19 @@ using ::testing::StrEq;
 
 using ::privacy_sandbox::server_common::TestMethodRequest;
 using ::privacy_sandbox::server_common::TestMethodResponse;
-using ::privacysandbox::test_server::TestService;
+using ::privacysandbox::test_server::V8TestService;
 
 namespace privacysandbox::testserver::roma::AppApi::RomaTestServiceTest {
 
 namespace {
 const absl::Duration kDefaultTimeout = absl::Seconds(10);
-}
+constexpr std::string_view kCodeVersion = "v1";
+}  // namespace
 
 TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -57,24 +61,26 @@ TEST(RomaV8AppTest, EncodeDecodeSimpleProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   TestMethodRequest req;
   req.set_input("Hello ");
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.output(), StrEq("Hello World. From Callback"));
+  EXPECT_THAT((*resp)->output(), StrEq("Hello World. From Callback"));
 }
 
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -87,23 +93,25 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobuf) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   TestMethodRequest req;
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.output(), IsEmpty());
+  EXPECT_THAT((*resp)->output(), IsEmpty());
 }
 
 TEST(RomaV8AppTest, EncodeDecodeEmptyProtobufWithNoFields) {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -114,17 +122,19 @@ TEST(RomaV8AppTest, EncodeDecodeEmptyProtobufWithNoFields) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   TestMethodRequest req;
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  EXPECT_THAT(resp.output(), IsEmpty());
+  EXPECT_THAT((*resp)->output(), IsEmpty());
 }
 
 TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
@@ -133,7 +143,7 @@ TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
   privacysandbox::test_host_server::RegisterHostApi(config);
   privacysandbox::multi_server::RegisterHostApi(config);
 
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -155,19 +165,21 @@ TEST(RomaV8AppTest, EncodeDecodeProtobufWithNativeCallback) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   TestMethodRequest req;
   req.set_input("Hello ");
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
   EXPECT_THAT(
-      resp.output(),
+      (*resp)->output(),
       StrEq("Hello World. From NativeMethod. Hello World. From TestMethod1. "
             "Hello World. From TestMethod2"));
 }
@@ -178,7 +190,7 @@ TEST(RomaV8AppTest, NativeCallbackObjectToProtoBytes) {
   privacysandbox::test_host_server::RegisterHostApi(config);
   privacysandbox::multi_server::RegisterHostApi(config);
 
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -193,19 +205,22 @@ TEST(RomaV8AppTest, NativeCallbackObjectToProtoBytes) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
   absl::Notification completed;
   TestMethodRequest req;
   req.set_input("Hello ");
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  // Remove null terminator from resp.output() to compare with expected string
-  EXPECT_THAT(resp.output().substr(0, resp.output().length() - 1),
+  // Remove null terminator from (*resp)->output() to compare with expected
+  // string
+  EXPECT_THAT((*resp)->output().substr(0, (*resp)->output().length() - 1),
               StrEq("\n\x6Hello \x10"));
 }
 
@@ -215,7 +230,7 @@ TEST(RomaV8AppTest, NativeCallbackProtoBytesToObject) {
   privacysandbox::test_host_server::RegisterHostApi(config);
   privacysandbox::multi_server::RegisterHostApi(config);
 
-  auto app_svc = TestService<>::Create(std::move(config));
+  auto app_svc = V8TestService<>::Create(std::move(config));
   EXPECT_TRUE(app_svc.ok());
 
   constexpr std::string_view jscode = R"(
@@ -228,7 +243,9 @@ TEST(RomaV8AppTest, NativeCallbackProtoBytesToObject) {
   absl::Notification register_finished;
   absl::Status register_status;
   ASSERT_TRUE(
-      app_svc->Register(register_finished, register_status, jscode).ok());
+      app_svc
+          ->Register(jscode, kCodeVersion, register_finished, register_status)
+          .ok());
   register_finished.WaitForNotificationWithTimeout(kDefaultTimeout);
   EXPECT_TRUE(register_status.ok());
 
@@ -238,11 +255,11 @@ TEST(RomaV8AppTest, NativeCallbackProtoBytesToObject) {
   TestMethodRequest req;
   req.set_input(native_method_req.SerializeAsString());
 
-  TestMethodResponse resp;
+  absl::StatusOr<std::unique_ptr<TestMethodResponse>> resp;
   ASSERT_TRUE(app_svc->TestMethod(completed, req, resp).ok());
   completed.WaitForNotificationWithTimeout(kDefaultTimeout);
 
-  nlohmann::json j = nlohmann::json::parse(resp.output());
+  nlohmann::json j = nlohmann::json::parse((*resp)->output());
   EXPECT_THAT(j["input"], native_method_req.input());
 }
 

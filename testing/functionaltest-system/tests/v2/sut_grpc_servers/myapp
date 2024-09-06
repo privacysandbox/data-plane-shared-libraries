@@ -1,0 +1,5 @@
+#!/bin/bash
+
+printf "myapp works!\n"
+pwd -P
+printf "myapp exiting!\n"

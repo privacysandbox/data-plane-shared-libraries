@@ -28,9 +28,9 @@
 #include <google/protobuf/text_format.h>
 #include <nlohmann/json.hpp>
 
-#include "absl/log/log.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/benchmark/serde/benchmark_service.pb.h"
@@ -47,9 +47,10 @@ using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using privacy_sandbox::server_common::BenchmarkRequest;
-using privacysandbox::benchmark::BenchmarkService;
+using privacysandbox::benchmark::V8BenchmarkService;
 
 constexpr auto kTimeout = absl::Seconds(10);
+constexpr std::string_view kCodeVersion = "v1";
 
 constexpr std::string_view kSmallProtoPath =
     "./src/roma/benchmark/serde/benchmark_request_small.txtpb";
@@ -74,25 +75,26 @@ BenchmarkRequest GetProtoFromPath(std::string_view path) {
   return req;
 }
 
-BenchmarkService<> CreateAppService() {
+V8BenchmarkService<> CreateAppService() {
   google::scp::roma::Config config;
   config.number_of_workers = 2;
-  auto app_svc = BenchmarkService<>::Create(std::move(config));
+  auto app_svc = V8BenchmarkService<>::Create(std::move(config));
   CHECK_OK(app_svc);
   return std::move(*app_svc);
 }
 
-void LoadCodeObj(BenchmarkService<>& app_svc, std::string_view code) {
+void LoadCodeObj(V8BenchmarkService<>& app_svc, std::string_view code) {
   absl::Notification register_finished;
   absl::Status register_status;
-  CHECK_OK(app_svc.Register(register_finished, register_status, code));
+  CHECK_OK(
+      app_svc.Register(code, kCodeVersion, register_finished, register_status));
   register_finished.WaitForNotificationWithTimeout(kTimeout);
   CHECK_OK(register_status);
 }
 
 void RunRomaJsBenchmark(::benchmark::State& state, std::string_view code,
                         std::string_view handler, std::string_view data_path) {
-  BenchmarkService<> app_svc = CreateAppService();
+  V8BenchmarkService<> app_svc = CreateAppService();
   LoadCodeObj(app_svc, code);
 
   std::ifstream input_file(data_path.data());
@@ -107,13 +109,13 @@ void RunRomaJsBenchmark(::benchmark::State& state, std::string_view code,
     auto execution_obj =
         std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
             .id = "foo",
-            .version_string = "1",
+            .version_string = std::string(kCodeVersion),
             .handler_name = std::string(handler),
             .input = {input},
         });
     CHECK_OK(app_svc.GetRomaService()->Execute(
         std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
+          CHECK_OK(resp);
           result = std::move(resp->resp);
           execute_finished.Notify();
         }));

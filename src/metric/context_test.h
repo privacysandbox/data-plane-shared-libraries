@@ -91,8 +91,9 @@ inline constexpr absl::Span<const DefinitionName* const> metric_list_span =
 class MockMetricRouter {
  public:
   MOCK_METHOD(absl::Status, LogSafe,
-              ((const DefinitionSafe&), int, std::string_view,
-               (absl::flat_hash_map<std::string, std::string>)));
+              (/*definition=*/(const DefinitionSafe&), /*value=*/int,
+               /*partition=*/std::string_view,
+               /*attributes=*/(absl::flat_hash_map<std::string, std::string>)));
   MOCK_METHOD(absl::Status, LogSafe,
               ((const DefinitionUnSafe&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));

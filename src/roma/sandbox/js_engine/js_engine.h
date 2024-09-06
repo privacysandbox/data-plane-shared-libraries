@@ -19,11 +19,11 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "absl/time/time.h"
 #include "absl/types/span.h"
 
@@ -41,6 +41,9 @@ struct RomaJsEngineCompilationContext {
 struct ExecutionResponse {
   /// the response of handler function execution.
   std::string response;
+
+  /// the output from V8's Heap and Sample-based CPU profiler
+  std::string profiler_output;
 
   /// the metrics for handler function execution.
   absl::flat_hash_map<std::string, absl::Duration> metrics;

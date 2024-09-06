@@ -13,12 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  *
- * Example command to run this (the grep is necessary to avoid noisy log
- * output):
- *
- * builders/tools/bazel-debian run \
- * //src/roma/benchmark:logging_benchmark \
- * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
 #include <memory>
@@ -27,9 +21,8 @@
 
 #include <benchmark/benchmark.h>
 
-#include "absl/log/log.h"
-#include "absl/strings/str_cat.h"
-#include "absl/strings/str_join.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/benchmark/compiler/compiler_utils.h"
 #include "src/roma/benchmark/test_code.h"
@@ -82,11 +75,11 @@ void LoadCodeObj(std::string_view code) {
           .js = std::string(code),
       }),
       [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
-        CHECK(resp.ok());
+        CHECK_OK(resp);
         load_finished.Notify();
       });
 
-  CHECK(load_status.ok()) << load_status;
+  CHECK_OK(load_status);
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 

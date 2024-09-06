@@ -1,0 +1,5 @@
+load v1 src/roma/tools/v8_cli/test_udfs/simple_udf.js
+load v2 src/roma/tools/v8_cli/test_udfs/echo_udf.js
+execute v1 Handler
+execute v2 echo HelloWorld
+exit

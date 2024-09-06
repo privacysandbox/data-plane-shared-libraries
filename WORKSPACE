@@ -35,3 +35,8 @@ rules_jvm_external_setup()
 load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "container_deps")
 
 container_deps()
+
+local_repository(
+    name = "google_privacysandbox_functionaltest_system",
+    path = "testing/functionaltest-system",
+)

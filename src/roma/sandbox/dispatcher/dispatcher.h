@@ -24,10 +24,13 @@
 #include <vector>
 
 #include "absl/base/thread_annotations.h"
+#include "absl/functional/any_invocable.h"
+#include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "src/roma/interface/roma.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -35,7 +38,7 @@
 #include "request_validator.h"
 
 namespace google::scp::roma::sandbox::dispatcher {
-class Dispatcher {
+class Dispatcher final {
  public:
   // Starts a thread for each worker.
   Dispatcher(absl::Span<worker_api::WorkerSandboxApi> workers,

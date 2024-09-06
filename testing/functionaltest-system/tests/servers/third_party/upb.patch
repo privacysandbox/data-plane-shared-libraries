@@ -1,0 +1,15 @@
+diff --git a/bazel/build_defs.bzl b/bazel/build_defs.bzl
+index b5bc64f0..26e2d113 100644
+--- a/bazel/build_defs.bzl
++++ b/bazel/build_defs.bzl
+@@ -35,7 +35,10 @@ _DEFAULT_CPPOPTS.extend([
+     "-Wextra",
+     # "-Wshorten-64-to-32",  # not in GCC (and my Kokoro images doesn't have Clang)
+     "-Werror",
++    "-Wno-unknown-warning-option",
++    "-Wno-unused-parameter",
+     "-Wno-long-long",
++    "-Wno-error=deprecated-builtins",
+ ])
+ _DEFAULT_COPTS.extend([
+     "-std=c99",

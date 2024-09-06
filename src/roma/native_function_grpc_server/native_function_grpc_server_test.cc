@@ -26,17 +26,17 @@
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
 #include "absl/base/log_severity.h"
-#include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
-#include "absl/status/status.h"
-#include "absl/strings/string_view.h"
 #include "src/roma/config/config.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
+#include "src/roma/native_function_grpc_server/proto/multi_service.grpc.pb.h"
+#include "src/roma/native_function_grpc_server/proto/multi_service.pb.h"
 #include "src/roma/native_function_grpc_server/request_handlers.h"
 #include "src/roma/native_function_grpc_server/test_request_handlers.h"
 

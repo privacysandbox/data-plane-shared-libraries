@@ -66,7 +66,7 @@ absl::Status HandleFailure(
   std::string key_ids_str = absl::StrJoin(key_ids, ", ");
   const std::string error = absl::Substitute(kKeyFetchFailMessage, key_ids_str,
                                              GetErrorMessage(status_code));
-  PS_VLOG(1, log_context) << error;
+  PS_LOG(ERROR, log_context) << error;
   return absl::UnavailableError(error);
 }
 
@@ -104,28 +104,32 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
       for (const auto& private_key : response.private_keys()) {
         std::string keyset_bytes;
         if (!absl::Base64Unescape(private_key.private_key(), &keyset_bytes)) {
-          LOG(ERROR) << "Could not base 64 decode the keyset. Key Id: "
-                     << private_key.key_id();
+          PS_LOG(ERROR, log_context_)
+              << "Could not base 64 decode the keyset. Key Id: "
+              << private_key.key_id();
           continue;
         }
         google::crypto::tink::Keyset keyset;
         if (!keyset.ParseFromString(keyset_bytes)) {
-          LOG(ERROR) << "Could not parse a tink::Keyset from the base 64 "
-                        "decoded bytes. Key Id: "
-                     << private_key.key_id();
+          PS_LOG(ERROR, log_context_)
+              << "Could not parse a tink::Keyset from the base 64 "
+                 "decoded bytes. Key Id: "
+              << private_key.key_id();
           continue;
         }
         if (keyset.key().size() != 1) {
-          LOG(ERROR) << "Keyset must contain exactly one key. Key Id: "
-                     << private_key.key_id();
+          PS_LOG(ERROR, log_context_)
+              << "Keyset must contain exactly one key. Key Id: "
+              << private_key.key_id();
           continue;
         }
         std::string hpke_priv_key_bytes = keyset.key()[0].key_data().value();
         google::crypto::tink::HpkePrivateKey hpke_priv_key;
         if (!hpke_priv_key.ParseFromString(hpke_priv_key_bytes)) {
-          LOG(ERROR) << "Could not parse the tink::HpkePrivateKey from the "
-                        "raw bytes. Key Id: "
-                     << private_key.key_id();
+          PS_LOG(ERROR, log_context_)
+              << "Could not parse the tink::HpkePrivateKey from the "
+                 "raw bytes. Key Id: "
+              << private_key.key_id();
           continue;
         }
         const PublicPrivateKeyPairId ohttp_key_id =
@@ -201,7 +205,7 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);
   if (!private_key_client->Init().ok()) {
-    PS_VLOG(1) << "Failed to initialize private key client.";
+    PS_LOG(ERROR, log_context) << "Failed to initialize private key client.";
   }
   return std::make_unique<PrivateKeyFetcher>(std::move(private_key_client),
                                              key_ttl, log_context);

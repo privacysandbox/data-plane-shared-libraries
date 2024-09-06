@@ -24,8 +24,13 @@
 #include <vector>
 
 #include "absl/log/check.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/config/config.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/roma_service/roma_service.h"
 
 namespace google::scp::roma::benchmark {
 namespace {
@@ -42,10 +47,10 @@ FakeKvServer::FakeKvServer(Config<> config) {
   roma_service_ =
       std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
           std::move(config));
-  CHECK(roma_service_->Init().ok());
+  CHECK_OK(roma_service_->Init());
 }
 
-FakeKvServer::~FakeKvServer() { CHECK(roma_service_->Stop().ok()); }
+FakeKvServer::~FakeKvServer() { CHECK_OK(roma_service_->Stop()); }
 
 std::string FakeKvServer::ExecuteCode(std::vector<std::string> keys) {
   CHECK(handler_name_ != "")
@@ -74,7 +79,7 @@ std::string FakeKvServer::ExecuteCode(std::vector<std::string> keys) {
       }));
   CHECK(notification.WaitForNotificationWithTimeout(kExecuteCodeTimeout))
       << "ExecuteCode failed, timeout exceeded.";
-  CHECK_OK(response_status) << response_status;
+  CHECK_OK(response_status);
   return result;
 }
 

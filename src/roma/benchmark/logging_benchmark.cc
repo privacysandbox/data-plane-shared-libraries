@@ -75,19 +75,17 @@ void DoSetup(const benchmark::State& state) {
         .version_string = "v1",
         .js = js,
     });
-    absl::Status load_status = roma_service->LoadCodeObj(
+    CHECK_OK(roma_service->LoadCodeObj(
         std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
+          CHECK_OK(resp);
           load_finished.Notify();
-        });
-
-    CHECK(load_status.ok()) << load_status;
+        }));
   }
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
 void DoTeardown(const benchmark::State& state) {
-  CHECK(roma_service->Stop().ok());
+  CHECK_OK(roma_service->Stop());
 }
 
 void NumLogsByLengthBenchmark(int length, int iters, benchmark::State& state) {
@@ -100,13 +98,11 @@ void NumLogsByLengthBenchmark(int length, int iters, benchmark::State& state) {
             .handler_name = "Handler",
             .input = {absl::StrCat(length), absl::StrCat(iters)},
         });
-    auto execution_status = roma_service->Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
-          execute_finished.Notify();
-        });
-
-    CHECK(execution_status.ok()) << execution_status;
+    CHECK_OK(roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     CHECK_OK(resp);
+                                     execute_finished.Notify();
+                                   }));
   }
   CHECK(execute_finished.WaitForNotificationWithTimeout(kTimeout));
   state.SetLabel(absl::StrCat("Log size: ", length, ", Num Iters: ", iters));
@@ -123,7 +119,6 @@ void BM_RomaLogging(benchmark::State& state) {
 BENCHMARK(BM_RomaLogging)
     ->Setup(DoSetup)
     ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond)
     ->ArgsProduct({
         // Number of log iterations per invocation
         benchmark::CreateRange(1, 10'000, /*multi=*/10),

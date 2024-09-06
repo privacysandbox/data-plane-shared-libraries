@@ -31,7 +31,13 @@
 
 #include <benchmark/benchmark.h>
 
-#include "src/core/common/time_provider/time_provider.h"
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
+#include "absl/time/time.h"
+#include "src/roma/interface/roma.h"
+#include "src/roma/roma_service/roma_service.h"
+#include "src/roma/sandbox/constants/constants.h"
+#include "src/util/duration.h"
 #include "src/util/status_macro/status_macros.h"
 
 using google::scp::roma::CodeObject;

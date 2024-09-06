@@ -17,25 +17,18 @@
 #ifndef ROMA_SANDBOX_WORKER_API_SAPI_WORKER_SANDBOX_API_H_
 #define ROMA_SANDBOX_WORKER_API_SAPI_WORKER_SANDBOX_API_H_
 
-#include <sys/syscall.h>
-
-#include <linux/audit.h>
-
-#include <limits>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include "absl/status/status.h"
-#include "absl/strings/str_cat.h"
 #include "sandboxed_api/sandbox2/buffer.h"
-#include "sandboxed_api/sandbox2/policy.h"
-#include "sandboxed_api/sandbox2/policybuilder.h"
-#include "src/roma/config/config.h"
-#include "src/roma/logging/logging.h"
+#include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_sapi_sandbox.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
 
 namespace google::scp::roma::sandbox::worker_api {
 
@@ -46,8 +39,6 @@ namespace google::scp::roma::sandbox::worker_api {
  */
 class WorkerSandboxApi {
  public:
-  enum class RetryStatus { kDoNotRetry, kRetry };
-
   /**
    * @brief Construct a new Worker Sandbox Api object.
    *
@@ -74,6 +65,7 @@ class WorkerSandboxApi {
    * the default value of 1MB will be used.
    * @param v8_flags List of flags to pass into v8. (Ex. {"--FLAG_1",
    * "--FLAG_2"})
+   * @param enable_profilers Enable the V8 CPU and Heap Profilers
    */
   WorkerSandboxApi(
       bool require_preload, int native_js_function_comms_fd,
@@ -85,7 +77,8 @@ class WorkerSandboxApi {
       size_t js_engine_max_wasm_memory_number_of_pages,
       size_t sandbox_request_response_shared_buffer_size_mb,
       bool enable_sandbox_sharing_request_response_with_buffer_only,
-      const std::vector<std::string>& v8_flags);
+      const std::vector<std::string>& v8_flags, bool enable_profilers,
+      bool logging_function_set);
 
   absl::Status Init();
 
@@ -108,156 +101,21 @@ class WorkerSandboxApi {
   std::pair<absl::Status, RetryStatus> InternalRunCode(
       ::worker_api::WorkerParamsProto& params);
 
+  std::pair<absl::Status, RetryStatus> InternalRunCodeDebug(
+      ::worker_api::WorkerParamsProto& params);
+
   std::pair<absl::Status, RetryStatus> InternalRunCodeBufferShareOnly(
       ::worker_api::WorkerParamsProto& params);
+
+  bool SandboxIsInitialized();
 
   void CreateWorkerSapiSandbox();
 
   // Transfer the local FD into sandboxee and return the remote FD.
   int TransferFdAndGetRemoteFd(std::unique_ptr<::sapi::v::Fd> local_fd);
 
-  /**
-   * @brief Class to allow overwriting the policy for the SAPI sandbox.
-   *
-   */
-  // See BUILD file for named library "WorkerWrapper" in the
-  // sapi_library roma_worker_wrapper_lib-sapi target.
-  class WorkerSapiSandbox : public WorkerWrapperSandbox {
-   public:
-    explicit WorkerSapiSandbox(
-        uint64_t rlimit_as_bytes = 0,
-        int roma_vlog_level = std::numeric_limits<int>::min())
-        : rlimit_as_bytes_(rlimit_as_bytes),
-          roma_vlog_level_(roma_vlog_level) {}
-
-   protected:
-    // Gets extra arguments to be passed to the sandboxee.
-    void GetArgs(std::vector<std::string>* args) const override {
-#ifdef ABSL_MIN_LOG_LEVEL
-      // Gets ABSL_MIN_LOG_LEVEL value and pass it into sandbox.
-      args->push_back(
-          absl::StrCat("--stderrthreshold=", int64_t{ABSL_MIN_LOG_LEVEL}));
-#endif
-    }
-
-   private:
-    // Gets the environment variables passed to the sandboxee.
-    void GetEnvs(std::vector<std::string>* envs) const override {
-      // This comes from go/sapi sandbox GeEnvs() default setting.
-      envs->push_back("GOOGLE_LOGTOSTDERR=1");
-
-      if (roma_vlog_level_ >= 0) {
-        // Sets the severity level of the displayed logs for ROMA_VLOG.
-        envs->push_back(absl::StrCat(kRomaVlogLevel, "=", roma_vlog_level_));
-      }
-    }
-
-    // Modify the sandbox policy executor object
-    void ModifyExecutor(sandbox2::Executor* executor) override {
-      if (rlimit_as_bytes_ > 0) {
-        executor->limits()->set_rlimit_as(rlimit_as_bytes_);
-      }
-      // Ensure no core files are generated to avoid egression from the sandbox.
-      executor->limits()->set_rlimit_core(0);
-    }
-
-    // Build a custom sandbox policy needed proper worker operation
-    std::unique_ptr<sandbox2::Policy> ModifyPolicy(
-        sandbox2::PolicyBuilder*) override {
-      auto sandbox_policy =
-          sandbox2::PolicyBuilder()
-              .AllowRead()
-              .AllowWrite()
-              .AllowOpen()
-              .AllowSystemMalloc()
-              .AllowHandleSignals()
-              .AllowExit()
-              .AllowStat()
-              .AllowTime()
-              .AllowGetIDs()
-              .AllowGetPIDs()
-              .AllowReadlink()
-              .AllowMmap()
-              .AllowFork()
-#ifdef UNDEFINED_BEHAVIOR_SANITIZER
-              .AllowPipe()
-              .AllowLlvmSanitizers()
-#endif
-              .AllowSyscall(__NR_tgkill)
-              .AllowSyscall(__NR_recvmsg)
-              .AllowSyscall(__NR_sendmsg)
-              .AllowSyscall(__NR_lseek)
-              .AllowSyscall(__NR_futex)
-              .AllowSyscall(__NR_close)
-              .AllowSyscall(__NR_nanosleep)
-              .AllowSyscall(__NR_sched_getaffinity)
-              .AllowSyscall(__NR_mprotect)
-              .AllowSyscall(__NR_clone3)
-              .AllowSyscall(__NR_rseq)
-              .AllowSyscall(__NR_set_robust_list)
-              .AllowSyscall(__NR_prctl)
-              .AllowSyscall(__NR_uname)
-              .AllowSyscall(__NR_pkey_alloc)
-              .AllowSyscall(__NR_pkey_mprotect)
-              .AllowSyscall(__NR_madvise)
-              .AllowSyscall(__NR_ioctl)
-              .AllowSyscall(__NR_prlimit64)
-              //------------------------
-              // These are to send RPC out of sandbox:
-              .AllowSyscall(__NR_eventfd2)
-              .AllowSyscall(__NR_epoll_create1)
-              .AllowSyscall(__NR_epoll_ctl)
-#ifdef __NR_epoll_wait
-              .AllowSyscall(__NR_epoll_wait)
-#else
-              .AllowSyscall(__NR_epoll_pwait)
-#endif
-              .AllowSyscall(__NR_getrandom)
-              .AllowSyscall(__NR_socket)
-              .AllowSyscall(__NR_fcntl)
-              .AllowSyscall(__NR_connect)
-              .AllowSyscall(__NR_getsockname)
-              .AllowSyscall(__NR_setsockopt)
-              .AllowSyscall(__NR_shutdown)
-              //------------------------
-              // These are for TCMalloc:
-              .AllowTcMalloc()
-              .AllowSyscall(__NR_sched_getparam)
-              .AllowSyscall(__NR_sched_getscheduler)
-              .AllowSyscall(__NR_clock_nanosleep)
-              .AllowSyscall(__NR_sched_yield)
-              .AllowSyscall(__NR_rseq)
-              //------------------------
-              .AllowDynamicStartup()
-              // TODO: b/296560366 - Enable namespaces in Roma.
-              .DisableNamespaces()
-              .CollectStacktracesOnViolation(false)
-              .CollectStacktracesOnSignal(false)
-              .CollectStacktracesOnTimeout(false)
-              .CollectStacktracesOnKill(false)
-              .CollectStacktracesOnExit(false);
-
-      // Stack traces are only collected in DEBUG mode.
-#ifndef NDEBUG
-      sandbox_policy.CollectStacktracesOnViolation(true)
-          .CollectStacktracesOnSignal(true)
-          .CollectStacktracesOnTimeout(true)
-          .CollectStacktracesOnKill(true)
-          .CollectStacktracesOnExit(true);
-
-      ROMA_VLOG(1) << "Enable stack trace collection in sapi sandbox";
-#endif
-      return sandbox_policy.BuildOrDie();
-    }
-
-    uint64_t rlimit_as_bytes_ = 0;
-    int roma_vlog_level_;
-  };
-
   std::unique_ptr<WorkerSapiSandbox> worker_sapi_sandbox_;
-  // See BUILD file for named library "WorkerWrapper" in the
-  // sapi_library roma_worker_wrapper_lib-sapi target.
-  std::unique_ptr<WorkerWrapperApi> worker_wrapper_api_;
+  std::unique_ptr<WorkerWrapper> worker_wrapper_;
 
   bool require_preload_;
   int native_js_function_comms_fd_;
@@ -276,6 +134,8 @@ class WorkerSandboxApi {
   size_t request_and_response_data_buffer_size_bytes_;
   const bool enable_sandbox_sharing_request_response_with_buffer_only_;
   std::vector<std::string> v8_flags_;
+  const bool enable_profilers_;
+  const bool logging_function_set_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api
 

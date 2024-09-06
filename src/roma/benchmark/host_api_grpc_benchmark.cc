@@ -12,13 +12,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *
- * Example command to run this (the grep is necessary to avoid noisy log
- * output):
- *
- * builders/tools/bazel-debian run \
- * //src/roma/benchmark:logging_benchmark \
- * --test_output=all 2>&1 | fgrep -v sandbox2.cc
  */
 
 #include <memory>
@@ -27,13 +20,12 @@
 
 #include <benchmark/benchmark.h>
 
-#include "absl/log/log.h"
-#include "absl/strings/str_cat.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/native_function_grpc_server/proto/test_host_service_native_request_handler.h"
 #include "src/roma/roma_service/roma_service.h"
@@ -60,18 +52,17 @@ void DoSetup(typename RomaService<>::Config config) {
         })";
 
   using google::scp::roma::CodeObject;
-  absl::Status load_status = roma_service->LoadCodeObj(
+  CHECK_OK(roma_service->LoadCodeObj(
       std::make_unique<CodeObject>(CodeObject{
           .id = "foo",
           .version_string = "v1",
           .js = js,
       }),
       [&load_finished](const absl::StatusOr<ResponseObject>& resp) {
-        CHECK(resp.ok());
+        CHECK_OK(resp);
         load_finished.Notify();
-      });
+      }));
 
-  CHECK(load_status.ok()) << load_status;
   CHECK(load_finished.WaitForNotificationWithTimeout(kTimeout));
 }
 
@@ -118,7 +109,7 @@ void SetupNonDeclarativeApiNativeFunctionHandler(
 }
 
 void DoTeardown(const benchmark::State& state) {
-  CHECK(roma_service->Stop().ok());
+  CHECK_OK(roma_service->Stop());
   roma_service.reset();
 }
 
@@ -137,14 +128,13 @@ void RunBenchmark(benchmark::State& state, std::string_view input,
             .handler_name = "Handler",
             .input = {std::string(input)},
         });
-    auto execution_status = roma_service->Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          CHECK(resp.ok());
-          result = std::move(resp->resp);
-          execute_finished.Notify();
-        });
+    CHECK_OK(roma_service->Execute(std::move(execution_obj),
+                                   [&](absl::StatusOr<ResponseObject> resp) {
+                                     CHECK_OK(resp);
+                                     result = std::move(resp->resp);
+                                     execute_finished.Notify();
+                                   }));
 
-    CHECK(execution_status.ok()) << execution_status;
     CHECK(execute_finished.WaitForNotificationWithTimeout(kTimeout));
     CHECK_EQ(result, output);
   }
@@ -158,8 +148,7 @@ void BM_NonDeclarativeApiNativeFunctionHandler(benchmark::State& state) {
 
 BENCHMARK(BM_NonDeclarativeApiNativeFunctionHandler)
     ->Setup(SetupNonDeclarativeApiNativeFunctionHandler)
-    ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond);
+    ->Teardown(DoTeardown);
 
 void BM_DeclarativeApiNativeFunctionHandler(benchmark::State& state) {
   constexpr std::string_view input = R"("\n\u0006Hello ")";
@@ -170,8 +159,7 @@ void BM_DeclarativeApiNativeFunctionHandler(benchmark::State& state) {
 
 BENCHMARK(BM_DeclarativeApiNativeFunctionHandler)
     ->Setup(SetupDeclarativeApiNativeFunctionHandler)
-    ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond);
+    ->Teardown(DoTeardown);
 
 void BM_DeclarativeApiGrpcServer(benchmark::State& state) {
   constexpr std::string_view input = R"("\n\u0006Hello ")";
@@ -182,8 +170,7 @@ void BM_DeclarativeApiGrpcServer(benchmark::State& state) {
 
 BENCHMARK(BM_DeclarativeApiGrpcServer)
     ->Setup(SetupDeclarativeApiGrpcServer)
-    ->Teardown(DoTeardown)
-    ->Unit(benchmark::kMillisecond);
+    ->Teardown(DoTeardown);
 
 }  // namespace
 

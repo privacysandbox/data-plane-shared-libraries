@@ -14,6 +14,8 @@
 
 #include "request_validator.h"
 
+#include "absl/status/status.h"
+#include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/constants/constants.h"
 
 namespace google::scp::roma::sandbox::dispatcher {

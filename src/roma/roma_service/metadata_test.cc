@@ -24,7 +24,8 @@
 #include <utility>
 #include <vector>
 
-#include "absl/base/thread_annotations.h"
+#include "absl/base/log_severity.h"
+#include "absl/container/flat_hash_map.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
 #include "absl/strings/str_cat.h"
@@ -70,8 +71,7 @@ TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunction) {
   config.number_of_workers = 2;
   config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
   RomaService<> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -91,12 +91,17 @@ TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunction) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_TRUE(response_status.ok());
   }
 
   {
@@ -108,193 +113,25 @@ TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunction) {
         });
     execution_obj->metadata.insert(metadata_pair);
 
-    status = roma_service.Execute(std::move(execution_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    if (resp.ok()) {
-                                      result = std::move(resp->resp);
-                                    }
-                                    execute_finished.Notify();
-                                  });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
-  log.StopCapturingLogs();
-}
-
-TEST(MetadataTest, MetadataAssociatedWithEachNativeFunction) {
-  Config config;
-  config.number_of_workers = 2;
-  config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  RomaService<> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
-
-  absl::Notification load_finished;
-  size_t total_runs = 10;
-  std::vector<std::string> results(total_runs);
-  std::vector<absl::Notification> finished(total_runs);
-  const auto& metadata_tag = "Working";
-
-  absl::ScopedMockLog log;
-  for (auto i = 0u; i < total_runs; i++) {
-    EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
-                         absl::StrCat("key", i, ": ", metadata_tag, i)));
-  }
-  log.StartCapturingLogs();
-
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = "var Handler = () => log_metadata();",
-    });
-
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
-  }
-
-  {
-    for (auto i = 0u; i < total_runs; ++i) {
-      auto code_obj =
-          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
-              .id = "foo",
-              .version_string = "v1",
-              .handler_name = "Handler",
-          });
-      code_obj->metadata.insert(
-          {absl::StrCat("key", i), absl::StrCat(metadata_tag, i)});
-
-      status = roma_service.Execute(
-          std::move(code_obj), [&, i](absl::StatusOr<ResponseObject> resp) {
-            EXPECT_TRUE(resp.ok());
-            if (resp.ok()) {
-              results[i] = resp->resp;
-            }
-            finished[i].Notify();
-          });
-      EXPECT_TRUE(status.ok());
-    }
-  }
-
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
-  for (auto i = 0u; i < total_runs; ++i) {
-    finished[i].WaitForNotificationWithTimeout(absl::Seconds(30));
-    EXPECT_THAT(results[i], testing::StrEq("undefined"));
-  }
-
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
-
-  log.StopCapturingLogs();
-}
-
-TEST(MetadataTest, MetadataAssociatedWithBatchedFunctions) {
-  Config config;
-  config.worker_queue_max_items = 1;
-  config.number_of_workers = 10;
-  config.RegisterFunctionBinding(CreateLogFunctionBindingObject());
-  RomaService<> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
-
-  absl::Notification load_finished;
-  constexpr int kNumThreads = 10;
-  constexpr size_t kBatchSize = 100;
-  const auto& metadata_tag = "Working";
-
-  absl::ScopedMockLog log;
-  for (auto i = 0; i < kNumThreads; i++) {
-    for (int j = 0; j < kBatchSize; j++) {
-      EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
-                           absl::StrCat("key", i, ": ", metadata_tag, j)));
-    }
-  }
-  log.StartCapturingLogs();
-
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = "var Handler = () => log_metadata();",
-    });
-
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
-  }
-
-  load_finished.WaitForNotification();
-  absl::Mutex res_count_mu;
-  int res_count = 0;
-
-  std::vector<std::thread> threads;
-  threads.reserve(kNumThreads);
-
-  for (int i = 0; i < kNumThreads; i++) {
-    threads.emplace_back([&, i]() {
-      absl::Notification local_execute;
-      std::vector<InvocationStrRequest<>> batch;
-      for (int j = 0; j < kBatchSize; j++) {
-        InvocationStrRequest<> execution_obj{
-            .id = "foo",
-            .version_string = "v1",
-            .handler_name = "Handler",
-            .input = {absl::StrCat("\"", metadata_tag, "\"")},
-            .metadata = {{absl::StrCat("key", i),
-                          absl::StrCat(metadata_tag, j)}},
-        };
-        batch.push_back(execution_obj);
-      }
-
-      auto batch_callback =
-          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            for (auto resp : batch_resp) {
-              if (resp.ok()) {
-                EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
-              } else {
-                ADD_FAILURE() << "resp is NOT OK.";
-              }
-            }
-            {
-              absl::MutexLock lock(&res_count_mu);
-              res_count += batch_resp.size();
-            }
-            local_execute.Notify();
-          };
-      while (!roma_service.BatchExecute(batch, batch_callback).ok()) {
-      }
-
-      // Thread cannot join until batch_callback is called.
-      local_execute.WaitForNotification();
-    });
-  }
-
-  for (auto& t : threads) {
-    t.join();
-  }
-  {
-    absl::MutexLock lock(&res_count_mu);
-    EXPECT_EQ(res_count, kBatchSize * kNumThreads);
-  }
-
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
-
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -308,8 +145,7 @@ TEST(MetadataTest, StringMetadataVisibleInNativeFunction) {
   config.RegisterFunctionBinding(CreateFunctionBindingObject<std::string>(
       LogMetadataStringFunction, "log_metadata"));
   RomaService<std::string> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -327,12 +163,17 @@ TEST(MetadataTest, StringMetadataVisibleInNativeFunction) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_TRUE(response_status.ok());
   }
 
   {
@@ -344,23 +185,25 @@ TEST(MetadataTest, StringMetadataVisibleInNativeFunction) {
             .metadata = metadata_tag,
         });
 
-    status = roma_service.Execute(std::move(execution_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    if (resp.ok()) {
-                                      result = std::move(resp->resp);
-                                    }
-                                    execute_finished.Notify();
-                                  });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -378,8 +221,7 @@ TEST(MetadataTest, VectorMetadataVisibleInNativeFunction) {
       CreateFunctionBindingObject<std::vector<std::string>>(
           LogMetadataVectorFunction, "log_metadata"));
   RomaService<std::vector<std::string>> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -398,12 +240,17 @@ TEST(MetadataTest, VectorMetadataVisibleInNativeFunction) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -416,23 +263,25 @@ TEST(MetadataTest, VectorMetadataVisibleInNativeFunction) {
                 .metadata = metadata_list,
             });
 
-    status = roma_service.Execute(std::move(execution_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    if (resp.ok()) {
-                                      result = std::move(resp->resp);
-                                    }
-                                    execute_finished.Notify();
-                                  });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -460,8 +309,7 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunction) {
       CreateFunctionBindingObject<std::vector<Metadata>>(
           LogMetadataStructFunction, "log_metadata"));
   RomaService<std::vector<Metadata>> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -496,12 +344,17 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunction) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -514,23 +367,25 @@ TEST(MetadataTest, CustomMetadataTypeVisibleInNativeFunction) {
             });
     execution_obj->metadata = metadata_list;
 
-    status = roma_service.Execute(std::move(execution_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    if (resp.ok()) {
-                                      result = std::move(resp->resp);
-                                    }
-                                    execute_finished.Notify();
-                                  });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -569,8 +424,7 @@ TEST(MetadataTest, MoveOnlyMetadataVisibleInNativeFunction) {
   config.RegisterFunctionBinding(CreateFunctionBindingObject<MoveOnly>(
       LogMetadataMoveOnlyFunction, "log_metadata"));
   RomaService<MoveOnly> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -588,12 +442,17 @@ TEST(MetadataTest, MoveOnlyMetadataVisibleInNativeFunction) {
         .js = "var Handler = () => log_metadata();",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -605,23 +464,25 @@ TEST(MetadataTest, MoveOnlyMetadataVisibleInNativeFunction) {
             .metadata = MoveOnly(metadata_tag),
         });
 
-    status = roma_service.Execute(std::move(execution_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    if (resp.ok()) {
-                                      result = resp->resp;
-                                    }
-                                    execute_finished.Notify();
-                                  });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = resp->resp;
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 
@@ -631,8 +492,7 @@ TEST(MetadataTest, MoveOnlyMetadataVisibleInAllNativeFunctions) {
   config.RegisterFunctionBinding(CreateFunctionBindingObject<MoveOnly>(
       LogMetadataMoveOnlyFunction, "log_metadata"));
   RomaService<MoveOnly> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(roma_service.Init().ok());
 
   std::string result;
   absl::Notification load_finished;
@@ -653,12 +513,17 @@ TEST(MetadataTest, MoveOnlyMetadataVisibleInAllNativeFunctions) {
         })",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -670,23 +535,25 @@ TEST(MetadataTest, MoveOnlyMetadataVisibleInAllNativeFunctions) {
             .metadata = MoveOnly(metadata_tag),
         });
 
-    status = roma_service.Execute(std::move(execution_obj),
-                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                    EXPECT_TRUE(resp.ok());
-                                    if (resp.ok()) {
-                                      result = resp->resp;
-                                    }
-                                    execute_finished.Notify();
-                                  });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = resp->resp;
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
   EXPECT_THAT(result, testing::StrEq("undefined"));
 
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
+  EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 

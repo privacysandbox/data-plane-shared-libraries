@@ -12,7 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library", "closure_js_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -24,6 +25,18 @@ cc_binary(
     ],
 )
 
+cc_library(
+    name = "utils",
+    srcs = ["utils.cc"],
+    hdrs = ["utils.h"],
+    deps = [
+        "@com_google_absl//absl/container:flat_hash_set",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/strings",
+    ],
+)
+
 cc_binary(
     name = "v8_shell",
     srcs = ["v8_shell.cc"],
@@ -32,15 +45,117 @@ cc_binary(
     ],
 )
 
+filegroup(
+    name = "test_command_scripts",
+    srcs = glob(["test_command_scripts/**"]),
+)
+
+filegroup(
+    name = "test_inputs",
+    srcs = glob(["test_inputs/**"]),
+)
+
+filegroup(
+    name = "test_udfs",
+    srcs = glob(["test_udfs/**"]),
+)
+
+closure_js_library(
+    name = "test_doubles_library",
+    srcs = ["test_doubles_library.js"],
+    suppress = [
+        "reportUnknownTypes",
+    ],
+)
+
+closure_js_test(
+    name = "test_doubles_library_test",
+    size = "small",
+    srcs = ["test_doubles_library_test.js"],
+    entry_points = [
+        "goog:google.scp.roma.tools.v8_cli.test_doubles_library_test",
+    ],
+    suppress = [
+        "JSC_WRONG_ARGUMENT_COUNT",
+    ],
+    # TODO: b/354926654 - Write a BUILD file to compile phantomJS for aarch64
+    target_compatible_with = select({
+        "@platforms//cpu:aarch64": ["@platforms//:incompatible"],
+        "@platforms//cpu:x86_64": [],
+    }),
+    deps = [
+        ":test_doubles_library",
+        "@com_google_javascript_closure_library//closure/goog/testing:testsuite",
+    ],
+)
+
+cc_library(
+    name = "roma_repl",
+    srcs = ["roma_repl.cc"],
+    hdrs = ["roma_repl.h"],
+    data = [
+        ":test_command_scripts",
+        ":test_doubles_library",
+        ":test_udfs",
+    ],
+    deps = [
+        ":utils",
+        "//src/core/common/uuid",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "//src/util:duration",
+        "@com_google_absl//absl/base:log_severity",
+        "@com_google_absl//absl/base:nullability",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@com_google_absl//absl/types:span",
+    ],
+)
+
+cc_binary(
+    name = "roma_benchmark",
+    srcs = ["roma_benchmark.cc"],
+    data = [
+        ":test_doubles_library",
+        ":test_inputs",
+        ":test_udfs",
+    ],
+    deps = [
+        ":utils",
+        "//src/core/common/uuid",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/base:log_severity",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/flags:usage",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
+    ],
+)
+
 cc_binary(
     name = "roma_shell",
     srcs = ["roma_shell.cc"],
     deps = [
-        "//src/roma/interface",
-        "//src/roma/roma_service",
+        ":roma_repl",
+        ":utils",
         "//src/util:duration",
         "@com_google_absl//absl/flags:flag",
-        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/flags:usage",
+        "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
     ],
 )

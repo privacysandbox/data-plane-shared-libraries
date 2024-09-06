@@ -48,14 +48,20 @@ TEST(NativeFunctionTableTest, CallRegisteredFunction) {
   NativeFunctionTable table;
   EXPECT_TRUE(table.Register("example", ExampleFunction).ok());
   proto::FunctionBindingIoProto input;
-  FunctionBindingPayload<> payload{input, {}};
+  FunctionBindingPayload<> payload = {
+      .io_proto = input,
+      .metadata = {},
+  };
   EXPECT_TRUE(table.Call("example", payload).ok());
 }
 
 TEST(NativeFunctionTableTest, CallUnregisteredFunction) {
   NativeFunctionTable table;
   proto::FunctionBindingIoProto input;
-  FunctionBindingPayload<> payload{input, {}};
+  FunctionBindingPayload<> payload = {
+      .io_proto = input,
+      .metadata = {},
+  };
   EXPECT_FALSE(table.Call("example", payload).ok());
 }
 

@@ -64,7 +64,7 @@ class LogTest : public ::testing::Test {
  protected:
   void SetUp() override {
     // initialize max verbosity = kMaxV
-    server_common::log::PS_VLOG_IS_ON(0, kMaxV);
+    server_common::log::SetGlobalPSVLogLevel(kMaxV);
   }
 
   std::string LogWithCapturedStderr(absl::AnyInvocable<void() &&> logging) {

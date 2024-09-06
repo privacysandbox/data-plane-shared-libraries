@@ -41,20 +41,26 @@ FailureExecutionResult SqsErrorConverter::ConvertSqsError(
       failure = FailureExecutionResult(SC_AWS_VALIDATION_FAILED);
       break;
     case SQSErrors::ACCESS_DENIED:
+      [[fallthrough]];
     case SQSErrors::INVALID_CLIENT_TOKEN_ID:
       failure = FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS);
       break;
     case SQSErrors::INVALID_PARAMETER_COMBINATION:
+      [[fallthrough]];
     case SQSErrors::INVALID_QUERY_PARAMETER:
+      [[fallthrough]];
     case SQSErrors::INVALID_PARAMETER_VALUE:
+      [[fallthrough]];
     case SQSErrors::MALFORMED_QUERY_STRING:
       failure = FailureExecutionResult(SC_AWS_INVALID_REQUEST);
       break;
     case SQSErrors::SERVICE_UNAVAILABLE:
+      [[fallthrough]];
     case SQSErrors::NETWORK_CONNECTION:
       failure = FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE);
       break;
     case SQSErrors::THROTTLING:
+      [[fallthrough]];
     case SQSErrors::OVER_LIMIT:
       failure = FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED);
       break;
@@ -67,11 +73,13 @@ FailureExecutionResult SqsErrorConverter::ConvertSqsError(
           SC_AWS_QUEUE_CLIENT_PROVIDER_MESSAGE_NOT_IN_FLIGHT);
       break;
     case SQSErrors::RECEIPT_HANDLE_IS_INVALID:
+      [[fallthrough]];
     case SQSErrors::INVALID_ID_FORMAT:
       failure = FailureExecutionResult(
           SC_AWS_QUEUE_CLIENT_PROVIDER_INVALID_RECEIPT_INFO);
       break;
     case SQSErrors::INTERNAL_FAILURE:
+      [[fallthrough]];
     default:
       failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   }

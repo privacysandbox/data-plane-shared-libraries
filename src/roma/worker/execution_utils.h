@@ -24,14 +24,10 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/base/nullability.h"
 #include "absl/status/status.h"
 #include "include/v8.h"
-#include "src/public/core/interface/execution_result.h"
-#include "src/roma/config/type_converter.h"
 #include "src/roma/interface/roma.h"
-#include "src/roma/wasm/deserializer.h"
-#include "src/roma/wasm/serializer.h"
-#include "src/roma/wasm/wasm_types.h"
 
 namespace google::scp::roma::worker {
 
@@ -46,7 +42,7 @@ class ExecutionUtils {
    * @return absl::Status
    */
   static absl::Status CompileRunJS(
-      std::string_view js,
+      std::string_view js, bool logging_function_set = false,
       absl::Nullable<v8::Local<v8::UnboundScript>*> unbound_script = nullptr);
 
   /**
@@ -194,6 +190,9 @@ class ExecutionUtils {
 
   static absl::Status V8PromiseHandler(absl::Nonnull<v8::Isolate*> isolate,
                                        v8::Local<v8::Value>& result);
+
+  static absl::Status OverrideConsoleLog(v8::Isolate* isolate,
+                                         bool logging_function_set);
 };
 }  // namespace google::scp::roma::worker
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 Google LLC
+ * Copyright 2024 Google LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,59 +14,67 @@
  * limitations under the License.
  */
 
-// This is a wrapper to be run within the sandboxed API (sapi).
-// This wrapper is used to interact with the worker from outside the sandbox,
-// but these are the actual functions that the sandbox infra calls.
-// The extern "C" is to avoid name mangling to enable sapi code generation.
-
 #ifndef ROMA_SANDBOX_WORKER_API_SAPI_WORKER_WRAPPER_H_
 #define ROMA_SANDBOX_WORKER_API_SAPI_WORKER_WRAPPER_H_
 
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
-#include "sandboxed_api/var_int.h"
-#include "src/roma/config/config.h"
+#include "src/roma/sandbox/worker/worker.h"
 #include "src/roma/sandbox/worker_api/sapi/error_codes.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_sapi_sandbox.h"
+#include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
 
-// All of the types used for these functions, that're wrapped by SAPI, must be
-// C types and cannot be complex C++ types.
+namespace google::scp::roma::sandbox::worker_api {
 
-extern "C" SapiStatusCode InitFromSerializedData(sapi::LenValStruct* data);
+class WorkerWrapper final {
+ public:
+  WorkerWrapper(bool enable_sandbox_sharing_request_response_with_buffer_only,
+                size_t request_and_response_data_buffer_size_bytes,
+                sandbox2::Buffer* sandbox_data_shared_buffer_ptr,
+                WorkerSapiSandbox* worker_sapi_sandbox_ptr)
+      : enable_sandbox_sharing_request_response_with_buffer_only_(
+            enable_sandbox_sharing_request_response_with_buffer_only),
+        request_and_response_data_buffer_size_bytes_(
+            request_and_response_data_buffer_size_bytes),
+        sandbox_data_shared_buffer_ptr_(sandbox_data_shared_buffer_ptr),
+        worker_wrapper_sapi_(
+            std::make_unique<WorkerWrapperApi>(worker_sapi_sandbox_ptr)) {}
 
-extern "C" SapiStatusCode Run();
+  absl::Status Init(::worker_api::WorkerInitParamsProto& init_params);
 
-extern "C" SapiStatusCode Stop();
+  absl::Status Run();
 
-/// @brief The sandbox API, which is used to execute all requests, has two data
-/// sharing mechanisms:
-/// <b>Sharing by sandbox2::Buffer:</b> This mechanism uses a pre-allocated
-/// buffer of a fixed size. If the data to be shared is larger than the buffer,
-/// the second mechanism is used.
-/// <b>Sharing by SAPI variable sapi::LenValStruct<b>: This mechanism allows
-/// sharing data of any size.
-/// @param data The request and response data are shared with the SAPI variable
-/// sapi::LenValStruct when they are passed into or out of the sandboxee.
-/// @param input_serialized_size The input variable serialized_size is used to
-/// deserialize the request protobuf from the Buffer data inside the sandboxee.
-/// @param output_serialized_size The output variable serialized_size is used to
-/// deserialize the response protobuf from the Buffer data in the host binary.
-/// @return
-extern "C" SapiStatusCode RunCodeFromSerializedData(
-    sapi::LenValStruct* data, int input_serialized_size,
-    size_t* output_serialized_size);
+  absl::Status Stop();
 
-/// @brief The sandbox API, in which the data shared with the Buffer only.
-/// @param input_serialized_size The input variable serialized_size is used to
-/// deserialize the request protobuf from the Buffer data inside the sandboxee.
-/// @param output_serialized_size The output variable serialized_size is used to
-/// deserialize the response protobuf from the Buffer data in the host binary.
-/// @return
-extern "C" SapiStatusCode RunCodeFromBuffer(int input_serialized_size,
-                                            size_t* output_serialized_size);
+  std::pair<absl::Status, RetryStatus> RunCode(
+      ::worker_api::WorkerParamsProto& params);
+
+  bool SandboxIsInitialized();
+
+ private:
+  void WarmUpSandbox();
+
+  std::pair<absl::Status, RetryStatus> InternalRunCode(
+      ::worker_api::WorkerParamsProto& params);
+
+  std::pair<absl::Status, RetryStatus> InternalRunCodeBufferShareOnly(
+      ::worker_api::WorkerParamsProto& params);
+
+  std::unique_ptr<google::scp::roma::sandbox::worker::Worker> worker_;
+  const bool enable_sandbox_sharing_request_response_with_buffer_only_;
+  size_t request_and_response_data_buffer_size_bytes_;
+  sandbox2::Buffer* sandbox_data_shared_buffer_ptr_;
+  // See BUILD file for named library "WorkerWrapper" in the
+  // sapi_library worker_wrapper-sapi target.
+  std::unique_ptr<WorkerWrapperApi> worker_wrapper_sapi_;
+};
+
+}  // namespace google::scp::roma::sandbox::worker_api
 
 #endif  // ROMA_SANDBOX_WORKER_API_SAPI_WORKER_WRAPPER_H_

@@ -1,0 +1,41 @@
+diff --git a/closure/testing/closure_js_test.bzl b/closure/testing/closure_js_test.bzl
+index bef85f0..d748841 100644
+--- a/closure/testing/closure_js_test.bzl
++++ b/closure/testing/closure_js_test.bzl
+@@ -19,6 +19,11 @@ load("//closure/compiler:closure_js_library.bzl", "closure_js_library")
+ load("//closure/testing:phantomjs_test.bzl", "phantomjs_test")
+ load("//closure/testing:webdriver_test.bzl", "webdriver_test")
+ 
++load(
++    "//closure/private:defs.bzl",
++    "JS_LANGUAGE_OUT_DEFAULT",
++)
++
+ def closure_js_test(
+         name,
+         srcs,
+@@ -37,10 +42,14 @@ def closure_js_test(
+         debug = False,
+         browsers = None,
+         **kwargs):
++    language_out = JS_LANGUAGE_OUT_DEFAULT
+     if not srcs:
+         fail("closure_js_test rules can not have an empty 'srcs' list")
+-    if language:
+-        print("closure_js_test 'language' is removed and now always ES6 strict")
++    if (language):
++        if (language == "ECMASCRIPT_NEXT"):
++            language_out = "ECMASCRIPT_NEXT";
++        else:
++            print("closure_js_test 'language' only supports 'ECMASCRIPT_NEXT' and will otherwise always be ES5 strict.")
+     for src in srcs:
+         if not src.endswith("_test.js"):
+             fail("closure_js_test srcs must be files ending with _test.js")
+@@ -70,6 +79,7 @@ def closure_js_test(
+             name = "%s_bin" % shard,
+             deps = [":%s_lib" % shard],
+             compilation_level = compilation_level,
++            language = language_out,
+             css = css,
+             debug = True,
+             defs = defs,

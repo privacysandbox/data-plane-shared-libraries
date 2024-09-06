@@ -17,6 +17,7 @@
 #ifndef ROMA_LOGGING_LOGGING_H_
 #define ROMA_LOGGING_LOGGING_H_
 
+#include "absl/base/log_severity.h"
 #include "absl/log/log.h"
 
 #ifndef ROMA_VLOG

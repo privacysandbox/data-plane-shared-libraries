@@ -42,6 +42,7 @@ class AwsBlobStorageClientUtils {
         return core::FailureExecutionResult(
             core::errors::SC_AWS_INTERNAL_SERVICE_ERROR);
       case Aws::S3::S3Errors::SERVICE_UNAVAILABLE:
+        [[fallthrough]];
       case Aws::S3::S3Errors::THROTTLING:
         return core::RetryExecutionResult(
             core::errors::SC_AWS_SERVICE_UNAVAILABLE);

@@ -25,10 +25,8 @@
 #include <vector>
 
 #include "absl/container/flat_hash_map.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/wasm/testing_utils.h"
 
-using google::scp::core::test::ResultIs;
 using google::scp::roma::kDefaultExecutionTimeout;
 using google::scp::roma::kTimeoutDurationTag;
 using google::scp::roma::kWasmCodeArrayName;

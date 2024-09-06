@@ -1,0 +1,113 @@
+# Copyright 2023 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_binary")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
+load("@rules_cc//cc:defs.bzl", "cc_proto_library", "cc_test")
+load("@rules_proto//proto:defs.bzl", "proto_library")
+load(
+    "//src/roma/tools/api_plugin:roma_api.bzl",
+    "declare_roma_api",
+    "js_proto_library",
+    "roma_app_api_cc_library",
+    "roma_sdk",
+    "roma_service_js_library",
+)
+
+proto_library(
+    name = "sample_2_proto",
+    srcs = ["sample_2.proto"],
+    deps = [
+        "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
+    ],
+)
+
+buf_lint_test(
+    name = "sample_2_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [":sample_2_proto"],
+)
+
+cc_proto_library(
+    name = "sample_2_cc_proto",
+    deps = [":sample_2_proto"],
+)
+
+sample_2_api = declare_roma_api(
+    cc_protos = [":sample_2_cc_proto"],
+    proto_basename = "sample_2",
+    protos = [":sample_2_proto"],
+)
+
+js_proto_library(
+    name = "sample_2_js_proto_lib",
+    roma_api = sample_2_api,
+)
+
+roma_service_js_library(
+    name = "sample_2_js_library",
+    roma_app_api = sample_2_api,
+    deps = [":sample_2_js_proto_lib"],
+)
+
+closure_js_binary(
+    name = "sample_2_js",
+    compilation_level = "SIMPLE_OPTIMIZATIONS",
+    debug = False,
+    formatting = "PRETTY_PRINT",
+    language = "ECMASCRIPT_NEXT",
+    deps = [
+        ":sample_2_js_library",
+    ],
+)
+
+roma_app_api_cc_library(
+    name = "sample_2_roma_api",
+    js_library = ":sample_2_js",
+    roma_app_api = sample_2_api,
+    tags = [
+        "noasan",
+        "notsan",
+    ],
+    visibility = ["//visibility:public"],
+)
+
+roma_sdk(
+    name = "sample_2_sdk",
+    srcs = [
+        ":sample_2_js",
+    ],
+    app_api_cc_library = ":sample_2_roma_api",
+    js_library = ":sample_2_js_library",
+    roma_app_api = sample_2_api,
+    visibility = ["//visibility:public"],
+)
+
+cc_test(
+    name = "sample_2_cc_test",
+    size = "small",
+    srcs = [":sample_2_roma_api_test.cc"],
+    tags = [
+        "noasan",
+        "notsan",
+    ],
+    deps = [
+        ":sample_2_roma_api",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

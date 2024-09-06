@@ -25,6 +25,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "absl/log/check.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 
 using google::scp::roma::metadata_storage::MetadataStorage;

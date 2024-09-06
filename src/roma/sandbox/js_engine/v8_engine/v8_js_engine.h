@@ -24,9 +24,9 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
-#include "absl/strings/string_view.h"
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/js_engine/js_engine.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
@@ -46,9 +46,10 @@ class V8JsEngine : public JsEngine {
  public:
   V8JsEngine(std::unique_ptr<V8IsolateFunctionBinding>
                  isolate_function_binding = nullptr,
-             bool skip_v8_cleanup = false,
+             bool skip_v8_cleanup = false, bool enable_profilers = false,
              const JsEngineResourceConstraints& v8_resource_constraints =
-                 JsEngineResourceConstraints());
+                 JsEngineResourceConstraints(),
+             bool logging_function_set = false);
 
   ~V8JsEngine() override;
 
@@ -227,6 +228,8 @@ class V8JsEngine : public JsEngine {
   std::unique_ptr<V8Console> console_ ABSL_GUARDED_BY(console_mutex_);
   absl::Mutex console_mutex_;
   const bool skip_v8_cleanup_;
+  const bool enable_profilers_;
+  const bool logging_function_set_;
 };
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 

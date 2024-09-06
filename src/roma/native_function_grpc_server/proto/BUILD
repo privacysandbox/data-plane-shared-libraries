@@ -37,7 +37,6 @@ cc_library(
     deps = [
         "//src/roma/native_function_grpc_server/proto:multi_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_host_service_cc_proto",
-        "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
     ],
@@ -186,7 +185,7 @@ roma_host_api_cc_library(
     roma_host_api = test_service_host_api,
     tags = [
         "noasan",
-        "notsan-aarch64",
+        "notsan",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -199,7 +198,7 @@ roma_host_api_cc_library(
     roma_host_api = multi_service_host_api,
     tags = [
         "noasan",
-        "notsan-aarch64",
+        "notsan",
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -213,7 +212,7 @@ roma_app_api_cc_library(
     roma_app_api = test_service_app_api,
     tags = [
         "noasan",
-        "notsan-aarch64",
+        "notsan",
     ],
     visibility = ["//visibility:public"],
 )
@@ -239,12 +238,15 @@ cc_test(
     srcs = [":test_service_roma_api_test.cc"],
     tags = [
         "noasan",
-        "notsan-aarch64",
+        "notsan",
     ],
     deps = [
         ":multi_service_roma_host_api",
         ":test_service_roma_app_api",
         ":test_service_roma_host_api",
+        "//src/roma/config",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",

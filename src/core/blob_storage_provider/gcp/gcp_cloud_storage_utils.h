@@ -49,13 +49,19 @@ class GcpCloudStorageUtils {
     // turned off or adjusted via the client's Options
     switch (cloud_storage_error_code) {
       case google::cloud::StatusCode::kResourceExhausted:
+        [[fallthrough]];
       case google::cloud::StatusCode::kUnavailable:
+        [[fallthrough]];
       case google::cloud::StatusCode::kInternal:
+        [[fallthrough]];
       case google::cloud::StatusCode::kUnknown:
+        [[fallthrough]];
       case google::cloud::StatusCode::kAborted:
+        [[fallthrough]];
       case google::cloud::StatusCode::kFailedPrecondition:
-      // TODO: If kAlreadyExists can apply to blobs, then convert to
-      // BLOB_PATH_EXISTS
+        // TODO: If kAlreadyExists can apply to blobs, then convert to
+        // BLOB_PATH_EXISTS
+        [[fallthrough]];
       case google::cloud::StatusCode::kAlreadyExists:
         return core::RetryExecutionResult(
             errors::SC_BLOB_STORAGE_PROVIDER_RETRIABLE_ERROR);
@@ -69,12 +75,19 @@ class GcpCloudStorageUtils {
             errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB);
 
       case google::cloud::StatusCode::kDataLoss:
+        [[fallthrough]];
       case google::cloud::StatusCode::kInvalidArgument:
+        [[fallthrough]];
       case google::cloud::StatusCode::kUnimplemented:
+        [[fallthrough]];
       case google::cloud::StatusCode::kCancelled:
+        [[fallthrough]];
       case google::cloud::StatusCode::kPermissionDenied:
+        [[fallthrough]];
       case google::cloud::StatusCode::kUnauthenticated:
+        [[fallthrough]];
       case google::cloud::StatusCode::kDeadlineExceeded:
+        [[fallthrough]];
       default:
         return core::FailureExecutionResult(
             errors::SC_BLOB_STORAGE_PROVIDER_UNRETRIABLE_ERROR);

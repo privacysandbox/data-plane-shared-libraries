@@ -12,9 +12,26 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary", "go_library")
 load("@rules_proto_grpc//:defs.bzl", "proto_plugin")
 load("//src/roma/tools/api_plugin:internal/roma_api.bzl", "get_all_roma_api_plugins", "template_dir_name")
+
+write_file(
+    name = "roma_generator_plugin",
+    out = "roma_generator.txt.tmpl",
+    content = ["TARGET"],
+)
+
+expand_template(
+    name = "roma_generator_plugin_expanded",
+    out = "embed/roma_generator.txt",
+    substitutions = {
+        "TARGET": "$(TARGET)",
+    },
+    template = ":roma_generator_plugin",
+)
 
 go_library(
     name = "roma_api_plugin_lib",
@@ -22,7 +39,10 @@ go_library(
         "app_api.go",
         "protoc_template_plugin.go",
     ],
-    embedsrcs = glob(["tmpl/*"]),
+    embedsrcs = [":roma_generator_plugin_expanded"] + glob([
+        "tmpl/**/*",
+        "embed/*",
+    ]),
     importpath = "github.com/privacysandbox/data-plane-shared/roma/tools/api_plugin/cmd",
     x_defs = {
         "tmplSymlink": template_dir_name,

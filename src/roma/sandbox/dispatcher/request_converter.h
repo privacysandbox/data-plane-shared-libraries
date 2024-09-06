@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/container/flat_hash_map.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"

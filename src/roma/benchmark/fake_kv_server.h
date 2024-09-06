@@ -19,9 +19,7 @@
 #include <vector>
 
 #include "src/roma/config/config.h"
-#include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
-#include "src/roma/sandbox/constants/constants.h"
 
 namespace google::scp::roma::benchmark {
 // From:

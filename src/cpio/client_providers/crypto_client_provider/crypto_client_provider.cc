@@ -190,6 +190,7 @@ size_t GetSecretLength(const SecretLength& secret_length) {
     case SecretLength::SECRET_LENGTH_32_BYTES:
       return 32;
     case SecretLength::SECRET_LENGTH_16_BYTES:
+      [[fallthrough]];
     default:
       return 16;
   }

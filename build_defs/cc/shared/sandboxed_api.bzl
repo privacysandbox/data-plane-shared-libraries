@@ -25,7 +25,7 @@ def sandboxed_api():
             Label("//build_defs/cc/shared:sandboxed_api.patch"),
             Label("//build_defs/cc/shared:sandboxed_libunwind.patch"),
         ],
-        sha256 = "8ba5b639e5b98880ff5f6961ef0dca28dc5f45449206a227dc951cae091ab5ee",
-        strip_prefix = "sandboxed-api-597b4430ba8f9e4da39b24eb1c16f720dcec8285",
-        urls = ["https://github.com/google/sandboxed-api/archive/597b4430ba8f9e4da39b24eb1c16f720dcec8285.zip"],
+        sha256 = "6b4fa1bc9d20a57f9ca856c20646f5bbcc2706e15d2f417f2af9c2944eb90246",
+        strip_prefix = "sandboxed-api-1bdcd66249da0494e976f812287e080610dd2ba3",
+        urls = ["https://github.com/google/sandboxed-api/archive/1bdcd66249da0494e976f812287e080610dd2ba3.zip"],
     )

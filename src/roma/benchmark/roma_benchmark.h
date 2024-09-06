@@ -19,6 +19,8 @@
 #include <string>
 #include <vector>
 
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/time/time.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"

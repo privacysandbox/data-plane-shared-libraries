@@ -30,12 +30,6 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "absl/flags/flag.h"
-#include "absl/flags/parse.h"
-#include "absl/flags/usage.h"
-#include "absl/log/globals.h"
-#include "absl/log/initialize.h"
-#include "absl/log/log.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/metadata_storage/metadata_storage.h"
 #include "src/roma/native_function_grpc_server/interface.h"

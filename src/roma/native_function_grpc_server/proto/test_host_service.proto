@@ -26,7 +26,7 @@ service TestHostService {
     name: 'Test Host Server',
     description: 'Test Host Server',
     cpp_namespace: 'privacysandbox::test_host_server',
-    romav8_app_name: 'TestHostServer',
+    roma_app_name: 'TestHostServer',
     cpp_host_process_callback_includes: [
       'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
     ],

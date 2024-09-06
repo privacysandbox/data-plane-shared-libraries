@@ -287,6 +287,7 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
       SetUpPutData(request.body);
       break;
     case HttpMethod::UNKNOWN:
+      [[fallthrough]];
     default:
       return FailureExecutionResult(errors::SC_CURL_CLIENT_UNSUPPORTED_METHOD);
   }

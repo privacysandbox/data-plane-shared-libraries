@@ -25,6 +25,7 @@
 
 #include <boost/asio.hpp>
 
+#include "absl/log/check.h"
 #include "absl/log/log.h"
 
 #include "socket_types.h"
@@ -39,8 +40,8 @@ bool SocketVendorServer::Init() {
     return false;
   }
   // Delete the file first.
-  if (unlink(sock_path_.c_str()) != 0 && errno != ENOENT) {
-    LOG(ERROR) << "Cannot remove file: " << sock_path_;
+  if (::unlink(sock_path_.c_str()) == -1 && errno != ENOENT) {
+    PLOG(ERROR) << "Cannot remove file: " << sock_path_;
     return false;
   }
   Protocol protocol(AF_UNIX, 0);
@@ -55,7 +56,9 @@ bool SocketVendorServer::Init() {
     LOG(ERROR) << "Cannot set option REUSEADDR, " << ec.message();
     return false;
   }
-  Endpoint ep{asio::local::stream_protocol::endpoint(sock_path_)};
+  Endpoint ep = {
+      asio::local::stream_protocol::endpoint(sock_path_),
+  };
   acceptor_.bind(ep, ec);
   if (ec.failed()) {
     LOG(ERROR) << "Cannot bind on path: " << sock_path_ << ", " << ec.message();
