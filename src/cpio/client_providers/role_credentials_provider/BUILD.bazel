@@ -30,6 +30,6 @@ cc_library(
                 "//src/cpio/client_providers/role_credentials_provider/gcp:gcp_role_credentials_provider",
             ],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS, Azure or GCP",
     ),
 )

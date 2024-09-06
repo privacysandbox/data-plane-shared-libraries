@@ -169,15 +169,9 @@ void GcpParameterClientProvider::AsyncGetParameterCallback(
 absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
-<<<<<<< HEAD
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) {
-=======
     absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
     absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
     absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) {
->>>>>>> upstream-3e92e75-3.10.0
   auto provider = std::make_unique<GcpParameterClientProvider>(
       cpu_async_executor, io_async_executor, instance_client_provider,
       std::move(options));

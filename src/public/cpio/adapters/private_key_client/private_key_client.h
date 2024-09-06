@@ -32,10 +32,7 @@ namespace google::scp::cpio {
  */
 class PrivateKeyClient : public PrivateKeyClientInterface {
  public:
-<<<<<<< HEAD
-=======
   // TODO(b/337035410): Pass provider in constructor and deprecate Init method.
->>>>>>> upstream-3e92e75-3.10.0
   explicit PrivateKeyClient(PrivateKeyClientOptions options)
       : options_(std::move(options)) {}
 
@@ -58,10 +55,6 @@ class PrivateKeyClient : public PrivateKeyClientInterface {
 
  private:
   PrivateKeyClientOptions options_;
-<<<<<<< HEAD
-  client_providers::CpioProviderInterface* cpio_;
-=======
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio
 

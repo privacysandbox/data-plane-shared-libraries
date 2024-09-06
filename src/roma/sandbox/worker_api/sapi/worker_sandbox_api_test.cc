@@ -41,11 +41,6 @@ using ::testing::StrEq;
 namespace google::scp::roma::sandbox::worker_api::test {
 TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
   WorkerSandboxApi sandbox_api(
-<<<<<<< HEAD
-      false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
-      {} /*native_js_function_names*/, {} /*rpc_method_names*/,
-      "" /*server_address*/, 0, 0, 0, 0, 0, false);
-=======
       /*require_preload=*/false, /*native_js_function_comms_fd=*/-1,
       /*native_js_function_names=*/{}, /*rpc_method_names=*/{},
       /*server_address=*/"", /*max_worker_virtual_memory_mb=*/0,
@@ -56,7 +51,6 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/
       {});
->>>>>>> upstream-3e92e75-3.10.0
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -151,12 +145,6 @@ TEST(WorkerSandboxApiTest,
   // no other limitations, this limit needs to be pretty high for V8 to properly
   // start. We set a limit of 100MB which causes a failure in this case.
   WorkerSandboxApi sandbox_api(
-<<<<<<< HEAD
-      false /*require_preload*/, -1 /*native_js_function_comms_fd*/,
-      {} /*native_js_function_names*/, {} /*rpc_method_names*/,
-      "" /*server_address*/, 100 /*max_worker_virtual_memory_mb*/, 0, 0, 0, 0,
-      false);
-=======
       /*require_preload=*/false, /*native_js_function_comms_fd=*/-1,
       /*native_js_function_names=*/{}, /*rpc_method_names=*/{},
       /*server_address=*/"", /*max_worker_virtual_memory_mb=*/100,
@@ -166,7 +154,6 @@ TEST(WorkerSandboxApiTest,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{});
->>>>>>> upstream-3e92e75-3.10.0
 
   // Initializing the sandbox fail as we're giving a max of 100MB of virtual
   // space address for v8 and the sandbox.
@@ -179,12 +166,6 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
   int fds[2];
   EXPECT_EQ(socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fds), 0);
 
-<<<<<<< HEAD
-  WorkerSandboxApi sandbox_api(false /*require_preload*/,
-                               fds[1] /*native_js_function_comms_fd*/,
-                               {"my_great_func"}, {} /*rpc_method_names*/,
-                               "" /*server_address*/, 0, 0, 0, 0, 0, false);
-=======
   WorkerSandboxApi sandbox_api(
       /*require_preload=*/false, /*native_js_function_comms_fd=*/fds[1],
       /*native_js_function_names=*/{"my_great_func"}, /*rpc_method_names=*/{},
@@ -195,7 +176,6 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{});
->>>>>>> upstream-3e92e75-3.10.0
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -240,11 +220,6 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
   WorkerSandboxApiForTests(
       bool require_preload, int native_js_function_comms_fd,
       const std::vector<std::string>& native_js_function_names)
-<<<<<<< HEAD
-      : WorkerSandboxApi(require_preload, native_js_function_comms_fd,
-                         native_js_function_names, {} /*rpc_method_names*/,
-                         "" /*server_address*/, 0, 0, 0, 0, 0, false) {}
-=======
       : WorkerSandboxApi(
             require_preload, native_js_function_comms_fd,
             native_js_function_names, /*rpc_method_names=*/{},
@@ -256,7 +231,6 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
             /*sandbox_request_response_shared_buffer_size_mb=*/0,
             /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
             /*v8_flags=*/{}) {}
->>>>>>> upstream-3e92e75-3.10.0
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }
 };

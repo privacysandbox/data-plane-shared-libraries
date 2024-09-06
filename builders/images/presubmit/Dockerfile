@@ -12,12 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-<<<<<<< HEAD
 ARG DOCKER_REGISTRY
-FROM ${DOCKER_REGISTRY}ubuntu:20.04
-=======
-FROM ubuntu:24.04
->>>>>>> upstream-3e92e75-3.10.0
+FROM ${DOCKER_REGISTRY}ubuntu:24.04
 
 COPY install_apps install_go.sh .pre-commit-config.yaml /scripts/
 COPY gitconfig /etc

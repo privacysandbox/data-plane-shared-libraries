@@ -20,10 +20,7 @@
 #include <memory>
 #include <string>
 
-<<<<<<< HEAD
-=======
 #include "absl/base/nullability.h"
->>>>>>> upstream-3e92e75-3.10.0
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"

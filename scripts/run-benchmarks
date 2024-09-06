@@ -95,17 +95,11 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/roma/benchmark:ba_server_benchmark
     //src/roma/benchmark:host_api_grpc_benchmark
     //src/roma/benchmark:kv_server_udf_benchmark_test
-<<<<<<< HEAD
-    //src/roma/benchmark:host_api_grpc_benchmark
-    # TODO: b/328056518 - Turn this back on once v8 upgrade is complete.
-    # //src/roma/config:type_converter_benchmark
-=======
     //src/roma/benchmark/serde:serialize_benchmark
     //src/roma/benchmark/serde:deserialize_benchmark
     //src/roma/benchmark/compiler:execute_benchmark
     //src/roma/benchmark/compiler:load_benchmark
     //src/roma/config:type_converter_benchmark
->>>>>>> upstream-3e92e75-3.10.0
     //src/roma/sandbox/dispatcher:dispatcher_benchmark
     //src/roma/sandbox/worker_api/sapi:worker_wrapper_benchmark
     # TODO: Enable logging benchmark after reducing volume of log output.
@@ -130,4 +124,4 @@ for tgt in "${targets[@]}"; do
     | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc"
 done
 
-"${TOOLS_DIR}"/normalize-dist || true
+"${TOOLS_DIR}"/normalize-dist

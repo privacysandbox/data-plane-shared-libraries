@@ -21,10 +21,7 @@ cc_library(
     srcs = ["gcp_parameter_client_provider.cc"],
     hdrs = ["gcp_parameter_client_provider.h"],
     deps = [
-<<<<<<< HEAD
-=======
         ":error_codes",
->>>>>>> upstream-3e92e75-3.10.0
         "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
         "//src/cpio/client_providers/interface:type_def",

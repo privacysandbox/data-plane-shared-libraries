@@ -118,12 +118,9 @@ SapiStatusCode Init(worker_api::WorkerInitParamsProto* init_params) {
       init_params->rpc_method_names().begin(),
       init_params->rpc_method_names().end());
 
-<<<<<<< HEAD
-=======
   std::vector<std::string> v8_flags(init_params->v8_flags().begin(),
                                     init_params->v8_flags().end());
 
->>>>>>> upstream-3e92e75-3.10.0
   JsEngineResourceConstraints resource_constraints;
   resource_constraints.initial_heap_size_in_mb =
       static_cast<size_t>(init_params->js_engine_initial_heap_size_mb());

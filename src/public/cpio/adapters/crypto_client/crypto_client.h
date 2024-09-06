@@ -20,11 +20,8 @@
 #include <memory>
 #include <utility>
 
-<<<<<<< HEAD
-=======
 #include "absl/base/nullability.h"
 #include "absl/status/status.h"
->>>>>>> upstream-3e92e75-3.10.0
 #include "src/cpio/client_providers/crypto_client_provider/crypto_client_provider.h"
 #include "src/cpio/client_providers/interface/crypto_client_provider_interface.h"
 #include "src/public/cpio/interface/crypto_client/crypto_client_interface.h"
@@ -35,18 +32,11 @@ namespace google::scp::cpio {
  */
 class CryptoClient : public CryptoClientInterface {
  public:
-<<<<<<< HEAD
-  explicit CryptoClient(CryptoClientOptions options)
-      : crypto_client_provider_(
-            std::make_unique<client_providers::CryptoClientProvider>(
-                std::move(options))) {}
-=======
   explicit CryptoClient(
       absl::Nonnull<
           std::unique_ptr<client_providers::CryptoClientProviderInterface>>
           crypto_client_provider)
       : crypto_client_provider_(std::move(crypto_client_provider)) {}
->>>>>>> upstream-3e92e75-3.10.0
 
   virtual ~CryptoClient() = default;
 

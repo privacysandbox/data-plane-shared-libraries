@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Portions Copyright (c) Microsoft Corporation
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,27 +18,14 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "azure_blob_storage_client_provider",
-    srcs = [":azure_blob_storage_client_provider_srcs"],
+    srcs = ["azure_blob_storage_client_provider.cc"],
+    hdrs = ["azure_blob_storage_client_provider.h"],
     deps = [
         "//src/core/common/time_provider",
         "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/blob_storage_client_provider/common:blob_storage_provider_common",
-        "//src/cpio/client_providers/global_cpio",
         "//src/cpio/client_providers/instance_client_provider/azure:azure_instance_client_provider",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
-    ],
-)
-
-exports_files([
-    "azure_blob_storage_client_provider.h",
-    "azure_blob_storage_client_provider.cc",
-])
-
-filegroup(
-    name = "azure_blob_storage_client_provider_srcs",
-    srcs = [
-        ":azure_blob_storage_client_provider.cc",
-        ":azure_blob_storage_client_provider.h",
     ],
 )

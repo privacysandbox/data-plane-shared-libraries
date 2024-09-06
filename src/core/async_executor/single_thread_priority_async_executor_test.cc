@@ -89,8 +89,6 @@ TEST_P(AffinityTest, CountWorkSingleThreadWithAffinity) {
         123456));
   }
   count.Wait();
-<<<<<<< HEAD
-=======
 }
 
 TEST(SingleThreadPriorityAsyncExecutorTests,
@@ -115,7 +113,6 @@ TEST(SingleThreadPriorityAsyncExecutorTests,
       },
       scheduled_for));
   count.Wait();
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 // The test should work for any value, even an invalid CPU #.

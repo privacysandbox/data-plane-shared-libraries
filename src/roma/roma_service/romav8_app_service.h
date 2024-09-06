@@ -32,33 +32,6 @@
 #include "src/roma/roma_service/romav8_proto_utils.h"
 
 namespace google::scp::roma::romav8::app_api {
-<<<<<<< HEAD
-
-using TEncoded = std::string;
-
-template <typename T>
-absl::StatusOr<TEncoded> Encode(const T& obj) {
-  static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value,
-                "T must be derived from google::protobuf::MessageLite");
-  if (std::string s; obj.SerializeToString(&s)) {
-    return s;
-  }
-  return absl::UnknownError("unable to serialize protobuf object");
-}
-
-template <typename T>
-absl::Status Decode(const TEncoded& encoded, T& decoded) {
-  static_assert(std::is_base_of<google::protobuf::MessageLite, T>::value,
-                "T must be derived from google::protobuf::MessageLite");
-  if (T obj; obj.ParseFromString(encoded)) {
-    decoded.CheckTypeAndMergeFrom(obj);
-    return absl::OkStatus();
-  }
-  return absl::UnknownError("unable to parse protobuf object");
-}
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaV8AppService {
  public:
@@ -66,25 +39,6 @@ class RomaV8AppService {
       google::scp::roma::sandbox::roma_service::RomaService<TMetadata>;
   using Config = google::scp::roma::Config<TMetadata>;
 
-<<<<<<< HEAD
-  RomaV8AppService(Config config, std::string_view code_id)
-      : code_id_(code_id) {
-    roma_service_ = std::make_unique<RomaService>(std::move(config));
-  }
-
-  RomaV8AppService(RomaV8AppService&& other) : code_id_(other.code_id_) {
-    roma_service_ = std::move(other.roma_service_);
-  }
-
-  RomaV8AppService& operator=(RomaV8AppService&& other) = delete;
-  RomaV8AppService(const RomaV8AppService& other) = delete;
-
-  virtual ~RomaV8AppService() {
-    if (roma_service_) {
-      (void)roma_service_->Stop();
-    }
-  }
-=======
   explicit RomaV8AppService(Config config, std::string_view code_id)
       : roma_service_(std::make_unique<RomaService>(std::move(config))),
         code_id_(code_id) {}
@@ -104,7 +58,6 @@ class RomaV8AppService {
   }
 
   RomaService* GetRomaService() { return roma_service_.get(); }
->>>>>>> upstream-3e92e75-3.10.0
 
   /*
    * Args:
@@ -138,13 +91,10 @@ class RomaV8AppService {
     LOG(INFO) << "code id: " << code_id_;
     LOG(INFO) << "code version: " << code_version_;
     LOG(INFO) << "handler fn: " << handler_fn_name;
-<<<<<<< HEAD
-=======
 
     PS_ASSIGN_OR_RETURN(std::string encoded_request,
                         google::scp::roma::romav8::Encode(request));
 
->>>>>>> upstream-3e92e75-3.10.0
     InvocationStrRequest<TMetadata> execution_obj = {
         .id = code_id_,
         .version_string = std::string(code_version_),

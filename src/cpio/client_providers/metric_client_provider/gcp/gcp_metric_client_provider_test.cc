@@ -98,10 +98,6 @@ class GcpMetricClientProviderTest : public ::testing::Test {
 
     metric_client_provider_ = CreateClient(false);
     ASSERT_TRUE(metric_client_provider_->Init().ok());
-<<<<<<< HEAD
-    ASSERT_TRUE(metric_client_provider_->Run().ok());
-=======
->>>>>>> upstream-3e92e75-3.10.0
   }
 
   std::unique_ptr<MockGcpMetricClientProviderOverrides> CreateClient(
@@ -200,10 +196,6 @@ TEST_F(GcpMetricClientProviderTest,
 TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
   metric_client_provider_ = CreateClient(true);
   ASSERT_TRUE(metric_client_provider_->Init().ok());
-<<<<<<< HEAD
-  ASSERT_TRUE(metric_client_provider_->Run().ok());
-=======
->>>>>>> upstream-3e92e75-3.10.0
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);
@@ -234,10 +226,6 @@ TEST_F(GcpMetricClientProviderTest, MetricsBatchPush) {
 TEST_F(GcpMetricClientProviderTest, FailedMetricsBatchPush) {
   metric_client_provider_ = CreateClient(true);
   ASSERT_TRUE(metric_client_provider_->Init().ok());
-<<<<<<< HEAD
-  ASSERT_TRUE(metric_client_provider_->Run().ok());
-=======
->>>>>>> upstream-3e92e75-3.10.0
 
   PutMetricsRequest record_metric_request;
   SetPutMetricsRequest(record_metric_request);

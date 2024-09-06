@@ -41,12 +41,8 @@ namespace google::scp::cpio::client_providers {
  */
 class LibCpioProvider : public CpioProviderInterface {
  public:
-<<<<<<< HEAD
-  explicit LibCpioProvider(CpioOptions options);
-=======
   static absl::StatusOr<std::unique_ptr<CpioProviderInterface>> Create(
       CpioOptions options);
->>>>>>> upstream-3e92e75-3.10.0
 
   ~LibCpioProvider() override;
 
@@ -57,13 +53,6 @@ class LibCpioProvider : public CpioProviderInterface {
 
   core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept override;
 
-<<<<<<< HEAD
-  core::AsyncExecutorInterface& GetCpuAsyncExecutor() noexcept override;
-
-  core::AsyncExecutorInterface& GetIoAsyncExecutor() noexcept override;
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
   core::HttpClientInterface& GetHttpClient() noexcept override;
 
   core::HttpClientInterface& GetHttp1Client() noexcept override;
@@ -91,24 +80,6 @@ class LibCpioProvider : public CpioProviderInterface {
   /// Global async executors.
   core::AsyncExecutor cpu_async_executor_, io_async_executor_;
   /// Global http clients.
-<<<<<<< HEAD
-  std::unique_ptr<core::Http1CurlClient> http1_client_;
-  std::unique_ptr<core::HttpClient> http2_client_;
-  /// Global instance client provider to fetch cloud metadata.
-  std::unique_ptr<InstanceClientProviderInterface> instance_client_provider_;
-  /// Global role credential provider.
-  std::unique_ptr<RoleCredentialsProviderInterface> role_credentials_provider_;
-  /// Global auth token provider.
-  std::unique_ptr<AuthTokenProviderInterface> auth_token_provider_;
-
- private:
-  virtual absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
-  CreateRoleCredentialsProvider(
-      RoleCredentialsProviderOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor) noexcept;
-=======
   core::Http1CurlClient http1_client_;
   core::HttpClient http2_client_;
   /// Global auth token provider.
@@ -125,7 +96,6 @@ class LibCpioProvider : public CpioProviderInterface {
   // TODO(b/337035410): Init role_credentials_provider_ in private Init method
   // and remove lock.
   absl::Mutex mutex_;
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio::client_providers
 

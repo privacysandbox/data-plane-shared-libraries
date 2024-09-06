@@ -223,14 +223,8 @@ TeeAwsKmsClientProvider::DecryptUsingEnclavesKmstoolCli(
 }
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-<<<<<<< HEAD
-    KmsClientOptions options,
-    absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
-=======
     absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
     core::AsyncExecutorInterface* /*io_async_executor*/) noexcept {
->>>>>>> upstream-3e92e75-3.10.0
   return std::make_unique<TeeAwsKmsClientProvider>(role_credentials_provider);
 }
 }  // namespace google::scp::cpio::client_providers

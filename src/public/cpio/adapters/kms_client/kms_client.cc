@@ -34,27 +34,6 @@ using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
 namespace google::scp::cpio {
 
-<<<<<<< HEAD
-ExecutionResult KmsClient::Init() noexcept {
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  RoleCredentialsProviderInterface* role_credentials_provider;
-  if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kKmsClient, kZeroUuid, execution_result,
-              "Failed to get RoleCredentialsProvider.");
-    return execution_result;
-  } else {
-    role_credentials_provider = *provider;
-  }
-  kms_client_provider_ = KmsClientProviderFactory::Create(
-      options_, role_credentials_provider, &cpio_->GetIoAsyncExecutor());
-  return SuccessExecutionResult();
-}
-
-ExecutionResult KmsClient::Run() noexcept { return SuccessExecutionResult(); }
-
-ExecutionResult KmsClient::Stop() noexcept { return SuccessExecutionResult(); }
-=======
 absl::Status KmsClient::Init() noexcept {
   PS_ASSIGN_OR_RETURN(
       RoleCredentialsProviderInterface * role_credentials_provider,
@@ -68,22 +47,14 @@ absl::Status KmsClient::Init() noexcept {
 absl::Status KmsClient::Run() noexcept { return absl::OkStatus(); }
 
 absl::Status KmsClient::Stop() noexcept { return absl::OkStatus(); }
->>>>>>> upstream-3e92e75-3.10.0
 
 absl::Status KmsClient::Decrypt(
     AsyncContext<DecryptRequest, DecryptResponse> decrypt_context) noexcept {
-  return kms_client_provider_->Decrypt(decrypt_context).ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return kms_client_provider_->Decrypt(decrypt_context);
 }
 
 std::unique_ptr<KmsClientInterface> KmsClientFactory::Create(
-<<<<<<< HEAD
-    KmsClientOptions options) {
-  return std::make_unique<KmsClient>(std::move(options));
-=======
     KmsClientOptions /*options*/) {
   return std::make_unique<KmsClient>();
->>>>>>> upstream-3e92e75-3.10.0
 }
 }  // namespace google::scp::cpio

@@ -32,16 +32,11 @@ namespace google::scp::cpio {
  */
 class MetricClient : public MetricClientInterface {
  public:
-<<<<<<< HEAD
-  explicit MetricClient(MetricClientOptions options)
-      : options_(std::move(options)) {}
-=======
   explicit MetricClient(
       absl::Nonnull<
           std::unique_ptr<client_providers::MetricClientProviderInterface>>
           metric_client_provider)
       : metric_client_provider_(std::move(metric_client_provider)) {}
->>>>>>> upstream-3e92e75-3.10.0
 
   virtual ~MetricClient() = default;
 
@@ -60,15 +55,6 @@ class MetricClient : public MetricClientInterface {
  protected:
   std::unique_ptr<client_providers::MetricClientProviderInterface>
       metric_client_provider_;
-<<<<<<< HEAD
-
- private:
-  virtual void CreateMetricClientProvider() noexcept;
-
-  MetricClientOptions options_;
-  client_providers::CpioProviderInterface* cpio_;
-=======
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio
 

@@ -43,27 +43,6 @@ using google::scp::cpio::client_providers::GlobalCpio;
 using google::scp::cpio::client_providers::InstanceClientProviderInterface;
 
 namespace google::scp::cpio {
-<<<<<<< HEAD
-void InstanceClient::CreateInstanceClientProvider() noexcept {
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  instance_client_provider_ = &cpio_->GetInstanceClientProvider();
-}
-
-ExecutionResult InstanceClient::Init() noexcept {
-  CreateInstanceClientProvider();
-  return SuccessExecutionResult();
-}
-
-ExecutionResult InstanceClient::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult InstanceClient::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-core::ExecutionResult InstanceClient::GetCurrentInstanceResourceName(
-=======
 absl::Status InstanceClient::Init() noexcept { return absl::OkStatus(); }
 
 absl::Status InstanceClient::Run() noexcept { return absl::OkStatus(); }
@@ -71,31 +50,23 @@ absl::Status InstanceClient::Run() noexcept { return absl::OkStatus(); }
 absl::Status InstanceClient::Stop() noexcept { return absl::OkStatus(); }
 
 absl::Status InstanceClient::GetCurrentInstanceResourceName(
->>>>>>> upstream-3e92e75-3.10.0
     GetCurrentInstanceResourceNameRequest request,
     Callback<GetCurrentInstanceResourceNameResponse> callback) noexcept {
   return Execute<GetCurrentInstanceResourceNameRequest,
                  GetCurrentInstanceResourceNameResponse>(
-             absl::bind_front(&InstanceClientProviderInterface::
-                                  GetCurrentInstanceResourceName,
-                              instance_client_provider_),
-             request, callback)
-                 .ok()
-             ? core::SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(
+          &InstanceClientProviderInterface::GetCurrentInstanceResourceName,
+          instance_client_provider_),
+      request, callback);
 }
 
 absl::Status InstanceClient::GetTagsByResourceName(
     GetTagsByResourceNameRequest request,
     Callback<GetTagsByResourceNameResponse> callback) noexcept {
   return Execute<GetTagsByResourceNameRequest, GetTagsByResourceNameResponse>(
-             absl::bind_front(
-                 &InstanceClientProviderInterface::GetTagsByResourceName,
-                 instance_client_provider_),
-             request, callback)
-                 .ok()
-             ? core::SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(&InstanceClientProviderInterface::GetTagsByResourceName,
+                       instance_client_provider_),
+      request, callback);
 }
 
 absl::Status InstanceClient::GetInstanceDetailsByResourceName(
@@ -103,13 +74,10 @@ absl::Status InstanceClient::GetInstanceDetailsByResourceName(
     Callback<GetInstanceDetailsByResourceNameResponse> callback) noexcept {
   return Execute<GetInstanceDetailsByResourceNameRequest,
                  GetInstanceDetailsByResourceNameResponse>(
-             absl::bind_front(&InstanceClientProviderInterface::
-                                  GetInstanceDetailsByResourceName,
-                              instance_client_provider_),
-             request, callback)
-                 .ok()
-             ? core::SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(
+          &InstanceClientProviderInterface::GetInstanceDetailsByResourceName,
+          instance_client_provider_),
+      request, callback);
 }
 
 absl::Status InstanceClient::ListInstanceDetailsByEnvironment(
@@ -117,23 +85,14 @@ absl::Status InstanceClient::ListInstanceDetailsByEnvironment(
     Callback<ListInstanceDetailsByEnvironmentResponse> callback) noexcept {
   return Execute<ListInstanceDetailsByEnvironmentRequest,
                  ListInstanceDetailsByEnvironmentResponse>(
-             absl::bind_front(&InstanceClientProviderInterface::
-                                  ListInstanceDetailsByEnvironment,
-                              instance_client_provider_),
-             request, callback)
-                 .ok()
-             ? core::SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(
+          &InstanceClientProviderInterface::ListInstanceDetailsByEnvironment,
+          instance_client_provider_),
+      request, callback);
 }
 
-<<<<<<< HEAD
-std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create(
-    InstanceClientOptions options) {
-  return std::make_unique<InstanceClient>(std::move(options));
-=======
 std::unique_ptr<InstanceClientInterface> InstanceClientFactory::Create() {
   return std::make_unique<InstanceClient>(
       &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider());
->>>>>>> upstream-3e92e75-3.10.0
 }
 }  // namespace google::scp::cpio

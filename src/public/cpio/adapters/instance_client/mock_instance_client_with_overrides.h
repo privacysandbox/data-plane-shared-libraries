@@ -23,16 +23,8 @@
 namespace google::scp::cpio::mock {
 class MockInstanceClientWithOverrides final : public InstanceClient {
  public:
-<<<<<<< HEAD
-  MockInstanceClientWithOverrides() : InstanceClient(InstanceClientOptions()) {}
-
-  void CreateInstanceClientProvider() noexcept override {
-    instance_client_provider_ = &mock_instance_client_provider_;
-  }
-=======
   MockInstanceClientWithOverrides()
       : InstanceClient(&mock_instance_client_provider_) {}
->>>>>>> upstream-3e92e75-3.10.0
 
   client_providers::mock::MockInstanceClientProvider&
   GetInstanceClientProvider() {

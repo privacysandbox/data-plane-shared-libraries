@@ -89,14 +89,6 @@ void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
                           std::string_view function_name) {
   const auto msgs = GetLogMsg(isolate_, args);
   const std::string msg = absl::StrJoin(msgs, " ");
-<<<<<<< HEAD
-  (void)handle_log_func_(function_name, msg,
-                         {
-                             .uuid = invocation_req_uuid_,
-                             .id = invocation_req_id_,
-                             .min_log_level = min_log_level_,
-                         });
-=======
   handle_log_func_(function_name, msg,
                    {
                        .uuid = invocation_req_uuid_,
@@ -104,7 +96,6 @@ void V8Console::HandleLog(const v8::debug::ConsoleCallArguments& args,
                        .min_log_level = min_log_level_,
                    })
       .IgnoreError();
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

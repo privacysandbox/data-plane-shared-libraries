@@ -90,13 +90,8 @@ ClientConfiguration AwsMetricClientProvider::GetClientConfig(
   return client_config;
 }
 
-<<<<<<< HEAD
-absl::Status AwsMetricClientProvider::Run() noexcept {
-  if (absl::Status error = MetricClientProvider::Run(); !error.ok()) {
-=======
 absl::Status AwsMetricClientProvider::Init() noexcept {
   if (absl::Status error = MetricClientProvider::Init(); !error.ok()) {
->>>>>>> upstream-3e92e75-3.10.0
     SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, error,
               "Failed to initialize MetricClientProvider");
     return error;
@@ -112,30 +107,12 @@ absl::Status AwsMetricClientProvider::Init() noexcept {
           region_code_or.result().status_code));
     }
 
-<<<<<<< HEAD
-  if (!region_code_or.Successful()) {
-    SCP_ERROR(kAwsMetricClientProvider, kZeroUuid, region_code_or.result(),
-              "Failed to get region code for current instance");
-    return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
-        region_code_or.result().status_code));
-  }
-
-  SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
-           region_code_or->c_str());
-
-  ClientConfiguration client_config;
-  CreateClientConfiguration(*region_code_or, client_config);
-
-  cloud_watch_client_.emplace(std::move(client_config));
-
-=======
     SCP_INFO(kAwsMetricClientProvider, kZeroUuid, "GetCurrentRegionCode: %s",
              region_code_or->c_str());
     cloud_watch_client_.emplace(GetClientConfig(*region_code_or));
   } else {
     cloud_watch_client_.emplace(GetClientConfig(region_));
   }
->>>>>>> upstream-3e92e75-3.10.0
   return absl::OkStatus();
 }
 
@@ -211,11 +188,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
               &AwsMetricClientProvider::OnPutMetricDataAsyncCallback, this,
               context_chunk));
       {
-<<<<<<< HEAD
-        absl::MutexLock l(&sync_mutex_);
-=======
         absl::MutexLock lock(&sync_mutex_);
->>>>>>> upstream-3e92e75-3.10.0
         active_push_count_++;
       }
 
@@ -240,11 +213,7 @@ ExecutionResult AwsMetricClientProvider::MetricsBatchPush(
         request_chunk,
         absl::bind_front(&AwsMetricClientProvider::OnPutMetricDataAsyncCallback,
                          this, context_chunk));
-<<<<<<< HEAD
-    absl::MutexLock l(&sync_mutex_);
-=======
     absl::MutexLock lock(&sync_mutex_);
->>>>>>> upstream-3e92e75-3.10.0
     active_push_count_++;
   }
 
@@ -258,11 +227,7 @@ void AwsMetricClientProvider::OnPutMetricDataAsyncCallback(
     const PutMetricDataOutcome& outcome,
     const std::shared_ptr<const AsyncCallerContext>&) noexcept {
   {
-<<<<<<< HEAD
-    absl::MutexLock l(&sync_mutex_);
-=======
     absl::MutexLock lock(&sync_mutex_);
->>>>>>> upstream-3e92e75-3.10.0
     active_push_count_--;
   }
   if (outcome.IsSuccess()) {

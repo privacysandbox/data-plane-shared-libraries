@@ -47,41 +47,13 @@ namespace google::scp::cpio {
 
 absl::Status BlobStorageClient::Init() noexcept {
   cpio_ = &GlobalCpio::GetGlobalCpio();
-<<<<<<< HEAD
-  BlobStorageClientOptions options = *options_;
-=======
   BlobStorageClientOptions options = options_;
->>>>>>> upstream-3e92e75-3.10.0
   if (options.project_id.empty()) {
     options.project_id = cpio_->GetProjectId();
   }
   if (options.region.empty()) {
     options.region = cpio_->GetRegion();
   }
-<<<<<<< HEAD
-  if (auto blob_storage_client_provider =
-          BlobStorageClientProviderFactory::Create(
-              std::move(options), &cpio_->GetInstanceClientProvider(),
-              &cpio_->GetCpuAsyncExecutor(), &cpio_->GetIoAsyncExecutor());
-      !blob_storage_client_provider.ok()) {
-    SCP_ERROR(kBlobStorageClient, kZeroUuid,
-              blob_storage_client_provider.status(),
-              "Failed to initialize BlobStorageClientProvider.");
-    return core::FailureExecutionResult(SC_UNKNOWN);
-  } else {
-    blob_storage_client_provider_ = *std::move(blob_storage_client_provider);
-  }
-  return SuccessExecutionResult();
-}
-
-ExecutionResult BlobStorageClient::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult BlobStorageClient::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-=======
   PS_ASSIGN_OR_RETURN(
       blob_storage_client_provider_,
       BlobStorageClientProviderFactory::Create(
@@ -93,56 +65,40 @@ ExecutionResult BlobStorageClient::Stop() noexcept {
 absl::Status BlobStorageClient::Run() noexcept { return absl::OkStatus(); }
 
 absl::Status BlobStorageClient::Stop() noexcept { return absl::OkStatus(); }
->>>>>>> upstream-3e92e75-3.10.0
 
 absl::Status BlobStorageClient::GetBlob(
     AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context) noexcept {
-  return blob_storage_client_provider_->GetBlob(get_blob_context).ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return blob_storage_client_provider_->GetBlob(get_blob_context);
 }
 
 absl::Status BlobStorageClient::ListBlobsMetadata(
     AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse>
         list_blobs_metadata_context) noexcept {
-  return blob_storage_client_provider_
-                 ->ListBlobsMetadata(list_blobs_metadata_context)
-                 .ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return blob_storage_client_provider_->ListBlobsMetadata(
+      list_blobs_metadata_context);
 }
 
 absl::Status BlobStorageClient::PutBlob(
     AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context) noexcept {
-  return blob_storage_client_provider_->PutBlob(put_blob_context).ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return blob_storage_client_provider_->PutBlob(put_blob_context);
 }
 
 absl::Status BlobStorageClient::DeleteBlob(
     AsyncContext<DeleteBlobRequest, DeleteBlobResponse>
         delete_blob_context) noexcept {
-  return blob_storage_client_provider_->DeleteBlob(delete_blob_context).ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return blob_storage_client_provider_->DeleteBlob(delete_blob_context);
 }
 
 absl::Status BlobStorageClient::GetBlobStream(
     ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse>
         get_blob_stream_context) noexcept {
-  return blob_storage_client_provider_->GetBlobStream(get_blob_stream_context)
-                 .ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return blob_storage_client_provider_->GetBlobStream(get_blob_stream_context);
 }
 
 absl::Status BlobStorageClient::PutBlobStream(
     ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse>
         put_blob_stream_context) noexcept {
-  return blob_storage_client_provider_->PutBlobStream(put_blob_stream_context)
-                 .ok()
-             ? SuccessExecutionResult()
-             : core::FailureExecutionResult(SC_UNKNOWN);
+  return blob_storage_client_provider_->PutBlobStream(put_blob_stream_context);
 }
 
 std::unique_ptr<BlobStorageClientInterface> BlobStorageClientFactory::Create(

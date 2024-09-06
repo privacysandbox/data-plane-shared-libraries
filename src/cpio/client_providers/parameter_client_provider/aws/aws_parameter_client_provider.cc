@@ -36,12 +36,6 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/parameter_service/v1/parameter_service.pb.h"
 #include "src/util/status_macro/status_macros.h"
-<<<<<<< HEAD
-
-#include "error_codes.h"
-#include "ssm_error_converter.h"
-=======
->>>>>>> upstream-3e92e75-3.10.0
 
 using Aws::Client::AsyncCallerContext;
 using Aws::Client::ClientConfiguration;
@@ -151,15 +145,9 @@ std::unique_ptr<SSMClient> SSMClientFactory::CreateSSMClient(
 absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
-<<<<<<< HEAD
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* /*cpu_async_executor*/,
-    core::AsyncExecutorInterface* io_async_executor) {
-=======
     absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
     absl::Nonnull<core::AsyncExecutorInterface*> /*cpu_async_executor*/,
     absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) {
->>>>>>> upstream-3e92e75-3.10.0
   auto provider = std::make_unique<AwsParameterClientProvider>(
       std::move(options), instance_client_provider, io_async_executor);
   PS_RETURN_IF_ERROR(provider->Init());

@@ -67,20 +67,11 @@ TEST(LibCpioTest, SysLogTest) {
 }
 
 TEST(LibCpioTest, StopSuccessfully) {
-<<<<<<< HEAD
-  TestCpioOptions options;
-  options.log_option = LogOption::kSysLog;
-  options.region = kRegion;
-  ASSERT_SUCCESS(TestLibCpio::InitCpio(options));
-  GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
-  ASSERT_SUCCESS(TestLibCpio::ShutdownCpio(options));
-=======
   TestCpioOptions options{.options = {.log_option = LogOption::kConsoleLog,
                                       .region = std::string{kRegion}}};
   TestLibCpio::InitCpio(options);
   GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor();
   TestLibCpio::ShutdownCpio(options);
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST(LibCpioTest, InitializedCpioSucceedsTest) {

@@ -54,15 +54,8 @@ void RunEnqueueMessageValidator(
   options.project_id = cpio.GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-<<<<<<< HEAD
-          std::move(options),
-          &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
-          &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
-          &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
-=======
           std::move(options), &cpio.GetInstanceClientProvider(),
           &cpio.GetCpuAsyncExecutor(), &cpio.GetIoAsyncExecutor());
->>>>>>> upstream-3e92e75-3.10.0
   if (!queue_client.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << queue_client.status()
               << std::endl;
@@ -100,26 +93,15 @@ void RunEnqueueMessageValidator(
   }
 }
 
-<<<<<<< HEAD
-void RunGetTopMessageValidator(std::string_view name) {
-=======
 void RunGetTopMessageValidator(client_providers::CpioProviderInterface& cpio,
                                std::string_view name) {
->>>>>>> upstream-3e92e75-3.10.0
   QueueClientOptions options;
   options.queue_name = kQueueName;
   options.project_id = cpio.GetProjectId();
   auto queue_client =
       google::scp::cpio::client_providers::QueueClientProviderFactory::Create(
-<<<<<<< HEAD
-          std::move(options),
-          &GlobalCpio::GetGlobalCpio().GetInstanceClientProvider(),
-          &GlobalCpio::GetGlobalCpio().GetCpuAsyncExecutor(),
-          &GlobalCpio::GetGlobalCpio().GetIoAsyncExecutor());
-=======
           std::move(options), &cpio.GetInstanceClientProvider(),
           &cpio.GetCpuAsyncExecutor(), &cpio.GetIoAsyncExecutor());
->>>>>>> upstream-3e92e75-3.10.0
   if (!queue_client.ok()) {
     std::cout << "[ FAILURE ] " << name << " " << queue_client.status()
               << std::endl;

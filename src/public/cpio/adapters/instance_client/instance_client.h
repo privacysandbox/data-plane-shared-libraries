@@ -18,10 +18,6 @@
 #define PUBLIC_CPIO_ADAPTERS_INSTANCE_CLIENT_INSTANCE_CLIENT_H_
 
 #include <memory>
-<<<<<<< HEAD
-#include <string>
-=======
->>>>>>> upstream-3e92e75-3.10.0
 #include <utility>
 
 #include "absl/base/nullability.h"
@@ -36,15 +32,10 @@ namespace google::scp::cpio {
  */
 class InstanceClient : public InstanceClientInterface {
  public:
-<<<<<<< HEAD
-  explicit InstanceClient(InstanceClientOptions options)
-      : options_(std::move(options)) {}
-=======
   explicit InstanceClient(
       absl::Nonnull<client_providers::InstanceClientProviderInterface*>
           instance_client_provider)
       : instance_client_provider_(instance_client_provider) {}
->>>>>>> upstream-3e92e75-3.10.0
 
   virtual ~InstanceClient() = default;
 
@@ -80,19 +71,8 @@ class InstanceClient : public InstanceClientInterface {
                    ListInstanceDetailsByEnvironmentResponse>
           callback) noexcept override;
 
-<<<<<<< HEAD
- protected:
-  virtual void CreateInstanceClientProvider() noexcept;
-
-  client_providers::InstanceClientProviderInterface* instance_client_provider_;
-
- private:
-  InstanceClientOptions options_;
-  client_providers::CpioProviderInterface* cpio_;
-=======
  private:
   client_providers::InstanceClientProviderInterface* instance_client_provider_;
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio
 

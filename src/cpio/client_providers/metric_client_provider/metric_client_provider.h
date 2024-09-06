@@ -49,19 +49,10 @@ class MetricClientProvider : public MetricClientProviderInterface {
         active_push_count_(0),
         number_metrics_in_vector_(0) {}
 
-<<<<<<< HEAD
-  absl::Status Init() noexcept override;
-
-  absl::Status Run() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
-
-  absl::Status Stop() noexcept override ABSL_LOCKS_EXCLUDED(sync_mutex_);
-
-=======
   ~MetricClientProvider() override;
 
   absl::Status Init() noexcept override;
 
->>>>>>> upstream-3e92e75-3.10.0
   absl::Status PutMetrics(
       core::AsyncContext<cmrt::sdk::metric_service::v1::PutMetricsRequest,
                          cmrt::sdk::metric_service::v1::PutMetricsResponse>

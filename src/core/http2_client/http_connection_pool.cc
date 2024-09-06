@@ -50,10 +50,7 @@ constexpr std::string_view kHttpConnection = "HttpConnection";
 }  // namespace
 
 namespace google::scp::core {
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream-3e92e75-3.10.0
 ExecutionResult HttpConnectionPool::Stop() noexcept {
   std::vector<std::string> keys;
   if (auto execution_result = connections_.Keys(keys);
@@ -72,14 +69,8 @@ ExecutionResult HttpConnectionPool::Stop() noexcept {
         return execution_result;
       }
     }
-<<<<<<< HEAD
-
-    execution_result = connections_.Erase(key);
-    if (!execution_result.Successful()) {
-=======
     if (auto execution_result = connections_.Erase(key);
         !execution_result.Successful()) {
->>>>>>> upstream-3e92e75-3.10.0
       return execution_result;
     }
   }

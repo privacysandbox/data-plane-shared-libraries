@@ -75,25 +75,6 @@ class HelloWorldApp
                          "fully-qualified-hello-world-name") {}
 };
 
-<<<<<<< HEAD
-TEST(RomaV8AppServiceTest, EncodeDecodeProtobuf) {
-  ::romav8::app_api::test::HelloWorldRequest req;
-  req.set_name("Foobar");
-
-  using google::scp::roma::romav8::app_api::Decode;
-  using google::scp::roma::romav8::app_api::Encode;
-
-  const auto encoded = Encode(req);
-  EXPECT_TRUE(encoded.ok());
-  std::string decoded;
-  EXPECT_TRUE(Decode<>(*encoded, decoded).ok());
-  const auto encoded2 = Encode(decoded);
-  EXPECT_TRUE(encoded2.ok());
-  EXPECT_THAT(*encoded, testing::StrEq(*encoded2));
-}
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
 TEST(RomaV8AppServiceTest, HelloWorld) {
   absl::Notification load_finished;
   absl::Status load_status;

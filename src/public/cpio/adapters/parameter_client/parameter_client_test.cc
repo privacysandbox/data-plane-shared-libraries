@@ -47,13 +47,8 @@ namespace google::scp::cpio::test {
 class ParameterClientTest : public ::testing::Test {
  protected:
   ParameterClientTest() {
-<<<<<<< HEAD
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
-=======
     EXPECT_TRUE(client_.Init().ok());
     EXPECT_TRUE(client_.Run().ok());
->>>>>>> upstream-3e92e75-3.10.0
   }
 
   ~ParameterClientTest() { EXPECT_TRUE(client_.Stop().ok()); }

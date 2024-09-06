@@ -58,27 +58,8 @@ TestLibCpioProvider::TestLibCpioProvider(TestCpioOptions test_options)
       &GetIoAsyncExecutor());
 #elif defined(GCP_TEST)
   instance_client_provider_ = std::make_unique<TestGcpInstanceClientProvider>(
-<<<<<<< HEAD
-      TestInstanceClientOptions(test_options_));
-#endif
-}
-
-absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
-TestLibCpioProvider::CreateRoleCredentialsProvider(
-    RoleCredentialsProviderOptions /*options*/,
-    InstanceClientProviderInterface* instance_client_provider,
-    AsyncExecutorInterface* cpu_async_executor,
-    AsyncExecutorInterface* io_async_executor) noexcept {
-#if defined(AWS_TEST)
-  return std::make_unique<TestAwsRoleCredentialsProvider>(
-      TestAwsRoleCredentialsProviderOptions(test_options_),
-      instance_client_provider, cpu_async_executor, io_async_executor);
-#elif defined(GCP_TEST)
-  return std::make_unique<GcpRoleCredentialsProvider>();
-=======
       std::move(test_instance_client_options));
   role_credentials_provider_ = std::make_unique<GcpRoleCredentialsProvider>();
->>>>>>> upstream-3e92e75-3.10.0
 #endif
 }
 }  // namespace google::scp::cpio::client_providers

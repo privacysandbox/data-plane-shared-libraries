@@ -60,30 +60,6 @@ constexpr std::string_view kHeaderDateExample = "Wed, 16 Nov 2022 00:02:48 GMT";
 constexpr std::string_view kCacheControlExample = "max-age=254838";
 constexpr uint64_t kExpectedExpiredTimeInSeconds = 1668811806;
 
-<<<<<<< HEAD
-TEST(PublicKeyClientProviderTestI, InitFailedWithInvalidConfig) {
-  MockHttpClient http_client;
-
-  PublicKeyClientOptions public_key_client_options;
-
-  PublicKeyClientProvider public_key_client(
-      std::move(public_key_client_options), &http_client);
-
-  EXPECT_FALSE(public_key_client.Init().ok());
-}
-
-TEST(PublicKeyClientProviderTestI, InitFailedInvalidHttpClient) {
-  PublicKeyClientOptions public_key_client_options;
-  public_key_client_options.endpoints.emplace_back(kPrivateKeyBaseUri1);
-
-  PublicKeyClientProvider public_key_client(
-      std::move(public_key_client_options), nullptr);
-
-  EXPECT_FALSE(public_key_client.Init().ok());
-}
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
 class PublicKeyClientProviderTestII : public ::testing::Test {
  protected:
   void SetUp() override {
@@ -93,11 +69,6 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
 
     public_key_client_.emplace(std::move(public_key_client_options),
                                &http_client_);
-<<<<<<< HEAD
-
-    ASSERT_TRUE(public_key_client_->Init().ok());
-=======
->>>>>>> upstream-3e92e75-3.10.0
   }
 
   HttpResponse GetValidHttpResponse() {

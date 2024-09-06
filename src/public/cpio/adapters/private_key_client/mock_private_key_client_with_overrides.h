@@ -26,14 +26,10 @@ namespace google::scp::cpio::mock {
 class MockPrivateKeyClientWithOverrides : public PrivateKeyClient {
  public:
   MockPrivateKeyClientWithOverrides()
-<<<<<<< HEAD
-      : PrivateKeyClient(PrivateKeyClientOptions()) {}
-=======
       : PrivateKeyClient(PrivateKeyClientOptions{}) {
     private_key_client_provider_ = std::make_unique<
         client_providers::mock::MockPrivateKeyClientProvider>();
   }
->>>>>>> upstream-3e92e75-3.10.0
 
   absl::Status create_private_key_client_provider_result = absl::OkStatus();
 

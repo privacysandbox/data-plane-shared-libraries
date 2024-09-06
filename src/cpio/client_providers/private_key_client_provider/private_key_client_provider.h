@@ -46,15 +46,9 @@ class PrivateKeyClientProvider : public PrivateKeyClientProviderInterface {
 
   explicit PrivateKeyClientProvider(
       PrivateKeyClientOptions private_key_client_options,
-<<<<<<< HEAD
-      core::HttpClientInterface* http_client,
-      std::unique_ptr<PrivateKeyFetcherProviderInterface> private_key_fetcher,
-      std::unique_ptr<KmsClientProviderInterface> kms_client)
-=======
       absl::Nonnull<std::unique_ptr<PrivateKeyFetcherProviderInterface>>
           private_key_fetcher,
       absl::Nonnull<std::unique_ptr<KmsClientProviderInterface>> kms_client)
->>>>>>> upstream-3e92e75-3.10.0
       : private_key_fetcher_(std::move(private_key_fetcher)),
         kms_client_provider_(std::move(kms_client)) {
     endpoint_list_.reserve(1 +

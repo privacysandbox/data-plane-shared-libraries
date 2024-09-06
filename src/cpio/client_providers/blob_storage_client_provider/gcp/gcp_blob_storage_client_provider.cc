@@ -924,15 +924,9 @@ GcpCloudStorageFactory::CreateClient(
 absl::StatusOr<std::unique_ptr<BlobStorageClientProviderInterface>>
 BlobStorageClientProviderFactory::Create(
     BlobStorageClientOptions options,
-<<<<<<< HEAD
-    InstanceClientProviderInterface* instance_client,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) noexcept {
-=======
     absl::Nonnull<InstanceClientProviderInterface*> instance_client,
     absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
     absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) noexcept {
->>>>>>> upstream-3e92e75-3.10.0
   auto provider = std::make_unique<GcpBlobStorageClientProvider>(
       std::move(options), instance_client, cpu_async_executor,
       io_async_executor);

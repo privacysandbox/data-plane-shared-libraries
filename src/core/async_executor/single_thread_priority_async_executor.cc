@@ -33,21 +33,14 @@
 using google::scp::core::common::TimeProvider;
 
 namespace google::scp::core {
-<<<<<<< HEAD
-=======
 
->>>>>>> upstream-3e92e75-3.10.0
 SingleThreadPriorityAsyncExecutor::SingleThreadPriorityAsyncExecutor(
     size_t queue_cap, std::optional<size_t> affinity_cpu_number)
     : is_running_(true),
       worker_thread_started_(false),
       worker_thread_stopped_(false),
       update_wait_time_(false),
-<<<<<<< HEAD
-      next_scheduled_task_timestamp_(UINT64_MAX),
-=======
       next_scheduled_task_timestamp_(std::numeric_limits<uint64_t>::max()),
->>>>>>> upstream-3e92e75-3.10.0
       queue_cap_(queue_cap),
       affinity_cpu_number_(affinity_cpu_number) {
   working_thread_.emplace(
@@ -121,11 +114,7 @@ void SingleThreadPriorityAsyncExecutor::StartWorker() noexcept {
 }
 
 SingleThreadPriorityAsyncExecutor::~SingleThreadPriorityAsyncExecutor() {
-<<<<<<< HEAD
-  absl::MutexLock l(&mutex_);
-=======
   absl::MutexLock lock(&mutex_);
->>>>>>> upstream-3e92e75-3.10.0
   is_running_ = false;
 
   // To ensure stop can happen cleanly, it is required to wait for the thread to
@@ -148,11 +137,7 @@ ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
 ExecutionResult SingleThreadPriorityAsyncExecutor::ScheduleFor(
     AsyncOperation work, Timestamp timestamp,
     std::function<bool()>& cancellation_callback) noexcept {
-<<<<<<< HEAD
-  absl::MutexLock l(&mutex_);
-=======
   absl::MutexLock lock(&mutex_);
->>>>>>> upstream-3e92e75-3.10.0
   if (queue_.size() >= queue_cap_) {
     return RetryExecutionResult(errors::SC_ASYNC_EXECUTOR_EXCEEDING_QUEUE_CAP);
   }

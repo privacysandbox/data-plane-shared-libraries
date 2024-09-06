@@ -30,10 +30,6 @@ build:cpp_nowarn --per_file_copt=src/.*_test\.cc@-Wno-unused-variable
 build:cpp_nowarn --per_file_copt=src/(metric|telemetry)/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/gcp/.*@-Wno-deprecated-declarations
-<<<<<<< HEAD
-build:cpp_nowarn --per_file_copt=src/roma/(roma_service|sandbox)/.*.cc@-Wno-deprecated-declarations
-build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.cc@-Wno-macro-redefined
-=======
 build:cpp_nowarn --per_file_copt=src/roma/(roma_service|sandbox|benchmark|native_function_grpc_server)/.*.cc@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.cc@-Wno-macro-redefined
 
@@ -50,7 +46,6 @@ build:cpp_nowarn --per_file_copt=src/experimental/kevinbnaughton/roma_grpc/.*@-W
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker/v8_engine_worker_test\.cc@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/js_engine/v8_engine/.*@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/benchmark/.*@-Wno-macro-redefined
->>>>>>> upstream-3e92e75-3.10.0
 
 build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
 build:clang-tidy --output_groups=report

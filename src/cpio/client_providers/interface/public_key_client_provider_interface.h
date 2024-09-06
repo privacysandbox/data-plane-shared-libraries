@@ -56,15 +56,9 @@ class PublicKeyClientProviderFactory {
    * @return std::unique_ptr<PublicKeyClientProviderInterface> created
    * PublicKeyClientProvider.
    */
-<<<<<<< HEAD
-  static absl::StatusOr<std::unique_ptr<PublicKeyClientProviderInterface>>
-  Create(PublicKeyClientOptions options,
-         core::HttpClientInterface* http_client);
-=======
   static absl::Nonnull<std::unique_ptr<PublicKeyClientProviderInterface>>
   Create(PublicKeyClientOptions options,
          absl::Nonnull<core::HttpClientInterface*> http_client);
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio::client_providers
 

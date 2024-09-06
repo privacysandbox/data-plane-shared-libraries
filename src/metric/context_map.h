@@ -109,11 +109,7 @@ class ContextMap {
   }
 
   absl::Status CheckDropNoisyValuesProbability() {
-<<<<<<< HEAD
-    for (auto* definition : L) {
-=======
     for (auto* definition : definition_list) {
->>>>>>> upstream-3e92e75-3.10.0
       absl::StatusOr<telemetry::MetricConfig> config =
           metric_config().GetMetricConfig(definition->name_);
       if (config.ok() && config->has_drop_noisy_values_probability()) {

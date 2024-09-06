@@ -35,44 +35,6 @@ using google::scp::cpio::client_providers::PrivateKeyClientProviderInterface;
 using google::scp::cpio::client_providers::RoleCredentialsProviderInterface;
 
 namespace google::scp::cpio {
-<<<<<<< HEAD
-ExecutionResult PrivateKeyClient::CreatePrivateKeyClientProvider() noexcept {
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  RoleCredentialsProviderInterface* role_credentials_provider;
-  if (auto provider = cpio_->GetRoleCredentialsProvider(); !provider.ok()) {
-    ExecutionResult execution_result;
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to get role credentials provider.");
-    return execution_result;
-  } else {
-    role_credentials_provider = *provider;
-  }
-  private_key_client_provider_ = PrivateKeyClientProviderFactory::Create(
-      options_, &cpio_->GetHttpClient(), role_credentials_provider,
-      &cpio_->GetAuthTokenProvider(), &cpio_->GetIoAsyncExecutor());
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PrivateKeyClient::Init() noexcept {
-  auto execution_result = CreatePrivateKeyClientProvider();
-  if (!execution_result.Successful()) {
-    SCP_ERROR(kPrivateKeyClient, kZeroUuid, execution_result,
-              "Failed to create PrivateKeyClientProvider.");
-    return ConvertToPublicExecutionResult(execution_result);
-  }
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PrivateKeyClient::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PrivateKeyClient::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-core::ExecutionResult PrivateKeyClient::ListPrivateKeys(
-=======
 absl::Status PrivateKeyClient::Init() noexcept {
   PS_ASSIGN_OR_RETURN(
       RoleCredentialsProviderInterface * role_credentials_provider,
@@ -90,17 +52,12 @@ absl::Status PrivateKeyClient::Run() noexcept { return absl::OkStatus(); }
 absl::Status PrivateKeyClient::Stop() noexcept { return absl::OkStatus(); }
 
 absl::Status PrivateKeyClient::ListPrivateKeys(
->>>>>>> upstream-3e92e75-3.10.0
     ListPrivateKeysRequest request,
     Callback<ListPrivateKeysResponse> callback) noexcept {
   return Execute<ListPrivateKeysRequest, ListPrivateKeysResponse>(
-             absl::bind_front(
-                 &PrivateKeyClientProviderInterface::ListPrivateKeys,
-                 private_key_client_provider_.get()),
-             request, callback)
-                 .ok()
-             ? SuccessExecutionResult()
-             : FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(&PrivateKeyClientProviderInterface::ListPrivateKeys,
+                       private_key_client_provider_.get()),
+      request, callback);
 }
 
 std::unique_ptr<PrivateKeyClientInterface> PrivateKeyClientFactory::Create(

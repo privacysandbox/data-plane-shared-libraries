@@ -42,16 +42,10 @@ class TestAwsRoleCredentialsProvider : public AwsRoleCredentialsProvider {
       InstanceClientProviderInterface* instance_client_provider,
       core::AsyncExecutorInterface* cpu_async_executor,
       core::AsyncExecutorInterface* io_async_executor)
-<<<<<<< HEAD
-      : AwsRoleCredentialsProvider(options, instance_client_provider,
-                                   cpu_async_executor, io_async_executor),
-        test_options_(std::move(options)) {}
-=======
       : AwsRoleCredentialsProvider(std::move(options.options),
                                    instance_client_provider, cpu_async_executor,
                                    io_async_executor),
         sts_endpoint_override_(std::move(options.sts_endpoint_override)) {}
->>>>>>> upstream-3e92e75-3.10.0
 
  protected:
   Aws::Client::ClientConfiguration CreateClientConfiguration(

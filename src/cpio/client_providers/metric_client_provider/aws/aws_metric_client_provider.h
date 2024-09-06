@@ -63,11 +63,7 @@ class AwsMetricClientProvider : public MetricClientProvider {
         io_async_executor_(io_async_executor),
         region_(std::move(metric_client_options).region) {}
 
-<<<<<<< HEAD
-  absl::Status Run() noexcept override;
-=======
   absl::Status Init() noexcept override;
->>>>>>> upstream-3e92e75-3.10.0
 
  protected:
   core::ExecutionResult MetricsBatchPush(
@@ -106,12 +102,9 @@ class AwsMetricClientProvider : public MetricClientProvider {
       const Aws::CloudWatch::Model::PutMetricDataOutcome& outcome,
       const std::shared_ptr<const Aws::Client::AsyncCallerContext>&) noexcept
       ABSL_LOCKS_EXCLUDED(sync_mutex_);
-<<<<<<< HEAD
-=======
 
   /// Instance client provider to fetch cloud metadata.
   InstanceClientProviderInterface* instance_client_provider_;
->>>>>>> upstream-3e92e75-3.10.0
 
   /// An instance of the IO async executor.
   core::AsyncExecutorInterface* io_async_executor_;

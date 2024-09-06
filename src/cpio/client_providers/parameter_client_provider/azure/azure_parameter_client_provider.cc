@@ -21,6 +21,7 @@
 #include <string>
 #include <utility>
 
+#include "absl/base/nullability.h"
 #include "absl/log/check.h"
 #include "absl/strings/str_format.h"
 #include "google/cloud/secretmanager/secret_manager_client.h"
@@ -129,9 +130,9 @@ absl::Status AzureParameterClientProvider::GetParameter(
 absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
 ParameterClientProviderFactory::Create(
     ParameterClientOptions options,
-    InstanceClientProviderInterface* instance_client_provider,
-    core::AsyncExecutorInterface* cpu_async_executor,
-    core::AsyncExecutorInterface* io_async_executor) {
+    absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
+    absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
+    absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor) {
   return std::make_unique<AzureParameterClientProvider>();
 }
 }  // namespace google::scp::cpio::client_providers

@@ -24,11 +24,6 @@
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/async_executor_interface.h"
 #include "src/core/interface/http_client_interface.h"
-<<<<<<< HEAD
-#include "src/core/interface/message_router_interface.h"
-#include "src/core/interface/service_interface.h"
-=======
->>>>>>> upstream-3e92e75-3.10.0
 #include "src/cpio/client_providers/interface/auth_token_provider_interface.h"
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"

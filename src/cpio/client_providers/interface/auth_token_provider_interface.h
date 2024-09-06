@@ -87,11 +87,7 @@ class AuthTokenProviderFactory {
    * @return std::shared_ptr<AuthTokenProviderInterface> created
    * AuthTokenProvider.
    */
-<<<<<<< HEAD
-  static std::unique_ptr<AuthTokenProviderInterface> Create(
-=======
   static absl::Nonnull<std::unique_ptr<AuthTokenProviderInterface>> Create(
->>>>>>> upstream-3e92e75-3.10.0
       absl::Nonnull<core::HttpClientInterface*> http1_client);
 };
 }  // namespace google::scp::cpio::client_providers

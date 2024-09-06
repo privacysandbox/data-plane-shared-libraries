@@ -49,13 +49,8 @@ namespace google::scp::cpio::test {
 class InstanceClientTest : public ::testing::Test {
  protected:
   InstanceClientTest() {
-<<<<<<< HEAD
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
-=======
     EXPECT_TRUE(client_.Init().ok());
     EXPECT_TRUE(client_.Run().ok());
->>>>>>> upstream-3e92e75-3.10.0
   }
 
   ~InstanceClientTest() { EXPECT_TRUE(client_.Stop().ok()); }

@@ -31,17 +31,11 @@
 #include <grpcpp/grpcpp.h>
 
 #include "src/util/status_macro/status_util.h"
-<<<<<<< HEAD
-#include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
-#include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
-#include "src/roma/native_function_grpc_server/interface.h"
-=======
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.pb.h"
 #include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/roma_service/romav8_proto_utils.h"
->>>>>>> upstream-3e92e75-3.10.0
 {{range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 {{range $path := $svcopts.CppHostProcessCallbackIncludes}}
@@ -50,12 +44,9 @@
 {{- end -}}{{/*svc range*/}}
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
 
-<<<<<<< HEAD
-=======
 using google::scp::roma::romav8::Decode;
 using google::scp::roma::romav8::Encode;
 
->>>>>>> upstream-3e92e75-3.10.0
 {{range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 namespace {{$svcopts.CppNamespace}} {
@@ -64,8 +55,6 @@ namespace {{$svcopts.CppNamespace}} {
 {{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
 {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
 {{- if gt (len $svcopts.CppHostProcessCallbackIncludes) 0}}
-<<<<<<< HEAD
-=======
 
 template <typename TMetadata>
 void {{$rpc.Name}}FunctionBinding(google::scp::roma::FunctionBindingPayload<TMetadata>& wrapper) {
@@ -76,7 +65,6 @@ void {{$rpc.Name}}FunctionBinding(google::scp::roma::FunctionBindingPayload<TMet
   wrapper.io_proto.set_output_string(*Encode(response_payload));
 }
 
->>>>>>> upstream-3e92e75-3.10.0
 template <typename TMetadata>
 class {{$rpc.Name}}Handler
     : public google::scp::roma::grpc_server::RequestHandlerBase<
@@ -90,20 +78,11 @@ class {{$rpc.Name}}Handler
     service->RequestInvokeCallback(ctx, &request_, responder, cq, cq, tag);
   }
 
-<<<<<<< HEAD
-  std::pair<TResponse*, grpc::Status> ProcessRequest(
-      const TMetadata& metadata) {
-    {{$reqType}} request;
-    request.ParseFromString(request_.request_payload());
-    auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(metadata, request);
-    *response_.mutable_response_payload() = std::move(response_payload.SerializeAsString());
-=======
   std::pair<TResponse*, grpc::Status> ProcessRequest(const TMetadata& metadata) {
     {{$reqType}} request;
     CHECK(Decode(request_.request_payload(), request).ok());
     auto [response_payload, status] = {{$rpcopts.CppHostProcessCallback}}(metadata, request);
     *response_.mutable_response_payload() = std::move(*Encode(response_payload));
->>>>>>> upstream-3e92e75-3.10.0
     return std::make_pair(&response_, privacy_sandbox::server_common::FromAbslStatus(status));
   }
 

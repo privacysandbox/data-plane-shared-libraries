@@ -25,12 +25,6 @@
 namespace google::scp::cpio {
 /// Configurations for BlobStorageClient.
 struct BlobStorageClientOptions {
-<<<<<<< HEAD
-  virtual ~BlobStorageClientOptions() = default;
-  BlobStorageClientOptions() = default;
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
   // GCP - How long a blob storage transfer (download or upload) should stay
   // alive for after some duration of inaction.
   std::chrono::seconds transfer_stall_timeout = std::chrono::seconds(60 * 2);

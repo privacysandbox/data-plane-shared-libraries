@@ -30,9 +30,6 @@
 #include "src/cpio/client_providers/private_key_fetcher_provider/private_key_fetcher_provider.h"
 
 namespace google::scp::cpio::client_providers {
-#define MAX_OPENSSL_ERROR_STRING_LEN 256
-
-constexpr char kAttestation[] = "attestation";
 
 class AzurePrivateKeyFetchingClientUtils {
  public:

@@ -45,15 +45,9 @@ using testing::Return;
 namespace google::scp::cpio::test {
 class MetricClientTest : public ::testing::Test {
  protected:
-<<<<<<< HEAD
-  MetricClientTest() : client_(MetricClientOptions()) {
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
-=======
   MetricClientTest() {
     EXPECT_TRUE(client_.Init().ok());
     EXPECT_TRUE(client_.Run().ok());
->>>>>>> upstream-3e92e75-3.10.0
   }
 
   ~MetricClientTest() { EXPECT_TRUE(client_.Stop().ok()); }
@@ -65,10 +59,6 @@ TEST_F(MetricClientTest, PutMetricsSuccess) {
   AsyncContext<PutMetricsRequest, PutMetricsResponse> context;
   EXPECT_CALL(client_.GetMetricClientProvider(), PutMetrics)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.PutMetrics(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.PutMetrics(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 }  // namespace google::scp::cpio::test

@@ -33,34 +33,6 @@ using google::scp::cpio::client_providers::PublicKeyClientProviderFactory;
 using google::scp::cpio::client_providers::PublicKeyClientProviderInterface;
 
 namespace google::scp::cpio {
-<<<<<<< HEAD
-absl::Status PublicKeyClient::CreatePublicKeyClientProvider() noexcept {
-  cpio_ = &GlobalCpio::GetGlobalCpio();
-  PS_ASSIGN_OR_RETURN(public_key_client_provider_,
-                      PublicKeyClientProviderFactory::Create(
-                          options_, &cpio_->GetHttpClient()));
-  return absl::OkStatus();
-}
-
-ExecutionResult PublicKeyClient::Init() noexcept {
-  if (absl::Status error = CreatePublicKeyClientProvider(); !error.ok()) {
-    SCP_ERROR(kPublicKeyClient, kZeroUuid, error,
-              "Failed to create PublicKeyClientProvider.");
-    return FailureExecutionResult(SC_UNKNOWN);
-  }
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PublicKeyClient::Run() noexcept {
-  return SuccessExecutionResult();
-}
-
-ExecutionResult PublicKeyClient::Stop() noexcept {
-  return SuccessExecutionResult();
-}
-
-core::ExecutionResult PublicKeyClient::ListPublicKeys(
-=======
 absl::Status PublicKeyClient::Init() noexcept { return absl::OkStatus(); }
 
 absl::Status PublicKeyClient::Run() noexcept { return absl::OkStatus(); }
@@ -68,26 +40,18 @@ absl::Status PublicKeyClient::Run() noexcept { return absl::OkStatus(); }
 absl::Status PublicKeyClient::Stop() noexcept { return absl::OkStatus(); }
 
 absl::Status PublicKeyClient::ListPublicKeys(
->>>>>>> upstream-3e92e75-3.10.0
     ListPublicKeysRequest request,
     Callback<ListPublicKeysResponse> callback) noexcept {
   return Execute<ListPublicKeysRequest, ListPublicKeysResponse>(
-             absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
-                              public_key_client_provider_.get()),
-             request, callback)
-                 .ok()
-             ? SuccessExecutionResult()
-             : FailureExecutionResult(SC_UNKNOWN);
+      absl::bind_front(&PublicKeyClientProviderInterface::ListPublicKeys,
+                       public_key_client_provider_.get()),
+      request, callback);
 }
 
 std::unique_ptr<PublicKeyClientInterface> PublicKeyClientFactory::Create(
     PublicKeyClientOptions options) {
-<<<<<<< HEAD
-  return std::make_unique<PublicKeyClient>(std::move(options));
-=======
   return std::make_unique<PublicKeyClient>(
       PublicKeyClientProviderFactory::Create(
           std::move(options), &GlobalCpio::GetGlobalCpio().GetHttpClient()));
->>>>>>> upstream-3e92e75-3.10.0
 }
 }  // namespace google::scp::cpio

@@ -85,11 +85,8 @@ struct V8CompilerOptions {
 template <typename T = DefaultMetadata>
 class Config {
  public:
-<<<<<<< HEAD
-=======
   using TMetadata = T;
 
->>>>>>> upstream-3e92e75-3.10.0
   Config()
       : factories_(std::make_unique<
                    std::vector<grpc_server::FactoryFunction<TMetadata>>>()),
@@ -326,10 +323,7 @@ class Config {
   std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
       factories_;
   std::vector<std::string> rpc_method_names_;
-<<<<<<< HEAD
-=======
   std::vector<std::string> v8_flags_;
->>>>>>> upstream-3e92e75-3.10.0
 
   using CallbackService =
       privacy_sandbox::server_common::JSCallbackService::AsyncService;

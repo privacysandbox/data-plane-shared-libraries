@@ -16,6 +16,8 @@
 
 #include <iostream>
 
+#include "absl/log/check.h"
+
 #include "attestation.h"
 
 using google::scp::azure::attestation::fetchFakeSnpAttestation;

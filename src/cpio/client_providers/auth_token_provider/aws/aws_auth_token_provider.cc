@@ -117,12 +117,8 @@ ExecutionResult AwsAuthTokenProvider::GetSessionTokenForTargetAudience(
   return FailureExecutionResult(SC_UNKNOWN);
 }
 
-<<<<<<< HEAD
-std::unique_ptr<AuthTokenProviderInterface> AuthTokenProviderFactory::Create(
-=======
 absl::Nonnull<std::unique_ptr<AuthTokenProviderInterface>>
 AuthTokenProviderFactory::Create(
->>>>>>> upstream-3e92e75-3.10.0
     absl::Nonnull<core::HttpClientInterface*> http1_client) {
   return std::make_unique<AwsAuthTokenProvider>(http1_client);
 }

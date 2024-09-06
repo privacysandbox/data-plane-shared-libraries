@@ -23,10 +23,7 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/strings/str_split.h"
-<<<<<<< HEAD
-=======
 #include "include/v8.h"
->>>>>>> upstream-3e92e75-3.10.0
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
@@ -358,10 +355,7 @@ void V8IsolateFunctionBinding::AddExternalReferences(
       reinterpret_cast<intptr_t>(&GlobalV8FunctionCallback));
   external_references.push_back(
       reinterpret_cast<intptr_t>(&GrpcServerCallback));
-<<<<<<< HEAD
-=======
   external_references.push_back(reinterpret_cast<intptr_t>(&PerformanceNow));
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 absl::Status V8IsolateFunctionBinding::InvokeRpc(RpcWrapper& rpc_proto) {

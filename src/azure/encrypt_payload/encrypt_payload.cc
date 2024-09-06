@@ -226,10 +226,6 @@ std::string DecryptCiphertext(
     const EncryptPayloadResult& encrypt_payload_result) {
   auto key_id = encrypt_payload_result.key_id;
 
-  const auto config =
-      GetOhttpKeyConfig(key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
-
   const auto label_for_test = server_common::kBiddingAuctionOhttpResponseLabel;
   std::optional<server_common::PrivateKey> private_key =
       key_fetcher_manager->GetPrivateKey(std::to_string(key_id));

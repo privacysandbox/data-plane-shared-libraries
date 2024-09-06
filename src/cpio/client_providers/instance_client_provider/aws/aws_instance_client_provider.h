@@ -23,10 +23,7 @@
 
 #include <aws/ec2/EC2Client.h>
 
-<<<<<<< HEAD
-=======
 #include "absl/base/nullability.h"
->>>>>>> upstream-3e92e75-3.10.0
 #include "src/cpio/client_providers/interface/instance_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 

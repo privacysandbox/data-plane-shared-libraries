@@ -14,13 +14,16 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:scp_internal_pkg"])
-
 cc_library(
     name = "azure_private_key_fetcher_provider",
     srcs = [
-        ":azure_private_key_fetcher_provider_srcs",
+        ":azure_private_key_fetcher_provider.cc",
+        ":azure_private_key_fetcher_provider.h",
+        ":azure_private_key_fetcher_provider_utils.cc",
+        ":azure_private_key_fetcher_provider_utils.h",
+        ":error_codes.h",
     ],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
         "//src/azure:attestation",
         "//src/core/http2_client",
@@ -29,23 +32,7 @@ cc_library(
         "//src/cpio/client_providers/interface:type_def",
         "//src/cpio/client_providers/private_key_fetcher_provider",
         "//src/public/cpio/interface/private_key_client:type_def",
-    ],
-)
-
-exports_files([
-    "error_codes.h",
-    "azure_private_key_fetcher_provider.cc",
-    "azure_private_key_fetcher_provider.h",
-])
-
-filegroup(
-    name = "azure_private_key_fetcher_provider_srcs",
-    srcs = [
-        ":azure_private_key_fetcher_provider.cc",
-        ":azure_private_key_fetcher_provider.h",
-        ":azure_private_key_fetcher_provider_utils.cc",
-        ":azure_private_key_fetcher_provider_utils.h",
-        ":error_codes.h",
+        "@com_google_absl//absl/log:check",
     ],
 )
 

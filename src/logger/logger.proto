@@ -56,14 +56,3 @@ message LogContext {
   // services and `seller_debug_id` when used in context of seller services.
   string adtech_debug_id = 2;
 }
-
-// Context useful for logging and debugging requests.
-message LogContext {
-  // UUID for the request (as originating from client).
-  string generation_id = 1;
-
-  // Adtech debug id that can be used for correlating the request with the
-  // adtech. This will contain `buyer_debug_id` when used in context of buyer
-  // services and `seller_debug_id` when used in context of seller services.
-  string adtech_debug_id = 2;
-}

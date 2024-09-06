@@ -22,10 +22,7 @@
 #include <utility>
 #include <vector>
 
-<<<<<<< HEAD
-=======
 #include "absl/base/nullability.h"
->>>>>>> upstream-3e92e75-3.10.0
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"
@@ -139,11 +136,7 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
   auto execution_result = fetch_private_key_context.result;
   if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
     {
-<<<<<<< HEAD
-      absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
-=======
       absl::MutexLock lock(&list_keys_status->result_list[uri_index].mu);
->>>>>>> upstream-3e92e75-3.10.0
       list_keys_status->result_list[uri_index]
           .fetch_result_key_id_map[*fetch_private_key_context.request->key_id] =
           execution_result;
@@ -253,11 +246,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
       DecryptResult decrypt_result =
           MakeDecryptResult(*encryption_key, std::move(decrypt_context.result),
                             std::move(plaintext));
-<<<<<<< HEAD
-      absl::MutexLock l(&list_keys_status->result_list[uri_index].mu);
-=======
       absl::MutexLock lock(&list_keys_status->result_list[uri_index].mu);
->>>>>>> upstream-3e92e75-3.10.0
       list_keys_status->result_list[uri_index]
           .decrypt_result_key_id_map[*decrypt_result.encryption_key.key_id] =
           std::move(decrypt_result);
@@ -276,9 +265,8 @@ void PrivateKeyClientProvider::OnDecryptCallback(
 
     for (auto& key_id : list_keys_status->key_id_set) {
       bool all_splits_are_available = true;
-      const auto single_party_key =
-          PrivateKeyClientUtils::ExtractSinglePartyKey(
-              list_keys_status->result_list, key_id);
+      auto single_party_key = PrivateKeyClientUtils::ExtractSinglePartyKey(
+          list_keys_status->result_list, key_id);
       std::vector<DecryptResult> success_decrypt_result;
       if (single_party_key.has_value()) {
         // If contains single party key, ignore the fetch and decrypt results.
@@ -303,11 +291,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
           std::optional<DecryptResult> decrypt_result;
           {
             auto& result = list_keys_status->result_list[i];
-<<<<<<< HEAD
-            absl::MutexLock l(&result.mu);
-=======
             absl::MutexLock lock(&result.mu);
->>>>>>> upstream-3e92e75-3.10.0
             if (auto it = result.decrypt_result_key_id_map.find(key_id);
                 it != result.decrypt_result_key_id_map.end()) {
               decrypt_result = it->second;
@@ -343,7 +327,7 @@ void PrivateKeyClientProvider::OnDecryptCallback(
         }
       }
       if (all_splits_are_available) {
-        const auto private_key_or =
+        auto private_key_or =
             PrivateKeyClientUtils::ConstructPrivateKey(success_decrypt_result);
         if (!private_key_or.Successful()) {
           SCP_ERROR_CONTEXT(kPrivateKeyClientProvider,

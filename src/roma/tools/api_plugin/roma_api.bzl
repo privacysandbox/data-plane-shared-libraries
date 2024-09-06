@@ -144,11 +144,6 @@ def js_proto_library(*, name, roma_api, **kwargs):
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)],
-<<<<<<< HEAD
-        convention = "NONE",
-        lenient = True,
-=======
->>>>>>> upstream-3e92e75-3.10.0
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
@@ -203,30 +198,15 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         target = name_proto,
         extensions = ["md"],
     )
-    closure_js_attrs = {
-        "convention": "None",
-        "data": [],
-        "exports": [],
-        "no_closure_library": False,
-        "suppress": [],
-    }
     closure_js_library(
         name = name,
         srcs = [":{}_js_srcs".format(name)] + ([":{}_host_js_srcs".format(name)] if host_api_targets else []),
-<<<<<<< HEAD
-        lenient = True,
-=======
->>>>>>> upstream-3e92e75-3.10.0
         deps = kwargs.get("deps", []) + [
             "@io_bazel_rules_closure//closure/protobuf:jspb",
         ],
         **{
             k: kwargs.get(k, v)
-<<<<<<< HEAD
-            for (k, v) in closure_js_attrs.items()
-=======
             for (k, v) in _closure_js_attrs.items()
->>>>>>> upstream-3e92e75-3.10.0
         }
     )
 
@@ -279,15 +259,12 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         roma_host_api = roma_host_api,
     )
 
-<<<<<<< HEAD
-=======
     # Filter files to sources and headers
     _filter_files_suffix(
         name = name + "_cc_test_srcs",
         targets = [name_proto],
         suffixes = ["_test.cc"],
     )
->>>>>>> upstream-3e92e75-3.10.0
     filter_files(
         name = name + "_cc_hdrs",
         target = name_proto,
@@ -308,8 +285,6 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         deps = kwargs.get("deps", []) + roma_host_api.cc_protos + [
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
-<<<<<<< HEAD
-=======
             "@com_github_grpc_grpc//:grpc++",
             Label("//src/util/status_macro:status_util"),
             Label("//src/roma/config"),
@@ -329,7 +304,6 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             "@com_google_absl//absl/synchronization",
             "@com_google_googletest//:gtest_main",
             Label("//src/roma/roma_service"),
->>>>>>> upstream-3e92e75-3.10.0
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )

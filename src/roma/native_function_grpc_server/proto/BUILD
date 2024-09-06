@@ -186,10 +186,7 @@ roma_host_api_cc_library(
     roma_host_api = test_service_host_api,
     tags = [
         "noasan",
-<<<<<<< HEAD
-=======
         "notsan-aarch64",
->>>>>>> upstream-3e92e75-3.10.0
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -202,10 +199,7 @@ roma_host_api_cc_library(
     roma_host_api = multi_service_host_api,
     tags = [
         "noasan",
-<<<<<<< HEAD
-=======
         "notsan-aarch64",
->>>>>>> upstream-3e92e75-3.10.0
     ],
     visibility = ["//visibility:public"],
     deps = [
@@ -219,10 +213,7 @@ roma_app_api_cc_library(
     roma_app_api = test_service_app_api,
     tags = [
         "noasan",
-<<<<<<< HEAD
-=======
         "notsan-aarch64",
->>>>>>> upstream-3e92e75-3.10.0
     ],
     visibility = ["//visibility:public"],
 )
@@ -248,26 +239,16 @@ cc_test(
     srcs = [":test_service_roma_api_test.cc"],
     tags = [
         "noasan",
-<<<<<<< HEAD
-=======
         "notsan-aarch64",
->>>>>>> upstream-3e92e75-3.10.0
     ],
     deps = [
         ":multi_service_roma_host_api",
         ":test_service_roma_app_api",
         ":test_service_roma_host_api",
-<<<<<<< HEAD
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/synchronization",
-        "@com_google_absl//absl/time",
-        "@com_google_googletest//:gtest_main",
-=======
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest_main",
         "@nlohmann_json//:lib",
->>>>>>> upstream-3e92e75-3.10.0
     ],
 )
 

@@ -62,10 +62,7 @@ constexpr uint64_t kDefaultMinStartupMemoryNeededPerWorkerKb = 400 * 1024;
 template <typename T = google::scp::roma::DefaultMetadata>
 class RomaService {
  public:
-<<<<<<< HEAD
-=======
   using TMetadata = T;
->>>>>>> upstream-3e92e75-3.10.0
   using Config = Config<TMetadata>;
 
   explicit RomaService(Config config = Config()) : config_(std::move(config)) {}
@@ -268,10 +265,7 @@ class RomaService {
     const auto& remote_fds = native_binding_setup.remote_file_descriptors;
     const auto& function_names = native_binding_setup.js_function_names;
     const auto& rpc_method_names = config_.GetRpcMethodNames();
-<<<<<<< HEAD
-=======
     const auto& v8_flags = config_.GetV8Flags();
->>>>>>> upstream-3e92e75-3.10.0
     std::string server_address = native_function_server_addresses_.empty()
                                      ? ""
                                      : native_function_server_addresses_[0];

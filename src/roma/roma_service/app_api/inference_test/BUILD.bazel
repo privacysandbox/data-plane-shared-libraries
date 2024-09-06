@@ -79,10 +79,7 @@ roma_app_api_cc_library(
     roma_app_api = inference_api,
     tags = [
         "noasan",
-<<<<<<< HEAD
-=======
         "notsan-aarch64",
->>>>>>> upstream-3e92e75-3.10.0
     ],
     visibility = ["//visibility:public"],
 )
@@ -104,10 +101,7 @@ cc_test(
     srcs = [":inference_roma_api_test.cc"],
     tags = [
         "noasan",
-<<<<<<< HEAD
-=======
         "notsan-aarch64",
->>>>>>> upstream-3e92e75-3.10.0
     ],
     deps = [
         ":inference_roma_api",

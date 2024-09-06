@@ -47,11 +47,7 @@ class GcpMetricClientProvider : public MetricClientProvider {
 
   GcpMetricClientProvider() = delete;
 
-<<<<<<< HEAD
-  absl::Status Run() noexcept override;
-=======
   absl::Status Init() noexcept override;
->>>>>>> upstream-3e92e75-3.10.0
 
  protected:
   explicit GcpMetricClientProvider(

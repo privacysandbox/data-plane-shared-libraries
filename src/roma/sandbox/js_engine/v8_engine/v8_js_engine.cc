@@ -241,18 +241,10 @@ absl::Status V8JsEngine::FormatAndLogError(v8::Isolate* isolate,
                                            v8::Local<v8::Context> context,
                                            std::string_view top_level_error,
                                            LogOptions log_options) {
-<<<<<<< HEAD
-  std::string err_msg = GetError(isolate, try_catch, top_level_error);
-  (void)HandleLog(
-      "ROMA_ERROR",
-      absl::StrCat(err_msg, "\n", GetStackTrace(isolate, try_catch, context)),
-      std::move(log_options));
-=======
   std::string err_msg =
       absl::StrCat(GetError(isolate, try_catch, top_level_error), "\n",
                    GetStackTrace(isolate, try_catch, context));
   HandleLog("ROMA_ERROR", err_msg, std::move(log_options)).IgnoreError();
->>>>>>> upstream-3e92e75-3.10.0
   return absl::InternalError(std::move(err_msg));
 }
 

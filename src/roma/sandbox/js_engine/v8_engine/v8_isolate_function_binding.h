@@ -49,17 +49,6 @@ class V8IsolateFunctionBinding {
   V8IsolateFunctionBinding(const V8IsolateFunctionBinding&) = delete;
   V8IsolateFunctionBinding& operator=(const V8IsolateFunctionBinding&) = delete;
 
-<<<<<<< HEAD
-  void BindFunction(
-      v8::Isolate* isolate,
-      v8::Local<v8::ObjectTemplate>& global_object_template, void* binding,
-      void (*callback)(const v8::FunctionCallbackInfo<v8::Value>&),
-      std::string_view function_name,
-      absl::flat_hash_map<std::string, v8::Local<v8::ObjectTemplate>>&
-          child_templates);
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
   // Returns success
   bool BindFunctions(absl::Nonnull<v8::Isolate*> isolate,
                      v8::Local<v8::ObjectTemplate>& global_object_template);

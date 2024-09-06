@@ -59,66 +59,42 @@ TEST_F(BlobStorageClientTest, GetBlobSuccess) {
   AsyncContext<GetBlobRequest, GetBlobResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), GetBlob)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.GetBlob(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.GetBlob(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST_F(BlobStorageClientTest, ListBlobsMetadataSuccess) {
   AsyncContext<ListBlobsMetadataRequest, ListBlobsMetadataResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), ListBlobsMetadata)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.ListBlobsMetadata(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.ListBlobsMetadata(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST_F(BlobStorageClientTest, PutBlobSuccess) {
   AsyncContext<PutBlobRequest, PutBlobResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), PutBlob)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.PutBlob(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.PutBlob(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST_F(BlobStorageClientTest, DeleteBlobSuccess) {
   AsyncContext<DeleteBlobRequest, DeleteBlobResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), DeleteBlob)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.DeleteBlob(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.DeleteBlob(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST_F(BlobStorageClientTest, GetBlobStreamSuccess) {
   ConsumerStreamingContext<GetBlobStreamRequest, GetBlobStreamResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), GetBlobStream)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.GetBlobStream(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.GetBlobStream(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 TEST_F(BlobStorageClientTest, PutBlobStreamSuccess) {
   ProducerStreamingContext<PutBlobStreamRequest, PutBlobStreamResponse> context;
   EXPECT_CALL(client_.GetBlobStorageClientProvider(), PutBlobStream)
       .WillOnce(Return(absl::OkStatus()));
-<<<<<<< HEAD
-  EXPECT_THAT(client_.PutBlobStream(context), IsSuccessful());
-=======
   EXPECT_TRUE(client_.PutBlobStream(context).ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 }  // namespace google::scp::cpio::test

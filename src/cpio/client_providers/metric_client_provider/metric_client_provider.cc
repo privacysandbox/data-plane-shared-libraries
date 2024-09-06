@@ -69,29 +69,6 @@ absl::Status MetricClientProvider::Init() noexcept {
               "Invalid namespace.");
     return absl::InvalidArgumentError("Namespace not set.");
   }
-<<<<<<< HEAD
-
-  if (is_batch_recording_enable && !async_executor_) {
-    return absl::InvalidArgumentError(
-        "Batch recording enabled but async executor unavailable.");
-  }
-
-  return absl::OkStatus();
-}
-
-absl::Status MetricClientProvider::Run() noexcept {
-  if (absl::MutexLock l(&sync_mutex_); is_running_) {
-    auto execution_result =
-        FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_ALREADY_RUNNING);
-    SCP_ERROR(kMetricClientProvider, kZeroUuid, execution_result,
-              "Failed to run MetricClientProvider.");
-    return absl::FailedPreconditionError("Metric client is already running.");
-  } else {
-    is_running_ = true;
-  }
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
   if (is_batch_recording_enable) {
     if (const auto result = ScheduleMetricsBatchPush(); !result.Successful()) {
       return absl::UnknownError(
@@ -101,19 +78,11 @@ absl::Status MetricClientProvider::Run() noexcept {
   return absl::OkStatus();
 }
 
-<<<<<<< HEAD
-absl::Status MetricClientProvider::Stop() noexcept {
-  absl::MutexLock l(&sync_mutex_);
-  is_running_ = false;
-  if (is_batch_recording_enable) {
-    current_cancellation_callback_();
-=======
 MetricClientProvider::~MetricClientProvider() {
   absl::MutexLock lock(&sync_mutex_);
   if (is_batch_recording_enable && current_cancellation_callback_) {
     current_cancellation_callback_();
 
->>>>>>> upstream-3e92e75-3.10.0
     // To push the remaining metrics in the vector.
     RunMetricsBatchPush();
   }
@@ -122,28 +91,11 @@ MetricClientProvider::~MetricClientProvider() {
     return active_push_count_ == 0;
   };
   sync_mutex_.Await(absl::Condition(&condition_fn));
-<<<<<<< HEAD
-  return absl::OkStatus();
-=======
->>>>>>> upstream-3e92e75-3.10.0
 }
 
 absl::Status MetricClientProvider::PutMetrics(
     AsyncContext<PutMetricsRequest, PutMetricsResponse>
         record_metric_context) noexcept {
-<<<<<<< HEAD
-  absl::MutexLock l(&sync_mutex_);
-  if (!is_running_) {
-    auto execution_result =
-        FailureExecutionResult(SC_METRIC_CLIENT_PROVIDER_IS_NOT_RUNNING);
-    SCP_ERROR_CONTEXT(kMetricClientProvider, record_metric_context,
-                      execution_result, "Failed to record metric.");
-    record_metric_context.Finish(execution_result);
-    return absl::FailedPreconditionError("Metric client isn't running.");
-  }
-
-=======
->>>>>>> upstream-3e92e75-3.10.0
   auto execution_result = MetricClientUtils::ValidateRequest(
       *record_metric_context.request, metric_batching_options_);
   if (!execution_result.Successful()) {

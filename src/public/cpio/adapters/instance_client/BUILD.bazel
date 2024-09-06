@@ -33,10 +33,7 @@ cc_test(
         "//src/core/test/utils",
         "//src/cpio/client_providers/instance_client_provider:instance_client_provider_select",
         "//src/public/core:test_execution_result_matchers",
-<<<<<<< HEAD
-=======
         "//src/public/core/interface:execution_result",
->>>>>>> upstream-3e92e75-3.10.0
         "//src/public/cpio/interface:cpio_errors",
         "//src/public/cpio/interface/instance_client",
         "//src/public/cpio/proto/instance_service/v1:instance_service_cc_proto",

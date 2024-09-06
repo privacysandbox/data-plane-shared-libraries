@@ -47,13 +47,8 @@ namespace google::scp::cpio::test {
 class PublicKeyClientTest : public ::testing::Test {
  protected:
   PublicKeyClientTest() {
-<<<<<<< HEAD
-    EXPECT_THAT(client_.Init(), IsSuccessful());
-    EXPECT_THAT(client_.Run(), IsSuccessful());
-=======
     EXPECT_TRUE(client_.Init().ok());
     EXPECT_TRUE(client_.Run().ok());
->>>>>>> upstream-3e92e75-3.10.0
   }
 
   ~PublicKeyClientTest() { EXPECT_TRUE(client_.Stop().ok()); }
@@ -104,12 +99,4 @@ TEST_F(PublicKeyClientTest, ListPublicKeysFailure) {
           .ok());
   finished.WaitForNotification();
 }
-<<<<<<< HEAD
-
-TEST_F(PublicKeyClientTest, FailureToCreatePublicKeyClientProvider) {
-  client_.create_public_key_client_provider_result = absl::UnknownError("");
-  EXPECT_FALSE(client_.Init().Successful());
-}
-=======
->>>>>>> upstream-3e92e75-3.10.0
 }  // namespace google::scp::cpio::test

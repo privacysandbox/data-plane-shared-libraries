@@ -20,10 +20,7 @@
 #include <memory>
 #include <string>
 
-<<<<<<< HEAD
-=======
 #include "absl/base/nullability.h"
->>>>>>> upstream-3e92e75-3.10.0
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "src/core/interface/async_context.h"
@@ -64,18 +61,11 @@ class ParameterClientProviderFactory {
    * ParameterClientProvider.
    */
   static absl::StatusOr<std::unique_ptr<ParameterClientProviderInterface>>
-<<<<<<< HEAD
-  Create(ParameterClientOptions options,
-         InstanceClientProviderInterface* instance_client_provider,
-         core::AsyncExecutorInterface* cpu_async_executor,
-         core::AsyncExecutorInterface* io_async_executor);
-=======
   Create(
       ParameterClientOptions options,
       absl::Nonnull<InstanceClientProviderInterface*> instance_client_provider,
       absl::Nonnull<core::AsyncExecutorInterface*> cpu_async_executor,
       absl::Nonnull<core::AsyncExecutorInterface*> io_async_executor);
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio::client_providers
 

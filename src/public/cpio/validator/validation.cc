@@ -144,11 +144,7 @@ void RunHttpValidator(
               << " is invalid." << std::endl;
   }
 
-<<<<<<< HEAD
-  if (!MakeRequest(GlobalCpio::GetGlobalCpio().GetHttp1Client(),
-=======
   if (!MakeRequest(cpio.GetHttp1Client(),
->>>>>>> upstream-3e92e75-3.10.0
                    http_method_map[http_config.request_method()],
                    http_config.request_url(), http_config.request_headers())
            .Successful()) {

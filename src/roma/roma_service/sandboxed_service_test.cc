@@ -128,102 +128,6 @@ std::string ProtoToBytesStr(const T& request) {
 
 TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   Config<std::string> config;
-<<<<<<< HEAD
-  config.number_of_workers = 2;
-  config.enable_native_function_grpc_server = true;
-  config.RegisterRpcHandler(
-      "TestHostServer.NativeMethod",
-      privacysandbox::test_host_server::NativeMethodHandler<std::string>());
-
-  auto roma_service =
-      std::make_unique<RomaService<std::string>>(std::move(config));
-  auto status = roma_service->Init();
-  ASSERT_TRUE(status.ok());
-
-  std::string result;
-  absl::Notification load_finished;
-  absl::Notification execute_finished;
-
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = R"JS_CODE(
-        function ArrayStrToString(arrayStr) {
-            const arr = arrayStr.split(" ");
-            let string = "";
-            for (let i = 0; i < arr.length; i++) {
-                string += String.fromCharCode(parseInt(arr[i], 10));
-            }
-            return string;
-        }
-
-        function Handler(input) {
-          return TestHostServer.NativeMethod(ArrayStrToString(input));
-        }
-      )JS_CODE",
-    });
-
-    status = roma_service->LoadCodeObj(
-        std::move(code_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          EXPECT_TRUE(resp.ok());
-          load_finished.Notify();
-        });
-    EXPECT_TRUE(status.ok());
-  }
-
-  {
-    // Convert proto to string representation of byte array and send to UDF.
-    // Stand-in from UDF sending proto encoded as Uint8Array of bytes.
-    privacy_sandbox::server_common::NativeMethodRequest request;
-    request.set_input("Hello ");
-    std::string request_bytes = ProtoToBytesStr(request);
-
-    auto execution_obj = std::make_unique<InvocationStrRequest<std::string>>(
-        InvocationStrRequest<std::string>{
-            .id = "foo",
-            .version_string = "v1",
-            .handler_name = "Handler",
-            .input = {request_bytes},
-        });
-
-    status = roma_service->Execute(std::move(execution_obj),
-                                   [&](absl::StatusOr<ResponseObject> resp) {
-                                     EXPECT_TRUE(resp.ok());
-                                     if (resp.ok()) {
-                                       result = std::move(resp->resp);
-                                     }
-                                     execute_finished.Notify();
-                                   });
-    EXPECT_TRUE(status.ok());
-  }
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(
-      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
-  // result is a JSON representation of a string-serialized proto. Construct a
-  // tempory JSON object to remove JSON-escaped characters. Necessary because
-  // nlohmann can only parse JSON objects.
-  std::string jsonStr = R"({"result": )" + result + "}";
-  nlohmann::json j = nlohmann::json::parse(jsonStr);
-  // Extract the string value from the JSON
-  result = j["result"];
-
-  privacy_sandbox::server_common::NativeMethodResponse response;
-  response.ParseFromString(result);
-
-  EXPECT_THAT(response.output(), StrEq("Hello World. From NativeMethod"));
-
-  status = roma_service->Stop();
-  EXPECT_TRUE(status.ok());
-}
-
-TEST(SandboxedServiceTest, ExecuteCode) {
-  Config config;
-  config.number_of_workers = 2;
-  RomaService<> roma_service(std::move(config));
-  ASSERT_TRUE(roma_service.Init().ok());
-=======
   config.number_of_workers = 2;
   config.enable_native_function_grpc_server = true;
   config.RegisterRpcHandler(
@@ -233,7 +137,6 @@ TEST(SandboxedServiceTest, ExecuteCode) {
   RomaService<std::string> roma_service(std::move(config));
   auto status = roma_service.Init();
   ASSERT_TRUE(status.ok());
->>>>>>> upstream-3e92e75-3.10.0
 
   std::string result;
   absl::Notification load_finished;
@@ -259,13 +162,12 @@ TEST(SandboxedServiceTest, ExecuteCode) {
       )JS_CODE",
     });
 
-    EXPECT_TRUE(roma_service
-                    .LoadCodeObj(std::move(code_obj),
-                                 [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
-                                   load_finished.Notify();
-                                 })
-                    .ok());
+    status = roma_service.LoadCodeObj(std::move(code_obj),
+                                      [&](absl::StatusOr<ResponseObject> resp) {
+                                        EXPECT_TRUE(resp.ok());
+                                        load_finished.Notify();
+                                      });
+    EXPECT_TRUE(status.ok());
   }
 
   {
@@ -283,16 +185,15 @@ TEST(SandboxedServiceTest, ExecuteCode) {
             .input = {request_bytes},
         });
 
-    EXPECT_TRUE(roma_service
-                    .Execute(std::move(execution_obj),
-                             [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
-                               if (resp.ok()) {
-                                 result = std::move(resp->resp);
-                               }
-                               execute_finished.Notify();
-                             })
-                    .ok());
+    status = roma_service.Execute(std::move(execution_obj),
+                                  [&](absl::StatusOr<ResponseObject> resp) {
+                                    EXPECT_TRUE(resp.ok());
+                                    if (resp.ok()) {
+                                      result = std::move(resp->resp);
+                                    }
+                                    execute_finished.Notify();
+                                  });
+    EXPECT_TRUE(status.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -311,7 +212,8 @@ TEST(SandboxedServiceTest, ExecuteCode) {
 
   EXPECT_THAT(response.output(), StrEq("Hello World. From NativeMethod"));
 
-  EXPECT_TRUE(roma_service.Stop().ok());
+  status = roma_service.Stop();
+  EXPECT_TRUE(status.ok());
 }
 
 TEST(SandboxedServiceTest, ExecuteCode) {
@@ -1589,11 +1491,7 @@ TEST(SandboxedServiceTest, ShouldTimeOutIfExecutionExceedsDeadline) {
             .version_string = "v1",
             .handler_name = "Handler",
             .tags = {{std::string(kTimeoutDurationTag), "10000ms"}},
-<<<<<<< HEAD
-            .input = {R"("9000")"},
-=======
             .input = {absl::StrCat("\"", kTimeoutInMs, "\"")},
->>>>>>> upstream-3e92e75-3.10.0
         });
 
     EXPECT_TRUE(roma_service
@@ -2167,8 +2065,6 @@ TEST(SandboxedServiceTest, ShouldBeAbleToOverwriteVersion) {
   }
 
   EXPECT_TRUE(roma_service.Stop().ok());
-<<<<<<< HEAD
-=======
 }
 
 TEST(SandboxedServiceTest, CompilationFailureReturnsDetailedError) {
@@ -2205,8 +2101,6 @@ function Handler(input) { return "version 1"; }
                     .ok());
   }
   EXPECT_TRUE(roma_service.Stop().ok());
->>>>>>> upstream-3e92e75-3.10.0
 }
-
 }  // namespace
 }  // namespace google::scp::roma::test

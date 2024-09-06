@@ -75,13 +75,8 @@ class Http1CurlClientTest : public ::testing::Test {
     subject_.emplace(
         &cpu_async_executor_, &io_async_executor_, std::move(provider),
         common::RetryStrategyOptions(common::RetryStrategyType::Exponential,
-<<<<<<< HEAD
-                                     /*time_duration_ms=*/1UL,
-                                     /*total_retries=*/10));
-=======
                                      delay_duration_ms,
                                      maximum_allowed_retry_count));
->>>>>>> upstream-3e92e75-3.10.0
     ON_CALL(*provider_, MakeWrapper).WillByDefault(Return(wrapper_));
   }
 

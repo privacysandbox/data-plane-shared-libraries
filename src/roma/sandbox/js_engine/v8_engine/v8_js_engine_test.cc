@@ -689,11 +689,7 @@ TEST_F(V8JsEngineTest, JsWithWasmCompileRunExecuteWithWasiImports) {
 }
 
 TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessage) {
-<<<<<<< HEAD
-  V8JsEngine engine;
-=======
   V8JsEngine engine = CreateEngine();
->>>>>>> upstream-3e92e75-3.10.0
   engine.Run();
 
   constexpr std::string_view js_code = R"JS_CODE(
@@ -702,15 +698,6 @@ TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessage) {
       }
     )JS_CODE";
   const auto response_or =
-<<<<<<< HEAD
-      engine.CompileAndRunJs(js_code, "Handler", {} /*input*/, {} /*metadata*/);
-
-  EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
-  EXPECT_THAT(response_or.status().message(),
-              StrEq("Error when invoking the handler. Uncaught Error: throw!"));
-  engine.Stop();
-}
-=======
       engine.CompileAndRunJs(js_code, "Handler", /*input=*/{}, /*metadata=*/{});
 
   EXPECT_EQ(response_or.status().code(), absl::StatusCode::kInternal);
@@ -737,5 +724,4 @@ TEST_F(V8JsEngineTest, ErrorResponseContainsDetailedMessageTopLevelThrow) {
   engine.Stop();
 }
 
->>>>>>> upstream-3e92e75-3.10.0
 }  // namespace google::scp::roma::sandbox::js_engine::test

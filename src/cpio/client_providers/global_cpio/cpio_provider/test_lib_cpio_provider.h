@@ -30,19 +30,6 @@ namespace google::scp::cpio::client_providers {
 class TestLibCpioProvider final : public LibCpioProvider {
  public:
   explicit TestLibCpioProvider(TestCpioOptions test_options);
-<<<<<<< HEAD
-
- private:
-  absl::StatusOr<std::unique_ptr<RoleCredentialsProviderInterface>>
-  CreateRoleCredentialsProvider(
-      RoleCredentialsProviderOptions options,
-      InstanceClientProviderInterface* instance_client_provider,
-      core::AsyncExecutorInterface* cpu_async_executor,
-      core::AsyncExecutorInterface* io_async_executor) noexcept override;
-
-  TestCpioOptions test_options_;
-=======
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio::client_providers
 

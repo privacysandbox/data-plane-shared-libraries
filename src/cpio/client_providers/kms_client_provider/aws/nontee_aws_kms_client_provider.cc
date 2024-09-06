@@ -264,10 +264,6 @@ std::shared_ptr<KMSClient> NonteeAwsKmsClientProvider::GetKmsClient(
 }
 
 std::unique_ptr<KmsClientProviderInterface> KmsClientProviderFactory::Create(
-<<<<<<< HEAD
-    KmsClientOptions options,
-=======
->>>>>>> upstream-3e92e75-3.10.0
     absl::Nonnull<RoleCredentialsProviderInterface*> role_credentials_provider,
     core::AsyncExecutorInterface* io_async_executor) noexcept {
   return std::make_unique<NonteeAwsKmsClientProvider>(role_credentials_provider,

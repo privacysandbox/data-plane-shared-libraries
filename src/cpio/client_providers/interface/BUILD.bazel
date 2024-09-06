@@ -54,10 +54,7 @@ cc_library(
         "//src/public/cpio/proto/public_key_service/v1:public_key_service_cc_proto",
         "//src/public/cpio/proto/queue_service/v1:queue_service_cc_proto",
         "//src/public/cpio/utils/metric_aggregation/interface:type_def",
-<<<<<<< HEAD
-=======
         "@com_google_absl//absl/base:nullability",
->>>>>>> upstream-3e92e75-3.10.0
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
         "@com_google_protobuf//:protobuf",

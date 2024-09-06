@@ -94,11 +94,7 @@ void SingleThreadAsyncExecutor::StartWorker() noexcept {
 }
 
 SingleThreadAsyncExecutor::~SingleThreadAsyncExecutor() {
-<<<<<<< HEAD
-  absl::MutexLock l(&mutex_);
-=======
   absl::MutexLock lock(&mutex_);
->>>>>>> upstream-3e92e75-3.10.0
   is_running_ = false;
 
   // To ensure stop can happen cleanly, it is required to wait for the thread to
@@ -114,11 +110,7 @@ SingleThreadAsyncExecutor::~SingleThreadAsyncExecutor() {
 
 ExecutionResult SingleThreadAsyncExecutor::Schedule(
     AsyncOperation work, AsyncPriority priority) noexcept {
-<<<<<<< HEAD
-  absl::MutexLock l(&mutex_);
-=======
   absl::MutexLock lock(&mutex_);
->>>>>>> upstream-3e92e75-3.10.0
   if (priority != AsyncPriority::Normal && priority != AsyncPriority::High) {
     return FailureExecutionResult(
         errors::SC_ASYNC_EXECUTOR_INVALID_PRIORITY_TYPE);

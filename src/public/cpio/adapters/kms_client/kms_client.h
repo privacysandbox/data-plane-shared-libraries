@@ -18,13 +18,7 @@
 #define PUBLIC_CPIO_ADAPTERS_KMS_CLIENT_KMS_CLIENT_H_
 
 #include <memory>
-<<<<<<< HEAD
-#include <string>
 #include <utility>
-#include <vector>
-=======
-#include <utility>
->>>>>>> upstream-3e92e75-3.10.0
 
 #include "absl/base/nullability.h"
 #include "absl/status/status.h"
@@ -41,12 +35,8 @@ namespace google::scp::cpio {
  */
 class KmsClient : public KmsClientInterface {
  public:
-<<<<<<< HEAD
-  explicit KmsClient(KmsClientOptions options) : options_(std::move(options)) {}
-=======
   // TODO(b/337035410): Pass provider in constructor and deprecate Init method.
   ~KmsClient() override = default;
->>>>>>> upstream-3e92e75-3.10.0
 
   absl::Status Init() noexcept override;
   absl::Status Run() noexcept override;
@@ -60,13 +50,6 @@ class KmsClient : public KmsClientInterface {
  protected:
   std::unique_ptr<client_providers::KmsClientProviderInterface>
       kms_client_provider_;
-<<<<<<< HEAD
-
- private:
-  KmsClientOptions options_;
-  client_providers::CpioProviderInterface* cpio_;
-=======
->>>>>>> upstream-3e92e75-3.10.0
 };
 }  // namespace google::scp::cpio
 

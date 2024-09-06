@@ -18,10 +18,6 @@
 #define PUBLIC_CPIO_ADAPTERS_PARAMETER_CLIENT_PARAMETER_CLIENT_H_
 
 #include <memory>
-<<<<<<< HEAD
-#include <string>
-=======
->>>>>>> upstream-3e92e75-3.10.0
 #include <utility>
 
 #include "absl/status/status.h"
@@ -52,10 +48,6 @@ class ParameterClient : public ParameterClientInterface {
           callback) noexcept override;
 
  protected:
-<<<<<<< HEAD
-  virtual absl::Status CreateParameterClientProvider() noexcept;
-=======
->>>>>>> upstream-3e92e75-3.10.0
   std::unique_ptr<client_providers::ParameterClientProviderInterface>
       parameter_client_provider_;
 
