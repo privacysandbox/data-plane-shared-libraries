@@ -16,6 +16,7 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob:byob.bzl", "byob_image")
+load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_library(
     name = "example_roma_app_service",
@@ -61,8 +62,6 @@ cc_binary(
 cc_binary(
     name = "roma_byob_test",
     srcs = ["roma_byob_test.cc"],
-    tags = ["manual"],
-    visibility = ["//visibility:public"],
     deps = [
         "//src/roma/byob/udf:sample_callback_cc_proto",
         "//src/roma/byob/udf:sample_cc_proto",
@@ -75,46 +74,59 @@ cc_binary(
 )
 
 pkg_files(
-    name = "roma_byob_test_execs",
+    name = "test_execs",
     srcs = [
         ":example_test",
         ":roma_byob_test",
         ":run_tests",
     ],
-    attributes = pkg_attributes(mode = "0555"),
+    attributes = pkg_attributes(mode = "0500"),
     prefix = "/server/bin",
 )
 
-pkg_tar(
-    name = "roma_byob_test_tar",
-    srcs = [
-        ":roma_byob_test_execs",
-    ],
-)
+[
+    pkg_tar(
+        name = "test_tar_{}".format(user.flavor),
+        srcs = [":test_execs"],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
 
-# Sample usage:
-# builders/tools/bazel-debian build //src/roma/byob/test:roma_byob_test_image_tarball
-# docker load -i bazel-bin/src/roma/byob/test/roma_byob_test_image_tarball/tarball.tar
-# docker run -it --privileged --rm bazel/src/roma/byob/test/roma_byob_test_image:v1
-byob_image(
-    name = "roma_byob_test_image",
-    cmd = ["/server/bin/run_tests"],
-    layer_tars = [
-        ":roma_byob_test_tar",
-    ],
-    repo_tags = ["bazel/src/roma/byob/test/roma_byob_test_image:v1"],
-    udf_binary_label = "//src/roma/byob/udf:udf_binaries",
-)
+[
+    byob_image(
+        name = "test_{}_image".format(user.flavor),
+        cmd = ["/server/bin/run_tests"],
+        debug = True,  # /server/bin/run_tests is a shell script
+        layer_tars = [
+            ":test_tar_{}".format(user.flavor),
+        ],
+        repo_tags = [
+            "roma_byob_test_image:v1-{flavor}".format(
+                flavor = user.flavor,
+            ),
+        ],
+        udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
+        use_nonroot = True if user.flavor == "nonroot" else False,
+        user = user,
+    )
+    for user in DISTROLESS_USERS
+]
 
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":roma_byob_test_image_tarball",
+        ":test_nonroot_image_tarball",
+        ":test_root_image_tarball",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
 mkdir -p {dir}
-cp $(execpath :roma_byob_test_image_tarball) {dir}/roma_byob_test_image.tar
+cp $(execpath :test_nonroot_image_tarball) {dir}/test_nonroot_image.tar
+cp $(execpath :test_root_image_tarball) {dir}/test_root_image.tar
 builders/tools/normalize-dist
 EOF""".format(dir = "dist/roma_byob"),
     executable = True,

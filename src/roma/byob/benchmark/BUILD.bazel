@@ -13,15 +13,14 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob:byob.bzl", "byob_image")
+load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_binary(
     name = "roma_byob_benchmark",
     srcs = ["roma_byob_benchmark.cc"],
-    tags = ["manual"],
-    visibility = ["//visibility:public"],
     deps = [
         "//src/roma/byob/udf:sample_callback_cc_proto",
         "//src/roma/byob/udf:sample_cc_proto",
@@ -36,46 +35,85 @@ cc_binary(
     ],
 )
 
+pkg_mkdirs(
+    name = "benchmark_distdir",
+    attributes = pkg_attributes(mode = "0700"),
+    dirs = ["/dist/benchmarks"],
+)
+
 pkg_files(
-    name = "roma_byob_benchmark_execs",
-    srcs = [
-        ":roma_byob_benchmark",
-        ":run_roma_byob_benchmark",
-    ],
-    attributes = pkg_attributes(mode = "0555"),
+    name = "benchmark_execs",
+    srcs = [":roma_byob_benchmark"],
+    attributes = pkg_attributes(mode = "0500"),
     prefix = "/server/bin",
 )
 
-pkg_tar(
-    name = "roma_byob_benchmark_tar",
-    srcs = [
-        ":roma_byob_benchmark_execs",
-    ],
-)
+[
+    pkg_tar(
+        name = "benchmark_tar_{}".format(user.flavor),
+        srcs = [
+            ":benchmark_distdir",
+            ":benchmark_execs",
+        ],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
 
-# Sample usage:
-# builders/tools/bazel-debian build //src/roma/byob/benchmark:roma_byob_benchmark_image_tarball
-# docker load -i bazel-bin/src/roma/byob/benchmark/roma_byob_benchmark_image_tarball/tarball.tar
-# docker run -it --privileged --rm bazel/src/roma/byob/benchmark/roma_byob_benchmark_image:v1
-byob_image(
-    name = "roma_byob_benchmark_image",
-    cmd = ["/server/bin/run_roma_byob_benchmark"],
-    layer_tars = [
-        ":roma_byob_benchmark_tar",
-    ],
-    repo_tags = ["bazel/src/roma/byob/benchmark/roma_byob_benchmark_image:v1"],
-    udf_binary_label = "//src/roma/byob/udf:udf_binaries",
-)
+[
+    byob_image(
+        name = "benchmark_{flavor}{dbg}_image".format(
+            dbg = debug_str,
+            flavor = user.flavor,
+        ),
+        cmd = [
+            "--benchmark_counters_tabular=true",
+            "--benchmark_out_format=json",
+            "--benchmark_time_unit=ms",
+            "--benchmark_out=/dist/benchmarks/roma_byob_client_benchmark.json",
+        ],
+        debug = debug,
+        entrypoint = [
+            "/server/bin/roma_byob_benchmark",
+        ],
+        layer_tars = [
+            ":benchmark_tar_{}".format(user.flavor),
+        ],
+        repo_tags = [
+            "roma_byob_benchmark_image:v1-{flavor}{dbg}".format(
+                dbg = debug_str.replace("_", "-"),
+                flavor = user.flavor,
+            ),
+        ],
+        udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
+        use_nonroot = True if user.flavor == "nonroot" else False,
+        user = user,
+    )
+    for debug, debug_str in (
+        (True, "_debug"),
+        (False, ""),
+    )
+    for user in DISTROLESS_USERS
+]
 
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":roma_byob_benchmark_image_tarball",
+        ":benchmark_nonroot_image_tarball",
+        ":benchmark_root_image_tarball",
+        ":benchmark_nonroot_debug_image_tarball",
+        ":benchmark_root_debug_image_tarball",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
 mkdir -p {dir}
-cp $(execpath :roma_byob_benchmark_image_tarball) {dir}/roma_byob_image.tar
+cp $(execpath :benchmark_nonroot_image_tarball) {dir}/benchmark_nonroot_image.tar
+cp $(execpath :benchmark_root_image_tarball) {dir}/benchmark_root_image.tar
+cp $(execpath :benchmark_nonroot_debug_image_tarball) {dir}/benchmark_nonroot_debug_image.tar
+cp $(execpath :benchmark_root_debug_image_tarball) {dir}/benchmark_root_debug_image.tar
 builders/tools/normalize-dist
 EOF""".format(dir = "dist/roma_byob"),
     executable = True,

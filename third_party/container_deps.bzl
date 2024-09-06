@@ -28,6 +28,7 @@ def container_deps():
         "runtime-debian-debug-root": {
             # debug build so we can use 'sh'. Root, for gcp coordinators
             # auth to work
+            # cc-debian11:debug
             "arch_hashes": {
                 "amd64": "d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548",
                 "arm64": "6449313a9a80b2758f505c81462c492da87f76954d319f2adb55401177798cce",
@@ -37,11 +38,20 @@ def container_deps():
         },
         "runtime-debian-nondebug-nonroot": {
             "arch_hashes": {
-                # cc-debian11:nondebug-nonroot
+                # cc-debian11:nonroot
                 # This image contains a minimal Linux, glibc runtime for "mostly-statically compiled" languages like Rust and D.
                 # https://github.com/GoogleContainerTools/distroless/blob/main/cc/README.md
                 "amd64": "5a9e854bab8498a61a66b2cfa4e76e009111d09cb23a353aaa8d926e29a653d9",
                 "arm64": "3122cd55375a0a9f32e56a18ccd07572aeed5682421432701a03c335ab79c650",
+            },
+            "registry": "gcr.io",
+            "repository": "distroless/cc-debian11",
+        },
+        "runtime-debian-nondebug-root": {
+            "arch_hashes": {
+                # cc-debian11:latest
+                "amd64": "72f2f861fdc130b1b083f3f055bbe84b73eec8c8c48f16a435194b41feedc674",
+                "arm64": "74bbfb32c5341d7abc6de0379ffe330a9aec2819c5145c4c71917975c93b83e5",
             },
             "registry": "gcr.io",
             "repository": "distroless/cc-debian11",
@@ -67,3 +77,20 @@ def container_deps():
         for img_name, image in images.items()
         for arch, hash in image["arch_hashes"].items()
     ]
+
+DISTROLESS_USERS = [
+    struct(
+        flavor = "nonroot",
+        uid = "65532",
+        user = "nonroot",
+        gid = "65532",
+        group = "nonroot",
+    ),
+    struct(
+        flavor = "root",
+        uid = "0",
+        user = "root",
+        gid = "0",
+        group = "root",
+    ),
+]
