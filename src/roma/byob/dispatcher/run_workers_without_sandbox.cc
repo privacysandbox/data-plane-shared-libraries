@@ -198,8 +198,12 @@ int main(int argc, char** argv) {
 
   // Kill extant workers before exit.
   for (const auto& [pid, _] : pid_to_udf) {
-    PCHECK(::kill(pid, SIGKILL) == 0);
-    PCHECK(::waitpid(pid, nullptr, /*options=*/0) != -1);
+    if (::kill(pid, SIGKILL) == -1) {
+      PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+    }
+    if (::waitpid(pid, nullptr, /*options=*/0) == -1) {
+      PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
+    }
   }
   if (std::error_code ec; !std::filesystem::remove_all(progdir, ec)) {
     LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
