@@ -190,9 +190,9 @@ def _bazel_deps():
     maybe(
         http_archive,
         name = "aspect_bazel_lib",
-        sha256 = "f5ea76682b209cc0bd90d0f5a3b26d2f7a6a2885f0c5f615e72913f4805dbb0d",
-        strip_prefix = "bazel-lib-2.5.0",
-        urls = ["https://github.com/aspect-build/bazel-lib/releases/download/v2.5.0/bazel-lib-v2.5.0.tar.gz"],
+        sha256 = "688354ee6beeba7194243d73eb0992b9a12e8edeeeec5b6544f4b531a3112237",
+        strip_prefix = "bazel-lib-2.8.1",
+        urls = ["https://github.com/aspect-build/bazel-lib/releases/download/v2.8.1/bazel-lib-v2.8.1.tar.gz"],
     )
 
 def _container_deps():
