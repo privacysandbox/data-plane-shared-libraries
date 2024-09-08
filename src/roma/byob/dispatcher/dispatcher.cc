@@ -114,8 +114,8 @@ void RunCallback(
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)> handler,
     int fd, absl::Mutex* mu, int* outstanding_threads) {
   handler(callback.function_name(), *callback.mutable_io_proto());
-  absl::MutexLock lock(mu);
   SerializeDelimitedToFileDescriptor(callback, fd);
+  absl::MutexLock lock(mu);
   --(*outstanding_threads);
 }
 }  // namespace
