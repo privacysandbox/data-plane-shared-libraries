@@ -109,6 +109,26 @@ cc_binary(
 )
 
 cc_binary(
+    name = "abort_udf",
+    srcs = ["abort_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "nonzero_return_udf",
+    srcs = ["nonzero_return_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
     name = "sample_udf",
     srcs = [
         "sample_udf.cc",

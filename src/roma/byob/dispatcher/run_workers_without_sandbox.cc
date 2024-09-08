@@ -58,24 +58,19 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
   return ::connect(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)) == 0;
 }
 struct WorkerImplArg {
-  std::string_view socket_name;
+  int fd;
   std::string_view code_token;
   std::string_view binary_path;
 };
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  PCHECK(fd != -1);
-  if (!ConnectToPath(fd, worker_impl_arg.socket_name)) {
-    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << " failed";
-    return -1;
-  }
-  PCHECK(::write(fd, worker_impl_arg.code_token.data(), 36) == 36);
+  PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.code_token.data(), 36) ==
+         36);
 
   // Exec binary.
-  const std::string connection_fd = [fd] {
-    const int connection_fd = ::dup(fd);
+  const std::string connection_fd = [worker_impl_arg] {
+    const int connection_fd = ::dup(worker_impl_arg.fd);
     PCHECK(connection_fd != -1);
     return absl::StrCat(connection_fd);
   }();
@@ -89,7 +84,21 @@ int WorkerImpl(void* arg) {
 std::optional<int> ConnectSendCloneAndExec(std::string_view socket_name,
                                            std::string_view code_token,
                                            std::string_view binary_path) {
-  WorkerImplArg worker_impl_arg{socket_name, code_token, binary_path};
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  if (fd == -1) {
+    PLOG(ERROR) << "socket()";
+    return std::nullopt;
+  }
+  absl::Cleanup cleanup = [fd] {
+    if (::close(fd) == -1) {
+      PLOG(ERROR) << "close()";
+    }
+  };
+  if (!ConnectToPath(fd, socket_name)) {
+    PLOG(INFO) << "connect() to " << socket_name << " failed";
+    return std::nullopt;
+  }
+  WorkerImplArg worker_impl_arg{fd, code_token, binary_path};
 
   // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
   // or the process may receive SIGBUS (depending on the size of the stack
@@ -171,8 +180,10 @@ int main(int argc, char** argv) {
         }
         udf = std::move(it->second);
         pid_to_udf.erase(it);
-        if (!WIFEXITED(status) || WEXITSTATUS(status) != 0) {
-          break;
+        if (!WIFEXITED(status)) {
+          LOG(ERROR) << "Process pid=" << pid << " did not exit";
+        } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
+          LOG(ERROR) << "Process pid=" << pid << " exit_code=" << exit_code;
         }
       }
       // Start a new worker with the same UDF as the most-recently ended worker.

@@ -71,7 +71,9 @@ cc_test(
     srcs = ["dispatcher_udf_test.cc"],
     data = [
         ":run_workers_without_sandbox",
+        "//src/roma/byob/udf:abort_udf",
         "//src/roma/byob/udf:new_udf",
+        "//src/roma/byob/udf:nonzero_return_udf",
         "//src/roma/byob/udf:sample_go_udf",
         "//src/roma/byob/udf:sample_udf",
     ],
