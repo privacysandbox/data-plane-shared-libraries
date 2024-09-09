@@ -22,12 +22,14 @@
 #include <unistd.h>
 
 #include <filesystem>
+#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
 #include <utility>
 #include <vector>
 
+#include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -66,7 +68,7 @@ int WorkerImpl(void* arg) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   PCHECK(fd != -1);
   if (!ConnectToPath(fd, worker_impl_arg.socket_name)) {
-    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << "failed";
+    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << " failed";
     return -1;
   }
   PCHECK(::write(fd, worker_impl_arg.code_token.data(), 36) == 36);
@@ -81,9 +83,12 @@ int WorkerImpl(void* arg) {
           worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
   PLOG(FATAL) << "execl() failed";
 }
-int ConnectSendCloneAndExec(std::string_view socket_name,
-                            std::string_view code_token,
-                            std::string_view binary_path) {
+
+// Returns `std::nullopt` when workers can no longer be created: in virtually
+// all cases, this is because Roma is shutting down and is not an error.
+std::optional<int> ConnectSendCloneAndExec(std::string_view socket_name,
+                                           std::string_view code_token,
+                                           std::string_view binary_path) {
   WorkerImplArg worker_impl_arg{socket_name, code_token, binary_path};
 
   // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
@@ -94,7 +99,10 @@ int ConnectSendCloneAndExec(std::string_view socket_name,
   alignas(16) char stack[1 << 20];
   const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
                             CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
-  PCHECK(pid != -1);
+  if (pid == -1) {
+    PLOG(ERROR) << "clone()";
+    return std::nullopt;
+  }
   return pid;
 }
 }  // namespace
@@ -102,14 +110,29 @@ int ConnectSendCloneAndExec(std::string_view socket_name,
 int main(int argc, char** argv) {
   std::vector<char*> args = absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
+  LOG(INFO) << "Starting up.";
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
   const std::filesystem::path progdir =
       std::filesystem::temp_directory_path() /
       ToString(google::scp::core::common::Uuid::GenerateUuid());
-  CHECK(std::filesystem::create_directories(progdir));
+  if (std::error_code ec; !std::filesystem::create_directories(progdir, ec)) {
+    LOG(ERROR) << "Failed to create " << progdir << ": " << ec;
+    return -1;
+  }
+  absl::Cleanup progdir_cleanup = [&progdir] {
+    if (std::error_code ec; !std::filesystem::remove_all(progdir, ec)) {
+      LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
+    }
+  };
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  PCHECK(fd != -1);
-  PCHECK(ConnectToPath(fd, socket_name));
+  if (fd == -1) {
+    PLOG(ERROR) << "socket()";
+    return -1;
+  }
+  if (!ConnectToPath(fd, socket_name)) {
+    PLOG(ERROR) << "connect() to " << socket_name << " failed";
+    return -1;
+  }
   struct UdfInstanceMetadata {
     std::string code_token;
     std::string binary_path;
@@ -153,12 +176,33 @@ int main(int argc, char** argv) {
         }
       }
       // Start a new worker with the same UDF as the most-recently ended worker.
-      const int pid =
+      const std::optional<int> pid =
           ConnectSendCloneAndExec(socket_name, udf.code_token, udf.binary_path);
+      if (!pid.has_value()) {
+        return;
+      }
       absl::MutexLock lock(&mu);
-      CHECK(pid_to_udf.insert({pid, std::move(udf)}).second);
+      CHECK(pid_to_udf.insert({*pid, std::move(udf)}).second);
     }
   });
+  absl::Cleanup cleanup = [&] {
+    LOG(INFO) << "Shutting down.";
+    {
+      absl::MutexLock lock(&mu);
+      shutdown = true;
+    }
+    reloader.join();
+
+    // Kill extant workers before exit.
+    for (const auto& [pid, _] : pid_to_udf) {
+      if (::kill(pid, SIGKILL) == -1) {
+        PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+      }
+      if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
+        PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
+      }
+    }
+  };
   FileInputStream input(fd);
   while (true) {
     LoadRequest request;
@@ -166,60 +210,63 @@ int main(int argc, char** argv) {
       break;
     }
     const std::filesystem::path binary_dir = progdir / request.code_token();
-    CHECK(std::filesystem::create_directory(binary_dir));
+    if (std::error_code ec;
+        !std::filesystem::create_directory(binary_dir, ec)) {
+      LOG(ERROR) << "Failed to create " << binary_dir << ": " << ec;
+      return -1;
+    }
     const std::filesystem::path binary_path = binary_dir / request.code_token();
     {
       const int fd =
           ::open(binary_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC, 0500);
-      PCHECK(fd != -1);
-      PCHECK(::write(fd, request.binary_content().c_str(),
-                     request.binary_content().size()) ==
-             request.binary_content().size());
+      if (fd == -1) {
+        PLOG(ERROR) << "open()";
+        return -1;
+      }
+      if (::write(fd, request.binary_content().c_str(),
+                  request.binary_content().size()) !=
+          request.binary_content().size()) {
+        PLOG(ERROR) << "write()";
+        return -1;
+      }
 
       // Flush the file to ensure the executable is closed for writing before
       // the `exec` call.
-      PCHECK(::fsync(fd) == 0);
-      PCHECK(::close(fd) == 0);
+      if (::fsync(fd) == -1) {
+        PLOG(ERROR) << "fsync()";
+        return -1;
+      }
+      if (::close(fd) == -1) {
+        PLOG(ERROR) << "close()";
+        return -1;
+      }
     }
     for (int i = 0; i < request.n_workers() - 1; ++i) {
-      const int pid = ConnectSendCloneAndExec(socket_name, request.code_token(),
-                                              binary_path.native());
+      const std::optional<int> pid = ConnectSendCloneAndExec(
+          socket_name, request.code_token(), binary_path.native());
+      if (!pid.has_value()) {
+        return -1;
+      }
       UdfInstanceMetadata udf{
           .code_token = request.code_token(),
           .binary_path = binary_path,
       };
       absl::MutexLock lock(&mu);
-      pid_to_udf[pid] = std::move(udf);
+      pid_to_udf[*pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
-    const int pid = ConnectSendCloneAndExec(socket_name, request.code_token(),
-                                            binary_path.native());
+    const std::optional<int> pid = ConnectSendCloneAndExec(
+        socket_name, request.code_token(), binary_path.native());
+    if (!pid.has_value()) {
+      return -1;
+    }
     UdfInstanceMetadata udf{
         .code_token = std::move(*request.mutable_code_token()),
         .binary_path = binary_path,
     };
     absl::MutexLock lock(&mu);
-    pid_to_udf[pid] = std::move(udf);
-  }
-  {
-    absl::MutexLock lock(&mu);
-    shutdown = true;
-  }
-  reloader.join();
-  ::close(fd);
-
-  // Kill extant workers before exit.
-  for (const auto& [pid, _] : pid_to_udf) {
-    if (::kill(pid, SIGKILL) == -1) {
-      PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
-    }
-    if (::waitpid(pid, nullptr, /*options=*/0) == -1) {
-      PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
-    }
-  }
-  if (std::error_code ec; !std::filesystem::remove_all(progdir, ec)) {
-    LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
+    pid_to_udf[*pid] = std::move(udf);
   }
   return 0;
 }
