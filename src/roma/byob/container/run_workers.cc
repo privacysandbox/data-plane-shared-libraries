@@ -172,7 +172,8 @@ int main(int argc, char** argv) {
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
   std::vector<std::string> mounts = absl::GetFlag(FLAGS_mounts);
   const std::filesystem::path progdir =
-      std::filesystem::temp_directory_path() / "progdir";
+      std::filesystem::temp_directory_path() /
+      ToString(google::scp::core::common::Uuid::GenerateUuid());
   CHECK(std::filesystem::create_directory(progdir));
   mounts.push_back(progdir);
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);

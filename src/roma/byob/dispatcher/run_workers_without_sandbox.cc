@@ -98,7 +98,8 @@ int main(int argc, char** argv) {
   absl::InitializeLog();
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
   const std::filesystem::path progdir =
-      std::filesystem::temp_directory_path() / "progdir";
+      std::filesystem::temp_directory_path() /
+      ToString(google::scp::core::common::Uuid::GenerateUuid());
   CHECK(std::filesystem::create_directory(progdir));
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   PCHECK(fd != -1);
