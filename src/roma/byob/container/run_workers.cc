@@ -152,7 +152,13 @@ PidAndPivotRootDir ConnectSendCloneAndExec(absl::Span<const std::string> mounts,
       .code_token = code_token,
       .binary_path = binary_path,
   };
-  char stack[1 << 20];
+
+  // Explicitly 16-byte align the stack for aarch64. Otherwise, `clone` may hang
+  // or the process may receive SIGBUS (depending on the size of the stack
+  // before this function call). Overprovisions stack by at most 15 bytes (of
+  // 2^10 bytes) where unneeded.
+  // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
+  alignas(16) char stack[1 << 20];
   const pid_t pid =
       ::clone(WorkerImpl, stack + sizeof(stack),
               CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |

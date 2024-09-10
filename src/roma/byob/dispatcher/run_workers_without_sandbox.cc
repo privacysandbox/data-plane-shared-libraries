@@ -85,7 +85,13 @@ int ConnectSendCloneAndExec(std::string_view socket_name,
                             std::string_view code_token,
                             std::string_view binary_path) {
   WorkerImplArg worker_impl_arg{socket_name, code_token, binary_path};
-  char stack[1 << 20];
+
+  // Explicitly 16-byte align the stack for aarch64. Otherwise, `clone` may hang
+  // or the process may receive SIGBUS (depending on the size of the stack
+  // before this function call). Overprovisions stack by at most 15 bytes (of
+  // 2^10 bytes) where unneeded.
+  // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
+  alignas(16) char stack[1 << 20];
   const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
                             CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
   PCHECK(pid != -1);
