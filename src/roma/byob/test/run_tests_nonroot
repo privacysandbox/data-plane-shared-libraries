@@ -1,0 +1,7 @@
+#!/busybox/sh
+
+set -o errexit
+set -o xtrace
+
+/server/bin/roma_byob_test --gtest_filter=-*NonSandbox*:*LoadBinaryUsingUdfBlob*
+/server/bin/example_test --gtest_filter=-*NonSandbox*

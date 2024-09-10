@@ -73,21 +73,24 @@ cc_binary(
     ],
 )
 
-pkg_files(
-    name = "test_execs",
-    srcs = [
-        ":example_test",
-        ":roma_byob_test",
-        ":run_tests",
-    ],
-    attributes = pkg_attributes(mode = "0500"),
-    prefix = "/server/bin",
-)
+[
+    pkg_files(
+        name = "test_execs_{}".format(user.flavor),
+        srcs = [
+            ":example_test",
+            ":roma_byob_test",
+            ":run_tests_{}".format(user.flavor),
+        ],
+        attributes = pkg_attributes(mode = "0500"),
+        prefix = "/server/bin",
+    )
+    for user in DISTROLESS_USERS
+]
 
 [
     pkg_tar(
         name = "test_tar_{}".format(user.flavor),
-        srcs = [":test_execs"],
+        srcs = [":test_execs_{}".format(user.flavor)],
         owner = "{}.{}".format(
             user.uid,
             user.gid,
@@ -99,7 +102,7 @@ pkg_files(
 [
     byob_image(
         name = "test_{}_image".format(user.flavor),
-        cmd = ["/server/bin/run_tests"],
+        cmd = ["/server/bin/run_tests_{}".format(user.flavor)],
         debug = True,  # /server/bin/run_tests is a shell script
         layer_tars = [
             ":test_tar_{}".format(user.flavor),
