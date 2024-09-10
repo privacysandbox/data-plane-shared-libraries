@@ -152,7 +152,7 @@ TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobTest, DISABLED_ExecuteMultipleCppBinariesInSandboxMode) {
+TEST(RomaByobTest, ExecuteMultipleCppBinariesInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
                                                     /*num_workers=*/2);
 
@@ -169,7 +169,7 @@ TEST(RomaByobTest, DISABLED_ExecuteMultipleCppBinariesInSandboxMode) {
       ::testing::StrEq(kNewUdfOutput));
 }
 
-TEST(RomaByobTest, DISABLED_ExecuteMultipleCppBinariesInNonSandboxMode) {
+TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeNoSandbox,
                                                     /*num_workers=*/2);
 

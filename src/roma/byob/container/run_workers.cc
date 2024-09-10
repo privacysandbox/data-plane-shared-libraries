@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <fcntl.h>
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
@@ -23,7 +24,6 @@
 #include <unistd.h>
 
 #include <filesystem>
-#include <fstream>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -253,13 +253,18 @@ int main(int argc, char** argv) {
     CHECK(std::filesystem::create_directory(binary_dir));
     const std::filesystem::path binary_path = binary_dir / request.code_token();
     {
-      std::ofstream ofs(binary_path, std::ios::binary);
-      ofs.write(request.binary_content().c_str(),
-                request.binary_content().size());
+      const int fd =
+          ::open(binary_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC, 0500);
+      PCHECK(fd != -1);
+      PCHECK(::write(fd, request.binary_content().c_str(),
+                     request.binary_content().size()) ==
+             request.binary_content().size());
+
+      // Flush the file to ensure the executable is closed for writing before
+      // the `exec` call.
+      PCHECK(::fsync(fd) == 0);
+      PCHECK(::close(fd) == 0);
     }
-    std::filesystem::permissions(binary_path,
-                                 std::filesystem::perms::owner_exec |
-                                     std::filesystem::perms::owner_read);
     for (int i = 0; i < request.n_workers() - 1; ++i) {
       PidAndPivotRootDir pid_and_pivot_root_dir = ConnectSendCloneAndExec(
           mounts, socket_name, request.code_token(), binary_path.native());
