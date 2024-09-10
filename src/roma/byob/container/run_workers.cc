@@ -153,7 +153,7 @@ PidAndPivotRootDir ConnectSendCloneAndExec(absl::Span<const std::string> mounts,
       .binary_path = binary_path,
   };
 
-  // Explicitly 16-byte align the stack for aarch64. Otherwise, `clone` may hang
+  // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
   // or the process may receive SIGBUS (depending on the size of the stack
   // before this function call). Overprovisions stack by at most 15 bytes (of
   // 2^10 bytes) where unneeded.

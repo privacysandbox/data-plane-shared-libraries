@@ -86,7 +86,7 @@ int ConnectSendCloneAndExec(std::string_view socket_name,
                             std::string_view binary_path) {
   WorkerImplArg worker_impl_arg{socket_name, code_token, binary_path};
 
-  // Explicitly 16-byte align the stack for aarch64. Otherwise, `clone` may hang
+  // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
   // or the process may receive SIGBUS (depending on the size of the stack
   // before this function call). Overprovisions stack by at most 15 bytes (of
   // 2^10 bytes) where unneeded.
