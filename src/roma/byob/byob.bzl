@@ -15,18 +15,16 @@
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 def _byob_image(
         *,
         name,
-        cmd,
         user,
         debug,
-        use_nonroot,
-        entrypoint,
-        layer_tars,
         repo_tags,
-        udf_binary_labels):
+        udf_binary_labels,
+        **kwargs):
     debug_str = "debug" if debug else "nondebug"
     pkg_files(
         name = "{}_sample_udf_execs".format(name),
@@ -45,16 +43,15 @@ def _byob_image(
             "@platforms//cpu:aarch64": "@runtime-debian-{dbg}-{nonroot}-arm64".format(dbg = debug_str, nonroot = user.flavor),
             "@platforms//cpu:x86_64": "@runtime-debian-{dbg}-{nonroot}-amd64".format(dbg = debug_str, nonroot = user.flavor),
         }),
-        cmd = cmd,
-        entrypoint = entrypoint,
         tars = [
             "//src/roma/byob/container:gvisor_tar_{}".format(user.flavor),
             "//src/roma/byob/container:container_config_tar_{}".format(user.flavor),
             "//src/roma/byob/container:byob_server_container_with_dir_{}.tar".format(user.flavor),
             "//src/roma/byob/container:var_run_runsc_tar_{}".format(user.flavor),
-        ] + layer_tars + [
+        ] + kwargs.get("tars", []) + [
             ":{}_sample_udf_tar".format(name),
         ],
+        **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars"]}
     )
     if repo_tags:
         oci_tarball(
@@ -66,34 +63,31 @@ def _byob_image(
 def byob_image(
         name,
         *,
-        user,
-        cmd = [],
         udf_binary_labels,
-        layer_tars = [],
         repo_tags = [],
         debug = False,
         use_nonroot = True,
-        entrypoint = ["/busybox/sh"]):
+        **kwargs):
     """
         Generates a BYOB OCI container image:
           * {name}
         Each image has a corresponding OCI tarball:
           * {name}_tarball
 
-        cmd: The resulting image's command. Refer to rules_oci oci_image.cmd.
         udf_binary_labels: Target labels of the udf binaries.
-        entrypoint: The resulting image's entrypoint.
-        layer_tars: List of tar files to add to the image as layers. Refer to rules_oci oci_image.tars.
         repo_tags: Tags for the resulting image.
+        **kwargs: keyword args passed through to oci_image.
+        Note: base arg cannot be overridden and will be ignored.
     """
+    flavor = "nonroot" if use_nonroot else "root"
+    user = [u for u in DISTROLESS_USERS if u.flavor == flavor][0]
+    default_entrypoint = ["/busybox/sh"] if debug else []
     _byob_image(
         name = name,
-        cmd = cmd,
         user = user,
         debug = debug,
-        entrypoint = entrypoint,
-        layer_tars = layer_tars,
+        entrypoint = kwargs.get("entrypoint", default_entrypoint),
         repo_tags = repo_tags + ["{}:latest".format(name)],
         udf_binary_labels = udf_binary_labels,
-        use_nonroot = use_nonroot,
+        **{k: v for (k, v) in kwargs.items() if k not in ["entrypoint"]}
     )

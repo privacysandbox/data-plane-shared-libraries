@@ -78,18 +78,17 @@ pkg_files(
         ],
         debug = len(debug_str) > 0,
         entrypoint = ["/server/bin/roma_byob_benchmark"],
-        layer_tars = [
-            ":benchmark_tar_{}".format(user.flavor),
-        ],
         repo_tags = [
             "roma_byob_benchmark_image:v1-{flavor}{dbg}".format(
                 dbg = debug_str.replace("_", "-"),
                 flavor = user.flavor,
             ),
         ],
+        tars = [
+            ":benchmark_tar_{}".format(user.flavor),
+        ],
         udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
         use_nonroot = True if user.flavor == "nonroot" else False,
-        user = user,
     )
     for debug_str in ("_debug", "")
     for user in DISTROLESS_USERS

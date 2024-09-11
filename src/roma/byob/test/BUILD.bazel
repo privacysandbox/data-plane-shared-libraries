@@ -104,17 +104,16 @@ cc_binary(
         name = "test_{}_image".format(user.flavor),
         cmd = ["/server/bin/run_tests_{}".format(user.flavor)],
         debug = True,  # /server/bin/run_tests is a shell script
-        layer_tars = [
-            ":test_tar_{}".format(user.flavor),
-        ],
         repo_tags = [
             "roma_byob_test_image:v1-{flavor}".format(
                 flavor = user.flavor,
             ),
         ],
+        tars = [
+            ":test_tar_{}".format(user.flavor),
+        ],
         udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
         use_nonroot = True if user.flavor == "nonroot" else False,
-        user = user,
     )
     for user in DISTROLESS_USERS
 ]
