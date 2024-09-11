@@ -210,13 +210,16 @@ V8JsEngine::V8JsEngine(
     std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
     const bool skip_v8_cleanup, const bool enable_profilers,
     const JsEngineResourceConstraints& v8_resource_constraints,
-    const bool logging_function_set)
+    const bool logging_function_set,
+    const bool disable_udf_stacktraces_in_response)
     : isolate_function_binding_(std::move(isolate_function_binding)),
       v8_resource_constraints_(v8_resource_constraints),
       execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()),
       skip_v8_cleanup_(skip_v8_cleanup),
       enable_profilers_(enable_profilers),
-      logging_function_set_(logging_function_set) {
+      logging_function_set_(logging_function_set),
+      disable_udf_stacktraces_in_response_(
+          disable_udf_stacktraces_in_response) {
   if (isolate_function_binding_) {
     isolate_function_binding_->AddExternalReferences(external_references_);
   }
@@ -287,11 +290,15 @@ absl::Status V8JsEngine::FormatAndLogError(v8::Isolate* isolate,
                                            v8::Local<v8::Context> context,
                                            std::string_view top_level_error,
                                            LogOptions log_options) {
-  std::string err_msg =
-      absl::StrCat(GetError(isolate, try_catch, top_level_error), "\n",
-                   GetStackTrace(isolate, try_catch, context));
-  HandleLog("ROMA_ERROR", err_msg, std::move(log_options)).IgnoreError();
-  return absl::InternalError(std::move(err_msg));
+  std::string err_msg = GetError(isolate, try_catch, top_level_error);
+  std::string stack_trace = GetStackTrace(isolate, try_catch, context);
+  std::string err_msg_stack_trace = absl::StrCat(err_msg, "\n", stack_trace);
+  HandleLog("ROMA_ERROR", err_msg_stack_trace, std::move(log_options))
+      .IgnoreError();
+  if (disable_udf_stacktraces_in_response_) {
+    return absl::InternalError(std::move(err_msg));
+  }
+  return absl::InternalError(std::move(err_msg_stack_trace));
 }
 
 absl::Status V8JsEngine::HandleLog(std::string_view function_name,

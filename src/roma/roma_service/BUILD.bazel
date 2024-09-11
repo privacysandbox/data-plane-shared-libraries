@@ -194,6 +194,7 @@ cc_test(
         "//src/roma/native_function_grpc_server:test_request_handlers",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/util:duration",
+        "@com_google_absl//absl/log:scoped_mock_log",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",

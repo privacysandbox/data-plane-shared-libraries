@@ -130,6 +130,11 @@ class Config {
   bool enable_profilers = false;
 
   /**
+   * @brief Disable returning UDF stack trace in response.
+   */
+  bool disable_udf_stacktraces_in_response = false;
+
+  /**
    * @brief Indicates whether a custom logging function has been registered.
    *
    */

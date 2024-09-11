@@ -56,7 +56,8 @@ TEST(WorkerSandboxApiSapiTest,
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{}, /*enable_profilers=*/false,
-      /*logging_function_set=*/false);
+      /*logging_function_set=*/false,
+      /*disable_udf_stacktraces_in_response=*/false);
 
   // Initializing the sandbox fail as we're giving a max of 100MB of virtual
   // space address for v8 and the sandbox.
@@ -81,7 +82,8 @@ class WorkerSandboxApiForTests : public WorkerSandboxApi {
             /*sandbox_request_response_shared_buffer_size_mb=*/0,
             /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
             /*v8_flags=*/{}, /*enable_profilers=*/false,
-            /*logging_function_set=*/false) {}
+            /*logging_function_set=*/false,
+            /*disable_udf_stacktraces_in_response=*/false) {}
 
   ::sapi::Sandbox* GetUnderlyingSandbox() { return worker_sapi_sandbox_.get(); }
 };

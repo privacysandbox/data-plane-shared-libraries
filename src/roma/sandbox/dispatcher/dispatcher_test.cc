@@ -56,7 +56,8 @@ std::vector<worker_api::WorkerSandboxApi> Workers(int num_workers) {
         /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
         /*v8_flags=*/std::vector<std::string>(),
         /*enable_profilers=*/false,
-        /*logging_function_set=*/false);
+        /*logging_function_set=*/false,
+        /*disable_udf_stacktraces_in_response=*/false);
     CHECK_OK(workers.back().Init());
     CHECK_OK(workers.back().Run());
   }

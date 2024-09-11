@@ -29,6 +29,8 @@
 
 #include <nlohmann/json.hpp>
 
+#include "absl/log/scoped_mock_log.h"
+#include "absl/strings/match.h"
 #include "absl/strings/str_cat.h"
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/mutex.h"
@@ -1934,6 +1936,136 @@ TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeThrowError) {
   }
 
   ASSERT_TRUE(roma_service.Stop().ok());
+}
+
+TEST(SandboxedServiceTest, StackTraceAvailableInResponse) {
+  Config config;
+  config.number_of_workers = 2;
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  absl::Notification load_finished;
+  absl::Notification execute_failed;
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+      function Handler() {
+        throw new Error('foobar');
+      }
+    )JS_CODE",
+    });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               execute_failed.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
+    EXPECT_TRUE(absl::StrContains(response_status.message(), "at Handler"));
+  }
+
+  ASSERT_TRUE(roma_service.Stop().ok());
+}
+
+void LoggingFunction(absl::LogSeverity severity, DefaultMetadata metadata,
+                     std::string_view msg) {
+  LOG(LEVEL(severity)) << msg;
+}
+
+TEST(SandboxedServiceTest, ShouldNotGetStackTraceWhenDisableStackTraceFlagSet) {
+  Config config;
+  config.number_of_workers = 2;
+  config.disable_udf_stacktraces_in_response = true;
+  config.SetLoggingFunction(LoggingFunction);
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  absl::Notification load_finished;
+  absl::Notification execute_failed;
+
+  absl::ScopedMockLog log;
+  // disable_udf_stacktraces_in_response should not prevent stacktraces from
+  // being logged.
+  EXPECT_CALL(log, Log(absl::LogSeverity::kError, _, HasSubstr("at Handler")));
+  log.StartCapturingLogs();
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+      function Handler() {
+        throw new Error('foobar');
+      }
+    )JS_CODE",
+    });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               execute_failed.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
+    EXPECT_FALSE(absl::StrContains(response_status.message(), "at Handler"));
+  }
+
+  ASSERT_TRUE(roma_service.Stop().ok());
+  log.StopCapturingLogs();
 }
 
 TEST(SandboxedServiceTest, ShouldGetExecutionErrorWhenJsCodeReturnUndefined) {

@@ -306,7 +306,9 @@ class RomaService {
           config_.enable_sandbox_sharing_request_response_with_buffer_only,
           /*v8_flags=*/v8_flags,
           /*enable_profilers=*/config_.enable_profilers,
-          /*logging_function_set=*/config_.logging_function_set);
+          /*logging_function_set=*/config_.logging_function_set,
+          /*disable_udf_stacktraces_in_response*/
+          config_.disable_udf_stacktraces_in_response);
       PS_RETURN_IF_ERROR(workers_.back().Init());
       PS_RETURN_IF_ERROR(workers_.back().Run());
     }

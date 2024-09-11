@@ -54,7 +54,8 @@ TEST(WorkerSandboxApiTest, WorkerWorksThroughSandbox) {
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{},
       /*enable_profilers=*/false,
-      /*logging_function_set=*/false);
+      /*logging_function_set=*/false,
+      /*disable_udf_stacktraces_in_response=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -89,7 +90,8 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeThrowMessageThroughSandbox) {
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{}, /*enable_profilers=*/false,
-      /*logging_function_set=*/false);
+      /*logging_function_set=*/false,
+      /*disable_udf_stacktraces_in_response=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -123,7 +125,8 @@ TEST(WorkerSandboxApiTest, WorkerReturnsInformativeMessageForMissingParam) {
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{}, /*enable_cpu_profiler=*/false,
-      /*logging_function_set=*/false);
+      /*logging_function_set=*/false,
+      /*disable_udf_stacktraces_in_response=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 
@@ -159,7 +162,8 @@ TEST(WorkerSandboxApiTest, WorkerCanCallHooksThroughSandbox) {
       /*sandbox_request_response_shared_buffer_size_mb=*/0,
       /*enable_sandbox_sharing_request_response_with_buffer_only=*/false,
       /*v8_flags=*/{}, /*enable_profilers=*/false,
-      /*logging_function_set=*/false);
+      /*logging_function_set=*/false,
+      /*disable_udf_stacktraces_in_response=*/false);
 
   ASSERT_TRUE(sandbox_api.Init().ok());
 

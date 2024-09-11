@@ -44,6 +44,7 @@ struct V8WorkerEngineParams {
   std::vector<std::string> v8_flags;
   bool enable_profilers = false;
   bool logging_function_set = false;
+  bool disable_udf_stacktraces_in_response = false;
 };
 
 absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(

@@ -55,7 +55,7 @@ WorkerSandboxApi::WorkerSandboxApi(
     size_t sandbox_request_response_shared_buffer_size_mb,
     bool enable_sandbox_sharing_request_response_with_buffer_only,
     const std::vector<std::string>& v8_flags, bool enable_profilers,
-    bool logging_function_set)
+    bool logging_function_set, bool disable_udf_stacktraces_in_response)
     : require_preload_(require_preload),
       native_js_function_comms_fd_(native_js_function_comms_fd),
       native_js_function_names_(native_js_function_names),
@@ -70,7 +70,9 @@ WorkerSandboxApi::WorkerSandboxApi(
           enable_sandbox_sharing_request_response_with_buffer_only),
       v8_flags_(v8_flags),
       enable_profilers_(enable_profilers),
-      logging_function_set_(logging_function_set) {
+      logging_function_set_(logging_function_set),
+      disable_udf_stacktraces_in_response_(
+          disable_udf_stacktraces_in_response) {
   // create a sandbox2 buffer
   request_and_response_data_buffer_size_bytes_ =
       sandbox_request_response_shared_buffer_size_mb > 0
@@ -173,6 +175,8 @@ absl::Status WorkerSandboxApi::Init() {
                                                 v8_flags_.end());
   worker_init_params.set_enable_profilers(enable_profilers_);
   worker_init_params.set_logging_function_set(logging_function_set_);
+  worker_init_params.set_disable_udf_stacktraces_in_response(
+      disable_udf_stacktraces_in_response_);
 
   const auto worker_status = worker_wrapper_->Init(worker_init_params);
   if (!worker_status.ok()) {
