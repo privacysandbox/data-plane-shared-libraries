@@ -17,7 +17,7 @@
 schemaVersion: 2.0.0
 
 metadataTest:
-  user: 65532
+  user: {UID}
   entrypoint: [/server/bin/roma_byob_benchmark]
 
 fileExistenceTests:
@@ -25,39 +25,39 @@ fileExistenceTests:
     path: /udf
     shouldExist: true
     permissions: drwxr-xr-x
-    uid: 65532
-    gid: 65532
+    uid: {UID}
+    gid: {GID}
 
   - name: /roma_container dir
     path: /roma_container
     shouldExist: true
     permissions: drwxr-xr-x
-    uid: 65532
-    gid: 65532
+    uid: {UID}
+    gid: {GID}
 
   - name: /var/run/runsc dir
     path: /var/run/runsc
     shouldExist: true
     permissions: drwx------
-    uid: 65532
-    gid: 65532
+    uid: {UID}
+    gid: {GID}
 
   - name: /dist/benchmarks dir
     path: /dist/benchmarks
     permissions: drwx------
-    uid: 65532
-    gid: 65532
+    uid: {UID}
+    gid: {GID}
 
   - name: /usr/bin/runsc
     path: /usr/bin/runsc
     permissions: -r-x------
     isExecutableBy: owner
-    uid: 65532
-    gid: 65532
+    uid: {UID}
+    gid: {GID}
 
   - name: entrypoint
     path: /server/bin/roma_byob_benchmark
     permissions: -r-x------
     isExecutableBy: owner
-    uid: 65532
-    gid: 65532
+    uid: {UID}
+    gid: {GID}

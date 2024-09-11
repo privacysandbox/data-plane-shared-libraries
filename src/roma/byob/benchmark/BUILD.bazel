@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
@@ -95,10 +96,23 @@ pkg_files(
 ]
 
 [
+    expand_template(
+        name = "image_{}_test_yaml".format(user.flavor),
+        out = "image_{}_test.yaml".format(user.flavor),
+        substitutions = {
+            "{GID}": str(user.gid),
+            "{UID}": str(user.uid),
+        },
+        template = ":image_test.yaml",
+    )
+    for user in DISTROLESS_USERS
+]
+
+[
     container_structure_test(
         name = "benchmark_{}_test".format(img_name),
         size = "small",
-        configs = ["image_{}_test.yaml".format(user.flavor)],
+        configs = [":image_{}_test.yaml".format(user.flavor)],
         image = ":benchmark_{}".format(img_name),
         tags = ["noasan"],
     )
