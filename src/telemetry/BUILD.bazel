@@ -189,6 +189,7 @@ alias(
     name = "init",
     actual = select({
         "//:aws_instance": ":init_aws",
+        "//:azure_instance": ":init_aws",
         "//:gcp_instance": ":init_gcp",
         ":local_otel_ostream": ":init_local_ostream",
         ":local_otel_otlp": ":init_local_otlp",
