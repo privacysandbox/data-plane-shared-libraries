@@ -92,6 +92,15 @@ int WorkerImpl(void* arg) {
            0)
         << "Failed to mount " << mount;
   }
+  const std::string binary_dir =
+      std::filesystem::path(worker_impl_arg.binary_path).parent_path();
+  {
+    const std::string target =
+        absl::StrCat(worker_impl_arg.pivot_root_dir, binary_dir);
+    CHECK(std::filesystem::create_directories(target));
+    PCHECK(::mount(binary_dir.c_str(), target.c_str(), nullptr, MS_BIND,
+                   nullptr) == 0);
+  }
 
   // MS_REC needed here to get other mounts (/lib, /lib64 etc)
   PCHECK(::mount(worker_impl_arg.pivot_root_dir.data(),
@@ -116,12 +125,8 @@ int WorkerImpl(void* arg) {
                    nullptr) == 0)
         << "Failed to mount " << mount;
   }
-  {
-    const std::string binary_dir =
-        std::filesystem::path(worker_impl_arg.binary_path).parent_path();
-    PCHECK(::mount(binary_dir.c_str(), binary_dir.c_str(), nullptr,
-                   MS_REMOUNT | MS_BIND, nullptr) == 0);
-  }
+  PCHECK(::mount(binary_dir.c_str(), binary_dir.c_str(), nullptr,
+                 MS_REMOUNT | MS_BIND, nullptr) == 0);
 
   // Exec binary.
   const std::string connection_fd = [fd] {
@@ -176,12 +181,11 @@ int main(int argc, char** argv) {
   std::vector<char*> args = absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
-  std::vector<std::string> mounts = absl::GetFlag(FLAGS_mounts);
+  const std::vector<std::string> mounts = absl::GetFlag(FLAGS_mounts);
   const std::filesystem::path progdir =
       std::filesystem::temp_directory_path() /
       ToString(google::scp::core::common::Uuid::GenerateUuid());
   CHECK(std::filesystem::create_directories(progdir));
-  mounts.push_back(progdir);
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   PCHECK(fd != -1);
   PCHECK(ConnectToPath(fd, socket_name));
@@ -245,7 +249,9 @@ int main(int argc, char** argv) {
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
-    const std::filesystem::path binary_path = progdir / request.code_token();
+    const std::filesystem::path binary_dir = progdir / request.code_token();
+    CHECK(std::filesystem::create_directory(binary_dir));
+    const std::filesystem::path binary_path = binary_dir / request.code_token();
     {
       std::ofstream ofs(binary_path, std::ios::binary);
       ofs.write(request.binary_content().c_str(),

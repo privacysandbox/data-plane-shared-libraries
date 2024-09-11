@@ -165,7 +165,9 @@ int main(int argc, char** argv) {
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
-    const std::filesystem::path binary_path = progdir / request.code_token();
+    const std::filesystem::path binary_dir = progdir / request.code_token();
+    CHECK(std::filesystem::create_directory(binary_dir));
+    const std::filesystem::path binary_path = binary_dir / request.code_token();
     {
       std::ofstream ofs(binary_path, std::ios::binary);
       ofs.write(request.binary_content().c_str(),
