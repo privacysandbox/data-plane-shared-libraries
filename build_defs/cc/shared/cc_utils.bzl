@@ -96,3 +96,14 @@ def _gvisor_utils(version = GVISOR_VERSION):
         sha256 = "45d32d3c7ff9bf455a94c3ba3021ad4ae9c3619ce680faf880dc50b49eb2ed48",
         urls = ["{}/aarch64/containerd-shim-runsc-v1".format(release_url)],
     )
+
+    maybe(
+        http_archive,
+        name = "libcap",
+        build_file = Label("//build_defs/cc/shared/build_targets:libcap.BUILD"),
+        sha256 = "18f00ea97c7541af86379dec9d4d8ea838aac4a1f70177d81d91657e4e43b808",
+        strip_prefix = "libcap-2.70",
+        urls = [
+            "https://git.kernel.org/pub/scm/libs/libcap/libcap.git/snapshot/libcap-2.70.tar.gz",
+        ],
+    )
