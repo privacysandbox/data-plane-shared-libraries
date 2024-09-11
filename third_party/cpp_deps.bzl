@@ -199,9 +199,12 @@ def _container_deps():
     maybe(
         http_archive,
         name = "rules_oci",
-        sha256 = "46ce9edcff4d3d7b3a550774b82396c0fa619cc9ce9da00c1b09a08b45ea5a14",
-        strip_prefix = "rules_oci-1.8.0",
-        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v1.8.0/rules_oci-v1.8.0.tar.gz",
+        patches = [
+            Label("//third_party:rules_oci.patch"),
+        ],
+        sha256 = "d007e6c96eb62c88397b68f329e4ca56e0cfe31204a2c54b0cb17819f89f83c8",
+        strip_prefix = "rules_oci-2.0.0",
+        url = "https://github.com/bazel-contrib/rules_oci/releases/download/v2.0.0/rules_oci-v2.0.0.tar.gz",
     )
     maybe(
         http_archive,

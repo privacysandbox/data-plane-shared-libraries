@@ -38,7 +38,7 @@ load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_depe
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
 load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
-load("@rules_oci//oci:repositories.bzl", "LATEST_CRANE_VERSION", "oci_register_toolchains")
+load("@rules_oci//oci:repositories.bzl", "oci_register_toolchains")
 load("@rules_pkg//pkg:deps.bzl", "rules_pkg_dependencies")
 load("@rules_rust//crate_universe:repositories.bzl", "crate_universe_dependencies")
 load("@rules_rust//rust:repositories.bzl", "rules_rust_dependencies", "rust_register_toolchains")
@@ -148,7 +148,6 @@ def deps2(
     rules_oci_dependencies()
     oci_register_toolchains(
         name = "oci",
-        crane_version = LATEST_CRANE_VERSION,
     )
     container_structure_test_register_toolchain(name = "cst")
     dwyu_setup_step_1()

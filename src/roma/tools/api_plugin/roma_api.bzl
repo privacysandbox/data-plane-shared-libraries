@@ -16,7 +16,7 @@
 
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
@@ -508,22 +508,15 @@ def _roma_image(*, name, cc_binary, version, type):
             ":{}_{}_cli_tar".format(name, type_str),
         ],
     )
-    oci_tarball(
+    oci_load(
         name = "{}_tarball".format(name),
         image = ":{}_image".format(name),
         repo_tags = ["privacy_sandbox/udf_sdk/{}:{}".format(name, version)],
     )
-    native.genrule(
-        name = name,
-        srcs = [
-            "{}_tarball".format(name),
-        ],
-        outs = ["{}_tarball.tar".format(name)],
-        cmd_bash = """
-        cp $(execpath :{name}_tarball) $@
-    """.format(name = name),
-        executable = True,
-        local = True,
+    native.filegroup(
+        name = "{}_tarball.tar".format(name),
+        srcs = [":{}_tarball".format(name)],
+        output_group = "tarball",
     )
 
 def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = [], **kwargs):
@@ -604,12 +597,20 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
         cc_binary = "//src/roma/tools/v8_cli:roma_benchmark",
         version = version,
     )
+
     pkg_files(
         name = name + "_tools_artifacts",
         srcs = [
-            ":{}_roma_shell".format(name),
-            ":{}_roma_benchmark".format(name),
+            ":{}_roma_shell_tarball.tar".format(name),
+            ":{}_roma_benchmark_tarball.tar".format(name),
         ],
+        # oci 2.0 rules generate all tarballs the same name "tarball.tar", and we need to rename them.
+        # Without this rename, we'll get the following error:
+        # "After renames, multiple sources (at least {0}, {1}) map to the same destination. Consider adjusting strip_prefix and/or renames error".
+        renames = {
+            ":{}_roma_shell_tarball.tar".format(name): "{}_roma_shell_tarball.tar".format(name),
+            ":{}_roma_benchmark_tarball.tar".format(name): "{}_roma_benchmark_tarball.tar".format(name),
+        },
         prefix = "tools",
     )
 

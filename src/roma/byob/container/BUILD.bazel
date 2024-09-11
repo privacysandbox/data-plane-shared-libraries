@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
@@ -132,10 +132,19 @@ alias(
 _server_image = "byob_server:v1"
 
 [
-    oci_tarball(
+    oci_load(
         name = "byob_server_image_tarball_{}".format(user.flavor),
         image = ":byob_server_image_{}".format(user.flavor),
         repo_tags = [_server_image],
+    )
+    for user in DISTROLESS_USERS
+]
+
+[
+    filegroup(
+        name = "byob_server_image_tarball_{}.tar".format(user.flavor),
+        srcs = ["byob_server_image_tarball_{}".format(user.flavor)],
+        output_group = "tarball",
     )
     for user in DISTROLESS_USERS
 ]
@@ -146,11 +155,11 @@ _server_image = "byob_server:v1"
     genrule(
         name = "gen_byob_server_container_tar_{}".format(user.flavor),
         srcs = [
-            ":byob_server_image_tarball_{}".format(user.flavor),
+            ":byob_server_image_tarball_{}.tar".format(user.flavor),
         ],
         outs = ["byob_server_container_{}.tar".format(user.flavor)],
         cmd_bash = """
-docker load -i "$(location :byob_server_image_tarball_{flavor})"
+docker load -i "$(location :byob_server_image_tarball_{flavor}.tar)"
 CID=$$(docker create --privileged "{image_uri}")
 docker export $$CID -o $@
 docker rm $$CID

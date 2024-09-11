@@ -31,7 +31,7 @@ genrule(
     name = "copy_to_dist",
     srcs = [
         ":aws_artifacts",
-        "//src/aws/proxy:proxy_debian_tarball",
+        "//src/aws/proxy:proxy_debian_tarball.tar",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
@@ -40,7 +40,7 @@ mkdir -p \\$${target_dir}
 readonly file_prefix="\\$${target_dir}/proxy"
 cp $(execpath :aws_artifacts) "\\$${file_prefix}-\\$$1-\\$$2.zip"
 if [[ \\$$1 == debian ]]; then
-  cp $(execpath //src/aws/proxy:proxy_debian_tarball) "\\$${file_prefix}-image-\\$$2.tar"
+  cp $(execpath //src/aws/proxy:proxy_debian_tarball.tar) "\\$${file_prefix}-image-\\$$2.tar"
 fi
 builders/tools/normalize-dist
 EOF""",

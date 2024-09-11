@@ -24,7 +24,7 @@
 load("@com_google_googleapis_imports//:imports.bzl", "cc_grpc_library", "cc_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:pkg.bzl", "pkg_tar")
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -105,20 +105,26 @@ oci_image(
     ],
 )
 
-oci_tarball(
+oci_load(
     name = "resolv_conf_getter_server_debian_tarball",
     image = ":resolv_conf_getter_server_debian_image",
     repo_tags = ["src/aws/proxy:resolv_conf_getter_server_debian"],
 )
 
+filegroup(
+    name = "resolv_conf_getter_server_debian_tarball.tar",
+    srcs = [":resolv_conf_getter_server_debian_tarball"],
+    output_group = "tarball",
+)
+
 genrule(
     name = "copy_to_dist",
-    srcs = [":resolv_conf_getter_server_debian_tarball"],
+    srcs = [":resolv_conf_getter_server_debian_tarball.tar"],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat << EOF > '$@'
 readonly target_dir=dist/aws
 mkdir -p \\$${target_dir}
-cp $(execpath :resolv_conf_getter_server_debian_tarball) "\\$${target_dir}"
+cp $(execpath :resolv_conf_getter_server_debian_tarball.tar) "\\$${target_dir}"
 EOF""",
     executable = True,
     local = True,
@@ -347,10 +353,17 @@ oci_image(
     ],
 )
 
-oci_tarball(
+oci_load(
     name = "proxy_debian_tarball",
     image = ":proxy_debian_image",
     repo_tags = ["src/aws/proxy:proxy_debian"],
+    visibility = ["//visibility:public"],
+)
+
+filegroup(
+    name = "proxy_debian_tarball.tar",
+    srcs = [":proxy_debian_tarball"],
+    output_group = "tarball",
     visibility = ["//visibility:public"],
 )
 

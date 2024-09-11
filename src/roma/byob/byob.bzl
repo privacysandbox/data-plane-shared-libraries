@@ -13,7 +13,7 @@
 # limitations under the License.
 
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
@@ -63,10 +63,15 @@ def _byob_image(
         tags = ["noasan"],
     )
     if repo_tags:
-        oci_tarball(
+        oci_load(
             name = "{}_tarball".format(name),
             image = ":{}".format(name),
             repo_tags = repo_tags,
+        )
+        native.filegroup(
+            name = "{}_tarball.tar".format(name),
+            srcs = [":{}_tarball".format(name)],
+            output_group = "tarball",
         )
 
 def byob_image(
@@ -81,7 +86,7 @@ def byob_image(
         Generates a BYOB OCI container image:
           * {name}
         Each image has a corresponding OCI tarball:
-          * {name}_tarball
+          * {name}_tarball.tar
 
         udf_binary_labels: Target labels of the udf binaries.
         repo_tags: Tags for the resulting image.

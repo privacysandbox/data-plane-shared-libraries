@@ -1,0 +1,211 @@
+diff --git oci/private/download.bzl oci/private/download.bzl
+new file mode 100644
+index 0000000..77f761d
+--- /dev/null
++++ oci/private/download.bzl
+@@ -0,0 +1,126 @@
++"Downloader functions "
++
++load("@aspect_bazel_lib//lib:base64.bzl", "base64")
++load("@bazel_skylib//lib:versions.bzl", "versions")
++load(":util.bzl", "util")
++
++def _auth_to_header(url, auth):
++    for auth_url in auth:
++        if auth_url == url:
++            auth_val = auth[auth_url]
++
++            if "type" not in auth_val:
++                continue
++
++            if auth_val["type"] == "basic":
++                credentials = base64.encode("{}:{}".format(auth_val["login"], auth_val["password"]))
++                return [
++                    "--header",
++                    "Authorization: Basic {}".format(credentials),
++                ]
++            elif auth_val["type"] == "pattern":
++                token = auth_val["pattern"].replace("<password>", auth_val["password"])
++                return [
++                    "--header",
++                    "Authorization: {}".format(token),
++                ]
++    return []
++
++def _debug(message):
++    # Change to true when debugging
++    if False:
++        # buildifier: disable=print
++        print(message)
++
++# TODO(2.0): remove curl downloader
++def _download(
++        rctx,
++        url,
++        output,
++        sha256 = "",
++        allow_fail = False,
++        auth = {},
++        # ignored
++        # buildifier: disable=unused-variable
++        canonical_id = "",
++        # unsupported
++        executable = False,
++        integrity = "",
++        # custom features
++        headers = {}):
++    if executable or integrity:
++        fail("executable and integrity attributes are unsupported.")
++
++    version_result = rctx.execute(["curl", "--version"])
++    if version_result.return_code != 0:
++        fail("Failed to execute curl --version:\n{}".format(version_result.stderr))
++
++    # parse from
++    # curl 8.1.2 (x86_64-apple-darwin22.0) libcurl/8.1.2 (SecureTransport) LibreSSL/3.3.6 zlib/1.2.11 nghttp2/1.51.0
++    # Release-Date: 2023-05-30
++    # ...
++    curl_version = version_result.stdout.split(" ")[1]
++
++    command = [
++        "curl",
++        url,
++        "--write-out",
++        "%{http_code}",
++        "--location",
++        "--request",
++        "GET",
++        "--create-dirs",
++        "--output",
++        output,
++    ]
++
++    # Detect more flags which may be supported based on changelog:
++    # https://curl.se/changes.html
++    if versions.is_at_least("7.67.0", curl_version):
++        command.append("--no-progress-meter")
++
++    for (name, value) in headers.items():
++        command.append("--header")
++        command.append("{}: {}".format(name, value))
++
++    command.extend(_auth_to_header(url, auth))
++
++    result = rctx.execute(command)
++    _debug("""\nSTDOUT\n{}\nSTDERR\n{}""".format(result.stdout, result.stderr))
++
++    if result.return_code != 0:
++        if allow_fail:
++            return struct(success = False)
++        else:
++            fail("Failed to execute curl {} (version {}): {}".format(url, curl_version, result.stderr))
++
++    status_code = int(result.stdout.strip())
++    if status_code >= 400:
++        if allow_fail:
++            return struct(success = False)
++        else:
++            fail("curl {} returned non-success status code {}".format(url, status_code))
++    checksum = util.sha256(rctx, output)
++    if sha256 and checksum != sha256:
++        fail("Checksum for url {} was {} but expected {}".format(url, checksum, sha256))
++    return struct(
++        success = True,
++        sha256 = checksum,
++    )
++
++# A dummy function that uses bazel downloader.
++#  Caveats
++#   - Doesn't support setting custom headers
++def _bazel_download(
++        rctx,
++        # custom features
++        # buildifier: disable=unused-variable
++        headers = {},
++        # passthrough
++        **kwargs):
++    return rctx.download(**kwargs)
++
++download = struct(
++    curl = _download,
++    bazel = _bazel_download,
++)
+diff --git oci/private/pull.bzl oci/private/pull.bzl
+index 1cdf45a..2373844 100644
+--- oci/private/pull.bzl
++++ oci/private/pull.bzl
+@@ -3,6 +3,7 @@
+ load("@bazel_skylib//lib:dicts.bzl", "dicts")
+ load("@bazel_skylib//lib:versions.bzl", "versions")
+ load("//oci/private:authn.bzl", "authn")
++load("//oci/private:download.bzl", "download")
+ load("//oci/private:util.bzl", "util")
+ 
+ # attributes that are specific to image reference url. shared between multiple targets
+@@ -30,8 +31,13 @@ _IMAGE_REFERENCE_ATTRS = {
+     ),
+ }
+ 
++CURL_FALLBACK_WARNING = """\
++The use of Curl fallback is deprecated in v2.0 but we revived it to work with bazel 6.5.0.
++For more details, refer to: https://github.com/bazel-contrib/rules_oci/issues/456
++"""
++
+ SCHEMA1_ERROR = """\
+-The registry sent a manifest with schemaVersion=1. 
++The registry sent a manifest with schemaVersion=1.
+ This commonly occurs when fetching from a registry that needs the Docker-Distribution-API-Version header to be set.
+ See: https://github.com/bazel-contrib/rules_oci/blob/main/docs/pull.md#authentication-using-credential-helpers
+ """
+@@ -83,7 +89,7 @@ def _digest_into_blob_path(digest):
+     digest_path = digest.replace(":", "/", 1)
+     return "blobs/{}".format(digest_path)
+ 
+-def _download(rctx, authn, identifier, output, resource, headers = {}, allow_fail = False, block = True):
++def _download(rctx, authn, identifier, output, resource, download_fn = download.bazel, headers = {}, allow_fail = False, block = True):
+     "Use the Bazel Downloader to fetch from the remote registry"
+ 
+     if resource != "blobs" and resource != "manifests":
+@@ -121,7 +127,16 @@ def _download(rctx, authn, identifier, output, resource, headers = {}, allow_fai
+         kwargs["block"] = block
+         kwargs["headers"] = headers
+ 
+-    return rctx.download(**kwargs)
++    # Otherwise, just use CURL because docker.io requires Accept: header to present for downloading OCI image.
++    return download_fn(
++        rctx,
++        output = output,
++        sha256 = sha256,
++        url = registry_url,
++        auth = {registry_url: auth},
++        headers = headers,
++        allow_fail = allow_fail,
++    )
+ 
+ def _download_manifest(rctx, authn, identifier, output):
+     bytes = None
+@@ -148,9 +163,22 @@ def _download_manifest(rctx, authn, identifier, output):
+         explanation = authn.explain()
+         if explanation:
+             util.warning(rctx, explanation)
+-        fail(
+-            OCI_MEDIA_TYPE_OR_AUTHN_ERROR_BAZEL7 if versions.is_at_least("7.1.0", versions.get()) else OCI_MEDIA_TYPE_OR_AUTHN_ERROR,
++        util.warning(rctx, CURL_FALLBACK_WARNING)
++        _download(
++            rctx,
++            authn,
++            identifier,
++            output,
++            "manifests",
++            download.curl,
++            headers = {
++                "Accept": ",".join(_SUPPORTED_MEDIA_TYPES["index"] + _SUPPORTED_MEDIA_TYPES["manifest"]),
++                "Docker-Distribution-API-Version": "registry/2.0",
++            },
+         )
++        bytes = rctx.read(output)
++        manifest = json.decode(bytes)
++        digest = "sha256:{}".format(util.sha256(rctx, output))
+ 
+     return manifest, len(bytes), digest
+ 
