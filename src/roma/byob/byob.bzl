@@ -45,10 +45,10 @@ def _byob_image(
             "@platforms//cpu:x86_64": "@runtime-debian-{dbg}-{nonroot}-amd64".format(dbg = debug_str, nonroot = user.flavor),
         }),
         tars = [
-            "//src/roma/byob/container:gvisor_tar_{}".format(user.flavor),
-            "//src/roma/byob/container:container_config_tar_{}".format(user.flavor),
-            "//src/roma/byob/container:byob_server_container_with_dir_{}.tar".format(user.flavor),
-            "//src/roma/byob/container:var_run_runsc_tar_{}".format(user.flavor),
+            Label("//src/roma/byob/container:gvisor_tar_{}".format(user.flavor)),
+            Label("//src/roma/byob/container:container_config_tar_{}".format(user.flavor)),
+            Label("//src/roma/byob/container:byob_server_container_with_dir_{}.tar".format(user.flavor)),
+            Label("//src/roma/byob/container:var_run_runsc_tar_{}".format(user.flavor)),
         ] + kwargs.get("tars", []) + [
             ":{}_sample_udf_tar".format(name),
         ],
@@ -57,7 +57,7 @@ def _byob_image(
     container_structure_test(
         name = "{}_byob_test".format(name),
         size = "small",
-        configs = ["//src/roma/byob:image_{}_test.yaml".format(user.flavor)],
+        configs = [Label("//src/roma/byob:image_{}_test.yaml".format(user.flavor))],
         image = ":{}".format(name),
         tags = ["noasan"],
     )
