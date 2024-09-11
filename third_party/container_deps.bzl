@@ -81,16 +81,16 @@ def container_deps():
 DISTROLESS_USERS = [
     struct(
         flavor = "nonroot",
-        uid = "65532",
+        uid = 65532,
         user = "nonroot",
-        gid = "65532",
+        gid = 65532,
         group = "nonroot",
     ),
     struct(
         flavor = "root",
-        uid = "0",
+        uid = 0,
         user = "root",
-        gid = "0",
+        gid = 0,
         group = "root",
     ),
 ]
