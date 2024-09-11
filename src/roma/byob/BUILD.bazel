@@ -11,3 +11,20 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
+load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
+
+[
+    expand_template(
+        name = "image_{}_test_yaml".format(user.flavor),
+        out = "image_{}_test.yaml".format(user.flavor),
+        substitutions = {
+            "{GID}": str(user.gid),
+            "{UID}": str(user.uid),
+        },
+        template = ":image_test.yaml",
+        visibility = ["//visibility:public"],
+    )
+    for user in DISTROLESS_USERS
+]

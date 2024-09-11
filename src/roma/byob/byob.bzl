@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
@@ -52,6 +53,13 @@ def _byob_image(
             ":{}_sample_udf_tar".format(name),
         ],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars"]}
+    )
+    container_structure_test(
+        name = "{}_byob_test".format(name),
+        size = "small",
+        configs = ["//src/roma/byob:image_{}_test.yaml".format(user.flavor)],
+        image = ":{}".format(name),
+        tags = ["noasan"],
     )
     if repo_tags:
         oci_tarball(
