@@ -15,6 +15,7 @@
 #include "dispatcher.h"
 
 #include <limits.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -73,6 +74,10 @@ absl::Status Dispatcher::Init(const int listen_fd) {
     return absl::InternalError(
         absl::StrCat("Failed to accept on fd=", listen_fd_));
   }
+
+  // Ignore SIGPIPE. Otherwise, host process will crash when UDFs close sockets
+  // before or while Roma writes requests or callback responses.
+  ::signal(SIGPIPE, SIG_IGN);
   acceptor_.emplace(&Dispatcher::AcceptorImpl, this);
   return absl::OkStatus();
 }

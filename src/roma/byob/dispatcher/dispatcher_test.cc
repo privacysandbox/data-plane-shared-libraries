@@ -207,6 +207,51 @@ TEST(DispatcherTest, LoadAndExecute) {
   worker.join();
 }
 
+TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
+  std::thread worker([] {
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
+    ASSERT_NE(fd, -1);
+    ConnectToPath(fd, "abcd.sock");
+
+    // Process load request.
+    LoadRequest request;
+    {
+      FileInputStream input(fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+    }
+    ASSERT_EQ(request.code_token().size(), 36);
+    EXPECT_EQ(request.n_workers(), 1);
+
+    // Process execution request.
+    const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
+    ASSERT_NE(connection_fd, -1);
+    ConnectToPath(connection_fd, "abcd.sock");
+    EXPECT_EQ(
+        ::write(connection_fd, request.code_token().c_str(), /*count=*/36), 36);
+    EXPECT_EQ(::close(connection_fd), 0);
+    EXPECT_EQ(::close(fd), 0);
+  });
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const std::string code_token =
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  worker.join();
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_HELLO_WORLD);
+  absl::flat_hash_map<std::string,
+                      std::function<void(FunctionBindingPayload<int>&)>>
+      function_table;
+  absl::Notification done;
+  dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/0,
+                           function_table,
+                           [&](auto response) { done.Notify(); });
+  done.WaitForNotification();
+}
+
 TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
@@ -305,13 +350,91 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   worker.join();
 }
 
-TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
+TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
   absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(fd, -1);
+    ConnectToPath(fd, "abcd.sock");
+
+    // Process load request.
+    LoadRequest request;
+    {
+      FileInputStream input(fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+    }
+    ASSERT_EQ(request.code_token().size(), 36);
+    EXPECT_EQ(request.n_workers(), 1);
+
+    // Process execution request.
+    const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(connection_fd, -1);
+    ConnectToPath(connection_fd, "abcd.sock");
+    EXPECT_EQ(
+        ::write(connection_fd, request.code_token().c_str(), /*count=*/36), 36);
+    {
+      // Read UDF input.
+      FileInputStream input(connection_fd);
+      google::protobuf::Any any;
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
+      SampleRequest request;
+      ASSERT_TRUE(any.UnpackTo(&request));
+      EXPECT_EQ(request.function(), FUNCTION_PRIME_SIEVE);
+    }
+    {
+      // Initiate host callbacks from UDF.
+      Callback callback;
+      callback.set_function_name("example_function");
+      google::protobuf::Any any;
+      ASSERT_TRUE(any.PackFrom(std::move(callback)));
+      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
+    }
+    {
+      // Write UDF output.
+      SampleResponse response;
+      response.set_greeting("dummy greeting");
+      google::protobuf::Any any;
+      ASSERT_TRUE(any.PackFrom(std::move(response)));
+      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
+    }
+    EXPECT_EQ(::close(connection_fd), 0);
+    EXPECT_EQ(::close(fd), 0);
+  });
+  absl::flat_hash_map<std::string,
+                      std::function<void(FunctionBindingPayload<std::string>&)>>
+      function_table = {{"example_function", [](auto) {}}};
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const std::string code_token =
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  {
+    SampleRequest bin_request;
+    bin_request.set_function(FUNCTION_PRIME_SIEVE);
+    absl::StatusOr<std::string> bin_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request,
+                             /*metadata=*/std::string{"dummy_data"},
+                             function_table, [&](auto response) {
+                               bin_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_TRUE(SampleResponse{}.ParseFromString(*bin_response));
+  }
+  worker.join();
+}
+
+TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
+  std::thread worker([] {
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
     ASSERT_NE(fd, -1);
     ConnectToPath(fd, "abcd.sock");
 
