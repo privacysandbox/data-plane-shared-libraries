@@ -39,7 +39,7 @@ void WriteResponseToFd(int fd, EchoResponse resp) {
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    std::cerr << "Expecting exactly one argument";
+    std::cerr << "Expecting exactly one argument" << std::endl;
     return -1;
   }
   int fd = std::stoi(argv[1]);

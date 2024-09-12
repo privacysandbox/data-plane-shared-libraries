@@ -123,7 +123,7 @@ func main() {
 			runEchoCallback(file)
 		}
 	default:
-		log.Print("Unexpected input")
+		log.Println("Unexpected input")
 		return
 	}
 	writeResponseToFd(file, binResponse)

@@ -93,7 +93,7 @@ void RunEchoCallback(int fd) {
 
 int main(int argc, char* argv[]) {
   if (argc < 2) {
-    std::cerr << "Not enough arguments!";
+    std::cerr << "Not enough arguments!" << std::endl;
     return -1;
   }
   int fd = std::stoi(argv[1]);
@@ -115,6 +115,7 @@ int main(int argc, char* argv[]) {
       }
       break;
     default:
+      std::cerr << "Unexpected input" << std::endl;
       break;
   }
   WriteResponseToFd(fd, std::move(bin_response));
