@@ -28,7 +28,6 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/flat_hash_set.h"
 #include "absl/log/log.h"
-#include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
@@ -83,18 +82,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_FALSE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
@@ -126,19 +127,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          ASSERT_TRUE(bin_response.ParseFromString(*response));
-          EXPECT_THAT(bin_response.greeting(), StrEq("Hello, world!"));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_THAT(bin_response.greeting(), StrEq("Hello, world!"));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
@@ -170,18 +173,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
@@ -213,18 +218,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
@@ -256,18 +263,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
@@ -298,19 +307,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          ASSERT_TRUE(bin_response.ParseFromString(*response));
-          EXPECT_THAT(bin_response.greeting(), StrEq("I am a new UDF!"));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_THAT(bin_response.greeting(), StrEq("I am a new UDF!"));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
@@ -342,7 +353,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<std::string> serialized_response;
+    absl::StatusOr<google::protobuf::Any> serialized_response;
     absl::Notification done;
     dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
                              function_table,
@@ -353,7 +364,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
     done.WaitForNotification();
     ASSERT_TRUE(serialized_response.ok());
     SampleResponse bin_response;
-    ASSERT_TRUE(bin_response.ParseFromString(*serialized_response));
+    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
     EXPECT_THAT(bin_response.greeting(), StrEq("I am a crashing UDF!"));
   }
 }
@@ -387,7 +398,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<std::string> serialized_response;
+    absl::StatusOr<google::protobuf::Any> serialized_response;
     absl::Notification done;
     dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
                              function_table,
@@ -398,7 +409,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
     done.WaitForNotification();
     ASSERT_TRUE(serialized_response.ok());
     SampleResponse bin_response;
-    ASSERT_TRUE(bin_response.ParseFromString(*serialized_response));
+    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
     EXPECT_THAT(bin_response.greeting(), StrEq("I return a non-zero status!"));
   }
 }
@@ -431,18 +442,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_FALSE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
@@ -474,19 +487,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          ASSERT_TRUE(bin_response.ParseFromString(*response));
-          EXPECT_THAT(bin_response.greeting(), StrEq("Hello, world from Go!"));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_THAT(bin_response.greeting(), StrEq("Hello, world from Go!"));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
@@ -518,18 +533,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
@@ -561,18 +578,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
@@ -604,18 +623,20 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
-  absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) {
-          ASSERT_TRUE(response.ok());
-          SampleResponse bin_response;
-          EXPECT_TRUE(bin_response.ParseFromString(*response));
-          counter.DecrementCount();
-        });
+    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::Notification done;
+    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/i,
+                             function_table,
+                             [&serialized_response, &done](auto response) {
+                               serialized_response = std::move(response);
+                               done.Notify();
+                             });
+    done.WaitForNotification();
+    ASSERT_TRUE(serialized_response.ok());
+    SampleResponse bin_response;
+    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
   }
-  counter.Wait();
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob

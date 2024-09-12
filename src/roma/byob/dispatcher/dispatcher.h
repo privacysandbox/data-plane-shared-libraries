@@ -49,8 +49,8 @@ class Dispatcher {
   void ExecuteBinary(
       std::string_view code_token, const Request& request, Metadata metadata,
       const Table& table,
-      absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback)
-      ABSL_LOCKS_EXCLUDED(mu_) {
+      absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
+          callback) ABSL_LOCKS_EXCLUDED(mu_) {
     google::protobuf::Any any;
     any.PackFrom(request);
     {
@@ -81,7 +81,8 @@ class Dispatcher {
   void AcceptorImpl() ABSL_LOCKS_EXCLUDED(mu_);
   void ExecutorImpl(
       std::string_view code_token, google::protobuf::Any request,
-      absl::AnyInvocable<void(absl::StatusOr<std::string>) &&> callback,
+      absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
+          callback,
       absl::FunctionRef<void(std::string_view,
                              google::scp::roma::proto::FunctionBindingIoProto&)>
           handler) ABSL_LOCKS_EXCLUDED(mu_);

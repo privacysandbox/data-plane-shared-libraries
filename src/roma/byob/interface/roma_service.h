@@ -168,12 +168,12 @@ class RomaService final {
     dispatcher_->ExecuteBinary(
         code_token, request, std::move(metadata), function_bindings_,
         [callback = std::move(callback)](
-            absl::StatusOr<std::string> response) mutable {
+            absl::StatusOr<google::protobuf::Any> response) mutable {
           if (response.ok()) {
             Response message;
-            if (!message.ParseFromString(*response)) {
-              std::move(callback)(absl::InternalError(
-                  "Failed to deserialize response to proto"));
+            if (!response->UnpackTo(&message)) {
+              std::move(callback)(
+                  absl::InternalError("Failed to unpack response to proto"));
             }
             std::move(callback)(std::move(message));
           } else {
@@ -191,13 +191,13 @@ class RomaService final {
       absl::StatusOr<std::unique_ptr<Response>>& output) {
     dispatcher_->ExecuteBinary(
         code_token, request, std::move(metadata), function_bindings_,
-        [&notif, &output](absl::StatusOr<std::string> response) {
+        [&notif, &output](absl::StatusOr<google::protobuf::Any> response) {
           if (response.ok()) {
             // If response is uninitialized, initialize it with a unique_ptr.
             if (!output.ok() || *output == nullptr) {
               output = std::make_unique<Response>();
             }
-            if (!(*output)->ParseFromString(*response)) {
+            if (!response->UnpackTo(output->get())) {
               response = absl::InternalError(
                   "Failed to deserialize response to proto");
             }

@@ -115,7 +115,7 @@ int main(int argc, char* argv[]) {
       }
       break;
     default:
-      break;
+      return -1;
   }
   WriteResponseToFd(fd, std::move(bin_response));
   return 0;

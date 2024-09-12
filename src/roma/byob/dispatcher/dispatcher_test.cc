@@ -193,7 +193,7 @@ TEST(DispatcherTest, LoadAndExecute) {
     absl::flat_hash_map<std::string,
                         std::function<void(FunctionBindingPayload<int>&)>>
         function_table;
-    absl::StatusOr<std::string> bin_response;
+    absl::StatusOr<google::protobuf::Any> bin_response;
     absl::Notification done;
     dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/0,
                              function_table, [&](auto response) {
@@ -202,7 +202,8 @@ TEST(DispatcherTest, LoadAndExecute) {
                              });
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
-    EXPECT_TRUE(SampleResponse{}.ParseFromString(*bin_response));
+    SampleResponse response;
+    EXPECT_TRUE(bin_response->UnpackTo(&response));
   }
   worker.join();
 }
@@ -334,7 +335,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                              absl::MutexLock lock(&mu);
                              ++count;
                            }}};
-    absl::StatusOr<std::string> bin_response;
+    absl::StatusOr<google::protobuf::Any> bin_response;
     absl::Notification done;
     dispatcher.ExecuteBinary(code_token, bin_request,
                              /*metadata=*/std::string{"dummy_data"},
@@ -344,7 +345,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                              });
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
-    EXPECT_TRUE(SampleResponse{}.ParseFromString(*bin_response));
+    SampleResponse response;
+    EXPECT_TRUE(bin_response->UnpackTo(&response));
     EXPECT_EQ(count, 2);
   }
   worker.join();
@@ -413,7 +415,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
-    absl::StatusOr<std::string> bin_response;
+    absl::StatusOr<google::protobuf::Any> bin_response;
     absl::Notification done;
     dispatcher.ExecuteBinary(code_token, bin_request,
                              /*metadata=*/std::string{"dummy_data"},
@@ -423,7 +425,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
                              });
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
-    EXPECT_TRUE(SampleResponse{}.ParseFromString(*bin_response));
+    SampleResponse response;
+    EXPECT_TRUE(bin_response->UnpackTo(&response));
   }
   worker.join();
 }
