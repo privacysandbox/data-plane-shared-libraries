@@ -133,7 +133,7 @@ int WorkerImpl(void* arg) {
   }();
   ::execl(worker_impl_arg.binary_path.data(),
           worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
-  PLOG(FATAL) << "execl() failed";
+  PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
 struct PidAndPivotRootDir {
   int pid;
@@ -265,7 +265,13 @@ int main(int argc, char** argv) {
         udf = std::move(it->second);
         pid_to_udf.erase(it);
         if (!WIFEXITED(status)) {
-          LOG(ERROR) << "Process pid=" << pid << " did not exit";
+          if (WIFSIGNALED(status)) {
+            LOG(ERROR) << "Process pid=" << pid
+                       << " terminated (signal=" << WTERMSIG(status)
+                       << ", coredump=" << WCOREDUMP(status) << ")";
+          } else {
+            LOG(ERROR) << "Process pid=" << pid << " did not exit";
+          }
         } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
           LOG(ERROR) << "Process pid=" << pid << " exit_code=" << exit_code;
         }
