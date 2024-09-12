@@ -142,7 +142,9 @@ TEST(RomaByobTest, LoadBinaryInSandboxMode) {
 
 TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
-  if (!HasClonePermissionsByobWorker(mode)) return;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
   ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
 
   absl::Notification notif;
@@ -174,7 +176,9 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInSandboxMode) {
 
 TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
-  if (!HasClonePermissionsByobWorker(mode)) return;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
   ByobSampleService<> roma_service = GetRomaService(mode,
                                                     /*num_workers=*/2);
 
@@ -193,7 +197,9 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
 
 TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
   Mode mode = Mode::kModeNoSandbox;
-  if (!HasClonePermissionsByobWorker(mode)) return;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
   ByobSampleService<> roma_service = GetRomaService(mode,
                                                     /*num_workers=*/2);
 

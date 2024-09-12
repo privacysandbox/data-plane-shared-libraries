@@ -44,6 +44,7 @@ def _byob_image(
             "@platforms//cpu:aarch64": "@runtime-debian-{dbg}-{nonroot}-arm64".format(dbg = debug_str, nonroot = user.flavor),
             "@platforms//cpu:x86_64": "@runtime-debian-{dbg}-{nonroot}-amd64".format(dbg = debug_str, nonroot = user.flavor),
         }),
+        labels = {"tee.launch_policy.log_redirect": "always"},
         tars = [
             Label("//src/roma/byob/container:gvisor_tar_{}".format(user.flavor)),
             Label("//src/roma/byob/container:container_config_tar_{}".format(user.flavor)),
