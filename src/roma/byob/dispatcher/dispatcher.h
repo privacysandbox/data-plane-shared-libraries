@@ -92,6 +92,7 @@ class Dispatcher {
   int connection_fd_;
   std::optional<std::thread> acceptor_;
   absl::Mutex mu_;
+  bool acceptor_active_ ABSL_GUARDED_BY(mu_) = false;
   int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
   absl::flat_hash_map<std::string, std::queue<int>> code_token_to_fds_
       ABSL_GUARDED_BY(mu_);

@@ -98,6 +98,10 @@ std::string Dispatcher::LoadBinary(std::filesystem::path binary_path,
 }
 
 void Dispatcher::AcceptorImpl() {
+  {
+    absl::MutexLock lock(&mu_);
+    acceptor_active_ = true;
+  }
   while (true) {
     const int fd = ::accept(listen_fd_, nullptr, nullptr);
     if (fd == -1) {
@@ -110,6 +114,10 @@ void Dispatcher::AcceptorImpl() {
     (void)::read(fd, buffer, 36);
     absl::MutexLock lock(&mu_);
     code_token_to_fds_[buffer].push(fd);
+  }
+  {
+    absl::MutexLock lock(&mu_);
+    acceptor_active_ = false;
   }
 }
 
@@ -134,13 +142,21 @@ void Dispatcher::ExecutorImpl(
   {
     auto fn = [&] {
       mu_.AssertReaderHeld();
-      return !code_token_to_fds_[code_token].empty();
+      return !code_token_to_fds_[code_token].empty() || !acceptor_active_;
     };
     absl::MutexLock l(&mu_);
     mu_.Await(absl::Condition(&fn));
     auto& fds = code_token_to_fds_[code_token];
-    fd = fds.front();
-    fds.pop();
+    if (!fds.empty()) {
+      fd = fds.front();
+      fds.pop();
+    } else {
+      // No workers are available and the acceptor is no longer accepting
+      // connections from new workers.
+      std::move(callback)(
+          absl::FailedPreconditionError("No workers available."));
+      return;
+    }
   }
   SerializeDelimitedToFileDescriptor(request, fd);
   FileInputStream input(fd);
