@@ -69,7 +69,7 @@ _cc_app_template_plugins = [
         name = "roma_app_api_cc_plugin{}".format(i),
         option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
-        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
+        tool = Label("//src/roma/tools/api_plugin:roma_api_plugin"),
     )
     for i, plugin in enumerate([
         struct(
@@ -143,7 +143,7 @@ _app_api_handler_js_plugins = [
         exclusions = [],
         option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
-        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
+        tool = Label("//src/roma/tools/api_plugin:roma_api_plugin"),
     )
     for i, plugin in enumerate([
         struct(
@@ -189,7 +189,7 @@ _cc_host_template_plugins = [
         name = "roma_host_api_cc_plugin{}".format(i),
         option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
-        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
+        tool = Label("//src/roma/tools/api_plugin:roma_api_plugin"),
     )
     for i, plugin in enumerate([
         struct(
@@ -238,7 +238,7 @@ _host_api_js_plugins = [
         exclusions = [],
         option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
-        tool = "//src/roma/tools/api_plugin:roma_api_plugin",
+        tool = Label("//src/roma/tools/api_plugin:roma_api_plugin"),
     )
     for i, plugin in enumerate([
         struct(
