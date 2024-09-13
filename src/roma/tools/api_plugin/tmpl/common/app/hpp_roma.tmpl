@@ -29,7 +29,7 @@
 #include <memory>
 
 #include "src/roma/config/function_binding_object_v2.h"
-#include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
+#include "{{$file.Name | trimSuffix (ext $file.Name)}}_udf_interface.pb.h"
 
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
@@ -51,8 +51,9 @@ class {{$svc.Name}} {
  public:
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-  {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
-  {{- $respType := $rpc.ResponseFullType | replace "." "::" | printf "::%s" }}
+  {{- $pkg := $svcopts.CppNamespace | replace "." "::" | printf "::%s" }}
+  {{- $reqType := $rpc.RequestType | replace "." "::" | printf "%s::%s" $pkg }}
+  {{- $respType := $rpc.ResponseType | replace "." "::" | printf "%s::%s" $pkg }}
   /*
    * {{$rpc.Name}}
    * {{- $rpc.Description}}

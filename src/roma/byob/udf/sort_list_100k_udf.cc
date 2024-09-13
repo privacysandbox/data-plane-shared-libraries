@@ -18,10 +18,10 @@
 
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
-#include "src/roma/byob/udf/sample.pb.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 
 namespace {
-using ::privacy_sandbox::server_common::byob::SortListResponse;
+using ::privacy_sandbox::roma_byob::example::SortListResponse;
 
 std::array<int, 100'000> items = {
     -1865008400, 470211269,   -689632771,  1115438162,  -1009961146,

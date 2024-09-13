@@ -28,9 +28,9 @@ using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
-using ::privacysandbox::roma::app_api::sample_2_test::V8Sample2Service;
 using ::privacysandbox::roma::app_api::sample_2_test::v1::GetSample2Request;
 using ::privacysandbox::roma::app_api::sample_2_test::v1::GetSample2Response;
+using ::privacysandbox::roma::app_api::sample_2_test::v1::V8Sample2Service;
 
 namespace privacysandbox::kvserver::roma::AppApi::RomaKvTest {
 

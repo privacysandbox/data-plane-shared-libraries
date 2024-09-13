@@ -28,7 +28,7 @@
 
 namespace google::scp::roma::grpc_server {
 typedef privacy_sandbox::server_common::TestService::AsyncService AsyncService;
-typedef privacy_sandbox::server_common::MultiService::AsyncService
+typedef privacy_sandbox::multi_service::MultiService::AsyncService
     AsyncMultiService;
 
 template <typename TMetadata>
@@ -58,8 +58,8 @@ class TestMethodHandler
 template <typename TMetadata>
 class TestMethod1Handler
     : public RequestHandlerBase<
-          privacy_sandbox::server_common::TestMethod1Request,
-          privacy_sandbox::server_common::TestMethod1Response,
+          privacy_sandbox::multi_service::TestMethod1Request,
+          privacy_sandbox::multi_service::TestMethod1Response,
           AsyncMultiService> {
  public:
   void Request(TService* service, grpc::ServerContext* ctx,
@@ -83,8 +83,8 @@ class TestMethod1Handler
 template <typename TMetadata>
 class TestMethod2Handler
     : public RequestHandlerBase<
-          privacy_sandbox::server_common::TestMethod2Request,
-          privacy_sandbox::server_common::TestMethod2Response,
+          privacy_sandbox::multi_service::TestMethod2Request,
+          privacy_sandbox::multi_service::TestMethod2Response,
           AsyncMultiService> {
  public:
   void Request(TService* service, grpc::ServerContext* ctx,

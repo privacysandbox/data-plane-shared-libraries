@@ -33,7 +33,7 @@
 
 namespace google::scp::roma::benchmark::proto {
 
-using privacy_sandbox::server_common::BenchmarkRequest;
+using privacy_sandbox::benchmark::BenchmarkRequest;
 
 void DeserializeProtobufBenchmark(::benchmark::State& state,
                                   std::string_view path) {

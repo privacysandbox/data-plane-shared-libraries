@@ -20,18 +20,18 @@
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/host/callback.pb.h"
-#include "src/roma/byob/udf/sample.pb.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using ::privacy_sandbox::roma_byob::example::SampleRequest;
+using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::privacy_sandbox::server_common::byob::Callback;
-using ::privacy_sandbox::server_common::byob::FUNCTION_CALLBACK;
-using ::privacy_sandbox::server_common::byob::FUNCTION_HELLO_WORLD;
-using ::privacy_sandbox::server_common::byob::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::server_common::byob::FUNCTION_TEN_CALLBACK_INVOCATIONS;
-using ::privacy_sandbox::server_common::byob::SampleRequest;
-using ::privacy_sandbox::server_common::byob::SampleResponse;
 
 // Find all prime numbers less than this:
 constexpr int kPrimeCount = 100'000;

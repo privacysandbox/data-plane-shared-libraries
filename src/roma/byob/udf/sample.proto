@@ -23,7 +23,7 @@ service SampleService {
     name: 'Sample Server',
     code_id: "app_api_roma_app_test_v1",
     description: 'A sample server showcasing declarative APIs for BYOB',
-    cpp_namespace: 'privacy_sandbox::sample_server::roma_app_api',
+    cpp_namespace: 'privacy_sandbox::roma_byob::example',
     roma_app_name: 'SampleServer'
   };
 

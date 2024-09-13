@@ -46,8 +46,8 @@ namespace google::scp::roma::benchmark::proto {
 using google::scp::roma::InvocationStrRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
-using privacy_sandbox::server_common::BenchmarkRequest;
-using privacysandbox::benchmark::V8BenchmarkService;
+using privacy_sandbox::benchmark::BenchmarkRequest;
+using privacy_sandbox::benchmark::V8BenchmarkService;
 
 constexpr auto kTimeout = absl::Seconds(10);
 constexpr std::string_view kCodeVersion = "v1";

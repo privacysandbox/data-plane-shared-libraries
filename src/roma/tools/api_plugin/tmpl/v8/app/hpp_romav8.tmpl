@@ -85,8 +85,9 @@ class {{$svcName}} final :
   }
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-  {{- $reqType := $rpc.RequestFullType | replace "." "::" | printf "::%s" }}
-  {{- $respType := $rpc.ResponseFullType | replace "." "::" | printf "::%s" }}
+  {{- $pkg := $svcopts.CppNamespace | replace "." "::" | printf "::%s" }}
+  {{- $reqType := $rpc.RequestType | replace "." "::" | printf "%s::%s" $pkg }}
+  {{- $respType := $rpc.ResponseType | replace "." "::" | printf "%s::%s" $pkg }}
   /*
    * {{$rpc.Name}}
    * {{- $rpc.Description}}

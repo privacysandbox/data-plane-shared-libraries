@@ -26,7 +26,7 @@ service TestService {
     name: 'Test Server',
     code_id: "app_api_roma_app_test_v1",
     description: 'Test Server',
-    cpp_namespace: 'privacysandbox::test_server',
+    cpp_namespace: 'privacy_sandbox::server_common',
     roma_app_name: 'TestServer',
   };
 

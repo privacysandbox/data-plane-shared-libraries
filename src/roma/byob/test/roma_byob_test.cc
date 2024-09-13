@@ -24,9 +24,9 @@
 
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
-#include "src/roma/byob/udf/sample.pb.h"
 #include "src/roma/byob/udf/sample_callback.pb.h"
 #include "src/roma/byob/udf/sample_roma_byob_app_service.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 #include "src/roma/byob/utility/udf_blob.h"
 #include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
@@ -35,20 +35,21 @@ namespace privacy_sandbox::server_common::byob::test {
 
 namespace {
 using ::google::scp::roma::FunctionBindingObjectV2;
-using ::privacy_sandbox::sample_server::roma_app_api::ByobSampleService;
-using ::privacy_sandbox::sample_server::roma_app_api::SampleService;
+using ::privacy_sandbox::roma_byob::example::ByobSampleService;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using ::privacy_sandbox::roma_byob::example::FunctionType;
+using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest;
+using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse;
+using ::privacy_sandbox::roma_byob::example::SampleRequest;
+using ::privacy_sandbox::roma_byob::example::SampleResponse;
+using ::privacy_sandbox::roma_byob::example::SampleService;
 using ::privacy_sandbox::server_common::byob::CallbackReadRequest;
 using ::privacy_sandbox::server_common::byob::CallbackReadResponse;
-using ::privacy_sandbox::server_common::byob::FUNCTION_CALLBACK;
-using ::privacy_sandbox::server_common::byob::FUNCTION_HELLO_WORLD;
-using ::privacy_sandbox::server_common::byob::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::server_common::byob::FUNCTION_TEN_CALLBACK_INVOCATIONS;
-using ::privacy_sandbox::server_common::byob::FunctionType;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
-using ::privacy_sandbox::server_common::byob::ReadCallbackPayloadRequest;
-using ::privacy_sandbox::server_common::byob::SampleRequest;
-using ::privacy_sandbox::server_common::byob::SampleResponse;
 
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
@@ -271,9 +272,7 @@ TEST(RomaByobTest, ExecuteCppBinaryWithHostCallbackInSandboxMode) {
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename);
-  absl::StatusOr<std::unique_ptr<
-      privacy_sandbox::server_common::byob::ReadCallbackPayloadResponse>>
-      response;
+  absl::StatusOr<std::unique_ptr<ReadCallbackPayloadResponse>> response;
   absl::Notification notif;
   CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
                                             /*metadata=*/{}, code_token));

@@ -31,37 +31,37 @@
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "src/roma/byob/udf/sample.pb.h"
 #include "src/roma/byob/udf/sample_callback.pb.h"
 #include "src/roma/byob/udf/sample_roma_byob_app_service.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 #include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace {
 using ::google::scp::roma::FunctionBindingObjectV2;
-using ::privacy_sandbox::sample_server::roma_app_api::ByobSampleService;
-using ::privacy_sandbox::sample_server::roma_app_api::SampleService;
+using ::privacy_sandbox::roma_byob::example::ByobSampleService;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+// using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest;
+// using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse;
+using ::privacy_sandbox::roma_byob::example::FunctionType;
+using ::privacy_sandbox::roma_byob::example::RunPrimeSieveRequest;
+using ::privacy_sandbox::roma_byob::example::RunPrimeSieveResponse;
+using ::privacy_sandbox::roma_byob::example::SampleRequest;
+using ::privacy_sandbox::roma_byob::example::SampleResponse;
+using ::privacy_sandbox::roma_byob::example::SampleService;
+using ::privacy_sandbox::roma_byob::example::SortListRequest;
+using ::privacy_sandbox::roma_byob::example::SortListResponse;
+using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadRequest;
+using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadResponse;
 using ::privacy_sandbox::server_common::byob::CallbackReadRequest;
 using ::privacy_sandbox::server_common::byob::CallbackReadResponse;
 using ::privacy_sandbox::server_common::byob::CallbackWriteRequest;
 using ::privacy_sandbox::server_common::byob::CallbackWriteResponse;
-using ::privacy_sandbox::server_common::byob::FUNCTION_CALLBACK;
-using ::privacy_sandbox::server_common::byob::FUNCTION_HELLO_WORLD;
-using ::privacy_sandbox::server_common::byob::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::server_common::byob::FUNCTION_TEN_CALLBACK_INVOCATIONS;
-using ::privacy_sandbox::server_common::byob::FunctionType;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
-using ::privacy_sandbox::server_common::byob::ReadCallbackPayloadRequest;
-using ::privacy_sandbox::server_common::byob::ReadCallbackPayloadResponse;
-using ::privacy_sandbox::server_common::byob::RunPrimeSieveRequest;
-using ::privacy_sandbox::server_common::byob::RunPrimeSieveResponse;
-using ::privacy_sandbox::server_common::byob::SampleRequest;
-using ::privacy_sandbox::server_common::byob::SampleResponse;
-using ::privacy_sandbox::server_common::byob::SortListRequest;
-using ::privacy_sandbox::server_common::byob::SortListResponse;
-using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadRequest;
-using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadResponse;
 
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
@@ -89,7 +89,7 @@ enum class Language {
 
 SampleResponse SendRequestAndGetResponse(
     ByobSampleService<>& roma_service,
-    ::privacy_sandbox::server_common::byob::FunctionType func_type,
+    ::privacy_sandbox::roma_byob::example::FunctionType func_type,
     std::string_view code_token) {
   // Data we are sending to the server.
   SampleRequest bin_request;
@@ -408,7 +408,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
     absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::server_common::byob::ReadPayloadResponse>>
+        ::privacy_sandbox::roma_byob::example::ReadPayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.ReadPayload(notif, request, response,
@@ -417,7 +417,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
     return response;
   };
 
-  ::privacy_sandbox::server_common::byob::ReadPayloadRequest request;
+  ::privacy_sandbox::roma_byob::example::ReadPayloadRequest request;
   std::string payload(elem_size, char(10));
   auto payloads = request.mutable_payloads();
   payloads->Reserve(elem_count);
@@ -454,7 +454,7 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
     absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::server_common::byob::GeneratePayloadResponse>>
+        ::privacy_sandbox::roma_byob::example::GeneratePayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.GeneratePayload(notif, request, response,
@@ -463,7 +463,7 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
     return response;
   };
 
-  ::privacy_sandbox::server_common::byob::GeneratePayloadRequest request;
+  ::privacy_sandbox::roma_byob::example::GeneratePayloadRequest request;
   request.set_element_size(elem_size);
   request.set_element_count(elem_count);
   const int64_t req_payload_size = elem_size * elem_count;
@@ -510,7 +510,7 @@ void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::server_common::byob::ReadCallbackPayloadResponse>>
+        ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
@@ -519,7 +519,7 @@ void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
     return response;
   };
 
-  ::privacy_sandbox::server_common::byob::ReadCallbackPayloadRequest request;
+  ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest request;
   request.set_element_size(elem_size);
   request.set_element_count(elem_count);
   const int64_t payload_size = elem_size * elem_count;
@@ -562,7 +562,7 @@ void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::server_common::byob::WriteCallbackPayloadResponse>>
+        ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadResponse>>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.WriteCallbackPayload(notif, request, response,
@@ -571,7 +571,7 @@ void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
     return response;
   };
 
-  ::privacy_sandbox::server_common::byob::WriteCallbackPayloadRequest request;
+  ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadRequest request;
   request.set_element_size(elem_size);
   request.set_element_count(elem_count);
   const int64_t payload_size = elem_size * elem_count;
@@ -615,7 +615,7 @@ void BM_ExecuteBinaryPrimeSieve(benchmark::State& state) {
     notif.WaitForNotification();
     return response;
   };
-  ::privacy_sandbox::server_common::byob::RunPrimeSieveRequest request;
+  ::privacy_sandbox::roma_byob::example::RunPrimeSieveRequest request;
   request.set_prime_count(state.range(1));
   const std::string code_tok = LoadCode(
       roma_service, std::filesystem::path(kUdfPath) / "prime_sieve_udf");

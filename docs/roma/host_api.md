@@ -48,7 +48,7 @@ for an example of a service defined with an RPC, `NativeMethod`. Notice that `Te
 `cpp_host_process_callback_includes` contains
 [src/roma/native_function_grpc_server/proto/test_service_native_functions.h](/src/roma/native_function_grpc_server/proto/test_service_native_functions.h),
 and test_service_native_functions.h has the fully qualified name to the C++ hook function that
-should be invoked for NativeMethod in JS, `::privacysandbox::test_host_server::HandleNativeMethod`,
+should be invoked for NativeMethod in JS, `::privacy_sandbox::test_host_server::HandleNativeMethod`,
 which is found in NativeMethod's `cpp_host_process_callback` property. The corresponding BUILD file,
 found [here](/src/roma/native_function_grpc_server/proto/BUILD) gives an example of how to use the
 new build rules to build the Host Api for your proto.

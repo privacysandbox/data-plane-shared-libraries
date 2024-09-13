@@ -14,17 +14,22 @@
 
 """Macro for the Roma Application API."""
 
+load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
+load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//:defs.bzl", "bazel_build_rule_common_attrs", "filter_files")
 load(
     "//src/roma/tools/api_plugin:internal/roma_api.bzl",
     "app_api_cc_protoc",
     "app_api_handler_js_protoc",
+    "byob_udf_protospec",
     "host_api_cc_protoc",
     "host_api_js_protoc",
     "roma_js_proto_library",
@@ -164,7 +169,6 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
         roma_app_api: the roma_api struct
     """
     name_proto = name + "_proto_js_plugin"
-
     host_api_targets = []
     for i, host_api in enumerate(roma_app_api.host_apis):
         target_name = "{}_host_api_{}".format(name, i)
@@ -173,7 +177,6 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
             name = target_name,
             roma_host_api = host_api,
         )
-
     if host_api_targets:
         _filter_files_suffix(
             name = name + "_host_api_docs",
@@ -185,7 +188,6 @@ def roma_service_js_library(*, name, roma_app_api, **kwargs):
             targets = host_api_targets,
             suffixes = ["js"],
         )
-
     app_api_handler_js_protoc(
         name = name_proto,
         roma_app_api = roma_app_api,
@@ -253,9 +255,7 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             - ProtoPluginInfo
             - DefaultInfo
     """
-
     name_proto = name + "_proto_cc_plugin"
-
     host_api_cc_protoc(
         name = name_proto,
         roma_host_api = roma_host_api,
@@ -277,7 +277,6 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         target = name_proto,
         extensions = ["md"],
     )
-
     cc_library(
         name = name,
         hdrs = [
@@ -342,7 +341,6 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
     """
 
     name_proto = name + "_proto_cc_plugin"
-
     app_api_cc_protoc(
         name = name_proto,
         roma_app_api = roma_app_api,
@@ -365,11 +363,23 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         suffixes = ["roma_app_service.h"],
     )
     _filter_files_suffix(
+        name = name + "_pb_h",
+        targets = [name_proto],
+        suffixes = [".pb.h"],
+    )
+
+    # duplicate $name.pb.h as $name_udf_interface.pb.h for alignment with Roma BYOB
+    copy_file(
+        name = name + "_udf_interface_pb_h",
+        src = ":{}_pb_h".format(name),
+        out = "{}_udf_interface.pb.h".format(roma_app_api.proto_basename),
+        visibility = ["//visibility:public"],
+    )
+    _filter_files_suffix(
         name = name + "_docs",
         targets = [name_proto],
         suffixes = ["cc_v8_app_api_client_sdk.md"],
     )
-
     service_h = "{}_romav8_app_service.h".format(roma_app_api.proto_basename)
     _expand_template_file(
         name = "{}_romav8_app_header".format(name),
@@ -382,12 +392,12 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         name = name + "_cc_service_hdrs",
         srcs = [":{}".format(service_h)],
     )
-
     cc_library(
         name = name,
         hdrs = [
             ":{}_cc_service_hdrs".format(name),
             ":{}_cc_hdrs".format(name),
+            ":{}_udf_interface_pb_h".format(name),
         ],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
@@ -398,7 +408,6 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
-
     cc_test(
         name = name + "_rpc_cc_test",
         size = "small",
@@ -459,12 +468,9 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         targets = [name_proto],
         suffixes = ["cc_byob_app_api_client_sdk.md"],
     )
-
     cc_library(
         name = name,
-        hdrs = [
-            "{}_roma_byob_app_header".format(name),
-        ],
+        hdrs = ["{}_roma_byob_app_header".format(name)],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
             Label("//src/roma/roma_service:romav8_app_service"),
@@ -613,7 +619,6 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
         },
         prefix = "tools",
     )
-
     pkg_zip(
         name = name,
         srcs = srcs + [
@@ -629,7 +634,7 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_byob_sdk(*, name, srcs, byob_app_api_cc_library, **kwargs):
+def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
     """
     Top-level macro for the Roma BYOB SDK.
 
@@ -638,13 +643,57 @@ def roma_byob_sdk(*, name, srcs, byob_app_api_cc_library, **kwargs):
     Args:
         name: name of sdk target, basename of ancillary targets.
         srcs: label list of targets to include.
-        byob_app_api_cc_library: label of the associated byob_app_api_cc_library target.
         **kwargs: attributes common to bazel build rules.
 
     Targets:
-        <name>_doc_artifacts -- docs pkg_files
         <name> -- sdk pkg_zip
+        <name>_doc_artifacts -- docs pkg_files
+        <name>.proto -- proto spec
+        <name>_proto -- proto_library
+        <name>_cc_proto -- cc_proto_library
+        <name>_roma_cc_lib -- roma_byob_app_api_cc_library
     """
+    byob_udf_protospec(
+        name = name + ".proto",
+        roma_app_api = roma_app_api,
+    )
+    proto_library(
+        name = name + "_proto",
+        srcs = [":{}.proto".format(name)],
+    )
+    cc_proto_library(
+        name = name + "_cc_proto",
+        visibility = ["//src/roma/byob:__subpackages__"],
+        deps = [":{}_proto".format(name)],
+    )
+    roma_byob_app_api_cc_library(
+        name = name + "_roma_cc_lib",
+        roma_app_api = roma_app_api,
+        tags = [
+            "noasan",
+            "notsan",
+        ],
+        visibility = ["//visibility:public"],
+    )
+    buf_lint_test(
+        name = name + "_proto_lint",
+        size = "small",
+        config = "//src:buf.yaml",
+        targets = [":{}_proto".format(name)],
+    )
+    pkg_files(
+        name = name + "_specs",
+        srcs = [":{}.proto".format(name)],
+        prefix = "specs",
+        renames = {
+            ":{}.proto".format(name): "udf_interface.proto",
+        },
+    )
+    pkg_files(
+        name = name + "_doc_artifacts",
+        srcs = ["//docs/roma:byob/sdk/docs/Guide to the SDK.md"],
+        prefix = "docs",
+    )
     pkg_files(
         name = name + "_doc_udf_artifacts",
         srcs = [
@@ -655,16 +704,12 @@ def roma_byob_sdk(*, name, srcs, byob_app_api_cc_library, **kwargs):
         ],
         prefix = "docs/udf",
     )
-    pkg_files(
-        name = name + "_doc_artifacts",
-        srcs = ["//docs/roma:byob/sdk/docs/Guide to the SDK.md"],
-        prefix = "docs",
-    )
-
+    byob_app_api_cc_library = name + "_roma_cc_lib"
     pkg_zip(
         name = name,
         srcs = srcs + [
             "{}".format(byob_app_api_cc_library),
+            "{}_specs".format(name),
             "{}_roma_byob_app_header".format(byob_app_api_cc_library),
             ":{}_doc_artifacts".format(name),
             ":{}_doc_udf_artifacts".format(name),

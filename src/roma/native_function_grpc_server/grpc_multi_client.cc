@@ -51,9 +51,9 @@ void LogOutput(const grpc::Status& status, std::string_view output) {
   }
 }
 
-bool SendRpc1(privacy_sandbox::server_common::MultiService::Stub* stub,
-              privacy_sandbox::server_common::TestMethod1Request& request) {
-  privacy_sandbox::server_common::TestMethod1Response response;
+bool SendRpc1(privacy_sandbox::multi_service::MultiService::Stub* stub,
+              privacy_sandbox::multi_service::TestMethod1Request& request) {
+  privacy_sandbox::multi_service::TestMethod1Response response;
   grpc::ClientContext context;
   context.set_wait_for_ready(true);
   context.AddMetadata(std::string(google::scp::roma::grpc_server::kUuidTag),
@@ -65,9 +65,9 @@ bool SendRpc1(privacy_sandbox::server_common::MultiService::Stub* stub,
   return status.ok();
 }
 
-bool SendRpc2(privacy_sandbox::server_common::MultiService::Stub* stub,
-              privacy_sandbox::server_common::TestMethod2Request& request) {
-  privacy_sandbox::server_common::TestMethod2Response response;
+bool SendRpc2(privacy_sandbox::multi_service::MultiService::Stub* stub,
+              privacy_sandbox::multi_service::TestMethod2Request& request) {
+  privacy_sandbox::multi_service::TestMethod2Response response;
   grpc::ClientContext context;
   context.set_wait_for_ready(true);
   context.AddMetadata(std::string(google::scp::roma::grpc_server::kUuidTag),
@@ -99,17 +99,17 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<grpc::Channel> grpc_channel = grpc::CreateChannel(
       absl::GetFlag(FLAGS_server_address), grpc::InsecureChannelCredentials());
-  std::unique_ptr<privacy_sandbox::server_common::MultiService::Stub> stub(
-      privacy_sandbox::server_common::MultiService::NewStub(grpc_channel));
+  std::unique_ptr<privacy_sandbox::multi_service::MultiService::Stub> stub(
+      privacy_sandbox::multi_service::MultiService::NewStub(grpc_channel));
 
   LOG(INFO) << "Building Grpc TestMethodRequest [" << absl::GetFlag(FLAGS_id)
             << "]...";
 
-  privacy_sandbox::server_common::TestMethod1Request request1;
+  privacy_sandbox::multi_service::TestMethod1Request request1;
   request1.set_input("Hello ");
   request1.set_processing_delay_ms(absl::GetFlag(FLAGS_delay_ms));
 
-  privacy_sandbox::server_common::TestMethod2Request request2;
+  privacy_sandbox::multi_service::TestMethod2Request request2;
   request2.set_input("Hello ");
   request2.set_processing_delay_ms(absl::GetFlag(FLAGS_delay_ms));
 

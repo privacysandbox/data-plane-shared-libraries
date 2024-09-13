@@ -53,7 +53,7 @@ cc_test(
         ":dispatcher",
         ":dispatcher_cc_proto",
         "//src/roma/byob/host:callback_cc_proto",
-        "//src/roma/byob/udf:sample_cc_proto",
+        "//src/roma/byob/udf:sample_byob_sdk_cc_proto",
         "//src/roma/config",
         "@com_google_absl//absl/cleanup",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -83,7 +83,7 @@ cc_test(
     ],
     deps = [
         ":dispatcher",
-        "//src/roma/byob/udf:sample_cc_proto",
+        "//src/roma/byob/udf:sample_byob_sdk_cc_proto",
         "//src/roma/config",
         "@com_google_absl//absl/cleanup",
         "@com_google_absl//absl/container:flat_hash_map",

@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package privacy_sandbox.server_common;
+package privacy_sandbox.multi_service;
 
 import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 
@@ -25,7 +25,7 @@ service MultiService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
     name: 'Multi Server',
     description: 'Multi Server',
-    cpp_namespace: 'privacysandbox::multi_server',
+    cpp_namespace: 'privacy_sandbox::multi_service',
     roma_app_name: 'MultiServer',
     cpp_host_process_callback_includes: [
       'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
@@ -34,13 +34,13 @@ service MultiService {
 
   rpc TestMethod1(TestMethod1Request) returns (TestMethod1Response) {
     option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
-      cpp_host_process_callback: '::privacysandbox::multi_server::HandleTestMethod1',
+      cpp_host_process_callback: '::privacy_sandbox::multi_service::HandleTestMethod1',
     };
   };
 
   rpc TestMethod2(TestMethod2Request) returns (TestMethod2Response) {
     option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
-      cpp_host_process_callback: '::privacysandbox::multi_server::HandleTestMethod2',
+      cpp_host_process_callback: '::privacy_sandbox::multi_service::HandleTestMethod2',
     };
   };
 }

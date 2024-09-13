@@ -144,7 +144,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   config.enable_native_function_grpc_server = true;
   config.RegisterRpcHandler(
       "TestHostServer.NativeMethod",
-      privacysandbox::test_host_server::NativeMethodHandler<std::string>());
+      privacy_sandbox::test_host_server::NativeMethodHandler<std::string>());
 
   RomaService<std::string> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
@@ -189,7 +189,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   {
     // Convert proto to string representation of byte array and send to UDF.
     // Stand-in from UDF sending proto encoded as Uint8Array of bytes.
-    privacy_sandbox::server_common::NativeMethodRequest request;
+    privacy_sandbox::test_host_server::NativeMethodRequest request;
     request.set_input("Hello ");
     std::string request_bytes = ProtoToBytesStr(request);
 
@@ -225,7 +225,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   // Extract the string value from the JSON
   result = j["result"];
 
-  privacy_sandbox::server_common::NativeMethodResponse response;
+  privacy_sandbox::test_host_server::NativeMethodResponse response;
   response.ParseFromString(result);
 
   EXPECT_THAT(response.output(), StrEq("Hello World. From NativeMethod"));

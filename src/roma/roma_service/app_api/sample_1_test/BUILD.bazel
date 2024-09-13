@@ -86,9 +86,7 @@ roma_v8_app_api_cc_library(
 
 roma_v8_sdk(
     name = "sample_1_sdk",
-    srcs = [
-        ":sample_1_js",
-    ],
+    srcs = [":sample_1_js"],
     app_api_cc_library = ":sample_1_roma_api",
     js_library = ":sample_1_js_library",
     roma_app_api = sample_1_api,

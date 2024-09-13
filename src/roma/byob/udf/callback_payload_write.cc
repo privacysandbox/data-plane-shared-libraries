@@ -17,14 +17,14 @@
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/host/callback.pb.h"
-#include "src/roma/byob/udf/sample.pb.h"
 #include "src/roma/byob/udf/sample_callback.pb.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 
+using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadRequest;
+using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadResponse;
 using ::privacy_sandbox::server_common::byob::Callback;
 using ::privacy_sandbox::server_common::byob::CallbackWriteRequest;
 using ::privacy_sandbox::server_common::byob::CallbackWriteResponse;
-using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadRequest;
-using ::privacy_sandbox::server_common::byob::WriteCallbackPayloadResponse;
 
 WriteCallbackPayloadRequest ReadRequestFromFd(
     google::protobuf::io::FileInputStream& stream) {

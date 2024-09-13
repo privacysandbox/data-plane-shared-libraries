@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package privacy_sandbox.server_common;
+package privacy_sandbox.test_host_server;
 
 import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 
@@ -25,7 +25,7 @@ service TestHostService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
     name: 'Test Host Server',
     description: 'Test Host Server',
-    cpp_namespace: 'privacysandbox::test_host_server',
+    cpp_namespace: 'privacy_sandbox::test_host_server',
     roma_app_name: 'TestHostServer',
     cpp_host_process_callback_includes: [
       'src/roma/native_function_grpc_server/proto/test_service_native_functions.h'
@@ -34,7 +34,7 @@ service TestHostService {
 
   rpc NativeMethod(NativeMethodRequest) returns (NativeMethodResponse) {
     option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
-      cpp_host_process_callback: '::privacysandbox::test_host_server::HandleNativeMethod',
+      cpp_host_process_callback: '::privacy_sandbox::test_host_server::HandleNativeMethod',
     };
   }
 }

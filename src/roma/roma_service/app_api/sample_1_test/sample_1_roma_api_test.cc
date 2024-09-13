@@ -28,9 +28,9 @@ using ::testing::Eq;
 using ::testing::IsEmpty;
 using ::testing::StrEq;
 
-using ::privacysandbox::roma::app_api::sample_1_test::V8Sample1Service;
 using ::privacysandbox::roma::app_api::sample_1_test::v1::RunSample1Request;
 using ::privacysandbox::roma::app_api::sample_1_test::v1::RunSample1Response;
+using ::privacysandbox::roma::app_api::sample_1_test::v1::V8Sample1Service;
 
 namespace privacysandbox::sample::roma::AppApi::RomaSample1Test {
 

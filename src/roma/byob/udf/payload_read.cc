@@ -16,10 +16,10 @@
 
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
-#include "src/roma/byob/udf/sample.pb.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 
-using ::privacy_sandbox::server_common::byob::ReadPayloadRequest;
-using ::privacy_sandbox::server_common::byob::ReadPayloadResponse;
+using ::privacy_sandbox::roma_byob::example::ReadPayloadRequest;
+using ::privacy_sandbox::roma_byob::example::ReadPayloadResponse;
 
 ReadPayloadRequest ReadRequestFromFd(int fd) {
   ReadPayloadRequest req;

@@ -16,11 +16,11 @@
 
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
-#include "src/roma/byob/udf/sample.pb.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 
 namespace {
-using ::privacy_sandbox::server_common::byob::RunPrimeSieveRequest;
-using ::privacy_sandbox::server_common::byob::RunPrimeSieveResponse;
+using ::privacy_sandbox::roma_byob::example::RunPrimeSieveRequest;
+using ::privacy_sandbox::roma_byob::example::RunPrimeSieveResponse;
 
 void RunPrimeSieve(int prime_count, RunPrimeSieveResponse& bin_response) {
   // Create a boolean array of size n+1

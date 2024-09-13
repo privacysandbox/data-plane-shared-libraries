@@ -64,9 +64,9 @@ cc_binary(
     name = "roma_byob_test",
     srcs = ["roma_byob_test.cc"],
     deps = [
+        "//src/roma/byob/udf:sample_byob_sdk_cc_proto",
+        "//src/roma/byob/udf:sample_byob_sdk_roma_cc_lib",
         "//src/roma/byob/udf:sample_callback_cc_proto",
-        "//src/roma/byob/udf:sample_cc_proto",
-        "//src/roma/byob/udf:sample_roma_api",
         "//src/roma/byob/utility:udf_blob",
         "//src/roma/byob/utility:utils",
         "@com_google_absl//absl/strings",

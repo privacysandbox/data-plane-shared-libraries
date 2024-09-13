@@ -39,7 +39,7 @@ int main(int argc, char* argv[]) {
   std::string jsonStr((std::istreambuf_iterator<char>(inputFile)),
                       std::istreambuf_iterator<char>());
 
-  privacy_sandbox::server_common::BenchmarkRequest request;
+  privacy_sandbox::benchmark::BenchmarkRequest request;
   if (!google::protobuf::util::JsonStringToMessage(jsonStr, &request).ok()) {
     std::cerr << "Failed to parse to protobuf.\n";
     return -1;

@@ -32,16 +32,18 @@
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
-#include "src/roma/byob/udf/sample.pb.h"
+#include "src/roma/byob/udf/sample_udf_interface.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
 using ::google::scp::roma::FunctionBindingPayload;
-using ::privacy_sandbox::server_common::byob::FUNCTION_CALLBACK;
-using ::privacy_sandbox::server_common::byob::FUNCTION_HELLO_WORLD;
-using ::privacy_sandbox::server_common::byob::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::server_common::byob::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
+using ::privacy_sandbox::roma_byob::example::SampleRequest;
+using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::testing::Contains;
 using ::testing::StrEq;
 

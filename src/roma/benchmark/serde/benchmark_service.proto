@@ -14,7 +14,7 @@
 
 syntax = "proto3";
 
-package privacy_sandbox.server_common;
+package privacy_sandbox.benchmark;
 
 import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 
@@ -26,7 +26,7 @@ service BenchmarkService {
     name: 'Benchmark',
     code_id: "app_api_roma_app_benchmark_v1",
     description: 'Benchmark',
-    cpp_namespace: 'privacysandbox::benchmark',
+    cpp_namespace: 'privacy_sandbox::benchmark',
     roma_app_name: 'BenchmarkServer',
   };
 

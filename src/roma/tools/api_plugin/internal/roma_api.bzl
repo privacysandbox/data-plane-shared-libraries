@@ -303,5 +303,32 @@ def roma_js_proto_library(*, name, roma_api, **kwargs):
         **kwargs
     )
 
+_byob_udf_protospec_plugins = [
+    struct(
+        name = "byob_protospec",
+        exclusions = [
+            #"google/protobuf",
+        ],
+        option = _get_template_options("_udf_interface.proto", "udf_interface.proto.tmpl", "byob/app"),
+        outputs = ["{basename}_udf_interface.proto"],
+        tool = Label("//src/roma/tools/api_plugin:roma_api_plugin"),
+    ),
+]
+
+_byob_udf_protospec = rule(
+    implementation = proto_compile_impl,
+    attrs = _get_proto_compile_attrs(_byob_udf_protospec_plugins),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
+)
+
+def byob_udf_protospec(*, name, roma_app_api, **kwargs):
+    _roma_api_protoc(
+        name = name,
+        protoc_rule = _byob_udf_protospec,
+        plugins = _byob_udf_protospec_plugins,
+        roma_api = roma_app_api,
+        **kwargs
+    )
+
 def get_all_roma_api_plugins():
-    return _app_api_cc_plugins + _app_api_handler_js_plugins + _cc_host_template_plugins + _host_api_js_plugins + _protobuf_js_plugins
+    return _app_api_cc_plugins + _app_api_handler_js_plugins + _cc_host_template_plugins + _host_api_js_plugins + _protobuf_js_plugins + _byob_udf_protospec_plugins

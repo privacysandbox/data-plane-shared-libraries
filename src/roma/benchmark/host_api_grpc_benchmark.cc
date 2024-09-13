@@ -72,7 +72,8 @@ void SetupDeclarativeApiGrpcServer(const benchmark::State& state) {
   config.enable_native_function_grpc_server = true;
   config.RegisterRpcHandler(
       "TestHostServer.NativeMethod",
-      privacysandbox::test_host_server::NativeMethodHandler<DefaultMetadata>());
+      privacy_sandbox::test_host_server::NativeMethodHandler<
+          DefaultMetadata>());
   DoSetup(std::move(config));
 }
 
@@ -83,7 +84,7 @@ void SetupDeclarativeApiNativeFunctionHandler(const benchmark::State& state) {
       std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
           .function_name = "TestHostServer.NativeMethod",
           .function =
-              privacysandbox::test_host_server::NativeMethodFunctionBinding<
+              privacy_sandbox::test_host_server::NativeMethodFunctionBinding<
                   DefaultMetadata>,
       }));
   DoSetup(std::move(config));

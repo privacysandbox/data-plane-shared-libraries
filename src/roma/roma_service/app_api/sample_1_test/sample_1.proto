@@ -23,7 +23,7 @@ service Sample1Service {
     name: 'Sample Service',
     code_id: "PAA_sample_1_roma_app_test_v1",
     description: 'A sample server showcasing how declarative APIs work',
-    cpp_namespace: 'privacysandbox::roma::app_api::sample_1_test',
+    cpp_namespace: 'privacysandbox::roma::app_api::sample_1_test::v1',
     roma_app_name: 'Sample1Server'
   };
 
