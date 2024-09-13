@@ -115,7 +115,6 @@ int main(int argc, char* argv[]) {
       }
       break;
     default:
-      std::cerr << "Unexpected input" << std::endl;
       break;
   }
   WriteResponseToFd(fd, std::move(bin_response));
