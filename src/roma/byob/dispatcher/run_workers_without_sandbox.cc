@@ -142,14 +142,6 @@ int main(int argc, char** argv) {
     PLOG(ERROR) << "connect() to " << socket_name << " failed";
     return -1;
   }
-  absl::Cleanup fd_cleanup = [fd] {
-    if (::shutdown(fd, SHUT_RDWR) == -1) {
-      PLOG(INFO) << "shutdown()";
-    }
-    if (::close(fd) == -1) {
-      PLOG(INFO) << "close()";
-    }
-  };
   struct UdfInstanceMetadata {
     std::string code_token;
     std::string binary_path;
