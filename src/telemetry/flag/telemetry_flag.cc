@@ -16,6 +16,7 @@
 
 #include "absl/random/random.h"
 #include "absl/strings/str_cat.h"
+#include "absl/synchronization/mutex.h"
 #include "google/protobuf/text_format.h"
 
 namespace privacy_sandbox::server_common::telemetry {
@@ -129,23 +130,14 @@ absl::Status BuildDependentConfig::CheckMetricConfig(
   return ret.empty() ? absl::OkStatus() : absl::InvalidArgumentError(ret);
 }
 
-// Override the public partition of a metric.
 void BuildDependentConfig::SetPartition(
-    std::string_view name, absl::Span<const std::string_view> partitions) {
+    std::string_view name, absl::Span<const std::string_view> partitions)
+    ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+  absl::MutexLock lock(&partition_mutex_);
   auto& saved = *internal_config_[name].mutable_public_partitions();
   saved.Assign(partitions.begin(), partitions.end());
   absl::c_sort(saved);
   partition_config_view_[name] = {saved.begin(), saved.end()};
-}
-
-absl::Span<const std::string_view> BuildDependentConfig::GetPartition(
-    const metrics::internal::Partitioned& definition,
-    const std::string_view name) const {
-  auto it = partition_config_view_.find(name);
-  if (it == partition_config_view_.end()) {
-    return definition.public_partitions_;
-  }
-  return it->second;
 }
 
 int BuildDependentConfig::GetMaxPartitionsContributed(

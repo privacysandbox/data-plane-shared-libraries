@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <queue>
 #include <string>
 #include <thread>
 #include <utility>
@@ -31,6 +32,7 @@
 #include "absl/synchronization/notification.h"
 #include "algorithms/bounded-sum.h"
 #include "src/metric/definition.h"
+#include "src/telemetry/flag/telemetry_flag.h"
 #include "src/util/status_macro/status_macros.h"
 
 namespace privacy_sandbox::server_common::metrics {
@@ -46,6 +48,7 @@ class DpAggregatorBase {
   // Output aggregated results with DP noise added.
   virtual absl::StatusOr<std::vector<differential_privacy::Output>>
   OutputNoised() = 0;
+  virtual void Reset() = 0;
   virtual ~DpAggregatorBase() = default;
 };
 
@@ -76,15 +79,19 @@ class DpAggregator : public DpAggregatorBase {
       int max_partitions_contributed;
       const std::string_view current_partition[] = {partition};
       absl::Span<const std::string_view> all_partitions = current_partition;
+      // With a partitioned counter, `partition_view` needs to have a larger
+      // scope than the following if clause to keep the `all_partitions` valid.
+      std::unique_ptr<telemetry::BuildDependentConfig::PartitionView>
+          partition_view;
       if constexpr (instrument == Instrument::kPartitionedCounter) {
         max_partitions_contributed =
             metric_router_.metric_config().template GetMaxPartitionsContributed(
                 definition_);
-        if (absl::Span<const absl::string_view> partitions =
+        if (partition_view =
                 metric_router_.metric_config().template GetPartition(
                     definition_);
-            !partitions.empty()) {
-          all_partitions = partitions;
+            !partition_view->view().empty()) {
+          all_partitions = partition_view->view();
         }
       } else {
         max_partitions_contributed = 1;
@@ -148,6 +155,11 @@ class DpAggregator : public DpAggregatorBase {
       bounded_sum->Reset();
     }
     return ret;
+  }
+
+  void Reset() override ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    bounded_sums_.clear();
   }
 
  private:
@@ -257,6 +269,11 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
     return ret;
   }
 
+  void Reset() override ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    bounded_sums_.clear();
+  }
+
  private:
   TMetricRouter& metric_router_;
   const Definition<TValue, privacy, Instrument::kHistogram>& definition_;
@@ -325,6 +342,14 @@ class DifferentiallyPrivate {
     return privacy_budget_per_weight_;
   }
 
+  // Queues a set partition request until the next metric output.
+  void ResetPartitionAsync(const std::vector<std::string_view>& metric_list,
+                           const std::vector<std::string>& partition_list)
+      ABSL_LOCKS_EXCLUDED(mutex_) {
+    absl::MutexLock mutex_lock(&mutex_);
+    reset_partition_request_queue_.push({metric_list, partition_list});
+  }
+
   ~DifferentiallyPrivate() {
     stop_signal_.Notify();
     run_output_.join();
@@ -332,14 +357,21 @@ class DifferentiallyPrivate {
 
  private:
   friend class NoNoiseTest_DifferentiallyPrivate_Test;
+  friend class NoNoiseTest_DifferentiallyPrivateResetPartition_Test;
+
+  struct ResetPartitionRequest {
+    // Metrics have program lifetime, so we can use std::string_view for metric
+    // name.
+    std::vector<std::string_view> metric_list;
+    std::vector<std::string> partition_list;
+  };
 
   // Output aggregated results with DP noise added for all defintions with
   // logged metric.
   absl::StatusOr<absl::flat_hash_map<std::string_view,
                                      std::vector<differential_privacy::Output>>>
-  OutputNoised() ABSL_LOCKS_EXCLUDED(mutex_) {
+  OutputNoised() ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_) {
     // ToDo(b/279955396): lock telemetry export when OutputNoised runs
-    absl::MutexLock mutex_lock(&mutex_);
     absl::flat_hash_map<std::string_view,
                         std::vector<differential_privacy::Output>>
         ret;
@@ -355,12 +387,32 @@ class DifferentiallyPrivate {
     return ret;
   }
 
+  // Set partition for queued requests
+  void HandleResetPartitionRequests() ABSL_EXCLUSIVE_LOCKS_REQUIRED(mutex_) {
+    while (!reset_partition_request_queue_.empty()) {
+      const ResetPartitionRequest& request =
+          reset_partition_request_queue_.front();
+      for (std::string_view metric_name : request.metric_list) {
+        if (auto it = counter_.find(metric_name); it != counter_.end()) {
+          it->second->Reset();
+        }
+        const std::vector<std::string>& partition_list = request.partition_list;
+        metric_router_.metric_config().SetPartition(
+            metric_name, std::vector<std::string_view>{partition_list.begin(),
+                                                       partition_list.end()});
+      }
+      reset_partition_request_queue_.pop();
+    }
+  }
+
   // Periodically output noised result
   void RunOutput() {
     while (true) {
       stop_signal_.WaitForNotificationWithTimeout(output_period_);
+      absl::MutexLock lock(&mutex_);
       auto result = OutputNoised();
       ABSL_LOG_IF(ERROR, !result.ok()) << result.status();
+      HandleResetPartitionRequests();
       if (stop_signal_.HasBeenNotified()) {
         break;
       }
@@ -375,6 +427,8 @@ class DifferentiallyPrivate {
   absl::flat_hash_map<std::string_view,
                       std::unique_ptr<internal::DpAggregatorBase>>
       counter_ ABSL_GUARDED_BY(mutex_);
+  std::queue<ResetPartitionRequest> reset_partition_request_queue_
+      ABSL_GUARDED_BY(mutex_);
 
   absl::Notification stop_signal_;
   std::thread run_output_;

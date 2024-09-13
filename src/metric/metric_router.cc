@@ -27,10 +27,10 @@
 namespace privacy_sandbox::server_common::metrics {
 namespace sdk = ::opentelemetry::sdk::metrics;
 
-MetricRouter::MetricRouter(std::unique_ptr<MeterProvider> provider,
-                           std::string_view service, std::string_view version,
-                           PrivacyBudget fraction,
-                           telemetry::BuildDependentConfig config)
+MetricRouter::MetricRouter(
+    std::unique_ptr<MeterProvider> provider, std::string_view service,
+    std::string_view version, PrivacyBudget fraction,
+    std::unique_ptr<telemetry::BuildDependentConfig> config)
     : provider_(std::move(provider)),
       metric_config_(std::move(config)),
       dp_(this, fraction) {

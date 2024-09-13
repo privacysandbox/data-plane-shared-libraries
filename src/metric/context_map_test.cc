@@ -111,10 +111,11 @@ TEST_F(ContextMapTest, CheckDropNoisyValuesProbability) {
   auto metric_config_1 = config_proto.add_metric();
   metric_config_1->set_name("m_1");
   metric_config_1->set_drop_noisy_values_probability(1.0);
-  telemetry::BuildDependentConfig config(config_proto);
+  auto config = std::make_unique<telemetry::BuildDependentConfig>(config_proto);
   constexpr PrivacyBudget budget{/*epsilon*/ 5};
 
-  EXPECT_DEATH((GetContextMap<Foo, list_span>(config, nullptr, "", "", budget)),
+  EXPECT_DEATH((GetContextMap<Foo, list_span>(std::move(config), nullptr, "",
+                                              "", budget)),
                HasSubstr("m_1 drop_noisy_values_probability is out of range"));
 }
 
@@ -139,22 +140,21 @@ constexpr absl::Span<const DefinitionName* const> unsafe_list_span =
 class MetricConfigTest : public ::testing::Test {
  protected:
   void SetUp() override {
-    telemetry::TelemetryConfig config_proto;
-    config_proto.set_mode(telemetry::TelemetryConfig::PROD);
-    config_proto.add_metric()->set_name("kUnsafe1");
-    config_proto.add_metric()->set_name("kUnsafe2");
-    config_proto.add_metric()->set_name("not_defined");
-    metric_config_ =
-        std::make_unique<telemetry::BuildDependentConfig>(config_proto);
+    config_proto_.set_mode(telemetry::TelemetryConfig::PROD);
+    config_proto_.add_metric()->set_name("kUnsafe1");
+    config_proto_.add_metric()->set_name("kUnsafe2");
+    config_proto_.add_metric()->set_name("not_defined");
   }
 
-  std::unique_ptr<telemetry::BuildDependentConfig> metric_config_;
+  telemetry::TelemetryConfig config_proto_;
 };
 
 TEST_F(MetricConfigTest, PrivacyBudget) {
   constexpr PrivacyBudget budget{/*epsilon*/ 5};
-  auto c = GetContextMap<Foo, unsafe_list_span>(*metric_config_, nullptr, "",
-                                                "", budget);
+  auto metric_config =
+      std::make_unique<telemetry::BuildDependentConfig>(config_proto_);
+  auto c = GetContextMap<Foo, unsafe_list_span>(std::move(metric_config),
+                                                nullptr, "", "", budget);
   EXPECT_DOUBLE_EQ(c->metric_router().dp().privacy_budget_per_weight().epsilon,
                    2.5);
 }

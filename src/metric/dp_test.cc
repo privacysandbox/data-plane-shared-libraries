@@ -93,7 +93,7 @@ class MockMetricRouter {
   MOCK_METHOD(absl::Status, LogSafe,
               ((const DefinitionHistogram&), int, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
-  MOCK_METHOD(const telemetry::BuildDependentConfig&, metric_config, ());
+  MOCK_METHOD(telemetry::BuildDependentConfig&, metric_config, ());
 };
 
 class NoNoiseTest : public ::testing::Test {
@@ -368,10 +368,40 @@ TEST_F(NoNoiseTest, DifferentiallyPrivate) {
       LogSafe(Matcher<const DefinitionUnSafe&>(Ref(kUnitCounter)), Eq(2), _, _))
       .WillOnce(Return(absl::OkStatus()));
 
+  absl::MutexLock lock(&dp.mutex_);
   PS_ASSERT_OK_AND_ASSIGN(auto s, dp.OutputNoised());
 
   EXPECT_CALL(mock_metric_router_,
               LogSafe(A<const DefinitionUnSafe&>(), Eq(0), _, _))
+      .WillRepeatedly(Return(absl::OkStatus()));
+}
+
+TEST_F(NoNoiseTest, DifferentiallyPrivateResetPartition) {
+  DifferentiallyPrivate dp(&mock_metric_router_, fraction());
+
+  CHECK_OK(dp.Aggregate(&kUnitPartitionCounter, 1, "buyer_1"));
+  CHECK_OK(dp.Aggregate(&kUnitPartitionCounter, 1, "buyer_2"));
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionPartition&>(Ref(kUnitPartitionCounter)),
+              A<int>(), _, ElementsAre(Pair(kNoiseAttribute, "Noised"))))
+      .WillRepeatedly(Return(absl::OkStatus()));
+
+  dp.ResetPartitionAsync({kUnitPartitionCounter.name_}, {"buyer_new"});
+
+  absl::MutexLock lock(&dp.mutex_);
+  ASSERT_TRUE(dp.OutputNoised().ok());
+  dp.HandleResetPartitionRequests();
+
+  PS_ASSERT_OK_AND_ASSIGN(
+      auto s, dp.counter_[kUnitPartitionCounter.name_]->OutputNoised());
+  // DpAggregator gets reset.
+  EXPECT_EQ(s.size(), 0);
+  EXPECT_THAT(metric_config_->GetPartition(kUnitPartitionCounter)->view(),
+              testing::ElementsAre("buyer_new"));
+  EXPECT_TRUE(dp.reset_partition_request_queue_.empty());
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(A<const DefinitionPartition&>(), Eq(0), _, _))
       .WillRepeatedly(Return(absl::OkStatus()));
 }
 

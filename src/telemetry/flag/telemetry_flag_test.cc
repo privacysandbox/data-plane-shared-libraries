@@ -128,17 +128,17 @@ TEST(BuildDependentConfig, Partition) {
   TelemetryConfig config_proto;
   BuildDependentConfig config(config_proto);
 
-  EXPECT_THAT(config.GetPartition(partition_metric),
+  EXPECT_THAT(config.GetPartition(partition_metric)->view(),
               testing::ElementsAreArray(kDefaultBuyers));
 
-  constexpr std::string_view new_partitions[] = {"123", "789", "456"};
+  constexpr std::string_view new_partitions[] = {"789", "456", "123"};
   config.SetPartition("another_metric_def", new_partitions);
-  EXPECT_THAT(config.GetPartition(partition_metric),
+  EXPECT_THAT(config.GetPartition(partition_metric)->view(),
               testing::ElementsAreArray(kDefaultBuyers));
 
   config.SetPartition(partition_metric.name_, new_partitions);
   // result is sorted of `new_partitions`
-  EXPECT_THAT(config.GetPartition(partition_metric),
+  EXPECT_THAT(config.GetPartition(partition_metric)->view(),
               testing::ElementsAreArray({"123", "456", "789"}));
 }
 

@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
@@ -90,6 +91,13 @@ class ContextMap {
     return metric_router_->metric_config();
   }
 
+  // Resets Partition for a list of metrics. The metric list should consist of
+  // std::string_view of metric names taken from the metric definition.
+  void ResetPartitionAsync(const std::vector<std::string_view>& metric_list,
+                           const std::vector<std::string>& partition_list) {
+    metric_router_->ResetPartitionAsync(metric_list, partition_list);
+  }
+
   const U& metric_router() const { return *metric_router_.get(); }
 
   absl::Status CheckListOrder() {
@@ -141,12 +149,12 @@ class ContextMap {
 template <typename T,
           const absl::Span<const DefinitionName* const>& definition_list>
 inline auto* GetContextMap(
-    std::optional<telemetry::BuildDependentConfig> config,
+    std::unique_ptr<telemetry::BuildDependentConfig> config,
     std::unique_ptr<MetricRouter::MeterProvider> provider,
     std::string_view service, std::string_view version, PrivacyBudget budget) {
-  static auto* context_map = [config, &provider, service, version,
-                              budget]() mutable {
-    CHECK(config != std::nullopt) << "cannot be null at initialization";
+  static auto* context_map = [config = std::move(config), &provider, service,
+                              version, budget]() mutable {
+    CHECK(config) << "cannot be null at initialization";
     absl::Status config_status = config->CheckMetricConfig(definition_list);
     ABSL_LOG_IF(WARNING, !config_status.ok()) << config_status;
     const double total_weight = absl::c_accumulate(
@@ -167,10 +175,9 @@ inline auto* GetContextMap(
     budget.epsilon /= total_weight;
     return new ContextMap<T, definition_list, MetricRouter>(
         std::make_unique<MetricRouter>(std::move(provider), service, version,
-                                       budget, *std::move(config)));
+                                       budget, std::move(config)));
   }();
-  CHECK(config == std::nullopt ||
-        config->IsDebug() == context_map->metric_config().IsDebug())
+  CHECK(!config || config->IsDebug() == context_map->metric_config().IsDebug())
       << "Must be null or same value after initialized";
   return context_map;
 }

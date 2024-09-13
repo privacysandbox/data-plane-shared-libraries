@@ -82,14 +82,14 @@ class MetricRouterTest : public ::testing::Test {
     return provider;
   }
 
-  telemetry::BuildDependentConfig InitConfig(
+  std::unique_ptr<telemetry::BuildDependentConfig> InitConfig(
       absl::Duration dp_export_interval) {
     telemetry::TelemetryConfig config_proto;
     config_proto.set_dp_export_interval_ms(dp_export_interval /
                                            absl::Milliseconds(1));
     config_proto.set_metric_export_interval_ms(dp_export_interval /
                                                absl::Milliseconds(1));
-    return telemetry::BuildDependentConfig(config_proto);
+    return std::make_unique<telemetry::BuildDependentConfig>(config_proto);
   }
 
   void SetUp() override {

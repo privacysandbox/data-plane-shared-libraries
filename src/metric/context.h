@@ -461,11 +461,12 @@ class Context {
       const internal::Partitioned& partitioned, std::string_view name,
       bool is_privacy_impacting) {
     std::vector<std::pair<std::string, T>> ret;
-    if (absl::Span<const std::string_view> public_partitions =
-            metric_router_->metric_config().GetPartition(partitioned, name);
-        !public_partitions.empty()) {
+    if (std::unique_ptr<telemetry::BuildDependentConfig::PartitionView>
+            partition_view =
+                metric_router_->metric_config().GetPartition(partitioned, name);
+        !partition_view->view().empty()) {
       for (auto& [partition, numeric] : value) {
-        if (absl::c_binary_search(public_partitions, partition)) {
+        if (absl::c_binary_search(partition_view->view(), partition)) {
           ret.emplace_back(partition, numeric);
         } else {
           ABSL_LOG_EVERY_N_SEC(WARNING, kLogStandardFreqSec)

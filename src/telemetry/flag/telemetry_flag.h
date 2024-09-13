@@ -17,6 +17,7 @@
 #ifndef SERVICES_COMMON_TELEMETRY_TELEMETRY_FLAG_H_
 #define SERVICES_COMMON_TELEMETRY_TELEMETRY_FLAG_H_
 
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -24,6 +25,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
+#include "absl/synchronization/mutex.h"
 #include "src/metric/definition.h"
 #include "src/telemetry/flag/config.pb.h"
 
@@ -45,6 +47,28 @@ class BuildDependentConfig {
   struct BoundOverride {
     double lower_bound_;
     double upper_bound_;
+  };
+
+  // The borrowed view should not be invalidated until `lock` goes out of scope.
+  class PartitionView {
+   public:
+    PartitionView(const BuildDependentConfig& config,
+                  const metrics::internal::Partitioned& definition,
+                  const std::string_view name)
+        : lock_(&config.partition_mutex_) {
+      auto it = config.partition_config_view_.find(name);
+      if (it == config.partition_config_view_.end()) {
+        view_ = definition.public_partitions_;
+      } else {
+        view_ = it->second;
+      }
+    }
+
+    absl::Span<const std::string_view> view() const { return view_; }
+
+   private:
+    absl::Span<const std::string_view> view_;
+    absl::MutexLock lock_;
   };
 
   explicit BuildDependentConfig(TelemetryConfig config);
@@ -92,21 +116,28 @@ class BuildDependentConfig {
   absl::Status CheckMetricConfig(
       absl::Span<const metrics::DefinitionName* const> server_metrics) const;
 
-  // Override the public partition of a metric.
+  // Override the public partition of a metric. Unless used at server startup
+  // time, setting partition should also involve clearing
+  // DifferentiallyPrivate's counter. ResetPartitionAsync in
+  // DifferentiallyPrivate should be called to reset metric partation
+  // dynamically in an atomic fashion.
   void SetPartition(std::string_view name,
-                    absl::Span<const std::string_view> partitions);
+                    absl::Span<const std::string_view> partitions)
+      ABSL_LOCKS_EXCLUDED(partition_mutex_);
 
   // Return the public partition of a metric.
   template <typename MetricT>
-  absl::Span<const std::string_view> GetPartition(
-      const MetricT& definition) const {
+  std::unique_ptr<PartitionView> GetPartition(const MetricT& definition) const {
     return GetPartition(definition, definition.name_);
   }
 
-  // Return the public partition of a metric.
-  absl::Span<const std::string_view> GetPartition(
+  // Return the public partition of a metric. The partition is valid as long
+  // as the PartitionView object is in scope.
+  std::unique_ptr<PartitionView> GetPartition(
       const metrics::internal::Partitioned& definition,
-      const std::string_view name) const;
+      const std::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+    return std::make_unique<PartitionView>(*this, definition, name);
+  }
 
   // Return max_partions_contributed of a metric.
   template <typename MetricT>
@@ -186,9 +217,11 @@ class BuildDependentConfig {
  private:
   TelemetryConfig server_config_;
   absl::flat_hash_map<std::string, MetricConfig> metric_config_;
-  absl::flat_hash_map<std::string, MetricConfig> internal_config_;
+  mutable absl::Mutex partition_mutex_;
+  absl::flat_hash_map<std::string, MetricConfig> internal_config_
+      ABSL_GUARDED_BY(partition_mutex_);
   absl::flat_hash_map<std::string, std::vector<std::string_view>>
-      partition_config_view_;
+      partition_config_view_ ABSL_GUARDED_BY(partition_mutex_);
 };
 
 }  // namespace privacy_sandbox::server_common::telemetry

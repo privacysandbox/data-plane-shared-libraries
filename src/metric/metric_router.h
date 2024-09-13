@@ -18,6 +18,7 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/functional/any_invocable.h"
@@ -46,7 +47,8 @@ class MetricRouter {
 
   MetricRouter(std::unique_ptr<MeterProvider> provider,
                std::string_view service, std::string_view version,
-               PrivacyBudget fraction, telemetry::BuildDependentConfig config);
+               PrivacyBudget fraction,
+               std::unique_ptr<telemetry::BuildDependentConfig> config);
 
   ~MetricRouter() = default;
 
@@ -70,6 +72,12 @@ class MetricRouter {
 
   const DifferentiallyPrivate<MetricRouter>& dp() const { return dp_; }
 
+  // Forwards DifferentialPrivate's ResetPartitionAsync to ContextMap.
+  void ResetPartitionAsync(const std::vector<std::string_view>& metric_list,
+                           const std::vector<std::string>& partition_list) {
+    dp_.ResetPartitionAsync(metric_list, partition_list);
+  }
+
   // Add callback for observerable metric, must be Privacy:kNonImpacting
   // Gauge. callback is use to read value, return a map of <string, double>,
   // string for "label" attribute, double for the value of metric.
@@ -84,7 +92,7 @@ class MetricRouter {
       const Definition<T, privacy, instrument>& definition,
       absl::flat_hash_map<std::string, double> (*callback)());
 
-  telemetry::BuildDependentConfig& metric_config() { return metric_config_; }
+  telemetry::BuildDependentConfig& metric_config() { return *metric_config_; }
 
  private:
   friend class MetricRouterTest;
@@ -114,7 +122,7 @@ class MetricRouter {
       observerable_;
   std::unique_ptr<MeterProvider> provider_;
   Meter* meter_;
-  telemetry::BuildDependentConfig metric_config_;
+  std::unique_ptr<telemetry::BuildDependentConfig> metric_config_;
   DifferentiallyPrivate<MetricRouter> dp_;
 };
 
