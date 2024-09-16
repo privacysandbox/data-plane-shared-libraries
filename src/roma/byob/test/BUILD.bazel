@@ -99,12 +99,16 @@ pkg_files(
 
 [
     byob_image(
-        name = "sample_test_{}_image".format(user.flavor),
-        cmd = ["/server/bin/roma_byob_test"],
+        name = "{test_name}_test_{flavor}_image".format(
+            flavor = user.flavor,
+            test_name = test_name,
+        ),
+        cmd = [cmd],
         debug = False,
         repo_tags = [
-            "roma_byob_sample_test_image:v1-{flavor}".format(
+            "roma_byob_{test_name}_test_image:v1-{flavor}".format(
                 flavor = user.flavor,
+                test_name = test_name,
             ),
         ],
         tars = [
@@ -114,25 +118,10 @@ pkg_files(
         use_nonroot = True if user.flavor == "nonroot" else False,
     )
     for user in DISTROLESS_USERS
-]
-
-[
-    byob_image(
-        name = "example_test_{}_image".format(user.flavor),
-        cmd = ["/server/bin/example_test"],
-        debug = False,
-        repo_tags = [
-            "roma_byob_example_test_image:v1-{flavor}".format(
-                flavor = user.flavor,
-            ),
-        ],
-        tars = [
-            ":test_tar_{}".format(user.flavor),
-        ],
-        udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
-        use_nonroot = True if user.flavor == "nonroot" else False,
+    for test_name, cmd in (
+        ("sample", "/server/bin/roma_byob_test"),
+        ("example", "/server/bin/example_test"),
     )
-    for user in DISTROLESS_USERS
 ]
 
 genrule(
