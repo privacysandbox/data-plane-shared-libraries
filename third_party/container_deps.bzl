@@ -94,3 +94,18 @@ DISTROLESS_USERS = [
         group = "root",
     ),
 ]
+
+def get_user(user = "nonroot"):
+    """
+    Extracts a struct with details from DISTROLESS_USERS based on the given user.
+
+    Args:
+      user: The user to search for (e.g., "root" or "nonroot").
+
+    Returns:
+      The struct with the matching user, or None if no match is found.
+    """
+    for entry in DISTROLESS_USERS:
+        if entry.user == user:
+            return entry
+    return None

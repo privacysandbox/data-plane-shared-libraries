@@ -158,6 +158,7 @@ docker rm $$CID
             flavor = user.flavor,
             image_uri = _server_image,
         ),
+        visibility = ["//visibility:public"],
     )
     for user in DISTROLESS_USERS
 ]

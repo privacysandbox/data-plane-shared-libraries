@@ -28,6 +28,20 @@ execution of arbitrary binaries written in any language.
 
     and call `common_container_deps()` from `container_deps()`.
 
+1. Define a variable called user. If you are running Roma BYOB as the user `root`, define:
+
+    ```bazel
+    load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "get_user")
+    user = get_user("root")
+    ```
+
+    If you are running Roma BYOB as the user `nonroot`, define:
+
+    ```bazel
+    load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "get_user")
+    user= get_user("nonroot")
+    ```
+
 1. [For container image users] Add the following container_layers at an appropriate place:
 
     ```bazel
@@ -38,28 +52,32 @@ execution of arbitrary binaries written in any language.
     pkg_files(
       name = "gvisor_config_file",
       srcs = ["@google_privacysandbox_servers_common//src/roma/byob/container:container_config"],
-      attributes = pkg_attributes(mode = "0666"),
+      attributes = pkg_attributes(mode = "0600"),
     )
 
     pkg_tar(
-        name = "gvisor_config_tar",
-        srcs = [":gvisor_config_file"],
+      name = "gvisor_config_tar",
+      srcs = [":gvisor_config_file"],
+      owner = "{}.{}".format(
+        user.uid,
+        user.gid,
+      ),
     )
 
     container_layer(
-        name = "gvisor_config_layer",
-        directory = "{}".format(roma_container_dir),
-          tars = [
-            ":gvisor_config_tar",
-          ],
-        )
+      name = "gvisor_config_layer",
+      directory = "{}".format(roma_container_dir),
+        tars = [
+          ":gvisor_config_tar",
+        ],
+    )
 
     container_layer(
-        name = "byob_server_container_layer",
-        directory = "{roma_container_dir}/{root_dir}".format(roma_container_dir = roma_container_dir, root_dir = roma_container_root_dir),
-        tars = [
-          "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container.tar",
-        ],
+      name = "byob_server_container_layer",
+      directory = "{roma_container_dir}/{root_dir}".format(roma_container_dir = roma_container_dir, root_dir = roma_container_root_dir),
+      tars = [
+        "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container_{user}.tar".format(user = user.user),
+      ],
     )
     ```
 
@@ -74,17 +92,17 @@ execution of arbitrary binaries written in any language.
 
     ```bazel
     tars = [
-          "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar",
-          "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar",
-      ],
+      "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar_{user}".format(user = user.user),
+      "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar_{user}".format(user = user.user),
+    ],
     ```
 
     1. [For OCI image users] Add the following tars to the OCI image running Roma BYOB:
 
     ```bazel
-    "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar",
-    "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar",
-    "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container_with_dir.tar",
+    "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar_{user}".format(user.user),
+    "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar_{user}".format(user.user)",
+    "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container_with_dir_{user}.tar".format(user.user),
     ```
 
 Links to images:
