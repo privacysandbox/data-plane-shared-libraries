@@ -54,6 +54,7 @@ cc_binary(
     deps = [
         ":example_roma_byob_app_service",
         "//src/roma/byob/example:example_cc_proto",
+        "//src/roma/byob/utility:utils",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
@@ -67,30 +68,27 @@ cc_binary(
         "//src/roma/byob/udf:sample_cc_proto",
         "//src/roma/byob/udf:sample_roma_api",
         "//src/roma/byob/utility:udf_blob",
+        "//src/roma/byob/utility:utils",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
     ],
 )
 
-[
-    pkg_files(
-        name = "test_execs_{}".format(user.flavor),
-        srcs = [
-            ":example_test",
-            ":roma_byob_test",
-            ":run_tests_{}".format(user.flavor),
-        ],
-        attributes = pkg_attributes(mode = "0500"),
-        prefix = "/server/bin",
-    )
-    for user in DISTROLESS_USERS
-]
+pkg_files(
+    name = "test_execs",
+    srcs = [
+        ":example_test",
+        ":roma_byob_test",
+    ],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/server/bin",
+)
 
 [
     pkg_tar(
         name = "test_tar_{}".format(user.flavor),
-        srcs = [":test_execs_{}".format(user.flavor)],
+        srcs = [":test_execs"],
         owner = "{}.{}".format(
             user.uid,
             user.gid,
@@ -101,11 +99,30 @@ cc_binary(
 
 [
     byob_image(
-        name = "test_{}_image".format(user.flavor),
-        cmd = ["/server/bin/run_tests_{}".format(user.flavor)],
-        debug = True,  # /server/bin/run_tests is a shell script
+        name = "sample_test_{}_image".format(user.flavor),
+        cmd = ["/server/bin/roma_byob_test"],
+        debug = False,
         repo_tags = [
-            "roma_byob_test_image:v1-{flavor}".format(
+            "roma_byob_sample_test_image:v1-{flavor}".format(
+                flavor = user.flavor,
+            ),
+        ],
+        tars = [
+            ":test_tar_{}".format(user.flavor),
+        ],
+        udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
+        use_nonroot = True if user.flavor == "nonroot" else False,
+    )
+    for user in DISTROLESS_USERS
+]
+
+[
+    byob_image(
+        name = "example_test_{}_image".format(user.flavor),
+        cmd = ["/server/bin/example_test"],
+        debug = False,
+        repo_tags = [
+            "roma_byob_example_test_image:v1-{flavor}".format(
                 flavor = user.flavor,
             ),
         ],
@@ -121,14 +138,18 @@ cc_binary(
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":test_nonroot_image_tarball",
-        ":test_root_image_tarball",
+        ":example_test_nonroot_image_tarball",
+        ":example_test_root_image_tarball",
+        ":sample_test_nonroot_image_tarball",
+        ":sample_test_root_image_tarball",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
 mkdir -p {dir}
-cp $(execpath :test_nonroot_image_tarball) {dir}/test_nonroot_image.tar
-cp $(execpath :test_root_image_tarball) {dir}/test_root_image.tar
+cp $(execpath :example_test_nonroot_image_tarball) {dir}/example_test_nonroot_image.tar
+cp $(execpath :example_test_root_image_tarball) {dir}/example_test_root_image.tar
+cp $(execpath :sample_test_nonroot_image_tarball) {dir}/sample_test_nonroot_image.tar
+cp $(execpath :sample_test_root_image_tarball) {dir}/sample_test_root_image.tar
 builders/tools/normalize-dist
 EOF""".format(dir = "dist/roma_byob"),
     executable = True,

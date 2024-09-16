@@ -28,6 +28,7 @@
 #include "src/roma/byob/udf/sample_callback.pb.h"
 #include "src/roma/byob/udf/sample_roma_byob_app_service.h"
 #include "src/roma/byob/utility/udf_blob.h"
+#include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob::test {
@@ -43,6 +44,7 @@ using ::privacy_sandbox::server_common::byob::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::server_common::byob::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::server_common::byob::FUNCTION_TEN_CALLBACK_INVOCATIONS;
 using ::privacy_sandbox::server_common::byob::FunctionType;
+using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
 using ::privacy_sandbox::server_common::byob::ReadCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::byob::SampleRequest;
@@ -140,6 +142,7 @@ TEST(RomaByobTest, LoadBinaryInSandboxMode) {
 
 TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) return;
   ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
 
   absl::Notification notif;
@@ -170,7 +173,9 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInSandboxMode) {
 }
 
 TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
-  ByobSampleService<> roma_service = GetRomaService(Mode::kModeNoSandbox,
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) return;
+  ByobSampleService<> roma_service = GetRomaService(mode,
                                                     /*num_workers=*/2);
 
   std::string first_code_token =
@@ -187,7 +192,9 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
 }
 
 TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
-  ByobSampleService<> roma_service = GetRomaService(Mode::kModeNoSandbox,
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) return;
+  ByobSampleService<> roma_service = GetRomaService(mode,
                                                     /*num_workers=*/2);
 
   auto content = GetContentsOfFile(kUdfPath / kCPlusPlusBinaryFilename);

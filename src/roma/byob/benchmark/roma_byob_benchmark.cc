@@ -34,6 +34,7 @@
 #include "src/roma/byob/udf/sample.pb.h"
 #include "src/roma/byob/udf/sample_callback.pb.h"
 #include "src/roma/byob/udf/sample_roma_byob_app_service.h"
+#include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace {
@@ -49,6 +50,7 @@ using ::privacy_sandbox::server_common::byob::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::server_common::byob::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::server_common::byob::FUNCTION_TEN_CALLBACK_INVOCATIONS;
 using ::privacy_sandbox::server_common::byob::FunctionType;
+using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
 using ::privacy_sandbox::server_common::byob::ReadCallbackPayloadRequest;
 using ::privacy_sandbox::server_common::byob::ReadCallbackPayloadResponse;
@@ -75,6 +77,10 @@ constexpr int kPrimeCount = 9592;
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
+constexpr Mode kModes[] = {
+    Mode::kModeSandbox,
+    Mode::kModeNoSandbox,
+};
 
 enum class Language {
   kCPlusPlus = 0,
@@ -216,22 +222,66 @@ void WriteCallbackPayload(
   resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
 }
 
+static void LoadArguments(benchmark::internal::Benchmark* b) {
+  for (auto mode : kModes) {
+    if (!HasClonePermissionsByobWorker(mode)) continue;
+    b->Args({static_cast<int>(mode)});
+  }
+}
+
+static void ExecuteSampleBinaryArguments(benchmark::internal::Benchmark* b) {
+  constexpr FunctionType function_types[] = {
+      FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
+      FUNCTION_PRIME_SIEVE,               // Sieve of primes
+      FUNCTION_CALLBACK,                  // Generic callback hook
+      FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
+                                          // callback hook
+  };
+  constexpr int64_t num_workers[] = {1, 10, 50, 100};
+  for (auto mode : kModes) {
+    if (!HasClonePermissionsByobWorker(mode)) continue;
+    for (auto function_type : function_types) {
+      for (auto num_worker : num_workers) {
+        b->Args({static_cast<int>(mode), function_type, num_worker});
+      }
+    }
+  }
+}
+
+static void ExecutePrimeSieveArguments(benchmark::internal::Benchmark* b) {
+  constexpr int64_t prime_counts[] = {100'000, 500'000, 1'000'000, 5'000'000,
+                                      10'000'000};
+  for (auto mode : kModes) {
+    if (!HasClonePermissionsByobWorker(mode)) continue;
+    for (auto prime_count : prime_counts) {
+      b->Args({static_cast<int>(mode), prime_count});
+    }
+  }
+}
+
+static void ExecuteSortListArguments(benchmark::internal::Benchmark* b) {
+  constexpr int64_t n_items_counts[] = {10'000, 100'000, 1'000'000};
+  for (auto mode : kModes) {
+    if (!HasClonePermissionsByobWorker(mode)) continue;
+    for (auto n_items_count : n_items_counts) {
+      b->Args({static_cast<int>(mode), n_items_count});
+    }
+  }
+}
+
 static void PayloadArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000'000;
-  constexpr int modes[] = {
-      static_cast<int>(Mode::kModeSandbox),
-      static_cast<int>(Mode::kModeNoSandbox),
-  };
   constexpr int64_t elem_counts[] = {1, 10, 100, 1'000};
   constexpr int64_t elem_sizes[] = {
       1,       1'000,   5'000,     10'000,    50'000,
       100'000, 500'000, 1'000'000, 5'000'000, 50'000'000,
   };
-  for (auto mode : modes) {
+  for (auto mode : kModes) {
+    if (!HasClonePermissionsByobWorker(mode)) continue;
     for (auto elem_count : elem_counts) {
       for (auto elem_size : elem_sizes) {
         if (elem_count * elem_size <= kMaxPayloadSize) {
-          b->Args({elem_size, elem_count, mode});
+          b->Args({elem_size, elem_count, static_cast<int>(mode)});
         }
       }
     }
@@ -620,15 +670,7 @@ void BM_ExecuteBinarySortList(benchmark::State& state) {
   state.SetLabel(GetModeStr(mode));
 }
 
-BENCHMARK(BM_LoadBinary)
-    ->ArgsProduct({
-        {
-            (int)Mode::kModeSandbox,
-            (int)Mode::kModeNoSandbox,
-        },
-    })
-    ->ArgNames({"mode"});
-
+BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
 BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
     ->ArgsProduct({
         {
@@ -643,41 +685,11 @@ BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
     ->ArgNames({"lang", "udf"});
 
 BENCHMARK(BM_ExecuteBinary)
-    ->ArgsProduct({
-        {
-            static_cast<int>(Mode::kModeSandbox),
-            static_cast<int>(Mode::kModeNoSandbox),
-        },
-        {
-            FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
-            FUNCTION_PRIME_SIEVE,               // Sieve of primes
-            FUNCTION_CALLBACK,                  // Generic callback hook
-            FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
-                                                // callback hook
-        },
-        {
-            1, 10, 20, 50, 100, 250  // Number of pre-warmed workers
-        },
-    })
+    ->Apply(ExecuteSampleBinaryArguments)
     ->ArgNames({"mode", "udf", "num_workers"});
 
 BENCHMARK(BM_ExecuteBinaryUsingCallback)
-    ->ArgsProduct({
-        {
-            static_cast<int>(Mode::kModeSandbox),
-            static_cast<int>(Mode::kModeNoSandbox),
-        },
-        {
-            FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
-            FUNCTION_PRIME_SIEVE,               // Sieve of primes
-            FUNCTION_CALLBACK,                  // Generic callback hook
-            FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
-                                                // callback hook
-        },
-        {
-            1, 10,  // Number of pre-warmed workers
-        },
-    })
+    ->Apply(ExecuteSampleBinaryArguments)
     ->ArgNames({"mode", "udf", "num_workers"});
 
 BENCHMARK(BM_ExecuteBinaryRequestPayload)->Apply(PayloadArguments);
@@ -685,23 +697,11 @@ BENCHMARK(BM_ExecuteBinaryResponsePayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ExecuteBinaryCallbackRequestPayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ExecuteBinaryCallbackResponsePayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ExecuteBinaryPrimeSieve)
-    ->ArgsProduct({
-        {
-            static_cast<int>(Mode::kModeSandbox),
-            static_cast<int>(Mode::kModeNoSandbox),
-        },
-        {100'000, 500'000, 1'000'000, 5'000'000, 10'000'000},
-    })
+    ->Apply(ExecutePrimeSieveArguments)
     ->ArgNames({"mode", "prime_count"});
 
 BENCHMARK(BM_ExecuteBinarySortList)
-    ->ArgsProduct({
-        {
-            static_cast<int>(Mode::kModeSandbox),
-            static_cast<int>(Mode::kModeNoSandbox),
-        },
-        {10'000, 100'000, 1'000'000},
-    })
+    ->Apply(ExecuteSortListArguments)
     ->ArgNames({"mode", "n_items"});
 
 int main(int argc, char* argv[]) {

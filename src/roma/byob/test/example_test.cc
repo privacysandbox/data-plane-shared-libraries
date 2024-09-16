@@ -23,11 +23,13 @@
 #include "absl/synchronization/notification.h"
 #include "src/roma/byob/example/example.pb.h"
 #include "src/roma/byob/test/example_roma_byob_app_service.h"
+#include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob::example::test {
 
 namespace {
+using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
 using ::privacy_sandbox::server_common::byob::example::ByobEchoService;
 using ::privacy_sandbox::server_common::byob::example::EchoRequest;
@@ -77,6 +79,7 @@ TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
 
 TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) return;
   ByobEchoService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
   absl::Notification notif;
   absl::Status notif_status;
@@ -105,6 +108,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInSandboxMode) {
 
 TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) return;
   ByobEchoService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
   absl::Notification notif;
   absl::Status notif_status;

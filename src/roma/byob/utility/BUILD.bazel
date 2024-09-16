@@ -15,6 +15,21 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
+    name = "utils",
+    srcs = ["utils.cc"],
+    hdrs = ["utils.h"],
+    visibility = [
+        "//src/roma/byob/benchmark:__subpackages__",
+        "//src/roma/byob/test:__subpackages__",
+    ],
+    deps = [
+        "//src/roma/byob/interface:roma_service",
+        "@com_google_absl//absl/log",
+        "@libcap",
+    ],
+)
+
+cc_library(
     name = "udf_blob",
     srcs = ["udf_blob.cc"],
     hdrs = ["udf_blob.h"],
