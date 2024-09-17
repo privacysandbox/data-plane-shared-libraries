@@ -128,18 +128,18 @@ pkg_files(
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":benchmark_nonroot_image_tarball",
-        ":benchmark_root_image_tarball",
-        ":benchmark_nonroot_debug_image_tarball",
-        ":benchmark_root_debug_image_tarball",
+        ":benchmark_nonroot_image_tarball.tar",
+        ":benchmark_root_image_tarball.tar",
+        ":benchmark_nonroot_debug_image_tarball.tar",
+        ":benchmark_root_debug_image_tarball.tar",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
 mkdir -p {dir}
-cp $(execpath :benchmark_nonroot_image_tarball) {dir}/benchmark_nonroot_image.tar
-cp $(execpath :benchmark_root_image_tarball) {dir}/benchmark_root_image.tar
-cp $(execpath :benchmark_nonroot_debug_image_tarball) {dir}/benchmark_nonroot_debug_image.tar
-cp $(execpath :benchmark_root_debug_image_tarball) {dir}/benchmark_root_debug_image.tar
+cp $(execpath :benchmark_nonroot_image_tarball.tar) {dir}/benchmark_nonroot_image.tar
+cp $(execpath :benchmark_root_image_tarball.tar) {dir}/benchmark_root_image.tar
+cp $(execpath :benchmark_nonroot_debug_image_tarball.tar) {dir}/benchmark_nonroot_debug_image.tar
+cp $(execpath :benchmark_root_debug_image_tarball.tar) {dir}/benchmark_root_debug_image.tar
 builders/tools/normalize-dist
 EOF""".format(dir = "dist/roma_byob"),
     executable = True,
