@@ -76,7 +76,7 @@ pkg_files(
             "--benchmark_counters_tabular=true",
             "--benchmark_out_format=json",
             "--benchmark_time_unit=ms",
-            "--benchmark_out=/dist/benchmarks/{flavor}/roma_byob{dbg}_benchmark.json".format(
+            "--benchmark_out=/benchmark_data/roma_byob{dbg}_benchmark.json".format(
                 dbg = debug_str,
                 flavor = user.flavor,
             ),
