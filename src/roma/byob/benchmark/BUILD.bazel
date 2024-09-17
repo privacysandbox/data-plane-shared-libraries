@@ -74,15 +74,14 @@ pkg_files(
         ),
         cmd = [
             "--benchmark_counters_tabular=true",
-            "--benchmark_out_format=json",
             "--benchmark_time_unit=ms",
-            "--benchmark_out=/benchmark_data/roma_byob{dbg}_benchmark.json".format(
-                dbg = debug_str,
-                flavor = user.flavor,
-            ),
         ],
         debug = len(debug_str) > 0,
         entrypoint = ["/server/bin/roma_byob_benchmark"],
+        env = {
+            "BENCHMARK_OUT": "/tmp/benchmark_out.json",
+            "BENCHMARK_OUT_FORMAT": "json",
+        },
         repo_tags = [
             "roma_byob_benchmark_image:v1-{flavor}{dbg}".format(
                 dbg = debug_str.replace("_", "-"),

@@ -82,16 +82,17 @@ def byob_image(
         debug = False,
         use_nonroot = True,
         **kwargs):
-    """
-        Generates a BYOB OCI container image:
-          * {name}
-        Each image has a corresponding OCI tarball:
-          * {name}_tarball.tar
+    """Generates a BYOB OCI container image
 
-        udf_binary_labels: Target labels of the udf binaries.
-        repo_tags: Tags for the resulting image.
-        **kwargs: keyword args passed through to oci_image.
-        Note: base arg cannot be overridden and will be ignored.
+    Args:
+      name: Each image has a corresponding OCI tarball {name}_tarball.tar
+      udf_binary_labels: Target labels of the udf binaries.
+      repo_tags: Tags for the resulting image.
+      debug: Whether distroless or debug image should be used.
+      use_nonroot: Whether to use image with root user
+      **kwargs: keyword args passed through to oci_image.
+
+      Note : base arg cannot be overridden and will be ignored.
     """
     flavor = "nonroot" if use_nonroot else "root"
     user = [u for u in DISTROLESS_USERS if u.flavor == flavor][0]

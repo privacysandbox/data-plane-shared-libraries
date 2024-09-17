@@ -26,6 +26,23 @@ To run the tool and benchmark BYOB locally:
 docker run -it --privileged --rm roma_byob_benchmark_image:v1-root
 ```
 
+By default, the results are printed to the console. If you want to store the results in a file,
+define an environment variable called `BENCHMARK_OUT` pointing to the json file where you want to
+store the results. Since the benchmarks are run inside a docker container, to extract them, mount in
+writeable directory with the same destination as the `BENCHMARK_OUT` directory. Example:
+
+```sh
+benchmark_out_dir="/benchmark_data"
+# /path/to/directory is a writable directory
+docker run \
+  -v /path/to/directory:${benchmark_out_dir} \
+  "--env=BENCHMARK_OUT=${benchmark_out_dir}/roma_byob_benchmark.json" \
+  -it \
+  --privileged \
+  --rm \
+  roma_byob_benchmark_image:v1-root
+```
+
 ### Benchmarking on AWS EC2
 
 The following section covers how this image can be converted to an EIF and uploaded to an EC2
