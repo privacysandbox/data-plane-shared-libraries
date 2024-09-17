@@ -1,18 +1,58 @@
-# Roma Bring-Your-Own-Binary Benchmark
+# Roma Bring-Your-Own-Binary Microbenchmarking
 
 For details about Roma Bring-Your-Own-Binary (BYOB), check out the
 [top-level document](/docs/roma/byob/sdk/docs/Guide%20to%20the%20SDK.md).
 
-Benchmark binaries can be found in [this folder](/src/roma/byob/udf/). This includes benchmarks for
-"Hello World!", Sieve of Eratosthenes, sorting, and payloads for requests, responses and callbacks.
+Microbenchmark binaries can be found in [this folder](/src/roma/byob/udf/). These include
+microbenchmarks for "Hello World!", Sieve of Eratosthenes, sorting, and payloads for requests,
+responses and callbacks.
 
 ## Running benchmarks
 
-The benchmarks can be used to determine suitable software configurations on given hardware.
+### Building the Docker tool:
+
+The benchmarks can be used to determine suitable software configurations on given hardware. To build
+the benchmarking tool, run the following command:
 
 ```sh
 builders/tools/bazel-debian run //src/roma/byob/benchmark:copy_to_dist
 ```
+
+### Choosing the correct image:
+
+Running the command above, generates four tar archives for different configurations of the tool.
+Namely,
+
+-   `dist/roma_byob/benchmark_nonroot_image.tar`
+-   `dist/roma_byob/benchmark_root_image.tar`
+-   `dist/roma_byob/benchmark_nonroot_debug_image.tar`
+-   `dist/roma_byob/benchmark_root_debug_image.tar`
+
+Based on the choice of configuration, you can compare the numbers between sandbox and non-sandbox
+mode. In non-sandbox mode, the gVisor sandbox layer is not used. The clone-pivot_root-exec construct
+is utilized in both the sandbox and non-sandbox modes.
+
+The remainder of this doc focuses on non-debug images. Debug images are largely the same image with
+the addition of a shell. See
+[distroless debug](https://github.com/GoogleContainerTools/distroless?tab=readme-ov-file#debug-images)
+for more information.
+
+The table below illustrates the docker flags needed to run the benchmarks.
+
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable line-length -->
+| Tarball                     | Image Name and Tag                   | Supports non-Sandbox | `docker run` flags                                                     |
+| --------------------------- | ------------------------------------ | -------------------- | ---------------------------------------------------------------------- |
+| benchmark_nonroot_image.tar | roma_byob_benchmark_image:v1-nonroot | No                   | `--security-opt=seccomp=unconfined`                                    |
+|                             |                                      |                      | `--security-opt=apparmor=unconfined`                                   |
+|                             |                                      |                      | (optional)`--cap-add=CAP_SYS_ADMIN` only required for non-sandbox mode |
+| benchmark_root_image.tar    | roma_byob_benchmark_image:v1-root    | Yes                  | Generally                                                              |
+|                             |                                      |                      | `--security-opt=seccomp=unconfined`                                    |
+|                             |                                      |                      | `--security-opt=apparmor=unconfined`                                   |
+<!-- markdownlint-enable line-length -->
+<!-- prettier-ignore-end -->
+
+### Loading and running the tool (root image)
 
 After building, load the tool into docker as follows:
 
@@ -23,13 +63,19 @@ docker load -i dist/roma_byob/benchmark_root_image.tar
 To run the tool and benchmark BYOB locally:
 
 ```sh
-docker run -it --privileged --rm roma_byob_benchmark_image:v1-root
+docker run -it \
+  --security-opt=seccomp=unconfined \
+  --security-opt=apparmor=unconfined \
+  --cap-add=CAP_SYS_ADMIN \
+  --rm \
+  roma_byob_benchmark_image:v1-root
 ```
 
 By default, the results are printed to the console. If you want to store the results in a file,
 define an environment variable called `BENCHMARK_OUT` pointing to the json file where you want to
-store the results. Since the benchmarks are run inside a docker container, to extract them, mount in
-writeable directory with the same destination as the `BENCHMARK_OUT` directory. Example:
+store the results. For easy access to the benchmark output file, mount a writeable directory into
+the container and set the container's `BENCHMARK_OUT` environment variable to a file within that
+target directory. For example:
 
 ```sh
 benchmark_out_dir="/benchmark_data"
@@ -38,7 +84,9 @@ docker run \
   -v /path/to/directory:${benchmark_out_dir} \
   "--env=BENCHMARK_OUT=${benchmark_out_dir}/roma_byob_benchmark.json" \
   -it \
-  --privileged \
+  --security-opt=seccomp=unconfined \
+  --security-opt=apparmor=unconfined \
+  --cap-add=CAP_SYS_ADMIN \
   --rm \
   roma_byob_benchmark_image:v1-root
 ```
@@ -66,7 +114,8 @@ scp -i "${AWS_EC2_PEM}" \
   ec2-user@${AWS_EC2_ADDR}:/home/ec2-user/
 ```
 
-To run the benchmarks in a Nitro Enclave TEE:
+The following example executes the benchmarks in a Nitro Enclave TEE from your EC2 instance (Note:
+adjust CPU and memory as desired):
 
 ```sh
 nitro-cli run-enclave --cpu-count 2 --memory 1684 --eif-path roma_byob_benchmark_image.eif --enclave-cid 10 --attach-console

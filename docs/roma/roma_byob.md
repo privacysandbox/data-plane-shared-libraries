@@ -115,6 +115,10 @@ Links to images:
 -   [Auction AWS](https://github.com/privacysandbox/bidding-auction-servers/blob/c98a51c7dc11de92e9c8fb719242a033e620a1b4/production/packaging/aws/auction_service/BUILD#L73)
 -   [Auction GCP](https://github.com/privacysandbox/bidding-auction-servers/blob/c98a51c7dc11de92e9c8fb719242a033e620a1b4/production/packaging/gcp/auction_service/BUILD#L66)
 
+Note: If you are having permission issues running your docker container, consider using
+`--security-opt=seccomp=unconfined` and `--security-opt=apparmor=unconfined` flags to `docker run`.
+If you are still having issues, try adding `--cap-add=CAP_SYS_ADMIN`.
+
 #### Interface
 
 Roma BYOB uses declarative interfaces.
