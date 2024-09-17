@@ -28,8 +28,10 @@ def container_deps():
         "runtime-debian-debug-root": {
             # debug build so we can use 'sh'. Root, for gcp coordinators
             # auth to work
+            # Temp azure hack: replaced amd64 value from
+            # d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548
             "arch_hashes": {
-                "amd64": "d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548",
+                "amd64": "6865ad48467c89c3c3524d4c426f52ad12d9ab7dec31fad31fae69da40eb6445",
                 "arm64": "6449313a9a80b2758f505c81462c492da87f76954d319f2adb55401177798cce",
             },
             "registry": "gcr.io",
