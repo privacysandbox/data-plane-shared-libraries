@@ -94,10 +94,11 @@ class ContextImpl final : public PSLogContext {
   ContextImpl(
       const absl::btree_map<std::string, std::string>& context_map,
       const ConsentedDebugConfiguration& debug_config,
-      absl::AnyInvocable<DebugInfo*()> debug_info = []() { return nullptr; })
+      absl::AnyInvocable<DebugInfo*()> debug_info = []() { return nullptr; },
+      bool prod_debug = false)
       : consented_sink(ServerToken()),
         debug_response_sink_(std::move(debug_info)) {
-    Update(context_map, debug_config);
+    Update(context_map, debug_config, prod_debug);
   }
 
   // note: base class PSLogContext has no virtual destructor!
@@ -115,17 +116,19 @@ class ContextImpl final : public PSLogContext {
   absl::LogSink* DebugResponseSink() override { return &debug_response_sink_; };
 
   void Update(const absl::btree_map<std::string, std::string>& new_context,
-              const ConsentedDebugConfiguration& debug_config) {
+              const ConsentedDebugConfiguration& debug_config,
+              bool prod_debug = false) {
     context_ = FormatContext(new_context);
     consented_sink.client_debug_token_ =
         debug_config.is_consented() ? debug_config.token() : "";
     debug_response_sink_.should_log_ = debug_config.is_debug_info_in_response();
+    prod_debug_ = prod_debug;
   }
 
   template <typename T>
   void SetEventMessageField(T&& field) {
     if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
-      if ((is_debug_response() && !IsProd()) || is_consented()) {
+      if ((is_debug_response() && !IsProd()) || is_consented() || prod_debug_) {
         provider_.Set(std::forward<T>(field));
       }
     }
@@ -136,7 +139,7 @@ class ContextImpl final : public PSLogContext {
       if (is_debug_response()) {
         AddEventMessage(provider_.Get(), debug_response_sink_.debug_info_);
       }
-      if (if_export_consented && is_consented()) {
+      if ((if_export_consented && is_consented()) || prod_debug_) {
         absl::StatusOr<std::string> json_str = ProtoToJson(provider_.Get());
         if (json_str.ok()) {
           logger_private->EmitLogRecord(
@@ -207,6 +210,7 @@ class ContextImpl final : public PSLogContext {
   ConsentedSinkImpl consented_sink;
   DebugResponseSinkImpl debug_response_sink_;
   EventMessageProvider provider_;
+  bool prod_debug_ = false;
 
   static constexpr std::string_view kLogAttribute = "ps_tee_log_type";
 };

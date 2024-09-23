@@ -169,6 +169,19 @@ TEST_F(EventMessageTest, NotConsented) {
   EXPECT_THAT(ReadSs(), IsEmpty());
 }
 
+TEST_F(EventMessageTest, ProdDebug) {
+  em_instance_ = std::make_unique<ContextImpl<MockEventMessageProvider>>(
+      absl::btree_map<std::string, std::string>{}, mismatched_token_,
+      []() { return nullptr; }, /*prod_debug =*/true);
+  SetServerTokenForTestOnly(kServerToken);
+  CHECK(!em_instance_->is_consented());
+  em_instance_->SetEventMessageField(std::string("test gen id"));
+  em_instance_->ExportEventMessage(/*if_export_consented=*/true);
+  std::string otlp_output = ReadSs();
+  EXPECT_THAT(otlp_output, ContainsRegex("test gen id"));
+  EXPECT_THAT(otlp_output, ContainsRegex("ps_tee_log_type: event_message"));
+}
+
 TEST(FormatContext, NoContextGeneratesEmptyString) {
   EXPECT_THAT(FormatContext({}), IsEmpty());
 }
