@@ -34,6 +34,7 @@
 #include "google/protobuf/any.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/function_binding_io.pb.h"
+#include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
 class Dispatcher {
@@ -48,21 +49,33 @@ class Dispatcher {
 
   void Delete(std::string_view code_token);
 
+  void Cancel(google::scp::roma::ExecutionToken execution_token);
+
   template <typename Response, typename Table, typename Metadata,
             typename Request>
-  void ProcessRequest(
+  google::scp::roma::ExecutionToken ProcessRequest(
       std::string_view code_token, const Request& request, Metadata metadata,
       const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback)
       ABSL_LOCKS_EXCLUDED(mu_) {
     google::protobuf::Any request_any;
     request_any.PackFrom(request);
+    FdAndToken fd_and_token;
     {
+      auto fn = [&] {
+        mu_.AssertReaderHeld();
+        return !code_token_to_fds_and_tokens_[code_token].empty();
+      };
       absl::MutexLock l(&mu_);
+      mu_.Await(absl::Condition(&fn));
+      auto& fds_and_tokens = code_token_to_fds_and_tokens_[code_token];
+      fd_and_token = fds_and_tokens.front();
+      fds_and_tokens.pop();
       ++executor_threads_in_flight_;
     }
     std::thread(
-        &Dispatcher::ExecutorImpl, this, code_token, std::move(request_any),
+        &Dispatcher::ExecutorImpl, this, fd_and_token.fd,
+        std::move(request_any),
         [callback = std::move(callback)](
             absl::StatusOr<google::protobuf::Any> response_any) mutable {
           if (!response_any.ok()) {
@@ -87,14 +100,20 @@ class Dispatcher {
           }
         })
         .detach();
+    return google::scp::roma::ExecutionToken{std::move(fd_and_token).token};
   }
 
  private:
+  struct FdAndToken {
+    int fd;
+    std::string token;
+  };
+
   // Accepts connections from newly created UDF instances, reads code tokens,
   // and pushes file descriptors to the queue.
   void AcceptorImpl() ABSL_LOCKS_EXCLUDED(mu_);
   void ExecutorImpl(
-      std::string_view code_token, google::protobuf::Any request,
+      int fd, google::protobuf::Any request,
       absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
           callback,
       absl::FunctionRef<void(std::string_view,
@@ -108,8 +127,8 @@ class Dispatcher {
   std::optional<std::thread> acceptor_;
   absl::Mutex mu_;
   int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
-  absl::flat_hash_map<std::string, std::queue<int>> code_token_to_fds_
-      ABSL_GUARDED_BY(mu_);
+  absl::flat_hash_map<std::string, std::queue<FdAndToken>>
+      code_token_to_fds_and_tokens_ ABSL_GUARDED_BY(mu_);
 };
 }  // namespace privacy_sandbox::server_common::byob
 

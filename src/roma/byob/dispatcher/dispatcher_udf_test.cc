@@ -34,9 +34,11 @@
 #include "src/roma/byob/dispatcher/dispatcher.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
+using ::google::scp::roma::ExecutionToken;
 using ::google::scp::roma::FunctionBindingPayload;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
@@ -463,6 +465,43 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
+}
+
+TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  const int pid = ::vfork();
+  ASSERT_NE(pid, -1);
+  if (pid == 0) {
+    const char* argv[] = {
+        "src/roma/byob/dispatcher/run_workers_without_sandbox",
+        "--socket_name=abcd.sock",
+        nullptr,
+    };
+    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+    PLOG(FATAL) << "execve() failed";
+  }
+  absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
+    ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+  };
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const absl::StatusOr<std::string> code_token =
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
+                            /*n_workers=*/2);
+  SampleRequest bin_request;
+  absl::flat_hash_map<std::string,
+                      std::function<void(FunctionBindingPayload<int>&)>>
+      function_table;
+  absl::Notification done;
+  ExecutionToken execution_token = dispatcher.ProcessRequest<SampleResponse>(
+      *code_token, bin_request, /*metadata=*/0, function_table,
+      [&done](auto /*response*/) { done.Notify(); });
+  EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  dispatcher.Cancel(std::move(execution_token));
+  done.WaitForNotification();
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {

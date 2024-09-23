@@ -67,6 +67,7 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
 }
 struct WorkerImplArg {
   absl::Span<const std::string> mounts;
+  std::string_view execution_token;
   std::string_view pivot_root_dir;
   int rpc_fd;
   std::string_view code_token;
@@ -85,6 +86,8 @@ void SetPrctlOptions(absl::Span<const std::pair<int, int>> option_arg_pairs) {
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
   PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.code_token.data(),
+                 36) == 36);
+  PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.execution_token.data(),
                  36) == 36);
 
   // Set up restricted filesystem for worker using pivot_root
@@ -155,14 +158,15 @@ int WorkerImpl(void* arg) {
           worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
-struct PidAndPivotRootDir {
+struct PidExecutionTokenAndPivotRootDir {
   int pid;
+  std::string execution_token;
   std::string pivot_root_dir;
 };
 
 // Returns `std::nullopt` when workers can no longer be created: in virtually
 // all cases, this is because Roma is shutting down and is not an error.
-std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
+std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
     absl::Span<const std::string> mounts, std::string_view socket_name,
     std::string_view code_token, std::string_view binary_path,
     const int dev_null_fd) {
@@ -186,8 +190,11 @@ std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
     PLOG(ERROR) << "mkdtemp()";
     return std::nullopt;
   }
+  std::string execution_token =
+      ToString(google::scp::core::common::Uuid::GenerateUuid());
   WorkerImplArg worker_impl_arg{
       .mounts = mounts,
+      .execution_token = execution_token,
       .pivot_root_dir = pivot_root_dir,
       .rpc_fd = rpc_fd,
       .code_token = code_token,
@@ -213,8 +220,9 @@ std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
     }
     return std::nullopt;
   }
-  return PidAndPivotRootDir{
+  return PidExecutionTokenAndPivotRootDir{
       .pid = pid,
+      .execution_token = std::move(execution_token),
       .pivot_root_dir = std::string(pivot_root_dir),
   };
 }
@@ -254,6 +262,7 @@ int main(int argc, char** argv) {
   }
   struct UdfInstanceMetadata {
     std::string pivot_root_dir;
+    std::string execution_token;
     std::string code_token;
     std::string binary_path;
     bool marked_for_deletion = false;
@@ -316,16 +325,21 @@ int main(int argc, char** argv) {
 
         // Start a new worker with the same UDF as the most-recently ended
         // worker.
-        std::optional<PidAndPivotRootDir> pid_and_pivot_root_dir =
-            ConnectSendCloneAndExec(mounts, socket_name, udf.code_token,
-                                    udf.binary_path, dev_null_fd);
-        if (!pid_and_pivot_root_dir.has_value()) {
+        std::optional<PidExecutionTokenAndPivotRootDir>
+            pid_execution_token_and_pivot_root_dir =
+                ConnectSendCloneAndExec(mounts, socket_name, udf.code_token,
+                                        udf.binary_path, dev_null_fd);
+        if (!pid_execution_token_and_pivot_root_dir.has_value()) {
           return;
         }
-        udf.pivot_root_dir = std::move(pid_and_pivot_root_dir->pivot_root_dir);
-        CHECK(
-            pid_to_udf.try_emplace(pid_and_pivot_root_dir->pid, std::move(udf))
-                .second);
+        udf.pivot_root_dir =
+            std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir);
+        udf.execution_token =
+            std::move(pid_execution_token_and_pivot_root_dir->execution_token);
+        CHECK(pid_to_udf
+                  .try_emplace(pid_execution_token_and_pivot_root_dir->pid,
+                               std::move(udf))
+                  .second);
       }
     }
   });
@@ -373,6 +387,19 @@ int main(int argc, char** argv) {
       }
       continue;
     }
+    if (request.has_cancel()) {
+      // Kill the worker.
+      absl::MutexLock lock(&mu);
+      for (const auto& [pid, udf] : pid_to_udf) {
+        if (request.cancel().execution_token() == udf.execution_token) {
+          if (::kill(pid, SIGKILL) == -1) {
+            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+          }
+          break;
+        }
+      }
+      continue;
+    }
     if (!request.has_load_binary()) {
       LOG(ERROR) << "Unrecognized request from dispatcher.";
       continue;
@@ -414,38 +441,44 @@ int main(int argc, char** argv) {
       }
     }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
-      std::optional<PidAndPivotRootDir> pid_and_pivot_root_dir =
-          ConnectSendCloneAndExec(mounts, socket_name,
-                                  request.load_binary().code_token(),
-                                  binary_path.native(), dev_null_fd);
-      if (!pid_and_pivot_root_dir.has_value()) {
+      std::optional<PidExecutionTokenAndPivotRootDir>
+          pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
+              mounts, socket_name, request.load_binary().code_token(),
+              binary_path.native(), dev_null_fd);
+      if (!pid_execution_token_and_pivot_root_dir.has_value()) {
         return -1;
       }
       UdfInstanceMetadata udf{
-          .pivot_root_dir = std::move(pid_and_pivot_root_dir->pivot_root_dir),
+          .pivot_root_dir =
+              std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir),
+          .execution_token = std::move(
+              pid_execution_token_and_pivot_root_dir->execution_token),
           .code_token = request.load_binary().code_token(),
           .binary_path = binary_path,
       };
       absl::MutexLock lock(&mu);
-      pid_to_udf[pid_and_pivot_root_dir->pid] = std::move(udf);
+      pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
-    std::optional<PidAndPivotRootDir> pid_and_pivot_root_dir =
-        ConnectSendCloneAndExec(mounts, socket_name,
-                                request.load_binary().code_token(),
-                                binary_path.native(), dev_null_fd);
-    if (!pid_and_pivot_root_dir.has_value()) {
+    std::optional<PidExecutionTokenAndPivotRootDir>
+        pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
+            mounts, socket_name, request.load_binary().code_token(),
+            binary_path.native(), dev_null_fd);
+    if (!pid_execution_token_and_pivot_root_dir.has_value()) {
       return -1;
     }
     UdfInstanceMetadata udf{
-        .pivot_root_dir = std::move(pid_and_pivot_root_dir->pivot_root_dir),
+        .pivot_root_dir =
+            std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir),
+        .execution_token =
+            std::move(pid_execution_token_and_pivot_root_dir->execution_token),
         .code_token =
             std::move(*request.mutable_load_binary()->mutable_code_token()),
         .binary_path = binary_path,
     };
     absl::MutexLock lock(&mu);
-    pid_to_udf[pid_and_pivot_root_dir->pid] = std::move(udf);
+    pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
   }
   return 0;
 }

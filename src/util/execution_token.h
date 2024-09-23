@@ -18,27 +18,10 @@
 #define ROMA_INTERFACE_EXECUTION_TOKEN_H_
 
 #include <string>
-#include <utility>
 
 namespace google::scp::roma {
 struct ExecutionToken {
-  explicit ExecutionToken(const std::string& id) : uuid_(id) {}
-
-  bool operator==(const ExecutionToken& other) const {
-    return uuid_ == other.uuid_;
-  }
-
-  bool operator!=(const ExecutionToken& other) const {
-    return uuid_ != other.uuid_;
-  }
-
-  template <typename H>
-  friend H AbslHashValue(H h, const ExecutionToken& token) {
-    return H::combine(std::move(h), token.uuid_);
-  }
-
- private:
-  std::string uuid_;
+  std::string value;
 };
 }  // namespace google::scp::roma
 

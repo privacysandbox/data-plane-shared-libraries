@@ -99,6 +99,11 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
     return roma_service_->Delete(code_token);
   }
 
+  void Cancel(google::scp::roma::ExecutionToken token) {
+    return roma_service_->Cancel(std::move(token));
+  }
+
+
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
   {{- $pkg := $svcopts.CppNamespace | replace "." "::" | printf "::%s" }}
   {{- $reqType := $rpc.RequestType | replace "." "::" | printf "%s::%s" $pkg }}

@@ -24,9 +24,13 @@ message DispatcherRequest {
   message DeleteBinary {
     bytes code_token = 1;
   }
+  message Cancel {
+    bytes execution_token = 1;
+  }
 
   oneof request {
     LoadBinary load_binary = 1;
     DeleteBinary delete_binary = 2;
+    Cancel cancel = 3;
   }
 }

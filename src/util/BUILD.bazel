@@ -132,13 +132,3 @@ cc_library(
     hdrs = ["execution_token.h"],
     visibility = ["//visibility:public"],
 )
-
-cc_test(
-    name = "execution_token_test",
-    srcs = ["execution_token_test.cc"],
-    deps = [
-        ":execution_token",
-        "@com_google_absl//absl/hash:hash_testing",
-        "@com_google_googletest//:gtest_main",
-    ],
-)

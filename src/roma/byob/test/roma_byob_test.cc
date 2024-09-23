@@ -318,5 +318,20 @@ TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
       SendRequestAndGetResponse(roma_service, second_code_token).greeting(),
       ::testing::StrEq(kNewUdfOutput));
 }
+
+TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
+  const std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
+  absl::Notification notif;
+  const auto execution_token = roma_service.Sample(
+      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
+      SampleRequest{},
+      /*metadata=*/{}, code_token);
+  CHECK_OK(execution_token);
+  EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  roma_service.Cancel(*execution_token);
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+}
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test

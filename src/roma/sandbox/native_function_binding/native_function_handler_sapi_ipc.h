@@ -102,8 +102,7 @@ class NativeFunctionHandlerSapiIpc {
           const auto& invocation_req_uuid = wrapper_proto.request_uuid();
           {
             absl::MutexLock lock(&canceled_requests_mu_);
-            ExecutionToken token(invocation_req_uuid);
-            if (auto it = canceled_requests_.find(token);
+            if (const auto it = canceled_requests_.find(invocation_req_uuid);
                 it != canceled_requests_.end()) {
               // TODO(b/353555061): Avoid execution errors that relate to
               // cancellation.
@@ -183,7 +182,7 @@ class NativeFunctionHandlerSapiIpc {
   void PreventCallbacks(ExecutionToken token)
       ABSL_LOCKS_EXCLUDED(canceled_requests_mu_) {
     absl::MutexLock lock(&canceled_requests_mu_);
-    canceled_requests_.insert(std::move(token));
+    canceled_requests_.insert(std::move(token).value);
   }
 
  private:
@@ -195,7 +194,7 @@ class NativeFunctionHandlerSapiIpc {
   MetadataStorage<TMetadata>* metadata_storage_;
   std::vector<std::thread> function_handler_threads_;
   std::vector<sandbox2::Comms> ipc_comms_;
-  absl::flat_hash_set<ExecutionToken> canceled_requests_
+  absl::flat_hash_set<std::string> canceled_requests_
       ABSL_GUARDED_BY(canceled_requests_mu_);
   absl::Mutex canceled_requests_mu_;
   // We need the remote file descriptors to unblock the local ones when stopping

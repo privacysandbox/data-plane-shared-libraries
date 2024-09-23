@@ -37,6 +37,7 @@
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/roma/byob/host/callback.pb.h"
+#include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
@@ -58,10 +59,10 @@ Dispatcher::~Dispatcher() {
   if (acceptor_.has_value()) {
     acceptor_->join();
   }
-  for (auto& [_, fds] : code_token_to_fds_) {
-    while (!fds.empty()) {
-      ::close(fds.front());
-      fds.pop();
+  for (auto& [_, fds_and_tokens] : code_token_to_fds_and_tokens_) {
+    while (!fds_and_tokens.empty()) {
+      ::close(fds_and_tokens.front().fd);
+      fds_and_tokens.pop();
     }
   }
   ::close(listen_fd_);
@@ -111,19 +112,28 @@ void Dispatcher::Delete(std::string_view code_token) {
   SerializeDelimitedToFileDescriptor(request, connection_fd_);
 }
 
+void Dispatcher::Cancel(google::scp::roma::ExecutionToken execution_token) {
+  DispatcherRequest request;
+  request.mutable_cancel()->set_execution_token(
+      std::move(execution_token).value);
+  SerializeDelimitedToFileDescriptor(request, connection_fd_);
+}
+
 void Dispatcher::AcceptorImpl() {
   while (true) {
     const int fd = ::accept(listen_fd_, nullptr, nullptr);
     if (fd == -1) {
       break;
     }
-    char buffer[37];
-
-    // Initialize buffer with zeros.
-    ::memset(buffer, 0, sizeof(buffer));
-    (void)::read(fd, buffer, 36);
+    char code_token[37] = {};
+    char execution_token[37] = {};
+    (void)::read(fd, code_token, 36);
+    (void)::read(fd, execution_token, 36);
     absl::MutexLock lock(&mu_);
-    code_token_to_fds_[buffer].push(fd);
+    code_token_to_fds_and_tokens_[code_token].push(FdAndToken{
+        .fd = fd,
+        .token = execution_token,
+    });
   }
 }
 
@@ -140,22 +150,10 @@ void RunCallback(
 }  // namespace
 
 void Dispatcher::ExecutorImpl(
-    std::string_view code_token, google::protobuf::Any request,
+    const int fd, google::protobuf::Any request,
     absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&> callback,
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
         handler) {
-  int fd;
-  {
-    auto fn = [&] {
-      mu_.AssertReaderHeld();
-      return !code_token_to_fds_[code_token].empty();
-    };
-    absl::MutexLock l(&mu_);
-    mu_.Await(absl::Condition(&fn));
-    auto& fds = code_token_to_fds_[code_token];
-    fd = fds.front();
-    fds.pop();
-  }
   SerializeDelimitedToFileDescriptor(request, fd);
   FileInputStream input(fd);
   absl::Mutex mu;

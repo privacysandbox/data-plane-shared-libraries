@@ -40,12 +40,14 @@
 #include "src/roma/byob/host/callback.pb.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
+using ::google::scp::roma::ExecutionToken;
 using ::google::scp::roma::FunctionBindingPayload;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
@@ -248,6 +250,10 @@ TEST(DispatcherTest, LoadAndExecute) {
         ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
         36);
     {
+      const std::string execution_token(36, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+    }
+    {
       // Read UDF input.
       google::protobuf::Any any;
       FileInputStream input(connection_fd);
@@ -318,6 +324,10 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
     EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
                       /*count=*/36),
               36);
+    {
+      const std::string execution_token(36, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+    }
     EXPECT_EQ(::close(connection_fd), 0);
     EXPECT_EQ(::close(fd), 0);
   });
@@ -365,6 +375,10 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     EXPECT_EQ(
         ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
         36);
+    {
+      const std::string execution_token(36, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+    }
 
     // Read UDF input.
     FileInputStream input(connection_fd);
@@ -466,6 +480,10 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
                       /*count=*/36),
               36);
     {
+      const std::string execution_token(36, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+    }
+    {
       // Read UDF input.
       FileInputStream input(connection_fd);
       google::protobuf::Any any;
@@ -548,6 +566,10 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       ASSERT_NE(connection_fd, -1);
       ConnectToPath(connection_fd, "abcd.sock", /*unlink_path=*/false);
       EXPECT_EQ(::write(connection_fd, code_token.c_str(), 36), 36);
+      {
+        const std::string execution_token(36, 'a');
+        EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+      }
 
       // Read UDF input.
       FileInputStream input(connection_fd);
@@ -605,6 +627,73 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   counter.Wait();
   for (int i = 0; i < 100; ++i) {
     EXPECT_THAT(metadatas, Contains(i));
+  }
+  worker.join();
+}
+
+TEST(DispatcherTest, LoadAndExecuteThenCancel) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
+  std::thread worker([] {
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(fd, -1);
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
+
+    // Process load request.
+    FileInputStream input(fd);
+    DispatcherRequest request;
+    ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+    ASSERT_TRUE(request.has_load_binary());
+    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(request.load_binary().num_workers(), 1);
+
+    // Process execution request.
+    const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(connection_fd, -1);
+    ConnectToPath(connection_fd, "abcd.sock", /*unlink_path=*/false);
+    EXPECT_EQ(
+        ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
+        36);
+    const std::string execution_token(36, 'a');
+    EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+    {
+      // Read UDF input.
+      google::protobuf::Any any;
+      FileInputStream input(connection_fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
+      SampleRequest request;
+      ASSERT_TRUE(any.UnpackTo(&request));
+      EXPECT_EQ(request.function(), FUNCTION_HELLO_WORLD);
+    }
+    {
+      // Read cancellation request.
+      DispatcherRequest request;
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
+      ASSERT_TRUE(request.has_cancel());
+      EXPECT_THAT(request.cancel().execution_token(), StrEq(execution_token));
+    }
+    EXPECT_EQ(::close(connection_fd), 0);
+    EXPECT_EQ(::close(fd), 0);
+  });
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
+  ASSERT_TRUE(code_token.ok());
+  {
+    SampleRequest bin_request;
+    bin_request.set_function(FUNCTION_HELLO_WORLD);
+    absl::flat_hash_map<std::string,
+                        std::function<void(FunctionBindingPayload<int>&)>>
+        function_table;
+    absl::Notification done;
+    ExecutionToken execution_token = dispatcher.ProcessRequest<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/0, function_table,
+        [&done](auto response) { done.Notify(); });
+    dispatcher.Cancel(std::move(execution_token));
+    done.WaitForNotification();
   }
   worker.join();
 }

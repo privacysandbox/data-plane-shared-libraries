@@ -58,6 +58,7 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
   return ::connect(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == 0;
 }
 struct WorkerImplArg {
+  std::string_view execution_token;
   int fd;
   std::string_view code_token;
   std::string_view binary_path;
@@ -67,6 +68,8 @@ int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
   PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.code_token.data(), 36) ==
          36);
+  PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.execution_token.data(),
+                 36) == 36);
 
   // Exec binary.
   const std::string connection_fd = [worker_impl_arg] {
@@ -78,12 +81,16 @@ int WorkerImpl(void* arg) {
           worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
+struct PidAndExecutionToken {
+  int pid;
+  std::string execution_token;
+};
 
 // Returns `std::nullopt` when workers can no longer be created: in virtually
 // all cases, this is because Roma is shutting down and is not an error.
-std::optional<int> ConnectSendCloneAndExec(std::string_view socket_name,
-                                           std::string_view code_token,
-                                           std::string_view binary_path) {
+std::optional<PidAndExecutionToken> ConnectSendCloneAndExec(
+    std::string_view socket_name, std::string_view code_token,
+    std::string_view binary_path) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (fd == -1) {
     PLOG(ERROR) << "socket()";
@@ -98,7 +105,9 @@ std::optional<int> ConnectSendCloneAndExec(std::string_view socket_name,
     PLOG(INFO) << "connect() to " << socket_name << " failed";
     return std::nullopt;
   }
-  WorkerImplArg worker_impl_arg{fd, code_token, binary_path};
+  std::string execution_token =
+      ToString(google::scp::core::common::Uuid::GenerateUuid());
+  WorkerImplArg worker_impl_arg{execution_token, fd, code_token, binary_path};
 
   // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
   // or the process may receive SIGBUS (depending on the size of the stack
@@ -112,7 +121,10 @@ std::optional<int> ConnectSendCloneAndExec(std::string_view socket_name,
     PLOG(ERROR) << "clone()";
     return std::nullopt;
   }
-  return pid;
+  return PidAndExecutionToken{
+      .pid = pid,
+      .execution_token = std::move(execution_token),
+  };
 }
 }  // namespace
 
@@ -143,6 +155,7 @@ int main(int argc, char** argv) {
     return -1;
   }
   struct UdfInstanceMetadata {
+    std::string execution_token;
     std::string code_token;
     std::string binary_path;
     bool marked_for_deletion = false;
@@ -203,12 +216,17 @@ int main(int argc, char** argv) {
 
         // Start a new worker with the same UDF as the most-recently ended
         // worker.
-        const std::optional<int> new_pid = ConnectSendCloneAndExec(
-            socket_name, udf.code_token, udf.binary_path);
-        if (!new_pid.has_value()) {
+        std::optional<PidAndExecutionToken> pid_and_execution_token =
+            ConnectSendCloneAndExec(socket_name, udf.code_token,
+                                    udf.binary_path);
+        if (!pid_and_execution_token.has_value()) {
           return;
         }
-        CHECK(pid_to_udf.try_emplace(*new_pid, std::move(udf)).second);
+        udf.execution_token =
+            std::move(pid_and_execution_token->execution_token);
+        CHECK(
+            pid_to_udf.try_emplace(pid_and_execution_token->pid, std::move(udf))
+                .second);
       }
     }
   });
@@ -245,6 +263,19 @@ int main(int argc, char** argv) {
             PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
           }
           udf.marked_for_deletion = true;
+        }
+      }
+      continue;
+    }
+    if (request.has_cancel()) {
+      // Kill the worker.
+      absl::MutexLock lock(&mu);
+      for (const auto& [pid, udf] : pid_to_udf) {
+        if (request.cancel().execution_token() == udf.execution_token) {
+          if (::kill(pid, SIGKILL) == -1) {
+            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+          }
+          break;
         }
       }
       continue;
@@ -290,33 +321,38 @@ int main(int argc, char** argv) {
       }
     }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
-      const std::optional<int> pid = ConnectSendCloneAndExec(
-          socket_name, request.load_binary().code_token(),
-          binary_path.native());
-      if (!pid.has_value()) {
+      std::optional<PidAndExecutionToken> pid_and_execution_token =
+          ConnectSendCloneAndExec(socket_name,
+                                  request.load_binary().code_token(),
+                                  binary_path.native());
+      if (!pid_and_execution_token.has_value()) {
         return -1;
       }
       UdfInstanceMetadata udf{
+          .execution_token =
+              std::move(pid_and_execution_token->execution_token),
           .code_token = request.load_binary().code_token(),
           .binary_path = binary_path,
       };
       absl::MutexLock lock(&mu);
-      pid_to_udf[*pid] = std::move(udf);
+      pid_to_udf[pid_and_execution_token->pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
-    const std::optional<int> pid = ConnectSendCloneAndExec(
-        socket_name, request.load_binary().code_token(), binary_path.native());
-    if (!pid.has_value()) {
+    std::optional<PidAndExecutionToken> pid_and_execution_token =
+        ConnectSendCloneAndExec(socket_name, request.load_binary().code_token(),
+                                binary_path.native());
+    if (!pid_and_execution_token.has_value()) {
       return -1;
     }
     UdfInstanceMetadata udf{
+        .execution_token = std::move(pid_and_execution_token->execution_token),
         .code_token =
             std::move(*request.mutable_load_binary()->mutable_code_token()),
         .binary_path = binary_path,
     };
     absl::MutexLock lock(&mu);
-    pid_to_udf[*pid] = std::move(udf);
+    pid_to_udf[pid_and_execution_token->pid] = std::move(udf);
   }
   return 0;
 }

@@ -164,14 +164,16 @@ class RomaService final {
 
   void Delete(std::string_view code_token) { dispatcher_->Delete(code_token); }
 
+  void Cancel(google::scp::roma::ExecutionToken token) {
+    dispatcher_->Cancel(std::move(token));
+  }
+
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
-    dispatcher_->ProcessRequest(code_token, request, std::move(metadata),
-                                function_bindings_, std::move(callback));
-    return google::scp::roma::ExecutionToken(
-        ToString(google::scp::core::common::Uuid::GenerateUuid()));
+    return dispatcher_->ProcessRequest(code_token, request, std::move(metadata),
+                                       function_bindings_, std::move(callback));
   }
 
   template <typename Response, typename Request>

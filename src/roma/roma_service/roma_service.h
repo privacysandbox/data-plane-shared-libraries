@@ -359,7 +359,7 @@ class RomaService {
         StoreMetadata(uuid_str, std::move(invocation_req->metadata)));
     PS_RETURN_IF_ERROR(dispatcher_->Invoke(std::move(*invocation_req),
                                            std::move(callback_wrapper)));
-    return ExecutionToken(std::move(uuid_str));
+    return ExecutionToken{std::move(uuid_str)};
   }
 
   template <typename InputType>

@@ -199,7 +199,7 @@ void Dispatcher::Cancel(const ExecutionToken& token) {
     Request item = std::move(requests_.front());
     requests_.pop();
 
-    if (ExecutionToken(item.param.metadata().at(kRequestUuid)) != token) {
+    if (item.param.metadata().at(kRequestUuid) != token.value) {
       requests_.push(std::move(item));
     } else {
       std::move(item).callback(
