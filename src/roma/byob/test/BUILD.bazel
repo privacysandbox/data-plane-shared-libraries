@@ -103,8 +103,8 @@ pkg_files(
             flavor = user.flavor,
             test_name = test_name,
         ),
-        cmd = [cmd],
         debug = False,
+        entrypoint = [entrypoint],
         repo_tags = [
             "roma_byob_{test_name}_test_image:v1-{flavor}".format(
                 flavor = user.flavor,
@@ -118,7 +118,7 @@ pkg_files(
         use_nonroot = True if user.flavor == "nonroot" else False,
     )
     for user in DISTROLESS_USERS
-    for test_name, cmd in (
+    for test_name, entrypoint in (
         ("sample", "/server/bin/roma_byob_test"),
         ("example", "/server/bin/example_test"),
     )
