@@ -247,11 +247,22 @@ roma_host_api_cc_library(
     deps = ["//src/roma/byob/udf:sample_service_native_functions"],
 )
 
+cc_binary(
+    name = "log_udf",
+    srcs = ["log_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 filegroup(
     name = "udf_binaries",
     srcs = [
         ":callback_payload_read_udf",
         ":callback_payload_write_udf",
+        ":log_udf",
         ":new_udf",
         ":payload_read_udf",
         ":payload_write_udf",

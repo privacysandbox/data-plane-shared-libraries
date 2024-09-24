@@ -69,6 +69,7 @@ struct WorkerImplArg {
   int fd;
   std::string_view code_token;
   std::string_view binary_path;
+  const int dev_null_fd;
 };
 
 int WorkerImpl(void* arg) {
@@ -97,6 +98,10 @@ int WorkerImpl(void* arg) {
     CHECK(std::filesystem::create_directories(target));
     PCHECK(::mount(binary_dir.c_str(), target.c_str(), nullptr, MS_BIND,
                    nullptr) == 0);
+  }
+  {
+    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
+    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO) != -1);
   }
 
   // MS_REC needed here to get other mounts (/lib, /lib64 etc)
@@ -144,7 +149,8 @@ struct PidAndPivotRootDir {
 // all cases, this is because Roma is shutting down and is not an error.
 std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
     absl::Span<const std::string> mounts, std::string_view socket_name,
-    std::string_view code_token, std::string_view binary_path) {
+    std::string_view code_token, std::string_view binary_path,
+    const int dev_null_fd) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (fd == -1) {
     PLOG(ERROR) << "socket()";
@@ -171,6 +177,7 @@ std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
       .fd = fd,
       .code_token = code_token,
       .binary_path = binary_path,
+      .dev_null_fd = dev_null_fd,
   };
 
   // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
@@ -225,6 +232,11 @@ int main(int argc, char** argv) {
     PLOG(ERROR) << "connect() to " << socket_name << " failed";
     return -1;
   }
+  const int dev_null_fd = open("/dev/null", O_WRONLY);
+  if (dev_null_fd < 0) {
+    PLOG(ERROR) << "open failed for /dev/null";
+    return -1;
+  }
   struct UdfInstanceMetadata {
     std::string pivot_root_dir;
     std::string code_token;
@@ -234,7 +246,8 @@ int main(int argc, char** argv) {
   absl::Mutex mu;
   absl::flat_hash_map<int, UdfInstanceMetadata> pid_to_udf;  // Guarded by mu.
   bool shutdown = false;                                     // Guarded by mu.
-  std::thread reloader([&socket_name, &mounts, &mu, &pid_to_udf, &shutdown] {
+  std::thread reloader([&socket_name, &mounts, &mu, &pid_to_udf, &shutdown,
+                        &dev_null_fd] {
     {
       auto fn = [&] {
         mu.AssertReaderHeld();
@@ -279,7 +292,7 @@ int main(int argc, char** argv) {
       // Start a new worker with the same UDF as the most-recently ended worker.
       std::optional<PidAndPivotRootDir> pid_and_pivot_root_dir =
           ConnectSendCloneAndExec(mounts, socket_name, udf.code_token,
-                                  udf.binary_path);
+                                  udf.binary_path, dev_null_fd);
       CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
       if (!pid_and_pivot_root_dir.has_value()) {
         return;
@@ -310,6 +323,9 @@ int main(int argc, char** argv) {
           !std::filesystem::remove_all(udf.pivot_root_dir, ec)) {
         LOG(ERROR) << "Failed to remove " << udf.pivot_root_dir << ": " << ec;
       }
+    }
+    if (::close(dev_null_fd) == -1) {
+      PLOG(ERROR) << "close(" << dev_null_fd << ")";
     }
   };
   FileInputStream input(fd);
@@ -353,7 +369,7 @@ int main(int argc, char** argv) {
     for (int i = 0; i < request.n_workers() - 1; ++i) {
       std::optional<PidAndPivotRootDir> pid_and_pivot_root_dir =
           ConnectSendCloneAndExec(mounts, socket_name, request.code_token(),
-                                  binary_path.native());
+                                  binary_path.native(), dev_null_fd);
       if (!pid_and_pivot_root_dir.has_value()) {
         return -1;
       }
@@ -369,7 +385,7 @@ int main(int argc, char** argv) {
     // Start n-th worker out of loop.
     std::optional<PidAndPivotRootDir> pid_and_pivot_root_dir =
         ConnectSendCloneAndExec(mounts, socket_name, request.code_token(),
-                                binary_path.native());
+                                binary_path.native(), dev_null_fd);
     if (!pid_and_pivot_root_dir.has_value()) {
       return -1;
     }

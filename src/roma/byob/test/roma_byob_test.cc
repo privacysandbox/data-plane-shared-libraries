@@ -54,11 +54,13 @@ const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
+const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
 const std::filesystem::path kCallbackPayloadReadUdfFilename =
     "callback_payload_read_udf";
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
+constexpr std::string_view kLogUdfOutput = "I am a UDF that logs.";
 
 SampleResponse SendRequestAndGetResponse(
     ByobSampleService<>& roma_service, std::string_view code_token,
@@ -279,6 +281,23 @@ TEST(RomaByobTest, ExecuteCppBinaryWithHostCallbackInSandboxMode) {
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   ASSERT_TRUE(response.ok());
   EXPECT_EQ((*response)->payload_size(), payload_size);
+}
+
+TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
+                                                    /*num_workers=*/1);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  ::testing::internal::CaptureStdout();
+  ::testing::internal::CaptureStderr();
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  std::string stdout_collected = ::testing::internal::GetCapturedStdout();
+  std::string stderr_collected = ::testing::internal::GetCapturedStderr();
+  EXPECT_THAT(stdout_collected, ::testing::IsEmpty());
+  EXPECT_THAT(stderr_collected, ::testing::IsEmpty());
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test
