@@ -384,9 +384,8 @@ class RomaService {
     auto batch_callback_ptr = std::make_shared<BatchCallback>(
         [&, uuids = std::move(uuids),
          batch_callback = std::move(batch_callback)](
-            const std::vector<absl::StatusOr<ResponseObject>>&
-                batch_resp) mutable {
-          std::move(batch_callback)(batch_resp);
+            std::vector<absl::StatusOr<ResponseObject>> batch_resp) mutable {
+          std::move(batch_callback)(std::move(batch_resp));
           for (const auto& uuid : uuids) {
             DeleteMetadata(uuid);
           }
@@ -402,7 +401,7 @@ class RomaService {
         (*batch_response)[index] = std::move(obj_response);
         auto finished_value = finished_counter->fetch_add(1);
         if (finished_value + 1 == batch_response->size()) {
-          (*batch_callback_ptr)(*batch_response);
+          (*batch_callback_ptr)(std::move(*batch_response));
         }
       };
       absl::Status result;

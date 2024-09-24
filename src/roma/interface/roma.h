@@ -134,9 +134,9 @@ struct ResponseObject {
 using Callback = absl::AnyInvocable<void(absl::StatusOr<ResponseObject>)>;
 
 // Batch API
-// void Callback(const vector<ResponseObject>&);
-using BatchCallback = absl::AnyInvocable<void(
-    const std::vector<absl::StatusOr<ResponseObject>>&)>;
+// void Callback(vector<ResponseObject>);
+using BatchCallback =
+    absl::AnyInvocable<void(std::vector<absl::StatusOr<ResponseObject>>)>;
 }  // namespace google::scp::roma
 
 #endif  // ROMA_INTERFACE_ROMA_H_
