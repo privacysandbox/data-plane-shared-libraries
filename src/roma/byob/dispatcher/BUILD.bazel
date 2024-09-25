@@ -75,6 +75,7 @@ cc_test(
         "//src/roma/byob/sample_udf:abort_udf",
         "//src/roma/byob/sample_udf:new_udf",
         "//src/roma/byob/sample_udf:nonzero_return_udf",
+        "//src/roma/byob/sample_udf:pause_udf",
         "//src/roma/byob/sample_udf:sample_go_udf",
     ],
     tags = [

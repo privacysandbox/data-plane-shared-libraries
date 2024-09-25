@@ -408,6 +408,63 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
   }
 }
 
+TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  const int pid = ::vfork();
+  ASSERT_NE(pid, -1);
+  if (pid == 0) {
+    const char* argv[] = {
+        "src/roma/byob/dispatcher/run_workers_without_sandbox",
+        "--socket_name=abcd.sock",
+        nullptr,
+    };
+    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+    PLOG(FATAL) << "execve() failed";
+  }
+  absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
+    ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+  };
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  SampleRequest bin_request;
+  absl::flat_hash_map<std::string,
+                      std::function<void(FunctionBindingPayload<int>&)>>
+      function_table;
+  {
+    const absl::StatusOr<std::string> code_token =
+        dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
+                              /*n_workers=*/2);
+    ASSERT_TRUE(code_token.ok());
+    absl::Notification done;
+    dispatcher.ProcessRequest<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/0, function_table,
+        [&done](auto /*response*/) { done.Notify(); });
+    EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
+    dispatcher.Delete(*code_token);
+    done.WaitForNotification();
+  }
+  {
+    const absl::StatusOr<std::string> code_token =
+        dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
+                              /*n_workers=*/2);
+    ASSERT_TRUE(code_token.ok());
+    absl::Notification done;
+    absl::StatusOr<SampleResponse> bin_response;
+    dispatcher.ProcessRequest<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/0, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
+  }
+}
+
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);

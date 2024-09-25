@@ -56,6 +56,7 @@ const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
+const std::filesystem::path kCPlusPlusPauseBinaryFilename = "pause_udf";
 const std::filesystem::path kCallbackPayloadReadUdfFilename =
     "callback_payload_read_udf";
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
@@ -297,6 +298,25 @@ TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
   std::string stderr_collected = ::testing::internal::GetCapturedStderr();
   EXPECT_THAT(stdout_collected, ::testing::IsEmpty());
   EXPECT_THAT(stderr_collected, ::testing::IsEmpty());
+}
+
+TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
+  const std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
+  absl::Notification notif;
+  CHECK_OK(roma_service.Sample(
+      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
+      SampleRequest{},
+      /*metadata=*/{}, code_token));
+  EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  roma_service.Delete(code_token);
+  notif.WaitForNotification();
+  const std::string second_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
+  EXPECT_THAT(
+      SendRequestAndGetResponse(roma_service, second_code_token).greeting(),
+      ::testing::StrEq(kNewUdfOutput));
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test

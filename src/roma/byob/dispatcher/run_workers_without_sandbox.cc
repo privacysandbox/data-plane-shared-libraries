@@ -48,7 +48,7 @@ ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
 namespace {
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
-using ::privacy_sandbox::server_common::byob::LoadRequest;
+using ::privacy_sandbox::server_common::byob::DispatcherRequest;
 
 bool ConnectToPath(int fd, std::string_view socket_name) {
   ::sockaddr_un sa = {
@@ -145,33 +145,37 @@ int main(int argc, char** argv) {
   struct UdfInstanceMetadata {
     std::string code_token;
     std::string binary_path;
+    bool marked_for_deletion = false;
   };
 
   absl::Mutex mu;
   absl::flat_hash_map<int, UdfInstanceMetadata> pid_to_udf;  // Guarded by mu.
   bool shutdown = false;                                     // Guarded by mu.
   std::thread reloader([&socket_name, &mu, &pid_to_udf, &shutdown] {
-    {
-      auto fn = [&] {
-        mu.AssertReaderHeld();
-        return !pid_to_udf.empty() || shutdown;
-      };
-      absl::MutexLock lock(&mu);
-
-      // Wait until at least one worker has been created before reloading.
-      mu.Await(absl::Condition(&fn));
-      if (shutdown) {
-        return;
-      }
-    }
     while (true) {
-      UdfInstanceMetadata udf;
       {
+        auto fn = [&] {
+          mu.AssertReaderHeld();
+          return !pid_to_udf.empty() || shutdown;
+        };
+        absl::MutexLock lock(&mu);
+
+        // Wait until at least one worker has been created before reloading.
+        mu.Await(absl::Condition(&fn));
+        if (shutdown) {
+          return;
+        }
+      }
+      while (true) {
+        UdfInstanceMetadata udf;
         int status;
 
         // Wait for any worker to end.
         const int pid = ::waitpid(-1, &status, /*options=*/0);
-        PCHECK(pid != -1);
+        if (pid == -1) {
+          PLOG(INFO) << "waitpid()";
+          break;
+        }
         absl::MutexLock lock(&mu);
         const auto it = pid_to_udf.find(pid);
         if (it == pid_to_udf.end()) {
@@ -191,15 +195,21 @@ int main(int argc, char** argv) {
         } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
           LOG(ERROR) << "Process pid=" << pid << " exit_code=" << exit_code;
         }
+        if (udf.marked_for_deletion) {
+          std::filesystem::remove_all(
+              std::filesystem::path(udf.binary_path).parent_path());
+          continue;
+        }
+
+        // Start a new worker with the same UDF as the most-recently ended
+        // worker.
+        const std::optional<int> new_pid = ConnectSendCloneAndExec(
+            socket_name, udf.code_token, udf.binary_path);
+        if (!new_pid.has_value()) {
+          return;
+        }
+        CHECK(pid_to_udf.try_emplace(*new_pid, std::move(udf)).second);
       }
-      // Start a new worker with the same UDF as the most-recently ended worker.
-      const std::optional<int> pid =
-          ConnectSendCloneAndExec(socket_name, udf.code_token, udf.binary_path);
-      if (!pid.has_value()) {
-        return;
-      }
-      absl::MutexLock lock(&mu);
-      CHECK(pid_to_udf.insert({*pid, std::move(udf)}).second);
     }
   });
   absl::Cleanup cleanup = [&] {
@@ -222,17 +232,38 @@ int main(int argc, char** argv) {
   };
   FileInputStream input(fd);
   while (true) {
-    LoadRequest request;
+    DispatcherRequest request;
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
-    const std::filesystem::path binary_dir = progdir / request.code_token();
+    if (request.has_delete_binary()) {
+      // Kill all workers and mark for removal.
+      absl::MutexLock lock(&mu);
+      for (auto& [pid, udf] : pid_to_udf) {
+        if (request.delete_binary().code_token() == udf.code_token) {
+          if (::kill(pid, SIGKILL) == -1) {
+            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+          }
+          udf.marked_for_deletion = true;
+        }
+      }
+      continue;
+    }
+    if (!request.has_load_binary()) {
+      LOG(ERROR) << "Unrecognized request from dispatcher.";
+      continue;
+    }
+
+    // Load new binary.
+    const std::filesystem::path binary_dir =
+        progdir / request.load_binary().code_token();
     if (std::error_code ec;
         !std::filesystem::create_directory(binary_dir, ec)) {
       LOG(ERROR) << "Failed to create " << binary_dir << ": " << ec;
       return -1;
     }
-    const std::filesystem::path binary_path = binary_dir / request.code_token();
+    const std::filesystem::path binary_path =
+        binary_dir / request.load_binary().code_token();
     {
       const int fd =
           ::open(binary_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC, 0500);
@@ -240,9 +271,9 @@ int main(int argc, char** argv) {
         PLOG(ERROR) << "open()";
         return -1;
       }
-      if (::write(fd, request.binary_content().c_str(),
-                  request.binary_content().size()) !=
-          request.binary_content().size()) {
+      if (::write(fd, request.load_binary().binary_content().c_str(),
+                  request.load_binary().binary_content().size()) !=
+          request.load_binary().binary_content().size()) {
         PLOG(ERROR) << "write()";
         return -1;
       }
@@ -258,14 +289,15 @@ int main(int argc, char** argv) {
         return -1;
       }
     }
-    for (int i = 0; i < request.num_workers() - 1; ++i) {
+    for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
       const std::optional<int> pid = ConnectSendCloneAndExec(
-          socket_name, request.code_token(), binary_path.native());
+          socket_name, request.load_binary().code_token(),
+          binary_path.native());
       if (!pid.has_value()) {
         return -1;
       }
       UdfInstanceMetadata udf{
-          .code_token = request.code_token(),
+          .code_token = request.load_binary().code_token(),
           .binary_path = binary_path,
       };
       absl::MutexLock lock(&mu);
@@ -274,12 +306,13 @@ int main(int argc, char** argv) {
 
     // Start n-th worker out of loop.
     const std::optional<int> pid = ConnectSendCloneAndExec(
-        socket_name, request.code_token(), binary_path.native());
+        socket_name, request.load_binary().code_token(), binary_path.native());
     if (!pid.has_value()) {
       return -1;
     }
     UdfInstanceMetadata udf{
-        .code_token = std::move(*request.mutable_code_token()),
+        .code_token =
+            std::move(*request.mutable_load_binary()->mutable_code_token()),
         .binary_path = binary_path,
     };
     absl::MutexLock lock(&mu);

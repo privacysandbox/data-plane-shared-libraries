@@ -30,6 +30,8 @@
 
 #include <filesystem>
 #include <memory>
+#include <string>
+#include <string_view>
 #include <utility>
 
 #include "src/roma/byob/config/config.h"
@@ -91,6 +93,10 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
     notification.Notify();
     load_status = absl::OkStatus();
     return roma_service_->LoadBinary(std::move(code_path));
+  }
+
+  void Delete(std::string_view code_token) {
+    return roma_service_->Delete(code_token);
   }
 
 {{- range $rpc := .MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}

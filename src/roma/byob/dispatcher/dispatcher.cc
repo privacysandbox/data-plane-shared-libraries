@@ -89,7 +89,8 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
         absl::StrCat("`num_workers=", num_workers, "` must be positive"));
   }
   std::string code_token = ToString(Uuid::GenerateUuid());
-  LoadRequest payload;
+  DispatcherRequest request;
+  auto& payload = *request.mutable_load_binary();
   if (std::ifstream ifs(std::move(binary_path), std::ios::binary);
       ifs.is_open()) {
     payload.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
@@ -100,8 +101,14 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   }
   payload.set_code_token(code_token);
   payload.set_num_workers(num_workers);
-  SerializeDelimitedToFileDescriptor(payload, connection_fd_);
+  SerializeDelimitedToFileDescriptor(request, connection_fd_);
   return code_token;
+}
+
+void Dispatcher::Delete(std::string_view code_token) {
+  DispatcherRequest request;
+  request.mutable_delete_binary()->set_code_token(code_token);
+  SerializeDelimitedToFileDescriptor(request, connection_fd_);
 }
 
 void Dispatcher::AcceptorImpl() {

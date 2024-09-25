@@ -162,6 +162,8 @@ class RomaService final {
     return dispatcher_->LoadBinary(std::move(code_path), num_workers_);
   }
 
+  void Delete(std::string_view code_token) { dispatcher_->Delete(code_token); }
+
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,

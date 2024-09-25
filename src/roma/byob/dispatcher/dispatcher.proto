@@ -15,8 +15,18 @@
 syntax = "proto3";
 package privacy_sandbox.server_common.byob;
 
-message LoadRequest {
-  bytes code_token = 1;
-  bytes binary_content = 2;
-  int32 num_workers = 3;
+message DispatcherRequest {
+  message LoadBinary {
+    bytes code_token = 1;
+    bytes binary_content = 2;
+    int32 num_workers = 3;
+  }
+  message DeleteBinary {
+    bytes code_token = 1;
+  }
+
+  oneof request {
+    LoadBinary load_binary = 1;
+    DeleteBinary delete_binary = 2;
+  }
 }

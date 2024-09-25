@@ -169,17 +169,14 @@ TEST(DispatcherTest, LoadGoesToWorker) {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(fd, -1);
     ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
-    LoadRequest request;
-    FileInputStream input(fd);
-    ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
-    ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.num_workers(), 7);
-    for (int i = 0; i < request.num_workers(); ++i) {
-      const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-      ASSERT_NE(fd, -1);
-      ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
-      EXPECT_EQ(::write(fd, request.code_token().c_str(), 36), 36);
+    DispatcherRequest request;
+    {
+      FileInputStream input(fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
+    ASSERT_TRUE(request.has_load_binary());
+    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(request.load_binary().num_workers(), 7);
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
@@ -188,6 +185,39 @@ TEST(DispatcherTest, LoadGoesToWorker) {
       dispatcher
           .LoadBinary("src/roma/byob/sample_udf/new_udf", /*num_workers=*/7)
           .ok());
+  worker.join();
+}
+
+TEST(DispatcherTest, LoadAndDeleteGoToWorker) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
+  std::thread worker([] {
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(fd, -1);
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
+    FileInputStream input(fd);
+    DispatcherRequest load_request;
+    ASSERT_TRUE(
+        ParseDelimitedFromZeroCopyStream(&load_request, &input, nullptr));
+    ASSERT_TRUE(load_request.has_load_binary());
+    ASSERT_EQ(load_request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(load_request.load_binary().num_workers(), 3);
+    DispatcherRequest delete_request;
+    ASSERT_TRUE(
+        ParseDelimitedFromZeroCopyStream(&delete_request, &input, nullptr));
+    ASSERT_TRUE(delete_request.has_delete_binary());
+    EXPECT_THAT(delete_request.delete_binary().code_token(),
+                StrEq(load_request.load_binary().code_token()));
+    EXPECT_EQ(::close(fd), 0);
+  });
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/3);
+  ASSERT_TRUE(code_token.ok());
+  dispatcher.Delete(*code_token);
   worker.join();
 }
 
@@ -201,19 +231,22 @@ TEST(DispatcherTest, LoadAndExecute) {
     ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
-    LoadRequest request;
+    DispatcherRequest request;
     {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.num_workers(), 1);
+    ASSERT_TRUE(request.has_load_binary());
+    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
-    EXPECT_EQ(::write(connection_fd, request.code_token().c_str(), 36), 36);
+    EXPECT_EQ(
+        ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
+        36);
     {
       // Read UDF input.
       google::protobuf::Any any;
@@ -269,20 +302,22 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
     ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
-    LoadRequest request;
+    DispatcherRequest request;
     {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.num_workers(), 1);
+    ASSERT_TRUE(request.has_load_binary());
+    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
-    EXPECT_EQ(
-        ::write(connection_fd, request.code_token().c_str(), /*count=*/36), 36);
+    EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
+                      /*count=*/36),
+              36);
     EXPECT_EQ(::close(connection_fd), 0);
     EXPECT_EQ(::close(fd), 0);
   });
@@ -314,19 +349,22 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
-    LoadRequest request;
+    DispatcherRequest request;
     {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.num_workers(), 1);
+    ASSERT_TRUE(request.has_load_binary());
+    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
-    EXPECT_EQ(::write(connection_fd, request.code_token().c_str(), 36), 36);
+    EXPECT_EQ(
+        ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
+        36);
 
     // Read UDF input.
     FileInputStream input(connection_fd);
@@ -412,20 +450,21 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
     ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
-    LoadRequest request;
+    DispatcherRequest request;
     {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.num_workers(), 1);
+    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
-    EXPECT_EQ(
-        ::write(connection_fd, request.code_token().c_str(), /*count=*/36), 36);
+    EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
+                      /*count=*/36),
+              36);
     {
       // Read UDF input.
       FileInputStream input(connection_fd);
@@ -493,12 +532,14 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
     // Process load request.
     std::string code_token;
     {
-      LoadRequest request;
       FileInputStream input(fd);
+      DispatcherRequest request;
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
-      ASSERT_EQ(request.code_token().size(), 36);
-      code_token = std::move(*request.mutable_code_token());
-      EXPECT_EQ(request.num_workers(), 1);
+      ASSERT_TRUE(request.has_load_binary());
+      ASSERT_EQ(request.load_binary().code_token().size(), 36);
+      code_token =
+          std::move(*request.mutable_load_binary()->mutable_code_token());
+      EXPECT_EQ(request.load_binary().num_workers(), 1);
     }
 
     // Process execution requests.

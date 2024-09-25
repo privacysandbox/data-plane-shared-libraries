@@ -46,6 +46,8 @@ class Dispatcher {
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
                                          int num_workers);
 
+  void Delete(std::string_view code_token);
+
   template <typename Response, typename Table, typename Metadata,
             typename Request>
   void ProcessRequest(
