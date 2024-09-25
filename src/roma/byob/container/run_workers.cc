@@ -99,10 +99,6 @@ int WorkerImpl(void* arg) {
     PCHECK(::mount(binary_dir.c_str(), target.c_str(), nullptr, MS_BIND,
                    nullptr) == 0);
   }
-  {
-    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
-    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO) != -1);
-  }
 
   // MS_REC needed here to get other mounts (/lib, /lib64 etc)
   PCHECK(::mount(worker_impl_arg.pivot_root_dir.data(),
@@ -136,6 +132,10 @@ int WorkerImpl(void* arg) {
     PCHECK(connection_fd != -1);
     return absl::StrCat(connection_fd);
   }();
+  {
+    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
+    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO) != -1);
+  }
   ::execl(worker_impl_arg.binary_path.data(),
           worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
