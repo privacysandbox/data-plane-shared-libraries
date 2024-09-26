@@ -339,7 +339,9 @@ class Config {
   std::unique_ptr<std::vector<grpc_server::FactoryFunction<TMetadata>>>
       factories_;
   std::vector<std::string> rpc_method_names_;
-  std::vector<std::string> v8_flags_;
+
+  // wasm_lazy_compilation disabled by default
+  std::vector<std::string> v8_flags_ = {"--no-wasm-lazy-compilation"};
 
   using CallbackService =
       privacy_sandbox::server_common::JSCallbackService::AsyncService;
