@@ -123,6 +123,7 @@ cc_binary(
         ":test_doubles_library",
         ":test_inputs",
         ":test_udfs",
+        "//src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example",
     ],
     deps = [
         ":utils",

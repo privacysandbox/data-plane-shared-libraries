@@ -51,6 +51,7 @@ using google::scp::roma::tools::v8_cli::kTestDoublesLibraryPath;
 constexpr absl::Duration kRequestTimeout = absl::Seconds(10);
 constexpr std::string_view kVersionStr = "v1";
 const std::vector<std::string> kRomaBenchmarkFlags = {
+    "--wasm_file_path",
     "--udf_file_path",
     "--input_json",
     "--entrypoint",
@@ -76,6 +77,7 @@ constexpr std::string_view kProgramUsageMessage =
     --benchmark_time_unit={ns|us|ms|s})";
 }  // namespace
 
+ABSL_FLAG(std::string, wasm_file_path, "", "Path to inline WASM used in UDF");
 ABSL_FLAG(std::string, udf_file_path, "", "Path to UDF");
 ABSL_FLAG(std::string, input_json, "", "Path to input JSON to UDF");
 ABSL_FLAG(std::string, entrypoint, "", "The entrypoint JS function.");
@@ -94,11 +96,16 @@ std::string GetUDF(std::string_view path) {
 void LoadCodeObj(std::string_view js) {
   absl::Notification load_finished;
   std::string library_code = GetUDF(kTestDoublesLibraryPath);
+  std::string wasm_path = absl::GetFlag(FLAGS_wasm_file_path);
+  std::string inline_wasm_code = "";
+  if (!wasm_path.empty()) {
+    inline_wasm_code = GetUDF(wasm_path);
+  }
 
   auto code_obj = std::make_unique<CodeObject>(CodeObject{
       .id = ToString(Uuid::GenerateUuid()),
       .version_string = std::string(kVersionStr),
-      .js = absl::StrCat(library_code, js),
+      .js = absl::StrCat(library_code, inline_wasm_code, js),
   });
   CHECK_OK(roma_service->LoadCodeObj(std::move(code_obj),
                                      [&](absl::StatusOr<ResponseObject> resp) {
