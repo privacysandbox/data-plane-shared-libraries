@@ -14,6 +14,25 @@ Features:
 Currently, Roma only supports JS and WASM. With this project, Roma plans on expanding support to
 execution of arbitrary binaries written in any language.
 
+## Code Map
+
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable line-length -->
+| Directory                                | Summary                                                                                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [benchmark](/src/roma/byob/benchmark/)   | Contains [microbenchmarking target](https://github.com/google/benchmark) for a variety of UDFs. See [doc](/docs/roma/byob/Benchmarking.md) for details. |
+| [config](/src/roma/byob/config/)         | Contains configuration options which can be used by integrators when initializing Roma BYOB.                                                                         |
+| [container](/src/roma/byob/container/)   | Contains code that runs inside gVisor's sandbox container.                                                                                               |
+| [dispatcher](/src/roma/byob/dispatcher/) | Containers the business logic for handling requests.                                                                                                    |
+| [example](/src/roma/byob/example/)       | Examples to help UDF developers.                                                                                                                        |
+| [host](/src/roma/byob/host/)             | Host Callback API logic.                                                                                                                                |
+| [interface](/src/roma/byob/interface/)   | Interface for calling into Roma BYOB.                                                                                                                   |
+| [test](/src/roma/byob/test/)             | Contains a myriad of tests for Roma BYOB libraries.                                                                                                     |
+| [udf](/src/roma/byob/udf/)               | UDFs used by [benchmarks](/src/roma/byob/benchmark/) and [tests](/src/roma/byob/test/).                                                                 |
+| [utility](/src/roma/byob/utility/)       | Container utility functions used by Roma BYOB and also by Roma integrators.                                                                             |
+<!-- markdownlint-enable line-length -->
+<!-- prettier-ignore-end -->
+
 ## How to use Roma BYOB?
 
 ### K/V, B&A and Inference
@@ -131,21 +150,3 @@ Broadly, the steps for developing the interface are:
    [sample_roma_api](/src/roma/byob/udf/BUILD.bazel).
 1. Add the target to your BUILD file that will be using the Roma API.
 1. Use the API. Example [ByobSampleService](/src/roma/byob/benchmark/roma_byob_benchmark.cc).
-
-### AdTechs
-
-Currently, the team is working a performance optimization that will modify the interface for AdTechs
-a bit up in the air. Once those changes are finalized, this documentation will be updated to reflect
-this.
-
-## FAQs
-
-1. Which languages are supported? Currently, Roma BYOB supports C++, Go and other languages without
-   special runtime needs.
-1. The language we use is currently unsupported. Will it be supported in the future? It is one of
-   our longer term goals to allow AdTechs to configure their own container. Once the details are
-   finalized, the same will be announced.
-
-## Questions?
-
-For questions and bug reports, please reach out to <trusted-servers-infra-eng-team@google.com>.
