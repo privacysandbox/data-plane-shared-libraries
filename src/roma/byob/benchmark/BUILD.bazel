@@ -72,12 +72,12 @@ pkg_files(
             dbg = debug_str,
             flavor = user.flavor,
         ),
-        cmd = [
+        debug = len(debug_str) > 0,
+        entrypoint = [
+            "/server/bin/roma_byob_benchmark",
             "--benchmark_counters_tabular=true",
             "--benchmark_time_unit=ms",
         ],
-        debug = len(debug_str) > 0,
-        entrypoint = ["/server/bin/roma_byob_benchmark"],
         env = {
             "BENCHMARK_OUT": "/tmp/benchmark_out.json",
             "BENCHMARK_OUT_FORMAT": "json",
