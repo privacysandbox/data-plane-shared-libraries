@@ -238,6 +238,45 @@ TEST_F(BaseTest, Accumulate) {
   // CHECK_OK(context_->AccumulateMetric<kIntExactCounter>(1));
 }
 
+TEST_F(BaseTest, AggregateToGetMeanCounterInstrument) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogUnSafe(Matcher<const DefinitionUnSafe&>(Ref(kIntApproximateCounter)),
+                Eq(4), _))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(context_->AggregateMetricToGetMean<kIntApproximateCounter>(5));
+  CHECK_OK(context_->AggregateMetricToGetMean<kIntApproximateCounter>(3));
+}
+
+TEST_F(BaseTest, AggregateToGetMeanHistogramInstrument) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionHistogram&>(Ref(kIntExactHistogram)),
+              Eq(4), _, _))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(context_->AggregateMetricToGetMean<kIntExactHistogram>(5));
+  CHECK_OK(context_->AggregateMetricToGetMean<kIntExactHistogram>(3));
+}
+
+TEST_F(BaseTest, AggregateToGetMeanForDifferentPartitions) {
+  EXPECT_CALL(mock_metric_router_,
+              LogUnSafe(Matcher<const DefinitionPartitionUnsafe&>(
+                            Ref(kIntUnSafePartitioned)),
+                        Eq(3), "buyer_1"))
+      .WillOnce(Return(absl::OkStatus()));
+  EXPECT_CALL(mock_metric_router_,
+              LogUnSafe(Matcher<const DefinitionPartitionUnsafe&>(
+                            Ref(kIntUnSafePartitioned)),
+                        Eq(4), "buyer_2"))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(
+      context_->AggregateMetricToGetMean<kIntUnSafePartitioned>(2, "buyer_1"));
+  CHECK_OK(
+      context_->AggregateMetricToGetMean<kIntUnSafePartitioned>(4, "buyer_1"));
+  CHECK_OK(
+      context_->AggregateMetricToGetMean<kIntUnSafePartitioned>(4, "buyer_2"));
+}
+
 TEST_F(BaseTest, AccumulatePartition) {
   EXPECT_CALL(mock_metric_router_,
               LogUnSafe(Matcher<const DefinitionPartitionUnsafe&>(

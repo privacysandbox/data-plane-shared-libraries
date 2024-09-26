@@ -219,9 +219,11 @@ class Context {
   // Accumulate metric values, they can be accumulated multiple times during
   // context life time. They will be aggregated and logged at destruction.
   // Metrics must be Privacy::kImpacting.
+  // When report_mean is false, accumulate the values. Otherwise calculate the
+  // average, and log the average value at destruction.
   template <const auto& definition, typename T>
   absl::Status AccumulateMetric(
-      T value, std::string_view partition = "",
+      T value, std::string_view partition = "", bool report_mean = false,
       std::enable_if_t<std::is_arithmetic_v<T>>* = nullptr) {
     CheckDefinition<definition, T>();
     PS_RETURN_IF_ERROR(CheckDefinedMetricConfig(definition));
@@ -231,13 +233,22 @@ class Context {
     absl::MutexLock mutex_lock(&mutex_);
     auto it = accumulated_metric_.find(&definition);
     if (it != accumulated_metric_.end()) {
-      it->second.values[partition] += value;
+      if (report_mean) {
+        auto& count = it->second.count[partition];
+        ++count;
+        it->second.values[partition] =
+            it->second.values[partition] +
+            (value - it->second.values[partition]) / count;
+      } else {
+        it->second.values[partition] += value;
+      }
       return absl::OkStatus();
     }
     accumulated_metric_.emplace(
         &definition,
         Accumulator{
             typename Accumulator::PartitionedValue({{partition.data(), value}}),
+            /*count=*/{{partition.data(), 1}},
             [this](const typename Accumulator::PartitionedValue& values)
                 -> absl::Status {
               for (auto& [partition, numeric] :
@@ -248,6 +259,15 @@ class Context {
               return absl::OkStatus();
             }});
     return absl::OkStatus();
+  }
+
+  // Aggregate metric values and calculate average,  the average value will be
+  // logged at destruction of context
+  template <const auto& definition, typename T>
+  absl::Status AggregateMetricToGetMean(
+      T value, std::string_view partition = "",
+      std::enable_if_t<std::is_arithmetic_v<T>>* = nullptr) {
+    return AccumulateMetric<definition>(value, partition, true);
   }
 
  private:
@@ -515,6 +535,7 @@ class Context {
   struct Accumulator {
     using PartitionedValue = absl::flat_hash_map<std::string, double>;
     PartitionedValue values;
+    absl::flat_hash_map<std::string, int> count;
     absl::AnyInvocable<absl::Status(const PartitionedValue&) &&> callback;
   };
 
