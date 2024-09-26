@@ -105,7 +105,7 @@ class MetricRouterTest : public ::testing::Test {
   }
 
   std::string ReadSs() {
-    absl::SleepFor(absl::Milliseconds(kExportIntervalMillis * 2));
+    absl::SleepFor(absl::Milliseconds(kExportIntervalMillis * 5));
     // Shut down metric reader now to avoid concurrent access of Ss.
     { auto not_used = std::move(test_instance_); }
     std::string output = GetSs().str();
