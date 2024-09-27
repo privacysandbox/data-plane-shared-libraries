@@ -155,6 +155,8 @@ class ContextImpl final : public PSLogContext {
     }
   }
 
+  bool is_prod_debug() const { return prod_debug_; }
+
  private:
   friend class ConsentedLogTest;
   friend class EventMessageTest;
