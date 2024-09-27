@@ -16,12 +16,15 @@
     "cwd": "/",
     "capabilities": {
       "bounding": [
+        "CAP_SETPCAP",
         "CAP_SYS_ADMIN"
       ],
       "effective": [
+        "CAP_SETPCAP",
         "CAP_SYS_ADMIN"
       ],
       "permitted": [
+        "CAP_SETPCAP",
         "CAP_SYS_ADMIN"
       ]
     },

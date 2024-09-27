@@ -16,7 +16,9 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/capability.h>
 #include <sys/mount.h>
+#include <sys/prctl.h>
 #include <sys/socket.h>
 #include <sys/syscall.h>
 #include <sys/un.h>
@@ -71,6 +73,14 @@ struct WorkerImplArg {
   std::string_view binary_path;
   const int dev_null_fd;
 };
+
+void SetPrctlOptions(absl::Span<const std::pair<int, int>> option_arg_pairs) {
+  for (const auto& [option, arg] : option_arg_pairs) {
+    if (::prctl(option, arg) < 0) {
+      PLOG(FATAL) << "Failed prctl(" << option << ", " << arg << ")";
+    }
+  }
+}
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
@@ -132,6 +142,11 @@ int WorkerImpl(void* arg) {
     PCHECK(connection_fd != -1);
     return absl::StrCat(connection_fd);
   }();
+  SetPrctlOptions({
+      {PR_CAPBSET_DROP, CAP_SYS_ADMIN},
+      {PR_CAPBSET_DROP, CAP_SETPCAP},
+      {PR_SET_PDEATHSIG, SIGHUP},
+  });
   {
     PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
     PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO) != -1);
