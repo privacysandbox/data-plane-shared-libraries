@@ -344,10 +344,12 @@ class DifferentiallyPrivate {
 
   // Queues a set partition request until the next metric output.
   void ResetPartitionAsync(const std::vector<std::string_view>& metric_list,
-                           const std::vector<std::string>& partition_list)
+                           const std::vector<std::string>& partition_list,
+                           int max_partions_contributed)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
-    reset_partition_request_queue_.push({metric_list, partition_list});
+    reset_partition_request_queue_.push(
+        {metric_list, partition_list, max_partions_contributed});
   }
 
   ~DifferentiallyPrivate() {
@@ -364,6 +366,7 @@ class DifferentiallyPrivate {
     // name.
     std::vector<std::string_view> metric_list;
     std::vector<std::string> partition_list;
+    int max_partitions_contributed;
   };
 
   // Output aggregated results with DP noise added for all defintions with
@@ -400,6 +403,10 @@ class DifferentiallyPrivate {
         metric_router_.metric_config().SetPartition(
             metric_name, std::vector<std::string_view>{partition_list.begin(),
                                                        partition_list.end()});
+        if (request.max_partitions_contributed > 0) {
+          metric_router_.metric_config().SetMaxPartitionsContributed(
+              metric_name, request.max_partitions_contributed);
+        }
       }
       reset_partition_request_queue_.pop();
     }

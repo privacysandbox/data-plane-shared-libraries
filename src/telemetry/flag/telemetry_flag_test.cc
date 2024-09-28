@@ -142,6 +142,13 @@ TEST(BuildDependentConfig, Partition) {
               testing::ElementsAreArray({"123", "456", "789"}));
 }
 
+TEST(BuildDependentConfig, SetMaxPartitionsContributed) {
+  TelemetryConfig config_proto;
+  BuildDependentConfig config(config_proto);
+  config.SetMaxPartitionsContributed(partition_metric.name_, 5);
+  EXPECT_EQ(config.GetMaxPartitionsContributed(partition_metric), 5);
+}
+
 constexpr metrics::Definition<int, metrics::Privacy::kImpacting,
                               metrics::Instrument::kPartitionedCounter>
     metric_1("m_1", "", "partition_type", 1, kDefaultBuyers, 1, 0, 0.95);

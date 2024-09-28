@@ -74,8 +74,10 @@ class MetricRouter {
 
   // Forwards DifferentialPrivate's ResetPartitionAsync to ContextMap.
   void ResetPartitionAsync(const std::vector<std::string_view>& metric_list,
-                           const std::vector<std::string>& partition_list) {
-    dp_.ResetPartitionAsync(metric_list, partition_list);
+                           const std::vector<std::string>& partition_list,
+                           int max_partions_contributed) {
+    dp_.ResetPartitionAsync(metric_list, partition_list,
+                            max_partions_contributed);
   }
 
   // Add callback for observerable metric, must be Privacy:kNonImpacting

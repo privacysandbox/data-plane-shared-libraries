@@ -147,7 +147,11 @@ class BuildDependentConfig {
 
   int GetMaxPartitionsContributed(
       const metrics::internal::Partitioned& definition,
-      absl::string_view name) const;
+      absl::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_);
+
+  void SetMaxPartitionsContributed(std::string_view name,
+                                   int max_partitions_contributed)
+      ABSL_LOCKS_EXCLUDED(partition_mutex_);
 
   // Return drop_noisy_values_probability of a metric.
   template <typename MetricT>

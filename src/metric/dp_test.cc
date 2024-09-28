@@ -387,7 +387,7 @@ TEST_F(NoNoiseTest, DifferentiallyPrivateResetPartition) {
               A<int>(), _, ElementsAre(Pair(kNoiseAttribute, "Noised"))))
       .WillRepeatedly(Return(absl::OkStatus()));
 
-  dp.ResetPartitionAsync({kUnitPartitionCounter.name_}, {"buyer_new"});
+  dp.ResetPartitionAsync({kUnitPartitionCounter.name_}, {"buyer_new"}, 1);
 
   absl::MutexLock lock(&dp.mutex_);
   ASSERT_TRUE(dp.OutputNoised().ok());

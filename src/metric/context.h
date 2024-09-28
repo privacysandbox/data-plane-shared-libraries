@@ -481,6 +481,9 @@ class Context {
       const internal::Partitioned& partitioned, std::string_view name,
       bool is_privacy_impacting) {
     std::vector<std::pair<std::string, T>> ret;
+    int max_partitions_contributed =
+        metric_router_->metric_config().GetMaxPartitionsContributed(partitioned,
+                                                                    name);
     if (std::unique_ptr<telemetry::BuildDependentConfig::PartitionView>
             partition_view =
                 metric_router_->metric_config().GetPartition(partitioned, name);
@@ -493,7 +496,7 @@ class Context {
               << partition << " is not in public_partitions_ ["
               << partitioned.partition_type_ << "] of metric:" << name;
         }
-        if (ret.size() >= partitioned.max_partitions_contributed_) {
+        if (ret.size() >= max_partitions_contributed) {
           break;
         }
       }
@@ -503,13 +506,12 @@ class Context {
       // just return the value; otherwise it is private partition metric that
       // is not implemented yet, log a warning.
       ABSL_LOG_IF_EVERY_N_SEC(
-          WARNING,
-          is_privacy_impacting && partitioned.max_partitions_contributed_ > 1,
+          WARNING, is_privacy_impacting && max_partitions_contributed > 1,
           kLogLowFreqSec)
           << "public_partitions_ not defined for metric : " << name;
       ret.insert(ret.begin(), value.begin(), value.end());
-      if (ret.size() >= partitioned.max_partitions_contributed_) {
-        ret.resize(partitioned.max_partitions_contributed_);
+      if (ret.size() >= max_partitions_contributed) {
+        ret.resize(max_partitions_contributed);
       }
     }
     return ret;

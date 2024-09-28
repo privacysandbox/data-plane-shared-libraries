@@ -142,12 +142,28 @@ void BuildDependentConfig::SetPartition(
 
 int BuildDependentConfig::GetMaxPartitionsContributed(
     const metrics::internal::Partitioned& definition,
-    absl::string_view name) const {
+    absl::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+  {
+    absl::MutexLock lock(&partition_mutex_);
+    auto it = internal_config_.find(name);
+    if (it != internal_config_.end() &&
+        it->second.has_max_partitions_contributed()) {
+      return it->second.max_partitions_contributed();
+    }
+  }
   absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
   if (metric_config.ok() && metric_config->has_max_partitions_contributed()) {
     return metric_config->max_partitions_contributed();
   }
   return definition.max_partitions_contributed_;
+}
+
+void BuildDependentConfig::SetMaxPartitionsContributed(
+    std::string_view name, int max_partitions_contributed)
+    ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+  absl::MutexLock lock(&partition_mutex_);
+  internal_config_[name].set_max_partitions_contributed(
+      max_partitions_contributed);
 }
 
 }  // namespace privacy_sandbox::server_common::telemetry

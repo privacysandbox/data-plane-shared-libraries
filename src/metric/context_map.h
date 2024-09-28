@@ -94,8 +94,10 @@ class ContextMap {
   // Resets Partition for a list of metrics. The metric list should consist of
   // std::string_view of metric names taken from the metric definition.
   void ResetPartitionAsync(const std::vector<std::string_view>& metric_list,
-                           const std::vector<std::string>& partition_list) {
-    metric_router_->ResetPartitionAsync(metric_list, partition_list);
+                           const std::vector<std::string>& partition_list,
+                           int max_partitions_contributed = 0) {
+    metric_router_->ResetPartitionAsync(metric_list, partition_list,
+                                        max_partitions_contributed);
   }
 
   const U& metric_router() const { return *metric_router_.get(); }
