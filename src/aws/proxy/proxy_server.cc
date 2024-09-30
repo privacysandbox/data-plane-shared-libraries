@@ -48,7 +48,7 @@ void ProxyServer::BindListen() {
     Protocol protocol(AF_VSOCK, 0);
     acceptor_.open(protocol);
     acceptor_.set_option(socket_base::reuse_address(true));
-    struct sockaddr_vm addr = {
+    ::sockaddr_vm addr = {
         .svm_family = AF_VSOCK,
         .svm_port = port_,
         .svm_cid = VMADDR_CID_ANY,
@@ -58,14 +58,14 @@ void ProxyServer::BindListen() {
     acceptor_.listen();
     if (port_ == 0) {
       auto ep = acceptor_.local_endpoint();
-      sockaddr_vm* addr = reinterpret_cast<sockaddr_vm*>(ep.data());
+      ::sockaddr_vm* addr = reinterpret_cast<::sockaddr_vm*>(ep.data());
       port_ = static_cast<decltype(port_)>(addr->svm_port);
     }
   } else {
     Protocol protocol(AF_INET6, 0);
     acceptor_.open(protocol);
     acceptor_.set_option(socket_base::reuse_address(true));
-    struct sockaddr_in6 addr = {
+    ::sockaddr_in6 addr = {
         .sin6_family = AF_INET6,
         .sin6_port = htons(port_),
         .sin6_addr = IN6ADDR_ANY_INIT,
@@ -75,7 +75,7 @@ void ProxyServer::BindListen() {
     acceptor_.listen();
     if (port_ == 0) {
       auto ep = acceptor_.local_endpoint();
-      sockaddr_in6* addr = reinterpret_cast<sockaddr_in6*>(ep.data());
+      ::sockaddr_in6* addr = reinterpret_cast<::sockaddr_in6*>(ep.data());
       port_ = ntohs(addr->sin6_port);
     }
   }

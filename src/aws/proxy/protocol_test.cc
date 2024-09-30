@@ -27,12 +27,13 @@ TEST(ProtocolTest, FillAddrPortV4) {
   constexpr std::string_view kIpv4Addr = "12.34.56.78";
   constexpr uint16_t kPort = 0x1234;
   constexpr uint8_t kExpected[] = {0x01, 12, 34, 56, 78, 0x12, 0x34};
-  sockaddr_in v4addr;
-  v4addr.sin_family = AF_INET;
-  v4addr.sin_port = htons(kPort);
+  ::sockaddr_in v4addr = {
+      .sin_family = AF_INET,
+      .sin_port = htons(kPort),
+  };
   inet_aton(kIpv4Addr.data(), &v4addr.sin_addr);
   uint8_t buffer[64];
-  EXPECT_EQ(FillAddrPort(buffer, reinterpret_cast<sockaddr*>(&v4addr)),
+  EXPECT_EQ(FillAddrPort(buffer, reinterpret_cast<::sockaddr*>(&v4addr)),
             sizeof(kExpected));
   EXPECT_EQ(memcmp(buffer, kExpected, sizeof(kExpected)), 0);
 }
@@ -45,12 +46,13 @@ TEST(ProtocolTest, FillAddrPortV6) {
       0x04, 0x12, 0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef, 0x12,
       0x34, 0x56, 0x78, 0x90, 0xab, 0xcd, 0xef, 0x12, 0x34,
   };
-  sockaddr_in6 v6addr;
-  v6addr.sin6_family = AF_INET6;
-  v6addr.sin6_port = htons(kPort);
+  ::sockaddr_in6 v6addr = {
+      .sin6_family = AF_INET6,
+      .sin6_port = htons(kPort),
+  };
   inet_pton(AF_INET6, kIpv6Addr.data(), &v6addr.sin6_addr);
   uint8_t buffer[64];
-  EXPECT_EQ(FillAddrPort(buffer, reinterpret_cast<sockaddr*>(&v6addr)),
+  EXPECT_EQ(FillAddrPort(buffer, reinterpret_cast<::sockaddr*>(&v6addr)),
             sizeof(kExpected));
   EXPECT_EQ(memcmp(buffer, kExpected, sizeof(kExpected)), 0);
 }
