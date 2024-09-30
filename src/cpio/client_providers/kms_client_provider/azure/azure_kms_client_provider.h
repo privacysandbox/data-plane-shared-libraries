@@ -20,7 +20,9 @@
 #include <cstdlib>
 #include <memory>
 #include <string>
+#include <utility>
 
+#include "src/azure/attestation/src/attestation.h"
 #include "src/core/interface/async_context.h"
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
@@ -75,6 +77,13 @@ class AzureKmsClientProvider : public KmsClientProviderInterface {
       std::shared_ptr<EvpPkeyWrapper> ephemeral_private_key,
       core::AsyncContext<core::HttpRequest, core::HttpResponse>&
           http_client_context) noexcept;
+
+  absl::StatusOr<std::pair<std::shared_ptr<EvpPkeyWrapper>,
+                           std::shared_ptr<EvpPkeyWrapper>>>
+  GenerateWrappingKeyPair() noexcept;
+
+  std::optional<azure::attestation::AttestationReport> FetchSnpAttestation(
+      const std::string report_data = "") noexcept;
 
   core::HttpClientInterface* http_client_;
   // Auth token provider.
