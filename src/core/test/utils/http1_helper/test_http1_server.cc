@@ -48,8 +48,10 @@ ExecutionResultOr<::in_port_t> GetUnusedPortNumber() {
   ::sockaddr_in server_addr = {
       .sin_family = AF_INET,
       .sin_port = 0,
+      .sin_addr{
+          .s_addr = INADDR_ANY,
+      },
   };
-  server_addr.sin_addr.s_addr = INADDR_ANY;
   ::socklen_t server_len = sizeof(server_addr);
   if (::bind(sockfd, reinterpret_cast<::sockaddr*>(&server_addr), server_len) <
       0) {
