@@ -18,6 +18,8 @@
 
 #include <sys/wait.h>
 
+#include <cstdio>
+#include <cstdlib>
 #include <string>
 #include <string_view>
 
@@ -29,25 +31,25 @@ namespace google::scp::cpio::client_providers::utils {
 
 absl::StatusOr<std::string> Exec(absl::Span<const char* const> args) noexcept {
   int fd[2];
-  if (pipe(fd) == -1) {
+  if (::pipe(fd) == -1) {
     return absl::ErrnoToStatus(errno, "Exec failed to create a pipe.");
   }
-  const pid_t pid = fork();
+  const ::pid_t pid = fork();
   if (pid == 0) {
-    close(fd[0]);
+    ::close(fd[0]);
 
     // Redirect child standard output to pipe and execute.
-    if (dup2(fd[1], STDOUT_FILENO) == -1 ||
-        execv(args[0], const_cast<char* const*>(&args[0])) == -1) {
-      exit(errno);
+    if (::dup2(fd[1], STDOUT_FILENO) == -1 ||
+        ::execv(args[0], const_cast<char* const*>(&args[0])) == -1) {
+      std::exit(errno);
     }
   } else if (pid == -1) {
     return absl::ErrnoToStatus(errno, "Exec failed to fork a child.");
   }
 
   // Only parent gets here (pid > 0).
-  close(fd[1]);
-  if (int status; waitpid(pid, &status, /*options=*/0) == -1) {
+  ::close(fd[1]);
+  if (int status; ::waitpid(pid, &status, /*options=*/0) == -1) {
     return absl::ErrnoToStatus(errno, "Exec failed to wait for child.");
   } else if (!WIFEXITED(status)) {
     return absl::InternalError(absl::StrCat(
@@ -62,9 +64,9 @@ absl::StatusOr<std::string> Exec(absl::Span<const char* const> args) noexcept {
                      absl::StrJoin(args, " "), "'"));
   }
   std::string result;
-  if (FILE* const stream = fdopen(fd[0], "r"); stream != nullptr) {
+  if (FILE* const stream = ::fdopen(fd[0], "r"); stream != nullptr) {
     std::array<char, 1024> buffer;
-    while (fgets(buffer.data(), buffer.size(), stream) != nullptr) {
+    while (std::fgets(buffer.data(), buffer.size(), stream) != nullptr) {
       result += buffer.data();
     }
   } else {

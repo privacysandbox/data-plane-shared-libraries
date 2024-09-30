@@ -18,6 +18,7 @@
 
 #include <gtest/gtest.h>
 
+#include <cstdlib>
 #include <memory>
 #include <thread>
 #include <utility>
@@ -80,47 +81,48 @@ TEST(ClientSessionPoolTest, TestBind) {
     socket_vendor::BindResponse bind_resp;
     asio::read(client_sock0, mutable_buffer(&bind_resp, sizeof(bind_resp)), ec);
     if (ec.failed()) {
-      exit(1);
+      std::exit(1);
     }
     socket_vendor::ListenResponse listen_resp;
     asio::read(client_sock0, mutable_buffer(&listen_resp, sizeof(listen_resp)),
                ec);
     if (ec.failed()) {
-      exit(1);
+      std::exit(1);
     }
     // Try to receive a FD
     uint8_t client_buff[128];
-    struct msghdr msg = {};
     struct iovec iov = {client_buff, sizeof(client_buff)};
-    msg.msg_iov = &iov;
-    msg.msg_iovlen = 1;
-
     union {
       struct cmsghdr align;
       char buf[CMSG_SPACE(sizeof(int))];
     } cmsgu;
 
-    msg.msg_control = cmsgu.buf;
-    msg.msg_controllen = sizeof(cmsgu.buf);
+    struct msghdr msg = {
+        .msg_iov = &iov,
+        .msg_iovlen = 1,
+        .msg_control = cmsgu.buf,
+        .msg_controllen = sizeof(cmsgu.buf),
+    };
     // client_sock0.wait(Socket::wait_read);
-    ssize_t bytes_recv = recvmsg(client_sock0.native_handle(), &msg, 0);
-    if (bytes_recv <= 0) {
-      exit(2);
+    if (ssize_t bytes_recv = recvmsg(client_sock0.native_handle(), &msg, 0);
+        bytes_recv <= 0) {
+      std::exit(2);
+    } else {
+      LOG(INFO) << "Client received " << bytes_recv << " bytes";
     }
-    LOG(INFO) << "Client received " << bytes_recv << " bytes";
     struct cmsghdr* cmsg = CMSG_FIRSTHDR(&msg);
     if (cmsg == nullptr) {
-      exit(3);
+      std::exit(3);
     }
     if (cmsg->cmsg_level != SOL_SOCKET || cmsg->cmsg_type != SCM_RIGHTS) {
-      exit(4);
+      std::exit(4);
     }
     int fd = -1;
     memcpy(&fd, CMSG_DATA(cmsg), sizeof(fd));
     if (fd <= 0) {
-      exit(5);
+      std::exit(5);
     }
-    exit(0);
+    std::exit(0);
   }
 
   asio::local::stream_protocol::socket proxy_client_sock(io_context);

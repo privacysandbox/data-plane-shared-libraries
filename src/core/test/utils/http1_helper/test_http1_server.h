@@ -35,7 +35,7 @@
 namespace google::scp::core::test {
 
 // Returns an unused TCP port number.
-ExecutionResultOr<in_port_t> GetUnusedPortNumber();
+ExecutionResultOr<::in_port_t> GetUnusedPortNumber();
 
 // Lightweight Boost HTTP/1.1 server.
 // After the constructor returns, the server is ready to accept incoming
@@ -46,7 +46,7 @@ class TestHttp1Server {
   TestHttp1Server();
 
   // Gets the port number the server is running on.
-  in_port_t PortNumber() const;
+  ::in_port_t PortNumber() const;
 
   // Gets the full path to this server i.e. 'http://localhost:8080'
   std::string GetPath() const;
@@ -92,7 +92,7 @@ class TestHttp1Server {
   absl::Mutex has_run_mu_;
   bool has_run_ ABSL_GUARDED_BY(has_run_mu_) = false;
 
-  in_port_t port_number_ = 0;
+  ::in_port_t port_number_ = 0;
 
   // Indicates when thread should exit (false).
   std::atomic_bool run_{true};

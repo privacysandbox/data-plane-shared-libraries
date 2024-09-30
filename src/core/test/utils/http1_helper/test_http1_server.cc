@@ -15,6 +15,7 @@
  */
 #include "test_http1_server.h"
 
+#include <cstdlib>
 #include <string>
 #include <utility>
 
@@ -31,33 +32,35 @@ void HandleErrorIfPresent(const boost::system::error_code& ec,
                           std::string stage) {
   if (ec) {
     std::cerr << stage << " failed: " << ec << std::endl;
-    exit(EXIT_FAILURE);
+    std::exit(EXIT_FAILURE);
   }
 }
 }  // namespace
 
 // Uses the C socket library to bind to an unused port, close that socket then
 // return that port number.
-ExecutionResultOr<in_port_t> GetUnusedPortNumber() {
-  int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+ExecutionResultOr<::in_port_t> GetUnusedPortNumber() {
+  int sockfd = ::socket(AF_INET, SOCK_STREAM, 0);
   if (sockfd < 0) {
     return FailureExecutionResult(
         errors::SC_TEST_HTTP1_SERVER_ERROR_GETTING_SOCKET);
   }
-  sockaddr_in server_addr;
-  socklen_t server_len = sizeof(server_addr);
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = 0;
+  ::sockaddr_in server_addr = {
+      .sin_family = AF_INET,
+      .sin_port = 0,
+  };
   server_addr.sin_addr.s_addr = INADDR_ANY;
-  if (bind(sockfd, reinterpret_cast<sockaddr*>(&server_addr), server_len) < 0) {
+  ::socklen_t server_len = sizeof(server_addr);
+  if (::bind(sockfd, reinterpret_cast<::sockaddr*>(&server_addr), server_len) <
+      0) {
     return FailureExecutionResult(errors::SC_TEST_HTTP1_SERVER_ERROR_BINDING);
   }
-  if (getsockname(sockfd, reinterpret_cast<sockaddr*>(&server_addr),
-                  &server_len) < 0) {
+  if (::getsockname(sockfd, reinterpret_cast<::sockaddr*>(&server_addr),
+                    &server_len) < 0) {
     return FailureExecutionResult(
         errors::SC_TEST_HTTP1_SERVER_ERROR_GETTING_SOCKET_NAME);
   }
-  close(sockfd);
+  ::close(sockfd);
   return server_addr.sin_port;
 }
 
@@ -79,7 +82,7 @@ TestHttp1Server::TestHttp1Server() {
           ReadFromSocketAndWriteResponse(socket);
         } else {
           std::cerr << "accept failed: " << ec << std::endl;
-          exit(EXIT_FAILURE);
+          std::exit(EXIT_FAILURE);
         }
       });
       {
@@ -128,7 +131,7 @@ void TestHttp1Server::ReadFromSocketAndWriteResponse(tcp::socket& socket) {
   HandleErrorIfPresent(ec, "close");
 }
 
-in_port_t TestHttp1Server::PortNumber() const { return port_number_; }
+::in_port_t TestHttp1Server::PortNumber() const { return port_number_; }
 
 std::string TestHttp1Server::GetPath() const {
   return "http://localhost:" + std::to_string(port_number_);

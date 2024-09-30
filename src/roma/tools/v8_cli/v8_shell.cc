@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <cstdlib>
+
 #include "include/libplatform/libplatform.h"
 #include "include/v8.h"
 
@@ -147,7 +149,7 @@ void Quit(const v8::FunctionCallbackInfo<v8::Value>& info) {
       info[0]->Int32Value(info.GetIsolate()->GetCurrentContext()).FromMaybe(0);
   fflush(stdout);
   fflush(stderr);
-  exit(exit_code);
+  std::exit(exit_code);
 }
 
 // The callback that is invoked by v8 whenever the JavaScript 'version'

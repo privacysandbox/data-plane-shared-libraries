@@ -56,8 +56,8 @@ int ClearBucketIfPresent(Client& client) {
                   << std::endl;
         return EXIT_FAILURE;
       }
-      auto status = client.DeleteObject(kBucketName, obj_metadata->name());
-      if (!status.ok()) {
+      if (auto status = client.DeleteObject(kBucketName, obj_metadata->name());
+          !status.ok()) {
         std::cout << status.message() << std::endl;
         return EXIT_FAILURE;
       }
@@ -97,14 +97,14 @@ void WriteObjectOfByteCount(GcpCloudStorageClient& client, int64_t byte_count) {
       put_blob_context.request->buffer->capacity;
   put_blob_context.request->buffer->bytes->assign(byte_count, kBlobByte);
 
-  assert(client.PutBlob(put_blob_context).Successful());
+  ::assert(client.PutBlob(put_blob_context).Successful());
 
   while (!finished) {
   }
 
   if (!result.Successful()) {
     std::cerr << errors::GetErrorMessage(result.status_code) << std::endl;
-    exit(EXIT_FAILURE);
+    std::exit(EXIT_FAILURE);
   }
 }
 
@@ -119,9 +119,9 @@ int WriteAndGetBlob(int64_t byte_count) {
   CreateBucketIfNotExists(*client);
 
   auto async_executor =
-           std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize),
-       io_async_executor =
-           std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize);
+      std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize);
+  auto io_async_executor =
+      std::make_shared<AsyncExecutor>(kThreadCount, kQueueSize);
 
   async_executor->Init();
   async_executor->Run();
@@ -134,9 +134,10 @@ int WriteAndGetBlob(int64_t byte_count) {
   WriteObjectOfByteCount(my_client, byte_count);
 
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
-  get_blob_context.request = std::make_shared<GetBlobRequest>(
-      GetBlobRequest{std::make_shared<std::string>(kBucketName),
-                     std::make_shared<std::string>(kDefaultBlobName)});
+  get_blob_context.request = std::make_shared<GetBlobRequest>(GetBlobRequest{
+      std::make_shared<std::string>(kBucketName),
+      std::make_shared<std::string>(kDefaultBlobName),
+  });
 
   int return_status;
   std::atomic_bool finished(false);
@@ -194,16 +195,17 @@ int WriteAndGetBlob(int64_t byte_count) {
 }  // namespace
 }  // namespace google::scp::core::test
 
-constexpr int64_t kBytesCount = 100, kKiloBytesCount = 1000,
-                  kMegaBytesCount = 1000 * kKiloBytesCount,
-                  kGigaBytesCount = 1000 * kMegaBytesCount,
-                  k10GigaBytesCount = 10 * kGigaBytesCount,
-                  kTeraBytesCount = 1000 * kGigaBytesCount;
+constexpr int64_t kBytesCount = 100;
+constexpr int64_t kKiloBytesCount = 1000;
+constexpr int64_t kMegaBytesCount = 1000 * kKiloBytesCount;
+constexpr int64_t kGigaBytesCount = 1000 * kMegaBytesCount;
+constexpr int64_t k10GigaBytesCount = 10 * kGigaBytesCount;
+constexpr int64_t kTeraBytesCount = 1000 * kGigaBytesCount;
 
 int main(int argc, char* argv[]) {
   for (auto count :
-       {kBytesCount, kKiloBytesCount, kMegaBytesCount,
-        kGigaBytesCount /*, k10GigaBytesCount, kTeraBytesCount*/}) {
+       {kBytesCount, kKiloBytesCount, kMegaBytesCount, kGigaBytesCount,
+        /*, k10GigaBytesCount, kTeraBytesCount*/}) {
     if (google::scp::core::test::WriteAndGetBlob(count) != EXIT_SUCCESS) {
       return EXIT_FAILURE;
     }
