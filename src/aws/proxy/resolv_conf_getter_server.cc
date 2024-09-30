@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -54,7 +55,8 @@ int main(int argc, char** argv) {
   }
   grpc::ServerBuilder builder;
   std::string server_address = "0.0.0.0:";
-  if (char* port = ::getenv("PRIVACYSANDBOX_AWS_PROXY_RESOLV_CONF_SERVER_PORT");
+  if (char* port =
+          std::getenv("PRIVACYSANDBOX_AWS_PROXY_RESOLV_CONF_SERVER_PORT");
       port != nullptr) {
     absl::StrAppend(&server_address, port);
   } else {

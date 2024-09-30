@@ -16,6 +16,7 @@
 
 #include "logging.h"
 
+#include <cstdlib>
 #include <limits>
 
 #include "absl/log/check.h"
@@ -27,7 +28,7 @@ namespace google::scp::roma::logging {
 int GetVlogVerboseLevel() {
   static const int external_verbose_level = [] {
     int lvl = std::numeric_limits<int>::min();
-    const char* env_var = ::getenv(kRomaVlogLevel.data());
+    const char* env_var = std::getenv(kRomaVlogLevel.data());
     if (env_var == nullptr) {
       return lvl;
     }
