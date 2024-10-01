@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-#include "azure_private_key_fetcher_provider_utils.h"
-
 #include <memory>
 #include <utility>
 
 #include "absl/log/check.h"
 #include "src/azure/attestation/src/attestation.h"
+
+#include "azure_private_key_fetcher_provider_utils.h"
 
 using google::scp::azure::attestation::fetchFakeSnpAttestation;
 using google::scp::azure::attestation::fetchSnpAttestation;
@@ -44,8 +44,8 @@ void AzurePrivateKeyFetchingClientUtils::CreateHttpRequest(
   http_request.path = std::make_shared<Uri>(base_uri);
 
   // Get Attestation Report
-  const auto report =
-      hasSnp() ? fetchSnpAttestation("") : fetchFakeSnpAttestation();
+  CHECK(hasSnp()) << "It's not in a SNP environment";
+  const auto report = fetchSnpAttestation("");
   CHECK(report.has_value()) << "Failed to get attestation report";
 
   nlohmann::json json_obj;

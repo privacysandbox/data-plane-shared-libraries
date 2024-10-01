@@ -31,7 +31,7 @@ cc_library(
                 "//src/cpio/client_providers/private_key_fetcher_provider/gcp:gcp_private_key_fetcher_provider",
             ],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS, Azure or GCP",
     ),
 )
 

@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include "azure_kms_client_provider.h"
-
 #include <cstdlib>
 #include <utility>
 #include <vector>
@@ -33,6 +31,7 @@
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
+#include "azure_kms_client_provider.h"
 #include "error_codes.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
@@ -83,18 +82,18 @@ using std::placeholders::_1;
 
 namespace google::scp::cpio::client_providers {
 
+absl::StatusOr<
+    std::pair<std::shared_ptr<EvpPkeyWrapper>, std::shared_ptr<EvpPkeyWrapper>>>
+AzureKmsClientProvider::GenerateWrappingKeyPair() noexcept {
+  CHECK(hasSnp()) << "It's not in a SNP environment";
+  return AzureKmsClientProviderUtils::GenerateWrappingKey();
+}
 
-absl::StatusOr<std::pair<std::shared_ptr<EvpPkeyWrapper>,
-                                  std::shared_ptr<EvpPkeyWrapper>>>
-  AzureKmsClientProvider::GenerateWrappingKeyPair() noexcept {
-    CHECK(hasSnp()) << "It's not in a SNP environment";
-    return AzureKmsClientProviderUtils::GenerateWrappingKey();
-  }
-
-  std::optional<azure::attestation::AttestationReport> AzureKmsClientProvider::FetchSnpAttestation(
+std::optional<azure::attestation::AttestationReport>
+AzureKmsClientProvider::FetchSnpAttestation(
     const std::string report_data) noexcept {
-      CHECK(hasSnp()) << "It's not in a SNP environment";
-      return fetchSnpAttestation(report_data);
-    }
+  CHECK(hasSnp()) << "It's not in a SNP environment";
+  return fetchSnpAttestation(report_data);
+}
 
 }  // namespace google::scp::cpio::client_providers

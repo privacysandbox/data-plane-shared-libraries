@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include "azure_kms_client_provider.h"
-
 #include <cstdlib>
 #include <utility>
 #include <vector>
@@ -33,6 +31,7 @@
 #include "src/cpio/client_providers/interface/kms_client_provider_interface.h"
 #include "src/public/cpio/interface/kms_client/type_def.h"
 
+#include "azure_kms_client_provider.h"
 #include "error_codes.h"
 
 using google::cmrt::sdk::kms_service::v1::DecryptRequest;
@@ -83,44 +82,43 @@ using std::placeholders::_1;
 
 namespace google::scp::cpio::client_providers {
 
+absl::StatusOr<
+    std::pair<std::shared_ptr<EvpPkeyWrapper>, std::shared_ptr<EvpPkeyWrapper>>>
+AzureKmsClientProvider::GenerateWrappingKeyPair() noexcept {
+  CHECK(!hasSnp()) << "It's in a SNP environment";
+  std::shared_ptr<EvpPkeyWrapper> public_key;
+  std::shared_ptr<EvpPkeyWrapper> private_key;
+  // Get test PEM public key
+  const auto public_pem_key =
+      AzureKmsClientProviderUtils::GetTestPemPublicWrapKey();
+  const auto public_key_or =
+      AzureKmsClientProviderUtils::PemToEvpPkey(public_pem_key);
+  CHECK(public_key_or.ok()) << "Failed to parse public PEM key: "
+                            << public_key_or.status().ToString().c_str();
+  public_key = public_key_or.value();
 
-absl::StatusOr<std::pair<std::shared_ptr<EvpPkeyWrapper>,
-                                  std::shared_ptr<EvpPkeyWrapper>>>
-  AzureKmsClientProvider::GenerateWrappingKeyPair() noexcept {
-    CHECK(!hasSnp()) << "It's in a SNP environment";
-    std::shared_ptr<EvpPkeyWrapper> public_key;
-    std::shared_ptr<EvpPkeyWrapper> private_key;
-    // Get test PEM public key
-    const auto public_pem_key =
-        AzureKmsClientProviderUtils::GetTestPemPublicWrapKey();
-    const auto public_key_or =
-        AzureKmsClientProviderUtils::PemToEvpPkey(public_pem_key);
-    CHECK(public_key_or.ok()) << "Failed to parse public PEM key: "
-                              << public_key_or.status().ToString().c_str();
-    public_key = public_key_or.value();
+  // Get test PEM private key and convert it to EVP_PKEY*
+  const auto private_key_pem =
+      AzureKmsClientProviderUtils::GetTestPemPrivWrapKey();
+  // Add the constant to avoid the key detection precommit
+  const auto to_test = std::string("-----") + std::string("BEGIN PRIVATE") +
+                       std::string(" KEY-----");
 
-    // Get test PEM private key and convert it to EVP_PKEY*
-    const auto private_key_pem =
-        AzureKmsClientProviderUtils::GetTestPemPrivWrapKey();
-    // Add the constant to avoid the key detection precommit
-    const auto to_test = std::string("-----") + std::string("BEGIN PRIVATE") +
-                         std::string(" KEY-----");
+  CHECK(private_key_pem.find(to_test) == 0) << "Failed to get private PEM key";
+  const auto private_key_or =
+      AzureKmsClientProviderUtils::PemToEvpPkey(private_key_pem);
+  CHECK(private_key_or.ok()) << "Failed to parse private PEM key: "
+                             << private_key_or.status().ToString().c_str();
+  private_key = private_key_or.value();
 
-    CHECK(private_key_pem.find(to_test) == 0)
-        << "Failed to get private PEM key";
-    const auto private_key_or =
-        AzureKmsClientProviderUtils::PemToEvpPkey(private_key_pem);
-    CHECK(private_key_or.ok()) << "Failed to parse private PEM key: "
-                               << private_key_or.status().ToString().c_str();
-    private_key = private_key_or.value();
+  return std::make_pair(private_key, public_key);
+}
 
-    return std::make_pair(private_key, public_key);
-  }
-
-  std::optional<azure::attestation::AttestationReport> AzureKmsClientProvider::FetchSnpAttestation(
+std::optional<azure::attestation::AttestationReport>
+AzureKmsClientProvider::FetchSnpAttestation(
     const std::string report_data) noexcept {
-      CHECK(!hasSnp()) << "It's in a SNP environment";
-      return fetchFakeSnpAttestation();
-    }
+  CHECK(!hasSnp()) << "It's in a SNP environment";
+  return fetchFakeSnpAttestation();
+}
 
 }  // namespace google::scp::cpio::client_providers
