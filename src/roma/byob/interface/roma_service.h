@@ -165,21 +165,8 @@ class RomaService final {
   absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
-    dispatcher_->ExecuteBinary(
-        code_token, request, std::move(metadata), function_bindings_,
-        [callback = std::move(callback)](
-            absl::StatusOr<google::protobuf::Any> response) mutable {
-          if (response.ok()) {
-            Response message;
-            if (!response->UnpackTo(&message)) {
-              std::move(callback)(
-                  absl::InternalError("Failed to unpack response to proto"));
-            }
-            std::move(callback)(std::move(message));
-          } else {
-            std::move(callback)(std::move(response).status());
-          }
-        });
+    dispatcher_->ExecuteBinary(code_token, request, std::move(metadata),
+                               function_bindings_, std::move(callback));
     return google::scp::roma::ExecutionToken(
         ToString(google::scp::core::common::Uuid::GenerateUuid()));
   }
@@ -189,25 +176,16 @@ class RomaService final {
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::Notification& notif,
       absl::StatusOr<std::unique_ptr<Response>>& output) {
-    dispatcher_->ExecuteBinary(
-        code_token, request, std::move(metadata), function_bindings_,
-        [&notif, &output](absl::StatusOr<google::protobuf::Any> response) {
+    return ExecuteBinary<Response>(
+        code_token, request, std::move(metadata),
+        [&notif, &output](absl::StatusOr<Response> response) {
           if (response.ok()) {
-            // If response is uninitialized, initialize it with a unique_ptr.
-            if (!output.ok() || *output == nullptr) {
-              output = std::make_unique<Response>();
-            }
-            if (!response->UnpackTo(output->get())) {
-              response = absl::InternalError(
-                  "Failed to deserialize response to proto");
-            }
+            output = std::make_unique<Response>(*std::move(response));
           } else {
             output = std::move(response).status();
           }
           notif.Notify();
         });
-    return google::scp::roma::ExecutionToken(
-        ToString(google::scp::core::common::Uuid::GenerateUuid()));
   }
 
  private:

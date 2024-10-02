@@ -46,33 +46,44 @@ class Dispatcher {
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
                                          int n_workers);
 
-  template <typename Table, typename Metadata, typename Request>
+  template <typename Response, typename Table, typename Metadata,
+            typename Request>
   void ExecuteBinary(
       std::string_view code_token, const Request& request, Metadata metadata,
       const Table& table,
-      absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
-          callback) ABSL_LOCKS_EXCLUDED(mu_) {
-    google::protobuf::Any any;
-    any.PackFrom(request);
+      absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback)
+      ABSL_LOCKS_EXCLUDED(mu_) {
+    google::protobuf::Any request_any;
+    request_any.PackFrom(request);
     {
       absl::MutexLock l(&mu_);
       ++executor_threads_in_flight_;
     }
-    std::thread(&Dispatcher::ExecutorImpl, this, code_token, std::move(any),
-                std::move(callback),
-                [&table, metadata = std::move(metadata)](
-                    std::string_view function, auto& io_proto) {
-                  if (const auto it = table.find(function); it != table.end()) {
-                    google::scp::roma::FunctionBindingPayload<Metadata> wrapper{
-                        .io_proto = io_proto,
-                        .metadata = metadata,
-                    };
-                    (it->second)(wrapper);
-                  } else {
-                    io_proto.mutable_errors()->Add(
-                        "ROMA: Could not find C++ function by name.");
-                  }
-                })
+    std::thread(
+        &Dispatcher::ExecutorImpl, this, code_token, std::move(request_any),
+        [callback = std::move(callback)](
+            absl::StatusOr<google::protobuf::Any> response_any) mutable {
+          if (!response_any.ok()) {
+            std::move(callback)(std::move(response_any).status());
+          } else if (Response response; response_any->UnpackTo(&response)) {
+            std::move(callback)(std::move(response));
+          } else {
+            std::move(callback)(absl::UnknownError("Failed to unpack output."));
+          }
+        },
+        [&table, metadata = std::move(metadata)](std::string_view function,
+                                                 auto& io_proto) {
+          if (const auto it = table.find(function); it != table.end()) {
+            google::scp::roma::FunctionBindingPayload<Metadata> wrapper{
+                .io_proto = io_proto,
+                .metadata = metadata,
+            };
+            (it->second)(wrapper);
+          } else {
+            io_proto.mutable_errors()->Add(
+                "ROMA: Could not find C++ function by name.");
+          }
+        })
         .detach();
   }
 

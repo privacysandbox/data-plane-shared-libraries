@@ -86,18 +86,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_FALSE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_FALSE(bin_response.ok());
   }
 }
 
@@ -132,19 +130,17 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
-    EXPECT_THAT(bin_response.greeting(), StrEq("Hello, world!"));
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world!"));
   }
 }
 
@@ -179,18 +175,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 
@@ -225,18 +219,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 
@@ -271,18 +263,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 
@@ -316,19 +306,17 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
-    EXPECT_THAT(bin_response.greeting(), StrEq("I am a new UDF!"));
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
 }
 
@@ -362,19 +350,17 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
-    EXPECT_THAT(bin_response.greeting(), StrEq("I am a crashing UDF!"));
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I am a crashing UDF!"));
   }
 }
 
@@ -408,19 +394,17 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
-    EXPECT_THAT(bin_response.greeting(), StrEq("I return a non-zero status!"));
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I return a non-zero status!"));
   }
 }
 
@@ -454,18 +438,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_FALSE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_FALSE(bin_response.ok());
   }
 }
 
@@ -500,19 +482,17 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    ASSERT_TRUE(serialized_response->UnpackTo(&bin_response));
-    EXPECT_THAT(bin_response.greeting(), StrEq("Hello, world from Go!"));
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world from Go!"));
   }
 }
 
@@ -547,18 +527,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 
@@ -593,18 +571,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 
@@ -639,18 +615,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table = {{"example", [&](auto& payload) {}}};
   for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<google::protobuf::Any> serialized_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/i,
-                             function_table,
-                             [&serialized_response, &done](auto response) {
-                               serialized_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/i, function_table,
+        [&bin_response, &done](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(serialized_response.ok());
-    SampleResponse bin_response;
-    EXPECT_TRUE(serialized_response->UnpackTo(&bin_response));
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 }  // namespace

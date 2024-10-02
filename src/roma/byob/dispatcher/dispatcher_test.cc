@@ -241,17 +241,16 @@ TEST(DispatcherTest, LoadAndExecute) {
     absl::flat_hash_map<std::string,
                         std::function<void(FunctionBindingPayload<int>&)>>
         function_table;
-    absl::StatusOr<google::protobuf::Any> bin_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/0,
-                             function_table, [&](auto response) {
-                               bin_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request, /*metadata=*/0, function_table,
+        [&](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
-    SampleResponse response;
-    EXPECT_TRUE(bin_response->UnpackTo(&response));
+    EXPECT_TRUE(bin_response.ok());
   }
   worker.join();
 }
@@ -296,9 +295,9 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::Notification done;
-  dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/0,
-                           function_table,
-                           [&](auto response) { done.Notify(); });
+  dispatcher.ExecuteBinary<SampleResponse>(
+      *code_token, bin_request, /*metadata=*/0, function_table,
+      [&](auto response) { done.Notify(); });
   done.WaitForNotification();
 }
 
@@ -385,18 +384,17 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                              absl::MutexLock lock(&mu);
                              ++count;
                            }}};
-    absl::StatusOr<google::protobuf::Any> bin_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request,
-                             /*metadata=*/std::string{"dummy_data"},
-                             function_table, [&](auto response) {
-                               bin_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request,
+        /*metadata=*/std::string{"dummy_data"}, function_table,
+        [&](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
-    SampleResponse response;
-    EXPECT_TRUE(bin_response->UnpackTo(&response));
+    EXPECT_TRUE(bin_response.ok());
     EXPECT_EQ(count, 2);
   }
   worker.join();
@@ -466,18 +464,17 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
-    absl::StatusOr<google::protobuf::Any> bin_response;
+    absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(*code_token, bin_request,
-                             /*metadata=*/std::string{"dummy_data"},
-                             function_table, [&](auto response) {
-                               bin_response = std::move(response);
-                               done.Notify();
-                             });
+    dispatcher.ExecuteBinary<SampleResponse>(
+        *code_token, bin_request,
+        /*metadata=*/std::string{"dummy_data"}, function_table,
+        [&](auto response) {
+          bin_response = std::move(response);
+          done.Notify();
+        });
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
-    SampleResponse response;
-    EXPECT_TRUE(bin_response->UnpackTo(&response));
+    EXPECT_TRUE(bin_response.ok());
   }
   worker.join();
 }
@@ -559,7 +556,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
                          }}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary(
+    dispatcher.ExecuteBinary<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) { counter.DecrementCount(); });
   }
