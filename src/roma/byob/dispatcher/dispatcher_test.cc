@@ -111,6 +111,28 @@ TEST(DispatcherTest, ShutdownDispatcherThenWorker) {
   worker.join();
 }
 
+TEST(DispatcherTest, LoadErrorsWhenNWorkersNonPositive) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
+  absl::Notification done;
+  std::thread worker([&done] {
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(fd, -1);
+    ConnectToPath(fd, "abcd.sock");
+    done.WaitForNotification();
+    EXPECT_EQ(::close(fd), 0);
+  });
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const absl::StatusOr<std::string> code_token =
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/0);
+  EXPECT_FALSE(code_token.ok());
+  done.Notify();
+  worker.join();
+}
+
 TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
