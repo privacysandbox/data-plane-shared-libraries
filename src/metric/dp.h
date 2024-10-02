@@ -52,6 +52,23 @@ class DpAggregatorBase {
   virtual ~DpAggregatorBase() = default;
 };
 
+ABSL_CONST_INIT inline bool output_noise_interval = false;
+
+inline absl::flat_hash_map<std::string, std::string> Attributes(
+    const differential_privacy::Output& output) {
+  if (output_noise_interval) {
+    return {
+        {kNoiseAttribute.data(), "Noised"},
+        {"0.95NoiseConfidenceInterval",
+         absl::StrFormat(
+             "%.3f", differential_privacy::GetNoiseConfidenceInterval(output)
+                         .upper_bound())},
+    };
+  } else {
+    return {{kNoiseAttribute.data(), "Noised"}};
+  }
+}
+
 // DpAggregator is thread-safe counter to aggregate metric and add noise;
 // It should only be constructed from `DifferentiallyPrivate`.
 // see `DifferentiallyPrivate` about `TMetricRouter`;
@@ -150,7 +167,7 @@ class DpAggregator : public DpAggregatorBase {
       }
       PS_RETURN_IF_ERROR((metric_router_.LogSafe(
           definition_, differential_privacy::GetValue<TValue>(*it), partition,
-          {{kNoiseAttribute.data(), "Noised"}})));
+          Attributes(*it))));
       ++it;
       bounded_sum->Reset();
     }
@@ -258,12 +275,12 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
       PS_ASSIGN_OR_RETURN(*it, bounded_sum->PartialResult());
       auto bucket_mean =
           (TValue)BucketMean(j, definition_.histogram_boundaries_);
-      for (int i = 0, count = differential_privacy::GetValue<int>(*it++);
+      for (int i = 0, count = differential_privacy::GetValue<int>(*it);
            i < count; ++i) {
-        PS_RETURN_IF_ERROR(
-            (metric_router_.LogSafe(definition_, bucket_mean, "",
-                                    {{kNoiseAttribute.data(), "Noised"}})));
+        PS_RETURN_IF_ERROR((metric_router_.LogSafe(definition_, bucket_mean, "",
+                                                   Attributes(*it))));
       }
+      ++it;
       bounded_sum->Reset();
     }
     return ret;
