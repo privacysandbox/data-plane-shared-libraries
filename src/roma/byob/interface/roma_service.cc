@@ -66,6 +66,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
                                              : std::move(container_name)) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
+    PCHECK(::close(STDIN_FILENO) == 0);
     nlohmann::json config;
     {
       std::ifstream ifs(std::filesystem::path(CONTAINER_PATH) / "config.json");
