@@ -82,12 +82,16 @@ absl::Status Dispatcher::Init(const int listen_fd) {
   return absl::OkStatus();
 }
 
-std::string Dispatcher::LoadBinary(std::filesystem::path binary_path,
-                                   const int n_workers) {
+absl::StatusOr<std::string> Dispatcher::LoadBinary(
+    std::filesystem::path binary_path, const int n_workers) {
   std::string code_token = ToString(Uuid::GenerateUuid());
   LoadRequest payload;
   {
     std::ifstream ifs(std::move(binary_path), std::ios::binary);
+    if (!ifs.is_open()) {
+      return absl::InvalidArgumentError(
+          absl::StrCat("Cannot open ", binary_path.native()));
+    }
     payload.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
                                            std::istreambuf_iterator<char>()));
   }

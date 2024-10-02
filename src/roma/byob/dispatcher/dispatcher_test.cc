@@ -111,6 +111,28 @@ TEST(DispatcherTest, ShutdownDispatcherThenWorker) {
   worker.join();
 }
 
+TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  ASSERT_NE(fd, -1);
+  BindAndListenOnPath(fd, "abcd.sock");
+  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
+  absl::Notification done;
+  std::thread worker([&done] {
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    ASSERT_NE(fd, -1);
+    ConnectToPath(fd, "abcd.sock");
+    done.WaitForNotification();
+    EXPECT_EQ(::close(fd), 0);
+  });
+  Dispatcher dispatcher;
+  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  const absl::StatusOr<std::string> code_token =
+      dispatcher.LoadBinary("src/roma/byob/udf/fake_udf", /*n_workers=*/7);
+  EXPECT_FALSE(code_token.ok());
+  done.Notify();
+  worker.join();
+}
+
 TEST(DispatcherTest, LoadGoesToWorker) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
@@ -135,7 +157,8 @@ TEST(DispatcherTest, LoadGoesToWorker) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/7);
+  EXPECT_TRUE(
+      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/7).ok());
   worker.join();
 }
 
@@ -185,8 +208,9 @@ TEST(DispatcherTest, LoadAndExecute) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const std::string code_token =
+  const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_HELLO_WORLD);
@@ -195,7 +219,7 @@ TEST(DispatcherTest, LoadAndExecute) {
         function_table;
     absl::StatusOr<google::protobuf::Any> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/0,
+    dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/0,
                              function_table, [&](auto response) {
                                bin_response = std::move(response);
                                done.Notify();
@@ -238,8 +262,9 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const std::string code_token =
+  const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  ASSERT_TRUE(code_token.ok());
   worker.join();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
@@ -247,7 +272,7 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::Notification done;
-  dispatcher.ExecuteBinary(code_token, bin_request, /*metadata=*/0,
+  dispatcher.ExecuteBinary(*code_token, bin_request, /*metadata=*/0,
                            function_table,
                            [&](auto response) { done.Notify(); });
   done.WaitForNotification();
@@ -321,8 +346,9 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const std::string code_token =
+  const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
@@ -337,7 +363,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                            }}};
     absl::StatusOr<google::protobuf::Any> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(code_token, bin_request,
+    dispatcher.ExecuteBinary(*code_token, bin_request,
                              /*metadata=*/std::string{"dummy_data"},
                              function_table, [&](auto response) {
                                bin_response = std::move(response);
@@ -410,14 +436,15 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
       function_table = {{"example_function", [](auto) {}}};
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const std::string code_token =
+  const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
     absl::StatusOr<google::protobuf::Any> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary(code_token, bin_request,
+    dispatcher.ExecuteBinary(*code_token, bin_request,
                              /*metadata=*/std::string{"dummy_data"},
                              function_table, [&](auto response) {
                                bin_response = std::move(response);
@@ -493,8 +520,9 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const std::string code_token =
+  const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   absl::Mutex mu;
   absl::flat_hash_set<int> metadatas;  // Guarded by mu.
@@ -508,7 +536,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
     dispatcher.ExecuteBinary(
-        code_token, bin_request, /*metadata=*/i, function_table,
+        *code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) { counter.DecrementCount(); });
   }
   counter.Wait();

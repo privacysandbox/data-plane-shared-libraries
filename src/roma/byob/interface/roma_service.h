@@ -157,7 +157,7 @@ class RomaService final {
     }
   }
 
-  std::string LoadBinary(std::filesystem::path code_path) {
+  absl::StatusOr<std::string> LoadBinary(std::filesystem::path code_path) {
     return dispatcher_->LoadBinary(std::move(code_path), n_workers_);
   }
 
