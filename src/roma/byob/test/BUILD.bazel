@@ -15,7 +15,7 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-load("//src/roma/byob:byob.bzl", "byob_image")
+load("//src/roma/byob:byob.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_library(
@@ -98,7 +98,7 @@ pkg_files(
 ]
 
 [
-    byob_image(
+    roma_byob_image(
         name = "{test_name}_test_{flavor}_image".format(
             flavor = user.flavor,
             test_name = test_name,

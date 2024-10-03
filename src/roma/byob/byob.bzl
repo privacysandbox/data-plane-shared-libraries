@@ -18,7 +18,7 @@ load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
-def _byob_image(
+def _roma_byob_image(
         *,
         name,
         user,
@@ -74,7 +74,7 @@ def _byob_image(
             output_group = "tarball",
         )
 
-def byob_image(
+def roma_byob_image(
         name,
         *,
         udf_binary_labels,
@@ -97,7 +97,7 @@ def byob_image(
     flavor = "nonroot" if use_nonroot else "root"
     user = [u for u in DISTROLESS_USERS if u.flavor == flavor][0]
     default_entrypoint = ["/busybox/sh"] if debug else []
-    _byob_image(
+    _roma_byob_image(
         name = name,
         user = user,
         debug = debug,
