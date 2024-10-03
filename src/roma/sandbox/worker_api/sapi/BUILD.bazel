@@ -52,7 +52,7 @@ cc_library(
         ":worker_params_cc_proto",
         "//src/roma/config",
         "//src/roma/sandbox/js_engine/v8_engine:v8_js_engine",
-        "//src/roma/sandbox/native_function_binding:native_function_invoker_sapi_ipc",
+        "//src/roma/sandbox/native_function_binding:native_function_invoker",
         "//src/roma/sandbox/worker",
         "//src/util/status_macro:status_builder",
         "@com_google_absl//absl/container:flat_hash_map",

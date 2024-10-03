@@ -30,7 +30,7 @@ cc_library(
         "//src/roma/native_function_grpc_server:request_handlers",
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/dispatcher",
-        "//src/roma/sandbox/native_function_binding:native_function_handler_sapi_ipc",
+        "//src/roma/sandbox/native_function_binding:native_function_handler",
         "//src/roma/sandbox/native_function_binding:native_function_table",
         "//src/util:execution_token",
         "//src/util/status_macro:status_macros",

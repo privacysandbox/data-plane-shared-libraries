@@ -33,7 +33,7 @@
 #include "src/roma/native_function_grpc_server/request_handlers.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/dispatcher/dispatcher.h"
-#include "src/roma/sandbox/native_function_binding/native_function_handler_sapi_ipc.h"
+#include "src/roma/sandbox/native_function_binding/native_function_handler.h"
 #include "src/roma/sandbox/native_function_binding/native_function_table.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
@@ -43,7 +43,7 @@ using google::scp::roma::FunctionBindingObjectV2;
 using google::scp::roma::sandbox::constants::kRequestUuid;
 using google::scp::roma::sandbox::dispatcher::Dispatcher;
 using google::scp::roma::sandbox::native_function_binding::
-    NativeFunctionHandlerSapiIpc;
+    NativeFunctionHandler;
 using google::scp::roma::sandbox::native_function_binding::NativeFunctionTable;
 
 namespace google::scp::roma::sandbox::roma_service {
@@ -472,8 +472,7 @@ class RomaService {
       native_function_binding_table_;
   // Map of invocation request uuid to associated metadata.
   MetadataStorage<TMetadata> metadata_storage_;
-  std::optional<
-      native_function_binding::NativeFunctionHandlerSapiIpc<TMetadata>>
+  std::optional<NativeFunctionHandler<TMetadata>>
       native_function_binding_handler_;
   std::optional<dispatcher::Dispatcher> dispatcher_;
   std::vector<std::string> native_function_server_addresses_;

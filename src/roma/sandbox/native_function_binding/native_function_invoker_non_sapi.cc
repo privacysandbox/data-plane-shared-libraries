@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/native_function_binding/native_function_invoker_non_sapi.h"
-
 #include <unistd.h>
 
 #include <string>
 
 #include "absl/status/status.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 
 using google::scp::roma::proto::RpcWrapper;
 
@@ -30,11 +29,14 @@ constexpr int kBadFd = -1;
 }
 
 namespace google::scp::roma::sandbox::native_function_binding {
-NativeFunctionInvokerNonSapi::NativeFunctionInvokerNonSapi(int comms_fd)
-    : fd_(comms_fd) {}
+NativeFunctionInvoker::NativeFunctionInvoker(int comms_fd) : fd_(comms_fd) {}
 
-absl::Status NativeFunctionInvokerNonSapi::Invoke(
-    RpcWrapper& rpc_wrapper_proto) {
+absl::Status NativeFunctionInvoker::Invoke(RpcWrapper& rpc_wrapper_proto) {
+  if (!fd_.has_value()) {
+    return absl::FailedPreconditionError(
+        "A call to invoke was made without a file descriptor.");
+  }
+
   if (fd_ == kBadFd) {
     return absl::FailedPreconditionError(
         "A call to invoke was made with an invalid file descriptor.");
@@ -46,7 +48,7 @@ absl::Status NativeFunctionInvokerNonSapi::Invoke(
   }
 
   ssize_t sentBytes =
-      write(fd_, serialized_proto.c_str(), serialized_proto.size());
+      write(*fd_, serialized_proto.c_str(), serialized_proto.size());
   if (sentBytes == -1) {
     return absl::InternalError(
         "Could not send the call to the NativeFunctionHandler.");
@@ -54,7 +56,7 @@ absl::Status NativeFunctionInvokerNonSapi::Invoke(
 
   // This unblocks once a call is issued from the other side
   char buffer[1024] = {0};
-  ssize_t bytesRead = read(fd_, buffer, sizeof(buffer) - 1);
+  ssize_t bytesRead = read(*fd_, buffer, sizeof(buffer) - 1);
   if (bytesRead == -1) {
     return absl::InternalError(
         "Could not receive a response from the NativeFunctionHandler.");

@@ -42,37 +42,29 @@ cc_proto_library(
     deps = [":rpc_wrapper_proto"],
 )
 
-cc_library(
+alias(
     name = "native_function_binding",
-    hdrs = ["native_function_invoker.h"],
-    deps = [
-        ":rpc_wrapper_cc_proto",
-        "@com_google_absl//absl/status",
-    ],
+    actual = ":native_function_invoker",
 )
 
 cc_library(
-    name = "native_function_invoker_sapi_ipc",
+    name = "native_function_handler",
+    hdrs = ["native_function_handler.h"],
+    deps = select({
+        "//:non_sapi_build": [":native_function_handler_non_sapi"],
+        "//conditions:default": [":native_function_handler_sapi_ipc"],
+    }),
+)
+
+cc_library(
+    name = "native_function_invoker",
     srcs = ["native_function_invoker_sapi_ipc.cc"],
-    hdrs = ["native_function_invoker_sapi_ipc.h"],
+    hdrs = ["native_function_invoker.h"],
     deps = [
-        ":native_function_binding",
         ":rpc_wrapper_cc_proto",
         "//src/roma/sandbox/constants",
         "@com_google_absl//absl/status",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
-    ],
-)
-
-cc_library(
-    name = "native_function_invoker_non_sapi",
-    srcs = ["native_function_invoker_non_sapi.cc"],
-    hdrs = ["native_function_invoker_non_sapi.h"],
-    deps = [
-        ":native_function_binding",
-        ":rpc_wrapper_cc_proto",
-        "//src/roma/sandbox/constants",
-        "@com_google_absl//absl/status",
     ],
 )
 
@@ -166,7 +158,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        ":native_function_invoker_sapi_ipc",
+        ":native_function_invoker",
         ":rpc_wrapper_cc_proto",
         "@com_google_googletest//:gtest_main",
         "@com_google_sandboxed_api//sandboxed_api/sandbox2:comms",
@@ -182,7 +174,7 @@ cc_test(
         "//conditions:default": ["@platforms//:incompatible"],
     }),
     deps = [
-        ":native_function_invoker_non_sapi",
+        ":native_function_invoker",
         ":rpc_wrapper_cc_proto",
         "@com_google_googletest//:gtest_main",
     ],

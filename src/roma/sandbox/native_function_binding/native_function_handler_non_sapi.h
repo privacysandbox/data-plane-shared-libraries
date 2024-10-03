@@ -221,6 +221,8 @@ class NativeFunctionHandlerNonSapi {
   std::vector<int> local_fds_;
 };
 
+template <typename T>
+using NativeFunctionHandler = NativeFunctionHandlerNonSapi<T>;
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
 #endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_HANDLER_NON_SAPI_H_

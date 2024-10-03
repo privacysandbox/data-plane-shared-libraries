@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-#include "src/roma/sandbox/native_function_binding/native_function_invoker_sapi_ipc.h"
-
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
@@ -24,25 +22,26 @@
 #include <thread>
 
 #include "sandboxed_api/sandbox2/comms.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 using google::scp::roma::sandbox::native_function_binding::
-    NativeFunctionInvokerSapiIpc;
+    NativeFunctionInvoker;
 using ::testing::StrEq;
 
 namespace google::scp::roma::sandbox::native_function_binding::test {
-TEST(NativeFunctionHandlerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
-  NativeFunctionInvokerSapiIpc invoker(-1);
+TEST(NativeFunctionInvokerSapiIpcTest, ShouldReturnFailureOnInvokeIfBadFd) {
+  NativeFunctionInvoker invoker(-1);
 
   proto::RpcWrapper rpc_proto;
   EXPECT_FALSE(invoker.Invoke(rpc_proto).ok());
 }
 
-TEST(NativeFunctionHandlerSapiIpcTest, ShouldMakeCallOnFd) {
+TEST(NativeFunctionInvokerSapiIpcTest, ShouldMakeCallOnFd) {
   int fd_pair[2];
   EXPECT_EQ(::socketpair(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0, fd_pair), 0);
 
-  NativeFunctionInvokerSapiIpc invoker(fd_pair[0]);
+  NativeFunctionInvoker invoker(fd_pair[0]);
 
   std::thread to_handle_message([fd = fd_pair[1]]() {
     sandbox2::Comms comms(fd);

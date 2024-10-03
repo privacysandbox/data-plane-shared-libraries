@@ -28,7 +28,7 @@
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
-#include "src/roma/sandbox/native_function_binding/native_function_invoker_sapi_ipc.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 #include "src/roma/sandbox/worker/worker.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 
@@ -38,7 +38,7 @@ using google::scp::roma::sandbox::js_engine::v8_js_engine::
     V8IsolateFunctionBinding;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::sandbox::native_function_binding::
-    NativeFunctionInvokerSapiIpc;
+    NativeFunctionInvoker;
 using google::scp::roma::sandbox::worker::Worker;
 
 namespace google::scp::roma::sandbox::worker_api {
@@ -54,7 +54,7 @@ absl::flat_hash_map<std::string, std::string> GetEngineOneTimeSetup(
 }
 
 std::unique_ptr<Worker> CreateWorker(const V8WorkerEngineParams& params) {
-  auto native_function_invoker = std::make_unique<NativeFunctionInvokerSapiIpc>(
+  auto native_function_invoker = std::make_unique<NativeFunctionInvoker>(
       params.native_js_function_comms_fd);
 
   auto isolate_function_binding = std::make_unique<V8IsolateFunctionBinding>(

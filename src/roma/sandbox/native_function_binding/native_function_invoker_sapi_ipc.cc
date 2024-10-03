@@ -14,13 +14,12 @@
  * limitations under the License.
  */
 
-#include "native_function_invoker_sapi_ipc.h"
-
 #include <memory>
 
 #include "absl/status/status.h"
 #include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/native_function_binding/native_function_invoker.h"
 
 using google::scp::roma::proto::RpcWrapper;
 
@@ -29,14 +28,13 @@ constexpr int kBadFd = -1;
 }
 
 namespace google::scp::roma::sandbox::native_function_binding {
-NativeFunctionInvokerSapiIpc::NativeFunctionInvokerSapiIpc(int comms_fd) {
+NativeFunctionInvoker::NativeFunctionInvoker(int comms_fd) {
   if (comms_fd != kBadFd) {
     ipc_comms_ = std::make_unique<sandbox2::Comms>(comms_fd);
   }
 }
 
-absl::Status NativeFunctionInvokerSapiIpc::Invoke(
-    RpcWrapper& rpc_wrapper_proto) {
+absl::Status NativeFunctionInvoker::Invoke(RpcWrapper& rpc_wrapper_proto) {
   if (!ipc_comms_) {
     return absl::FailedPreconditionError(
         "A call to invoke was made with an uninitialized comms object.");

@@ -201,6 +201,8 @@ class NativeFunctionHandlerSapiIpc {
   std::vector<int> remote_fds_;
 };
 
+template <typename T>
+using NativeFunctionHandler = NativeFunctionHandlerSapiIpc<T>;
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
 #endif  // ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_HANDLER_SAPI_IPC_H_

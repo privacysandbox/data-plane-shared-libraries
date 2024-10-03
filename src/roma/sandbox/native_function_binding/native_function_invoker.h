@@ -17,9 +17,12 @@
 #ifndef ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_H_
 #define ROMA_SANDBOX_NATIVE_FUNCTION_BINDING_NATIVE_FUNCTION_INVOKER_H_
 
+#include <memory>
+#include <optional>
 #include <string>
 
 #include "absl/status/status.h"
+#include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 
 namespace google::scp::roma::sandbox::native_function_binding {
@@ -33,6 +36,9 @@ namespace google::scp::roma::sandbox::native_function_binding {
  */
 class NativeFunctionInvoker {
  public:
+  NativeFunctionInvoker() : fd_(-1) {}
+  explicit NativeFunctionInvoker(int comms_fd);
+
   /**
    * @brief Invoke a native function linked to the given function invocation.
    * @param function_name is the name of the function to invoke. This is the
@@ -43,15 +49,17 @@ class NativeFunctionInvoker {
    * passed to the c++ function and the return value that is set by the c++
    * function and which is passed to the JS function as a return. The execution
    * info neeeded in the host process includes the associated invocation
-   * request's id and uuid, and the name of the native function to call with the
-   * function binding context in the host process.
+   * request's id and uuid, and the name of the native function to call with
+   * the function binding context in the host process.
    */
   virtual absl::Status Invoke(
-      google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto) = 0;
+      google::scp::roma::proto::RpcWrapper& rpc_wrapper_proto);
 
-  // The destructor must be virtual otherwise the base class destructor won't
-  // ever be invoked.
-  virtual ~NativeFunctionInvoker() {}
+  virtual ~NativeFunctionInvoker() = default;
+
+ private:
+  std::unique_ptr<sandbox2::Comms> ipc_comms_;
+  std::optional<int> fd_;
 };
 }  // namespace google::scp::roma::sandbox::native_function_binding
 
