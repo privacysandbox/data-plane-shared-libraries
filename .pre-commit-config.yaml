@@ -54,6 +54,7 @@ repos:
     exclude: ^(src/.*\.sh)$
   - id: script-must-have-extension
   - id: require-ascii
+    exclude: ^(src/roma/byob/utility/file_reader_test\.cc)$
   - id: shellcheck
     exclude: (?x)^(
       build_defs/aws/.*|

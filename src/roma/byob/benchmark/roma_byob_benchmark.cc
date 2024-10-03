@@ -47,6 +47,8 @@ using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
 // using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest;
 // using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse;
 using ::privacy_sandbox::roma_byob::example::FunctionType;
+using ::privacy_sandbox::roma_byob::example::LogRequest;
+using ::privacy_sandbox::roma_byob::example::LogResponse;
 using ::privacy_sandbox::roma_byob::example::RunPrimeSieveRequest;
 using ::privacy_sandbox::roma_byob::example::RunPrimeSieveResponse;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
@@ -87,6 +89,11 @@ enum class Language {
   kGoLang = 1,
 };
 
+enum class Log {
+  kLogToDevNull = 0,
+  kLogToFile = 1,
+};
+
 SampleResponse SendRequestAndGetResponse(
     ByobSampleService<>& roma_service,
     ::privacy_sandbox::roma_byob::example::FunctionType func_type,
@@ -105,11 +112,17 @@ SampleResponse SendRequestAndGetResponse(
 }
 
 std::string LoadCode(ByobSampleService<>& roma_service,
-                     std::filesystem::path file_path) {
+                     std::filesystem::path file_path,
+                     bool enable_log_egress = false) {
   absl::Notification notif;
   absl::Status notif_status;
-  absl::StatusOr<std::string> code_id =
-      roma_service.Register(file_path, notif, notif_status);
+  absl::StatusOr<std::string> code_id;
+  if (!enable_log_egress) {
+    code_id = roma_service.Register(file_path, notif, notif_status);
+  } else {
+    code_id = roma_service.RegisterForLogging(file_path, notif, notif_status,
+                                              /*num_workers=*/10);
+  }
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
@@ -670,6 +683,70 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
   state.SetLabel(GetModeStr(mode));
 }
 
+void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
+  const Log log = static_cast<Log>(state.range(0));
+  ::privacy_sandbox::server_common::byob::Config<> config = {
+      .num_workers = 10,
+      .roma_container_name = "roma_server",
+  };
+  absl::StatusOr<ByobSampleService<>> sample_interface =
+      ByobSampleService<>::Create(config, Mode::kModeSandbox);
+  CHECK_OK(sample_interface);
+  ByobSampleService<> roma_service = std::move(*sample_interface);
+  const bool enable_log_egress = [](Log log) {
+    switch (log) {
+      case Log::kLogToDevNull:
+        return false;
+      case Log::kLogToFile:
+        return true;
+      default:
+        LOG(FATAL) << "Unrecognized log=" << static_cast<int>(log);
+    }
+  }(log);
+  const auto rpc = [&roma_service, &enable_log_egress](
+                       std::string_view code_token, const auto& request) {
+    absl::Notification exec_notif;
+    absl::StatusOr<LogResponse> bin_response;
+    auto callback = [&exec_notif, &bin_response, &enable_log_egress](
+                        absl::StatusOr<LogResponse> resp,
+                        absl::StatusOr<std::string_view> logs) {
+      bin_response = std::move(resp);
+      if (enable_log_egress) {
+        CHECK(absl::StartsWith(*logs, "I am benchmark stderr log.")) << *logs;
+      } else {
+        CHECK(!logs.ok());
+      }
+      exec_notif.Notify();
+    };
+    CHECK_OK(roma_service.Log(callback, request,
+                              /*metadata=*/{}, code_token));
+    CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+    return bin_response;
+  };
+
+  const std::string code_token = LoadCode(
+      roma_service, std::filesystem::path(kUdfPath) / "log_benchmark_udf",
+      enable_log_egress);
+  ::sleep(/*seconds=*/5);
+  LogRequest request;
+  request.set_log_count(state.range(1));
+  for (auto _ : state) {
+    CHECK_OK(rpc(code_token, request));
+  }
+}
+
+BENCHMARK(BM_ProcessRequestDevNullVsLogBinary)
+    ->ArgsProduct({{
+                       (int)Log::kLogToFile,
+                       (int)Log::kLogToDevNull,
+                   },
+                   {
+                       10,
+                       100,
+                       1000,
+                       10'000,
+                   }})
+    ->ArgNames({"log", "num_logs"});
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
 BENCHMARK(BM_ProcessRequestCppVsGoLang)
     ->ArgsProduct({

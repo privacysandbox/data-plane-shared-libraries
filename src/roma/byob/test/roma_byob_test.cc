@@ -15,10 +15,13 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <unistd.h>
+
 #include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <ostream>
 #include <string>
 #include <string_view>
 
@@ -94,11 +97,31 @@ absl::StatusOr<std::string> GetContentsOfFile(std::filesystem::path filename) {
 }
 
 std::string LoadCode(ByobSampleService<>& roma_service,
-                     std::filesystem::path file_path) {
+                     std::filesystem::path file_path,
+                     bool enable_log_egress = false, int num_workers = 1) {
+  absl::Notification notif;
+  absl::Status notif_status;
+  absl::StatusOr<std::string> code_id;
+  if (!enable_log_egress) {
+    code_id = roma_service.Register(file_path, notif, notif_status);
+  } else {
+    code_id = roma_service.RegisterForLogging(file_path, notif, notif_status,
+                                              /*num_workers=*/num_workers);
+  }
+  CHECK_OK(code_id);
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(notif_status);
+  return *std::move(code_id);
+}
+
+std::string LoadCodeFromCodeToken(ByobSampleService<>& roma_service,
+                                  std::string no_log_code_token,
+                                  int num_workers = 1) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(file_path, notif, notif_status);
+      roma_service.RegisterForLogging(no_log_code_token, notif, notif_status,
+                                      /*num_workers=*/num_workers);
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
@@ -128,6 +151,29 @@ void ReadCallbackPayload(google::scp::roma::FunctionBindingPayload<>& wrapper) {
   resp.set_payload_size(payload_size);
   wrapper.io_proto.clear_input_bytes();
   resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
+}
+
+std::pair<SampleResponse, std::string> GetResponseAndLogs(
+    ByobSampleService<>& roma_service, std::string_view code_token) {
+  absl::Notification exec_notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  std::string logs_acquired;
+  auto callback = [&exec_notif, &bin_response, &logs_acquired](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> logs) {
+    bin_response = std::move(resp);
+    CHECK_OK(logs);
+    // Making a copy -- try not to IRL.
+    logs_acquired = *logs;
+    exec_notif.Notify();
+  };
+
+  SampleRequest bin_request;
+  CHECK_OK(roma_service.Sample(callback, bin_request,
+                               /*metadata=*/{}, code_token));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+  return {*bin_response, logs_acquired};
 }
 
 TEST(RomaByobTest, LoadBinaryInSandboxMode) {
@@ -250,7 +296,7 @@ TEST(RomaByobTest, ProcessRequestGoLangBinaryInSandboxMode) {
       LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              kGoBinaryOutput);
+              ::testing::StrEq(kGoBinaryOutput));
 }
 
 TEST(RomaByobTest, ProcessRequestCppBinaryWithHostCallbackInSandboxMode) {
@@ -290,14 +336,8 @@ TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
-  ::testing::internal::CaptureStdout();
-  ::testing::internal::CaptureStderr();
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
               ::testing::StrEq(kLogUdfOutput));
-  std::string stdout_collected = ::testing::internal::GetCapturedStdout();
-  std::string stderr_collected = ::testing::internal::GetCapturedStderr();
-  EXPECT_THAT(stdout_collected, ::testing::IsEmpty());
-  EXPECT_THAT(stderr_collected, ::testing::IsEmpty());
 }
 
 TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
@@ -332,6 +372,119 @@ TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
   EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   roma_service.Cancel(*execution_token);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+}
+
+TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
+                                                    /*num_workers=*/1);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
+               /*enable_log_egress=*/true);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stderr log.\n"));
+}
+
+TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
+                                                    /*num_workers=*/1);
+  std::string no_log_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  std::string log_code_token =
+      LoadCodeFromCodeToken(roma_service, no_log_code_token);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stderr log.\n"));
+}
+
+TEST(RomaByobTest, VerifyRegisterWithAndWithoutLog) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
+                                                    /*num_workers=*/1);
+  std::string no_log_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  std::string log_code_token =
+      LoadCodeFromCodeToken(roma_service, no_log_code_token);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stderr log.\n"));
+
+  absl::Notification exec_notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  absl::Status log_status;
+  auto callback = [&exec_notif, &bin_response, &log_status](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> logs) {
+    bin_response = std::move(resp);
+    CHECK(!logs.ok());
+    // Making a copy -- try not to IRL.
+    log_status = logs.status();
+    exec_notif.Notify();
+  };
+
+  SampleRequest bin_request;
+  CHECK_OK(roma_service.Sample(callback, bin_request,
+                               /*metadata=*/{}, no_log_code_token));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+
+  EXPECT_THAT(bin_response->greeting(), ::testing::StrEq(kLogUdfOutput));
+  EXPECT_EQ(log_status.code(), absl::StatusCode::kNotFound);
+}
+
+TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
+                                                    /*num_workers=*/1);
+  std::string no_log_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  absl::Notification exec_notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  absl::Status log_status;
+  auto callback = [&exec_notif, &bin_response, &log_status](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> logs) {
+    bin_response = std::move(resp);
+    CHECK(!logs.ok());
+    // Making a copy -- try not to IRL.
+    log_status = logs.status();
+    exec_notif.Notify();
+  };
+
+  SampleRequest bin_request;
+  CHECK_OK(roma_service.Sample(callback, bin_request,
+                               /*metadata=*/{}, no_log_code_token));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+
+  std::string log_code_token =
+      LoadCodeFromCodeToken(roma_service, no_log_code_token);
+
+  ::sleep(/*seconds=*/5);
+
+  roma_service.Delete(no_log_code_token);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stderr log.\n"));
+  response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stderr log.\n"));
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test

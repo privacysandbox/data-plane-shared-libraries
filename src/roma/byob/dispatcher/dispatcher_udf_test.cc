@@ -22,6 +22,7 @@
 
 #include <functional>
 #include <string>
+#include <string_view>
 #include <thread>
 
 #include "absl/cleanup/cleanup.h"
@@ -78,7 +79,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -92,7 +93,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -121,7 +123,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -136,7 +138,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -166,7 +169,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -181,7 +184,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -210,7 +214,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -225,7 +229,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -254,7 +259,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -269,7 +274,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -298,7 +304,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
                             /*num_workers=*/10);
@@ -312,7 +318,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -342,7 +349,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/abort_udf",
                             /*num_workers=*/10);
@@ -356,7 +363,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -386,7 +394,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/nonzero_return_udf",
                             /*num_workers=*/10);
@@ -400,7 +408,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -430,7 +439,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   SampleRequest bin_request;
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
@@ -443,7 +452,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/0, function_table,
-        [&done](auto /*response*/) { done.Notify(); });
+        [&done](auto /*response*/, auto /*logs*/) { done.Notify(); });
     EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
     dispatcher.Delete(*code_token);
     done.WaitForNotification();
@@ -457,7 +466,8 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     absl::StatusOr<SampleResponse> bin_response;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/0, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> /*logs*/) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -487,7 +497,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
                             /*n_workers=*/2);
@@ -498,7 +508,9 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
   absl::Notification done;
   ExecutionToken execution_token = dispatcher.ProcessRequest<SampleResponse>(
       *code_token, bin_request, /*metadata=*/0, function_table,
-      [&done](auto /*response*/) { done.Notify(); });
+      [&done](auto /*response*/, absl::StatusOr<std::string_view> /*logs*/) {
+        done.Notify();
+      });
   EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
   dispatcher.Cancel(std::move(execution_token));
   done.WaitForNotification();
@@ -524,7 +536,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -538,7 +550,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -567,7 +580,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -582,7 +595,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -612,7 +626,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -627,7 +641,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -656,7 +671,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -671,7 +686,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -700,7 +716,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -715,7 +731,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response) {
+        [&bin_response, &done](auto response,
+                               absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });

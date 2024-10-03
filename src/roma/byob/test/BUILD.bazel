@@ -347,7 +347,7 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
             test_name = test_name,
         ),
         size = "small",
-        timeout = "short",
+        timeout = "moderate",
         configs = [":{test_name}_{flavor}_image_test.yaml".format(
             flavor = user.flavor,
             test_name = test_name,

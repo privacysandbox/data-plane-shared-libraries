@@ -15,7 +15,6 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/capability.h>
 #include <sys/mount.h>
 #include <sys/prctl.h>
@@ -52,6 +51,7 @@ ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
 ABSL_FLAG(std::vector<std::string>, mounts,
           std::vector<std::string>({"/lib", "/lib64"}),
           "Mounts containing dependencies needed by the binary");
+ABSL_FLAG(std::string, log_dir, "/log_dir", "Directory used for storing logs");
 
 namespace {
 using ::google::protobuf::io::FileInputStream;
@@ -72,7 +72,9 @@ struct WorkerImplArg {
   int rpc_fd;
   std::string_view code_token;
   std::string_view binary_path;
-  const int dev_null_fd;
+  int dev_null_fd;
+  bool enable_log_egress;
+  std::string_view log_dir_name;
 };
 
 void SetPrctlOptions(absl::Span<const std::pair<int, int>> option_arg_pairs) {
@@ -89,6 +91,15 @@ int WorkerImpl(void* arg) {
                  36) == 36);
   PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.execution_token.data(),
                  36) == 36);
+
+  int log_fd = -1;
+  if (worker_impl_arg.enable_log_egress) {
+    log_fd = ::open((std::filesystem::path(worker_impl_arg.log_dir_name) /
+                     absl::StrCat(worker_impl_arg.execution_token, ".log"))
+                        .c_str(),
+                    O_CREAT | O_WRONLY | O_APPEND, 0644);
+    CHECK_GE(log_fd, 0);
+  }
 
   // Set up restricted filesystem for worker using pivot_root
   // pivot_root doesn't work under an MS_SHARED mount point.
@@ -150,9 +161,11 @@ int WorkerImpl(void* arg) {
       {PR_CAPBSET_DROP, CAP_SETPCAP},
       {PR_SET_PDEATHSIG, SIGHUP},
   });
-  {
-    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
+  PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
+  if (!worker_impl_arg.enable_log_egress) {
     PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO) != -1);
+  } else {
+    PCHECK(::dup2(log_fd, STDERR_FILENO) != -1);
   }
   ::execl(worker_impl_arg.binary_path.data(),
           worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
@@ -169,7 +182,8 @@ struct PidExecutionTokenAndPivotRootDir {
 std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
     absl::Span<const std::string> mounts, std::string_view socket_name,
     std::string_view code_token, std::string_view binary_path,
-    const int dev_null_fd) {
+    const int dev_null_fd, std::string_view log_dir_name,
+    bool enable_log_egress = false) {
   const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
   if (rpc_fd == -1) {
     PLOG(ERROR) << "socket()";
@@ -200,6 +214,8 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
       .code_token = code_token,
       .binary_path = binary_path,
       .dev_null_fd = dev_null_fd,
+      .enable_log_egress = enable_log_egress,
+      .log_dir_name = log_dir_name,
   };
 
   // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
@@ -234,6 +250,7 @@ int main(int argc, char** argv) {
   LOG(INFO) << "Starting up.";
   const std::string socket_name = absl::GetFlag(FLAGS_socket_name);
   const std::vector<std::string> mounts = absl::GetFlag(FLAGS_mounts);
+  const std::string log_dir_name = absl::GetFlag(FLAGS_log_dir);
   const std::filesystem::path progdir =
       std::filesystem::temp_directory_path() /
       ToString(google::scp::core::common::Uuid::GenerateUuid());
@@ -265,6 +282,7 @@ int main(int argc, char** argv) {
     std::string execution_token;
     std::string code_token;
     std::string binary_path;
+    bool enable_log_egress;
     bool marked_for_deletion = false;
   };
 
@@ -272,7 +290,7 @@ int main(int argc, char** argv) {
   absl::flat_hash_map<int, UdfInstanceMetadata> pid_to_udf;  // Guarded by mu.
   bool shutdown = false;                                     // Guarded by mu.
   std::thread reloader([&socket_name, &mounts, &mu, &pid_to_udf, &shutdown,
-                        &dev_null_fd] {
+                        &dev_null_fd, &log_dir_name] {
     while (true) {
       {
         auto fn = [&] {
@@ -329,9 +347,9 @@ int main(int argc, char** argv) {
         // Start a new worker with the same UDF as the most-recently ended
         // worker.
         std::optional<PidExecutionTokenAndPivotRootDir>
-            pid_execution_token_and_pivot_root_dir =
-                ConnectSendCloneAndExec(mounts, socket_name, udf.code_token,
-                                        udf.binary_path, dev_null_fd);
+            pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
+                mounts, socket_name, udf.code_token, udf.binary_path,
+                dev_null_fd, log_dir_name, udf.enable_log_egress);
         if (!pid_execution_token_and_pivot_root_dir.has_value()) {
           return;
         }
@@ -431,7 +449,7 @@ int main(int argc, char** argv) {
     }
     const std::filesystem::path binary_path =
         binary_dir / request.load_binary().code_token();
-    {
+    if (request.load_binary().has_binary_content()) {
       const int fd =
           ::open(binary_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC, 0500);
       if (fd == -1) {
@@ -455,12 +473,30 @@ int main(int argc, char** argv) {
         PLOG(ERROR) << "close()";
         return -1;
       }
+    } else if (request.load_binary().has_source_bin_code_token()) {
+      std::filesystem::path existing_binary_path =
+          progdir / request.load_binary().source_bin_code_token() /
+          request.load_binary().source_bin_code_token();
+      if (!std::filesystem::exists(existing_binary_path)) {
+        LOG(ERROR) << "Expected binary " << existing_binary_path.c_str()
+                   << " not found";
+        return -1;
+      } else if (!std::filesystem::is_regular_file(existing_binary_path)) {
+        LOG(ERROR) << "File " << existing_binary_path.c_str()
+                   << " not a regular file";
+        return -1;
+      }
+      std::filesystem::create_hard_link(existing_binary_path, binary_path);
+    } else {
+      LOG(ERROR) << "Failed to load binary";
+      return -1;
     }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
       std::optional<PidExecutionTokenAndPivotRootDir>
           pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
               mounts, socket_name, request.load_binary().code_token(),
-              binary_path.native(), dev_null_fd);
+              binary_path.native(), dev_null_fd, log_dir_name,
+              request.load_binary().enable_log_egress());
       if (!pid_execution_token_and_pivot_root_dir.has_value()) {
         return -1;
       }
@@ -471,6 +507,7 @@ int main(int argc, char** argv) {
               pid_execution_token_and_pivot_root_dir->execution_token),
           .code_token = request.load_binary().code_token(),
           .binary_path = binary_path,
+          .enable_log_egress = request.load_binary().enable_log_egress(),
       };
       absl::MutexLock lock(&mu);
       pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
@@ -480,7 +517,8 @@ int main(int argc, char** argv) {
     std::optional<PidExecutionTokenAndPivotRootDir>
         pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
             mounts, socket_name, request.load_binary().code_token(),
-            binary_path.native(), dev_null_fd);
+            binary_path.native(), dev_null_fd, log_dir_name,
+            request.load_binary().enable_log_egress());
     if (!pid_execution_token_and_pivot_root_dir.has_value()) {
       return -1;
     }
@@ -492,6 +530,7 @@ int main(int argc, char** argv) {
         .code_token =
             std::move(*request.mutable_load_binary()->mutable_code_token()),
         .binary_path = binary_path,
+        .enable_log_egress = request.load_binary().enable_log_egress(),
     };
     absl::MutexLock lock(&mu);
     pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);

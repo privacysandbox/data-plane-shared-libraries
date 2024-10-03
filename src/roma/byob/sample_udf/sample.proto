@@ -70,6 +70,12 @@ service SampleService {
       description: 'MethodAnnotation'
     };
   }
+
+  rpc Log(LogRequest) returns (LogResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      description: 'MethodAnnotation'
+    };
+  }
 }
 
 enum FunctionType {
@@ -181,3 +187,12 @@ message RunPrimeSieveResponse {
 message SortListRequest {}
 
 message SortListResponse {}
+
+message LogRequest {
+  int32 log_count = 1
+      [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+        description: 'Number of logs to write.'
+      }];
+}
+
+message LogResponse {}

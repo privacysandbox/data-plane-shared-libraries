@@ -21,31 +21,35 @@
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
-using ::privacy_sandbox::roma_byob::example::SampleResponse;
+using ::privacy_sandbox::roma_byob::example::LogRequest;
+using ::privacy_sandbox::roma_byob::example::LogResponse;
 
-void ReadRequestFromFd(int fd) {
-  google::protobuf::Any bin_request;
+int ReadRequestFromFd(int fd) {
+  google::protobuf::Any any;
   FileInputStream input(fd);
-  ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
+  ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
+  LogRequest log_req;
+  any.UnpackTo(&log_req);
+  return log_req.log_count();
 }
 
-void WriteResponseToFd(int fd, SampleResponse resp) {
+void WriteResponseToFd(int fd, LogResponse resp) {
   google::protobuf::Any any;
   any.PackFrom(std::move(resp));
   google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
 }
 
 int main(int argc, char* argv[]) {
-  std::cout << "I am a stdout log.\n" << std::flush;
-  std::cerr << "I am a stderr log.\n" << std::flush;
   if (argc < 2) {
     std::cerr << "Not enough arguments!" << std::flush;
     return -1;
   }
   int fd = std::stoi(argv[1]);
-  ReadRequestFromFd(fd);
-  SampleResponse bin_response;
-  bin_response.set_greeting("I am a UDF that logs.");
-  WriteResponseToFd(fd, std::move(bin_response));
+  int log_count = ReadRequestFromFd(fd);
+  while (log_count--) {
+    std::cerr << "I am benchmark stderr log.\n";
+  }
+  LogResponse log_response;
+  WriteResponseToFd(fd, std::move(log_response));
   return 0;
 }

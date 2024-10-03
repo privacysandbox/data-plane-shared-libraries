@@ -162,6 +162,22 @@ message SortListRequest {
 message SortListResponse {
 }
 
+//
+// UDF rpc: Log
+//   MethodAnnotation
+//   request: LogRequest
+//   response: LogResponse
+
+
+message LogRequest {
+  // Number of logs to write.
+  int32 log_count = 1;
+}
+
+
+message LogResponse {
+}
+
 
 // Functions that can be executed by the Sample UDF.
 enum FunctionType {

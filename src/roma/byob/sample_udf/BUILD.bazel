@@ -269,11 +269,22 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "log_benchmark_udf",
+    srcs = ["log_benchmark_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 filegroup(
     name = "udf_binaries",
     srcs = [
         ":callback_payload_read_udf",
         ":callback_payload_write_udf",
+        ":log_benchmark_udf",
         ":log_udf",
         ":new_udf",
         ":pause_udf",

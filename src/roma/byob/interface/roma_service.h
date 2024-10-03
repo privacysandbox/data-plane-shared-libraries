@@ -54,7 +54,8 @@ namespace privacy_sandbox::server_common::byob {
 namespace internal::roma_service {
 class LocalHandle final {
  public:
-  LocalHandle(int pid, std::string_view mounts, std::string_view socket_name);
+  LocalHandle(int pid, std::string_view mounts, std::string_view socket_name,
+              std::string_view logdir);
   ~LocalHandle();
 
  private:
@@ -64,7 +65,8 @@ class LocalHandle final {
 class ByobHandle final {
  public:
   ByobHandle(int pid, std::string_view mounts, std::string_view socket_name,
-             std::string_view sockdir, std::string container_name);
+             std::string_view sockdir, std::string container_name,
+             std::string_view logdir);
   ~ByobHandle();
 
  private:
@@ -119,6 +121,13 @@ class RomaService final {
                                      std::filesystem::perms::owner_write |
                                      std::filesystem::perms::group_write |
                                      std::filesystem::perms::others_write);
+    if (::mkdtemp(log_dir_) == nullptr) {
+      return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/log_dir_XXXXXX\")");
+    }
+    std::filesystem::permissions(std::filesystem::path(log_dir_),
+                                 std::filesystem::perms::owner_all |
+                                     std::filesystem::perms::group_all |
+                                     std::filesystem::perms::others_all);
     // Need to set this to ensure all the children can be reaped
     ::prctl(PR_SET_CHILD_SUBREAPER, 1);
     const int pid = ::fork();
@@ -129,15 +138,15 @@ class RomaService final {
       case Mode::kModeSandbox:
         handle_.emplace<internal::roma_service::ByobHandle>(
             pid, config.lib_mounts, socket_name_, sockdir_,
-            std::move(config.roma_container_name));
+            std::move(config.roma_container_name), log_dir_);
         break;
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
-            pid, config.lib_mounts, socket_name_);
+            pid, config.lib_mounts, socket_name_, log_dir_);
         break;
     }
     dispatcher_.emplace();
-    PS_RETURN_IF_ERROR(dispatcher_->Init(fd));
+    PS_RETURN_IF_ERROR(dispatcher_->Init(fd, log_dir_));
     function_bindings_.reserve(config.function_bindings.size());
     for (auto& binding : config.function_bindings) {
       function_bindings_[std::move(binding.function_name)] =
@@ -154,7 +163,10 @@ class RomaService final {
     }
     ::free(socket_name_);
     if (std::error_code ec; !std::filesystem::remove(sockdir_, ec)) {
-      LOG(ERROR) << "Failed to remove " << sockdir_ << ": " << ec;
+      LOG(ERROR) << "Failed to remove " << sockdir_ << ": " << ec.message();
+    }
+    if (std::error_code ec; !std::filesystem::remove_all(log_dir_, ec)) {
+      LOG(ERROR) << "Failed to remove " << log_dir_ << ": " << ec.message();
     }
   }
 
@@ -168,12 +180,39 @@ class RomaService final {
     dispatcher_->Cancel(std::move(token));
   }
 
+  absl::StatusOr<std::string> LoadBinaryForLogging(
+      std::filesystem::path code_path, int num_workers) {
+    return dispatcher_->LoadBinary(std::move(code_path), num_workers,
+                                   /*enable_log_egress*/ true);
+  }
+
+  absl::StatusOr<std::string> LoadBinaryForLogging(
+      std::string no_log_code_token, int num_workers) {
+    return dispatcher_->LoadBinaryForLogging(std::move(no_log_code_token),
+                                             num_workers);
+  }
+
+  template <typename Response, typename Request>
+  absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
+      std::string_view code_token, const Request& request, TMetadata metadata,
+      absl::AnyInvocable<void(absl::StatusOr<Response>,
+                              absl::StatusOr<std::string_view> logs) &&>
+          callback) {
+    return dispatcher_->ProcessRequest(code_token, request, std::move(metadata),
+                                       function_bindings_, std::move(callback));
+  }
+
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
-    return dispatcher_->ProcessRequest(code_token, request, std::move(metadata),
-                                       function_bindings_, std::move(callback));
+    return ProcessRequest<Response>(
+        code_token, request, std::move(metadata),
+        [callback = std::move(callback)](
+            absl::StatusOr<Response> response,
+            absl::StatusOr<std::string_view> logs) mutable {
+          std::move(callback)(response);
+        });
   }
 
   template <typename Response, typename Request>
@@ -183,7 +222,8 @@ class RomaService final {
       absl::StatusOr<std::unique_ptr<Response>>& output) {
     return ProcessRequest<Response>(
         code_token, request, std::move(metadata),
-        [&notif, &output](absl::StatusOr<Response> response) {
+        [&notif, &output](absl::StatusOr<Response> response,
+                          absl::StatusOr<std::string_view> logs) {
           if (response.ok()) {
             output = std::make_unique<Response>(*std::move(response));
           } else {
@@ -196,6 +236,7 @@ class RomaService final {
  private:
   int num_workers_;
   char sockdir_[20] = "/tmp/sockdir_XXXXXX";
+  char log_dir_[20] = "/tmp/log_dir_XXXXXX";
   char* socket_name_ = nullptr;
   std::variant<std::monostate, internal::roma_service::LocalHandle,
                internal::roma_service::ByobHandle>

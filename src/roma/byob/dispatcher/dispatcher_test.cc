@@ -92,7 +92,7 @@ TEST(DispatcherTest, ShutdownWorkerThenDispatcher) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   worker.join();
 }
 
@@ -110,7 +110,7 @@ TEST(DispatcherTest, ShutdownDispatcherThenWorker) {
   });
   {
     Dispatcher dispatcher;
-    ASSERT_TRUE(dispatcher.Init(fd).ok());
+    ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   }
   done.Notify();
   worker.join();
@@ -135,10 +135,10 @@ TEST(DispatcherTest, LoadErrorsForUnknownBinaryPath) {
 
 TEST(DispatcherTest, LoadErrorsWhenNWorkersNonPositive) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(
-      dispatcher
-          .LoadBinary("src/roma/byob/sample_udf/new_udf", /*num_workers=*/0)
-          .ok());
+  EXPECT_FALSE(dispatcher
+                   .LoadBinary("src/roma/byob/sample_udf/new_udf",
+                               /*num_workers=*/0)
+                   .ok());
 }
 
 TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
@@ -154,7 +154,7 @@ TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/fake_udf", /*num_workers=*/7);
   EXPECT_FALSE(code_token.ok());
@@ -182,11 +182,11 @@ TEST(DispatcherTest, LoadGoesToWorker) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
-  EXPECT_TRUE(
-      dispatcher
-          .LoadBinary("src/roma/byob/sample_udf/new_udf", /*num_workers=*/7)
-          .ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  EXPECT_TRUE(dispatcher
+                  .LoadBinary("src/roma/byob/sample_udf/new_udf",
+                              /*num_workers=*/7)
+                  .ok());
   worker.join();
 }
 
@@ -215,7 +215,7 @@ TEST(DispatcherTest, LoadAndDeleteGoToWorker) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*n_workers=*/3);
   ASSERT_TRUE(code_token.ok());
@@ -274,7 +274,7 @@ TEST(DispatcherTest, LoadAndExecute) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
@@ -288,7 +288,7 @@ TEST(DispatcherTest, LoadAndExecute) {
     absl::Notification done;
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/0, function_table,
-        [&](auto response) {
+        [&](auto response, absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -332,7 +332,7 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
@@ -345,7 +345,9 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
   absl::Notification done;
   dispatcher.ProcessRequest<SampleResponse>(
       *code_token, bin_request, /*metadata=*/0, function_table,
-      [&](auto response) { done.Notify(); });
+      [&](auto response, absl::StatusOr<std::string_view> logs) {
+        done.Notify();
+      });
   done.WaitForNotification();
 }
 
@@ -422,7 +424,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
@@ -443,7 +445,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request,
         /*metadata=*/std::string{"dummy_data"}, function_table,
-        [&](auto response) {
+        [&](auto response, absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -515,7 +517,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
                       std::function<void(FunctionBindingPayload<std::string>&)>>
       function_table = {{"example_function", [](auto) {}}};
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
@@ -527,7 +529,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request,
         /*metadata=*/std::string{"dummy_data"}, function_table,
-        [&](auto response) {
+        [&](auto response, absl::StatusOr<std::string_view> logs) {
           bin_response = std::move(response);
           done.Notify();
         });
@@ -604,7 +606,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
@@ -622,7 +624,9 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   for (int i = 0; i < 100; ++i) {
     dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response) { counter.DecrementCount(); });
+        [&counter](auto response, absl::StatusOr<std::string_view> logs) {
+          counter.DecrementCount();
+        });
   }
   counter.Wait();
   for (int i = 0; i < 100; ++i) {
@@ -678,7 +682,7 @@ TEST(DispatcherTest, LoadAndExecuteThenCancel) {
     EXPECT_EQ(::close(fd), 0);
   });
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd).ok());
+  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
   ASSERT_TRUE(code_token.ok());
@@ -691,7 +695,9 @@ TEST(DispatcherTest, LoadAndExecuteThenCancel) {
     absl::Notification done;
     ExecutionToken execution_token = dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/0, function_table,
-        [&done](auto response) { done.Notify(); });
+        [&done](auto response, absl::StatusOr<std::string_view> /*logs*/) {
+          done.Notify();
+        });
     dispatcher.Cancel(std::move(execution_token));
     done.WaitForNotification();
   }

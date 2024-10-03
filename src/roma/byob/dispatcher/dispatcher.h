@@ -17,6 +17,11 @@
 #ifndef SRC_ROMA_GVISOR_DISPATCHER_DISPATCHER_H_
 #define SRC_ROMA_GVISOR_DISPATCHER_DISPATCHER_H_
 
+#include <fcntl.h>
+#include <sys/mman.h>
+
+#include <filesystem>
+#include <fstream>
 #include <queue>
 #include <string>
 #include <string_view>
@@ -28,10 +33,12 @@
 #include "absl/functional/any_invocable.h"
 #include "absl/functional/function_ref.h"
 #include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/any.pb.h"
+#include "src/roma/byob/utility/file_reader.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/util/execution_token.h"
@@ -42,10 +49,14 @@ class Dispatcher {
   ~Dispatcher();
 
   // Takes ownership of `listen_fd`. Blocks until a connection is established.
-  absl::Status Init(int listen_fd);
+  absl::Status Init(int listen_fd, std::filesystem::path log_dir);
 
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
-                                         int num_workers);
+                                         int num_workers,
+                                         bool enable_log_egress = false);
+
+  absl::StatusOr<std::string> LoadBinaryForLogging(
+      std::string source_bin_code_token, int num_workers);
 
   void Delete(std::string_view code_token);
 
@@ -56,8 +67,9 @@ class Dispatcher {
   google::scp::roma::ExecutionToken ProcessRequest(
       std::string_view code_token, const Request& request, Metadata metadata,
       const Table& table,
-      absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback)
-      ABSL_LOCKS_EXCLUDED(mu_) {
+      absl::AnyInvocable<void(absl::StatusOr<Response>,
+                              absl::StatusOr<std::string_view> logs) &&>
+          callback) ABSL_LOCKS_EXCLUDED(mu_) {
     google::protobuf::Any request_any;
     request_any.PackFrom(request);
     FdAndToken fd_and_token;
@@ -76,14 +88,20 @@ class Dispatcher {
     std::thread(
         &Dispatcher::ExecutorImpl, this, fd_and_token.fd,
         std::move(request_any),
-        [callback = std::move(callback)](
+        [callback = std::move(callback),
+         log_file_name = log_dir_ / absl::StrCat(fd_and_token.token, ".log")](
             absl::StatusOr<google::protobuf::Any> response_any) mutable {
+          absl::StatusOr<FileReader> log_reader =
+              FileReader::Create(log_file_name);
           if (!response_any.ok()) {
-            std::move(callback)(std::move(response_any).status());
+            std::move(callback)(std::move(response_any).status(),
+                                FileReader::GetContent(log_reader));
           } else if (Response response; response_any->UnpackTo(&response)) {
-            std::move(callback)(std::move(response));
+            std::move(callback)(std::move(response),
+                                FileReader::GetContent(log_reader));
           } else {
-            std::move(callback)(absl::UnknownError("Failed to unpack output."));
+            std::move(callback)(absl::UnknownError("Failed to unpack output."),
+                                FileReader::GetContent(log_reader));
           }
         },
         [&table, metadata = std::move(metadata)](std::string_view function,
@@ -124,6 +142,7 @@ class Dispatcher {
 
   // Connection socket to worker main thread. Used to send load requests.
   int connection_fd_;
+  std::filesystem::path log_dir_;
   std::optional<std::thread> acceptor_;
   absl::Mutex mu_;
   int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;

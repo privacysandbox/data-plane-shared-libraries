@@ -68,8 +68,10 @@ Dispatcher::~Dispatcher() {
   ::close(listen_fd_);
 }
 
-absl::Status Dispatcher::Init(const int listen_fd) {
+absl::Status Dispatcher::Init(const int listen_fd,
+                              std::filesystem::path log_dir) {
   listen_fd_ = listen_fd;
+  log_dir_ = log_dir;
   connection_fd_ = ::accept(listen_fd_, nullptr, nullptr);
   if (connection_fd_ == -1) {
     return absl::InternalError(
@@ -84,7 +86,8 @@ absl::Status Dispatcher::Init(const int listen_fd) {
 }
 
 absl::StatusOr<std::string> Dispatcher::LoadBinary(
-    std::filesystem::path binary_path, const int num_workers) {
+    std::filesystem::path binary_path, const int num_workers,
+    const bool enable_log_egress) {
   if (num_workers <= 0) {
     return absl::InvalidArgumentError(
         absl::StrCat("`num_workers=", num_workers, "` must be positive"));
@@ -102,6 +105,24 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   }
   payload.set_code_token(code_token);
   payload.set_num_workers(num_workers);
+  payload.set_enable_log_egress(enable_log_egress);
+  SerializeDelimitedToFileDescriptor(request, connection_fd_);
+  return code_token;
+}
+
+absl::StatusOr<std::string> Dispatcher::LoadBinaryForLogging(
+    std::string source_bin_code_token, int num_workers) {
+  if (num_workers <= 0) {
+    return absl::InvalidArgumentError(
+        absl::StrCat("`num_workers=", num_workers, "` must be positive"));
+  }
+  std::string code_token = ToString(Uuid::GenerateUuid());
+  DispatcherRequest request;
+  auto& payload = *request.mutable_load_binary();
+  payload.set_code_token(code_token);
+  payload.set_num_workers(num_workers);
+  payload.set_source_bin_code_token(source_bin_code_token);
+  payload.set_enable_log_egress(true);
   SerializeDelimitedToFileDescriptor(request, connection_fd_);
   return code_token;
 }
