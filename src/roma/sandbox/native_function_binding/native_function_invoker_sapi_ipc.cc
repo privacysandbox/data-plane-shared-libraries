@@ -23,8 +23,6 @@
 #include "src/roma/sandbox/constants/constants.h"
 
 using google::scp::roma::proto::RpcWrapper;
-using google::scp::roma::sandbox::constants::kRequestId;
-using google::scp::roma::sandbox::constants::kRequestUuid;
 
 namespace {
 constexpr int kBadFd = -1;
