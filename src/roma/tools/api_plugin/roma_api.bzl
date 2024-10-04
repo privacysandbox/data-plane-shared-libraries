@@ -19,7 +19,7 @@ load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
@@ -423,7 +423,7 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
+def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwargs):
     """
     Top-level macro for the Roma BYOB Application API.
 
@@ -434,17 +434,21 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
     Args:
         name: name of cc_library target, basename of ancillary targets.
         roma_app_api: the roma_api struct
+        udf_cc_proto_lib: label for cc_proto_library of the generated protobuf library
         **kwargs: attributes for cc_library and those common to bazel build rules.
 
     Generates:
         <name>_cc_byob_app_api_client_sdk.md
         <name>_roma_app_service.h
         <name>_roma_byob_app_service.h
+        <name>_shell.cc
+        <name>_shell.md
 
     Targets:
         <name> -- cc_library
         <name>_srcs -- c++ source files
         <name>_hdrs -- c++ header files
+        <name>_shell -- cc_binary for shell CLI
 
     Returns:
         Providers:
@@ -469,6 +473,17 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         targets = [name_proto],
         suffixes = ["cc_byob_app_api_client_sdk.md"],
     )
+    _filter_files_suffix(
+        name = name + "_tools_docs",
+        targets = [name_proto],
+        suffixes = ["shell.md"],
+    )
+    _filter_files_suffix(
+        name = "{}_shell.cc".format(name),
+        targets = [name_proto],
+        suffixes = ["shell.cc"],
+    )
+
     cc_library(
         name = name,
         hdrs = ["{}_roma_byob_app_header".format(name)],
@@ -482,6 +497,73 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
             "@com_google_absl//absl/strings",
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+    )
+
+    cc_binary(
+        name = "{}_shell".format(name),
+        srcs = [":{}_shell.cc".format(name)],
+        deps = [
+            udf_cc_proto_lib,
+            ":{}".format(name),
+            Label("//src/roma/byob/tools:shell_evaluator"),
+            "@com_google_absl//absl/container:flat_hash_map",
+            "@com_google_absl//absl/flags:flag",
+            "@com_google_absl//absl/flags:parse",
+            "@com_google_absl//absl/flags:usage",
+            "@com_google_absl//absl/functional:function_ref",
+            "@com_google_absl//absl/log:check",
+            "@com_google_absl//absl/status",
+            "@com_google_absl//absl/status:statusor",
+            "@com_google_absl//absl/strings",
+            "@com_google_absl//absl/synchronization",
+            "@com_google_absl//absl/types:span",
+        ],
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+    )
+
+    pkg_files(
+        name = "{}_shell_execs".format(name),
+        srcs = ["{}_shell".format(name)],
+        attributes = pkg_attributes(mode = "0555"),
+        prefix = "/tools",
+        renames = {
+            ":{}_shell".format(name): "shell-cli",
+        },
+    )
+
+    pkg_tar(
+        name = "{}_shell_tar".format(name),
+        srcs = ["{}_shell_execs".format(name)],
+    )
+
+    oci_image(
+        name = "{}_shell_image".format(name),
+        entrypoint = ["/tools/shell-cli"],
+        base = select({
+            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
+            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
+        }),
+        labels = {"tee.launch_policy.log_redirect": "always"},
+        tars = [
+            Label("//src/roma/byob/container:gvisor_tar_root"),
+            Label("//src/roma/byob/container:container_config_tar_root"),
+            Label("//src/roma/byob/container:byob_server_container_with_dir_root.tar"),
+            Label("//src/roma/byob/container:var_run_runsc_tar_root"),
+            "{}_shell_tar".format(name),
+        ],
+        **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars"]}
+    )
+
+    oci_load(
+        name = "{}_shell_tarball".format(name),
+        image = ":{}_shell_image".format(name),
+        repo_tags = ["byob_shell_image:v1"],
+    )
+
+    native.filegroup(
+        name = "{}_shell_tarball.tar".format(name),
+        srcs = [":{}_shell_tarball".format(name)],
+        output_group = "tarball",
     )
 
 def romav8_image(*, name, cc_binary, repo_tag):
@@ -806,6 +888,7 @@ def roma_byob_sdk(
     roma_byob_app_api_cc_library(
         name = name + "_roma_cc_lib",
         roma_app_api = roma_app_api,
+        udf_cc_proto_lib = ":{}_cc_proto".format(name),
         tags = [
             "noasan",
             "notsan",
@@ -863,6 +946,10 @@ def roma_byob_sdk(
             target_filename = "syscalls.md",
             target_subdir = "udf",
         ),
+        declare_doc(
+            doc = "{}_roma_cc_lib_tools_docs".format(name),
+            target_subdir = "tools",
+        ),
     ] + extra_docs
 
     docs_subdirs = {d.target_subdir: 0 for d in docs}.keys()
@@ -880,11 +967,19 @@ def roma_byob_sdk(
         )
         for dir in docs_subdirs
     ]
-
+    pkg_files(
+        name = "{}_shell_tarball_artifacts".format(name),
+        srcs = ["{}_roma_cc_lib_shell_tarball.tar".format(name)],
+        prefix = "tools",
+        renames = {
+            "{}_roma_cc_lib_shell_tarball.tar".format(name): "shell-cli.tar",
+        },
+    )
     pkg_zip(
         name = name,
         srcs = kwargs.get("srcs", []) + [
             "{}_specs".format(name),
+            "{}_shell_tarball_artifacts".format(name),
         ] + [
             ":{}_{}_doc_artifacts".format(name, hash(dir))
             for dir in docs_subdirs
