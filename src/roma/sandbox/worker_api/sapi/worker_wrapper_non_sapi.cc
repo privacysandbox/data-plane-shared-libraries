@@ -30,7 +30,6 @@
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
-#include "src/roma/sandbox/native_function_binding/native_function_invoker_sapi_ipc.h"
 #include "src/roma/sandbox/worker/worker.h"
 #include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
@@ -48,8 +47,6 @@ using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::
     V8IsolateFunctionBinding;
 using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
-using google::scp::roma::sandbox::native_function_binding::
-    NativeFunctionInvokerSapiIpc;
 using google::scp::roma::sandbox::worker::Worker;
 
 namespace google::scp::roma::sandbox::worker_api {
