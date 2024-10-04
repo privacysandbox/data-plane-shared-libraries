@@ -169,8 +169,9 @@ build:gcp_gcp --config=platform_gcp
 build:aws_aws --config=instance_aws
 build:aws_aws --config=platform_aws
 
-build:non_prod --//:build_flavor=non_prod
 build:prod --//:build_flavor=prod
+build:non_prod --//:build_flavor=non_prod
+build:non_sapi --//:build_flavor=non_sapi
 
 # Enable optimized build.
 build:benchmark --compilation_mode=opt

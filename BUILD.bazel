@@ -121,7 +121,16 @@ string_flag(
     values = [
         "prod",
         "non_prod",
+        "non_sapi",
     ],
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "prod_build",
+    flag_values = {
+        ":build_flavor": "prod",
+    },
     visibility = ["//visibility:public"],
 )
 
@@ -133,10 +142,12 @@ config_setting(
     visibility = ["//visibility:public"],
 )
 
+# Another non-production mode with an even less restrictive environment than
+# non_prod_build
 config_setting(
-    name = "prod_build",
+    name = "non_sapi_build",
     flag_values = {
-        ":build_flavor": "prod",
+        ":build_flavor": "non_sapi",
     },
     visibility = ["//visibility:public"],
 )

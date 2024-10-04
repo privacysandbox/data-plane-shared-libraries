@@ -60,7 +60,7 @@ cc_test(
         "notsan",  # TODO(b/307540489) - Fix TSAN errors in this test.
     ],
     target_compatible_with = select({
-        "//:non_prod_build": ["@platforms//:incompatible"],
+        "//:non_sapi_build": ["@platforms//:incompatible"],
         "//conditions:default": [],
     }),
     deps = [
