@@ -50,6 +50,10 @@ alias(
 cc_library(
     name = "native_function_handler",
     hdrs = ["native_function_handler.h"],
+    defines = select({
+        "//:non_sapi_build": ["NON_SAPI_BUILD"],
+        "//conditions:default": [],
+    }),
     deps = select({
         "//:non_sapi_build": [":native_function_handler_non_sapi"],
         "//conditions:default": [":native_function_handler_sapi_ipc"],
@@ -58,7 +62,10 @@ cc_library(
 
 cc_library(
     name = "native_function_invoker",
-    srcs = ["native_function_invoker_sapi_ipc.cc"],
+    srcs = select({
+        "//:non_sapi_build": ["native_function_invoker_non_sapi.cc"],
+        "//conditions:default": ["native_function_invoker_sapi_ipc.cc"],
+    }),
     hdrs = ["native_function_invoker.h"],
     deps = [
         ":rpc_wrapper_cc_proto",
@@ -185,7 +192,7 @@ cc_test(
     size = "small",
     srcs = ["native_function_table_test.cc"],
     deps = [
-        ":native_function_handler_sapi_ipc",
+        ":native_function_table",
         "@com_google_absl//absl/status",
         "@com_google_googletest//:gtest_main",
     ],

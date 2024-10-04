@@ -79,7 +79,7 @@ absl::Status WorkerWrapper::Init(
       static_cast<size_t>(init_params.js_engine_maximum_heap_size_mb());
 
   V8WorkerEngineParams v8_params = {
-      .native_js_function_comms_fd = init_params.native_js_function_comms_fd(),
+      .native_js_function_comms_fd = native_js_function_comms_fd_,
       .native_js_function_names = std::move(native_js_function_names),
       .rpc_method_names = std::move(rpc_method_names),
       .server_address = init_params.server_address(),

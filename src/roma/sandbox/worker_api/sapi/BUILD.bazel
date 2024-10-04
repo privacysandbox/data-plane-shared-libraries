@@ -124,7 +124,10 @@ sapi_library(
 
 cc_library(
     name = "worker_wrapper",
-    srcs = ["worker_wrapper_sapi.cc"],
+    srcs = select({
+        "//:non_sapi_build": ["worker_wrapper_non_sapi.cc"],
+        "//conditions:default": ["worker_wrapper_sapi.cc"],
+    }),
     hdrs = ["worker_wrapper.h"],
     deps = [
         ":error_codes",
