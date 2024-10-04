@@ -32,19 +32,20 @@
 
 namespace google::scp::roma::sandbox::worker_api {
 
-class WorkerWrapper final {
+class WorkerWrapper {
  public:
   WorkerWrapper(bool enable_sandbox_sharing_request_response_with_buffer_only,
                 size_t request_and_response_data_buffer_size_bytes,
                 sandbox2::Buffer* sandbox_data_shared_buffer_ptr,
-                WorkerSapiSandbox* worker_sapi_sandbox_ptr)
+                int native_js_function_comms_fd,
+                size_t max_worker_virtual_memory_mb)
       : enable_sandbox_sharing_request_response_with_buffer_only_(
             enable_sandbox_sharing_request_response_with_buffer_only),
         request_and_response_data_buffer_size_bytes_(
             request_and_response_data_buffer_size_bytes),
         sandbox_data_shared_buffer_ptr_(sandbox_data_shared_buffer_ptr),
-        worker_wrapper_sapi_(
-            std::make_unique<WorkerWrapperApi>(worker_sapi_sandbox_ptr)) {}
+        native_js_function_comms_fd_(native_js_function_comms_fd),
+        max_worker_virtual_memory_mb_(max_worker_virtual_memory_mb) {}
 
   absl::Status Init(::worker_api::WorkerInitParamsProto& init_params);
 
@@ -55,10 +56,18 @@ class WorkerWrapper final {
   std::pair<absl::Status, RetryStatus> RunCode(
       ::worker_api::WorkerParamsProto& params);
 
+  void Terminate();
+
+ protected:
+  void WarmUpSandbox();
+
   bool SandboxIsInitialized();
 
- private:
-  void WarmUpSandbox();
+  absl::Status CreateWorkerSapiSandbox();
+
+  int TransferFdAndGetRemoteFd(std::unique_ptr<::sapi::v::Fd> local_fd);
+
+  absl::Status TransferFds();
 
   std::pair<absl::Status, RetryStatus> InternalRunCode(
       ::worker_api::WorkerParamsProto& params);
@@ -73,6 +82,11 @@ class WorkerWrapper final {
   // See BUILD file for named library "WorkerWrapper" in the
   // sapi_library worker_wrapper-sapi target.
   std::unique_ptr<WorkerWrapperApi> worker_wrapper_sapi_;
+  int native_js_function_comms_fd_;
+  size_t max_worker_virtual_memory_mb_;
+
+  std::unique_ptr<WorkerSapiSandbox> worker_sapi_sandbox_;
+  ::worker_api::WorkerInitParamsProto init_params_;
 };
 
 }  // namespace google::scp::roma::sandbox::worker_api

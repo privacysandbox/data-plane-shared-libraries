@@ -42,6 +42,7 @@
 #include "worker_wrapper.h"
 
 using google::scp::roma::JsEngineResourceConstraints;
+using google::scp::roma::sandbox::constants::kBadFd;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricJsEngineCallDuration;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupV8FlagsKey;
@@ -53,6 +54,8 @@ using google::scp::roma::sandbox::native_function_binding::
     NativeFunctionInvokerSapiIpc;
 using google::scp::roma::sandbox::worker::Worker;
 
+#define ROMA_CONVERT_MB_TO_BYTES(mb) mb * 1024 * 1024
+
 namespace google::scp::roma::sandbox::worker_api {
 
 namespace {
@@ -61,9 +64,81 @@ constexpr std::string_view kWarmupRequestId = "warmup";
 constexpr std::string_view kWarmupCodeVersion = "vWarmup";
 }  // namespace
 
+absl::Status WorkerWrapper::CreateWorkerSapiSandbox() {
+  if (worker_sapi_sandbox_) {
+    worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
+    ROMA_VLOG(1) << "Successfully terminated the existing sapi sandbox";
+  }
+
+  // Get the environment variable ROMA_VLOG_LEVEL value.
+  const int external_verbose_level = logging::GetVlogVerboseLevel();
+  worker_sapi_sandbox_ = std::make_unique<WorkerSapiSandbox>(
+      ROMA_CONVERT_MB_TO_BYTES(max_worker_virtual_memory_mb_),
+      external_verbose_level);
+
+  return worker_sapi_sandbox_->Init();
+}
+
+int WorkerWrapper::TransferFdAndGetRemoteFd(
+    std::unique_ptr<::sapi::v::Fd> local_fd) {
+  // We don't want the SAPI FD object to manage the local FD or it'd close it
+  // upon its deletion.
+  local_fd->OwnLocalFd(false);
+  auto transferred = worker_sapi_sandbox_->TransferToSandboxee(local_fd.get());
+  if (!transferred.ok()) {
+    return kBadFd;
+  }
+
+  // This is to support recreating the SAPI FD object upon restarts, otherwise
+  // destroying the object will try to close a non-existent file. And it has
+  // to be done after the call to TransferToSandboxee.
+  local_fd->OwnRemoteFd(false);
+  return local_fd->GetRemoteFd();
+}
+
+absl::Status WorkerWrapper::TransferFds() {
+  int js_hook_remote_fd = kBadFd;
+  if (native_js_function_comms_fd_ != kBadFd) {
+    js_hook_remote_fd = TransferFdAndGetRemoteFd(
+        std::make_unique<::sapi::v::Fd>(native_js_function_comms_fd_));
+    if (js_hook_remote_fd == kBadFd) {
+      return absl::InternalError(
+          "Could not transfer function comms fd to sandboxee.");
+    }
+
+    ROMA_VLOG(2)
+        << "successfully set up the remote_fd " << js_hook_remote_fd
+        << " and local_fd " << native_js_function_comms_fd_
+        << " for native JS hook function invocation from the sapi sandbox";
+  }
+
+  int buffer_remote_fd = TransferFdAndGetRemoteFd(
+      std::make_unique<::sapi::v::Fd>(sandbox_data_shared_buffer_ptr_->fd()));
+  if (buffer_remote_fd == kBadFd) {
+    return absl::InternalError(
+        "Could not transfer sandbox2::Buffer fd to sandboxee.");
+  }
+  ROMA_VLOG(2) << "successfully set up the remote_fd " << buffer_remote_fd
+               << " and local_fd " << sandbox_data_shared_buffer_ptr_->fd()
+               << " for the buffer of the sapi sandbox";
+
+  init_params_.set_native_js_function_comms_fd(js_hook_remote_fd);
+  init_params_.set_request_and_response_data_buffer_fd(buffer_remote_fd);
+
+  return absl::OkStatus();
+}
+
 absl::Status WorkerWrapper::Init(
     ::worker_api::WorkerInitParamsProto& init_params) {
-  std::string serialized_data = init_params.SerializeAsString();
+  PS_RETURN_IF_ERROR(CreateWorkerSapiSandbox());
+  // Save init_params for later usage in case of sandbox restart
+  init_params_ = init_params;
+  PS_RETURN_IF_ERROR(TransferFds());
+
+  worker_wrapper_sapi_ =
+      std::make_unique<WorkerWrapperApi>(worker_sapi_sandbox_.get());
+
+  std::string serialized_data = init_params_.SerializeAsString();
   if (serialized_data.empty()) {
     LOG(ERROR) << "Failed to serialize init data.";
     return absl::InvalidArgumentError("Failed to serialize init data.");
@@ -239,6 +314,11 @@ WorkerWrapper::InternalRunCodeBufferShareOnly(
 }
 
 absl::Status WorkerWrapper::Run() {
+  if (!SandboxIsInitialized()) {
+    return absl::FailedPreconditionError(
+        "Attempt to call API function with an uninitialized sandbox.");
+  }
+
   const auto worker_status = worker_wrapper_sapi_->Run();
   if (!worker_status.ok()) {
     return worker_status.status();
@@ -251,6 +331,17 @@ absl::Status WorkerWrapper::Run() {
 }
 
 absl::Status WorkerWrapper::Stop() {
+  if (!SandboxIsInitialized() ||
+      (worker_sapi_sandbox_ && !worker_sapi_sandbox_->is_active())) {
+    // Nothing to stop, just return
+    return absl::OkStatus();
+  }
+
+  if (!SandboxIsInitialized()) {
+    return absl::FailedPreconditionError(
+        "Attempt to call API function with an uninitialized sandbox.");
+  }
+
   const auto worker_status = worker_wrapper_sapi_->Stop();
   if (!worker_status.ok()) {
     // The worker had already died so nothing to stop
@@ -258,11 +349,18 @@ absl::Status WorkerWrapper::Stop() {
   } else if (*worker_status != SapiStatusCode::kOk) {
     return SapiStatusCodeToAbslStatus(static_cast<int>(*worker_status));
   }
+
+  worker_sapi_sandbox_->Terminate(/*attempt_graceful_exit=*/false);
   return absl::OkStatus();
 }
 
 std::pair<absl::Status, RetryStatus> WorkerWrapper::RunCode(
     ::worker_api::WorkerParamsProto& params) {
+  if (!SandboxIsInitialized()) {
+    return WrapResultWithNoRetry(absl::FailedPreconditionError(
+        "Attempt to call API function with an uninitialized sandbox."));
+  }
+
   ROMA_VLOG(1)
       << "Worker wrapper RunCodeFromSerializedData() received the request"
       << std::endl;
@@ -272,7 +370,21 @@ std::pair<absl::Status, RetryStatus> WorkerWrapper::RunCode(
   } else {
     run_code_result = InternalRunCode(params);
   }
-  return run_code_result;
+
+  if (!run_code_result.first.ok()) {
+    if (run_code_result.second == RetryStatus::kRetry) {
+      // This means that the sandbox died so we need to restart it.
+      if (auto status = Init(init_params_); !status.ok()) {
+        return WrapResultWithNoRetry(status);
+      }
+      if (auto status = Run(); !status.ok()) {
+        return WrapResultWithNoRetry(status);
+      }
+    }
+    return run_code_result;
+  }
+  return WrapResultWithNoRetry(absl::OkStatus());
 }
 
+void WorkerWrapper::Terminate() { worker_sapi_sandbox_->Terminate(); }
 }  // namespace google::scp::roma::sandbox::worker_api

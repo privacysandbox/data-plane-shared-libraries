@@ -204,4 +204,5 @@ std::pair<absl::Status, RetryStatus> WorkerWrapper::RunCode(
   return result;
 }
 
+void WorkerWrapper::Terminate() {}
 }  // namespace google::scp::roma::sandbox::worker_api

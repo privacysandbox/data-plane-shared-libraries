@@ -125,7 +125,7 @@ sapi_library(
 
 cc_library(
     name = "worker_wrapper",
-    srcs = ["worker_wrapper_prod.cc"],
+    srcs = ["worker_wrapper_sapi.cc"],
     hdrs = ["worker_wrapper.h"],
     deps = [
         ":error_codes",
@@ -191,9 +191,9 @@ buf_lint_test(
 )
 
 cc_test(
-    name = "worker_sandbox_api_sapi_test",
+    name = "worker_wrapper_sapi_test",
     size = "small",
-    srcs = ["worker_sandbox_api_sapi_test.cc"],
+    srcs = ["worker_wrapper_sapi_test.cc"],
     # Run with TCMalloc in this test to make sure that everything works with
     # the allocator that we'll be using in benchmarks and production.
     malloc = "@com_google_tcmalloc//tcmalloc",
@@ -209,7 +209,7 @@ cc_test(
         "//conditions:default": [],
     }),
     deps = [
-        ":worker_sandbox_api",
+        ":worker_wrapper",
         "//src/roma/sandbox/constants",
         "//src/roma/sandbox/native_function_binding:rpc_wrapper_cc_proto",
         "@com_google_absl//absl/status",

@@ -26,8 +26,6 @@
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "src/roma/sandbox/worker_api/sapi/utils.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
-#include "src/roma/sandbox/worker_api/sapi/worker_sapi_sandbox.h"
-#include "src/roma/sandbox/worker_api/sapi/worker_wrapper-sapi.sapi.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_wrapper.h"
 
 namespace google::scp::roma::sandbox::worker_api {
@@ -110,13 +108,6 @@ class WorkerSandboxApi {
 
   std::pair<absl::Status, RetryStatus> InternalRunCodeBufferShareOnly(
       ::worker_api::WorkerParamsProto& params);
-
-  bool SandboxIsInitialized();
-
-  void CreateWorkerSapiSandbox();
-
-  // Transfer the local FD into sandboxee and return the remote FD.
-  int TransferFdAndGetRemoteFd(std::unique_ptr<::sapi::v::Fd> local_fd);
 
   std::unique_ptr<WorkerSapiSandbox> worker_sapi_sandbox_;
   std::unique_ptr<WorkerWrapper> worker_wrapper_;
