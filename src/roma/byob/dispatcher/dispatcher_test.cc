@@ -113,6 +113,22 @@ TEST(DispatcherTest, ShutdownDispatcherThenWorker) {
   worker.join();
 }
 
+TEST(DispatcherTest, LoadErrorsForEmptyBinaryPath) {
+  Dispatcher dispatcher;
+  EXPECT_FALSE(dispatcher.LoadBinary("", /*n_workers=*/1).ok());
+}
+
+// TODO: b/371538589 - Ensure non-file paths are handled appropriately.
+TEST(DispatcherTest, DISABLED_LoadErrorsForRootPath) {
+  Dispatcher dispatcher;
+  EXPECT_FALSE(dispatcher.LoadBinary("/", /*n_workers=*/1).ok());
+}
+
+TEST(DispatcherTest, LoadErrorsForUnknownBinaryPath) {
+  Dispatcher dispatcher;
+  EXPECT_FALSE(dispatcher.LoadBinary("/asdflkj/ytrewq", /*n_workers=*/1).ok());
+}
+
 TEST(DispatcherTest, LoadErrorsWhenNWorkersNonPositive) {
   Dispatcher dispatcher;
   EXPECT_FALSE(
