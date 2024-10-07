@@ -51,11 +51,11 @@ using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::privacy_sandbox::server_common::byob::LoadRequest;
 
 bool ConnectToPath(int fd, std::string_view socket_name) {
-  sockaddr_un sa;
-  ::memset(&sa, 0, sizeof(sa));
-  sa.sun_family = AF_UNIX;
-  ::strncpy(sa.sun_path, socket_name.data(), sizeof(sa.sun_path));
-  return ::connect(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)) == 0;
+  ::sockaddr_un sa = {
+      .sun_family = AF_UNIX,
+  };
+  socket_name.copy(sa.sun_path, sizeof(sa.sun_path));
+  return ::connect(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == 0;
 }
 struct WorkerImplArg {
   int fd;

@@ -60,20 +60,20 @@ using ::testing::UnorderedElementsAre;
 TEST(DispatcherTest, ShutdownPreInit) { Dispatcher dispatcher; }
 
 void BindAndListenOnPath(int fd, std::string_view path) {
-  sockaddr_un sa;
-  ::memset(&sa, 0, sizeof(sa));
-  sa.sun_family = AF_UNIX;
-  ::strncpy(sa.sun_path, path.data(), sizeof(sa.sun_path));
-  ASSERT_EQ(0, ::bind(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)));
+  ::sockaddr_un sa = {
+      .sun_family = AF_UNIX,
+  };
+  path.copy(sa.sun_path, sizeof(sa.sun_path));
+  ASSERT_EQ(0, ::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)));
   ASSERT_EQ(0, ::listen(fd, /*backlog=*/0));
 }
 
 void ConnectToPath(int fd, std::string_view path) {
-  sockaddr_un sa;
-  ::memset(&sa, 0, sizeof(sa));
-  sa.sun_family = AF_UNIX;
-  ::strncpy(sa.sun_path, path.data(), sizeof(sa.sun_path));
-  ASSERT_EQ(0, ::connect(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)));
+  ::sockaddr_un sa = {
+      .sun_family = AF_UNIX,
+  };
+  path.copy(sa.sun_path, sizeof(sa.sun_path));
+  ASSERT_EQ(0, ::connect(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)));
 }
 
 TEST(DispatcherTest, ShutdownWorkerThenDispatcher) {

@@ -23,6 +23,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <cstring>
 #include <filesystem>
 #include <functional>
 #include <memory>
@@ -96,11 +97,11 @@ class RomaService final {
       return absl::ErrnoToStatus(errno, "tempnam()");
     }
     {
-      sockaddr_un sa;
-      ::memset(&sa, 0, sizeof(sa));
-      sa.sun_family = AF_UNIX;
-      ::strncpy(sa.sun_path, socket_name_, sizeof(sa.sun_path));
-      if (::bind(fd, reinterpret_cast<sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
+      ::sockaddr_un sa = {
+          .sun_family = AF_UNIX,
+      };
+      std::strncpy(sa.sun_path, socket_name_, sizeof(sa.sun_path));
+      if (::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
         return absl::ErrnoToStatus(errno, "bind()");
       }
       if (::listen(fd, /*backlog=*/0) == -1) {
