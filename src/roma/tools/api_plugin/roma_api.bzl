@@ -704,13 +704,10 @@ def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
         ],
         prefix = "docs/udf",
     )
-    byob_app_api_cc_library = name + "_roma_cc_lib"
     pkg_zip(
         name = name,
         srcs = srcs + [
-            "{}".format(byob_app_api_cc_library),
             "{}_specs".format(name),
-            "{}_roma_byob_app_header".format(byob_app_api_cc_library),
             ":{}_doc_artifacts".format(name),
             ":{}_doc_udf_artifacts".format(name),
         ],
