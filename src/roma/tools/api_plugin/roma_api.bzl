@@ -483,10 +483,22 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, **kwargs):
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def romav8_image(*, name, cc_binary, version):
-    _roma_image(name = name, cc_binary = cc_binary, version = version, type = "v8")
+def romav8_image(*, name, cc_binary, repo_tag):
+    """
+    Creates a Roma V8 container image.
 
-def _roma_image(*, name, cc_binary, version, type):
+    Args:
+        name: name of sdk target, basename of ancillary targets.
+        cc_binary: label of cc_binary target to include.
+        repo_tag: tag for generated OCI image.
+
+    Targets:
+        <name>_image -- the oci_image target
+        <name>_tarball.tar -- tarfile of the OCI image
+    """
+    _roma_image(name = name, cc_binary = cc_binary, repo_tag = repo_tag, type = "v8")
+
+def _roma_image(*, name, cc_binary, repo_tag, type):
     type_str = "roma" + type
     path = "/usr/bin"
     pkg_files(
@@ -509,7 +521,7 @@ def _roma_image(*, name, cc_binary, version, type):
             "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
             "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
         }),
-        entrypoint = ["{}/{}".format(path, cc_binary.split(":")[-1])],
+        entrypoint = ["{}/{}".format(path, cc_binary.name)],
         tars = [
             ":{}_{}_cli_tar".format(name, type_str),
         ],
@@ -517,7 +529,7 @@ def _roma_image(*, name, cc_binary, version, type):
     oci_load(
         name = "{}_tarball".format(name),
         image = ":{}_image".format(name),
-        repo_tags = ["privacy_sandbox/udf_sdk/{}:{}".format(name, version)],
+        repo_tags = ["privacy_sandbox/udf_sdk/{}:{}".format(name, repo_tag)],
     )
     native.filegroup(
         name = "{}_tarball.tar".format(name),
@@ -552,7 +564,7 @@ def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = []
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, version = "v1", **kwargs):
+def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, repo_tag = "v1", **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -564,6 +576,7 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
         roma_app_api: the roma_api struct.
         app_api_cc_library: label of the associated roma_app_api_cc_library target.
         js_library: label of the associated roma_service_js_library target.
+        repo_tag: tag for generated OCI images.
         host_api_cc_libraries: labels of the associated roma_host_api_cc_library targets.
         **kwargs: attributes common to bazel build rules.
 
@@ -576,15 +589,15 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
     pkg_files(
         name = name + "_doc_tools_artifacts",
         srcs = [
-            "//docs/roma:v8/sdk/docs/tools/shell_cli.md",
-            "//docs/roma:v8/sdk/docs/tools/udf_benchmark_cli.md",
-            "//docs/roma:v8/sdk/docs/tools/logging.md",
+            Label("//docs/roma:v8/sdk/docs/tools/shell_cli.md"),
+            Label("//docs/roma:v8/sdk/docs/tools/udf_benchmark_cli.md"),
+            Label("//docs/roma:v8/sdk/docs/tools/logging.md"),
         ],
         prefix = "docs/tools",
     )
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["//docs/roma:v8/sdk/docs/Guide to the SDK.md"],
+        srcs = [Label("//docs/roma:v8/sdk/docs/Guide to the SDK.md")],
         prefix = "docs",
     )
     pkg_files(
@@ -595,13 +608,13 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ver
 
     romav8_image(
         name = name + "_roma_shell",
-        cc_binary = "//src/roma/tools/v8_cli:roma_shell",
-        version = version,
+        cc_binary = Label("//src/roma/tools/v8_cli:roma_shell"),
+        repo_tag = repo_tag,
     )
     romav8_image(
         name = name + "_roma_benchmark",
-        cc_binary = "//src/roma/tools/v8_cli:roma_benchmark",
-        version = version,
+        cc_binary = Label("//src/roma/tools/v8_cli:roma_benchmark"),
+        repo_tag = repo_tag,
     )
 
     pkg_files(
@@ -663,8 +676,8 @@ def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
     )
     cc_proto_library(
         name = name + "_cc_proto",
-        visibility = ["//src/roma/byob:__subpackages__"],
         deps = [":{}_proto".format(name)],
+        **{k: v for (k, v) in kwargs.items() if k in bazel_build_rule_common_attrs}
     )
     roma_byob_app_api_cc_library(
         name = name + "_roma_cc_lib",
@@ -673,12 +686,12 @@ def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
             "noasan",
             "notsan",
         ],
-        visibility = ["//visibility:public"],
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
     buf_lint_test(
         name = name + "_proto_lint",
         size = "small",
-        config = "//src:buf.yaml",
+        config = Label("//src:buf.yaml"),
         targets = [":{}_proto".format(name)],
     )
     pkg_files(
@@ -691,16 +704,16 @@ def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
     )
     pkg_files(
         name = name + "_doc_artifacts",
-        srcs = ["//docs/roma:byob/sdk/docs/Guide to the SDK.md"],
+        srcs = [Label("//docs/roma:byob/sdk/docs/Guide to the SDK.md")],
         prefix = "docs",
     )
     pkg_files(
         name = name + "_doc_udf_artifacts",
         srcs = [
             # Uncomment when UDF Interface Specifications.md has been written.
-            # "//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md",
-            "//docs/roma:byob/sdk/docs/udf/Execution Environment and Interface.md",
-            "//docs/roma:byob/sdk/docs/udf/Communication Interface.md",
+            # Label("//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md"),
+            Label("//docs/roma:byob/sdk/docs/udf/Execution Environment and Interface.md"),
+            Label("//docs/roma:byob/sdk/docs/udf/Communication Interface.md"),
         ],
         prefix = "docs/udf",
     )
