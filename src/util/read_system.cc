@@ -16,6 +16,7 @@
 
 #include <sys/sysinfo.h>
 
+#include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <iostream>
@@ -115,9 +116,9 @@ Utilization ReadCpuTime(const std::vector<size_t>& cpu_times,
 
 absl::flat_hash_map<std::string, double> GetCpu() {
   struct sysinfo info;
-  memset(&info, 0, sizeof(info));
+  std::memset(&info, 0, sizeof(info));
   absl::flat_hash_map<std::string, double> ret;
-  if (sysinfo(&info) < 0) {
+  if (::sysinfo(&info) < 0) {
     ABSL_LOG_EVERY_N_SEC(ERROR, kLogInterval)
         << "sysinfo() failed; " << strerror(errno);
   } else {
@@ -135,7 +136,7 @@ absl::flat_hash_map<std::string, double> GetCpu() {
 absl::flat_hash_map<std::string, double> GetThread() {
   absl::flat_hash_map<std::string, double> ret;
 
-  FILE* fd = fopen("/proc/self/status", "r");
+  FILE* fd = std::fopen("/proc/self/status", "r");
   if (fd == nullptr) {
     ABSL_LOG_EVERY_N_SEC(ERROR, kLogInterval)
         << "Failed to open /proc/self/status; " << strerror(errno);
@@ -143,10 +144,10 @@ absl::flat_hash_map<std::string, double> GetThread() {
   }
 
   char buff[256];
-  while (fgets(buff, sizeof(buff), fd) != nullptr) {
+  while (std::fgets(buff, sizeof(buff), fd) != nullptr) {
     if (absl::StartsWith(buff, "Threads:")) {
       int thread_count;
-      if (sscanf(buff, "Threads: %d", &thread_count) == 1) {
+      if (std::sscanf(buff, "Threads: %d", &thread_count) == 1) {
         ret["thread count"] = static_cast<double>(thread_count);
       } else {
         ABSL_LOG_EVERY_N_SEC(ERROR, kLogInterval)
@@ -155,7 +156,7 @@ absl::flat_hash_map<std::string, double> GetThread() {
       break;
     }
   }
-  fclose(fd);
+  std::fclose(fd);
 
   if (ret.empty()) {
     ABSL_LOG_EVERY_N_SEC(ERROR, kLogInterval)
@@ -170,36 +171,36 @@ absl::flat_hash_map<std::string, double> GetMemory() {
   char name[64];
   int64_t value = 0;
   char unit[16];
-  FILE* fd = fopen("/proc/meminfo", "r");
+  FILE* fd = std::fopen("/proc/meminfo", "r");
   if (fd == nullptr) {
     ABSL_LOG_EVERY_N_SEC(ERROR, kLogInterval)
         << "failed to open /proc/meminfo; " << strerror(errno);
     return ret;
   }
-  while (ret.size() < 2 && fgets(buff, sizeof(buff), fd) != nullptr) {
+  while (ret.size() < 2 && std::fgets(buff, sizeof(buff), fd) != nullptr) {
     if (absl::StartsWith(buff, "MemTotal") ||
         absl::StartsWith(buff, "MemAvailable")) {
-      sscanf(buff, "%s %lu %s", name, &value, unit);
+      std::sscanf(buff, "%s %lu %s", name, &value, unit);
       ret[name] = value;
     }
   }
-  fclose(fd);
+  std::fclose(fd);
 
-  fd = fopen("/proc/self/status", "r");
+  fd = std::fopen("/proc/self/status", "r");
   if (fd == nullptr) {
     ABSL_LOG_EVERY_N_SEC(ERROR, kLogInterval)
         << "failed to open /proc/self/status; " << strerror(errno);
     return ret;
   }
 
-  while (fgets(buff, sizeof(buff), fd) != nullptr) {
+  while (std::fgets(buff, sizeof(buff), fd) != nullptr) {
     if (absl::StartsWith(buff, "VmRSS")) {
-      sscanf(buff, "%s %lu %s", name, &value, unit);
+      std::sscanf(buff, "%s %lu %s", name, &value, unit);
       ret["main process"] = value;
       break;
     }
   }
-  fclose(fd);
+  std::fclose(fd);
   return ret;
 }
 
