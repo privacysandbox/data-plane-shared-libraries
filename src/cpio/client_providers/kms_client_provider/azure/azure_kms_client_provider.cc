@@ -177,8 +177,6 @@ void AzureKmsClientProvider::GetSessionCredentialsCallbackToDecrypt(
   http_context.request->path = std::make_shared<Uri>(unwrap_url_);
   http_context.request->method = HttpMethod::POST;
 
-  // Temporary store wrapping_key
-  // CURLINE
   const auto wrapping_key_pair_or = GenerateWrappingKeyPair();
   if (!wrapping_key_pair_or.ok()) {
     std::string error_message = "Failed to generate wrapping key : ";
