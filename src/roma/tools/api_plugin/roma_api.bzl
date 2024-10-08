@@ -647,7 +647,23 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, rep
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
+def declare_doc(*, doc, target_subdir = ""):
+    """
+    Creates struct for a the Roma App API as an entity.
+
+    Args:
+        doc: label of the document
+        target_subdir: target subdirectory of the docs tree
+
+    Returns:
+        struct of Roma App-related info
+    """
+    return struct(
+        doc = doc,
+        target_subdir = target_subdir,
+    )
+
+def roma_byob_sdk(*, name, roma_app_api, extra_docs = [], **kwargs):
     """
     Top-level macro for the Roma BYOB SDK.
 
@@ -655,7 +671,8 @@ def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
 
     Args:
         name: name of sdk target, basename of ancillary targets.
-        srcs: label list of targets to include.
+        roma_app_api: the roma_api struct.
+        extra_docs: a list of declare_doc-created structs
         **kwargs: attributes common to bazel build rules.
 
     Targets:
@@ -702,27 +719,42 @@ def roma_byob_sdk(*, name, srcs, roma_app_api, **kwargs):
             ":{}.proto".format(name): "udf_interface.proto",
         },
     )
-    pkg_files(
-        name = name + "_doc_artifacts",
-        srcs = [Label("//docs/roma:byob/sdk/docs/Guide to the SDK.md")],
-        prefix = "docs",
-    )
-    pkg_files(
-        name = name + "_doc_udf_artifacts",
-        srcs = [
-            # Uncomment when UDF Interface Specifications.md has been written.
-            # Label("//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md"),
-            Label("//docs/roma:byob/sdk/docs/udf/Execution Environment and Interface.md"),
-            Label("//docs/roma:byob/sdk/docs/udf/Communication Interface.md"),
-        ],
-        prefix = "docs/udf",
-    )
+
+    docs = [
+        declare_doc(doc = Label("//docs/roma:byob/sdk/docs/Guide to the SDK.md")),
+        # Uncomment when UDF Interface Specifications.md has been written.
+        # declare_doc(
+        #     doc = Label("//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md"),
+        #     target_subdir = "udf",
+        # ),
+        declare_doc(
+            doc = Label("//docs/roma:byob/sdk/docs/udf/Execution Environment and Interface.md"),
+            target_subdir = "udf",
+        ),
+        declare_doc(
+            doc = Label("//docs/roma:byob/sdk/docs/udf/Communication Interface.md"),
+            target_subdir = "udf",
+        ),
+    ] + extra_docs
+
+    docs_subdirs = {d.target_subdir: 0 for d in docs}.keys()
+
+    [
+        pkg_files(
+            name = "{}_{}_doc_artifacts".format(name, hash(dir)),
+            srcs = [d.doc for d in docs if d.target_subdir == dir],
+            prefix = "docs/{}".format(dir),
+        )
+        for dir in docs_subdirs
+    ]
+
     pkg_zip(
         name = name,
-        srcs = srcs + [
+        srcs = kwargs.get("srcs", []) + [
             "{}_specs".format(name),
-            ":{}_doc_artifacts".format(name),
-            ":{}_doc_udf_artifacts".format(name),
+        ] + [
+            ":{}_{}_doc_artifacts".format(name, hash(dir))
+            for dir in docs_subdirs
         ],
         package_dir = "/{}".format(name),
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
