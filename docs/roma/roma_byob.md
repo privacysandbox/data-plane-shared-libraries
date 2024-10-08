@@ -21,14 +21,14 @@ execution of arbitrary binaries written in any language.
 | Directory                                | Summary                                                                                                                                                 |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [benchmark](/src/roma/byob/benchmark/)   | Contains [microbenchmarking target](https://github.com/google/benchmark) for a variety of UDFs. See [doc](/docs/roma/byob/Benchmarking.md) for details. |
-| [config](/src/roma/byob/config/)         | Contains configuration options which can be used by integrators when initializing Roma BYOB.                                                                         |
-| [container](/src/roma/byob/container/)   | Contains code that runs inside gVisor's sandbox container.                                                                                               |
+| [config](/src/roma/byob/config/)         | Contains configuration options which can be used by integrators when initializing Roma BYOB.                                                            |
+| [container](/src/roma/byob/container/)   | Contains code that runs inside gVisor's sandbox container.                                                                                              |
 | [dispatcher](/src/roma/byob/dispatcher/) | Containers the business logic for handling requests.                                                                                                    |
 | [example](/src/roma/byob/example/)       | Examples to help UDF developers.                                                                                                                        |
 | [host](/src/roma/byob/host/)             | Host Callback API logic.                                                                                                                                |
 | [interface](/src/roma/byob/interface/)   | Interface for calling into Roma BYOB.                                                                                                                   |
 | [test](/src/roma/byob/test/)             | Contains a myriad of tests for Roma BYOB libraries.                                                                                                     |
-| [udf](/src/roma/byob/udf/)               | UDFs used by [benchmarks](/src/roma/byob/benchmark/) and [tests](/src/roma/byob/test/).                                                                 |
+| [udf](/src/roma/byob/sample_udf/)        | UDFs used by [benchmarks](/src/roma/byob/benchmark/) and [tests](/src/roma/byob/test/).                                                                 |
 | [utility](/src/roma/byob/utility/)       | Container utility functions used by Roma BYOB and also by Roma integrators.                                                                             |
 <!-- markdownlint-enable line-length -->
 <!-- prettier-ignore-end -->
@@ -144,9 +144,9 @@ Roma BYOB uses declarative interfaces.
 
 Broadly, the steps for developing the interface are:
 
-1. Define your API as a proto. Example [sample.proto](/src/roma/byob/udf/sample.proto).
+1. Define your API as a proto. Example [sample.proto](/src/roma/byob/sample_udf/sample.proto).
 1. Leverage this proto and generate Roma API code using
    [roma_byob_app_api_cc_library](/src/roma/tools/api_plugin/roma_api.bzl). Example
-   [sample_roma_api](/src/roma/byob/udf/BUILD.bazel).
+   [sample_roma_api](/src/roma/byob/sample_udf/BUILD.bazel).
 1. Add the target to your BUILD file that will be using the Roma API.
 1. Use the API. Example [ByobSampleService](/src/roma/byob/benchmark/roma_byob_benchmark.cc).

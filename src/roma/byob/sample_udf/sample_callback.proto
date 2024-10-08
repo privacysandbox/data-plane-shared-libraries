@@ -1,0 +1,68 @@
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacy_sandbox.server_common.byob;
+
+import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+
+service SampleHostService {
+  option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
+    name: 'Sample Host Server',
+    description: 'Sample Host Server',
+    cpp_namespace: 'privacy_sandbox::server_common::byob',
+    roma_app_name: 'SampleHostServer',
+    cpp_host_process_callback_includes: [
+      'src/roma/byob/sample_udf/sample_service_native_functions.h'
+    ],
+  };
+
+  rpc SampleCallback(SampleCallbackRequest) returns (SampleCallbackResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacy_sandbox::server_common::byob::HandleSampleCallback',
+    };
+  }
+  rpc CallbackRead(CallbackReadRequest) returns (CallbackReadResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacy_sandbox::server_common::byob::HandleCallbackRead',
+    };
+  }
+  rpc CallbackWrite(CallbackWriteRequest) returns (CallbackWriteResponse) {
+    option (privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation) = {
+      cpp_host_process_callback: '::privacy_sandbox::server_common::byob::HandleCallbackWrite',
+    };
+  }
+}
+
+message SampleCallbackRequest {}
+
+message SampleCallbackResponse {}
+
+message CallbackReadRequest {
+  repeated bytes payloads = 1;
+}
+
+message CallbackReadResponse {
+  uint64 payload_size = 1;
+}
+
+message CallbackWriteRequest {
+  uint64 element_size = 1;
+  uint64 element_count = 2;
+}
+
+message CallbackWriteResponse {
+  repeated bytes payloads = 1;
+}

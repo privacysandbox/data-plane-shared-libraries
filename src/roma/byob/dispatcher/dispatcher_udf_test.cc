@@ -32,7 +32,7 @@
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
-#include "src/roma/byob/udf/sample_udf_interface.pb.h"
+#include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob {
@@ -78,7 +78,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -121,7 +121,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -166,7 +166,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -210,7 +210,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -254,7 +254,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -298,7 +298,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -342,7 +342,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/abort_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/abort_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -386,7 +386,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/nonzero_return_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/nonzero_return_udf",
                             /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
@@ -429,9 +429,9 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
-                            /*n_workers=*/10);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
+      /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   absl::flat_hash_map<std::string,
@@ -472,9 +472,9 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
-                            /*n_workers=*/10);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
+      /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
@@ -517,9 +517,9 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
-                            /*n_workers=*/10);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
+      /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
@@ -561,9 +561,9 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
-                            /*n_workers=*/10);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
+      /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_CALLBACK);
@@ -605,9 +605,9 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/sample_go_udf_/sample_go_udf",
-                            /*n_workers=*/10);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
+      /*n_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);

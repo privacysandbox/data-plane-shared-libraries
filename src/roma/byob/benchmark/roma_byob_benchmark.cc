@@ -31,9 +31,9 @@
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "src/roma/byob/udf/sample_callback.pb.h"
-#include "src/roma/byob/udf/sample_roma_byob_app_service.h"
-#include "src/roma/byob/udf/sample_udf_interface.pb.h"
+#include "src/roma/byob/sample_udf/sample_callback.pb.h"
+#include "src/roma/byob/sample_udf/sample_roma_byob_app_service.h"
+#include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
 

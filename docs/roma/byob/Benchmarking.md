@@ -3,7 +3,7 @@
 For details about Roma Bring-Your-Own-Binary (BYOB), check out the
 [top-level document](/docs/roma/byob/sdk/docs/Guide%20to%20the%20SDK.md).
 
-Microbenchmark binaries can be found in [this folder](/src/roma/byob/udf/). These include
+Microbenchmark binaries can be found in [this folder](/src/roma/byob/sample_udf/). These include
 microbenchmarks for "Hello World!", Sieve of Eratosthenes, sorting, and payloads for requests,
 responses and callbacks.
 

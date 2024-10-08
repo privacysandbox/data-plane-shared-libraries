@@ -38,7 +38,7 @@
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/roma/byob/host/callback.pb.h"
-#include "src/roma/byob/udf/sample_udf_interface.pb.h"
+#include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace privacy_sandbox::server_common::byob {
@@ -132,7 +132,8 @@ TEST(DispatcherTest, LoadErrorsForUnknownBinaryPath) {
 TEST(DispatcherTest, LoadErrorsWhenNWorkersNonPositive) {
   Dispatcher dispatcher;
   EXPECT_FALSE(
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/0).ok());
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf", /*n_workers=*/0)
+          .ok());
 }
 
 TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
@@ -150,8 +151,8 @@ TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/fake_udf", /*n_workers=*/7);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/fake_udf", /*n_workers=*/7);
   EXPECT_FALSE(code_token.ok());
   done.Notify();
   worker.join();
@@ -182,7 +183,8 @@ TEST(DispatcherTest, LoadGoesToWorker) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   EXPECT_TRUE(
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/7).ok());
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf", /*n_workers=*/7)
+          .ok());
   worker.join();
 }
 
@@ -232,8 +234,8 @@ TEST(DispatcherTest, LoadAndExecute) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
@@ -285,8 +287,8 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   worker.join();
   SampleRequest bin_request;
@@ -369,8 +371,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
@@ -458,8 +460,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
       function_table = {{"example_function", [](auto) {}}};
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
@@ -541,8 +543,8 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   });
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/udf/new_udf", /*n_workers=*/1);
+  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
+      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   absl::Mutex mu;

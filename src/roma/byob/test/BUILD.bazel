@@ -64,9 +64,9 @@ cc_binary(
     name = "roma_byob_test",
     srcs = ["roma_byob_test.cc"],
     deps = [
-        "//src/roma/byob/udf:sample_byob_sdk_cc_proto",
-        "//src/roma/byob/udf:sample_byob_sdk_roma_cc_lib",
-        "//src/roma/byob/udf:sample_callback_cc_proto",
+        "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
+        "//src/roma/byob/sample_udf:sample_byob_sdk_roma_cc_lib",
+        "//src/roma/byob/sample_udf:sample_callback_cc_proto",
         "//src/roma/byob/utility:udf_blob",
         "//src/roma/byob/utility:utils",
         "@com_google_absl//absl/strings",
@@ -114,7 +114,7 @@ pkg_files(
         tars = [
             ":test_tar_{}".format(user.flavor),
         ],
-        udf_binary_labels = ["//src/roma/byob/udf:udf_binaries"],
+        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
         use_nonroot = True if user.flavor == "nonroot" else False,
     )
     for user in DISTROLESS_USERS
