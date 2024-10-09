@@ -68,7 +68,7 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
 struct WorkerImplArg {
   absl::Span<const std::string> mounts;
   std::string_view pivot_root_dir;
-  int fd;
+  int rpc_fd;
   std::string_view code_token;
   std::string_view binary_path;
   const int dev_null_fd;
@@ -84,8 +84,8 @@ void SetPrctlOptions(absl::Span<const std::pair<int, int>> option_arg_pairs) {
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
-  PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.code_token.data(), 36) ==
-         36);
+  PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.code_token.data(),
+                 36) == 36);
 
   // Set up restricted filesystem for worker using pivot_root
   // pivot_root doesn't work under an MS_SHARED mount point.
@@ -138,7 +138,7 @@ int WorkerImpl(void* arg) {
 
   // Exec binary.
   const std::string connection_fd = [worker_impl_arg] {
-    const int connection_fd = ::dup(worker_impl_arg.fd);
+    const int connection_fd = ::dup(worker_impl_arg.rpc_fd);
     PCHECK(connection_fd != -1);
     return absl::StrCat(connection_fd);
   }();
@@ -166,17 +166,17 @@ std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
     absl::Span<const std::string> mounts, std::string_view socket_name,
     std::string_view code_token, std::string_view binary_path,
     const int dev_null_fd) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  if (fd == -1) {
+  const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  if (rpc_fd == -1) {
     PLOG(ERROR) << "socket()";
     return std::nullopt;
   }
-  absl::Cleanup cleanup = [fd] {
-    if (::close(fd) == -1) {
+  absl::Cleanup cleanup = [rpc_fd] {
+    if (::close(rpc_fd) == -1) {
       PLOG(ERROR) << "close()";
     }
   };
-  if (!ConnectToPath(fd, socket_name)) {
+  if (!ConnectToPath(rpc_fd, socket_name)) {
     PLOG(INFO) << "connect() to " << socket_name << " failed";
     return std::nullopt;
   }
@@ -189,7 +189,7 @@ std::optional<PidAndPivotRootDir> ConnectSendCloneAndExec(
   WorkerImplArg worker_impl_arg{
       .mounts = mounts,
       .pivot_root_dir = pivot_root_dir,
-      .fd = fd,
+      .rpc_fd = rpc_fd,
       .code_token = code_token,
       .binary_path = binary_path,
       .dev_null_fd = dev_null_fd,
@@ -238,16 +238,16 @@ int main(int argc, char** argv) {
       LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
     }
   };
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  if (fd == -1) {
+  const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
+  if (rpc_fd == -1) {
     PLOG(ERROR) << "socket()";
     return -1;
   }
-  if (!ConnectToPath(fd, socket_name)) {
+  if (!ConnectToPath(rpc_fd, socket_name)) {
     PLOG(ERROR) << "connect() to " << socket_name << " failed";
     return -1;
   }
-  const int dev_null_fd = open("/dev/null", O_WRONLY);
+  const int dev_null_fd = ::open("/dev/null", O_WRONLY);
   if (dev_null_fd < 0) {
     PLOG(ERROR) << "open failed for /dev/null";
     return -1;
@@ -343,7 +343,7 @@ int main(int argc, char** argv) {
       PLOG(ERROR) << "close(" << dev_null_fd << ")";
     }
   };
-  FileInputStream input(fd);
+  FileInputStream input(rpc_fd);
   while (true) {
     LoadRequest request;
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
