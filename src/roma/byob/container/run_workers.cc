@@ -137,11 +137,11 @@ int WorkerImpl(void* arg) {
                  MS_REMOUNT | MS_BIND, nullptr) == 0);
 
   // Exec binary.
-  const std::string connection_fd = [worker_impl_arg] {
-    const int connection_fd = ::dup(worker_impl_arg.rpc_fd);
+  const std::string connection_fd = [](const int fd) {
+    const int connection_fd = ::dup(fd);
     PCHECK(connection_fd != -1);
     return absl::StrCat(connection_fd);
-  }();
+  }(worker_impl_arg.rpc_fd);
   SetPrctlOptions({
       {PR_CAPBSET_DROP, CAP_SYS_ADMIN},
       {PR_CAPBSET_DROP, CAP_SETPCAP},
