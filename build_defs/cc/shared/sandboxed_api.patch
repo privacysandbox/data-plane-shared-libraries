@@ -1,17 +1,17 @@
 diff --git a/sandboxed_api/bazel/sapi.bzl b/sandboxed_api/bazel/sapi.bzl
-index 51f47a8..04c139f 100644
+index 1ed2fbb..4658005 100644
 --- a/sandboxed_api/bazel/sapi.bzl
 +++ b/sandboxed_api/bazel/sapi.bzl
-@@ -323,7 +322,7 @@ def sapi_library(
+@@ -322,7 +322,7 @@ def sapi_library(
      else:
          lib_hdrs += [generated_header]
-
+ 
 -    default_deps = ["//sandboxed_api/sandbox2"]
 +    default_deps = ["@com_google_sandboxed_api//sandboxed_api/sandbox2"]
-
+ 
      # Library that contains generated interface and sandboxed binary as a data
      # dependency. Add this as a dependency instead of original library.
-@@ -339,9 +338,9 @@ def sapi_library(
+@@ -338,9 +338,9 @@ def sapi_library(
                  "@com_google_absl//absl/base:core_headers",
                  "@com_google_absl//absl/status",
                  "@com_google_absl//absl/status:statusor",
@@ -24,7 +24,7 @@ index 51f47a8..04c139f 100644
              ] + deps +
              ([":" + name + "_embed"] if embed else []) +
              (default_deps if add_default_deps else []),
-@@ -359,7 +358,7 @@ def sapi_library(
+@@ -358,7 +358,7 @@ def sapi_library(
          malloc = malloc,
          deps = [
              ":" + name + ".lib",
@@ -33,3 +33,79 @@ index 51f47a8..04c139f 100644
          ],
          copts = default_copts,
          **common
+diff --git a/sandboxed_api/sandbox2/BUILD b/sandboxed_api/sandbox2/BUILD
+index b98341e..6f24eb7 100644
+--- a/sandboxed_api/sandbox2/BUILD
++++ b/sandboxed_api/sandbox2/BUILD
+@@ -485,7 +485,7 @@ cc_library(
+         "@com_google_absl//absl/flags:flag",
+         "@com_google_absl//absl/log",
+         "@com_google_absl//absl/log:check",
+-        "@com_google_absl//absl/log:vlog_is_on",
++        # "@com_google_absl//absl/log:vlog_is_on",
+         "@com_google_absl//absl/status",
+         "@com_google_absl//absl/status:statusor",
+         "@com_google_absl//absl/strings",
+@@ -556,7 +556,7 @@ cc_library(
+         "@com_google_absl//absl/flags:flag",
+         "@com_google_absl//absl/log",
+         "@com_google_absl//absl/log:check",
+-        "@com_google_absl//absl/log:vlog_is_on",
++        # "@com_google_absl//absl/log:vlog_is_on",
+         "@com_google_absl//absl/memory",
+         "@com_google_absl//absl/status",
+         "@com_google_absl//absl/status:statusor",
+diff --git a/sandboxed_api/sandbox2/monitor_base.cc b/sandboxed_api/sandbox2/monitor_base.cc
+index d0c3677..65cec54 100644
+--- a/sandboxed_api/sandbox2/monitor_base.cc
++++ b/sandboxed_api/sandbox2/monitor_base.cc
+@@ -406,9 +406,9 @@ bool MonitorBase::StackTraceCollectionPossible() const {
+       executor_->libunwind_recursion_depth() <= 1) {
+     return true;
+   }
+-  LOG(ERROR) << "Cannot collect stack trace. Unwind pid "
+-             << executor_->libunwind_sbox_for_pid_ << ", namespace "
+-             << policy_->GetNamespaceOrNull();
++  LOG(INFO) << "Cannot collect stack trace. Unwind pid "
++            << executor_->libunwind_sbox_for_pid_ << ", namespace "
++            << policy_->GetNamespaceOrNull();
+   return false;
+ }
+ 
+diff --git a/sandboxed_api/sandbox2/sandbox2.cc b/sandboxed_api/sandbox2/sandbox2.cc
+index 95071ab..5c701f0 100644
+--- a/sandboxed_api/sandbox2/sandbox2.cc
++++ b/sandboxed_api/sandbox2/sandbox2.cc
+@@ -109,7 +109,7 @@ void Sandbox2::Launch() {
+ 
+   // This is a technical limitation in our stack trace collection
+   // functionality.
+-  LOG_IF(WARNING, !policy_->GetNamespace())
++  LOG_IF(INFO, !policy_->GetNamespace())
+       << "Using policy without namespaces, disabling stack traces on crash";
+ 
+   monitor_ = CreateMonitor();
+diff --git a/sandboxed_api/sandbox2/unwind/unwind.cc b/sandboxed_api/sandbox2/unwind/unwind.cc
+index 19e572c..35009ab 100644
+--- a/sandboxed_api/sandbox2/unwind/unwind.cc
++++ b/sandboxed_api/sandbox2/unwind/unwind.cc
+@@ -30,6 +30,7 @@
+ #include "absl/cleanup/cleanup.h"
+ #include "absl/status/status.h"
+ #include "absl/status/statusor.h"
++#include "absl/strings/escaping.h"
+ #include "absl/strings/match.h"
+ #include "absl/strings/str_cat.h"
+ #include "absl/strings/string_view.h"
+@@ -55,9 +56,9 @@ std::string DemangleSymbol(const std::string& maybe_mangled) {
+                           &length, &status),
+       std::free);
+   if (symbol && status == 0) {
+-    return std::string(symbol.get(), length);
++    return absl::CHexEscape(std::string_view(symbol.get(), length));
+   }
+-  return maybe_mangled;
++  return absl::CHexEscape(maybe_mangled);
+ }
+ 
+ absl::StatusOr<uintptr_t> ReadMemory(pid_t pid, uintptr_t addr) {

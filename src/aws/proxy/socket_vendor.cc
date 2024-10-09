@@ -73,7 +73,9 @@ int main(int argc, char* argv[]) {
   Endpoint ep(&addr, sizeof(addr));
 
   SocketVendorServer server(
-      std::string(google::scp::proxy::kSocketVendorUdsPath), ep, 4);
+      /*sock_path=*/std::string(google::scp::proxy::kSocketVendorUdsPath),
+      /*proxy_endpoint=*/ep,
+      /*concurrency=*/4);
   if (!server.Init()) {
     return 1;
   }

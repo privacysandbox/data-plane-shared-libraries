@@ -1,0 +1,221 @@
+#!/bin/bash
+
+set -o errexit
+
+declare -i JQ_POST_SLURP=0
+declare -i PLAINTEXT=0
+
+function usage() {
+  local -r -i exitval=$1
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 <options>
+    --rpc-invoker <filename>        image tarball or binary used to invoke rpc request
+    --rpc-invoker-type <filename>   recognized values: binary, image
+    --endpoint-hostport <host:port> host:port string
+    --docker-network <name>         docker network
+    --protoset <filename>           protobuf spec image file
+    --rpc <rpc name>                rpc name
+    --request <filename>            request.json filename
+    --jq-pre-filter <filename>      jq program to transform the request
+    --jq-post-filter <filename>     jq program to transform the reply
+    --jq-post-slurp                 run jq postprocessor in stream slurp mode
+    --reply <filename>              golden reply against which to diff the output
+    --plaintext                     send plaintext request
+    --http-path <string>            path used with endpoint hostport
+environment variables:
+    TEST_TOOLS_IMAGE                docker image uri for test tools
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rpc-invoker)
+      RPC_INVOKER="$2"
+      shift 2 || usage
+      ;;
+    --rpc-invoker-type)
+      RPC_INVOKER_TYPE="$2"
+      shift 2 || usage
+      ;;
+    --endpoint-hostport)
+      ENDPOINT_HOSTPORT="$2"
+      shift 2 || usage
+      ;;
+    --docker-network)
+      DOCKER_NETWORK="$2"
+      shift 2 || usage
+      ;;
+    --rpc)
+      RPC="$2"
+      shift 2 || usage
+      ;;
+    --protoset)
+      PROTOSET_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --request)
+      REQUEST_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --reply)
+      GOLDEN_REPLY="$2"
+      shift 2 || usage
+      ;;
+    --jq-pre-filter)
+      JQ_PRE_PROGRAM_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --jq-post-filter)
+      JQ_POST_PROGRAM_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --jq-post-slurp)
+      JQ_POST_SLURP=1
+      shift
+      ;;
+    --plaintext)
+      PLAINTEXT=1
+      shift
+      ;;
+    --http-path)
+      HTTP_PATH="$2"
+      shift 2
+      ;;
+    --help | -h) usage 0 ;;
+    *) usage 1 ;;
+  esac
+done
+
+: "${RPC?"Error: --rpc must be specified"}"
+: "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset must be specified"}"
+: "${GOLDEN_REPLY?"Error: --reply must be specified"}"
+: "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
+: "${RPC_INVOKER?"Error: --rpc-invoker not specified"}"
+: "${RPC_INVOKER_TYPE?"Error: --rpc-invoker-type not specified"}"
+: "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
+
+TMP_DIR="$(mktemp --directory)"
+readonly TMP_DIR
+chmod 755 "${TMP_DIR}"
+
+readonly TMP_FILTERED_REQUEST="${TMP_DIR}/filtered_request"
+readonly TMP_RAW_REPLY="${TMP_DIR}/raw_reply"
+readonly TMP_FILTERED_REPLY="${TMP_DIR}/filtered_reply"
+readonly TMP_JQ_PRE_PROGRAM_FILENAME="${TMP_DIR}/pre_program.jq"
+readonly TMP_JQ_POST_PROGRAM_FILENAME="${TMP_DIR}/post_program.jq"
+readonly TMP_PROTOSET_FILENAME="${TMP_DIR}/protoset.pb"
+cp "${PROTOSET_FILENAME}" "${TMP_PROTOSET_FILENAME}"
+if [[ -s ${JQ_PRE_PROGRAM_FILENAME} ]]; then
+  cp "${JQ_PRE_PROGRAM_FILENAME}" "${TMP_JQ_PRE_PROGRAM_FILENAME}"
+else
+  printf '.\n' >"${TMP_JQ_PRE_PROGRAM_FILENAME}"
+fi
+if [[ -s ${JQ_POST_PROGRAM_FILENAME} ]]; then
+  cp "${JQ_POST_PROGRAM_FILENAME}" "${TMP_JQ_POST_PROGRAM_FILENAME}"
+else
+  printf '.\n' >"${TMP_JQ_POST_PROGRAM_FILENAME}"
+fi
+
+trap cleanup EXIT
+function cleanup() {
+  local -r -i STATUS=$?
+  if [[ ${STATUS} -eq 0 ]]; then
+    rm -rf "${TMP_DIR}"
+  fi
+  exit ${STATUS}
+}
+
+declare -a DOCKER_ARGS=(
+  "--rm"
+  "--interactive"
+  "--entrypoint=/bin/bash"
+  "--volume=/tmp:/tmp"
+  "--tmpfs=/work"
+  "--workdir=/work"
+)
+
+declare -a RPC_INVOKER_DOCKER_ARGS=(
+  "--rm"
+  "--interactive"
+)
+
+declare -a RPC_INVOKER_ARGS=(
+  --endpoint-hostport
+  "${ENDPOINT_HOSTPORT}"
+  --rpc
+  "${RPC}"
+)
+
+if [[ -n ${DOCKER_NETWORK} ]]; then
+  DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
+  RPC_INVOKER_DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
+  RPC_INVOKER_ARGS+=(
+    --docker-network
+    "${DOCKER_NETWORK}"
+  )
+fi
+
+set -o xtrace
+
+if [[ ${PLAINTEXT} -eq 1 ]]; then
+  RPC_INVOKER_ARGS+=(--plaintext)
+fi
+
+if [[ -n ${HTTP_PATH} ]]; then
+  RPC_INVOKER_ARGS+=(
+    --http-path
+    "${HTTP_PATH}"
+  )
+fi
+
+declare -a JQ_POST_ARGS=()
+if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
+  JQ_POST_ARGS+=(--slurp)
+fi
+
+docker run "${DOCKER_ARGS[@]}" \
+  --volume="$(realpath "${TMP_JQ_PRE_PROGRAM_FILENAME}"):/work/pre-filter.jq" \
+  "${TEST_TOOLS_IMAGE}" \
+  -c "jq --exit-status --from-file pre-filter.jq" \
+  <"${REQUEST_FILENAME}" \
+  >"${TMP_FILTERED_REQUEST}"
+
+
+if [[ ${RPC_INVOKER_TYPE} == binary ]]; then
+  "${RPC_INVOKER}" \
+    --protoset "${TMP_PROTOSET_FILENAME}" \
+    --request "${TMP_FILTERED_REQUEST}" \
+    "${RPC_INVOKER_ARGS[@]}" \
+    >"${TMP_RAW_REPLY}"
+else
+  RPC_INVOKER_IMAGE="$(docker load -i "${RPC_INVOKER}" | sed -nr "s/^Loaded image: (.*)$/\1/p")"
+  readonly RPC_INVOKER_IMAGE
+  RAW_FILTERED_REQUEST="$(<"${TMP_FILTERED_REQUEST}")"
+  readonly RAW_FILTERED_REQUEST
+  RAW_PROTOSET="$(<"${PROTOSET_FILENAME}")"
+  readonly RAW_PROTOSET
+
+  docker run "${RPC_INVOKER_DOCKER_ARGS[@]}" "${RPC_INVOKER_IMAGE}" \
+    --protoset "${RAW_PROTOSET}" \
+    --request "${RAW_FILTERED_REQUEST}" \
+    "${RPC_INVOKER_ARGS[@]}" \
+    >"${TMP_RAW_REPLY}"
+fi
+
+# Check if TMP_RAW_REPLY is a valid json. If not, diff the raw reply without jq.
+if docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "jq ${JQ_POST_ARGS[*]}" <"${TMP_RAW_REPLY}"; then
+  docker run "${DOCKER_ARGS[@]}" \
+    --volume="$(realpath "${TMP_JQ_POST_PROGRAM_FILENAME}"):/work/post-filter.jq" \
+    "${TEST_TOOLS_IMAGE}" \
+    -c "jq --from-file post-filter.jq ${JQ_POST_ARGS[*]}" \
+    <"${TMP_RAW_REPLY}" \
+    >"${TMP_FILTERED_REPLY}"
+else
+  ln -s "${TMP_RAW_REPLY}" "${TMP_FILTERED_REPLY}"
+fi
+
+diff "${TMP_FILTERED_REPLY}" "${GOLDEN_REPLY}"

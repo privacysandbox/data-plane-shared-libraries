@@ -33,7 +33,6 @@ load("@rules_python//python:defs.bzl", "py_test")
 cc_binary(
     name = "resolv_conf_getter_client",
     srcs = ["resolv_conf_getter_client.cc"],
-    visibility = ["//visibility:public"],
     deps = [
         ":resolv_conf_getter_grpc",
         "@com_github_grpc_grpc//:grpc++",
@@ -47,7 +46,6 @@ cc_binary(
 cc_binary(
     name = "resolv_conf_getter_server",
     srcs = ["resolv_conf_getter_server.cc"],
-    visibility = ["//visibility:public"],
     deps = [
         ":resolv_conf_getter_grpc",
         "@com_github_grpc_grpc//:grpc++",
@@ -81,18 +79,14 @@ buf_lint_test(
 
 pkg_files(
     name = "resolv_conf_getter_server_bin",
-    srcs = [
-        ":resolv_conf_getter_server",
-    ],
+    srcs = [":resolv_conf_getter_server"],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/opt/google/",
 )
 
 pkg_tar(
     name = "resolv_conf_getter_server_tar",
-    srcs = [
-        ":resolv_conf_getter_server_bin",
-    ],
+    srcs = [":resolv_conf_getter_server_bin"],
 )
 
 oci_image(
@@ -119,9 +113,7 @@ oci_tarball(
 
 genrule(
     name = "copy_to_dist",
-    srcs = [
-        ":resolv_conf_getter_server_debian_tarball",
-    ],
+    srcs = [":resolv_conf_getter_server_debian_tarball"],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat << EOF > '$@'
 readonly target_dir=dist/aws
@@ -166,15 +158,11 @@ cc_library(
 cc_library(
     name = "config",
     hdrs = ["config.h"],
-    deps = [
-    ],
 )
 
 cc_library(
     name = "freelist",
     hdrs = ["freelist.h"],
-    deps = [
-    ],
 )
 
 cc_library(
@@ -193,8 +181,6 @@ cc_library(
     name = "protocol",
     srcs = ["protocol.cc"],
     hdrs = ["protocol.h"],
-    deps = [
-    ],
 )
 
 cc_library(
@@ -227,15 +213,11 @@ cc_library(
 cc_library(
     name = "socket_types",
     hdrs = ["socket_types.h"],
-    deps = [
-    ],
 )
 
 cc_library(
     name = "socket_vendor_protocol",
     hdrs = ["socket_vendor_protocol.h"],
-    deps = [
-    ],
 )
 
 cc_library(
@@ -247,6 +229,7 @@ cc_library(
         ":socket_types",
         "@boost//:asio",
         "@com_google_absl_for_proxy//absl/log",
+        "@com_google_absl_for_proxy//absl/log:check",
     ],
 )
 
@@ -338,18 +321,14 @@ cc_binary(
 
 pkg_files(
     name = "proxy_bin",
-    srcs = [
-        ":proxy",
-    ],
+    srcs = [":proxy"],
     attributes = pkg_attributes(mode = "0755"),
     prefix = "/opt/google/proxy",
 )
 
 pkg_tar(
     name = "proxy_tar",
-    srcs = [
-        ":proxy_bin",
-    ],
+    srcs = [":proxy_bin"],
 )
 
 oci_image(
@@ -388,9 +367,7 @@ pkg_files(
 
 pkg_files(
     name = "proxify_libs",
-    srcs = [
-        "//src/aws/proxy:proxy_preload",
-    ],
+    srcs = [":proxy_preload"],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/",
 )
@@ -405,9 +382,7 @@ pkg_tar(
 
 pkg_files(
     name = "libnsm_libs",
-    srcs = [
-        "//src/cpio/client_providers/kms_client_provider/aws:libnsm_so",
-    ],
+    srcs = ["//src/cpio/client_providers/kms_client_provider/aws:libnsm_so"],
     attributes = pkg_attributes(mode = "0444"),
     prefix = "/usr/lib/x86_64-linux-gnu/",
 )
@@ -419,9 +394,7 @@ pkg_tar(
         ":proxify_executables",
         ":proxify_libs",
     ],
-    visibility = [
-        "//visibility:public",  # Leave as public for KV server.
-    ],
+    visibility = ["//visibility:public"],  # Leave as public for KV server.
 )
 
 cc_test(

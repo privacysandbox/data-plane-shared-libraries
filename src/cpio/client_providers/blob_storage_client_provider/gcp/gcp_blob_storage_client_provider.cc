@@ -27,7 +27,6 @@
 
 #include "absl/base/nullability.h"
 #include "google/cloud/options.h"
-#include "google/cloud/status_or.h"
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/object_read_stream.h"
 #include "src/core/common/global_logger/global_logger.h"
@@ -48,7 +47,6 @@
 
 using google::cloud::Options;
 using google::cloud::StatusCode;
-using google::cloud::StatusOr;
 using google::cloud::storage::Client;
 using google::cloud::storage::ComputeMD5Hash;
 using google::cloud::storage::ConnectionPoolSizeOption;

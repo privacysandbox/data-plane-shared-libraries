@@ -24,21 +24,12 @@
 
 namespace privacy_sandbox::server_common::log {
 
-// Similar to absl VLOG_IS_ON. calling first time set the max_verbosity by
-// `max_v`, after first time `max_v` is ignored.
-inline bool PS_VLOG_IS_ON(int verbose_level,
-                          std::optional<int> max_v = std::nullopt) {
-  static int max_verbosity = [max_v]() {
-    if (max_v == std::nullopt) {
-      fprintf(stderr,
-              "Warning: verbosity is not set, PS_VLOG is turned off.\n");
-      return 0;
-    } else {
-      return *max_v;
-    }
-  }();
-  return verbose_level <= max_verbosity;
-}
+// Updates global verbosity level for PS_VLOG
+void SetGlobalPSVLogLevel(int verbosity_level);
+
+// Reads global PS_VLOG verbosity level and determines whether to
+// log for a given verbosity or not
+bool PS_VLOG_IS_ON(int verbosity_level);
 
 // Set to true to always log to OTel in non_prod. Calling first time sets
 // `always_log_otel`, after first time `log_otel` is ignored.

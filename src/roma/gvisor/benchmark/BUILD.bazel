@@ -1,0 +1,112 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+
+pkg_files(
+    name = "sample_udf_execs",
+    srcs = [
+        "//src/roma/gvisor/udf:udf_binaries",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "sample_udf_tar",
+    srcs = [
+        ":sample_udf_execs",
+    ],
+)
+
+cc_binary(
+    name = "roma_gvisor_benchmark",
+    srcs = ["roma_gvisor_benchmark.cc"],
+    tags = ["manual"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "//src/roma/gvisor/udf:sample_callback_cc_proto",
+        "//src/roma/gvisor/udf:sample_cc_proto",
+        "//src/roma/gvisor/udf:sample_roma_api",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+pkg_files(
+    name = "roma_gvisor_benchmark_execs",
+    srcs = [
+        ":roma_gvisor_benchmark",
+        ":run_roma_gvisor_benchmark",
+    ],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/server/bin",
+)
+
+pkg_tar(
+    name = "roma_gvisor_benchmark_tar",
+    srcs = [
+        ":roma_gvisor_benchmark_execs",
+    ],
+)
+
+oci_image(
+    name = "roma_gvisor_benchmark_image",
+    base = select({
+        "@platforms//cpu:aarch64": "@runtime-ubuntu-fulldist-debug-root-arm64",
+        "@platforms//cpu:x86_64": "@runtime-ubuntu-fulldist-debug-root-amd64",
+    }),
+    cmd = ["/server/bin/run_roma_gvisor_benchmark"],
+    entrypoint = ["/bin/bash"],
+    tars = [
+        "//src/roma/gvisor/container:gvisor_tar",
+        "//src/roma/gvisor/container:gvisor_server_container.tar",
+        ":roma_gvisor_benchmark_tar",
+        ":sample_udf_tar",
+    ],
+)
+
+# Sample usage:
+# builders/tools/bazel-debian build //src/roma/gvisor/benchmark:roma_gvisor_benchmark_image_tarball
+# docker load -i bazel-bin/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image_tarball/tarball.tar
+# docker run -it --privileged --rm bazel/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image:v1
+oci_tarball(
+    name = "roma_gvisor_benchmark_image_tarball",
+    image = ":roma_gvisor_benchmark_image",
+    repo_tags = ["bazel/src/roma/gvisor/benchmark/roma_gvisor_benchmark_image:v1"],
+)
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":roma_gvisor_benchmark_image_tarball",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+mkdir -p {dir}
+cp $(execpath :roma_gvisor_benchmark_image_tarball) {dir}/roma_gvisor_image.tar
+builders/tools/normalize-dist
+EOF""".format(dir = "dist/roma_gvisor"),
+    executable = True,
+    local = True,
+    message = "copying aws artifacts to dist directory",
+)

@@ -23,9 +23,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/log/log.h"
-#include "absl/log/scoped_mock_log.h"
-#include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"
@@ -80,13 +77,15 @@ TEST(FunctionBindingTest,
     )JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
 
   {
@@ -98,16 +97,18 @@ TEST(FunctionBindingTest,
             .input = {R"("Foobar")"},
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -153,13 +154,15 @@ TEST(
     )JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
 
   {
@@ -170,16 +173,18 @@ TEST(
             .handler_name = "Handler",
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -236,13 +241,15 @@ TEST(FunctionBindingTest,
     )JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
 
   {
@@ -253,16 +260,18 @@ TEST(FunctionBindingTest,
             .handler_name = "Handler",
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -308,13 +317,15 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
     )JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
 
   {
@@ -325,16 +336,18 @@ TEST(FunctionBindingTest, CanCallFunctionBindingThatDoesNotTakeAnyArguments) {
             .handler_name = "Handler",
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(
@@ -381,13 +394,15 @@ TEST(FunctionBindingTest,
     )JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
@@ -399,14 +414,16 @@ TEST(FunctionBindingTest,
             .handler_name = "Handler",
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                result = std::move(resp->resp);
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -462,13 +479,15 @@ TEST(FunctionBindingTest,
     )JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
 
@@ -480,14 +499,16 @@ TEST(FunctionBindingTest,
             .handler_name = "Handler",
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                result = std::move(resp->resp);
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
@@ -532,13 +553,15 @@ TEST(FunctionBindingTest, CanRegisterNonGlobalBindingsAndExecuteCode) {
           })JS_CODE",
     });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
 
   {
@@ -550,16 +573,18 @@ TEST(FunctionBindingTest, CanRegisterNonGlobalBindingsAndExecuteCode) {
             .input = {R"("Foobar")"},
         });
 
+    absl::Status response;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    EXPECT_TRUE(response.ok());
   }
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   ASSERT_TRUE(

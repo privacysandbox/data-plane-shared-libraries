@@ -23,7 +23,6 @@
 #include <thread>
 #include <vector>
 
-#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 
 namespace google::scp::roma::metadata_storage::test {

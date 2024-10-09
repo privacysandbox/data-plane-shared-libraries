@@ -1,0 +1,11 @@
+#!/bin/bash
+
+declare -r BUNDLE_FILE="$1"
+declare -r EXPECTED_COUNT="$2"
+
+declare -i ACTUAL_COUNT
+ACTUAL_COUNT=$(grep -c -- '-----END CERTIFICATE-----' "${BUNDLE_FILE}")
+
+if [[ ${ACTUAL_COUNT} -ne ${EXPECTED_COUNT} ]]; then
+  exit 1
+fi

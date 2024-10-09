@@ -20,6 +20,7 @@
 #include <functional>
 #include <string>
 
+#include "absl/container/flat_hash_map.h"
 #include "src/roma/interface/function_binding_io.pb.h"
 
 namespace google::scp::roma {

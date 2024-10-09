@@ -24,7 +24,6 @@
 
 #include "absl/strings/str_cat.h"
 #include "google/cloud/options.h"
-#include "google/cloud/status_or.h"
 #include "google/cloud/storage/client.h"
 #include "google/cloud/storage/object_read_stream.h"
 #include "src/core/blob_storage_provider/common/error_codes.h"
@@ -43,7 +42,6 @@ namespace google::scp::core::blob_storage_provider {
 namespace {
 using google::cloud::Options;
 using google::cloud::StatusCode;
-using google::cloud::StatusOr;
 using google::cloud::storage::Client;
 using google::cloud::storage::ComputeMD5Hash;
 using google::cloud::storage::ConnectionPoolSizeOption;

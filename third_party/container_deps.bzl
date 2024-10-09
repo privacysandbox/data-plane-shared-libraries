@@ -28,9 +28,22 @@ def container_deps():
         "runtime-debian-debug-root": {
             # debug build so we can use 'sh'. Root, for gcp coordinators
             # auth to work
+            # Temp azure hack: replaced amd64 value from
+            # d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548
             "arch_hashes": {
-                "amd64": "d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548",
+                "amd64": "6865ad48467c89c3c3524d4c426f52ad12d9ab7dec31fad31fae69da40eb6445",
                 "arm64": "6449313a9a80b2758f505c81462c492da87f76954d319f2adb55401177798cce",
+            },
+            "registry": "gcr.io",
+            "repository": "distroless/cc-debian11",
+        },
+        "runtime-debian-nondebug-nonroot": {
+            "arch_hashes": {
+                # cc-debian11:nondebug-nonroot
+                # This image contains a minimal Linux, glibc runtime for "mostly-statically compiled" languages like Rust and D.
+                # https://github.com/GoogleContainerTools/distroless/blob/main/cc/README.md
+                "amd64": "5a9e854bab8498a61a66b2cfa4e76e009111d09cb23a353aaa8d926e29a653d9",
+                "arm64": "3122cd55375a0a9f32e56a18ccd07572aeed5682421432701a03c335ab79c650",
             },
             "registry": "gcr.io",
             "repository": "distroless/cc-debian11",

@@ -253,5 +253,27 @@ TEST_F(LogTest, NoContext) {
   EXPECT_THAT(log, HasSubstr(kLogContent));
 }
 
+TEST_F(LogTest, VerbosityUpdate) {
+  tc.is_consented_ = true;
+  EXPECT_THAT(LogWithCapturedStderr(
+                  [this]() { PS_VLOG(kMaxV + 1, tc) << kLogContent; }),
+              IsEmpty());
+
+  EXPECT_CALL(
+      tc.consent_sink_,
+      Send(AllOf(LogEntryHas(absl::StrCat(tc.context_str_, kLogContent)),
+                 LogEntrySeverity(::absl::LogSeverity::kInfo))))
+      .Times(1);
+  server_common::log::SetGlobalPSVLogLevel(kMaxV + 1);
+  EXPECT_THAT(LogWithCapturedStderr(
+                  [this]() { PS_VLOG(kMaxV + 1, tc) << kLogContent; }),
+              HasSubstr(absl::StrCat(tc.context_str_, kLogContent)));
+
+  server_common::log::SetGlobalPSVLogLevel(kMaxV - 1);
+  EXPECT_THAT(
+      LogWithCapturedStderr([this]() { PS_VLOG(kMaxV, tc) << kLogContent; }),
+      IsEmpty());
+}
+
 }  // namespace
 }  // namespace privacy_sandbox::test

@@ -34,6 +34,22 @@ copy_file(
 )
 
 cc_library(
+    name = "json",
+    hdrs = [":json_h"],
+    deps = [
+        "@json_c",
+    ],
+)
+
+cc_library(
+    name = "nsm",
+    hdrs = [":nsm_h"],
+    deps = [
+        "@google_privacysandbox_servers_common//src/cpio/client_providers/kms_client_provider/aws:libnsm_so",
+    ],
+)
+
+cc_library(
     name = "aws_nitro_enclaves_sdk_c",
     srcs = [
         "source/attestation.c",
@@ -41,8 +57,6 @@ cc_library(
         "source/kms.c",
         "source/nitro_enclaves.c",
         "source/rest.c",
-        ":json_h",
-        ":nsm_h",
     ],
     hdrs = [
         "include/aws/nitro_enclaves/attestation.h",
@@ -59,8 +73,8 @@ cc_library(
         "-Wl,-rpath,'$$ORIGIN'",
     ],
     deps = [
-        "@google_privacysandbox_servers_common//src/cpio/client_providers/kms_client_provider/aws:libnsm_so",
-        "@json_c",
+        ":json",
+        ":nsm",
         "@nitrokmscli_aws_c_auth//:aws_c_auth",
         "@nitrokmscli_aws_c_common//:aws_c_common",
         "@nitrokmscli_aws_c_http//:aws_c_http",

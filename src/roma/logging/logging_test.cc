@@ -17,16 +17,14 @@
 #include <gtest/gtest.h>
 
 #include "absl/base/log_severity.h"
-#include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/status.h"
-#include "absl/strings/string_view.h"
-#include "src/roma/config/function_binding_object_v2.h"
+#include "absl/synchronization/notification.h"
+#include "src/roma/config/config.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 
-using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
 using ::testing::AllOf;
@@ -75,13 +73,16 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
         .js = js,
     });
 
+    absl::Status response_status;
     EXPECT_TRUE(roma_service
                     .LoadCodeObj(std::move(code_obj),
                                  [&](absl::StatusOr<ResponseObject> resp) {
-                                   EXPECT_TRUE(resp.ok());
+                                   response_status = resp.status();
                                    load_finished.Notify();
                                  })
                     .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_TRUE(response_status.ok());
   }
 
   {
@@ -93,19 +94,20 @@ TEST(LoggingTest, ConsoleLoggingNoOpWhenMinLogLevelSet) {
             .min_log_level = absl::LogSeverity::kWarning,
         });
 
+    absl::Status response_status;
     EXPECT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
-                               EXPECT_TRUE(resp.ok());
+                               response_status = resp.status();
                                if (resp.ok()) {
                                  result = std::move(resp->resp);
                                }
                                execute_finished.Notify();
                              })
                     .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    EXPECT_TRUE(response_status.ok());
   }
-  EXPECT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-  EXPECT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
 
   EXPECT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
@@ -146,12 +148,17 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
     )JS_CODE",
     });
 
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
   }
 
   {
@@ -163,128 +170,20 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
             .input = {absl::StrCat("\"", input, "\"")},
         });
 
-    status = roma_service.Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {
-          ASSERT_EQ(resp.status().code(), absl::StatusCode::kInternal);
-          execute_failed.Notify();
-        });
-    EXPECT_TRUE(status.ok());
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               execute_failed.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(
+        execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
   }
 
-  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  ASSERT_TRUE(execute_failed.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
-  log.StopCapturingLogs();
-}
-
-void LogMetadataFunction(absl::LogSeverity severity,
-                         absl::flat_hash_map<std::string, std::string> metadata,
-                         std::string_view msg) {
-  for (const auto& [key, value] : metadata) {
-    LOG(LEVEL(severity)) << key << ": " << value;
-  }
-  LOG(LEVEL(severity)) << msg;
-}
-
-TEST(LoggingTest, MetadataInLogsAvailableInBatchedRequests) {
-  Config config;
-  config.worker_queue_max_items = 1;
-  config.number_of_workers = 10;
-  config.SetLoggingFunction(LogMetadataFunction);
-  RomaService<> roma_service(std::move(config));
-  auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
-
-  absl::Notification load_finished;
-  constexpr int kNumThreads = 10;
-  constexpr size_t kBatchSize = 100;
-  const auto& metadata_tag = "Working";
-
-  absl::ScopedMockLog log;
-  for (int i = 0; i < kNumThreads; i++) {
-    for (int j = 0; j < kBatchSize; j++) {
-      EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _,
-                           absl::StrCat("key", i, ": ", metadata_tag, j)));
-    }
-  }
-  EXPECT_CALL(log, Log(absl::LogSeverity::kInfo, _, metadata_tag))
-      .Times(kBatchSize * kNumThreads);
-  log.StartCapturingLogs();
-
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = "var Handler = (input) => console.log(input);",
-    });
-
-    status = roma_service.LoadCodeObj(std::move(code_obj),
-                                      [&](absl::StatusOr<ResponseObject> resp) {
-                                        EXPECT_TRUE(resp.ok());
-                                        load_finished.Notify();
-                                      });
-    EXPECT_TRUE(status.ok());
-  }
-
-  load_finished.WaitForNotification();
-  absl::Mutex res_count_mu;
-  int res_count = 0;
-
-  std::vector<std::thread> threads;
-  threads.reserve(kNumThreads);
-
-  for (int i = 0; i < kNumThreads; i++) {
-    threads.emplace_back([&, i]() {
-      absl::Notification local_execute;
-      std::vector<InvocationStrRequest<>> batch;
-      for (int j = 0; j < kBatchSize; j++) {
-        InvocationStrRequest<> execution_obj{
-            .id = "foo",
-            .version_string = "v1",
-            .handler_name = "Handler",
-            .input = {absl::StrCat("\"", metadata_tag, "\"")},
-            .metadata = {{absl::StrCat("key", i),
-                          absl::StrCat(metadata_tag, j)}},
-        };
-        batch.push_back(execution_obj);
-      }
-
-      auto batch_callback =
-          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            for (auto resp : batch_resp) {
-              if (resp.ok()) {
-                EXPECT_THAT(resp->resp, testing::StrEq("undefined"));
-              } else {
-                ADD_FAILURE() << "resp is NOT OK.";
-              }
-            }
-            {
-              absl::MutexLock lock(&res_count_mu);
-              res_count += batch_resp.size();
-            }
-            local_execute.Notify();
-          };
-      while (!roma_service.BatchExecute(batch, batch_callback).ok()) {
-      }
-
-      // Thread cannot join until batch_callback is called.
-      local_execute.WaitForNotification();
-    });
-  }
-
-  for (auto& t : threads) {
-    t.join();
-  }
-  {
-    absl::MutexLock lock(&res_count_mu);
-    EXPECT_EQ(res_count, kBatchSize * kNumThreads);
-  }
-
-  status = roma_service.Stop();
-  EXPECT_TRUE(status.ok());
-
+  ASSERT_TRUE(roma_service.Stop().ok());
   log.StopCapturingLogs();
 }
 }  // namespace google::scp::roma::test

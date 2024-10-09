@@ -39,6 +39,7 @@
 #include "src/roma/interface/function_binding_io.pb.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
+#include "src/roma/sandbox/js_engine/v8_engine/profiler_isolate_wrapper.h"
 #include "src/roma/sandbox/native_function_binding/rpc_wrapper.pb.h"
 #include "src/roma/worker/execution_utils.h"
 #include "src/util/duration.h"
@@ -159,18 +160,63 @@ LogOptions GetLogOptions(
       .min_log_level = min_log_level,
   };
 }
+
+std::string_view GetGCTypeName(v8::GCType type) {
+  static const absl::flat_hash_map<v8::GCType, std::string_view> gcTypeMap = {
+      {v8::GCType::kGCTypeScavenge, "kGCTypeScavenge"},
+      {v8::GCType::kGCTypeMinorMarkCompact, "kGCTypeMinorMarkCompact"},
+      {v8::GCType::kGCTypeMarkSweepCompact, "kGCTypeMarkSweepCompact"},
+      {v8::GCType::kGCTypeIncrementalMarking, "kGCTypeIncrementalMarking"},
+      {v8::GCType::kGCTypeProcessWeakCallbacks, "kGCTypeProcessWeakCallbacks"},
+      {v8::GCType::kGCTypeAll, "kGCTypeAll"},
+  };
+
+  if (auto it = gcTypeMap.find(type); it != gcTypeMap.end()) {
+    return it->second;
+  } else {
+    return "UNKNOWN_GC_TYPE";
+  }
+}
+
+std::string_view GetGCCallbackFlagsName(v8::GCCallbackFlags flags) {
+  static const absl::flat_hash_map<v8::GCCallbackFlags, std::string_view>
+      flagMap = {
+          {v8::GCCallbackFlags::kNoGCCallbackFlags, "kNoGCCallbackFlags"},
+          {v8::GCCallbackFlags::kGCCallbackFlagConstructRetainedObjectInfos,
+           "kGCCallbackFlagConstructRetainedObjectInfos"},
+          {v8::GCCallbackFlags::kGCCallbackFlagForced, "kGCCallbackFlagForced"},
+          {v8::GCCallbackFlags::
+               kGCCallbackFlagSynchronousPhantomCallbackProcessing,
+           "kGCCallbackFlagSynchronousPhantomCallbackProcessing"},
+          {v8::GCCallbackFlags::kGCCallbackFlagCollectAllAvailableGarbage,
+           "kGCCallbackFlagCollectAllAvailableGarbage"},
+          {v8::GCCallbackFlags::kGCCallbackFlagCollectAllExternalMemory,
+           "kGCCallbackFlagCollectAllExternalMemory"},
+          {v8::GCCallbackFlags::kGCCallbackScheduleIdleGarbageCollection,
+           "kGCCallbackScheduleIdleGarbageCollection"},
+      };
+
+  if (auto it = flagMap.find(flags); it != flagMap.end()) {
+    return it->second;
+  } else {
+    return "UNKNOWN_GC_CALLBACK_FLAG";
+  }
+}
 }  // namespace
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
 V8JsEngine::V8JsEngine(
     std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
-    const bool skip_v8_cleanup,
-    const JsEngineResourceConstraints& v8_resource_constraints)
+    const bool skip_v8_cleanup, const bool enable_profilers,
+    const JsEngineResourceConstraints& v8_resource_constraints,
+    const bool logging_function_set)
     : isolate_function_binding_(std::move(isolate_function_binding)),
       v8_resource_constraints_(v8_resource_constraints),
       execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()),
-      skip_v8_cleanup_(skip_v8_cleanup) {
+      skip_v8_cleanup_(skip_v8_cleanup),
+      enable_profilers_(enable_profilers),
+      logging_function_set_(logging_function_set) {
   if (isolate_function_binding_) {
     isolate_function_binding_->AddExternalReferences(external_references_);
   }
@@ -206,7 +252,7 @@ void V8JsEngine::OneTimeSetup(
   }
   absl::StatusOr<std::string> my_path =
       privacy_sandbox::server_common::GetExePath();
-  CHECK_OK(my_path) << my_path.status();
+  CHECK_OK(my_path);
   v8::V8::InitializeICUDefaultLocation(my_path->data());
   v8::V8::InitializeExternalStartupData(my_path->data());
 
@@ -274,7 +320,8 @@ absl::Status V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     //  Compile and run JavaScript code object.
-    PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js_code));
+    PS_RETURN_IF_ERROR(
+        ExecutionUtils::CompileRunJS(js_code, logging_function_set_));
     // Set above context with compiled and run code as the default context for
     // the StartupData blob to create.
     creator.SetDefaultContext(context);
@@ -328,6 +375,43 @@ static size_t NearHeapLimitCallback(void* data, size_t current_heap_limit,
   return 0;
 }
 
+void FatalErrorCallback(const char* location, const char* message) {
+  LOG(ERROR) << "Fatal Error at location: "
+             << (location != nullptr ? location : "unknown")
+             << ". Occurred with message: "
+             << (message != nullptr ? message : "");
+}
+
+void LogHeapStatistics(v8::Isolate* isolate) {
+  v8::HeapStatistics heap_stats;
+  isolate->GetHeapStatistics(&heap_stats);
+
+  ROMA_VLOG(9) << "\nHeap Statistics:" << "\n  total_heap_size: "
+               << heap_stats.total_heap_size()
+               << "\n  total_heap_size_executable: "
+               << heap_stats.total_heap_size_executable()
+               << "\n  total_physical_size: "
+               << heap_stats.total_physical_size()
+               << "\n  used_heap_size: " << heap_stats.used_heap_size()
+               << "\n  heap_size_limit: " << heap_stats.heap_size_limit();
+}
+
+void GCPrologueCallback(v8::Isolate* isolate, v8::GCType type,
+                        v8::GCCallbackFlags flags) {
+  ROMA_VLOG(9) << "Garbage Collection event started. Type: "
+               << GetGCTypeName(type)
+               << ", Flags: " << GetGCCallbackFlagsName(flags);
+  LogHeapStatistics(isolate);
+}
+
+void GCEpilogueCallback(v8::Isolate* isolate, v8::GCType type,
+                        v8::GCCallbackFlags flags) {
+  ROMA_VLOG(9) << "Garbage Collection event finished. Type: "
+               << GetGCTypeName(type)
+               << ", Flags: " << GetGCCallbackFlagsName(flags);
+  LogHeapStatistics(isolate);
+}
+
 std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
     const v8::StartupData& startup_data) {
   v8::Isolate::CreateParams params;
@@ -357,8 +441,12 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
     return nullptr;
   }
   isolate->AddNearHeapLimitCallback(NearHeapLimitCallback, nullptr);
-  v8::debug::SetConsoleDelegate(isolate, console(isolate));
-  return std::make_unique<V8IsolateWrapper>(isolate, std::move(allocator));
+  isolate->SetCaptureStackTraceForUncaughtExceptions(true);
+  isolate->SetFatalErrorHandler(FatalErrorCallback);
+  isolate->AddGCPrologueCallback(GCPrologueCallback);
+  isolate->AddGCEpilogueCallback(GCEpilogueCallback);
+  return V8IsolateFactory::Create(isolate, std::move(allocator),
+                                  enable_profilers_);
 }
 
 V8Console* V8JsEngine::console(v8::Isolate* isolate)
@@ -755,15 +843,10 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
     curr_comp_ctx =
         std::static_pointer_cast<SnapshotCompilationContext>(context.context);
     auto [uuid, id, min_log_level] = GetLogOptions(metadata);
-    {
-      absl::MutexLock lock(&console_mutex_);
-      console_->SetMinLogLevel(min_log_level);
-    }
 
     if (isolate_function_binding_) {
+      isolate_function_binding_->SetMinLogLevel(min_log_level);
       isolate_function_binding_->AddIds(uuid, id);
-      absl::MutexLock lock(&console_mutex_);
-      console_->SetIds(uuid, id);
     }
   }
   v8::Isolate* v8_isolate = curr_comp_ctx->isolate->isolate();
@@ -784,6 +867,11 @@ absl::StatusOr<JsEngineExecutionResponse> V8JsEngine::CompileAndRunJsWithWasm(
   StopWatchdogTimer();
   if (status_or_response.ok()) {
     execution_response.execution_response = status_or_response.value();
+    if (enable_profilers_) {
+      execution_response.execution_response.profiler_output =
+          static_cast<ProfilerIsolateWrapperImpl*>(curr_comp_ctx->isolate.get())
+              ->StopProfiling();
+    }
     return execution_response;
   }
   // Return timeout error if the watchdog called isolate terminate.

@@ -22,14 +22,15 @@
 #include <string_view>
 #include <utility>
 
-#include <google/protobuf/message_lite.h>
-#include <google/protobuf/util/json_util.h>
-
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/roma/roma_service/romav8_proto_utils.h"
+#include "src/util/status_macro/status_macros.h"
 
 namespace google::scp::roma::romav8::app_api {
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
@@ -67,9 +68,9 @@ class RomaV8AppService {
    *   jscode --
    *   code_version --
    */
-  absl::Status Register(absl::Notification& notification,
-                        absl::Status& notify_status, std::string_view jscode,
-                        std::string_view code_version = "1") {
+  absl::Status Register(std::string_view jscode, std::string_view code_version,
+                        absl::Notification& notification,
+                        absl::Status& notify_status) {
     code_version_ = code_version;
     auto code_obj = std::make_unique<CodeObject>(CodeObject{
         .id = code_id_,
@@ -87,7 +88,37 @@ class RomaV8AppService {
   template <typename TRequest, typename TResponse>
   absl::Status Execute(absl::Notification& notification,
                        std::string_view handler_fn_name,
-                       const TRequest& request, TResponse& response) {
+                       const TRequest& request,
+                       absl::StatusOr<std::unique_ptr<TResponse>>& response,
+                       TMetadata metadata = TMetadata()) {
+    auto execute_cb = [&response,
+                       &notification](absl::StatusOr<ResponseObject> resp) {
+      if (resp.ok()) {
+        auto resp_ptr = std::make_unique<TResponse>();
+        if (absl::Status decode =
+                google::scp::roma::romav8::Decode(resp->resp, *resp_ptr);
+            decode.ok()) {
+          response = std::move(resp_ptr);
+        } else {
+          const std::string error_msg =
+              absl::StrCat("Error decoding response. response: ", resp->resp);
+          LOG(ERROR) << error_msg;
+          response = absl::InternalError(error_msg);
+        }
+      } else {
+        LOG(ERROR) << "Error in Roma Execute()";
+        response = resp.status();
+      }
+      notification.Notify();
+    };
+    return Execute(std::move(execute_cb), handler_fn_name, request,
+                   std::move(metadata));
+  }
+
+  template <typename TRequest>
+  absl::Status Execute(Callback callback, std::string_view handler_fn_name,
+                       const TRequest& request,
+                       TMetadata metadata = TMetadata()) {
     LOG(INFO) << "code id: " << code_id_;
     LOG(INFO) << "code version: " << code_version_;
     LOG(INFO) << "handler fn: " << handler_fn_name;
@@ -101,22 +132,13 @@ class RomaV8AppService {
         .handler_name = std::string(handler_fn_name),
         .input = {encoded_request},
         .treat_input_as_byte_str = true,
+        .metadata = std::move(metadata),
     };
-    auto execute_cb = [&response,
-                       &notification](absl::StatusOr<ResponseObject> resp) {
-      if (!resp.ok()) {
-        LOG(ERROR) << "Error in Roma Execute()";
-      } else if (absl::Status decode =
-                     google::scp::roma::romav8::Decode(resp->resp, response);
-                 !decode.ok()) {
-        LOG(ERROR) << "error decoding response. response: " << resp->resp;
-      }
-      notification.Notify();
-    };
+
     return roma_service_->Execute(
         std::make_unique<InvocationStrRequest<TMetadata>>(
             std::move(execution_obj)),
-        std::move(execute_cb));
+        std::move(callback));
   }
 
  protected:

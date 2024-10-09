@@ -18,6 +18,8 @@
 
 #include <unistd.h>
 
+#include <linux/limits.h>
+
 #include <string>
 
 #include "absl/log/log.h"
@@ -30,7 +32,7 @@ absl::StatusOr<std::string> GetExePath() {
   std::string my_path;
   my_path.reserve(PATH_MAX);
   if (const std::string proc_exe_path =
-          absl::StrCat("/proc/", getpid(), "/exe");
+          absl::StrCat("/proc/", ::getpid(), "/exe");
       readlink(proc_exe_path.c_str(), my_path.data(), PATH_MAX) == -1) {
     return absl::ErrnoToStatus(errno, "Unable to resolve prod pid exe path");
   }

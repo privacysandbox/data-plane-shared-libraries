@@ -19,29 +19,21 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <linux/limits.h>
-
 #include <memory>
 #include <string>
 #include <vector>
 
 #include "absl/log/check.h"
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "include/libplatform/libplatform.h"
 #include "include/v8-context.h"
 #include "include/v8-initialization.h"
 #include "include/v8-isolate.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
-#include "src/public/core/test_execution_result_matchers.h"
-#include "src/roma/wasm/deserializer.h"
 #include "src/roma/wasm/testing_utils.h"
-#include "src/roma/wasm/wasm_types.h"
 #include "src/util/process_util.h"
 #include "src/util/status_macro/status_macros.h"
 
-using google::scp::core::test::ResultIs;
-using google::scp::roma::wasm::RomaWasmStringRepresentation;
-using google::scp::roma::wasm::WasmDeserializer;
 using google::scp::roma::wasm::testing::WasmTestingUtils;
 using google::scp::roma::worker::ExecutionUtils;
 using ::testing::IsEmpty;
@@ -54,7 +46,7 @@ class ExecutionUtilsTest : public ::testing::Test {
   static void SetUpTestSuite() {
     absl::StatusOr<std::string> my_path =
         ::privacy_sandbox::server_common::GetExePath();
-    CHECK_OK(my_path) << my_path.status();
+    CHECK_OK(my_path);
     v8::V8::InitializeICUDefaultLocation(my_path->data());
     v8::V8::InitializeExternalStartupData(my_path->data());
     platform_ = v8::platform::NewDefaultPlatform().release();

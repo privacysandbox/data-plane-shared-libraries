@@ -57,6 +57,8 @@ class V8IsolateFunctionBinding {
 
   void AddIds(std::string_view uuid, std::string_view id);
 
+  void SetMinLogLevel(absl::LogSeverity severity);
+
   absl::Status InvokeRpc(google::scp::roma::proto::RpcWrapper& rpc_proto);
 
  private:
@@ -86,6 +88,7 @@ class V8IsolateFunctionBinding {
   std::vector<Binding> binding_references_;
   std::string invocation_req_uuid_;
   std::string invocation_req_id_;
+  absl::LogSeverity min_log_level_;
   const std::vector<std::string> function_names_;
   std::unique_ptr<native_function_binding::NativeFunctionInvoker>
       function_invoker_;

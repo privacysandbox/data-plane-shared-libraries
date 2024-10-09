@@ -18,13 +18,7 @@
 
 class HelloClass {
  public:
-  static std::string SayHello(const std::string& input,
-                              const std::string& log_input,
-                              const std::string& err_input) {
-    std::cout << log_input << std::endl;
-    std::cerr << err_input << std::endl;
-    return "Hello from C++! Input: " + input;
-  }
+  static std::string SayHello() { return "Hello world!"; }
 };
 
 EMSCRIPTEN_BINDINGS(Hello) {

@@ -79,6 +79,7 @@ ExecutionResultOr<std::string> PadBase64Encoding(std::string_view encoded) {
       ret_val.emplace<std::string>(absl::StrCat(encoded, "="));
       break;
     case 1:
+      [[fallthrough]];
     default:
       // Base64 encoded representation consists of 4 (6-bit) characters, to
       // represent 3 (8-bit) decoded characters. A single encoded character is

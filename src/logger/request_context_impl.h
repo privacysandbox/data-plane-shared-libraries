@@ -23,6 +23,7 @@
 #include <utility>
 #include <vector>
 
+#include "absl/base/no_destructor.h"
 #include "absl/container/btree_map.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/log/check.h"
@@ -30,6 +31,7 @@
 #include "absl/log/initialize.h"
 #include "opentelemetry/logs/logger_provider.h"
 #include "opentelemetry/logs/provider.h"
+#include "src/communication/json_utils.h"
 #include "src/logger/logger.pb.h"
 #include "src/logger/request_context_logger.h"
 
@@ -121,24 +123,38 @@ class ContextImpl final : public PSLogContext {
   }
 
   template <typename T>
-  void SetEventMessageField(const T& field) {
+  void SetEventMessageField(T&& field) {
     if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
-      if (is_debug_response() && !IsProd()) {
-        provider_.Set(field);
+      if ((is_debug_response() && !IsProd()) || is_consented()) {
+        provider_.Set(std::forward<T>(field));
       }
     }
   }
 
-  void ExportEventMessage() {
+  void ExportEventMessage(bool if_export_consented = false) {
     if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
       if (is_debug_response()) {
         AddEventMessage(provider_.Get(), debug_response_sink_.debug_info_);
+      }
+      if (if_export_consented && is_consented()) {
+        absl::StatusOr<std::string> json_str = ProtoToJson(provider_.Get());
+        if (json_str.ok()) {
+          logger_private->EmitLogRecord(
+              *json_str, opentelemetry::common::MakeAttributes(
+                             {{kLogAttribute.data(), "event_message"}}));
+        } else {
+          logger_private->EmitLogRecord(
+              absl::StrCat("ExportEventMessage fail to ProtoToJson:",
+                           json_str.status().message()),
+              opentelemetry::logs::Severity::kError);
+        }
       }
     }
   }
 
  private:
   friend class ConsentedLogTest;
+  friend class EventMessageTest;
 
   class ConsentedSinkImpl : public absl::LogSink {
    public:
@@ -188,6 +204,8 @@ class ContextImpl final : public PSLogContext {
   ConsentedSinkImpl consented_sink;
   DebugResponseSinkImpl debug_response_sink_;
   EventMessageProvider provider_;
+
+  static constexpr std::string_view kLogAttribute = "ps_tee_log_type";
 };
 
 // Defines SafePathContext class to always log to otel for safe code path
@@ -223,6 +241,20 @@ class SafePathContext : public PSLogContext {
   };
 
   OtelSinkImpl otel_sink_;
+};
+
+// Log context for system logs that is not on user request path.  `Get()` return
+// singleton without construction.
+class SystemLogContext : public SafePathContext {
+ public:
+  static SystemLogContext& Get() {
+    static absl::NoDestructor<SystemLogContext> log_instance;
+    return *log_instance;
+  }
+
+  std::string_view ContextStr() const override {
+    return "privacy_sandbox_system_log: ";
+  }
 };
 
 }  // namespace privacy_sandbox::server_common::log

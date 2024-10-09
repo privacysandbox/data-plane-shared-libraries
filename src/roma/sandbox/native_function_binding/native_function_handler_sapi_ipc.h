@@ -25,7 +25,6 @@
 #include <utility>
 #include <vector>
 
-#include "absl/status/statusor.h"
 #include "sandboxed_api/sandbox2/comms.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/metadata_storage/metadata_storage.h"

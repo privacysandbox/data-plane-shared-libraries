@@ -22,9 +22,10 @@
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <vector>
 
+#include "absl/strings/str_split.h"
 #include "src/core/interface/config_provider_interface.h"
-#include "src/core/utils/string_util.h"
 #include "src/public/core/interface/execution_result.h"
 
 #include "error_codes.h"
@@ -97,17 +98,13 @@ class EnvConfigProvider : public ConfigProviderInterface {
    */
   template <typename T>
   ExecutionResult Get(const ConfigKey& key, std::list<T>& out) noexcept {
-    const char* var_value = std::getenv(key.c_str());
+    const char* value = std::getenv(key.c_str());
 
-    if (var_value == nullptr) {
+    if (value == nullptr) {
       return FailureExecutionResult(errors::SC_CONFIG_PROVIDER_KEY_NOT_FOUND);
     }
 
-    std::list<std::string> parts;
-    const std::string value(var_value);
-    const std::string delimiter(kCommaDelimiter);
-    utils::SplitStringByDelimiter(value, delimiter, parts);
-
+    std::vector<std::string> parts = absl::StrSplit(value, kCommaDelimiter);
     for (const auto& part : parts) {
       T out_part;
 

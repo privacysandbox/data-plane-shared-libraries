@@ -24,7 +24,6 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/types/span.h"
-#include "src/core/test/utils/auto_init_run_stop.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_js_engine.h"
 #include "src/roma/sandbox/worker/worker.h"

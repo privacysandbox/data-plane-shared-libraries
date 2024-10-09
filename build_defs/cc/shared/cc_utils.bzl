@@ -15,6 +15,7 @@
 load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
+    "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
@@ -52,4 +53,36 @@ def cc_utils():
         sha256 = "d4bef5f15eb54cf481d6da96ffa6616a090009e94b336385445ee09427d8e512",
         strip_prefix = "tcmalloc-cda5074afb75ab02cf4d621986308ab7421dbbf8",
         urls = ["https://github.com/google/tcmalloc/archive/cda5074afb75ab02cf4d621986308ab7421dbbf8.zip"],
+    )
+
+    maybe(
+        http_file,
+        name = "gvisor_runsc_amd64",
+        downloaded_file_path = "runsc",
+        executable = True,
+        urls = ["https://storage.googleapis.com/gvisor/releases/release/latest/x86_64/runsc"],
+    )
+
+    maybe(
+        http_file,
+        name = "gvisor_containerd_amd64",
+        downloaded_file_path = "containerd-shim-runsc-v1",
+        executable = True,
+        urls = ["https://storage.googleapis.com/gvisor/releases/release/latest/x86_64/containerd-shim-runsc-v1"],
+    )
+
+    maybe(
+        http_file,
+        name = "gvisor_runsc_arm64",
+        downloaded_file_path = "runsc",
+        executable = True,
+        urls = ["https://storage.googleapis.com/gvisor/releases/release/latest/aarch64/runsc"],
+    )
+
+    maybe(
+        http_file,
+        name = "gvisor_containerd_arm64",
+        downloaded_file_path = "containerd-shim-runsc-v1",
+        executable = True,
+        urls = ["https://storage.googleapis.com/gvisor/releases/release/latest/aarch64/containerd-shim-runsc-v1"],
     )

@@ -138,20 +138,16 @@ class BrotliDecoder {
 
       switch (result) {
         case BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT:
-          ABSL_FALLTHROUGH_INTENDED;
-
+          [[fallthrough]];
         case BROTLI_DECODER_RESULT_NEEDS_MORE_OUTPUT:
-          ABSL_FALLTHROUGH_INTENDED;
-
+          [[fallthrough]];
         case BROTLI_DECODER_RESULT_SUCCESS:
           // Will be addressed in the next iteration.
           break;
-
         case BROTLI_DECODER_RESULT_ERROR:
           return absl::DataLossError(absl::StrCat(
               "corrupted input: ",
               BrotliDecoderErrorString(BrotliDecoderGetErrorCode(decoder_))));
-
         default:
           return absl::InternalError(
               absl::StrCat("unexpected brotli decoder result: ", result));

@@ -14,13 +14,15 @@
 
 # See https://pre-commit.com for more information
 # See https://pre-commit.com/hooks.html for more hooks
+# Azure support hack: added 'testing/functionaltest-system/.*'
 exclude: (?x)^(
   bazel-(bin|out|testlogs|workspace)/.*|
   .bazel_output/.*|
   builders/.*|
   (third_party|src)/.*\.patch|
   version.txt|
-  docs/cpio/protobuf/.*\.md
+  docs/cpio/protobuf/.*\.md|
+  testing/functionaltest-system/.*
   )$
 
 fail_fast: true

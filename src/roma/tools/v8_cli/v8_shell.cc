@@ -356,6 +356,7 @@ int main(int argc, char* argv[]) {
   create_params.array_buffer_allocator =
       v8::ArrayBuffer::Allocator::NewDefaultAllocator();
   v8::Isolate* isolate = v8::Isolate::New(create_params);
+  isolate->SetCaptureStackTraceForUncaughtExceptions(true);
   run_shell = (argc == 1);
   int result;
   {

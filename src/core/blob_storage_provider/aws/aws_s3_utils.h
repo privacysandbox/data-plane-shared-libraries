@@ -40,7 +40,9 @@ class AwsS3Utils {
       const Aws::S3::S3Errors& dynamo_db_error) noexcept {
     switch (dynamo_db_error) {
       case Aws::S3::S3Errors::INTERNAL_FAILURE:
+        [[fallthrough]];
       case Aws::S3::S3Errors::SERVICE_UNAVAILABLE:
+        [[fallthrough]];
       case Aws::S3::S3Errors::THROTTLING:
         return core::RetryExecutionResult(
             errors::SC_BLOB_STORAGE_PROVIDER_RETRIABLE_ERROR);

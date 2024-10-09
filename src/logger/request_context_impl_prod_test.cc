@@ -126,6 +126,28 @@ TEST_F(DebugResponseTest, EventMessage) {
   EXPECT_FALSE(accessed_debug_info_);
 }
 
+TEST_F(EventMessageTest, Consented) {
+  em_instance_ = std::make_unique<ContextImpl<MockEventMessageProvider>>(
+      absl::btree_map<std::string, std::string>{}, matched_token_);
+  SetServerTokenForTestOnly(kServerToken);
+  CHECK(em_instance_->is_consented());
+  em_instance_->SetEventMessageField(std::string("test gen id"));
+  em_instance_->ExportEventMessage(/*if_export_consented=*/true);
+  std::string otlp_output = ReadSs();
+  EXPECT_THAT(otlp_output, ContainsRegex("test gen id"));
+  EXPECT_THAT(otlp_output, ContainsRegex("ps_tee_log_type: event_message"));
+}
+
+TEST_F(EventMessageTest, NotConsented) {
+  em_instance_ = std::make_unique<ContextImpl<MockEventMessageProvider>>(
+      absl::btree_map<std::string, std::string>{}, mismatched_token_);
+  SetServerTokenForTestOnly(kServerToken);
+  CHECK(!em_instance_->is_consented());
+  em_instance_->SetEventMessageField(std::string("test gen id"));
+  em_instance_->ExportEventMessage(/*if_export_consented=*/true);
+  EXPECT_THAT(ReadSs(), IsEmpty());
+}
+
 TEST(FormatContext, NoContextGeneratesEmptyString) {
   EXPECT_THAT(FormatContext({}), IsEmpty());
 }
@@ -244,6 +266,14 @@ TEST_F(SafePathLogTest, LogMessage) {
   test_instance_ = CreateTestInstance();
   EXPECT_THAT(LogWithCapturedStderr(
                   [this]() { PS_VLOG(kMaxV, *test_instance_) << kLogContent; }),
+              IsEmpty());
+  EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
+}
+
+TEST_F(SystemLogTest, LogMessage) {
+  EXPECT_THAT(LogWithCapturedStderr([]() {
+                PS_VLOG(kMaxV, SystemLogContext::Get()) << kLogContent;
+              }),
               IsEmpty());
   EXPECT_THAT(ReadSs(), ContainsRegex(kLogContent));
 }

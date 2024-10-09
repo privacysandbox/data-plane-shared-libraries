@@ -1,0 +1,150 @@
+#!/bin/bash
+
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Test runner for the build system. This script should preferably be run
+# "directly" and not inside docker, permitting the test cases to execute
+# both inside and outside a docker container.
+
+set -o pipefail
+set -o errexit
+
+trap _cleanup EXIT
+function _cleanup() {
+  declare -r -i status=$?
+  if [[ -v KOKORO_ARTIFACTS_DIR ]]; then
+    sleep 5s
+  fi
+  if [[ ${status} -ne 0 ]]; then
+    printf "Error: run-tests status code: %d\n" "${status}" &>/dev/stderr
+  fi
+  if [[ ${#DOCKER_COMPOSE_ARGS} -gt 0 ]]; then
+    docker compose "${DOCKER_COMPOSE_ARGS[@]}" down || true
+  fi
+  if [[ -d ${DATA_DIR} ]]; then
+    rm -rf "${DATA_DIR}"
+  fi
+
+  # This stacktrace code is largely taken from:
+  # https://opensource.com/article/22/7/print-stack-trace-bash-scripts
+  #
+  # Only log if this was both an error status (!=0) and it was unexpected
+  # (i.e. not part of an 'if' statement, this is what $- does).
+  if [[ $- =~ e && ${status} != 0 ]]
+  then
+      printf "\n========= CATASTROPHIC COMMAND FAIL =========\n\n"
+      printf "SCRIPT EXITED ON ERROR CODE: %s\n\n" "${status}"
+      LEN=${#BASH_LINENO[@]}
+      for (( INDEX=0; INDEX<LEN-1; INDEX++ ))
+      do
+          printf -- "---\n"
+          printf "FILE: %s\n" "$(basename "${BASH_SOURCE[${INDEX}+1]}")"
+          printf "  FUNCTION: %s\n" "${FUNCNAME[${INDEX}+1]}"
+          if [[ ${INDEX} -gt 0 ]]
+          then
+              printf "  STACK COMMAND: %s\n" "${FUNCNAME[${INDEX}]}"
+              printf "  STACK LINE: %s\n" "${BASH_LINENO[${INDEX}]}"
+          else
+              printf "  FAILED COMMAND: %s\n" "${BASH_COMMAND}"
+              printf "  FAILED LINE: %s\n" "${ERRO_LINENO}"
+          fi
+      done
+      printf "\n======= END CATASTROPHIC COMMAND FAIL =======\n\n"
+  fi
+  exit ${status}
+}
+
+function usage() {
+  declare -r -i exitval=$?
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 [options]
+    --verbose        Produce verbose output
+USAGE
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose)
+      set -o xtrace
+      shift
+      ;;
+    -h | --help) usage 0 ;;
+    *)
+      printf "unrecognized arg: %s\n" "$1"
+      usage
+      ;;
+  esac
+done
+
+function get_sut_data_configs() {
+  declare -r target_dir="$1"
+  "${TOOLS_DIR}"/bazel-debian run //tests/v1:copy_to_dist
+  cp "${WORKSPACE}"/dist/tests/v1/sut_data.zip "${target_dir}"
+  EXTRA_DOCKER_RUN_ARGS="--volume ${target_dir}:/data --workdir /data" \
+    "${TOOLS_DIR}"/unzip sut_data.zip
+  rm -f "${target_dir}"/sut_data.zip
+  cp "${TESTS_DIR}"/docker-compose.{env,yaml} "${target_dir}"
+  cat <<EOF >"${target_dir}"/docker-compose-data.env
+SUT_DATA_DIR="${target_dir}"
+EOF
+  chmod 444 "${target_dir}"/*
+}
+
+function ensure_docker_compose() {
+  if ! docker compose version --short | grep -q ^2\. &>/dev/null; then
+    printf "docker compose v2 is required\n" &>/dev/stderr
+    exit 1
+  fi
+}
+
+ensure_docker_compose
+
+TESTS_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly TESTS_DIR
+readonly WORKSPACE="${TESTS_DIR}"/../..
+readonly TOOLS_DIR="${WORKSPACE}"/builders/tools
+
+pushd "${WORKSPACE}"/tests/servers >/dev/null
+"${TOOLS_DIR}"/bazel-debian run //:copy_to_dist
+popd >/dev/null
+docker load -i "${WORKSPACE}"/tests/servers/dist/test_servers/grpc_examples.tar
+
+cd "${WORKSPACE}"
+
+declare -a -r TEST_ARGS=(
+  "--test_env=TEST_TOOLS_IMAGE=$("${TOOLS_DIR}"/get-builder-image-tagged --image test-tools)"
+  "--test_env=WORKSPACE=${WORKSPACE}"
+)
+declare -a TESTS=(
+  //tests/v1:all_tests
+)
+
+DATA_DIR="$(mktemp --directory)"
+readonly DATA_DIR
+chmod 755 "${DATA_DIR}"
+get_sut_data_configs "${DATA_DIR}"
+
+declare -a -r DOCKER_COMPOSE_ARGS=(
+  --file "${DATA_DIR}"/docker-compose.yaml
+  --env-file "${DATA_DIR}"/docker-compose.env
+  --env-file "${DATA_DIR}"/docker-compose-data.env
+)
+
+docker compose "${DOCKER_COMPOSE_ARGS[@]}" up --quiet-pull --detach
+
+EXTRA_DOCKER_RUN_ARGS="--volume /tmp:/tmp" \
+  "${TOOLS_DIR}"/bazel-debian test "${TESTS[@]}" "${TEST_ARGS[@]}"

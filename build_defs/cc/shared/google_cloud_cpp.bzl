@@ -33,6 +33,7 @@ def import_google_cloud_cpp():
         patch_args = ["-p1"],
         patches = [Label("//build_defs/cc/shared:google_cloud_cpp.patch")],
         repo_mapping = {
+            "@com_github_curl_curl": "@curl",
             "@com_github_nlohmann_json": "@nlohmann_json",
         },
         sha256 = "bfc7e31496abe0520dd9e83fb1f7029b82d935f62e86cec89412af8ada156109",

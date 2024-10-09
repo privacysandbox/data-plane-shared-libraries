@@ -53,7 +53,9 @@ FailureExecutionResult SSMErrorConverter::ConvertSSMError(
       failure = FailureExecutionResult(SC_AWS_INVALID_CREDENTIALS);
       break;
     case SSMErrors::INVALID_PARAMETER_COMBINATION:
+      [[fallthrough]];
     case SSMErrors::INVALID_QUERY_PARAMETER:
+      [[fallthrough]];
     case SSMErrors::INVALID_PARAMETER_VALUE:
       failure = FailureExecutionResult(SC_AWS_INVALID_REQUEST);
       break;
@@ -62,6 +64,7 @@ FailureExecutionResult SSMErrorConverter::ConvertSSMError(
           SC_AWS_PARAMETER_CLIENT_PROVIDER_PARAMETER_NOT_FOUND);
       break;
     case SSMErrors::SERVICE_UNAVAILABLE:
+      [[fallthrough]];
     case SSMErrors::NETWORK_CONNECTION:
       failure = FailureExecutionResult(SC_AWS_SERVICE_UNAVAILABLE);
       break;
@@ -69,6 +72,7 @@ FailureExecutionResult SSMErrorConverter::ConvertSSMError(
       failure = FailureExecutionResult(SC_AWS_REQUEST_LIMIT_REACHED);
       break;
     case SSMErrors::INTERNAL_FAILURE:
+      [[fallthrough]];
     default:
       failure = FailureExecutionResult(SC_AWS_INTERNAL_SERVICE_ERROR);
   }

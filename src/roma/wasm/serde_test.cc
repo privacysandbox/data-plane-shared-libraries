@@ -28,7 +28,7 @@
 namespace google::scp::roma::wasm::test {
 TEST(WasmSerDeTest, ShouldWriteAndReadCustomString) {
   uint8_t mem_blob[100];
-  memset(mem_blob, 0, sizeof(mem_blob));
+  ::memset(mem_blob, 0, sizeof(mem_blob));
 
   std::string data = "Hello, I'm a string :)";
   auto ptr =
@@ -42,7 +42,7 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomString) {
 
 TEST(WasmSerDeTest, ShouldWriteAndReadCustomStringAndAllowEmptyString) {
   uint8_t mem_blob[10];
-  memset(mem_blob, 0, sizeof(mem_blob));
+  ::memset(mem_blob, 0, sizeof(mem_blob));
 
   std::string data = "";
   auto ptr =
@@ -56,7 +56,7 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomStringAndAllowEmptyString) {
 
 TEST(WasmSerDeTest, StringShouldManipulateTheRightOffsets) {
   uint8_t mem_blob[19];
-  memset(mem_blob, 0, sizeof(mem_blob));
+  ::memset(mem_blob, 0, sizeof(mem_blob));
 
   // Take four bytes at the beginning of the memory segment
   WasmSerializer::WriteUint32(mem_blob, sizeof(mem_blob), 0, 0xF234567F);
@@ -87,7 +87,7 @@ TEST(WasmSerDeTest, StringShouldManipulateTheRightOffsets) {
 
 TEST(WasmSerDeTest, ShouldWriteAndReadCustomListOfString) {
   uint8_t mem_blob[255];
-  memset(mem_blob, 0, sizeof(mem_blob));
+  ::memset(mem_blob, 0, sizeof(mem_blob));
 
   std::vector<std::string> list = {"hello", "we", "are", "strings"};
 
@@ -104,7 +104,7 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomListOfString) {
 
 TEST(WasmSerDeTest, ShouldWriteAndReadCustomListOfStringAndAllowEmptyStrings) {
   uint8_t mem_blob[255];
-  memset(mem_blob, 0, sizeof(mem_blob));
+  ::memset(mem_blob, 0, sizeof(mem_blob));
 
   std::vector<std::string> list = {"hello", "", "", "strings"};
 
@@ -121,7 +121,7 @@ TEST(WasmSerDeTest, ShouldWriteAndReadCustomListOfStringAndAllowEmptyStrings) {
 
 TEST(WasmSerDeTest, ListOfStringShouldManipulateTheRightOffsets) {
   uint8_t mem_blob[46];
-  memset(mem_blob, 0, sizeof(mem_blob));
+  ::memset(mem_blob, 0, sizeof(mem_blob));
 
   // Take four bytes at the beginning of the memory segment
   WasmSerializer::WriteUint32(mem_blob, sizeof(mem_blob), 0, 0xF234567F);

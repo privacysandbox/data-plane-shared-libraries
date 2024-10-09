@@ -1,7 +1,10 @@
+common --@aspect_rules_ts//ts:skipLibCheck=honor_tsconfig
+common --@aspect_rules_ts//ts:default_to_tsc_transpiler
+
 build --announce_rc
 build --verbose_failures
 build --compilation_mode=opt
-build --output_filter='^//((?!(third_party):).)*$'`
+build --output_filter='^//((?!(third_party):).)*$'
 build --color=yes
 build --config=cpp
 build --config=roma_sandboxed
@@ -31,21 +34,23 @@ build:cpp_nowarn --per_file_copt=src/(metric|telemetry)/.*@-Wno-deprecated-decla
 build:cpp_nowarn --per_file_copt=src/cpio/client_providers/.*_client_provider/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/core/blob_storage_provider/gcp/.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/roma/(roma_service|sandbox|benchmark|native_function_grpc_server)/.*.cc@-Wno-deprecated-declarations
-build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.cc@-Wno-macro-redefined
 
 # Disabled due to `Code` being deprecated in tink_cc
 build:cpp_nowarn --per_file_copt=src/public/cpio/adapters/crypto_client/crypto_client\.cc@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/public/cpio/adapters/crypto_client/crypto_client_test\.cc@-Wno-deprecated-declarations
 
 # Disabled due to `comms` and `Pointable` being deprecated in sandboxed_api
-build:cpp_nowarn --per_file_copt=src/roma/logging/logging_test\.cc@-Wno-deprecated-declarations
-build:cpp_nowarn --per_file_copt=src/roma/tools/v8_cli/roma_shell\.cc@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/roma/logging/logging_.*test\.cc@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/roma/tools/v8_cli.*@-Wno-deprecated-declarations
 build:cpp_nowarn --per_file_copt=src/experimental/kevinbnaughton/roma_grpc/.*@-Wno-deprecated-declarations
+build:cpp_nowarn --per_file_copt=src/roma/gvisor/.*@-Wno-deprecated-declarations
 
 # Disabled due to necessary macro collision introduced in src/roma/sandbox/js_engine/v8_engine/v8.console.h
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker/v8_engine_worker_test\.cc@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/sandbox/js_engine/v8_engine/.*@-Wno-macro-redefined
 build:cpp_nowarn --per_file_copt=src/roma/benchmark/.*@-Wno-macro-redefined
+build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/worker_wrapper.*@-Wno-macro-redefined
+build:cpp_nowarn --per_file_copt=src/roma/sandbox/worker_api/sapi/utils.cc@-Wno-macro-redefined
 
 build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
 build:clang-tidy --output_groups=report
@@ -53,6 +58,10 @@ build:clang-tidy --@bazel_clang_tidy//:clang_tidy_config=//:clang_tidy_config
 
 build:roma_sandboxed --per_file_copt=.*sandboxed_api.*@-Wno-return-type
 build:roma_sandboxed --cxxopt=-fbracket-depth=512
+
+# depend_on_what_you_use build check.
+build:dwyu --aspects=//third_party:depend_on_what_you_use.bzl%dwyu
+build:dwyu --output_groups=dwyu
 
 try-import %workspace%/builders/.coverage.bazelrc
 
@@ -172,3 +181,15 @@ build:azure_azure --config=platform_azure
 
 build:non_prod --//:build_flavor=non_prod
 build:prod --//:build_flavor=prod
+
+# Enable optimized build.
+build:benchmark --compilation_mode=opt
+# Link the benchmark test binary statically.
+build:benchmark --dynamic_mode=off
+# Generate `-gmlt` level of debug information. This ensures that inlined
+# portions of the stacks and the source filename and line numbers are included
+# in the debug information and become available in `pprof` profiles.
+build:benchmark --copt=-gmlt
+# Disable (note the minus sign after the `=`) using `-fPIC` for binaries in
+# `opt` compilation mode.
+build:benchmark --features=-prefer_pic_for_opt_binaries

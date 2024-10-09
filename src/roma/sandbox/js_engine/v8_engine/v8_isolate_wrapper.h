@@ -24,30 +24,38 @@
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
 
-// V8 has funky memory management so wrap inside a RAII class.
-class V8IsolateWrapper final {
+class V8IsolateWrapper {
  public:
-  V8IsolateWrapper(absl::Nonnull<v8::Isolate*> isolate,
-                   std::unique_ptr<v8::ArrayBuffer::Allocator> allocator)
-      : isolate_(isolate), allocator_(std::move(allocator)) {}
+  virtual ~V8IsolateWrapper() = default;
 
-  ~V8IsolateWrapper() {
+  virtual v8::Isolate* isolate() = 0;
+};
+
+// V8 has funky memory management so wrap inside a RAII class.
+class V8IsolateWrapperImpl final : public V8IsolateWrapper {
+ public:
+  V8IsolateWrapperImpl(absl::Nonnull<v8::Isolate*> isolate,
+                       std::unique_ptr<v8::ArrayBuffer::Allocator> allocator)
+      : V8IsolateWrapper(),
+        isolate_(isolate),
+        allocator_(std::move(allocator)) {}
+
+  ~V8IsolateWrapperImpl() override {
     // Isolates are only deleted this way and not with Free().
     isolate_->Dispose();
   }
 
   // Not copyable or moveable.
-  V8IsolateWrapper(const V8IsolateWrapper&) = delete;
-  V8IsolateWrapper& operator=(const V8IsolateWrapper&) = delete;
+  V8IsolateWrapperImpl(const V8IsolateWrapperImpl&) = delete;
+  V8IsolateWrapperImpl& operator=(const V8IsolateWrapperImpl&) = delete;
 
-  v8::Isolate* isolate() { return isolate_; }
+  v8::Isolate* isolate() override { return isolate_; }
 
  private:
   v8::Isolate* isolate_;
   // Each isolate has an allocator that lives with it:
   std::unique_ptr<v8::ArrayBuffer::Allocator> allocator_;
 };
-
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine
 
 #endif  // ROMA_SANDBOX_JS_ENGINE_V8_ENGINE_V8_ISOLATE_WRAPPER_H_

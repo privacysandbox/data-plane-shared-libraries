@@ -18,12 +18,13 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 def bazel_rules_closure():
     maybe(
         http_archive,
-        # commit 248f0e4 2023-12-12
         name = "io_bazel_rules_closure",
-        sha256 = "f5318f5c06bc02270852359812555cfda87b34e4002c855ba25a5a81ff551ac9",
-        strip_prefix = "rules_closure-248f0e4a2bfd6063e88278be081d55715ecd298c",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:rules_closure.patch")],
+        sha256 = "40eea8724e1a2a380a98e6de6e114fcc931ced18814afe8c3aa1f0dc910da4f1",
+        strip_prefix = "rules_closure-0.13.0",
         urls = [
-            "https://github.com/bazelbuild/rules_closure/archive/248f0e4a2bfd6063e88278be081d55715ecd298c.zip",
+            "https://github.com/bazelbuild/rules_closure/archive/refs/tags/0.13.0.zip",
         ],
     )
 

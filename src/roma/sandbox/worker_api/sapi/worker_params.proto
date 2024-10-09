@@ -42,4 +42,7 @@ message WorkerParamsProto {
 
   // Error details in case the program errored out.
   optional bytes error_message = 10;
+
+  // The output from V8's Heap and Sample-based CPU profiler
+  optional bytes profiler_output = 11;
 }

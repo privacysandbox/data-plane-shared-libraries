@@ -23,7 +23,13 @@
 #include <string_view>
 #include <vector>
 
+#include "absl/base/nullability.h"
+#include "absl/status/status.h"
 #include "absl/strings/str_split.h"
+#include "src/roma/config/type_converter.h"
+#include "src/roma/wasm/deserializer.h"
+#include "src/roma/wasm/serializer.h"
+#include "src/roma/wasm/wasm_types.h"
 #include "src/util/status_macro/status_builder.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -46,12 +52,48 @@ constexpr std::string_view kRegisteredWasmExports = "RomaRegisteredWasmExports";
 
 }  // namespace
 
+absl::Status ExecutionUtils::OverrideConsoleLog(v8::Isolate* isolate,
+                                                bool logging_function_set) {
+  if (!logging_function_set) {
+    return absl::OkStatus();
+  }
+
+  v8::Local<v8::Context> context(isolate->GetCurrentContext());
+
+  constexpr auto js_code = R"(
+    console.log = ROMA_LOG;
+    console.warn = ROMA_WARN;
+    console.error = ROMA_ERROR;
+  )";
+  v8::Local<v8::String> source =
+      v8::String::NewFromUtf8(isolate, js_code).ToLocalChecked();
+
+  v8::Local<v8::Script> script;
+  if (!v8::Script::Compile(context, source).ToLocal(&script)) {
+    return absl::InternalError("Failed to override console.log");
+  }
+
+  v8::Local<v8::Value> script_result;
+  if (!script->Run(context).ToLocal(&script_result)) {
+    return absl::InternalError("Failed to override console.log");
+  }
+  return absl::OkStatus();
+}
+
 absl::Status ExecutionUtils::CompileRunJS(
-    std::string_view js,
+    std::string_view js, bool logging_function_set,
     absl::Nullable<v8::Local<v8::UnboundScript>*> unbound_script) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
+
+  if (auto result = OverrideConsoleLog(isolate, logging_function_set);
+      !result.ok()) {
+    privacy_sandbox::server_common::StatusBuilder builder(
+        absl::InvalidArgumentError("Failed to compile JavaScript code object"));
+    builder << ExecutionUtils::DescribeError(isolate, &try_catch);
+    return builder;
+  }
 
   v8::Local<v8::String> js_source =
       v8::String::NewFromUtf8(isolate, js.data(), v8::NewStringType::kNormal,
@@ -255,7 +297,9 @@ absl::Status ExecutionUtils::CreateUnboundScript(
   v8::Context::Scope context_scope(context);
 
   v8::Local<v8::UnboundScript> local_unbound_script;
-  PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js, &local_unbound_script));
+  bool logging_function_set = false;
+  PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js, logging_function_set,
+                                                  &local_unbound_script));
 
   // Store unbound_script_ in a Global handle in isolate.
   unbound_script.Reset(isolate, local_unbound_script);

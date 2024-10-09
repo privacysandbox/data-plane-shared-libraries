@@ -18,8 +18,8 @@
 
 #include <grpcpp/grpcpp.h>
 
-#include "absl/base/log_severity.h"
 #include "absl/log/log.h"
+#include "absl/strings/str_cat.h"
 #include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/native_function_grpc_server/proto/multi_service.grpc.pb.h"
 #include "src/roma/native_function_grpc_server/proto/multi_service.pb.h"

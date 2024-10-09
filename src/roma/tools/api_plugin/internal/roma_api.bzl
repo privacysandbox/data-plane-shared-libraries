@@ -26,12 +26,13 @@ load(
 # use this string value through this template_dir_name variable
 template_dir_name = "roma-api-templates"
 
-def _get_template_options(suffix, template_file):
-    return "{tmpl_dir}/tmpl/{tmpl},{basename}{suffix}".format(
+def _get_template_options(suffix, template_file, sub_dir):
+    return "{tmpl_dir}/tmpl/{sub_dir}/{tmpl},{basename}{suffix}".format(
         tmpl_dir = template_dir_name,
         basename = "{basename}",
         suffix = suffix,
         tmpl = template_file,
+        sub_dir = sub_dir,
     )
 
 def _get_proto_compile_attrs(plugins):
@@ -66,22 +67,40 @@ def _roma_api_protoc(*, name, protoc_rule, plugins, roma_api, **kwargs):
 _cc_app_template_plugins = [
     struct(
         name = "roma_app_api_cc_plugin{}".format(i),
-        option = _get_template_options(plugin.suffix, plugin.template_file),
+        option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
         tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, plugin in enumerate([
         struct(
-            template_file = "cpp_app_api_client_sdk_markdown.tmpl",
-            suffix = "_cpp_app_api_client_sdk.md",
+            template_file = "md_cpp_client_sdk.tmpl",
+            suffix = "_cc_v8_app_api_client_sdk.md",
+            sub_directory = "v8/app",
         ),
         struct(
-            template_file = "cc_app_test_romav8.tmpl",
+            template_file = "cpp_test_romav8.tmpl",
             suffix = "_romav8_app_test.cc",
+            sub_directory = "v8/app",
         ),
         struct(
             template_file = "hpp_romav8.tmpl",
             suffix = "_roma_app.h.tmpl",
+            sub_directory = "v8/app",
+        ),
+        struct(
+            template_file = "hpp_roma.tmpl",
+            suffix = "_roma_app_service.h",
+            sub_directory = "common/app",
+        ),
+        struct(
+            template_file = "hpp_roma_gvisor.tmpl",
+            suffix = "_roma_gvisor_app_service.h",
+            sub_directory = "gvisor/app",
+        ),
+        struct(
+            template_file = "md_cpp_client_sdk.tmpl",
+            suffix = "_cc_gvisor_app_api_client_sdk.md",
+            sub_directory = "gvisor/app",
         ),
     ])
 ]
@@ -122,26 +141,30 @@ _app_api_handler_js_plugins = [
     struct(
         name = "roma_app_api_js_plugin{}".format(i),
         exclusions = [],
-        option = _get_template_options(plugin.suffix, plugin.template_file),
+        option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
         tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, plugin in enumerate([
         struct(
-            template_file = "js_service_sdk_markdown.tmpl",
+            template_file = "md_js_service_sdk.tmpl",
             suffix = "_js_service_sdk.md",
+            sub_directory = "v8/app",
         ),
         struct(
             template_file = "js_pb_helpers.tmpl",
             suffix = "_pb_helpers.js",
+            sub_directory = "v8",
         ),
         struct(
             template_file = "js_service_handlers.tmpl",
             suffix = "_service_handlers.js",
+            sub_directory = "v8/app",
         ),
         struct(
             template_file = "js_service_handlers_extern.tmpl",
             suffix = "_service_handlers_extern.js",
+            sub_directory = "v8/app",
         ),
     ])
 ]
@@ -164,26 +187,30 @@ def app_api_handler_js_protoc(*, name, roma_app_api, **kwargs):
 _cc_host_template_plugins = [
     struct(
         name = "roma_host_api_cc_plugin{}".format(i),
-        option = _get_template_options(plugin.suffix, plugin.template_file),
+        option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
         tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, plugin in enumerate([
         struct(
-            template_file = "cpp_host_api_client_sdk_markdown.tmpl",
-            suffix = "_cpp_host_api_client_sdk.md",
+            template_file = "md_cpp_client_sdk.tmpl",
+            suffix = "_cc_client_sdk.md",
+            sub_directory = "v8/host",
         ),
         struct(
-            template_file = "cc_host_test_romav8.tmpl",
-            suffix = "_romav8_host_test.cc",
+            template_file = "cpp_test_romav8.tmpl",
+            suffix = "_romav8_test.cc",
+            sub_directory = "v8/host",
         ),
         struct(
-            template_file = "hpp_host_romav8.tmpl",
+            template_file = "hpp_romav8.tmpl",
             suffix = "_roma_host.h",
+            sub_directory = "v8/host",
         ),
         struct(
-            template_file = "handle_native_request_cc.tmpl",
+            template_file = "cpp_handle_native_request.tmpl",
             suffix = "_native_request_handler.h",
+            sub_directory = "v8/host",
         ),
     ])
 ]
@@ -209,22 +236,25 @@ _host_api_js_plugins = [
     struct(
         name = "roma_host_api_js_plugin{}".format(i),
         exclusions = [],
-        option = _get_template_options(plugin.suffix, plugin.template_file),
+        option = _get_template_options(plugin.suffix, plugin.template_file, plugin.sub_directory),
         outputs = ["{basename}" + plugin.suffix],
         tool = "//src/roma/tools/api_plugin:roma_api_plugin",
     )
     for i, plugin in enumerate([
         struct(
-            template_file = "js_host_api_markdown.tmpl",
-            suffix = "_js_host_api.md",
+            template_file = "md_js_service_sdk.tmpl",
+            suffix = "_js_service_sdk.md",
+            sub_directory = "v8/host",
         ),
         struct(
             template_file = "js_pb_helpers.tmpl",
             suffix = "_pb_helpers.js",
+            sub_directory = "v8",
         ),
         struct(
             template_file = "js_callback_wrappers.tmpl",
             suffix = "_callback_wrappers.js",
+            sub_directory = "v8/host",
         ),
     ])
 ]

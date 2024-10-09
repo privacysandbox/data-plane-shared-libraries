@@ -22,9 +22,11 @@
 #include <vector>
 
 #include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/roma_service/roma_service.h"
 
 namespace google::scp::roma::benchmark {
 namespace {
@@ -41,7 +43,7 @@ FakeBaServer::FakeBaServer(DispatchConfig config) {
   roma_service_ =
       std::make_unique<google::scp::roma::sandbox::roma_service::RomaService<>>(
           std::move(config));
-  CHECK(roma_service_->Init().ok());
+  CHECK_OK(roma_service_->Init());
 }
 
 FakeBaServer::~FakeBaServer() { CHECK_OK(roma_service_->Stop()); }

@@ -1,0 +1,38 @@
+workspace(name = "google_privacysandbox_functionaltest_system")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
+load("//:repos.bzl", "test_repositories", repo_repositories = "repositories")
+
+repo_repositories()
+
+test_repositories()
+
+load("//:deps.bzl", "go_dependencies", repo_dependencies = "dependencies")
+
+repo_dependencies()
+
+# gazelle:repository_macro deps.bzl%go_dependencies
+go_dependencies()
+
+# container_structure_test_register_toolchain should probably be in deps.bzl, but
+# @container_structure_test//:repositories.bzl is not exported, so stardoc can't find it
+load("@container_structure_test//:repositories.bzl", "container_structure_test_register_toolchain")
+
+container_structure_test_register_toolchain(name = "cst")
+
+load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+
+bazel_skylib_workspace()
+
+http_archive(
+    name = "io_bazel_stardoc",
+    sha256 = "dfbc364aaec143df5e6c52faf1f1166775a5b4408243f445f44b661cfdc3134f",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/stardoc/releases/download/0.5.6/stardoc-0.5.6.tar.gz",
+        "https://github.com/bazelbuild/stardoc/releases/download/0.5.6/stardoc-0.5.6.tar.gz",
+    ],
+)
+
+load("@io_bazel_stardoc//:setup.bzl", "stardoc_repositories")
+
+stardoc_repositories()

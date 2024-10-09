@@ -21,6 +21,7 @@
 
 #include <string_view>
 
+#include "absl/base/log_severity.h"
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
 #include "src/roma/config/config.h"

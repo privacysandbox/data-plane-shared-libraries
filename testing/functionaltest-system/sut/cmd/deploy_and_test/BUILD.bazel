@@ -1,0 +1,111 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# deploy-and-test command in the functionaltest CLI tool
+
+load("@aspect_bazel_lib//lib:glob_match.bzl", "glob_match")
+load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
+
+genrule(
+    name = "test-tools-docker-uri",
+    outs = ["test-tools-docker-uri.txt"],
+    cmd_bash = "grep -w ^STABLE_TEST_TOOLS_IMAGE_URI bazel-out/stable-status.txt | cut -f2 -d' ' >'$@'",
+    stamp = True,
+)
+
+genrule(
+    name = "test-tools-image",
+    srcs = [":test-tools-docker-uri.txt"],
+    outs = ["test-tools.tar"],
+    cmd_bash = "docker save $$(<$(location :test-tools-docker-uri.txt)) >'$@'",
+    executable = True,
+    local = True,
+    stamp = True,
+)
+
+genrule(
+    name = "bazelrc",
+    srcs = [":test-tools-docker-uri.txt"],
+    outs = [".bazelrc"],
+    cmd_bash = """cat <<EOF >'$@'
+test --test_env=TEST_TOOLS_IMAGE=$$(<$(location :test-tools-docker-uri.txt))
+test --test_verbose_timeout_warnings
+EOF""",
+)
+
+embed_files = glob(["embed/*"])
+
+pkg_files(
+    name = "embed",
+    srcs = embed_files,
+    attributes = pkg_attributes(mode = "0644"),
+    renames = {
+        # rename BUILD.sut files to BUILD.bazel, stripping the `embed/` directory
+        f: f.removeprefix("embed/").replace(".sut", ".bazel")
+        for f in embed_files
+        if glob_match("embed/*.sut", f)
+    },
+)
+
+pkg_zip(
+    name = "embedFS",
+    srcs = [
+        ":.bazelrc",
+        ":embed",
+        ":test-tools.tar",
+        "//:functionaltest-embed",
+    ],
+    out = "embedFS.zip",
+)
+
+go_library(
+    name = "go_default_library",
+    srcs = [
+        "bazel.go",
+        "deploy.go",
+        "docker_compose.go",
+        "unzip.go",
+    ],
+    embedsrcs = [":embedFS.zip"],
+    importpath = "github.com/privacysandbox/functionaltest-system/sut/cmd/deploy_and_test",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//sut/v1:pb",
+        "@com_github_bazelbuild_bazelisk//core:go_default_library",
+        "@com_github_bazelbuild_bazelisk//repositories:go_default_library",
+        "@com_github_bgentry_go_netrc//netrc",
+        "@com_github_moby_moby//api/types/container:go_default_library",
+        "@com_github_moby_moby//api/types/image:go_default_library",
+        "@com_github_moby_moby//client:go_default_library",
+        "@com_github_moby_moby//pkg/jsonmessage:go_default_library",
+        "@com_github_spf13_cobra//:cobra",
+        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_google_protobuf//proto:go_default_library",
+    ],
+)
+
+go_test(
+    name = "lib_test",
+    size = "small",
+    srcs = [
+        "bazel_test.go",
+        "deploy_test.go",
+        "unzip_test.go",
+    ],
+    embed = [
+        ":go_default_library",
+    ],
+)

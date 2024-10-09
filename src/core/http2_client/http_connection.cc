@@ -446,9 +446,13 @@ ExecutionResult HttpConnection::ConvertHttpStatusCodeToExecutionResult(
     const errors::HttpStatusCode status_code) noexcept {
   switch (status_code) {
     case errors::HttpStatusCode::OK:
+      [[fallthrough]];
     case errors::HttpStatusCode::CREATED:
+      [[fallthrough]];
     case errors::HttpStatusCode::ACCEPTED:
+      [[fallthrough]];
     case errors::HttpStatusCode::NO_CONTENT:
+      [[fallthrough]];
     case errors::HttpStatusCode::PARTIAL_CONTENT:
       return SuccessExecutionResult();
     case errors::HttpStatusCode::MULTIPLE_CHOICES:

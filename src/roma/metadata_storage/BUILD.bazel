@@ -21,9 +21,10 @@ cc_library(
     ],
     deps = [
         "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/container:node_hash_map",
-        "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
     ],
@@ -33,12 +34,14 @@ cc_library(
     name = "metadata_storage",
     hdrs = ["metadata_storage.h"],
     visibility = [
+        "//src/roma/gvisor:__subpackages__",
         "//src/roma/native_function_grpc_server:__subpackages__",
         "//src/roma/roma_service:__subpackages__",
         "//src/roma/sandbox/native_function_binding:__subpackages__",
     ],
     deps = [
         ":thread_safe_map",
+        "@com_google_absl//absl/status",
     ],
 )
 
@@ -48,7 +51,6 @@ cc_test(
     srcs = ["thread_safe_map_test.cc"],
     deps = [
         ":thread_safe_map",
-        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_googletest//:gtest_main",
     ],

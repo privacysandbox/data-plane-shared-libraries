@@ -26,9 +26,11 @@
 
 #include <benchmark/benchmark.h>
 
+#include "absl/strings/str_cat.h"
 #include "src/roma/benchmark/fake_kv_server.h"
 #include "src/roma/benchmark/test_code.h"
 #include "src/roma/config/config.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/wasm/testing_utils.h"
 
 namespace {
@@ -115,7 +117,7 @@ void BM_ExecuteHelloWorldCallback(benchmark::State& state) {
   state.SetItemsProcessed(state.iterations());
 }
 
-void BM_LoadHelloWorld(benchmark::State& state) {
+void BM_LoadCodeWithPadding(benchmark::State& state) {
   LoadCodeBenchmark(google::scp::roma::benchmark::kCodeHelloWorld,
                     google::scp::roma::benchmark::kHandlerNameHelloWorld,
                     state);
@@ -140,10 +142,30 @@ void BM_ExecutePrimeSieve(benchmark::State& state) {
                        state);
 }
 
+void BM_ExecuteWasmHelloWorld(benchmark::State& state) {
+  const std::string inline_wasm_js =
+      google::scp::roma::wasm::testing::WasmTestingUtils::LoadJsWithWasmFile(
+          "src/roma/testing/cpp_wasm_hello_world_example/"
+          "cpp_wasm_hello_world_example_generated.js");
+
+  const std::string udf = R"(
+async function HandleRequest() {
+  const module = await getModule();
+
+  const result = module.HelloClass.SayHello();
+  return result;
+}
+)";
+
+  std::string code = absl::StrCat(inline_wasm_js, udf);
+  std::string handler_name = "HandleRequest";
+  ExecuteCodeBenchmark(code, handler_name, state);
+}
+
 void BM_ExecuteWasmPrimeSieve(benchmark::State& state) {
   const std::string inline_wasm_js =
       google::scp::roma::wasm::testing::WasmTestingUtils::LoadJsWithWasmFile(
-          "./src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example/"
+          "src/roma/testing/cpp_wasm_sieve_of_eratosthenes_example/"
           "cpp_wasm_sieve_of_eratosthenes_example_generated.js");
 
   const std::string udf = R"(
@@ -163,18 +185,21 @@ async function HandleRequest() {
 }  // namespace
 
 // Register the function as a benchmark
-BENCHMARK(BM_LoadHelloWorld)
+BENCHMARK(BM_LoadCodeWithPadding)
     ->ArgsProduct({
         // Pad with this many extra bytes.
         {0, 128, 512, 1024, 10'000, 20'000, 50'000, 100'000, 200'000, 500'000},
-    });
+    })
+    ->ArgNames({"padding_in_bytes"});
 BENCHMARK(BM_LoadGoogleAdManagerGenerateBid)
     ->ArgsProduct({
         {0},  // No need to pad this code with extra bytes.
-    });
+    })
+    ->ArgNames({"padding_in_bytes"});
 BENCHMARK(BM_ExecuteHelloWorld);
 BENCHMARK(BM_ExecuteHelloWorldCallback);
 BENCHMARK(BM_ExecutePrimeSieve);
+BENCHMARK(BM_ExecuteWasmHelloWorld);
 BENCHMARK(BM_ExecuteWasmPrimeSieve);
 
 // Run the benchmark

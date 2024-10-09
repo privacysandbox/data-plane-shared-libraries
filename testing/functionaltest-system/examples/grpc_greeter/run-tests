@@ -1,0 +1,116 @@
+#!/bin/bash
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Test runner for the build system. This script should preferably be run
+# "directly" and not inside docker, permitting the test cases to execute
+# both inside and outside a docker container.
+
+set -o pipefail
+set -o errexit
+
+trap _cleanup EXIT
+function _cleanup() {
+  declare -r -i status=$?
+  if [[ ${status} -ne 0 ]]; then
+    printf "Error: run-tests status code: %d\n" "${status}"
+  fi
+  if [[ -n ${LOCAL_TESTS_DIR} ]]; then
+    docker compose --file "${LOCAL_TESTS_DIR}"/docker-compose.yaml down
+  fi
+  if [[ -n ${WORKSPACE_TMPFILE} ]]; then
+    rm -f "${WORKSPACE_TMPFILE}"
+  fi
+  exit ${status}
+}
+
+function usage() {
+  declare -r -i exitval=$?
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 [options]
+    --verbose       Produce verbose output
+USAGE
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --verbose)
+      set -o xtrace
+      shift
+      ;;
+    -h | --help) usage 0 ;;
+    *)
+      printf "unrecognized arg: %s\n" "$1"
+      usage
+      ;;
+  esac
+done
+
+function buildozer_filter() {
+  "${TOOLS_DIR}"/buildozer -stdout "$@"
+}
+
+# run the tests using a bazel-debian docker container
+function container_run_test() {
+  declare -r FUNCTEST_REPO_NAME=google_privacysandbox_functionaltest_system
+  declare -r FUNCTEST_REPO_PATH=/src/repos/functionaltest_system
+  buildozer_filter "set path ${FUNCTEST_REPO_PATH} ${FUNCTEST_REPO_NAME}" -:"${FUNCTEST_REPO_NAME}" \
+    <"${TEST_REPO}"/WORKSPACE \
+    >"${WORKSPACE_TMPFILE}"
+
+  # when overriding WORKSPACE_MOUNT, we also need to set CBUILD_IMAGE as the new
+  # WORKSPACE_MOUNT value will cause get-builder-image-tagged to fail
+  local -r CBUILD_IMAGE="$("${TOOLS_DIR}"/get-builder-image-tagged --image build-debian)"
+  export CBUILD_IMAGE
+  declare -r -x WORKSPACE_MOUNT="${TEST_REPO}"
+  EXTRA_DOCKER_RUN_ARGS="${EXTRA_DOCKER_RUN_ARGS} --volume /tmp:/tmp --volume ${REPO_ROOT}:${FUNCTEST_REPO_PATH} --volume ${WORKSPACE_TMPFILE}:/src/workspace/WORKSPACE" \
+    "${TOOLS_DIR}"/bazel-debian test "${TESTS[@]}" "${TEST_ARGS[@]}"
+}
+
+function ensure_docker_compose() {
+  if ! docker compose version --short | grep -q ^2\. &>/dev/null; then
+    printf "docker compose v2 is required\n" &>/dev/stderr
+    exit 1
+  fi
+}
+
+ensure_docker_compose
+
+WORKSPACE_TMPFILE="$(mktemp)"
+readonly WORKSPACE_TMPFILE
+
+TEST_REPO="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
+readonly TEST_REPO
+
+declare -r REPO_ROOT="${TEST_REPO}/../.."
+readonly TOOLS_DIR="${REPO_ROOT}"/builders/tools
+
+cd "${REPO_ROOT}"/tests/servers
+"${TOOLS_DIR}"/bazel-debian run //:docker_load_image
+
+cd "${REPO_ROOT}"
+
+declare -r LOCAL_TESTS_DIR="${TEST_REPO}"
+declare -a -r TEST_ARGS=(
+  "--test_env=TEST_TOOLS_IMAGE=$("${TOOLS_DIR}"/get-builder-image-tagged --image test-tools --verbose)"
+)
+declare -a -r TESTS=(
+  //test_cases/grpc:ghz-greeter_tests
+  //test_cases/grpc:grpcurl-greeter_tests
+)
+
+docker compose --file "${LOCAL_TESTS_DIR}"/docker-compose.yaml up --quiet-pull --detach
+
+container_run_test

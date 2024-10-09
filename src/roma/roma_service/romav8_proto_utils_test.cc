@@ -19,6 +19,10 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string>
+
+#include "absl/status/status.h"
+#include "absl/status/statusor.h"
 #include "src/roma/roma_service/helloworld.pb.h"
 
 namespace google::scp::roma::romav8 {

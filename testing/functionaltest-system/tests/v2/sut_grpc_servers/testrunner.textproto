@@ -1,0 +1,32 @@
+name: "functionaltest-v2-test-sut"
+
+deploy: {
+  compose: {
+    yaml_filename: "docker-compose.yaml"
+    env_filenames: "docker-compose.env"
+    docker_image_files: "docker_images/grpc_examples.tar"
+  }
+}
+
+stages: {
+  command: {
+    bazel: {
+      test_targets: "//test_cases:greeter-sayhello-envoy-grpc-diff"
+      test_targets: "//test_cases:greeter-sayhello-envoy-grpc-perf"
+    }
+  }
+}
+stages: {
+  command: {
+    shell: {
+      command: "./myapp"
+    }
+  }
+}
+stages: {
+  command: {
+    bazel: {
+      test_targets: "//test_cases:all_tests"
+    }
+  }
+}

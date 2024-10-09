@@ -42,7 +42,10 @@ class KeyFetcherManager : public KeyFetcherManagerInterface {
       std::unique_ptr<
           privacy_sandbox::server_common::PrivateKeyFetcherInterface>
           private_key_fetcher,
-      std::shared_ptr<privacy_sandbox::server_common::Executor> executor);
+      std::shared_ptr<privacy_sandbox::server_common::Executor> executor,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext));
 
   // Waits for any in-flight key fetch flows to complete, cancels the next
   // queued key fetch flow run, and cleans up the key service clients.
@@ -79,6 +82,9 @@ class KeyFetcherManager : public KeyFetcherManagerInterface {
 
   // Identifier for the next, queued up key refresh task on the executor.
   TaskId task_id_;
+
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context_;
 };
 
 }  // namespace privacy_sandbox::server_common

@@ -1,0 +1,31 @@
+load("//bazel:ssl_cert.bzl", "generate_ca_bundle", "generate_ssl_certificate")
+
+generate_ssl_certificate("test_cert", "test_domain")
+
+generate_ssl_certificate("test1a_cert", "test_domain1")
+
+generate_ssl_certificate("test1b_cert", "test_domain1")
+
+generate_ssl_certificate("test2_cert", "test_domain2")
+
+generate_ssl_certificate("test3_cert", "test_domain3")
+
+generate_ssl_certificate("test4_cert", "test_domain4")
+
+generate_ssl_certificate("test5_cert", "test_domain5")
+
+generate_ca_bundle(
+    "a_bundle",
+    [
+        ":test1a_cert_root_ca.cert",
+        ":test_cert_root_ca.cert",
+    ],
+)
+
+generate_ca_bundle(
+    "b_bundle",
+    [
+        ":test1b_cert_root_ca.cert",
+        ":test4_cert_root_ca.cert",
+    ],
+)

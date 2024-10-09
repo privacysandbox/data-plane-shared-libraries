@@ -40,11 +40,13 @@ KeyFetcherManager::KeyFetcherManager(
     absl::Duration key_refresh_period,
     std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
     std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-    std::shared_ptr<privacy_sandbox::server_common::Executor> executor)
+    std::shared_ptr<privacy_sandbox::server_common::Executor> executor,
+    privacy_sandbox::server_common::log::PSLogContext& log_context)
     : key_refresh_period_(key_refresh_period),
       executor_(std::move(executor)),
       public_key_fetcher_(std::move(public_key_fetcher)),
-      private_key_fetcher_(std::move(private_key_fetcher)) {}
+      private_key_fetcher_(std::move(private_key_fetcher)),
+      log_context_(log_context) {}
 
 KeyFetcherManager::~KeyFetcherManager() {
   shutdown_requested_.Notify();
@@ -64,19 +66,21 @@ void KeyFetcherManager::RunPeriodicKeyRefresh() {
       absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
       if (!public_key_refresh_status.ok()) {
         KeyFetchResultCounter::IncrementPublicKeyFetchSyncFailureCount();
-        VLOG(1) << "Public key refresh failed: "
-                << public_key_refresh_status.message();
+        PS_LOG(ERROR, log_context_) << "Public key refresh failed: "
+                                    << public_key_refresh_status.message();
       }
     }
 
     absl::Status private_key_refresh_status = private_key_fetcher_->Refresh();
     if (!private_key_refresh_status.ok()) {
       KeyFetchResultCounter::IncrementPrivateKeyFetchSyncFailureCount();
-      VLOG(1) << "Private key refresh failed: " << private_key_refresh_status;
+      PS_LOG(ERROR, log_context_)
+          << "Private key refresh failed: " << private_key_refresh_status;
     }
   } else {
-    VLOG(3) << "Shutdown requested; skipping run of KeyFetcherManager's key "
-               "refresh flow.";
+    PS_LOG(ERROR, log_context_)
+        << "Shutdown requested; skipping run of KeyFetcherManager's key "
+           "refresh flow.";
   }
 }
 
@@ -94,10 +98,11 @@ std::unique_ptr<KeyFetcherManagerInterface> KeyFetcherManagerFactory::Create(
     absl::Duration key_refresh_period,
     std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
     std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-    std::shared_ptr<privacy_sandbox::server_common::Executor> executor) {
+    std::shared_ptr<privacy_sandbox::server_common::Executor> executor,
+    privacy_sandbox::server_common::log::PSLogContext& log_context) {
   return std::make_unique<KeyFetcherManager>(
       key_refresh_period, std::move(public_key_fetcher),
-      std::move(private_key_fetcher), std::move(executor));
+      std::move(private_key_fetcher), std::move(executor), log_context);
 }
 
 }  // namespace privacy_sandbox::server_common
