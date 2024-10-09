@@ -16,10 +16,11 @@ package main
 
 import (
 	_ "embed"
+	"strings"
+
 	romaApi "github.com/privacysandbox/data-plane-shared/apis/roma/v1"
 	gendoc "github.com/pseudomuto/protoc-gen-doc"
 	"github.com/pseudomuto/protoc-gen-doc/extensions"
-	"strings"
 )
 
 //go:embed embed/version.txt
@@ -60,13 +61,29 @@ func init() {
 		},
 	)
 	extensions.SetTransformer(
-		"privacysandbox.apis.roma.app_api.v1.roma_field_annotation",
+		"privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation",
 		func(payload interface{}) interface{} {
-			if obj, ok := payload.(*romaApi.RomaFieldAnnotation); ok {
+			if obj, ok := payload.(*romaApi.RomaMessageAnnotation); ok {
 				return obj
 			} else {
 				return nil
 			}
 		},
 	)
+	for _, name := range []string{
+		"privacysandbox.apis.roma.app_api.v1.roma_enum_annotation",
+		"privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation",
+		"privacysandbox.apis.roma.app_api.v1.roma_field_annotation",
+	} {
+		extensions.SetTransformer(
+			name,
+			func(payload interface{}) interface{} {
+				if obj, ok := payload.(*romaApi.RomaFieldAnnotation); ok {
+					return obj
+				} else {
+					return nil
+				}
+			},
+		)
+	}
 }
