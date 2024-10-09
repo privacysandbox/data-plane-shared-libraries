@@ -91,11 +91,3 @@ message RomaFieldAnnotation {
 message RomaMessageAnnotation {
   string description = 1;
 }
-
-message RomaEnumAnnotation {
-  string description = 1;
-}
-
-message RomaEnumValueAnnotation {
-  string description = 1;
-}
