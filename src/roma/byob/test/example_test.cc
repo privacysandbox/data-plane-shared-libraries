@@ -125,7 +125,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobExampleTest, NotifExecuteCppBinary) {
+TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
   ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
   const std::string message = "I am a test Cpp message.";
   const std::string code_token =
@@ -144,7 +144,7 @@ TEST(RomaByobExampleTest, NotifExecuteCppBinary) {
   EXPECT_THAT((*response)->message(), StrEq(message));
 }
 
-TEST(RomaByobExampleTest, AsyncCallbackExecuteCppBinary) {
+TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
   ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
   const std::string message = "I am a test Cpp message.";
   const std::string code_token =
@@ -166,7 +166,7 @@ TEST(RomaByobExampleTest, AsyncCallbackExecuteCppBinary) {
   EXPECT_THAT(bin_response->message(), StrEq(message));
 }
 
-TEST(RomaByobExampleTest, NotifExecuteGoBinary) {
+TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
   ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
   const std::string message = "I am a test Go binary message.";
   const std::string code_token =
@@ -185,7 +185,7 @@ TEST(RomaByobExampleTest, NotifExecuteGoBinary) {
   EXPECT_THAT((*response)->message(), StrEq(message));
 }
 
-TEST(RomaByobExampleTest, AsyncCallbackExecuteGoBinary) {
+TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
   ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
   const std::string message = "I am a test Go binary message.";
   const std::string code_token =

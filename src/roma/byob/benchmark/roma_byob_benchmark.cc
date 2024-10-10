@@ -229,7 +229,7 @@ static void LoadArguments(benchmark::internal::Benchmark* b) {
   }
 }
 
-static void ExecuteSampleBinaryArguments(benchmark::internal::Benchmark* b) {
+static void SampleBinaryArguments(benchmark::internal::Benchmark* b) {
   constexpr FunctionType function_types[] = {
       FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
       FUNCTION_PRIME_SIEVE,               // Sieve of primes
@@ -309,7 +309,7 @@ void BM_LoadBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_ExecuteBinary(benchmark::State& state) {
+void BM_ProcessRequest(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
   ByobSampleService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
@@ -328,7 +328,7 @@ void BM_ExecuteBinary(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_ExecuteBinaryUsingCallback(benchmark::State& state) {
+void BM_ProcessRequestUsingCallback(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
   ByobSampleService<> roma_service =
       GetRomaService(mode, /*num_workers=*/state.range(2));
@@ -364,7 +364,7 @@ void BM_ExecuteBinaryUsingCallback(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_ExecuteBinaryCppVsGoLang(benchmark::State& state) {
+void BM_ProcessRequestCppVsGoLang(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
   ByobSampleService<> roma_service =
       GetRomaService(Mode::kModeSandbox, /*num_workers=*/2);
@@ -399,7 +399,7 @@ std::string GetSize(int64_t val) {
   return absl::StrCat(val / divisor, unit_qual, "B");
 }
 
-void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
+void BM_ProcessRequestRequestPayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -445,7 +445,7 @@ void BM_ExecuteBinaryRequestPayload(benchmark::State& state) {
                           payload_size);
 }
 
-void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
+void BM_ProcessRequestResponsePayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -492,7 +492,7 @@ void BM_ExecuteBinaryResponsePayload(benchmark::State& state) {
                           req_payload_size);
 }
 
-void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
+void BM_ProcessRequestCallbackRequestPayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -544,7 +544,7 @@ void BM_ExecuteBinaryCallbackRequestPayload(benchmark::State& state) {
                           payload_size);
 }
 
-void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
+void BM_ProcessRequestCallbackResponsePayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
@@ -596,7 +596,7 @@ void BM_ExecuteBinaryCallbackResponsePayload(benchmark::State& state) {
                           payload_size);
 }
 
-void BM_ExecuteBinaryPrimeSieve(benchmark::State& state) {
+void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .num_workers = 2,
@@ -630,7 +630,7 @@ void BM_ExecuteBinaryPrimeSieve(benchmark::State& state) {
   state.SetLabel(GetModeStr(mode));
 }
 
-void BM_ExecuteBinarySortList(benchmark::State& state) {
+void BM_ProcessRequestSortList(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .num_workers = 2,
@@ -671,7 +671,7 @@ void BM_ExecuteBinarySortList(benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
-BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
+BENCHMARK(BM_ProcessRequestCppVsGoLang)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
@@ -684,23 +684,23 @@ BENCHMARK(BM_ExecuteBinaryCppVsGoLang)
     })
     ->ArgNames({"lang", "udf"});
 
-BENCHMARK(BM_ExecuteBinary)
-    ->Apply(ExecuteSampleBinaryArguments)
+BENCHMARK(BM_ProcessRequest)
+    ->Apply(SampleBinaryArguments)
     ->ArgNames({"mode", "udf", "num_workers"});
 
-BENCHMARK(BM_ExecuteBinaryUsingCallback)
-    ->Apply(ExecuteSampleBinaryArguments)
+BENCHMARK(BM_ProcessRequestUsingCallback)
+    ->Apply(SampleBinaryArguments)
     ->ArgNames({"mode", "udf", "num_workers"});
 
-BENCHMARK(BM_ExecuteBinaryRequestPayload)->Apply(PayloadArguments);
-BENCHMARK(BM_ExecuteBinaryResponsePayload)->Apply(PayloadArguments);
-BENCHMARK(BM_ExecuteBinaryCallbackRequestPayload)->Apply(PayloadArguments);
-BENCHMARK(BM_ExecuteBinaryCallbackResponsePayload)->Apply(PayloadArguments);
-BENCHMARK(BM_ExecuteBinaryPrimeSieve)
+BENCHMARK(BM_ProcessRequestRequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ProcessRequestResponsePayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ProcessRequestCallbackRequestPayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ProcessRequestCallbackResponsePayload)->Apply(PayloadArguments);
+BENCHMARK(BM_ProcessRequestPrimeSieve)
     ->Apply(ExecutePrimeSieveArguments)
     ->ArgNames({"mode", "prime_count"});
 
-BENCHMARK(BM_ExecuteBinarySortList)
+BENCHMARK(BM_ProcessRequestSortList)
     ->Apply(ExecuteSortListArguments)
     ->ArgNames({"mode", "n_items"});
 

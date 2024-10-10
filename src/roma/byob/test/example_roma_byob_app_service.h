@@ -104,7 +104,7 @@ class ByobEchoService final
           response,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    return roma_service_->ExecuteBinary(
+    return roma_service_->ProcessRequest(
         code_token, request, std::move(metadata), notification, response);
   }
 
@@ -117,7 +117,7 @@ class ByobEchoService final
           request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    return roma_service_->template ExecuteBinary<
+    return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
         code_token, request, std::move(metadata), std::move(callback));
   }

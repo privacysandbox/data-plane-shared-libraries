@@ -160,7 +160,7 @@ TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobTest, ExecuteMultipleCppBinariesInSandboxMode) {
+TEST(RomaByobTest, ProcessRequestMultipleCppBinariesInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox,
                                                     /*num_workers=*/2);
 
@@ -177,7 +177,7 @@ TEST(RomaByobTest, ExecuteMultipleCppBinariesInSandboxMode) {
       ::testing::StrEq(kNewUdfOutput));
 }
 
-TEST(RomaByobTest, ExecuteMultipleCppBinariesInNonSandboxMode) {
+TEST(RomaByobTest, ProcessRequestMultipleCppBinariesInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
@@ -218,7 +218,7 @@ TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
       ::testing::StrEq(kFirstUdfOutput));
 }
 
-TEST(RomaByobTest, AsyncCallbackExecuteCppBinary) {
+TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
 
   std::string code_token =
@@ -241,7 +241,7 @@ TEST(RomaByobTest, AsyncCallbackExecuteCppBinary) {
   EXPECT_THAT(bin_response->greeting(), kFirstUdfOutput);
 }
 
-TEST(RomaByobTest, ExecuteGoLangBinaryInSandboxMode) {
+TEST(RomaByobTest, ProcessRequestGoLangBinaryInSandboxMode) {
   ByobSampleService<> roma_service =
       GetRomaService(Mode::kModeSandbox, /*num_workers=*/2);
 
@@ -252,7 +252,7 @@ TEST(RomaByobTest, ExecuteGoLangBinaryInSandboxMode) {
               kGoBinaryOutput);
 }
 
-TEST(RomaByobTest, ExecuteCppBinaryWithHostCallbackInSandboxMode) {
+TEST(RomaByobTest, ProcessRequestCppBinaryWithHostCallbackInSandboxMode) {
   int64_t elem_size = 5;
   int64_t elem_count = 10;
   ::privacy_sandbox::server_common::byob::Config<> config = {

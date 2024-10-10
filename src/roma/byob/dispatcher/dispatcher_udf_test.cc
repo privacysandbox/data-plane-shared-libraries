@@ -88,7 +88,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -132,7 +132,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -177,7 +177,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -221,7 +221,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -265,7 +265,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -308,7 +308,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -352,7 +352,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -396,7 +396,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -440,7 +440,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -484,7 +484,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -529,7 +529,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -573,7 +573,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);
@@ -617,7 +617,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&bin_response, &done](auto response) {
           bin_response = std::move(response);

@@ -163,21 +163,21 @@ class RomaService final {
   }
 
   template <typename Response, typename Request>
-  absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
+  absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
-    dispatcher_->ExecuteBinary(code_token, request, std::move(metadata),
-                               function_bindings_, std::move(callback));
+    dispatcher_->ProcessRequest(code_token, request, std::move(metadata),
+                                function_bindings_, std::move(callback));
     return google::scp::roma::ExecutionToken(
         ToString(google::scp::core::common::Uuid::GenerateUuid()));
   }
 
   template <typename Response, typename Request>
-  absl::StatusOr<google::scp::roma::ExecutionToken> ExecuteBinary(
+  absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::Notification& notif,
       absl::StatusOr<std::unique_ptr<Response>>& output) {
-    return ExecuteBinary<Response>(
+    return ProcessRequest<Response>(
         code_token, request, std::move(metadata),
         [&notif, &output](absl::StatusOr<Response> response) {
           if (response.ok()) {

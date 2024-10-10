@@ -48,7 +48,7 @@ class Dispatcher {
 
   template <typename Response, typename Table, typename Metadata,
             typename Request>
-  void ExecuteBinary(
+  void ProcessRequest(
       std::string_view code_token, const Request& request, Metadata metadata,
       const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback)

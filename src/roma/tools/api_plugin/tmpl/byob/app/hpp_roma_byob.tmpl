@@ -118,7 +118,7 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "")
       override {
-    return roma_service_->ExecuteBinary(
+    return roma_service_->ProcessRequest(
       code_token, request, std::move(metadata), notification, response);
   }
 
@@ -127,7 +127,7 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "") override {
-    return roma_service_->template ExecuteBinary<{{$respType}}>(
+    return roma_service_->template ProcessRequest<{{$respType}}>(
       code_token, request, std::move(metadata), std::move(callback));
   }
 {{end}}

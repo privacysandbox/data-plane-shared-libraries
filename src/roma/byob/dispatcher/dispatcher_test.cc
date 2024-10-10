@@ -245,7 +245,7 @@ TEST(DispatcherTest, LoadAndExecute) {
         function_table;
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/0, function_table,
         [&](auto response) {
           bin_response = std::move(response);
@@ -297,7 +297,7 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::Notification done;
-  dispatcher.ExecuteBinary<SampleResponse>(
+  dispatcher.ProcessRequest<SampleResponse>(
       *code_token, bin_request, /*metadata=*/0, function_table,
       [&](auto response) { done.Notify(); });
   done.WaitForNotification();
@@ -388,7 +388,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                            }}};
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request,
         /*metadata=*/std::string{"dummy_data"}, function_table,
         [&](auto response) {
@@ -468,7 +468,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request,
         /*metadata=*/std::string{"dummy_data"}, function_table,
         [&](auto response) {
@@ -558,7 +558,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
                          }}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ExecuteBinary<SampleResponse>(
+    dispatcher.ProcessRequest<SampleResponse>(
         *code_token, bin_request, /*metadata=*/i, function_table,
         [&counter](auto response) { counter.DecrementCount(); });
   }
