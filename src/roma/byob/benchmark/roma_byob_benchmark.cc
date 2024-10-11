@@ -115,16 +115,17 @@ SampleResponse SendRequestAndGetResponse(
 }
 
 std::string LoadCode(ByobSampleService<>& roma_service,
-                     std::filesystem::path file_path,
-                     bool enable_log_egress = false) {
+                     std::filesystem::path file_path, bool enable_log_egress,
+                     int num_workers) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id;
   if (!enable_log_egress) {
-    code_id = roma_service.Register(file_path, notif, notif_status);
+    code_id =
+        roma_service.Register(file_path, notif, notif_status, num_workers);
   } else {
     code_id = roma_service.RegisterForLogging(file_path, notif, notif_status,
-                                              /*num_workers=*/10);
+                                              num_workers);
   }
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -140,9 +141,8 @@ ByobSampleService<> GetRomaService(
   return *std::move(sample_interface);
 }
 
-ByobSampleService<> GetRomaService(Mode mode, int num_workers) {
+ByobSampleService<> GetRomaService(Mode mode) {
   ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
@@ -316,17 +316,21 @@ static void PayloadArguments(benchmark::internal::Benchmark* b) {
 
 void BM_LoadBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
+  ByobSampleService<> roma_service = GetRomaService(mode);
   FunctionType func_type = FUNCTION_HELLO_WORLD;
 
   auto bin_response = SendRequestAndGetResponse(
       roma_service, func_type,
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename));
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename,
+               /*enable_log_egress=*/false,
+               /*num_workers=*/1));
   VerifyResponse(bin_response, kFirstUdfOutput);
 
   std::string code_token;
   for (auto _ : state) {
-    code_token = LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
+    code_token = LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename,
+                          /*enable_log_egress=*/false,
+                          /*num_workers=*/1);
   }
   bin_response = SendRequestAndGetResponse(roma_service, func_type, code_token);
   VerifyResponse(bin_response, kNewUdfOutput);
@@ -336,11 +340,12 @@ void BM_LoadBinary(benchmark::State& state) {
 
 void BM_ProcessRequest(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  ByobSampleService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/state.range(2));
+  ByobSampleService<> roma_service = GetRomaService(mode);
 
   std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename,
+               /*enable_log_egress=*/false,
+               /*num_workers=*/state.range(2));
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
   auto response =
@@ -355,11 +360,12 @@ void BM_ProcessRequest(benchmark::State& state) {
 
 void BM_ProcessRequestUsingCallback(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
-  ByobSampleService<> roma_service =
-      GetRomaService(mode, /*num_workers=*/state.range(2));
+  ByobSampleService<> roma_service = GetRomaService(mode);
 
   std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename,
+               /*enable_log_egress=*/false,
+               /*num_workers=*/state.range(2));
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
   // Data we are sending to the server.
@@ -397,7 +403,6 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
     mounts = "/proc/self";
   }
   ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = 2,
       .roma_container_name = "roma_server",
       .lib_mounts = std::move(mounts),
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
@@ -406,7 +411,8 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
       GetRomaService(Mode::kModeSandbox, std::move(config));
 
   std::string code_token =
-      LoadCode(roma_service, GetFilePathFromLanguage(lang));
+      LoadCode(roma_service, GetFilePathFromLanguage(lang),
+               /*enable_log_egress=*/false, /*num_workers=*/2);
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
   std::string expected_response;
@@ -447,7 +453,7 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
-  ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
+  ByobSampleService<> roma_service = GetRomaService(mode);
 
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
@@ -469,7 +475,9 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
     payloads->Add(payload.data());
   }
 
-  std::string code_tok = LoadCode(roma_service, kUdfPath / kPayloadUdfFilename);
+  std::string code_tok =
+      LoadCode(roma_service, kUdfPath / kPayloadUdfFilename,
+               /*enable_log_egress=*/false, /*num_workers=*/2);
 
   const int64_t payload_size = elem_size * elem_count;
   if (const auto response = rpc(request, code_tok); response.ok()) {
@@ -493,7 +501,7 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
   int64_t elem_size = state.range(0);
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
-  ByobSampleService<> roma_service = GetRomaService(mode, /*num_workers=*/2);
+  ByobSampleService<> roma_service = GetRomaService(mode);
 
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
@@ -513,7 +521,8 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
   const int64_t req_payload_size = elem_size * elem_count;
 
   std::string code_tok =
-      LoadCode(roma_service, kUdfPath / kPayloadWriteUdfFilename);
+      LoadCode(roma_service, kUdfPath / kPayloadWriteUdfFilename,
+               /*enable_log_egress=*/false, /*num_workers=*/2);
 
   int64_t response_payload_size = 0;
   if (const auto response = rpc(request, code_tok); response.ok()) {
@@ -541,7 +550,6 @@ void BM_ProcessRequestCallbackRequestPayload(benchmark::State& state) {
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
   ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = 2,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example",
                                                       ReadCallbackPayload}},
@@ -569,7 +577,9 @@ void BM_ProcessRequestCallbackRequestPayload(benchmark::State& state) {
   const int64_t payload_size = elem_size * elem_count;
 
   std::string code_tok =
-      LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename);
+      LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename,
+               /*enable_log_egress=*/false,
+               /*num_workers=*/2);
 
   if (const auto response = rpc(code_tok, request); response.ok()) {
     CHECK((*response)->payload_size() == payload_size);
@@ -593,7 +603,6 @@ void BM_ProcessRequestCallbackResponsePayload(benchmark::State& state) {
   int64_t elem_count = state.range(1);
   Mode mode = static_cast<Mode>(state.range(2));
   ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = 2,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example",
                                                       WriteCallbackPayload}},
@@ -621,7 +630,9 @@ void BM_ProcessRequestCallbackResponsePayload(benchmark::State& state) {
   const int64_t payload_size = elem_size * elem_count;
 
   std::string code_tok =
-      LoadCode(roma_service, kUdfPath / kCallbackPayloadWriteUdfFilename);
+      LoadCode(roma_service, kUdfPath / kCallbackPayloadWriteUdfFilename,
+               /*enable_log_egress=*/false,
+               /*num_workers=*/2);
 
   if (const auto response = rpc(code_tok, request); response.ok()) {
     CHECK((*response)->payload_size() == payload_size);
@@ -642,14 +653,7 @@ void BM_ProcessRequestCallbackResponsePayload(benchmark::State& state) {
 
 void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
-  ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = 2,
-      .roma_container_name = "roma_server",
-  };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, mode);
-  CHECK_OK(sample_interface);
-  ByobSampleService<> roma_service = std::move(*sample_interface);
+  ByobSampleService<> roma_service = GetRomaService(mode);
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<RunPrimeSieveResponse>> response;
@@ -662,7 +666,9 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   ::privacy_sandbox::roma_byob::example::RunPrimeSieveRequest request;
   request.set_prime_count(state.range(1));
   const std::string code_tok = LoadCode(
-      roma_service, std::filesystem::path(kUdfPath) / "prime_sieve_udf");
+      roma_service, std::filesystem::path(kUdfPath) / "prime_sieve_udf",
+      /*enable_log_egress=*/false,
+      /*num_workers=*/2);
   {
     const auto response = rpc(code_tok, request);
     CHECK_OK(response);
@@ -676,14 +682,7 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
 
 void BM_ProcessRequestSortList(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
-  ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = 2,
-      .roma_container_name = "roma_server",
-  };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, mode);
-  CHECK_OK(sample_interface);
-  ByobSampleService<> roma_service = std::move(*sample_interface);
+  ByobSampleService<> roma_service = GetRomaService(mode);
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<SortListResponse>> response;
@@ -706,7 +705,9 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
     }
   }(state.range(1));
   const std::string code_tok =
-      LoadCode(roma_service, std::filesystem::path(kUdfPath) / filename);
+      LoadCode(roma_service, std::filesystem::path(kUdfPath) / filename,
+               /*enable_log_egress=*/false,
+               /*num_workers=*/2);
   SortListRequest request;
   for (auto _ : state) {
     CHECK_OK(rpc(code_tok, request));
@@ -716,14 +717,7 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
 
 void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
   const Log log = static_cast<Log>(state.range(0));
-  ::privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = 10,
-      .roma_container_name = "roma_server",
-  };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, Mode::kModeSandbox);
-  CHECK_OK(sample_interface);
-  ByobSampleService<> roma_service = std::move(*sample_interface);
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const bool enable_log_egress = [](Log log) {
     switch (log) {
       case Log::kLogToDevNull:
@@ -757,7 +751,7 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
 
   const std::string code_token = LoadCode(
       roma_service, std::filesystem::path(kUdfPath) / "log_benchmark_udf",
-      enable_log_egress);
+      enable_log_egress, /*num_workers=*/10);
   ::sleep(/*seconds=*/5);
   LogRequest request;
   request.set_log_count(state.range(1));

@@ -75,7 +75,7 @@ int main(int argc, char** argv) {
 
   // Initialize BYOB.
   absl::StatusOr<{{$svcName}}<>> service = {{$svcName}}<>::Create(
-      {.num_workers = num_workers},
+      /*config=*/{},
       absl::GetFlag(FLAGS_sandbox) ? Mode::kModeSandbox : Mode::kModeNoSandbox);
   CHECK_OK(service);
 

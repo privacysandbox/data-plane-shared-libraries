@@ -53,11 +53,12 @@ ABSL_FLAG(std::optional<std::string>, request, std::nullopt,
 namespace {
 using {{$svcopts.CppNamespace}}::{{$svcName}};
 
-std::string LoadImpl({{$svcName}}<>& roma_service, std::string_view udf) {
+std::string LoadImpl({{$svcName}}<>& roma_service, std::string_view udf,
+                     int num_workers) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(udf, notif, notif_status);
+      roma_service.Register(udf, notif, notif_status, num_workers);
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
@@ -65,12 +66,12 @@ std::string LoadImpl({{$svcName}}<>& roma_service, std::string_view udf) {
 }
 void BM_Load(benchmark::State& state) {
   absl::StatusOr<{{$svcName}}<>> roma_service =
-      {{$svcName}}<>::Create({.num_workers = 1});
+      {{$svcName}}<>::Create(/*config=*/{});
   CHECK_OK(roma_service);
   const std::optional<std::string> udf = absl::GetFlag(FLAGS_udf);
   CHECK(udf.has_value()) << "missing --udf flag";
   for (auto _ : state) {
-    LoadImpl(*roma_service, *udf);
+    LoadImpl(*roma_service, *udf, /*num_workers=*/1);
   }
 }
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
@@ -85,7 +86,8 @@ void {{$rpc.Name}}ExecuteImpl(
   absl::Status notif_status;
   absl::StatusOr<std::unique_ptr<{{$respType}}>> response;
   const auto execution_token =
-      roma_service.{{$rpc.Name}}(notif, request, response, /*metadata=*/{}, code_token);
+      roma_service.{{$rpc.Name}}(
+        notif, request, response, /*metadata=*/{}, code_token);
   CHECK_OK(execution_token);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
@@ -94,7 +96,7 @@ void {{$rpc.Name}}ExecuteImpl(
 {{end}}
 void BM_Execute(benchmark::State& state) {
   absl::StatusOr<{{$svcName}}<>> roma_service =
-      {{$svcName}}<>::Create({.num_workers = 10});
+      {{$svcName}}<>::Create(/*config=*/{});
   CHECK_OK(roma_service);
   const std::optional<std::string> udf = absl::GetFlag(FLAGS_udf);
   CHECK(udf.has_value()) << "missing --udf flag";
@@ -111,7 +113,7 @@ void BM_Execute(benchmark::State& state) {
   {{- $pkg := $svcopts.CppNamespace | replace "." "::" | printf "::%s" }}
   {{- $reqType := $rpc.RequestType | replace "." "::" | printf "%s::%s" $pkg }}
   if (*rpc == "{{$rpc.Name}}") {
-    const std::string code_id = LoadImpl(*roma_service, *udf);
+    const std::string code_id = LoadImpl(*roma_service, *udf, /*num_workers=*/10);
     const auto request =
         ::privacy_sandbox::server_common::JsonToProto<{{$reqType}}>(
                   json_content);

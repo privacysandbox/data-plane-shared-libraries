@@ -117,14 +117,14 @@ int main(int argc, char** argv) {
   absl::StatusOr<ByobSampleService<>> sample_interface =
       ByobSampleService<>::Create(
           {
-              .num_workers = *num_workers,
               .roma_container_name = "roma_server",
           },
           Mode::kModeSandbox);
   CHECK_OK(sample_interface);
 
   // Load UDF.
-  const std::string code_token = [&sample_interface] {
+  const std::string code_token = [&sample_interface,
+                                  num_workers = *num_workers] {
     absl::StatusOr<std::string> code_token;
     const SortListUdf sort_list_udf = absl::GetFlag(FLAGS_sort_list_udf);
     const int n_loads = absl::GetFlag(FLAGS_n_loads);
@@ -135,13 +135,13 @@ int main(int argc, char** argv) {
       switch (sort_list_udf) {
         case SortListUdf::k10K:
           code_token = sample_interface->Register("/udf/sort_list_10k_udf",
-                                                  done, status);
+                                                  done, status, num_workers);
         case SortListUdf::k100K:
           code_token = sample_interface->Register("/udf/sort_list_100k_udf",
-                                                  done, status);
+                                                  done, status, num_workers);
         case SortListUdf::k1M:
-          code_token =
-              sample_interface->Register("/udf/sort_list_1m_udf", done, status);
+          code_token = sample_interface->Register("/udf/sort_list_1m_udf", done,
+                                                  status, num_workers);
       }
       CHECK_OK(status);
       done.WaitForNotification();

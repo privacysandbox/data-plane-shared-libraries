@@ -60,7 +60,7 @@ int main(int argc, char** argv) {
 
   // Initialize BYOB.
   absl::StatusOr<ByobEchoService<>> echo_service = ByobEchoService<>::Create(
-      {.num_workers = num_workers},
+      /*config=*/{},
       absl::GetFlag(FLAGS_sandbox) ? Mode::kModeSandbox : Mode::kModeNoSandbox);
   CHECK_OK(echo_service);
 

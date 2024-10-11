@@ -67,14 +67,16 @@ class ByobEchoService final
    * @param load_status is populated with the status of load once load is
    * completed. If the status is ok, then `code_token` returned by this function
    * can be used for calling this binary in subsequent execution requests.
+   * @param num_workers number of workers in the worker pool.
    * @return absl::StatusOr<std::string> returns the `code_token`.
    */
-  absl::StatusOr<std::string> Register(std::filesystem::path code_path,
-                                       absl::Notification& notification,
-                                       absl::Status& load_status) {
+  absl::StatusOr<std::string> Register(
+      std::filesystem::path code_path, absl::Notification& notification,
+      absl::Status& load_status,
+      int num_workers = std::thread::hardware_concurrency()) {
     notification.Notify();
     load_status = absl::OkStatus();
-    return roma_service_->LoadBinary(code_path.c_str());
+    return roma_service_->LoadBinary(code_path.c_str(), num_workers);
   }
 
   void Delete(std::string_view code_token) {

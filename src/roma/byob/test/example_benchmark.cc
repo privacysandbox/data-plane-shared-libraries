@@ -40,11 +40,12 @@ using privacy_sandbox::server_common::byob::example::ByobEchoService;
 using privacy_sandbox::server_common::byob::example::EchoRequest;
 using privacy_sandbox::server_common::byob::example::EchoResponse;
 
-std::string LoadImpl(ByobEchoService<>& roma_service, std::string_view udf) {
+std::string LoadImpl(ByobEchoService<>& roma_service, std::string_view udf,
+                     int num_workers) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(udf, notif, notif_status);
+      roma_service.Register(udf, notif, notif_status, num_workers);
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
@@ -52,12 +53,12 @@ std::string LoadImpl(ByobEchoService<>& roma_service, std::string_view udf) {
 }
 void BM_Load(benchmark::State& state) {
   absl::StatusOr<ByobEchoService<>> roma_service =
-      ByobEchoService<>::Create({.num_workers = 1});
+      ByobEchoService<>::Create(/*config=*/{});
   CHECK_OK(roma_service);
   const std::optional<std::string> udf = absl::GetFlag(FLAGS_udf);
   CHECK(udf.has_value()) << "missing --udf flag";
   for (auto _ : state) {
-    LoadImpl(*roma_service, *udf);
+    LoadImpl(*roma_service, *udf, /*num_workers=*/1);
   }
 }
 void EchoExecuteImpl(ByobEchoService<>& roma_service,
@@ -74,7 +75,7 @@ void EchoExecuteImpl(ByobEchoService<>& roma_service,
 }
 void BM_Execute(benchmark::State& state) {
   absl::StatusOr<ByobEchoService<>> roma_service =
-      ByobEchoService<>::Create({.num_workers = 10});
+      ByobEchoService<>::Create(/*config=*/{});
   CHECK_OK(roma_service);
   const std::optional<std::string> udf = absl::GetFlag(FLAGS_udf);
   CHECK(udf.has_value()) << "missing --udf flag";
@@ -88,7 +89,8 @@ void BM_Execute(benchmark::State& state) {
                        std::istreambuf_iterator<char>());
   }();
   if (*rpc == "Echo") {
-    const std::string code_id = LoadImpl(*roma_service, *udf);
+    const std::string code_id =
+        LoadImpl(*roma_service, *udf, /*num_workers=*/10);
     const auto request =
         ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
             json_content);

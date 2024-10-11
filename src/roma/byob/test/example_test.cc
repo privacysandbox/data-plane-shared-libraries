@@ -41,20 +41,20 @@ const std::filesystem::path kGoLangBinaryFilename = "example_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "example_cc_udf";
 
 std::string LoadCode(ByobEchoService<>& roma_service,
-                     std::filesystem::path file_path) {
+                     std::filesystem::path file_path,
+                     int num_workers = std::thread::hardware_concurrency()) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(file_path, notif, notif_status);
+      roma_service.Register(file_path, notif, notif_status, num_workers);
   CHECK_OK(code_id);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 
-ByobEchoService<> GetRomaService(Mode mode, int num_workers) {
+ByobEchoService<> GetRomaService(Mode mode) {
   privacy_sandbox::server_common::byob::Config<> config = {
-      .num_workers = num_workers,
       .roma_container_name = "roma_server",
   };
   absl::StatusOr<ByobEchoService<>> echo_interface =
@@ -65,12 +65,13 @@ ByobEchoService<> GetRomaService(Mode mode, int num_workers) {
 
 TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
   Mode mode = Mode::kModeSandbox;
-  ByobEchoService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
+  ByobEchoService<> roma_service = GetRomaService(mode);
 
   absl::Notification notif;
   absl::Status notif_status;
-  absl::StatusOr<std::string> code_id = roma_service.Register(
-      kUdfPath / kCPlusPlusBinaryFilename, notif, notif_status);
+  absl::StatusOr<std::string> code_id =
+      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
+                            notif_status, /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
   EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -82,12 +83,13 @@ TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobEchoService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
+  ByobEchoService<> roma_service = GetRomaService(mode);
   absl::Notification notif;
   absl::Status notif_status;
 
-  absl::StatusOr<std::string> code_id = roma_service.Register(
-      kUdfPath / kCPlusPlusBinaryFilename, notif, notif_status);
+  absl::StatusOr<std::string> code_id =
+      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
+                            notif_status, /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
   EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -96,12 +98,12 @@ TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
 
 TEST(RomaByobExampleTest, LoadGoBinaryInSandboxMode) {
   Mode mode = Mode::kModeSandbox;
-  ByobEchoService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
+  ByobEchoService<> roma_service = GetRomaService(mode);
   absl::Notification notif;
   absl::Status notif_status;
 
   absl::StatusOr<std::string> code_id = roma_service.Register(
-      kUdfPath / kGoLangBinaryFilename, notif, notif_status);
+      kUdfPath / kGoLangBinaryFilename, notif, notif_status, /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
   EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -113,12 +115,12 @@ TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobEchoService<> roma_service = GetRomaService(mode, /*num_workers=*/1);
+  ByobEchoService<> roma_service = GetRomaService(mode);
   absl::Notification notif;
   absl::Status notif_status;
 
   absl::StatusOr<std::string> code_id = roma_service.Register(
-      kUdfPath / kGoLangBinaryFilename, notif, notif_status);
+      kUdfPath / kGoLangBinaryFilename, notif, notif_status, /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
   EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -126,10 +128,10 @@ TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
 }
 
 TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const std::string message = "I am a test Cpp message.";
-  const std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
+  const std::string code_token = LoadCode(
+      roma_service, kUdfPath / kCPlusPlusBinaryFilename, /*num_workers=*/2);
   EchoRequest request;
   request.set_message(message);
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
@@ -145,10 +147,10 @@ TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const std::string message = "I am a test Cpp message.";
-  const std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
+  const std::string code_token = LoadCode(
+      roma_service, kUdfPath / kCPlusPlusBinaryFilename, /*num_workers=*/2);
   EchoRequest bin_request;
   bin_request.set_message(message);
   absl::Notification notif;
@@ -167,10 +169,10 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
 }
 
 TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const std::string message = "I am a test Go binary message.";
-  const std::string code_token =
-      LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);
+  const std::string code_token = LoadCode(
+      roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);
   EchoRequest request;
   request.set_message(message);
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
@@ -186,10 +188,10 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox, 2);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const std::string message = "I am a test Go binary message.";
-  const std::string code_token =
-      LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);
+  const std::string code_token = LoadCode(
+      roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);
   EchoRequest bin_request;
   bin_request.set_message(message);
   absl::Notification notif;
