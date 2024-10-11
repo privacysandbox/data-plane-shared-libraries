@@ -135,4 +135,5 @@ int main(int argc, char* argv[]) {
 }
 ```
 
-See more [example UDFs](/src/roma/byob/example/).
+See more
+[example UDFs](https://github.com/privacysandbox/data-plane-shared-libraries/tree/e5d685e2d07b4535b650e4f44f8473e187408fc6/src/roma/byob/example).

@@ -699,7 +699,7 @@ The UDF runtime also defines a communications protocol which must be
 implemented by each UDF. This protocol defines the encoding format used for all
 communications between the UDF runtime and the UDF, and is agnostic of the
 high-level protobuf UDF spec. Details of the communications protocol are
-documented in [Communication Interface](docs/Communication%20Interface.md).
+documented in [Communication Interface](udf/Communication%20Interface.md).
 """
 
     write_file(
@@ -710,6 +710,57 @@ documented in [Communication Interface](docs/Communication%20Interface.md).
             intro_text,
             udf_spec_runtime_text,
         ],
+    )
+
+def sdk_runtime_doc(*, name):
+    text = """
+# Execution environment and interface
+
+## Execution environment and libraries
+
+The UDF will execute in a container with the base image being a
+[Google distroless container image](https://github.com/GoogleContainerTools/distroless). The
+distroless images currently supported are:
+
+| ARCHITECTURE | IMAGE             | TAG           | HASH (SHA256)                                                      |
+| ------------ | ------------------------------ | ------------- | ------------------------------------------------------------------ |
+| AMD64        | gcr.io/distroless/cc-debian11 | nonroot-amd64 | `5a9e854bab8498a61a66b2cfa4e76e009111d09cb23a353aaa8d926e29a653d9` |
+| ARM64        | gcr.io/distroless/cc-debian11 | nonroot-arm64 | `3122cd55375a0a9f32e56a18ccd07572aeed5682421432701a03c335ab79c650` |
+
+These images contain a minimal Linux, glibc runtime for "mostly-statically compiled" languages like
+C/C++, GO, Rust, D, among others.
+
+Images can be downloaded using the IMAGE and HASH values from the table above. To retrieve the image
+using docker:
+
+```shell
+docker pull IMAGE@sha256:HASH
+```
+
+UDFs must be provided as a single, self-contained executable file. The executable may depend on
+shared libraries contained within the base distroless image, for example, `glibc`, `libgcc1` and its
+dependencies.
+
+Build toolchain base image: `ubuntu:20.04`
+
+## Command-line flags
+
+Command line flag are used to pass the file descriptor (fd) over which the UDF can communicate. The
+first positional argument to the UDF is the fd for communication.
+
+For details about how to use the passed flag(s), see
+[communication interface](Communication%20Interface.md) doc and
+[example UDFs](https://github.com/privacysandbox/data-plane-shared-libraries/tree/e5d685e2d07b4535b650e4f44f8473e187408fc6/src/roma/byob/example).
+
+## gVisor
+
+gVisor supports a large subset of Linux syscalls; some syscalls may have a partial implementation.
+Refer to gVisor's [list of supported syscalls](syscalls.md).
+"""
+    write_file(
+        name = name + "_file",
+        out = name,
+        content = [text],
     )
 
 def roma_byob_sdk(
@@ -779,6 +830,15 @@ def roma_byob_sdk(
         name = name + "_guide_md",
         intro_text = guide_intro_text,
     )
+    sdk_runtime_doc(name = name + "_runtime_md")
+    copy_file(
+        name = name + "_syscalls_md",
+        src = select({
+            "@platforms//cpu:aarch64": Label("//docs/roma:byob/sdk/docs/udf/arm64-syscalls.md"),
+            "@platforms//cpu:x86_64": Label("//docs/roma:byob/sdk/docs/udf/amd64-syscalls.md"),
+        }),
+        out = "{}_syscalls.md".format(name),
+    )
     docs = [
         declare_doc(
             doc = ":{}_guide_md".format(name),
@@ -790,11 +850,17 @@ def roma_byob_sdk(
         #     target_subdir = "udf",
         # ),
         declare_doc(
-            doc = Label("//docs/roma:byob/sdk/docs/udf/Execution Environment and Interface.md"),
+            doc = ":{}_runtime_md".format(name),
+            target_filename = "Execution Environment and Interface.md",
             target_subdir = "udf",
         ),
         declare_doc(
             doc = Label("//docs/roma:byob/sdk/docs/udf/Communication Interface.md"),
+            target_subdir = "udf",
+        ),
+        declare_doc(
+            doc = ":{}_syscalls.md".format(name),
+            target_filename = "syscalls.md",
             target_subdir = "udf",
         ),
     ] + extra_docs
