@@ -15,6 +15,7 @@
 """Macro for the Roma Application API."""
 
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
@@ -647,7 +648,7 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, rep
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def declare_doc(*, doc, target_subdir = ""):
+def declare_doc(*, doc, target_filename = "", target_subdir = ""):
     """
     Creates struct for a the Roma App API as an entity.
 
@@ -661,9 +662,63 @@ def declare_doc(*, doc, target_subdir = ""):
     return struct(
         doc = doc,
         target_subdir = target_subdir,
+        target_filename = target_filename,
     )
 
-def roma_byob_sdk(*, name, roma_app_api, extra_docs = [], **kwargs):
+_default_guide_intro = """
+This SDK provides the documentation and the binary specification for
+developers of user-defined functions (UDFs).
+"""
+
+def sdk_guide_doc(*, name, intro_text = _default_guide_intro):
+    """
+    Creates a file target for the Guide to the SDK markdown doc.
+
+    Args:
+        intro_text: string containing markdown text for the introduction,
+                    inserted after the title
+    """
+    title = "# Guide to the SDK"
+    udf_spec_runtime_text = """
+## The UDF specification
+
+The UDF API specification defines the request and response structures for this
+UDF. This API forms the high-level protocol for the UDF, and is specific to each
+SDK. The spec is defined using [Protocol Buffers (protobuf)](https://protobuf.dev/),
+and is included in the SDK as [udf_interface.proto](../specs/udf_interface.proto).
+
+## The UDF runtime
+
+The UDF binaries are executed within a sandboxed environment. Details on this
+runtime environment and its requirements can be found in [Execution Environment and Interface](udf/Execution%20Environment%20and%20Interface.md).
+This includes details on the Linux container images used for the runtime, which
+is relevant for any UDF binaries that depend on libc or other Linux shared
+libraries.
+
+The UDF runtime also defines a communications protocol which must be
+implemented by each UDF. This protocol defines the encoding format used for all
+communications between the UDF runtime and the UDF, and is agnostic of the
+high-level protobuf UDF spec. Details of the communications protocol are
+documented in [Communication Interface](docs/Communication%20Interface.md).
+"""
+
+    write_file(
+        name = name + "_file",
+        out = name,
+        content = [
+            title,
+            intro_text,
+            udf_spec_runtime_text,
+        ],
+    )
+
+def roma_byob_sdk(
+        *,
+        name,
+        roma_app_api,
+        extra_docs = [],
+        guide_intro_text = _default_guide_intro,
+        **kwargs):
     """
     Top-level macro for the Roma BYOB SDK.
 
@@ -673,6 +728,7 @@ def roma_byob_sdk(*, name, roma_app_api, extra_docs = [], **kwargs):
         name: name of sdk target, basename of ancillary targets.
         roma_app_api: the roma_api struct.
         extra_docs: a list of declare_doc-created structs
+        guide_intro_text: string containing markdown text for the guide introduction
         **kwargs: attributes common to bazel build rules.
 
     Targets:
@@ -719,9 +775,15 @@ def roma_byob_sdk(*, name, roma_app_api, extra_docs = [], **kwargs):
             ":{}.proto".format(name): "udf_interface.proto",
         },
     )
-
+    sdk_guide_doc(
+        name = name + "_guide_md",
+        intro_text = guide_intro_text,
+    )
     docs = [
-        declare_doc(doc = Label("//docs/roma:byob/sdk/docs/Guide to the SDK.md")),
+        declare_doc(
+            doc = ":{}_guide_md".format(name),
+            target_filename = "Guide to the SDK.md",
+        ),
         # Uncomment when UDF Interface Specifications.md has been written.
         # declare_doc(
         #     doc = Label("//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md"),
@@ -744,6 +806,11 @@ def roma_byob_sdk(*, name, roma_app_api, extra_docs = [], **kwargs):
             name = "{}_{}_doc_artifacts".format(name, hash(dir)),
             srcs = [d.doc for d in docs if d.target_subdir == dir],
             prefix = "docs/{}".format(dir),
+            renames = {
+                d.doc: d.target_filename
+                for d in docs
+                if d.target_subdir == dir and d.target_filename
+            },
         )
         for dir in docs_subdirs
     ]
