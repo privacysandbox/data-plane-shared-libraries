@@ -90,14 +90,13 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   }
   std::string code_token = ToString(Uuid::GenerateUuid());
   LoadRequest payload;
-  {
-    std::ifstream ifs(std::move(binary_path), std::ios::binary);
-    if (!ifs.is_open()) {
-      return absl::UnavailableError(
-          absl::StrCat("Cannot open ", binary_path.native()));
-    }
+  if (std::ifstream ifs(std::move(binary_path), std::ios::binary);
+      ifs.is_open()) {
     payload.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
                                            std::istreambuf_iterator<char>()));
+  } else {
+    return absl::UnavailableError(
+        absl::StrCat("Cannot open ", binary_path.native()));
   }
   payload.set_code_token(code_token);
   payload.set_n_workers(n_workers);
