@@ -68,19 +68,21 @@ void BindAndListenOnPath(int fd, std::string_view path) {
   ASSERT_EQ(0, ::listen(fd, /*backlog=*/0));
 }
 
-void ConnectToPath(int fd, std::string_view path) {
+void ConnectToPath(int fd, std::string_view path, bool unlink_path = true) {
   ::sockaddr_un sa = {
       .sun_family = AF_UNIX,
   };
   path.copy(sa.sun_path, sizeof(sa.sun_path));
   ASSERT_EQ(0, ::connect(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)));
+  if (unlink_path) {
+    EXPECT_EQ(::unlink(path.data()), 0);
+  }
 }
 
 TEST(DispatcherTest, ShutdownWorkerThenDispatcher) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(fd, -1);
@@ -96,7 +98,6 @@ TEST(DispatcherTest, ShutdownDispatcherThenWorker) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   absl::Notification done;
   std::thread worker([&done] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -140,7 +141,6 @@ TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   absl::Notification done;
   std::thread worker([&done] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -166,7 +166,7 @@ TEST(DispatcherTest, LoadGoesToWorker) {
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(fd, -1);
-    ConnectToPath(fd, "abcd.sock");
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
     LoadRequest request;
     FileInputStream input(fd);
     ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
@@ -175,7 +175,7 @@ TEST(DispatcherTest, LoadGoesToWorker) {
     for (int i = 0; i < request.n_workers(); ++i) {
       const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
       ASSERT_NE(fd, -1);
-      ConnectToPath(fd, "abcd.sock");
+      ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
       EXPECT_EQ(::write(fd, request.code_token().c_str(), 36), 36);
     }
     EXPECT_EQ(::close(fd), 0);
@@ -192,11 +192,10 @@ TEST(DispatcherTest, LoadAndExecute) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(fd, -1);
-    ConnectToPath(fd, "abcd.sock");
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
     LoadRequest request;
@@ -261,11 +260,10 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
     ASSERT_NE(fd, -1);
-    ConnectToPath(fd, "abcd.sock");
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
     LoadRequest request;
@@ -307,11 +305,10 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(fd, -1);
-    ConnectToPath(fd, "abcd.sock");
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
     LoadRequest request;
@@ -406,11 +403,10 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(fd, -1);
-    ConnectToPath(fd, "abcd.sock");
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
 
     // Process load request.
     LoadRequest request;
@@ -485,11 +481,11 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   ASSERT_NE(fd, -1);
   BindAndListenOnPath(fd, "abcd.sock");
-  absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
   std::thread worker([] {
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
     ASSERT_NE(fd, -1);
-    ConnectToPath(fd, "abcd.sock");
+    ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
+    absl::Cleanup cleanup = [] { EXPECT_EQ(::unlink("abcd.sock"), 0); };
 
     // Process load request.
     std::string code_token;
@@ -506,7 +502,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
     for (int i = 0; i < 100; ++i) {
       const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
       ASSERT_NE(connection_fd, -1);
-      ConnectToPath(connection_fd, "abcd.sock");
+      ConnectToPath(connection_fd, "abcd.sock", /*unlink_path=*/false);
       EXPECT_EQ(::write(connection_fd, code_token.c_str(), 36), 36);
 
       // Read UDF input.
