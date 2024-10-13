@@ -889,6 +889,5 @@ def roma_byob_sdk(
             ":{}_{}_doc_artifacts".format(name, hash(dir))
             for dir in docs_subdirs
         ],
-        package_dir = "/{}".format(name),
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
