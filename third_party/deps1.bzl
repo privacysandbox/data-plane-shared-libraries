@@ -26,6 +26,15 @@ load("//build_defs/cc:sdk_source_code.bzl", scp_sdk_dependencies = "sdk_dependen
 
 def _bazel_deps():
     bazel_features_deps()
+    maybe(
+        http_archive,
+        name = "rules_license",
+        sha256 = "4182989d6eea74f42059ad9930854e49c1808737b177ab31aac56978891b61b8",
+        strip_prefix = "rules_license-1.0.0",
+        urls = [
+            "https://github.com/bazelbuild/rules_license/archive/refs/tags/1.0.0.zip",
+        ],
+    )
 
 def _js_deps():
     rules_ts_dependencies(ts_version = LATEST_TYPESCRIPT_VERSION)
