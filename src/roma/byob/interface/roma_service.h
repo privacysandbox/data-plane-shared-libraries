@@ -82,9 +82,9 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
   absl::Status Init(Config<TMetadata> config, Mode mode) {
-    n_workers_ = config.num_workers > 0
-                     ? config.num_workers
-                     : static_cast<int>(std::thread::hardware_concurrency());
+    num_workers_ = config.num_workers > 0
+                       ? config.num_workers
+                       : static_cast<int>(std::thread::hardware_concurrency());
     if (::mkdtemp(sockdir_) == nullptr) {
       return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/sockdir_XXXXXX\")");
     }
@@ -159,7 +159,7 @@ class RomaService final {
   }
 
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path code_path) {
-    return dispatcher_->LoadBinary(std::move(code_path), n_workers_);
+    return dispatcher_->LoadBinary(std::move(code_path), num_workers_);
   }
 
   template <typename Response, typename Request>
@@ -190,7 +190,7 @@ class RomaService final {
   }
 
  private:
-  int n_workers_;
+  int num_workers_;
   char sockdir_[20] = "/tmp/sockdir_XXXXXX";
   char* socket_name_ = nullptr;
   std::variant<std::monostate, internal::roma_service::LocalHandle,

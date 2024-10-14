@@ -258,7 +258,7 @@ int main(int argc, char** argv) {
         return -1;
       }
     }
-    for (int i = 0; i < request.n_workers() - 1; ++i) {
+    for (int i = 0; i < request.num_workers() - 1; ++i) {
       const std::optional<int> pid = ConnectSendCloneAndExec(
           socket_name, request.code_token(), binary_path.native());
       if (!pid.has_value()) {

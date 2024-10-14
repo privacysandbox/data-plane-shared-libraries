@@ -116,24 +116,26 @@ TEST(DispatcherTest, ShutdownDispatcherThenWorker) {
 
 TEST(DispatcherTest, LoadErrorsForEmptyBinaryPath) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(dispatcher.LoadBinary("", /*n_workers=*/1).ok());
+  EXPECT_FALSE(dispatcher.LoadBinary("", /*num_workers=*/1).ok());
 }
 
 // TODO: b/371538589 - Ensure non-file paths are handled appropriately.
 TEST(DispatcherTest, DISABLED_LoadErrorsForRootPath) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(dispatcher.LoadBinary("/", /*n_workers=*/1).ok());
+  EXPECT_FALSE(dispatcher.LoadBinary("/", /*num_workers=*/1).ok());
 }
 
 TEST(DispatcherTest, LoadErrorsForUnknownBinaryPath) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(dispatcher.LoadBinary("/asdflkj/ytrewq", /*n_workers=*/1).ok());
+  EXPECT_FALSE(
+      dispatcher.LoadBinary("/asdflkj/ytrewq", /*num_workers=*/1).ok());
 }
 
 TEST(DispatcherTest, LoadErrorsWhenNWorkersNonPositive) {
   Dispatcher dispatcher;
   EXPECT_FALSE(
-      dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf", /*n_workers=*/0)
+      dispatcher
+          .LoadBinary("src/roma/byob/sample_udf/new_udf", /*num_workers=*/0)
           .ok());
 }
 
@@ -152,7 +154,7 @@ TEST(DispatcherTest, LoadErrorsWhenFileDoesntExist) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/fake_udf", /*n_workers=*/7);
+      "src/roma/byob/sample_udf/fake_udf", /*num_workers=*/7);
   EXPECT_FALSE(code_token.ok());
   done.Notify();
   worker.join();
@@ -171,8 +173,8 @@ TEST(DispatcherTest, LoadGoesToWorker) {
     FileInputStream input(fd);
     ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.n_workers(), 7);
-    for (int i = 0; i < request.n_workers(); ++i) {
+    EXPECT_EQ(request.num_workers(), 7);
+    for (int i = 0; i < request.num_workers(); ++i) {
       const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
       ASSERT_NE(fd, -1);
       ConnectToPath(fd, "abcd.sock", /*unlink_path=*/false);
@@ -183,7 +185,8 @@ TEST(DispatcherTest, LoadGoesToWorker) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   EXPECT_TRUE(
-      dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf", /*n_workers=*/7)
+      dispatcher
+          .LoadBinary("src/roma/byob/sample_udf/new_udf", /*num_workers=*/7)
           .ok());
   worker.join();
 }
@@ -204,7 +207,7 @@ TEST(DispatcherTest, LoadAndExecute) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.n_workers(), 1);
+    EXPECT_EQ(request.num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -234,7 +237,7 @@ TEST(DispatcherTest, LoadAndExecute) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
+      "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
@@ -272,7 +275,7 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.n_workers(), 1);
+    EXPECT_EQ(request.num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, /*protocol=*/0);
@@ -286,7 +289,7 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
+      "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   worker.join();
   SampleRequest bin_request;
@@ -317,7 +320,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.n_workers(), 1);
+    EXPECT_EQ(request.num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -369,7 +372,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
+      "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
@@ -415,7 +418,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_EQ(request.code_token().size(), 36);
-    EXPECT_EQ(request.n_workers(), 1);
+    EXPECT_EQ(request.num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -457,7 +460,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
+      "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   {
     SampleRequest bin_request;
@@ -495,7 +498,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       ASSERT_EQ(request.code_token().size(), 36);
       code_token = std::move(*request.mutable_code_token());
-      EXPECT_EQ(request.n_workers(), 1);
+      EXPECT_EQ(request.num_workers(), 1);
     }
 
     // Process execution requests.
@@ -540,7 +543,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd).ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/new_udf", /*n_workers=*/1);
+      "src/roma/byob/sample_udf/new_udf", /*num_workers=*/1);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   absl::Mutex mu;

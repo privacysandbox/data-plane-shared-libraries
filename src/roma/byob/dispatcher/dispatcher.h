@@ -44,7 +44,7 @@ class Dispatcher {
   absl::Status Init(int listen_fd);
 
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
-                                         int n_workers);
+                                         int num_workers);
 
   template <typename Response, typename Table, typename Metadata,
             typename Request>

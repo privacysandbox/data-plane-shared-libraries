@@ -18,5 +18,5 @@ package privacy_sandbox.server_common.byob;
 message LoadRequest {
   bytes code_token = 1;
   bytes binary_content = 2;
-  int32 n_workers = 3;
+  int32 num_workers = 3;
 }

@@ -83,10 +83,10 @@ absl::Status Dispatcher::Init(const int listen_fd) {
 }
 
 absl::StatusOr<std::string> Dispatcher::LoadBinary(
-    std::filesystem::path binary_path, const int n_workers) {
-  if (n_workers <= 0) {
+    std::filesystem::path binary_path, const int num_workers) {
+  if (num_workers <= 0) {
     return absl::InvalidArgumentError(
-        absl::StrCat("`n_workers=", n_workers, "` must be positive"));
+        absl::StrCat("`num_workers=", num_workers, "` must be positive"));
   }
   std::string code_token = ToString(Uuid::GenerateUuid());
   LoadRequest payload;
@@ -99,7 +99,7 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
         absl::StrCat("Cannot open ", binary_path.native()));
   }
   payload.set_code_token(code_token);
-  payload.set_n_workers(n_workers);
+  payload.set_num_workers(num_workers);
   SerializeDelimitedToFileDescriptor(payload, connection_fd_);
   return code_token;
 }
