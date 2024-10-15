@@ -348,22 +348,22 @@ int main(int argc, char** argv) {
     {
       absl::MutexLock lock(&mu);
       shutdown = true;
+
+      // Kill extant workers before exit.
+      for (const auto& [pid, udf] : pid_to_udf) {
+        if (::kill(pid, SIGKILL) == -1) {
+          PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+        }
+        if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
+          PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
+        }
+        if (std::error_code ec;
+            !std::filesystem::remove_all(udf.pivot_root_dir, ec)) {
+          LOG(ERROR) << "Failed to remove " << udf.pivot_root_dir << ": " << ec;
+        }
+      }
     }
     reloader.join();
-
-    // Kill extant workers before exit.
-    for (const auto& [pid, udf] : pid_to_udf) {
-      if (::kill(pid, SIGKILL) == -1) {
-        PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
-      }
-      if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
-        PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
-      }
-      if (std::error_code ec;
-          !std::filesystem::remove_all(udf.pivot_root_dir, ec)) {
-        LOG(ERROR) << "Failed to remove " << udf.pivot_root_dir << ": " << ec;
-      }
-    }
     if (::close(dev_null_fd) == -1) {
       PLOG(ERROR) << "close(" << dev_null_fd << ")";
     }

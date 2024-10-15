@@ -235,18 +235,18 @@ int main(int argc, char** argv) {
     {
       absl::MutexLock lock(&mu);
       shutdown = true;
+
+      // Kill extant workers before exit.
+      for (const auto& [pid, _] : pid_to_udf) {
+        if (::kill(pid, SIGKILL) == -1) {
+          PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+        }
+        if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
+          PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
+        }
+      }
     }
     reloader.join();
-
-    // Kill extant workers before exit.
-    for (const auto& [pid, _] : pid_to_udf) {
-      if (::kill(pid, SIGKILL) == -1) {
-        PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
-      }
-      if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
-        PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
-      }
-    }
   };
   FileInputStream input(fd);
   while (true) {
