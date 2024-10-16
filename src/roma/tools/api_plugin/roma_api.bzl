@@ -752,13 +752,14 @@ This SDK provides the documentation and the binary specification for
 developers of user-defined functions (UDFs).
 """
 
-def sdk_guide_doc(*, name, intro_text = _default_guide_intro):
+def sdk_guide_doc(*, name, intro_text = _default_guide_intro, exclude_tools = False):
     """
     Creates a file target for the Guide to the SDK markdown doc.
 
     Args:
         intro_text: string containing markdown text for the introduction,
                     inserted after the title
+        exclude_tools: bool controlling inclusion of SDK tools
     """
     title = "# Guide to the SDK"
     udf_spec_runtime_text = """
@@ -783,15 +784,22 @@ communications between the UDF runtime and the UDF, and is agnostic of the
 high-level protobuf UDF spec. Details of the communications protocol are
 documented in [Communication Interface](udf/Communication%20Interface.md).
 """
+    tools_text = """
+## Developer tools
 
+* [Roma BYOB Shell CLI tool](tools/shell-cli.md)
+"""
+    content = [
+        title,
+        intro_text,
+        udf_spec_runtime_text,
+    ]
+    if not exclude_tools:
+        content.append(tools_text)
     write_file(
         name = name + "_file",
         out = name,
-        content = [
-            title,
-            intro_text,
-            udf_spec_runtime_text,
-        ],
+        content = content,
     )
 
 def sdk_runtime_doc(*, name):
@@ -914,6 +922,7 @@ def roma_byob_sdk(
     sdk_guide_doc(
         name = name + "_guide_md",
         intro_text = guide_intro_text,
+        exclude_tools = exclude_tools,
     )
     sdk_runtime_doc(name = name + "_runtime_md")
     copy_file(
@@ -953,6 +962,7 @@ def roma_byob_sdk(
         docs.append(
             declare_doc(
                 doc = "{}_roma_cc_lib_tools_docs".format(name),
+                target_filename = "shell-cli.md",
                 target_subdir = "tools",
             ),
         )
