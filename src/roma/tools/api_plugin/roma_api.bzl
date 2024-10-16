@@ -850,6 +850,7 @@ def roma_byob_sdk(
         name,
         roma_app_api,
         extra_docs = [],
+        exclude_tools = False,
         guide_intro_text = _default_guide_intro,
         **kwargs):
     """
@@ -861,6 +862,7 @@ def roma_byob_sdk(
         name: name of sdk target, basename of ancillary targets.
         roma_app_api: the roma_api struct.
         extra_docs: a list of declare_doc-created structs
+        exclude_tools: bool controlling inclusion of SDK tools
         guide_intro_text: string containing markdown text for the guide introduction
         **kwargs: attributes common to bazel build rules.
 
@@ -946,11 +948,14 @@ def roma_byob_sdk(
             target_filename = "syscalls.md",
             target_subdir = "udf",
         ),
-        declare_doc(
-            doc = "{}_roma_cc_lib_tools_docs".format(name),
-            target_subdir = "tools",
-        ),
     ] + extra_docs
+    if not exclude_tools:
+        docs.append(
+            declare_doc(
+                doc = "{}_roma_cc_lib_tools_docs".format(name),
+                target_subdir = "tools",
+            ),
+        )
 
     docs_subdirs = {d.target_subdir: 0 for d in docs}.keys()
 
@@ -967,22 +972,25 @@ def roma_byob_sdk(
         )
         for dir in docs_subdirs
     ]
-    pkg_files(
-        name = "{}_shell_tarball_artifacts".format(name),
-        srcs = ["{}_roma_cc_lib_shell_tarball.tar".format(name)],
-        prefix = "tools",
-        renames = {
-            "{}_roma_cc_lib_shell_tarball.tar".format(name): "shell-cli.tar",
-        },
-    )
+    sdk_srcs = kwargs.get("srcs", []) + [
+        ":{}_{}_doc_artifacts".format(name, hash(dir))
+        for dir in docs_subdirs
+    ] + [
+        Label("//:LICENSE"),
+        "{}_specs".format(name),
+    ]
+    if not exclude_tools:
+        pkg_files(
+            name = "{}_shell_tools".format(name),
+            srcs = ["{}_roma_cc_lib_shell_tarball.tar".format(name)],
+            prefix = "tools",
+            renames = {
+                "{}_roma_cc_lib_shell_tarball.tar".format(name): "shell-cli.tar",
+            },
+        )
+        sdk_srcs.append("{}_shell_tools".format(name))
     pkg_zip(
         name = name,
-        srcs = kwargs.get("srcs", []) + [
-            "{}_specs".format(name),
-            "{}_shell_tarball_artifacts".format(name),
-        ] + [
-            ":{}_{}_doc_artifacts".format(name, hash(dir))
-            for dir in docs_subdirs
-        ] + [Label("//:LICENSE")],
+        srcs = sdk_srcs,
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
