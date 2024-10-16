@@ -55,6 +55,7 @@ cc_binary(
     srcs = ["example_benchmark.cc"],
     deps = [
         ":example_roma_byob_app_service",
+        "//src/communication:json_utils",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
         "@com_google_absl//absl/log:check",
@@ -67,7 +68,10 @@ cc_binary(
 
 pkg_files(
     name = "example_benchmark_execs",
-    srcs = [":example_benchmark"],
+    srcs = [
+        ":echo_request.json",
+        ":example_benchmark",
+    ],
     attributes = pkg_attributes(mode = "0500"),
     prefix = "/tools",
 )
@@ -89,6 +93,29 @@ pkg_tar(
     )
     for user in DISTROLESS_USERS
 ]
+
+expand_template(
+    name = "example_benchmark_image_test_yaml",
+    out = "example_benchmark_image_test.yaml",
+    substitutions = {
+        "{ARGS}": "[\"--udf\", \"/udf/example_cc_udf\", \"--rpc\", \"Echo\", \"--request\", \"/tools/echo_request.json\"]",
+        "{COMMAND}": "/tools/example_benchmark",
+    },
+    template = ":commands.yaml",
+)
+
+container_structure_test(
+    name = "example_benchmark_root_image_test",
+    size = "medium",
+    timeout = "short",
+    configs = ["example_benchmark_image_test.yaml"],
+    image = "example_benchmark_root_image",
+    tags = [
+        "noasan",
+        "notsan",
+        "noubsan",
+    ],
+)
 
 cc_binary(
     name = "example_shell",
@@ -113,7 +140,11 @@ cc_binary(
 
 pkg_files(
     name = "example_shell_execs",
-    srcs = [":example_shell"],
+    srcs = [
+        ":echo_commands_file.txt",
+        ":echo_request.json",
+        ":example_shell",
+    ],
     attributes = pkg_attributes(mode = "0500"),
     prefix = "/tools",
 )
@@ -135,6 +166,52 @@ pkg_tar(
     )
     for user in DISTROLESS_USERS
 ]
+
+expand_template(
+    name = "example_shell_image_test_yaml",
+    out = "example_shell_image_test.yaml",
+    substitutions = {
+        "{ARGS}": "[\"--num_workers\", \"1\", \"--commands_file\", \"/tools/echo_commands_file.txt\"]",
+        "{COMMAND}": "/tools/example_shell",
+    },
+    template = ":commands.yaml",
+)
+
+container_structure_test(
+    name = "example_shell_root_image_test",
+    size = "medium",
+    timeout = "short",
+    configs = ["example_shell_image_test.yaml"],
+    image = "example_shell_root_image",
+    tags = [
+        "noasan",
+        "notsan",
+        "noubsan",
+    ],
+)
+
+genrule(
+    name = "tools_copy_to_dist",
+    srcs = [
+        ":empty.json",
+        ":sort_list_commands_file.txt",
+        "//src/roma/byob/sample_udf:sample_byob_sdk",
+        "//src/roma/byob/sample_udf:sort_list_10k_udf",
+    ],
+    outs = ["tools_copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+mkdir -p {dir}/sample_byob_sdk
+unzip -o $(execpath //src/roma/byob/sample_udf:sample_byob_sdk) -d {dir}/sample_byob_sdk
+mkdir -p {dir}/tools_test
+cp $(execpath :empty.json) {dir}/tools_test/empty.json
+cp $(execpath :sort_list_commands_file.txt) {dir}/tools_test/sort_list_commands_file.txt
+cp $(execpath //src/roma/byob/sample_udf:sort_list_10k_udf) {dir}/tools_test/sort_list_10k_udf
+builders/tools/normalize-dist
+EOF""".format(dir = "dist/roma_byob"),
+    executable = True,
+    local = True,
+    message = "copying aws artifacts to dist directory",
+)
 
 cc_binary(
     name = "example_test",
@@ -223,6 +300,7 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
             test_name = test_name,
         ),
         substitutions = {
+            "{ARGS}": "[]",
             "{COMMAND}": str(entrypoint),
         },
         template = ":commands.yaml",

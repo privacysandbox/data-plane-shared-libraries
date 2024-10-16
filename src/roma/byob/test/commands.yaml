@@ -24,4 +24,5 @@ containerRunOptions:
 commandTests:
   - name: "Roma BYOB test"
     command: "{COMMAND}"
+    args: {ARGS}
     exitCode: 0

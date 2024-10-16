@@ -98,6 +98,16 @@ _cc_app_template_plugins = [
             sub_directory = "byob/app",
         ),
         struct(
+            template_file = "cpp_roma_byob_benchmark.tmpl",
+            suffix = "_benchmark.cc",
+            sub_directory = "byob/app",
+        ),
+        struct(
+            template_file = "md_roma_byob_benchmark.tmpl",
+            suffix = "_benchmark.md",
+            sub_directory = "byob/app",
+        ),
+        struct(
             template_file = "cpp_roma_byob_shell.tmpl",
             suffix = "_shell.cc",
             sub_directory = "byob/app",

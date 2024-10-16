@@ -444,12 +444,13 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
         <name>_roma_byob_app_service.h
         <name>_shell.cc
         <name>_shell.md
+        <name>_benchmark.cc
+        <name>_benchmark.md
 
     Targets:
         <name> -- cc_library
         <name>_srcs -- c++ source files
         <name>_hdrs -- c++ header files
-        <name>_shell -- cc_binary for shell CLI
 
     Returns:
         Providers:
@@ -475,9 +476,19 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
         suffixes = ["cc_byob_app_api_client_sdk.md"],
     )
     _filter_files_suffix(
-        name = name + "_tools_docs",
+        name = name + "_tools_shell_docs",
         targets = [name_proto],
         suffixes = ["shell.md"],
+    )
+    _filter_files_suffix(
+        name = name + "_tools_benchmark_docs",
+        targets = [name_proto],
+        suffixes = ["benchmark.md"],
+    )
+    _filter_files_suffix(
+        name = "{}_benchmark.cc".format(name),
+        targets = [name_proto],
+        suffixes = ["benchmark.cc"],
     )
     _filter_files_suffix(
         name = "{}_shell.cc".format(name),
@@ -500,6 +511,69 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
     )
 
     cc_binary(
+        name = "{}_benchmark".format(name),
+        srcs = [":{}_benchmark.cc".format(name)],
+        deps = [
+            udf_cc_proto_lib,
+            ":{}".format(name),
+            Label("//src/communication:json_utils"),
+            "@com_google_absl//absl/flags:flag",
+            "@com_google_absl//absl/flags:parse",
+            "@com_google_absl//absl/log:check",
+            "@com_google_absl//absl/status",
+            "@com_google_absl//absl/status:statusor",
+            "@com_google_absl//absl/synchronization",
+            "@google_benchmark//:benchmark",
+        ],
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs and k != "visibility"}
+    )
+
+    pkg_files(
+        name = "{}_benchmark_execs".format(name),
+        srcs = ["{}_benchmark".format(name)],
+        attributes = pkg_attributes(mode = "0555"),
+        prefix = "/tools",
+        renames = {
+            ":{}_benchmark".format(name): "benchmark-cli",
+        },
+    )
+
+    pkg_tar(
+        name = "{}_benchmark_tar".format(name),
+        srcs = ["{}_benchmark_execs".format(name)],
+    )
+
+    oci_image(
+        name = "{}_benchmark_image".format(name),
+        entrypoint = ["/tools/benchmark-cli"],
+        base = select({
+            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
+            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
+        }),
+        labels = {"tee.launch_policy.log_redirect": "always"},
+        tars = [
+            Label("//src/roma/byob/container:gvisor_tar_root"),
+            Label("//src/roma/byob/container:container_config_tar_root"),
+            Label("//src/roma/byob/container:byob_server_container_with_dir_root.tar"),
+            Label("//src/roma/byob/container:var_run_runsc_tar_root"),
+            "{}_benchmark_tar".format(name),
+        ],
+        **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
+    )
+
+    oci_load(
+        name = "{}_benchmark_tarball".format(name),
+        image = ":{}_benchmark_image".format(name),
+        repo_tags = ["byob_benchmark_image:v1"],
+    )
+
+    native.filegroup(
+        name = "{}_benchmark_tarball.tar".format(name),
+        srcs = [":{}_benchmark_tarball".format(name)],
+        output_group = "tarball",
+    )
+
+    cc_binary(
         name = "{}_shell".format(name),
         srcs = [":{}_shell.cc".format(name)],
         deps = [
@@ -519,7 +593,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
             "@com_google_absl//absl/synchronization",
             "@com_google_absl//absl/types:span",
         ],
-        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs and k != "visibility"}
     )
 
     pkg_files(
@@ -552,7 +626,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
             Label("//src/roma/byob/container:var_run_runsc_tar_root"),
             "{}_shell_tar".format(name),
         ],
-        **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars"]}
+        **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
     )
 
     oci_load(
@@ -973,8 +1047,15 @@ def roma_byob_sdk(
     if not exclude_tools:
         docs.append(
             declare_doc(
-                doc = "{}_roma_cc_lib_tools_docs".format(name),
+                doc = "{}_roma_cc_lib_tools_shell_docs".format(name),
                 target_filename = "shell-cli.md",
+                target_subdir = "tools",
+            ),
+        )
+        docs.append(
+            declare_doc(
+                doc = "{}_roma_cc_lib_tools_benchmark_docs".format(name),
+                target_filename = "benchmark-cli.md",
                 target_subdir = "tools",
             ),
         )
@@ -1004,10 +1085,14 @@ def roma_byob_sdk(
     if not exclude_tools:
         pkg_files(
             name = "{}_shell_tools".format(name),
-            srcs = ["{}_roma_cc_lib_shell_tarball.tar".format(name)],
+            srcs = [
+                "{}_roma_cc_lib_shell_tarball.tar".format(name),
+                "{}_roma_cc_lib_benchmark_tarball.tar".format(name),
+            ],
             prefix = "tools",
             renames = {
                 "{}_roma_cc_lib_shell_tarball.tar".format(name): "shell-cli.tar",
+                "{}_roma_cc_lib_benchmark_tarball.tar".format(name): "benchmark-cli.tar",
             },
         )
         sdk_srcs.append("{}_shell_tools".format(name))

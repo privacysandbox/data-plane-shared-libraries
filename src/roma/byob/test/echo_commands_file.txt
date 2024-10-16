@@ -1,0 +1,2 @@
+load Echo /udf/example_cc_udf
+Echo /tools/echo_request.json
