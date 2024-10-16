@@ -49,6 +49,46 @@ cc_library(
 )
 
 cc_binary(
+    name = "example_benchmark",
+    srcs = ["example_benchmark.cc"],
+    deps = [
+        ":example_roma_byob_app_service",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+pkg_files(
+    name = "example_benchmark_execs",
+    srcs = [":example_benchmark"],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/tools",
+)
+
+pkg_tar(
+    name = "example_benchmark_tar",
+    srcs = [":example_benchmark_execs"],
+)
+
+[
+    roma_byob_image(
+        name = "example_benchmark_{}_image".format(user.flavor),
+        debug = True,
+        entrypoint = ["/tools/example_benchmark"],
+        repo_tags = ["example_benchmark_image:v1-{}".format(user.flavor)],
+        tars = [":example_benchmark_tar"],
+        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
+        use_nonroot = True if user.flavor == "nonroot" else False,
+    )
+    for user in DISTROLESS_USERS
+]
+
+cc_binary(
     name = "example_shell",
     srcs = ["example_shell.cc"],
     deps = [
