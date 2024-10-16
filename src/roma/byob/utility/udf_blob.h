@@ -38,10 +38,10 @@ class UdfBlob final {
   UdfBlob(const UdfBlob&) = delete;
   UdfBlob& operator=(const UdfBlob&) = delete;
 
-  UdfBlob(UdfBlob&& other)
+  UdfBlob(UdfBlob&& other) noexcept
       : file_path_(std::exchange(other.file_path_, std::filesystem::path())) {}
 
-  UdfBlob& operator=(UdfBlob&& other) {
+  UdfBlob& operator=(UdfBlob&& other) noexcept {
     file_path_ = other.file_path_;
     return *this;
   }
