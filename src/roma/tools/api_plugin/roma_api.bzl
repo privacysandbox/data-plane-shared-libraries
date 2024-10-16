@@ -14,6 +14,7 @@
 
 """Macro for the Roma Application API."""
 
+load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
@@ -861,6 +862,7 @@ def roma_byob_sdk(
         extra_docs = [],
         exclude_tools = False,
         guide_intro_text = _default_guide_intro,
+        generated_proto_path = "",
         **kwargs):
     """
     Top-level macro for the Roma BYOB SDK.
@@ -873,6 +875,9 @@ def roma_byob_sdk(
         extra_docs: a list of declare_doc-created structs
         exclude_tools: bool controlling inclusion of SDK tools
         guide_intro_text: string containing markdown text for the guide introduction
+        generated_proto_path: path to the workspace source location to store the
+            generated protobuf spec. Must be in the same package as the sdk
+            build target.
         **kwargs: attributes common to bazel build rules.
 
     Targets:
@@ -912,6 +917,13 @@ def roma_byob_sdk(
         config = Label("//src:buf.yaml"),
         targets = [":{}_proto".format(name)],
     )
+    if generated_proto_path:
+        write_source_file(
+            name = name + "_write_proto",
+            check_that_out_file_exists = False,
+            in_file = ":{}.proto".format(name),
+            out_file = generated_proto_path,
+        )
     pkg_files(
         name = name + "_specs",
         srcs = [":{}.proto".format(name)],

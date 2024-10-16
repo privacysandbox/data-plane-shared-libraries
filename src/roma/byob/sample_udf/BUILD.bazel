@@ -36,9 +36,7 @@ proto_library(
 cc_proto_library(
     name = "sample_cc_proto",
     visibility = ["//src/roma/byob:__subpackages__"],
-    deps = [
-        ":sample_proto",
-    ],
+    deps = [":sample_proto"],
 )
 
 buf_lint_test(
@@ -58,9 +56,7 @@ proto_library(
 cc_proto_library(
     name = "sample_callback_cc_proto",
     visibility = ["//src/roma/byob:__subpackages__"],
-    deps = [
-        ":sample_callback_proto",
-    ],
+    deps = [":sample_callback_proto"],
 )
 
 buf_lint_test(
@@ -95,6 +91,7 @@ sample_api = declare_roma_api(
 
 roma_byob_sdk(
     name = "sample_byob_sdk",
+    generated_proto_path = "generated/sample.proto",
     roma_app_api = sample_api,
     visibility = ["//visibility:public"],
 )

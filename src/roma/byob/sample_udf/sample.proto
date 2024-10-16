@@ -21,10 +21,9 @@ import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 service SampleService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
     name: 'Sample Server',
-    code_id: "app_api_roma_app_test_v1",
+    roma_app_name: 'SampleServer',
     description: 'A sample server showcasing declarative APIs for BYOB',
-    cpp_namespace: 'privacy_sandbox::roma_byob::example',
-    roma_app_name: 'SampleServer'
+    cpp_namespace: 'privacy_sandbox::roma_byob::example'
   };
 
   rpc Sample(SampleRequest) returns (SampleResponse) {

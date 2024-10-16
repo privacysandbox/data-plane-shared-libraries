@@ -21,23 +21,23 @@
 //
 // See /docs/Guide to the SDK.md for information on using this spec.
 //
-{{- $svc := index $file.Services 0}}
-{{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
+{{- $svc := index $file.Services 0 }}
+{{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation" }}
 //
 // {{$svcopts.RomaAppName}} UDF Spec
-{{ if len $svcopts.Description}}// {{$svcopts.Description | wrapWith 75 "\n// "}}{{- end}}
+{{ if len $svcopts.Description }}// {{ $svcopts.Description | wrapWith 75 "\n// " }}{{- end }}
 //
 
 syntax = "proto3";
 
 package {{$svcopts.CppNamespace | replace "::" "." }};
 
-{{if len $svcopts.CsharpNamespace}}option csharp_namespace = "{{$svcopts.CsharpNamespace}}";{{end}}
-{{if len $svcopts.GoPackage}}option go_package = "{{$svcopts.GoPackage}}";{{end}}
+{{ if len $svcopts.CsharpNamespace }}option csharp_namespace = "{{ $svcopts.CsharpNamespace }}";{{ end }}
+{{ if len $svcopts.GoPackage }}option go_package = "{{ $svcopts.GoPackage }}";{{ end }}
 
 
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-{{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
+{{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation" }}
 {{- $reqType := $rpc.RequestType }}
 {{- $respType := $rpc.ResponseType }}
 {{- $reqFullType := $rpc.RequestFullType | printf "proto.%s" }}
@@ -54,78 +54,76 @@ package {{$svcopts.CppNamespace | replace "::" "." }};
 {{- $msgopts := index $msg.Options "privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation"}}
 {{- if eq $msg.LongName $reqType}}
 {{- $_ := set $rpcMsgs $reqType $reqType}}
-{{- if and $msgopts (len $msgopts.Description)}}// {{$msgopts.Description | wrapWith 75 "\n// "}}{{- end}}
+{{- if and $msgopts (len $msgopts.Description)}}// {{$msgopts.Description | wrapWith 75 "\n// "}}{{- end }}
 message {{$msg.LongName}} {
 {{- if $msg.HasFields}}
 {{- range $fldNum, $fld := $msg.Fields}}
 {{- $fldopts := index $fld.Options "privacysandbox.apis.roma.app_api.v1.roma_field_annotation"}}
 {{- if and $fldopts (len $fldopts.Description)}}
   // {{$fldopts.Description | wrapWith 75 "\n  // "}}
-{{- end}}
-  {{if eq $fld.Label "repeated"}}repeated {{end}}{{$fld.LongType}} {{$fld.Name}} = {{add $fldNum 1}};
-{{- end}}
-{{- end}}{{/*fields*/}}
+{{- end }}
+  {{if eq $fld.Label "repeated"}}repeated {{end }}{{$fld.LongType}} {{$fld.Name}} = {{add $fldNum 1}};
+{{- end }}
+{{- end }}{{/*fields*/}}
 }
-{{- end}}
-{{- end}}{{/*messages*/}}
+{{- end }}
+{{- end }}{{/*messages*/}}
 
 {{/*response*/}}
 {{- range $msg := $file.Messages}}
 {{- $msgopts := index $msg.Options "privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation"}}
 {{- if eq $msg.LongName $respType}}
 {{- $_ := set $rpcMsgs $respType $respType}}
-{{- if and $msgopts (len $msgopts.Description)}}// {{$msgopts.Description | wrapWith 75 "\n// "}}{{- end}}
+{{- if and $msgopts (len $msgopts.Description)}}// {{$msgopts.Description | wrapWith 75 "\n// "}}{{- end }}
 message {{$msg.LongName}} {
 {{- if $msg.HasFields}}
 {{- range $fldNum, $fld := $msg.Fields}}
 {{- $fldopts := index $fld.Options "privacysandbox.apis.roma.app_api.v1.roma_field_annotation"}}
 {{- if and $fldopts (len $fldopts.Description)}}
   // {{$fldopts.Description | wrapWith 75 "\n  // "}}
-{{- end}}
-  {{if eq $fld.Label "repeated"}}repeated {{end}}{{$fld.LongType}} {{$fld.Name}} = {{add $fldNum 1}};
-{{- end}}
-{{- end}}{{/*fields*/}}
+{{- end }}
+  {{if eq $fld.Label "repeated"}}repeated {{end }}{{$fld.LongType}} {{$fld.Name}} = {{add $fldNum 1}};
+{{- end }}
+{{- end }}{{/*fields*/}}
 }
-{{- end}}
-{{- end}}{{/*messages*/}}
-{{- end}}{{/*rpcs*/}}
-
+{{- end }}
+{{- end }}{{/*messages*/}}
+{{- end }}{{/*rpcs*/}}
 {{- if len $file.Messages}}
+
 {{- range $msg := $file.Messages}}
 {{- $msgopts := index $msg.Options "privacysandbox.apis.roma.app_api.v1.roma_mesg_annotation"}}
 {{- if eq (len (get $rpcMsgs $msg.LongName)) 0}}
-{{- if and $msgopts (len $msgopts.Description)}}// {{$msgopts.Description | wrapWith 75 "\n// "}}{{- end}}
+{{- if and $msgopts (len $msgopts.Description)}}// {{$msgopts.Description | wrapWith 75 "\n// "}}{{- end }}
 message {{$msg.LongName}} {
 {{- if $msg.HasFields}}
 {{- range $fldNum, $fld := $msg.Fields}}
 {{- $fldopts := index $fld.Options "privacysandbox.apis.roma.app_api.v1.roma_field_annotation"}}
 {{- if and $fldopts (len $fldopts.Description)}}
   // {{$fldopts.Description | wrapWith 75 "\n  // "}}
-{{- end}}
-  {{if eq $fld.Label "repeated"}}repeated {{end}}{{$fld.LongType}} {{$fld.Name}} = {{add $fldNum 1}};
-{{end}}
-{{- end}}{{/*fields*/}}
+{{- end }}
+  {{if eq $fld.Label "repeated"}}repeated {{end }}{{$fld.LongType}} {{$fld.Name}} = {{add $fldNum 1}};
+{{end }}
+{{- end }}{{/*fields*/}}
 }
-{{end}}
-{{- end}}
-{{- end}}{{/*messages*/}}
-
-
-{{/*enums*/}}
+{{end }}
+{{- end }}
+{{- end }}{{/*messages*/}}
 {{- if len $file.Enums}}
-{{- range $enum := $file.Enums}}
-{{- $enumopts := index $enum.Options "privacysandbox.apis.roma.app_api.v1.roma_enum_annotation"}}
-{{- if and $enumopts (len $enumopts.Description)}}// {{$enumopts.Description | wrapWith 75 "\n// "}}{{- end}}
-enum {{$enum.LongName}} {
-{{- range $val := $enum.Values}}
-{{- $valopts := index $val.Options "privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation"}}
-{{- if and $valopts (len $valopts.Description)}}
-  // {{$valopts.Description | wrapWith 75 "\n  // "}}
-{{- end}}
-  {{$val.Name}} = {{$val.Number}};
-{{- end}}{{/*vals*/}}
-}
-{{end}}
-{{- end}}{{/*enums*/}}
 
-{{end}}{{/*files*/}}
+
+{{ range $enum := $file.Enums }}
+{{- $enumopts := index $enum.Options "privacysandbox.apis.roma.app_api.v1.roma_enum_annotation" }}
+{{- if and $enumopts (len $enumopts.Description) }}// {{ $enumopts.Description | wrapWith 75 "\n// " }}{{- end }}
+enum {{ $enum.LongName }} {
+{{- range $val := $enum.Values }}
+{{- $valopts := index $val.Options "privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation" }}
+{{- if and $valopts (len $valopts.Description) }}
+  // {{$valopts.Description | wrapWith 75 "\n  // " }}
+{{- end }}
+  {{ $val.Name }} = {{ $val.Number }};
+{{- end }}{{/*vals*/}}
+}
+{{- end -}}
+{{- end -}}{{/*enums*/}}
+{{- end -}}{{/*files*/}}
