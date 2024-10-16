@@ -95,7 +95,6 @@ sample_api = declare_roma_api(
 
 roma_byob_sdk(
     name = "sample_byob_sdk",
-    srcs = [],
     roma_app_api = sample_api,
     visibility = ["//visibility:public"],
 )
