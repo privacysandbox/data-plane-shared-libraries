@@ -190,6 +190,9 @@ int main(int argc, char** argv) {
           break;
         }
         absl::MutexLock lock(&mu);
+        if (shutdown) {
+          return;
+        }
         const auto it = pid_to_udf.find(pid);
         if (it == pid_to_udf.end()) {
           LOG(ERROR) << "waitpid() returned unknown pid=" << pid;
@@ -237,13 +240,26 @@ int main(int argc, char** argv) {
       shutdown = true;
 
       // Kill extant workers before exit.
-      for (const auto& [pid, _] : pid_to_udf) {
+      for (const auto& [pid, udf] : pid_to_udf) {
         if (::kill(pid, SIGKILL) == -1) {
-          PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+          // If the process has already terminated, degrade error to a log.
+          if (errno == ESRCH) {
+            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+          } else {
+            PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+          }
         }
         if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
-          PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
+          // If the child has already been reaped (likely by reloader thread),
+          // degrade error to a log.
+          if (errno == ECHILD) {
+            PLOG(INFO) << "waitpid(" << pid << ", nullptr, 0)";
+          } else {
+            PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
+          }
         }
+        std::filesystem::remove_all(
+            std::filesystem::path(udf.binary_path).parent_path());
       }
     }
     reloader.join();
