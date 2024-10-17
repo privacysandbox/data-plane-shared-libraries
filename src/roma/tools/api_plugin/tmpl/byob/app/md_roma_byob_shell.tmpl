@@ -9,10 +9,10 @@ to run full server binaries.
 Run with:
 ```
 docker load -i tools/shell-cli.tar
-docker run ... \
+docker run --privileged \
   -v /absolute/path/my_udfs:/udf \
   -it byob_shell_image:v1 \
-  --num_workers 10 --nosandbox
+  --num_workers 10 --sandbox
 ```
 
 ## Key Features

@@ -31,9 +31,9 @@ using ::testing::HasSubstr;
 absl::StatusOr<std::string> TrivialLoadFn(std::string_view /*udf*/) {
   return "some_code_token";
 }
-absl::StatusOr<std::string> TrivialExecuteFn(std::string_view /*rpc*/,
-                                             std::string_view /*code_token*/,
-                                             std::istream& /*is*/) {
+absl::StatusOr<std::string> TrivialExecuteFn(
+    std::string_view /*rpc*/, std::string_view /*code_token*/,
+    std::string_view /*request_json*/) {
   return "some_serialized_response";
 }
 
@@ -169,7 +169,7 @@ TEST(ShellEvaluatorTest, ErrorWhenExecRequestFileNotFound) {
 }
 
 TEST(ShellEvaluatorTest, ExecAppendsToResponseFile) {
-  auto execute_fn = [](auto, auto, auto&) {
+  auto execute_fn = [](auto, auto, auto) {
     return "my_super_special_response";
   };
   ShellEvaluator evaluator(/*service_specific_message=*/"", {"rpc_1"},

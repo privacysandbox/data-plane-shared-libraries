@@ -44,9 +44,10 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "src/communication/json_utils.h"
 #include "src/roma/byob/tools/shell_evaluator.h"
 
-ABSL_FLAG(int, num_workers, 0, "the number of workers");
+ABSL_FLAG(int, num_workers, 1, "the number of workers");
 ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
           "a text file with a list of CLI commands to execute");
 ABSL_FLAG(bool, sandbox, true, "run BYOB in sandbox mode");
@@ -85,18 +86,21 @@ int main(int argc, char** argv) {
   };
   auto execute_fn = [&service](
                         std::string_view rpc, std::string_view code_token,
-                        std::istream& is) -> absl::StatusOr<std::string> {
+                        std::string_view request_json) -> absl::StatusOr<std::string> {
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
   {{- $pkg := $svcopts.CppNamespace | replace "." "::" | printf "::%s" }}
   {{- $reqType := $rpc.RequestType | replace "." "::" | printf "%s::%s" $pkg }}
   {{- $respType := $rpc.ResponseType | replace "." "::" | printf "%s::%s" $pkg }}
     if (rpc == "{{$rpc.Name}}") {
       absl::Notification done;
-      {{$reqType}} request;
-      request.ParseFromIstream(&is);
+      const auto request =
+        ::privacy_sandbox::server_common::JsonToProto<{{$reqType}}>(request_json);
+      if (!request.ok()) {
+        return request.status();
+      }
       absl::StatusOr<std::unique_ptr<{{$respType}}>> response;
       if (const auto execution_token = service->{{$rpc.Name}}(
-              done, request, response, /*metadata=*/{}, code_token);
+              done, *request, response, /*metadata=*/{}, code_token);
           !execution_token.ok()) {
         return execution_token.status();
       }
@@ -104,7 +108,7 @@ int main(int argc, char** argv) {
       if (!response.ok()) {
         return response.status();
       }
-      return (*response)->SerializeAsString();
+      return ::privacy_sandbox::server_common::ProtoToJson<{{$respType}}>(**response);
     }
 {{end}}
     return absl::InternalError(absl::StrCat("Unrecognized rpc '", rpc, "'"));

@@ -33,7 +33,7 @@ ShellEvaluator::ShellEvaluator(
     std::string_view service_specific_message, std::vector<std::string> rpcs,
     absl::FunctionRef<absl::StatusOr<std::string>(std::string_view)> load_fn,
     absl::FunctionRef<absl::StatusOr<std::string>(
-        std::string_view, std::string_view, std::istream&)>
+        std::string_view, std::string_view, std::string_view)>
         execute_fn)
     : service_specific_message_(service_specific_message),
       load_fn_(load_fn),
@@ -134,20 +134,23 @@ ShellEvaluator::NextStep ShellEvaluator::EvalAndPrint(std::string_view line,
       std::cerr << "Failed to open '" << command[1] << "'\n";
       return NextStep::kError;
     }
-    const absl::StatusOr<std::string> serialized_response =
-        execute_fn_(command.front(), *it->second, ifs);
-    if (!serialized_response.ok()) {
-      std::cerr << command.front() << " error: " << serialized_response.status()
+    std::string json_request((std::istreambuf_iterator<char>(ifs)),
+                             std::istreambuf_iterator<char>());
+    ifs.close();
+    const absl::StatusOr<std::string> json_response =
+        execute_fn_(command.front(), *it->second, json_request);
+    if (!json_response.ok()) {
+      std::cerr << command.front() << " error: " << json_response.status()
                 << "\n";
       return NextStep::kError;
     }
     if (command.size() == 3) {
       std::ofstream ofs;
       ofs.open(std::string{command[2]}, std::ios_base::app);
-      ofs << *serialized_response;
+      ofs << *json_response;
     }
     std::cout << "{code_token=" << *it->second
-              << ", response=" << *serialized_response << "}\n";
+              << ", response=" << *json_response << "}\n";
   }
   return NextStep::kContinue;
 }

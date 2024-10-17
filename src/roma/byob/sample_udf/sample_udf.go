@@ -56,7 +56,7 @@ func writeResponseToFd(writer io.Writer, response pb.SampleResponse) {
 
 func runHelloWorld(binResponse *pb.SampleResponse) {
 	message := "Hello, world from Go!"
-	binResponse.Greeting = []byte(message)
+	binResponse.Greeting = message
 }
 
 func runPrimeSieve(binResponse *pb.SampleResponse) {

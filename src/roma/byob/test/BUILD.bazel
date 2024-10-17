@@ -53,6 +53,7 @@ cc_binary(
     srcs = ["example_shell.cc"],
     deps = [
         ":example_roma_byob_app_service",
+        "//src/communication:json_utils",
         "//src/roma/byob/tools:shell_evaluator",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/flags:flag",

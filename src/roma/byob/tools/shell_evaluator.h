@@ -37,7 +37,7 @@ class ShellEvaluator {
       std::string_view service_specific_message, std::vector<std::string> rpcs,
       absl::FunctionRef<absl::StatusOr<std::string>(std::string_view)> load_fn,
       absl::FunctionRef<absl::StatusOr<std::string>(
-          std::string_view, std::string_view, std::istream&)>
+          std::string_view, std::string_view, std::string_view)>
           execute_fn);
 
   NextStep EvalAndPrint(std::string_view line, bool disable_commands);
@@ -46,7 +46,7 @@ class ShellEvaluator {
   std::string_view service_specific_message_;
   absl::FunctionRef<absl::StatusOr<std::string>(std::string_view)> load_fn_;
   absl::FunctionRef<absl::StatusOr<std::string>(
-      std::string_view, std::string_view, std::istream&)>
+      std::string_view, std::string_view, std::string_view)>
       execute_fn_;
   absl::flat_hash_map<std::string, std::optional<std::string>> rpc_to_token_;
 };

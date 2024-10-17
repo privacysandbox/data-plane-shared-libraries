@@ -29,6 +29,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "src/communication/json_utils.h"
 #include "src/roma/byob/test/example_roma_byob_app_service.h"
 #include "src/roma/byob/tools/shell_evaluator.h"
 
@@ -68,16 +69,21 @@ int main(int argc, char** argv) {
     done.WaitForNotification();
     return code_token;
   };
-  auto execute_fn = [&echo_service](
-                        std::string_view rpc, std::string_view code_token,
-                        std::istream& is) -> absl::StatusOr<std::string> {
+  auto execute_fn =
+      [&echo_service](
+          std::string_view rpc, std::string_view code_token,
+          std::string_view request_json) -> absl::StatusOr<std::string> {
     if (rpc == "Echo") {
       absl::Notification done;
-      EchoRequest request;
-      request.ParseFromIstream(&is);
+      const auto request =
+          ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
+              request_json);
+      if (!request.ok()) {
+        return request.status();
+      }
       absl::StatusOr<std::unique_ptr<EchoResponse>> response;
       if (const auto execution_token = echo_service->Echo(
-              done, request, response, /*metadata=*/{}, code_token);
+              done, *request, response, /*metadata=*/{}, code_token);
           !execution_token.ok()) {
         return execution_token.status();
       }
@@ -85,7 +91,8 @@ int main(int argc, char** argv) {
       if (!response.ok()) {
         return response.status();
       }
-      return (*response)->SerializeAsString();
+      return ::privacy_sandbox::server_common::ProtoToJson<EchoResponse>(
+          **response);
     }
     return absl::InternalError(absl::StrCat("Unrecognized rpc '", rpc, "'"));
   };

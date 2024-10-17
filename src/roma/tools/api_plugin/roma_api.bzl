@@ -506,6 +506,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
             udf_cc_proto_lib,
             ":{}".format(name),
             Label("//src/roma/byob/tools:shell_evaluator"),
+            Label("//src/communication:json_utils"),
             "@com_google_absl//absl/container:flat_hash_map",
             "@com_google_absl//absl/flags:flag",
             "@com_google_absl//absl/flags:parse",
