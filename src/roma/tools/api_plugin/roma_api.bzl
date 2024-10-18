@@ -490,7 +490,6 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
         hdrs = ["{}_roma_byob_app_header".format(name)],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
-            Label("//src/roma/roma_service:romav8_app_service"),
             Label("//src/roma/byob/interface:roma_service"),
             Label("//src/roma/byob/config"),
             "@com_google_absl//absl/functional:any_invocable",
