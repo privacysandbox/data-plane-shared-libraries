@@ -20,13 +20,12 @@ import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
 
 service ExampleService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
-    name: 'Example Service'
-    roma_app_name: 'ExampleServer'
-    code_id: "app_api_roma_app_test_v1",
+    name: 'Example Service',
+    roma_app_name: 'ExampleServer',
     description: 'An example service demonstrating how Roma Bring Your Own Binary works.',
     cpp_namespace: 'privacy_sandbox::server_common::byob::example',
     go_package: 'github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example',
-    csharp_namespace: 'DataPlaneShared.Apis.Roma.Binary.Example',
+    csharp_namespace: 'DataPlaneShared.Apis.Roma.Binary.Example'
   };
 
   rpc Echo(EchoRequest) returns (EchoResponse) {
@@ -41,12 +40,11 @@ message EchoRequest {
     description: 'Request message for the Echo function.'
   };
 
-  string message = 1
-      [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
-        description: "The message string to be echoed. Any UTF-8 values are "
-                     "accepted. The EchoResponse should return an identical "
-                     "message string, which the caller may verify."
-      }];
+  string message = 1 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: "The message string to be echoed. Any UTF-8 values are "
+                 "accepted. The EchoResponse should return an identical "
+                 "message string, which the caller may verify."
+  }];
 }
 
 message EchoResponse {
@@ -54,8 +52,7 @@ message EchoResponse {
     description: 'Response message for the Echo function.'
   };
 
-  string message = 1
-      [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
-        description: 'Message to be echoed.'
-      }];
+  string message = 1 [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+    description: 'Message to be echoed.'
+  }];
 }
