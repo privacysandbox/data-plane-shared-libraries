@@ -29,10 +29,9 @@
 
 #include <grpcpp/impl/service_type.h>
 
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/native_function_grpc_server/interface.h"
 #include "src/roma/native_function_grpc_server/proto/callback_service.grpc.pb.h"
-
-#include "function_binding_object_v2.h"
 
 namespace google::scp::roma {
 

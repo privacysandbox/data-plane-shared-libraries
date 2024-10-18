@@ -17,5 +17,5 @@ cc_library(
     name = "config",
     hdrs = ["config.h"],
     visibility = ["//visibility:public"],
-    deps = ["//src/roma/config"],
+    deps = ["//src/roma/config:function_binding_object_v2"],
 )

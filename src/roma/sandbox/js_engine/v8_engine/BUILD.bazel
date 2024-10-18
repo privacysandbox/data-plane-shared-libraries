@@ -62,7 +62,7 @@ cc_library(
     deps = [
         ":performance_now",
         ":v8_isolate_wrapper",
-        "//src/roma/config",
+        "//src/roma/config:type_converter",
         "//src/roma/logging",
         "//src/roma/native_function_grpc_server:interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",

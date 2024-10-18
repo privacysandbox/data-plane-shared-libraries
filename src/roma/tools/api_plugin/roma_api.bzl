@@ -290,7 +290,7 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
             "@com_google_absl//absl/strings",
             "@com_github_grpc_grpc//:grpc++",
             Label("//src/util/status_macro:status_util"),
-            Label("//src/roma/config"),
+            Label("//src/roma/config:function_binding_object_v2"),
             Label("//src/roma/interface"),
             Label("//src/roma/roma_service:romav8_proto_utils"),
         ],

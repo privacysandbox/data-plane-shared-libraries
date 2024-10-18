@@ -15,17 +15,37 @@
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
-    name = "config",
+    name = "function_binding_object_v2",
     hdrs = [
-        "config.h",
         "function_binding_object_v2.h",
-        "type_converter.h",
     ],
     visibility = ["//visibility:public"],
     deps = [
         "//src/roma/interface:function_binding_io_cc_proto",
+        "@com_google_absl//absl/container:flat_hash_map",
+    ],
+)
+
+cc_library(
+    name = "config",
+    hdrs = [
+        "config.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":function_binding_object_v2",
         "//src/roma/native_function_grpc_server:interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_grpc_proto",
+    ],
+)
+
+cc_library(
+    name = "type_converter",
+    hdrs = [
+        "type_converter.h",
+    ],
+    visibility = ["//visibility:public"],
+    deps = [
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -39,6 +59,8 @@ cc_test(
     srcs = ["function_binding_v2_test.cc"],
     deps = [
         ":config",
+        ":function_binding_object_v2",
+        ":type_converter",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:bind_front",
@@ -84,7 +106,7 @@ cc_test(
     size = "small",
     srcs = ["type_converter_test.cc"],
     deps = [
-        ":config",
+        ":type_converter",
         "//src/roma/interface:function_binding_io_cc_proto",
         "//src/util:process_util",
         "@com_google_absl//absl/container:flat_hash_map",

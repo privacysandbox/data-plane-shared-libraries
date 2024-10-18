@@ -28,6 +28,7 @@ cc_binary(
         "//src/roma/byob/sample_udf:sample_byob_sdk_roma_cc_lib",
         "//src/roma/byob/sample_udf:sample_callback_cc_proto",
         "//src/roma/byob/utility:utils",
+        "//src/roma/config:function_binding_object_v2",
         "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",

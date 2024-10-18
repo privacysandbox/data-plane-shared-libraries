@@ -27,6 +27,7 @@ cc_library(
     ],
     deps = [
         "//src/roma/config",
+        "//src/roma/config:type_converter",
         "//src/roma/interface",
         "//src/roma/wasm:deserializer",
         "//src/roma/wasm:serializer",

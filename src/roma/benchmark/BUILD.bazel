@@ -146,6 +146,7 @@ cc_binary(
     srcs = ["host_api_grpc_benchmark.cc"],
     deps = [
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server/proto:callback_service_cc_proto",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
@@ -169,6 +170,7 @@ cc_binary(
         ":fake_kv_server",
         ":test_code",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/wasm:wasm_testing",
         "@com_google_absl//absl/strings",
         "@google_benchmark//:benchmark",

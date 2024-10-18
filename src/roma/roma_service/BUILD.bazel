@@ -93,6 +93,7 @@ cc_test(
     deps = [
         ":roma_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
@@ -115,6 +116,7 @@ cc_test(
     deps = [
         ":roma_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -138,6 +140,7 @@ cc_test(
     deps = [
         ":roma_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "@com_google_absl//absl/base:log_severity",
         "@com_google_absl//absl/container:flat_hash_map",
@@ -166,6 +169,7 @@ cc_test(
     deps = [
         ":roma_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server:test_request_handlers",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
@@ -190,6 +194,7 @@ cc_test(
     deps = [
         ":roma_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server:test_request_handlers",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
@@ -295,6 +300,7 @@ cc_library(
         ":roma_service",
         ":romav8_proto_utils",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/functional:any_invocable",
@@ -316,6 +322,7 @@ cc_test(
         ":helloworld_cc_proto",
         ":romav8_app_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",
@@ -363,6 +370,7 @@ cc_test(
     deps = [
         ":roma_service",
         "//src/roma/config",
+        "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
