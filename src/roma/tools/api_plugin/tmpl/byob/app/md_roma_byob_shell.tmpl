@@ -11,8 +11,7 @@ Run with:
 docker load -i tools/shell-cli.tar
 docker run --privileged \
   -v /absolute/path/my_udfs:/udf \
-  -it byob_shell_image:v1 \
-  --num_workers 10 --sandbox
+  -it byob_shell_image:v1
 ```
 
 ## Key Features
@@ -39,11 +38,11 @@ docker run --privileged \
 | `commands` | Execute commands from specified filename | `commands <commands_file>`      | `commands my_script.txt`                  |
 | `help`     | Display all shell commands               | `help`                          | `help`                                    |
 | `exit`     | Exit the tool                            | `exit`                          | `exit`                                    |
-{{$svc := index (index .Files 0).Services 0}}
+{{ $svc := index (index .Files 0).Services 0 }}
 {{- $rpc := index ($svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation") 0 -}}
-| `load` | Load a User Defined Function (UDF) | `load <rpc_command> <udf_file>` | `load {{$rpc.Name}} example_udf`
-{{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-| `{{$rpc.Name}}` | {{- $rpc.Description}} | `{{$rpc.Name}} <request_file> [response_file]` | `{{$rpc.Name}} request.pb`
+| `load` | Load a User Defined Function (UDF) | `load <rpc_command> <udf_file>` | `load {{ $rpc.Name }} example_udf`
+{{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation" }}
+| `{{ $rpc.Name }}` | {{ $rpc.Description }} | `{{ $rpc.Name }} <request_file> [response_file]` | `{{ $rpc.Name }} request.pb`
 {{- end}}
 <!-- markdownlint-enable line-length -->
 <!-- prettier-ignore-end -->
