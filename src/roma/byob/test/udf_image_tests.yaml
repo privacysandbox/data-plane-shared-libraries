@@ -21,8 +21,13 @@ schemaVersion: 2.0.0
 containerRunOptions:
   privileged: true
 
+fileExistenceTests:
+  - name: '{COMMAND} file'
+    path: {COMMAND}
+    uid: {UID}
+    gid: {GID}
+
 commandTests:
-  - name: "Roma BYOB test"
-    command: "{COMMAND}"
-    args: {ARGS}
+  - name: Roma BYOB test
+    command: {COMMAND}
     exitCode: 0

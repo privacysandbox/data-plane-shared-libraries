@@ -69,53 +69,111 @@ cc_binary(
 pkg_files(
     name = "example_benchmark_execs",
     srcs = [
-        ":echo_request.json",
         ":example_benchmark",
     ],
     attributes = pkg_attributes(mode = "0500"),
     prefix = "/tools",
 )
 
-pkg_tar(
-    name = "example_benchmark_tar",
-    srcs = [":example_benchmark_execs"],
+pkg_files(
+    name = "example_benchmark_data",
+    srcs = [
+        ":echo_request.json",
+    ],
+    attributes = pkg_attributes(mode = "0400"),
+    prefix = "/tools",
 )
 
 [
-    roma_byob_image(
-        name = "example_benchmark_{}_image".format(user.flavor),
-        debug = True,
-        entrypoint = ["/tools/example_benchmark"],
-        repo_tags = ["example_benchmark_image:v1-{}".format(user.flavor)],
-        tars = [":example_benchmark_tar"],
-        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
-        use_nonroot = True if user.flavor == "nonroot" else False,
+    pkg_tar(
+        name = "example_{test}_{flavor}_tar".format(
+            flavor = user.flavor,
+            test = test,
+        ),
+        srcs = [
+            ":example_{}_data".format(test),
+            ":example_{}_execs".format(test),
+        ],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
     )
+    for test in ("benchmark", "shell")
     for user in DISTROLESS_USERS
 ]
 
-expand_template(
-    name = "example_benchmark_image_test_yaml",
-    out = "example_benchmark_image_test.yaml",
-    substitutions = {
-        "{ARGS}": "[\"--udf\", \"/udf/example_cc_udf\", \"--rpc\", \"Echo\", \"--request\", \"/tools/echo_request.json\"]",
-        "{COMMAND}": "/tools/example_benchmark",
-    },
-    template = ":commands.yaml",
-)
+[
+    roma_byob_image(
+        name = "example_{test}_{flavor}_image".format(
+            flavor = user.flavor,
+            test = test,
+        ),
+        debug = True,
+        entrypoint = ["/tools/example_{test}"],
+        repo_tags = ["example_{test}_image:v1-{flavor}".format(
+            flavor = user.flavor,
+            test = test,
+        )],
+        tars = [":example_{test}_{flavor}_tar".format(
+            flavor = user.flavor,
+            test = test,
+        )],
+        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
+        use_nonroot = True if user.flavor == "nonroot" else False,
+    )
+    for test in ("benchmark", "shell")
+    for user in DISTROLESS_USERS
+]
 
-container_structure_test(
-    name = "example_benchmark_root_image_test",
-    size = "medium",
-    timeout = "short",
-    configs = ["example_benchmark_image_test.yaml"],
-    image = "example_benchmark_root_image",
-    tags = [
-        "noasan",
-        "notsan",
-        "noubsan",
-    ],
-)
+[
+    expand_template(
+        name = "example_{test}_image_{flavor}_test_yaml".format(
+            flavor = user.flavor,
+            test = test,
+        ),
+        out = "example_{test}_image_{flavor}_test.yaml".format(
+            flavor = user.flavor,
+            test = test,
+        ),
+        substitutions = {
+            "{GID}": str(user.gid),
+            "{UID}": str(user.uid),
+        },
+        template = ":example_{}_image_test.yaml".format(test),
+        visibility = ["//visibility:public"],
+    )
+    for test in ("benchmark", "shell")
+    for user in DISTROLESS_USERS
+]
+
+[
+    container_structure_test(
+        name = "example_{test}_image_{flavor}_test".format(
+            flavor = user.flavor,
+            test = test,
+        ),
+        size = "medium",
+        timeout = "short",
+        configs = [
+            ":example_{test}_image_{flavor}_test.yaml".format(
+                flavor = user.flavor,
+                test = test,
+            ),
+        ],
+        image = "example_{test}_{flavor}_image".format(
+            flavor = user.flavor,
+            test = test,
+        ),
+        tags = [
+            "noasan",
+            "notsan",
+            "noubsan",
+        ],
+    )
+    for test in ("benchmark", "shell")
+    for user in DISTROLESS_USERS
+]
 
 cc_binary(
     name = "example_shell",
@@ -141,53 +199,20 @@ cc_binary(
 pkg_files(
     name = "example_shell_execs",
     srcs = [
-        ":echo_commands_file.txt",
-        ":echo_request.json",
         ":example_shell",
     ],
     attributes = pkg_attributes(mode = "0500"),
     prefix = "/tools",
 )
 
-pkg_tar(
-    name = "example_shell_tar",
-    srcs = [":example_shell_execs"],
-)
-
-[
-    roma_byob_image(
-        name = "example_shell_{}_image".format(user.flavor),
-        debug = True,
-        entrypoint = ["/tools/example_shell"],
-        repo_tags = ["example_shell_image:v1-{}".format(user.flavor)],
-        tars = [":example_shell_tar"],
-        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
-        use_nonroot = True if user.flavor == "nonroot" else False,
-    )
-    for user in DISTROLESS_USERS
-]
-
-expand_template(
-    name = "example_shell_image_test_yaml",
-    out = "example_shell_image_test.yaml",
-    substitutions = {
-        "{ARGS}": "[\"--num_workers\", \"1\", \"--commands_file\", \"/tools/echo_commands_file.txt\"]",
-        "{COMMAND}": "/tools/example_shell",
-    },
-    template = ":commands.yaml",
-)
-
-container_structure_test(
-    name = "example_shell_root_image_test",
-    size = "medium",
-    timeout = "short",
-    configs = ["example_shell_image_test.yaml"],
-    image = "example_shell_root_image",
-    tags = [
-        "noasan",
-        "notsan",
-        "noubsan",
+pkg_files(
+    name = "example_shell_data",
+    srcs = [
+        ":echo_commands_file.txt",
+        ":echo_request.json",
     ],
+    attributes = pkg_attributes(mode = "0400"),
+    prefix = "/tools",
 )
 
 genrule(
@@ -265,20 +290,20 @@ pkg_files(
 ]
 
 TEST_NAME_TO_ENTRYPOINT_MAP = (
-    ("sample", "/server/bin/roma_byob_test"),
-    ("example", "/server/bin/example_test"),
+    ("sample_test", "/server/bin/roma_byob_test"),
+    ("example_test", "/server/bin/example_test"),
 )
 
 [
     roma_byob_image(
-        name = "{test_name}_test_{flavor}_image".format(
+        name = "{test_name}_{flavor}_image".format(
             flavor = user.flavor,
             test_name = test_name,
         ),
         debug = False,
         entrypoint = [entrypoint],
         repo_tags = [
-            "roma_byob_{test_name}_test_image:v1-{flavor}".format(
+            "roma_byob_{test_name}_image:v1-{flavor}".format(
                 flavor = user.flavor,
                 test_name = test_name,
             ),
@@ -295,34 +320,39 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
 
 [
     expand_template(
-        name = "{test_name}_image_test_yaml".format(
+        name = "{test_name}_{flavor}_image_test_yaml".format(
+            flavor = user.flavor,
             test_name = test_name,
         ),
-        out = "{test_name}_image_test.yaml".format(
+        out = "{test_name}_{flavor}_image_test.yaml".format(
+            flavor = user.flavor,
             test_name = test_name,
         ),
         substitutions = {
-            "{ARGS}": "[]",
             "{COMMAND}": str(entrypoint),
+            "{GID}": str(user.gid),
+            "{UID}": str(user.uid),
         },
-        template = ":commands.yaml",
+        template = ":udf_image_tests.yaml",
         visibility = ["//visibility:public"],
     )
+    for user in DISTROLESS_USERS
     for test_name, entrypoint in TEST_NAME_TO_ENTRYPOINT_MAP
 ]
 
 [
     container_structure_test(
-        name = "{test_name}_test_{flavor}_image_test".format(
+        name = "{test_name}_{flavor}_image_test".format(
             flavor = user.flavor,
             test_name = test_name,
         ),
         size = "small",
         timeout = "short",
-        configs = ["{test_name}_image_test.yaml".format(
+        configs = [":{test_name}_{flavor}_image_test.yaml".format(
+            flavor = user.flavor,
             test_name = test_name,
         )],
-        image = "{test_name}_test_{flavor}_image".format(
+        image = "{test_name}_{flavor}_image".format(
             flavor = user.flavor,
             test_name = test_name,
         ),

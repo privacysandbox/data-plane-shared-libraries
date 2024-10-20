@@ -1,0 +1,79 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Refer to docs at https://github.com/GoogleContainerTools/container-structure-test.
+
+schemaVersion: 2.0.0
+
+containerRunOptions:
+  privileged: true
+
+fileExistenceTests:
+  - name: /tools/example_benchmark binary
+    path: /tools/example_benchmark
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /tools/echo_request.json file
+    path: /tools/echo_request.json
+    shouldExist: true
+    permissions: -r--------
+    uid: {UID}
+    gid: {GID}
+
+commandTests:
+  - name: example benchmark help
+    command: /tools/example_benchmark
+    args:
+    - --help
+    exitCode: 0
+    expectedOutput:
+      - |-
+        ^Usage: example_benchmark --udf=<path> --request=<path> --rpc=<rpc_name>
+          --udf: the UDF executable to be benchmarked
+          --request: the file for the UDF request, in proto format
+          --rpc: the name of the rpc method to invoke
+
+        benchmark \[--benchmark_list_tests={true|false}\]
+                  \[--benchmark_filter=<regex>\]
+                  \[--benchmark_min_time=`<integer>x` OR `<float>s` \]
+                  \[--benchmark_min_warmup_time=<min_warmup_time>\]
+                  \[--benchmark_repetitions=<num_repetitions>\]
+                  \[--benchmark_enable_random_interleaving={true|false}\]
+                  \[--benchmark_report_aggregates_only={true|false}\]
+                  \[--benchmark_display_aggregates_only={true|false}\]
+                  \[--benchmark_format=<console|json|csv>\]
+                  \[--benchmark_out=<filename>\]
+                  \[--benchmark_out_format=<json|console|csv>\]
+                  \[--benchmark_color={auto|true|false}\]
+                  \[--benchmark_counters_tabular={true|false}\]
+                  \[--benchmark_context=<key>=<value>,...\]
+                  \[--benchmark_time_unit={ns|us|ms|s}\]
+                  \[--v=<verbosity>\].*
+
+  - name: example benchmark echo microbenchmarks
+    command: /tools/example_benchmark
+    args:
+      - --udf
+      - /udf/example_cc_udf
+      - --rpc
+      - Echo
+      - --request
+      - /tools/echo_request.json
+    exitCode: 0
+    expectedOutput:
+      - .*BM_Load.*
+      - .*BM_Execute.*
