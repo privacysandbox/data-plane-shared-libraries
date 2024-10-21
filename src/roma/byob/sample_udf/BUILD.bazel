@@ -17,6 +17,8 @@ load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_graalvm//graalvm:defs.bzl", "native_image")
+load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -39,7 +41,15 @@ proto_library(
 cc_proto_library(
     name = "sample_cc_proto",
     visibility = ["//src/roma/byob:__subpackages__"],
-    deps = [":sample_proto"],
+    deps = [
+        ":sample_proto",
+    ],
+)
+
+java_proto_library(
+    name = "sample_java_proto",
+    visibility = ["//src/roma/byob:__subpackages__"],
+    deps = [":sample_byob_sdk_proto"],
 )
 
 buf_lint_test(
@@ -282,6 +292,38 @@ cc_binary(
     ],
 )
 
+java_library(
+    name = "sample_java_udf",
+    srcs = ["SampleUdf.java"],
+    resource_strip_prefix = "src/roma/byob/sample_udf",
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_java_proto",
+        "@com_google_protobuf//java/core",
+    ],
+)
+
+native_image(
+    name = "sample_java_native_udf",
+    executable_name = "sample_java_native_udf",
+    extra_args = [
+        "--add-opens=java.base/java.io=ALL-UNNAMED",
+        "--static",
+    ],
+    main_class = "SampleUdf",
+    native_image_tool = "@graalvm//:native-image",
+    reflection_configuration = "sample_udf_reflect_config.json",
+    static_zlib = "@zlib",
+    tags = [
+        "noasan",
+        "notsan",
+        "noubsan",
+    ],
+    deps = [
+        ":sample_java_udf",
+    ],
+)
+
 filegroup(
     name = "udf_binaries",
     srcs = [
@@ -295,6 +337,7 @@ filegroup(
         ":payload_write_udf",
         ":prime_sieve_udf",
         ":sample_go_udf",
+        ":sample_java_native_udf",
         ":sample_udf",
         ":sort_list_100k_udf",
         ":sort_list_10k_udf",

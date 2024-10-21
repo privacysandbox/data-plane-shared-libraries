@@ -36,6 +36,8 @@ load("@emsdk//:emscripten_deps.bzl", emsdk_emscripten_deps = "emscripten_deps")
 load("@emsdk//:toolchains.bzl", "register_emscripten_toolchains")
 load("@io_bazel_rules_go//go:deps.bzl", "go_register_toolchains", "go_rules_dependencies")
 load("@rules_fuzzing//fuzzing:repositories.bzl", "rules_fuzzing_dependencies")
+load("@rules_graalvm//graalvm:repositories.bzl", "graalvm_repository")
+load("@rules_graalvm//graalvm:workspace.bzl", "register_graalvm_toolchains", "rules_graalvm_repositories")
 load("@rules_nodejs//nodejs:repositories.bzl", "DEFAULT_NODE_VERSION", "nodejs_register_toolchains")
 load("@rules_oci//oci:dependencies.bzl", "rules_oci_dependencies")
 load("@rules_oci//oci:repositories.bzl", "oci_register_toolchains")
@@ -111,6 +113,16 @@ def _emscripten_deps():
     emsdk_emscripten_deps(emscripten_version = EMSCRIPTEN_VER)
     register_emscripten_toolchains()
 
+def _graalvm_deps():
+    graalvm_repository(
+        name = "graalvm",
+        distribution = "ce",
+        java_version = "20",
+        version = "20.0.2",
+    )
+    rules_graalvm_repositories()
+    register_graalvm_toolchains()
+
 def deps2(
         *,
         go_toolchains_version = GO_TOOLCHAINS_VERSION):
@@ -135,6 +147,7 @@ def deps2(
     _quiche_deps()
     _proto_deps()
     _buf_deps()
+    _graalvm_deps()
     boost_deps()
     rules_rust_dependencies()
     rust_register_toolchains(

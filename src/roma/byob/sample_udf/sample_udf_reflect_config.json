@@ -1,0 +1,20 @@
+[
+    {
+      "name" : "privacy_sandbox.roma_byob.example.SampleUdfInterface$SampleResponse",
+      "queryAllDeclaredConstructors" : true,
+      "queryAllPublicConstructors" : true,
+      "queryAllDeclaredMethods" : true,
+      "queryAllPublicMethods" : true,
+      "allDeclaredClasses" : true,
+      "allPublicClasses" : true
+    },
+    {
+      "name" : "privacy_sandbox.roma_byob.example.SampleUdfInterface$SampleResponse$Builder",
+      "queryAllDeclaredConstructors" : true,
+      "queryAllPublicConstructors" : true,
+      "queryAllDeclaredMethods" : true,
+      "queryAllPublicMethods" : true,
+      "allDeclaredClasses" : true,
+      "allPublicClasses" : true
+    }
+  ]

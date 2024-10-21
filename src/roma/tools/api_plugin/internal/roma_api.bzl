@@ -389,7 +389,7 @@ def roma_image(
             size = "medium",
             configs = container_structure_test_configs,
             image = ":{}".format(name),
-            tags = kwargs.get("tags", ["notsan", "noubsan"]),
+            tags = kwargs.get("tags", ["noasan", "nomsan", "notsan", "noubsan"]),
         )
 
 def roma_byob_image(

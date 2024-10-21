@@ -85,11 +85,23 @@ def _dwyu_deps():
         urls = ["https://github.com/martis42/depend_on_what_you_use/releases/download/0.3.0/depend_on_what_you_use-0.3.0.tar.gz"],
     )
 
+def _graalvm_deps():
+    maybe(
+        http_archive,
+        name = "rules_graalvm",
+        strip_prefix = "rules_graalvm-0.11.2",
+        sha256 = "49bfa3851b6a1f76e5c18727adf6b0bb61af24ba2566bf75a724ddbca0c2c183",
+        urls = [
+            "https://github.com/sgammon/rules_graalvm/releases/download/v0.11.2/rules_graalvm-0.11.2.tgz",
+        ],
+    )
+
 def deps1():
     _bazel_deps()
     _absl_deps()
     _rust_deps()
     _dwyu_deps()
+    _graalvm_deps()
     scp_sdk_dependencies()
     _js_deps()
     py_repositories()

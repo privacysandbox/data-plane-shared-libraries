@@ -184,3 +184,7 @@ build:benchmark --copt=-gmlt
 # Disable (note the minus sign after the `=`) using `-fPIC` for binaries in
 # `opt` compilation mode.
 build:benchmark --features=-prefer_pic_for_opt_binaries
+
+# Setup java compiler
+build --extra_toolchains=@graalvm//:toolchain
+build --java_runtime_version=graalvm_20

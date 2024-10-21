@@ -69,6 +69,7 @@ const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
+const std::filesystem::path kJavaBinaryFilename = "sample_java_native_udf";
 const std::filesystem::path kPayloadUdfFilename = "payload_read_udf";
 const std::filesystem::path kPayloadWriteUdfFilename = "payload_write_udf";
 const std::filesystem::path kCallbackPayloadReadUdfFilename =
@@ -78,6 +79,7 @@ const std::filesystem::path kCallbackPayloadWriteUdfFilename =
 constexpr int kPrimeCount = 9592;
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
+constexpr std::string_view kJavaOutput = "Hello, world from Java!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
 constexpr Mode kModes[] = {
     Mode::kModeSandbox,
@@ -87,6 +89,7 @@ constexpr Mode kModes[] = {
 enum class Language {
   kCPlusPlus = 0,
   kGoLang = 1,
+  kJava = 2,
 };
 
 enum class Log {
@@ -166,6 +169,8 @@ std::filesystem::path GetFilePathFromLanguage(Language lang) {
       return kUdfPath / kCPlusPlusBinaryFilename;
     case Language::kGoLang:
       return kUdfPath / kGoLangBinaryFilename;
+    case Language::kJava:
+      return kUdfPath / kJavaBinaryFilename;
     default:
       return std::filesystem::path();
   }
@@ -188,6 +193,8 @@ std::string GetLanguageStr(Language lang) {
       return "language:C++";
     case Language::kGoLang:
       return "language:Go";
+    case Language::kJava:
+      return "language:Java";
     default:
       return "mode:Unknown";
   }
@@ -377,7 +384,7 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_ProcessRequestCppVsGoLang(benchmark::State& state) {
+void BM_ProcessRequestMulipleLanguages(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
   ByobSampleService<> roma_service =
       GetRomaService(Mode::kModeSandbox, /*num_workers=*/2);
@@ -386,10 +393,18 @@ void BM_ProcessRequestCppVsGoLang(benchmark::State& state) {
       LoadCode(roma_service, GetFilePathFromLanguage(lang));
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
-  VerifyResponse(
-      SendRequestAndGetResponse(roma_service, func_type, code_token),
-      lang == Language::kCPlusPlus ? kFirstUdfOutput : kGoBinaryOutput,
-      func_type);
+  std::string expected_response;
+  if (lang == Language::kCPlusPlus) {
+    expected_response = kFirstUdfOutput;
+  } else if (lang == Language::kJava) {
+    expected_response = kJavaOutput;
+  } else if (lang == Language::kGoLang) {
+    expected_response = kGoBinaryOutput;
+  } else {
+    assert(0);
+  }
+  VerifyResponse(SendRequestAndGetResponse(roma_service, func_type, code_token),
+                 expected_response, func_type);
 
   for (auto _ : state) {
     auto response =
@@ -736,10 +751,11 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
-BENCHMARK(BM_ProcessRequestCppVsGoLang)
+BENCHMARK(BM_ProcessRequestMulipleLanguages)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
+            (int)Language::kJava,
             (int)Language::kGoLang,
         },
         {
