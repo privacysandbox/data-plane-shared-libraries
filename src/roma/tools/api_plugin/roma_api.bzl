@@ -527,7 +527,6 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs and k != "visibility"}
     )
-
     pkg_files(
         name = "{}_benchmark_execs".format(name),
         srcs = ["{}_benchmark".format(name)],
@@ -537,40 +536,16 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
             ":{}_benchmark".format(name): "benchmark-cli",
         },
     )
-
     pkg_tar(
         name = "{}_benchmark_tar".format(name),
         srcs = ["{}_benchmark_execs".format(name)],
     )
-
-    oci_image(
+    _roma_byob_image(
         name = "{}_benchmark_image".format(name),
         entrypoint = ["/tools/benchmark-cli"],
-        base = select({
-            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
-            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
-        }),
-        labels = {"tee.launch_policy.log_redirect": "always"},
-        tars = [
-            Label("//src/roma/byob/container:gvisor_tar_root"),
-            Label("//src/roma/byob/container:container_config_tar_root"),
-            Label("//src/roma/byob/container:byob_server_container_with_dir_root.tar"),
-            Label("//src/roma/byob/container:var_run_runsc_tar_root"),
-            "{}_benchmark_tar".format(name),
-        ],
+        repo_tag = "byob_benchmark_image:v1",
+        tars = [":{}_benchmark_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
-    )
-
-    oci_load(
-        name = "{}_benchmark_tarball".format(name),
-        image = ":{}_benchmark_image".format(name),
-        repo_tags = ["byob_benchmark_image:v1"],
-    )
-
-    native.filegroup(
-        name = "{}_benchmark_tarball.tar".format(name),
-        srcs = [":{}_benchmark_tarball".format(name)],
-        output_group = "tarball",
     )
 
     cc_binary(
@@ -595,7 +570,6 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs and k != "visibility"}
     )
-
     pkg_files(
         name = "{}_shell_execs".format(name),
         srcs = ["{}_shell".format(name)],
@@ -605,40 +579,16 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
             ":{}_shell".format(name): "shell-cli",
         },
     )
-
     pkg_tar(
         name = "{}_shell_tar".format(name),
         srcs = ["{}_shell_execs".format(name)],
     )
-
-    oci_image(
+    _roma_byob_image(
         name = "{}_shell_image".format(name),
         entrypoint = ["/tools/shell-cli"],
-        base = select({
-            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
-            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
-        }),
-        labels = {"tee.launch_policy.log_redirect": "always"},
-        tars = [
-            Label("//src/roma/byob/container:gvisor_tar_root"),
-            Label("//src/roma/byob/container:container_config_tar_root"),
-            Label("//src/roma/byob/container:byob_server_container_with_dir_root.tar"),
-            Label("//src/roma/byob/container:var_run_runsc_tar_root"),
-            "{}_shell_tar".format(name),
-        ],
+        repo_tag = "byob_shell_image:v1",
+        tars = [":{}_shell_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
-    )
-
-    oci_load(
-        name = "{}_shell_tarball".format(name),
-        image = ":{}_shell_image".format(name),
-        repo_tags = ["byob_shell_image:v1"],
-    )
-
-    native.filegroup(
-        name = "{}_shell_tarball.tar".format(name),
-        srcs = [":{}_shell_tarball".format(name)],
-        output_group = "tarball",
     )
 
 def romav8_image(*, name, cc_binary, repo_tag):
@@ -652,45 +602,58 @@ def romav8_image(*, name, cc_binary, repo_tag):
 
     Targets:
         <name>_image -- the oci_image target
-        <name>_tarball.tar -- tarfile of the OCI image
+        <name>_image.tar -- tarfile of the OCI image
     """
-    _roma_image(name = name, cc_binary = cc_binary, repo_tag = repo_tag, type = "v8")
-
-def _roma_image(*, name, cc_binary, repo_tag, type):
-    type_str = "roma" + type
-    path = "/usr/bin"
+    dest_path = "/usr/bin"
     pkg_files(
-        name = "{}_{}_cli_execs".format(name, type_str),
-        srcs = [
-            cc_binary,
-        ],
+        name = "{}_v8_execs".format(name),
+        srcs = [cc_binary],
         attributes = pkg_attributes(mode = "0555"),
-        prefix = path,
+        prefix = dest_path,
     )
     pkg_tar(
-        name = "{}_{}_cli_tar".format(name, type_str),
+        name = "{}_v8_tar".format(name),
         srcs = [
-            ":{}_{}_cli_execs".format(name, type_str),
+            ":{}_v8_execs".format(name),
         ],
     )
+    _roma_image(
+        name = name,
+        repo_tag = repo_tag,
+        tars = [":{}_v8_tar".format(name)],
+        entrypoint = ["{}/{}".format(dest_path, cc_binary.name)],
+    )
+
+def _roma_byob_image(*, name, repo_tag, tars, **kwargs):
+    byob_tars = [
+        Label("//src/roma/byob/container:gvisor_tar_root"),
+        Label("//src/roma/byob/container:container_config_tar_root"),
+        Label("//src/roma/byob/container:byob_server_container_with_dir_root.tar"),
+        Label("//src/roma/byob/container:var_run_runsc_tar_root"),
+    ]
+    _roma_image(
+        name = name,
+        repo_tag = repo_tag,
+        tars = byob_tars + tars,
+        **kwargs
+    )
+
+def _roma_image(*, name, repo_tag, **kwargs):
     oci_image(
-        name = "{}_image".format(name),
+        name = name,
         base = select({
             "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
             "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
         }),
-        entrypoint = ["{}/{}".format(path, cc_binary.name)],
-        tars = [
-            ":{}_{}_cli_tar".format(name, type_str),
-        ],
+        **{k: v for (k, v) in kwargs.items() if k not in ["base"]}
     )
     oci_load(
         name = "{}_tarball".format(name),
-        image = ":{}_image".format(name),
-        repo_tags = ["privacy_sandbox/udf_sdk/{}:{}".format(name, repo_tag)],
+        image = name,
+        repo_tags = [repo_tag],
     )
     native.filegroup(
-        name = "{}_tarball.tar".format(name),
+        name = "{}.tar".format(name),
         srcs = [":{}_tarball".format(name)],
         output_group = "tarball",
     )
@@ -722,7 +685,7 @@ def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = []
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, repo_tag = "v1", **kwargs):
+def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, image_tag = "v1", **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -734,7 +697,7 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, rep
         roma_app_api: the roma_api struct.
         app_api_cc_library: label of the associated roma_app_api_cc_library target.
         js_library: label of the associated roma_service_js_library target.
-        repo_tag: tag for generated OCI images.
+        image_tag: tag for generated OCI images.
         host_api_cc_libraries: labels of the associated roma_host_api_cc_library targets.
         **kwargs: attributes common to bazel build rules.
 
@@ -767,26 +730,23 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, rep
     romav8_image(
         name = name + "_roma_shell",
         cc_binary = Label("//src/roma/tools/v8_cli:roma_shell"),
-        repo_tag = repo_tag,
+        repo_tag = "privacy_sandbox/roma/v8/roma-shell:{}".format(image_tag),
     )
     romav8_image(
         name = name + "_roma_benchmark",
         cc_binary = Label("//src/roma/tools/v8_cli:roma_benchmark"),
-        repo_tag = repo_tag,
+        repo_tag = "privacy_sandbox/roma/v8/roma-benchmark:{}".format(image_tag),
     )
 
     pkg_files(
         name = name + "_tools_artifacts",
         srcs = [
-            ":{}_roma_shell_tarball.tar".format(name),
-            ":{}_roma_benchmark_tarball.tar".format(name),
+            ":{}_roma_shell.tar".format(name),
+            ":{}_roma_benchmark.tar".format(name),
         ],
-        # oci 2.0 rules generate all tarballs the same name "tarball.tar", and we need to rename them.
-        # Without this rename, we'll get the following error:
-        # "After renames, multiple sources (at least {0}, {1}) map to the same destination. Consider adjusting strip_prefix and/or renames error".
         renames = {
-            ":{}_roma_shell_tarball.tar".format(name): "{}_roma_shell_tarball.tar".format(name),
-            ":{}_roma_benchmark_tarball.tar".format(name): "{}_roma_benchmark_tarball.tar".format(name),
+            ":{}_roma_shell.tar".format(name): "romav8-shell.tar",
+            ":{}_roma_benchmark.tar".format(name): "romav8-benchmark.tar",
         },
         prefix = "tools",
     )
@@ -1086,13 +1046,13 @@ def roma_byob_sdk(
         pkg_files(
             name = "{}_shell_tools".format(name),
             srcs = [
-                "{}_roma_cc_lib_shell_tarball.tar".format(name),
-                "{}_roma_cc_lib_benchmark_tarball.tar".format(name),
+                "{}_roma_cc_lib_shell_image.tar".format(name),
+                "{}_roma_cc_lib_benchmark_image.tar".format(name),
             ],
             prefix = "tools",
             renames = {
-                "{}_roma_cc_lib_shell_tarball.tar".format(name): "shell-cli.tar",
-                "{}_roma_cc_lib_benchmark_tarball.tar".format(name): "benchmark-cli.tar",
+                "{}_roma_cc_lib_shell_image.tar".format(name): "shell-cli.tar",
+                "{}_roma_cc_lib_benchmark_image.tar".format(name): "benchmark-cli.tar",
             },
         )
         sdk_srcs.append("{}_shell_tools".format(name))
