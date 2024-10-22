@@ -110,7 +110,7 @@ pkg_files(
             test = test,
         ),
         debug = True,
-        entrypoint = ["/tools/example_{test}"],
+        entrypoint = ["/tools/example_{test}".format(test = test)],
         repo_tags = ["example_{test}_image:v1-{flavor}".format(
             flavor = user.flavor,
             test = test,

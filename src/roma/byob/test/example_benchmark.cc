@@ -109,28 +109,29 @@ BENCHMARK(BM_Execute);
 int main(int argc, char** argv) {
   benchmark::Initialize(
       &argc, argv, +[] {
-        std::cout
-            << R"(Usage: example_benchmark --udf=<path> --request=<path> --rpc=<rpc_name>
-  --udf: the UDF executable to be benchmarked
-  --request: the file for the UDF request, in proto format
-  --rpc: the name of the rpc method to invoke
+        std::cout << R"(benchmark-cli: Runs benchmarks for EchoService.
 
-benchmark [--benchmark_list_tests={true|false}]
-          [--benchmark_filter=<regex>]
-          [--benchmark_min_time=`<integer>x` OR `<float>s` ]
-          [--benchmark_min_warmup_time=<min_warmup_time>]
-          [--benchmark_repetitions=<num_repetitions>]
-          [--benchmark_enable_random_interleaving={true|false}]
-          [--benchmark_report_aggregates_only={true|false}]
-          [--benchmark_display_aggregates_only={true|false}]
-          [--benchmark_format=<console|json|csv>]
-          [--benchmark_out=<filename>]
-          [--benchmark_out_format=<json|console|csv>]
-          [--benchmark_color={auto|true|false}]
-          [--benchmark_counters_tabular={true|false}]
-          [--benchmark_context=<key>=<value>,...]
-          [--benchmark_time_unit={ns|us|ms|s}]
-          [--v=<verbosity>]
+  Flags from example_benchmark.cc:
+    --udf (the UDF executable to be benchmarked)
+    --request (the file for the UDF request, in proto format)
+    --rpc (the name of the rpc method to invoke)
+
+  Flags from the Google Microbenchmarking Library:
+    --benchmark_list_tests={true|false}
+    --benchmark_filter=<regex>
+    --benchmark_min_time=`<integer>x` OR `<float>s`
+    --benchmark_min_warmup_time=<min_warmup_time>
+    --benchmark_repetitions=<num_repetitions>
+    --benchmark_enable_random_interleaving={true|false}
+    --benchmark_report_aggregates_only={true|false}
+    --benchmark_display_aggregates_only={true|false}
+    --benchmark_format=<console|json|csv>
+    --benchmark_out=<filename>
+    --benchmark_out_format=<json|console|csv>
+    --benchmark_color={auto|true|false}
+    --benchmark_counters_tabular={true|false}
+    --benchmark_context=<key>=<value>,...
+    --benchmark_time_unit={ns|us|ms|s}
 )";
       });
   absl::ParseCommandLine(argc, argv);
