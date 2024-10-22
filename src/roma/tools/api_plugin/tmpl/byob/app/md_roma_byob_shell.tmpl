@@ -9,9 +9,12 @@ to run full server binaries.
 Run with:
 ```
 docker load -i tools/shell-cli.tar
-docker run --privileged \
-  -v /absolute/path/my_udfs:/udf \
-  -it byob_shell_image:v1
+docker run \
+  --privileged \
+  -it \
+  --rm \
+  --volume /absolute/path/my_udfs:/udf \
+  privacy-sandbox/sample-byob-sdk/roma-byob/shell:v1
 ```
 
 ## Key Features

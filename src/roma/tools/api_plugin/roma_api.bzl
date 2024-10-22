@@ -424,7 +424,7 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwargs):
+def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_name = "", **kwargs):
     """
     Top-level macro for the Roma BYOB Application API.
 
@@ -540,10 +540,14 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
         name = "{}_benchmark_tar".format(name),
         srcs = ["{}_benchmark_execs".format(name)],
     )
+    repo_tag_prefix = "privacy-sandbox/roma-byob"
+    if udf_name:
+        repo_tag_prefix = "privacy-sandbox/{}/roma-byob".format(udf_name.replace("_", "-"))
+
     _roma_byob_image(
         name = "{}_benchmark_image".format(name),
         entrypoint = ["/tools/benchmark-cli"],
-        repo_tag = "byob_benchmark_image:v1",
+        repo_tag = "{}/benchmark:v1".format(repo_tag_prefix),
         tars = [":{}_benchmark_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
     )
@@ -586,7 +590,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, **kwar
     _roma_byob_image(
         name = "{}_shell_image".format(name),
         entrypoint = ["/tools/shell-cli"],
-        repo_tag = "byob_shell_image:v1",
+        repo_tag = "{}/shell:v1".format(repo_tag_prefix),
         tars = [":{}_shell_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
     )
@@ -730,12 +734,12 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ima
     romav8_image(
         name = name + "_roma_shell",
         cc_binary = Label("//src/roma/tools/v8_cli:roma_shell"),
-        repo_tag = "privacy_sandbox/roma/v8/roma-shell:{}".format(image_tag),
+        repo_tag = "privacy_sandbox/roma-v8/shell:{}".format(image_tag),
     )
     romav8_image(
         name = name + "_roma_benchmark",
         cc_binary = Label("//src/roma/tools/v8_cli:roma_benchmark"),
-        repo_tag = "privacy_sandbox/roma/v8/roma-benchmark:{}".format(image_tag),
+        repo_tag = "privacy_sandbox/roma-v8/benchmark:{}".format(image_tag),
     )
 
     pkg_files(
@@ -745,8 +749,8 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ima
             ":{}_roma_benchmark.tar".format(name),
         ],
         renames = {
-            ":{}_roma_shell.tar".format(name): "romav8-shell.tar",
-            ":{}_roma_benchmark.tar".format(name): "romav8-benchmark.tar",
+            ":{}_roma_shell.tar".format(name): "roma-v8-shell.tar",
+            ":{}_roma_benchmark.tar".format(name): "roma-v8-benchmark.tar",
         },
         prefix = "tools",
     )
@@ -936,6 +940,7 @@ def roma_byob_sdk(
     )
     roma_byob_app_api_cc_library(
         name = name + "_roma_cc_lib",
+        udf_name = name,
         roma_app_api = roma_app_api,
         udf_cc_proto_lib = ":{}_cc_proto".format(name),
         tags = [

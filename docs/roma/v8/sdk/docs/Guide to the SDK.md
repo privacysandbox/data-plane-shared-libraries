@@ -56,6 +56,6 @@ docker run -i {DOCKER_IMAGE_TAG}
 Given a `roma_v8_sdk` target named `test_service_sdk`, to run the Roma Shell CLI tool, run:
 
 ```[sh]
-docker load -i test_service_sdk/tools/test_service_sdk_roma_shell_image.tar
-docker run -i privacy_sandbox/udf_sdk/test_service_sdk_roma_shell:v1
+docker load -i test_service_sdk/tools/roma-v8-shell.tar
+docker run -i privacy_sandbox/roma-v8/roma-shell:v1
 ```

@@ -14,9 +14,12 @@ to be benchmarked, the path to a json file to be supplied to the UDF as input, a
 Run with:
 ```
 docker load -i tools/benchmark-cli.tar
-docker run --privileged \
-  -v /absolute/path/my_udfs:/udf \
-  -it byob_benchmark_image:v1 \
+docker run \
+  --privileged \
+  -it \
+  --rm \
+  --volume /absolute/path/my_udfs:/udf \
+  privacy-sandbox/sample-byob-sdk/roma-byob/benchmark:v1 \
   <flags>
 ```
 

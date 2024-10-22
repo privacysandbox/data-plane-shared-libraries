@@ -220,9 +220,7 @@ roma_v8_app_api_cc_library(
 
 roma_v8_sdk(
     name = "test_service_sdk",
-    srcs = [
-        ":test_service_js",
-    ],
+    srcs = [":test_service_js"],
     app_api_cc_library = ":test_service_roma_app_api",
     js_library = ":test_service_js_library",
     roma_app_api = test_service_app_api,
