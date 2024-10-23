@@ -1,0 +1,66 @@
+# Copyright 2024 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Refer to docs at https://github.com/GoogleContainerTools/container-structure-test.
+
+schemaVersion: 2.0.0
+
+containerRunOptions:
+  privileged: true
+
+metadataTest:
+  entrypoint:
+    - /server/bin/memory_usage_benchmark
+
+fileExistenceTests:
+  - name: entrypoint
+    path: /server/bin/memory_usage_benchmark
+    permissions: -r-x------
+    isExecutableBy: owner
+    uid: {UID}
+    gid: {GID}
+
+commandTests:
+  - name: events stats 10k
+    command: /server/bin/memory_usage_benchmark
+    args:
+      - --num_workers
+      - 1
+      - --sort_list_udf
+      - 10k
+      - --run_duration
+      - 10s
+    exitCode: 0
+
+  - name: events stats 100k
+    command: /server/bin/memory_usage_benchmark
+    args:
+      - --num_workers
+      - 1
+      - --sort_list_udf
+      - 100k
+      - --run_duration
+      - 10s
+    exitCode: 0
+
+  - name: events stats 1m
+    command: /server/bin/memory_usage_benchmark
+    args:
+      - --num_workers
+      - 1
+      - --sort_list_udf
+      - 1m
+      - --run_duration
+      - 10s
+    exitCode: 0

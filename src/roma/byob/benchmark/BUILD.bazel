@@ -20,6 +20,105 @@ load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_binary(
+    name = "memory_usage_benchmark",
+    srcs = ["memory_usage_benchmark.cc"],
+    deps = [
+        "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
+        "//src/roma/byob/sample_udf:sample_byob_sdk_roma_cc_lib",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+pkg_files(
+    name = "memory_usage_benchmark_execs",
+    srcs = [":memory_usage_benchmark"],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/server/bin",
+)
+
+[
+    pkg_tar(
+        name = "memory_usage_benchmark_tar_{}".format(user.flavor),
+        srcs = [
+            ":memory_usage_benchmark_execs",
+        ],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
+
+pkg_files(
+    name = "sort_list_binaries_execs",
+    srcs = [
+        "//src/roma/byob/sample_udf:sort_list_100k_udf",
+        "//src/roma/byob/sample_udf:sort_list_10k_udf",
+        "//src/roma/byob/sample_udf:sort_list_1m_udf",
+    ],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/udf",
+)
+
+[
+    pkg_tar(
+        name = "sort_list_binaries_{}_tar".format(user.flavor),
+        srcs = [":sort_list_binaries_execs"],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
+
+[
+    expand_template(
+        name = "memory_usage_benchmark_{}_image_test_yaml".format(user.flavor),
+        out = "memory_usage_benchmark_{}_image_test.yaml".format(user.flavor),
+        substitutions = {
+            "{GID}": str(user.gid),
+            "{UID}": str(user.uid),
+        },
+        template = ":memory_usage_benchmark_image_test.yaml",
+    )
+    for user in DISTROLESS_USERS
+]
+
+# builders/tools/bazel-debian build //src/roma/byob/benchmark:memory_usage_benchmark_root_image.tar
+# docker load -i bazel-bin/src/roma/byob/benchmark/memory_usage_benchmark_root_image_tar/tarball.tar
+# docker run --privileged --volume="${PWD}/src/experimental/${USER}":/data privacy-sandbox/roma-byob/memory_usage_benchmark:v1-root --num_workers 10 --run_duration 10m --output=/data/output.csv
+[
+    roma_byob_image(
+        name = "memory_usage_benchmark_{}_image".format(user.flavor),
+        container_structure_test_configs = [":memory_usage_benchmark_{}_image_test.yaml".format(user.flavor)],
+        debug = False,
+        entrypoint = ["/server/bin/memory_usage_benchmark"],
+        repo_tags = ["privacy-sandbox/roma-byob/memory_usage_benchmark:v1-{}".format(user.flavor)],
+        tags = [
+            "noasan",
+            "notsan",
+            "noubsan",
+        ],
+        tars = [
+            ":memory_usage_benchmark_tar_{}".format(user.flavor),
+            "sort_list_binaries_{}_tar".format(user.flavor),
+        ],
+        user = user,
+    )
+    for user in DISTROLESS_USERS
+]
+
+cc_binary(
     name = "roma_byob_benchmark",
     srcs = ["roma_byob_benchmark.cc"],
     deps = [
