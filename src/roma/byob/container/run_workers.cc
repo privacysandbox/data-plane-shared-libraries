@@ -142,6 +142,7 @@ int WorkerImpl(void* arg) {
   }
   PCHECK(::chdir("/") == 0);
   PCHECK(::umount2("/pivot", MNT_DETACH) == 0);
+  PCHECK(::rmdir("/pivot") == 0);
   for (const std::string& mount : worker_impl_arg.mounts) {
     PCHECK(::mount(mount.c_str(), mount.c_str(), nullptr, MS_REMOUNT | MS_BIND,
                    nullptr) == 0)
