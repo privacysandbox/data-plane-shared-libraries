@@ -40,10 +40,10 @@ The table below illustrates the docker flags needed to run the benchmarks.
 <!-- markdownlint-disable line-length -->
 | Tarball                     | Image Name and Tag                   | Supports non-Sandbox | `docker run` flags                                                     |
 | --------------------------- | ------------------------------------ | -------------------- | ---------------------------------------------------------------------- |
-| benchmark_nonroot_image.tar | roma-byob-benchmark-image:v1-nonroot | No                   | `--security-opt=seccomp=unconfined`                                    |
+| benchmark_nonroot_image.tar | privacy-sandbox/roma-byob/microbenchmarks:v1-nonroot | No                   | `--security-opt=seccomp=unconfined`                                    |
 |                             |                                      |                      | `--security-opt=apparmor=unconfined`                                   |
 |                             |                                      |                      | (optional)`--cap-add=CAP_SYS_ADMIN` only required for non-sandbox mode |
-| benchmark_root_image.tar    | roma-byob-benchmark-image:v1-root    | Yes                  | Generally                                                              |
+| benchmark_root_image.tar    | privacy-sandbox/roma-byob/microbenchmarks:v1-root    | Yes                  | Generally                                                              |
 |                             |                                      |                      | `--security-opt=seccomp=unconfined`                                    |
 |                             |                                      |                      | `--security-opt=apparmor=unconfined`                                   |
 <!-- markdownlint-enable line-length -->
@@ -65,7 +65,7 @@ docker run -it \
   --security-opt=apparmor=unconfined \
   --cap-add=CAP_SYS_ADMIN \
   --rm \
-  roma-byob-benchmark-image:v1-root
+  privacy-sandbox/roma-byob/microbenchmarks:v1-root
 ```
 
 By default, the results are printed to the console. If you want to store the results in a file,
@@ -85,7 +85,7 @@ docker run \
   --security-opt=apparmor=unconfined \
   --cap-add=CAP_SYS_ADMIN \
   --rm \
-  roma-byob-benchmark-image:v1-root
+  privacy-sandbox/roma-byob/microbenchmarks:v1-root
 ```
 
 ### Benchmarking on AWS EC2

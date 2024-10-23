@@ -99,7 +99,7 @@ pkg_files(
             "BENCHMARK_OUT_FORMAT": "json",
         },
         repo_tags = [
-            "roma-byob-benchmark-image:v1-{flavor}{dbg}".format(
+            "privacy-sandbox/roma-byob/microbenchmarks:v1-{flavor}{dbg}".format(
                 dbg = debug_str.replace("_", "-"),
                 flavor = user.flavor,
             ),
