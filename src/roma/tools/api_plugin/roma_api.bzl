@@ -21,7 +21,6 @@ load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
@@ -35,6 +34,8 @@ load(
     "host_api_cc_protoc",
     "host_api_js_protoc",
     "roma_js_proto_library",
+    _roma_byob_image = "roma_byob_image",
+    _roma_image = "roma_image",
 )
 
 _closure_js_attrs = {
@@ -544,10 +545,10 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
     if udf_name:
         repo_tag_prefix = "privacy-sandbox/{}/roma-byob".format(udf_name.replace("_", "-"))
 
-    _roma_byob_image(
+    roma_byob_image(
         name = "{}_benchmark_image".format(name),
         entrypoint = ["/tools/benchmark-cli"],
-        repo_tag = "{}/benchmark:v1".format(repo_tag_prefix),
+        repo_tags = ["{}/benchmark:v1".format(repo_tag_prefix)],
         tars = [":{}_benchmark_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
     )
@@ -587,22 +588,22 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
         name = "{}_shell_tar".format(name),
         srcs = ["{}_shell_execs".format(name)],
     )
-    _roma_byob_image(
+    roma_byob_image(
         name = "{}_shell_image".format(name),
         entrypoint = ["/tools/shell-cli"],
-        repo_tag = "{}/shell:v1".format(repo_tag_prefix),
+        repo_tags = ["{}/shell:v1".format(repo_tag_prefix)],
         tars = [":{}_shell_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
     )
 
-def romav8_image(*, name, cc_binary, repo_tag):
+def romav8_image(*, name, cc_binary, repo_tags):
     """
     Creates a Roma V8 container image.
 
     Args:
         name: name of sdk target, basename of ancillary targets.
         cc_binary: label of cc_binary target to include.
-        repo_tag: tag for generated OCI image.
+        repo_tags: tags for generated OCI image.
 
     Targets:
         <name>_image -- the oci_image target
@@ -623,43 +624,9 @@ def romav8_image(*, name, cc_binary, repo_tag):
     )
     _roma_image(
         name = name,
-        repo_tag = repo_tag,
+        repo_tags = repo_tags,
         tars = [":{}_v8_tar".format(name)],
         entrypoint = ["{}/{}".format(dest_path, cc_binary.name)],
-    )
-
-def _roma_byob_image(*, name, repo_tag, tars, **kwargs):
-    byob_tars = [
-        Label("//src/roma/byob/container:gvisor_tar_root"),
-        Label("//src/roma/byob/container:container_config_tar_root"),
-        Label("//src/roma/byob/container:byob_server_container_with_dir_root.tar"),
-        Label("//src/roma/byob/container:var_run_runsc_tar_root"),
-    ]
-    _roma_image(
-        name = name,
-        repo_tag = repo_tag,
-        tars = byob_tars + tars,
-        **kwargs
-    )
-
-def _roma_image(*, name, repo_tag, **kwargs):
-    oci_image(
-        name = name,
-        base = select({
-            "@platforms//cpu:aarch64": "@runtime-debian-debug-root-arm64",
-            "@platforms//cpu:x86_64": "@runtime-debian-debug-root-amd64",
-        }),
-        **{k: v for (k, v) in kwargs.items() if k not in ["base"]}
-    )
-    oci_load(
-        name = "{}_tarball".format(name),
-        image = name,
-        repo_tags = [repo_tag],
-    )
-    native.filegroup(
-        name = "{}.tar".format(name),
-        srcs = [":{}_tarball".format(name)],
-        output_group = "tarball",
     )
 
 def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = [], **kwargs):
@@ -689,7 +656,15 @@ def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = []
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, image_tag = "v1", **kwargs):
+def roma_v8_sdk(
+        *,
+        name,
+        srcs,
+        roma_app_api,
+        app_api_cc_library,
+        js_library,
+        image_tag = "v1",
+        **kwargs):
     """
     Top-level macro for the Roma SDK.
 
@@ -734,12 +709,12 @@ def roma_v8_sdk(*, name, srcs, roma_app_api, app_api_cc_library, js_library, ima
     romav8_image(
         name = name + "_roma_shell",
         cc_binary = Label("//src/roma/tools/v8_cli:roma_shell"),
-        repo_tag = "privacy_sandbox/roma-v8/shell:{}".format(image_tag),
+        repo_tags = ["privacy_sandbox/roma-v8/shell:{}".format(image_tag)],
     )
     romav8_image(
         name = name + "_roma_benchmark",
         cc_binary = Label("//src/roma/tools/v8_cli:roma_benchmark"),
-        repo_tag = "privacy_sandbox/roma-v8/benchmark:{}".format(image_tag),
+        repo_tags = ["privacy_sandbox/roma-v8/benchmark:{}".format(image_tag)],
     )
 
     pkg_files(
@@ -1066,3 +1041,5 @@ def roma_byob_sdk(
         srcs = sdk_srcs,
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
+
+roma_byob_image = _roma_byob_image

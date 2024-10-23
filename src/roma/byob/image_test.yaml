@@ -20,13 +20,6 @@ metadataTest:
   user: {UID}
 
 fileExistenceTests:
-  - name: /udf dir
-    path: /udf
-    shouldExist: true
-    permissions: drwxr-xr-x
-    uid: {UID}
-    gid: {GID}
-
   - name: /roma_container dir
     path: /roma_container
     shouldExist: true

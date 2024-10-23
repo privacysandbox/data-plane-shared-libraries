@@ -20,6 +20,13 @@ containerRunOptions:
   privileged: true
 
 fileExistenceTests:
+  - name: /tools dir
+    path: /tools
+    shouldExist: true
+    permissions: drwxr-xr-x
+    uid: {UID}
+    gid: {GID}
+
   - name: /tools/example_shell binary
     path: /tools/example_shell
     shouldExist: true

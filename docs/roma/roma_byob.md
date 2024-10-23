@@ -95,7 +95,7 @@ execution of arbitrary binaries written in any language.
       name = "byob_server_container_layer",
       directory = "{roma_container_dir}/{root_dir}".format(roma_container_dir = roma_container_dir, root_dir = roma_container_root_dir),
       tars = [
-        "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container_{user}.tar".format(user = user.user),
+        "@google_privacysandbox_servers_common//src/roma/byob/container:byob_runtime_container_{user}.tar".format(user = user.user),
       ],
     )
     ```
@@ -121,7 +121,7 @@ execution of arbitrary binaries written in any language.
     ```bazel
     "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar_{user}".format(user.user),
     "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar_{user}".format(user.user)",
-    "@google_privacysandbox_servers_common//src/roma/byob/container:byob_server_container_with_dir_{user}.tar".format(user.user),
+    "@google_privacysandbox_servers_common//src/roma/byob/container:byob_runtime_container_with_dir_{user}.tar".format(user.user),
     ```
 
 Links to images:

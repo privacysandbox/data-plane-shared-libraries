@@ -1,5 +1,3 @@
-
-
 # Copyright 2024 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,12 +20,20 @@ containerRunOptions:
   privileged: true
 
 fileExistenceTests:
+  - name: /udf dir
+    path: /udf
+    shouldExist: true
+    permissions: drwxr-xr-x
+    uid: {UID}
+    gid: {GID}
+
   - name: '{COMMAND} file'
     path: {COMMAND}
     uid: {UID}
     gid: {GID}
 
 commandTests:
-  - name: Roma BYOB test
+  - name: Roma BYOB help
     command: {COMMAND}
+    args: ['--help']
     exitCode: 0

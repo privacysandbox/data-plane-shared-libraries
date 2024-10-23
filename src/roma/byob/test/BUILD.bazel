@@ -13,11 +13,10 @@
 # limitations under the License.
 
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
-load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-load("//src/roma/byob:byob.bzl", "roma_byob_image")
+load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_library(
@@ -109,18 +108,26 @@ pkg_files(
             flavor = user.flavor,
             test = test,
         ),
+        container_structure_test_configs = [
+            ":example_{test}_image_{flavor}_test.yaml".format(
+                flavor = user.flavor,
+                test = test,
+            ),
+        ],
         debug = True,
         entrypoint = ["/tools/example_{test}".format(test = test)],
         repo_tags = ["example_{test}_image:v1-{flavor}".format(
             flavor = user.flavor,
             test = test,
         )],
-        tars = [":example_{test}_{flavor}_tar".format(
-            flavor = user.flavor,
-            test = test,
-        )],
-        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
-        use_nonroot = True if user.flavor == "nonroot" else False,
+        tars = [
+            ":example_{test}_{flavor}_tar".format(
+                flavor = user.flavor,
+                test = test,
+            ),
+            "//src/roma/byob/sample_udf:udf_{}_tar".format(user.flavor),
+        ],
+        user = user,
     )
     for test in ("benchmark", "shell")
     for user in DISTROLESS_USERS
@@ -142,34 +149,6 @@ pkg_files(
         },
         template = ":example_{}_image_test.yaml".format(test),
         visibility = ["//visibility:public"],
-    )
-    for test in ("benchmark", "shell")
-    for user in DISTROLESS_USERS
-]
-
-[
-    container_structure_test(
-        name = "example_{test}_image_{flavor}_test".format(
-            flavor = user.flavor,
-            test = test,
-        ),
-        size = "medium",
-        timeout = "short",
-        configs = [
-            ":example_{test}_image_{flavor}_test.yaml".format(
-                flavor = user.flavor,
-                test = test,
-            ),
-        ],
-        image = "example_{test}_{flavor}_image".format(
-            flavor = user.flavor,
-            test = test,
-        ),
-        tags = [
-            "noasan",
-            "notsan",
-            "noubsan",
-        ],
     )
     for test in ("benchmark", "shell")
     for user in DISTROLESS_USERS
@@ -290,33 +269,16 @@ pkg_files(
 ]
 
 TEST_NAME_TO_ENTRYPOINT_MAP = (
-    ("sample_test", "/server/bin/roma_byob_test"),
-    ("example_test", "/server/bin/example_test"),
+    # (test_name, entrypoint)
+    (
+        "sample_test",
+        ["/server/bin/roma_byob_test"],
+    ),
+    (
+        "example_test",
+        ["/server/bin/example_test"],
+    ),
 )
-
-[
-    roma_byob_image(
-        name = "{test_name}_{flavor}_image".format(
-            flavor = user.flavor,
-            test_name = test_name,
-        ),
-        debug = False,
-        entrypoint = [entrypoint],
-        repo_tags = [
-            "roma_byob_{test_name}_image:v1-{flavor}".format(
-                flavor = user.flavor,
-                test_name = test_name,
-            ),
-        ],
-        tars = [
-            ":test_tar_{}".format(user.flavor),
-        ],
-        udf_binary_labels = ["//src/roma/byob/sample_udf:udf_binaries"],
-        use_nonroot = True if user.flavor == "nonroot" else False,
-    )
-    for user in DISTROLESS_USERS
-    for test_name, entrypoint in TEST_NAME_TO_ENTRYPOINT_MAP
-]
 
 [
     expand_template(
@@ -329,7 +291,7 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
             test_name = test_name,
         ),
         substitutions = {
-            "{COMMAND}": str(entrypoint),
+            "{COMMAND}": " ".join(entrypoint),
             "{GID}": str(user.gid),
             "{UID}": str(user.uid),
         },
@@ -341,26 +303,30 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
 ]
 
 [
-    container_structure_test(
-        name = "{test_name}_{flavor}_image_test".format(
+    roma_byob_image(
+        name = "{test_name}_{flavor}_image".format(
             flavor = user.flavor,
             test_name = test_name,
         ),
-        size = "small",
-        timeout = "moderate",
-        configs = [":{test_name}_{flavor}_image_test.yaml".format(
-            flavor = user.flavor,
-            test_name = test_name,
-        )],
-        image = "{test_name}_{flavor}_image".format(
-            flavor = user.flavor,
-            test_name = test_name,
-        ),
-        tags = [
-            "noasan",
-            "notsan",
-            "noubsan",
+        container_structure_test_configs = [
+            "{test_name}_{flavor}_image_test.yaml".format(
+                flavor = user.flavor,
+                test_name = test_name,
+            ),
         ],
+        debug = False,
+        entrypoint = entrypoint,
+        repo_tags = [
+            "roma_byob_{test_name}_image:v1-{flavor}".format(
+                flavor = user.flavor,
+                test_name = test_name,
+            ),
+        ],
+        tars = [
+            ":test_tar_{}".format(user.flavor),
+            "//src/roma/byob/sample_udf:udf_{}_tar".format(user.flavor),
+        ],
+        user = user,
     )
     for user in DISTROLESS_USERS
     for test_name, entrypoint in TEST_NAME_TO_ENTRYPOINT_MAP
@@ -369,18 +335,18 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":example_test_nonroot_image_tarball.tar",
-        ":example_test_root_image_tarball.tar",
-        ":sample_test_nonroot_image_tarball.tar",
-        ":sample_test_root_image_tarball.tar",
+        ":example_test_nonroot_image.tar",
+        ":example_test_root_image.tar",
+        ":sample_test_nonroot_image.tar",
+        ":sample_test_root_image.tar",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
 mkdir -p {dir}
-cp $(execpath :example_test_nonroot_image_tarball.tar) {dir}/example_test_nonroot_image.tar
-cp $(execpath :example_test_root_image_tarball.tar) {dir}/example_test_root_image.tar
-cp $(execpath :sample_test_nonroot_image_tarball.tar) {dir}/sample_test_nonroot_image.tar
-cp $(execpath :sample_test_root_image_tarball.tar) {dir}/sample_test_root_image.tar
+cp $(execpath :example_test_nonroot_image.tar) {dir}/example_test_nonroot_image.tar
+cp $(execpath :example_test_root_image.tar) {dir}/example_test_root_image.tar
+cp $(execpath :sample_test_nonroot_image.tar) {dir}/sample_test_nonroot_image.tar
+cp $(execpath :sample_test_root_image.tar) {dir}/sample_test_root_image.tar
 builders/tools/normalize-dist
 EOF""".format(dir = "dist/roma_byob"),
     executable = True,
