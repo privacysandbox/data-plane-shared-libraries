@@ -118,7 +118,8 @@ Usage: Echo <request_file> [response_file]
     }
     std::string line;
     while (std::getline(ifs, line)) {
-      switch (evaluator.EvalAndPrint(line, /*disable_commands=*/true)) {
+      switch (evaluator.EvalAndPrint(line, /*disable_commands=*/true,
+                                     /*print_response=*/true)) {
         case ShellEvaluator::NextStep::kExit:
           return 0;
         case ShellEvaluator::NextStep::kError:
@@ -131,7 +132,8 @@ Usage: Echo <request_file> [response_file]
     std::string line;
     std::cout << "> ";
     while (std::getline(std::cin, line)) {
-      switch (evaluator.EvalAndPrint(line, /*disable_commands=*/false)) {
+      switch (evaluator.EvalAndPrint(line, /*disable_commands=*/false,
+                                     /*print_response=*/true)) {
         case ShellEvaluator::NextStep::kExit:
           return 0;
         case ShellEvaluator::NextStep::kError:

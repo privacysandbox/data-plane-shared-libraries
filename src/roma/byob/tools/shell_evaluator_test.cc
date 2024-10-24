@@ -40,23 +40,27 @@ absl::StatusOr<std::string> TrivialExecuteFn(
 TEST(ShellEvaluatorTest, ContinueWithEmptyOrWhitespaceInputLine) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
-  EXPECT_EQ(evaluator.EvalAndPrint("", /*disable_commands=*/true),
+  EXPECT_EQ(evaluator.EvalAndPrint("", /*disable_commands=*/true,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
-  EXPECT_EQ(evaluator.EvalAndPrint(" \t\n", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint(" \t\n", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
 }
 
 TEST(ShellEvaluatorTest, ExitWhenInputSaysSo) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
-  EXPECT_EQ(evaluator.EvalAndPrint("exit", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint("exit", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kExit);
 }
 
 TEST(ShellEvaluatorTest, ErrorWhenCommandsPassedNoArguments) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
-  EXPECT_EQ(evaluator.EvalAndPrint("commands", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint("commands", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -64,7 +68,8 @@ TEST(ShellEvaluatorTest, ErrorWhenCommandsFileDoesntExist) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(evaluator.EvalAndPrint("commands file_that_doesnt_exist.txt",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -72,7 +77,8 @@ TEST(ShellEvaluatorTest, ContinueWhenCommandsPassedEmptyFile) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(
-      evaluator.EvalAndPrint("commands /dev/null", /*disable_commands=*/false),
+      evaluator.EvalAndPrint("commands /dev/null", /*disable_commands=*/false,
+                             /*print_response=*/true),
       ShellEvaluator::NextStep::kContinue);
 }
 
@@ -80,7 +86,8 @@ TEST(ShellEvaluatorTest, ErrorWhenInputSaysCommandsAndCommandsIsDisabled) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(
-      evaluator.EvalAndPrint("commands /dev/null", /*disable_commands=*/true),
+      evaluator.EvalAndPrint("commands /dev/null", /*disable_commands=*/true,
+                             /*print_response=*/true),
       ShellEvaluator::NextStep::kError);
 }
 
@@ -92,7 +99,8 @@ TEST(ShellEvaluatorTest, ErrorWhenCommandsFileContainsCommands) {
     ofs << "commands\n";
   }
   EXPECT_EQ(evaluator.EvalAndPrint("commands commands.txt",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -104,23 +112,27 @@ TEST(ShellEvaluatorTest, ExitWhenCommandsFileContainsExit) {
     ofs << "exit\n";
   }
   EXPECT_EQ(evaluator.EvalAndPrint("commands exit.txt",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kExit);
 }
 
 TEST(ShellEvaluatorTest, ContinueAfterHelpCall) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
-  EXPECT_EQ(evaluator.EvalAndPrint("help", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint("help", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
 }
 
 TEST(ShellEvaluatorTest, ErrorWhenLoadMissingArguments) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", {"rpc_1"},
                            TrivialLoadFn, TrivialExecuteFn);
-  EXPECT_EQ(evaluator.EvalAndPrint("load", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint("load", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
-  EXPECT_EQ(evaluator.EvalAndPrint("load rpc_1", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint("load rpc_1", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -128,7 +140,8 @@ TEST(ShellEvaluatorTest, ErrorWhenLoadingUnrecognizedRpc) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(evaluator.EvalAndPrint("load some_rpc /dev/null",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -136,14 +149,16 @@ TEST(ShellEvaluatorTest, ErrorWhenCommandUnrecognized) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", /*rpcs=*/{},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(evaluator.EvalAndPrint("unregistered_rpc",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 TEST(ShellEvaluatorTest, ErrorWhenExecBeforeLoad) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", {"rpc_1"},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(evaluator.EvalAndPrint("rpc_1 /dev/null",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -151,9 +166,11 @@ TEST(ShellEvaluatorTest, ErrorWhenExecWrongNumberOfArgs) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", {"rpc_1"},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(evaluator.EvalAndPrint("load rpc_1 /dev/null",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
-  EXPECT_EQ(evaluator.EvalAndPrint("rpc_1", /*disable_commands=*/false),
+  EXPECT_EQ(evaluator.EvalAndPrint("rpc_1", /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -161,10 +178,12 @@ TEST(ShellEvaluatorTest, ErrorWhenExecRequestFileNotFound) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", {"rpc_1"},
                            TrivialLoadFn, TrivialExecuteFn);
   EXPECT_EQ(evaluator.EvalAndPrint("load rpc_1 /dev/null",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
   EXPECT_EQ(evaluator.EvalAndPrint("rpc_1 nonexistant_file.txt",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kError);
 }
 
@@ -175,10 +194,12 @@ TEST(ShellEvaluatorTest, ExecAppendsToResponseFile) {
   ShellEvaluator evaluator(/*service_specific_message=*/"", {"rpc_1"},
                            TrivialLoadFn, execute_fn);
   EXPECT_EQ(evaluator.EvalAndPrint("load rpc_1 /dev/null",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
   EXPECT_EQ(evaluator.EvalAndPrint("rpc_1 /dev/null response.txt",
-                                   /*disable_commands=*/false),
+                                   /*disable_commands=*/false,
+                                   /*print_response=*/true),
             ShellEvaluator::NextStep::kContinue);
   std::ifstream ifs("response.txt");
   EXPECT_THAT(std::string(std::istreambuf_iterator<char>(ifs),

@@ -60,7 +60,8 @@ Usage: exit
 }  // namespace
 
 ShellEvaluator::NextStep ShellEvaluator::EvalAndPrint(std::string_view line,
-                                                      bool disable_commands) {
+                                                      bool disable_commands,
+                                                      bool print_response) {
   const std::vector<std::string_view> command =
       absl::StrSplit(line, ' ', absl::SkipWhitespace());
   if (command.empty()) {
@@ -90,7 +91,7 @@ ShellEvaluator::NextStep ShellEvaluator::EvalAndPrint(std::string_view line,
     while (std::getline(ifs, line)) {
       // recurse with commands disabled
       const NextStep loop_next_step =
-          EvalAndPrint(line, /*disable_commands=*/true);
+          EvalAndPrint(line, /*disable_commands=*/false, print_response);
       switch (loop_next_step) {
         case NextStep::kExit:
         case NextStep::kError:
@@ -151,7 +152,8 @@ ShellEvaluator::NextStep ShellEvaluator::EvalAndPrint(std::string_view line,
       ofs << *json_response;
     }
     std::cout << "{code_token=" << *it->second
-              << ", response=" << *json_response << "}\n";
+              << ", response=" << (print_response ? *json_response : "<elided>")
+              << "}\n";
   }
   return NextStep::kContinue;
 }

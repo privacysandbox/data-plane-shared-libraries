@@ -40,7 +40,8 @@ class ShellEvaluator {
           std::string_view, std::string_view, std::string_view)>
           execute_fn);
 
-  NextStep EvalAndPrint(std::string_view line, bool disable_commands);
+  NextStep EvalAndPrint(std::string_view line, bool disable_commands,
+                        bool print_response);
 
  private:
   std::string_view service_specific_message_;
