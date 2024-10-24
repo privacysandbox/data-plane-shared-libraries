@@ -88,6 +88,7 @@ ShellEvaluator::NextStep ShellEvaluator::EvalAndPrint(std::string_view line,
     }
     std::string line;
     while (std::getline(ifs, line)) {
+      // recurse with commands disabled
       const NextStep loop_next_step =
           EvalAndPrint(line, /*disable_commands=*/true);
       switch (loop_next_step) {
