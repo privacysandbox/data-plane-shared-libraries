@@ -337,6 +337,7 @@ int main(int argc, char** argv) {
       }
     }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
+      absl::MutexLock lock(&mu);
       std::optional<PidAndExecutionToken> pid_and_execution_token =
           ConnectSendCloneAndExec(socket_name,
                                   request.load_binary().code_token(),
@@ -350,11 +351,11 @@ int main(int argc, char** argv) {
           .code_token = request.load_binary().code_token(),
           .binary_path = binary_path,
       };
-      absl::MutexLock lock(&mu);
       pid_to_udf[pid_and_execution_token->pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
+    absl::MutexLock lock(&mu);
     std::optional<PidAndExecutionToken> pid_and_execution_token =
         ConnectSendCloneAndExec(socket_name, request.load_binary().code_token(),
                                 binary_path.native());
@@ -367,7 +368,6 @@ int main(int argc, char** argv) {
             std::move(*request.mutable_load_binary()->mutable_code_token()),
         .binary_path = binary_path,
     };
-    absl::MutexLock lock(&mu);
     pid_to_udf[pid_and_execution_token->pid] = std::move(udf);
   }
   return 0;

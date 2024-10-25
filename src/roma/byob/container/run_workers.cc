@@ -493,6 +493,13 @@ int main(int argc, char** argv) {
       return -1;
     }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
+      // To ensure that the worker metadata exists in the pid_to_udf map when
+      // reloader thread looks for it (post waitpid), acquire lock before
+      // creating the worker and release once the worker metadata is populated
+      // in pid_to_udf map.
+      // TODO: b/375622989 - Refactor run_workers to make the code more
+      // coherent.
+      absl::MutexLock lock(&mu);
       std::optional<PidExecutionTokenAndPivotRootDir>
           pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
               mounts, socket_name, request.load_binary().code_token(),
@@ -510,11 +517,17 @@ int main(int argc, char** argv) {
           .binary_path = binary_path,
           .enable_log_egress = request.load_binary().enable_log_egress(),
       };
-      absl::MutexLock lock(&mu);
       pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
     }
 
     // Start n-th worker out of loop.
+    // To ensure that the worker metadata exists in the pid_to_udf map when
+    // reloader thread looks for it (post waitpid), acquire lock before creating
+    // the worker and release once the worker metadata is populated in
+    // pid_to_udf map.
+    // TODO: b/375622989 - Refactor run_workers to make the code more
+    // coherent.
+    absl::MutexLock lock(&mu);
     std::optional<PidExecutionTokenAndPivotRootDir>
         pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
             mounts, socket_name, request.load_binary().code_token(),
@@ -533,7 +546,6 @@ int main(int argc, char** argv) {
         .binary_path = binary_path,
         .enable_log_egress = request.load_binary().enable_log_egress(),
     };
-    absl::MutexLock lock(&mu);
     pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
   }
   return 0;
