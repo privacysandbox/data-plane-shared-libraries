@@ -116,7 +116,7 @@ std::optional<PidAndExecutionToken> ConnectSendCloneAndExec(
   // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
   alignas(16) char stack[1 << 20];
   const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
-                            CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
+                            CLONE_VFORK | SIGCHLD, &worker_impl_arg);
   if (pid == -1) {
     PLOG(ERROR) << "clone()";
     return std::nullopt;

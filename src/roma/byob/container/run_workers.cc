@@ -225,11 +225,10 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
   // 2^10 bytes) where unneeded.
   // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
   alignas(16) char stack[1 << 20];
-  const pid_t pid =
-      ::clone(WorkerImpl, stack + sizeof(stack),
-              CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |
-                  CLONE_NEWUTS | CLONE_NEWNS,
-              &worker_impl_arg);
+  const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
+                            CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID |
+                                SIGCHLD | CLONE_NEWUTS | CLONE_NEWNS,
+                            &worker_impl_arg);
   if (pid == -1) {
     PLOG(ERROR) << "clone()";
     if (std::error_code ec; !std::filesystem::remove(pivot_root_dir, ec)) {
