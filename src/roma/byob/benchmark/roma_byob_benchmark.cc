@@ -735,18 +735,6 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
   }
 }
 
-BENCHMARK(BM_ProcessRequestDevNullVsLogBinary)
-    ->ArgsProduct({{
-                       (int)Log::kLogToFile,
-                       (int)Log::kLogToDevNull,
-                   },
-                   {
-                       10,
-                       100,
-                       1000,
-                       10'000,
-                   }})
-    ->ArgNames({"log", "num_logs"});
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
 BENCHMARK(BM_ProcessRequestCppVsGoLang)
     ->ArgsProduct({
@@ -780,6 +768,19 @@ BENCHMARK(BM_ProcessRequestPrimeSieve)
 BENCHMARK(BM_ProcessRequestSortList)
     ->Apply(ExecuteSortListArguments)
     ->ArgNames({"mode", "n_items"});
+
+BENCHMARK(BM_ProcessRequestDevNullVsLogBinary)
+    ->ArgsProduct({{
+                       (int)Log::kLogToFile,
+                       (int)Log::kLogToDevNull,
+                   },
+                   {
+                       10,
+                       100,
+                       1000,
+                       10'000,
+                   }})
+    ->ArgNames({"log", "num_logs"});
 
 int main(int argc, char* argv[]) {
   absl::InitializeLog();
