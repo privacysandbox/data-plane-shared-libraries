@@ -98,6 +98,7 @@ pkg_files(
             "BENCHMARK_OUT": "/tmp/benchmark_out.json",
             "BENCHMARK_OUT_FORMAT": "json",
         },
+        labels = {"tee.launch_policy.log_redirect": "always"},
         repo_tags = [
             "privacy-sandbox/roma-byob/microbenchmarks:v1-{flavor}{dbg}".format(
                 dbg = debug_str.replace("_", "-"),
