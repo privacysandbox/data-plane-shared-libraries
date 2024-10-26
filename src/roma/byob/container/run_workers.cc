@@ -408,6 +408,10 @@ int main(int argc, char** argv) {
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
+    if (request.request_case() == DispatcherRequest::REQUEST_NOT_SET) {
+      LOG(ERROR) << "DispatcherRequest not set.";
+      continue;
+    }
     if (request.has_delete_binary()) {
       // Kill all workers and mark for removal.
       absl::MutexLock lock(&mu);
