@@ -77,6 +77,69 @@ class ByobEchoService final
     return roma_service_->LoadBinary(code_path.c_str());
   }
 
+  void Delete(std::string_view code_token) {
+    return roma_service_->Delete(code_token);
+  }
+
+  void Cancel(google::scp::roma::ExecutionToken token) {
+    return roma_service_->Cancel(std::move(token));
+  }
+
+  /**
+   * @brief Creates workers for binary with logging with logging enabled.
+   *
+   * @paragraph Once the load operation is completed, notification will be
+   * sent via absl::Notification namely `notification`. If load is successful,
+   * the load_status will be populated with an ok status else with the error
+   * status and message. If load is successful, registered service can be called
+   * on the code using the `code_token` returned by this function.
+   *
+   * @param code_path path to the binary to be loaded into the sandbox.
+   * @param notification notifies once `load_status` is available.
+   * @param load_status is populated with the status of load once load is
+   * completed. If the status is ok, then `code_token` returned by this function
+   * can be used for calling this binary in subsequent execution requests.
+   * @param num_workers number of prewarmed workers to be created.
+   * Currently, zero workers are not supported.
+   * @return absl::StatusOr<std::string> returns the `code_token`.
+   */
+  absl::StatusOr<std::string> RegisterForLogging(
+      std::filesystem::path code_path, absl::Notification& notification,
+      absl::Status& load_status, int num_workers) {
+    notification.Notify();
+    load_status = absl::OkStatus();
+    return roma_service_->LoadBinaryForLogging(std::move(code_path),
+                                               num_workers);
+  }
+
+  /**
+   * @brief Registers a new binary asynchronously from the provided `code_path`.
+   *
+   * @paragraph Once the load operation has been completed, notification will be
+   * sent via absl::Notification namely `notification`. If load is successful,
+   * the load_status will be populated with an ok status else with the error
+   * status and message. If load is successful, registered service can be called
+   * on the code using the `code_token` returned by this function.
+   *
+   * @param no_log_code_token code token corresponding to the already loaded
+   * binary.
+   * @param notification notifies once `load_status` is available.
+   * @param load_status is populated with the status of load once load is
+   * completed. If the status is ok, then `code_token` returned by this function
+   * can be used for calling this binary in subsequent execution requests.
+   * @param num_workers number of prewarmed workers to be created.
+   * Currently, zero workers are not supported.
+   * @return absl::StatusOr<std::string> returns the `code_token`.
+   */
+  absl::StatusOr<std::string> RegisterForLogging(
+      std::string no_log_code_token, absl::Notification& notification,
+      absl::Status& load_status, int num_workers) {
+    notification.Notify();
+    load_status = absl::OkStatus();
+    return roma_service_->LoadBinaryForLogging(std::move(no_log_code_token),
+                                               num_workers);
+  }
+
   /*
    * @brief Executes Echo referred to by the provided `code_token`
    * asynchronously.
@@ -120,6 +183,20 @@ class ByobEchoService final
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
         code_token, request, std::move(metadata), std::move(callback));
+  }
+
+  absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
+      absl::AnyInvocable<void(absl::StatusOr<::privacy_sandbox::server_common::
+                                                 byob::example::EchoResponse>,
+                              absl::StatusOr<std::string_view> logs)>
+          callback_with_logs_param,
+      const ::privacy_sandbox::server_common::byob::example::EchoRequest&
+          request,
+      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
+    return roma_service_->template ProcessRequest<
+        ::privacy_sandbox::server_common::byob::example::EchoResponse>(
+        code_token, request, std::move(metadata),
+        std::move(callback_with_logs_param));
   }
 
  private:

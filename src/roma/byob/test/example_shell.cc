@@ -33,10 +33,12 @@
 #include "src/roma/byob/test/example_roma_byob_app_service.h"
 #include "src/roma/byob/tools/shell_evaluator.h"
 
-ABSL_FLAG(int, num_workers, 0, "the number of workers");
+ABSL_FLAG(int, num_workers, 1, "the number of workers");
 ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
           "a text file with a list of CLI commands to execute");
 ABSL_FLAG(bool, sandbox, true, "run BYOB in sandbox mode");
+ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
+          "path with directory to a file in which UDF logs will be stored");
 
 using privacy_sandbox::server_common::byob::Mode;
 using privacy_sandbox::server_common::byob::ShellEvaluator;
@@ -49,6 +51,12 @@ int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
   const int num_workers = absl::GetFlag(FLAGS_num_workers);
   CHECK_GT(num_workers, 0) << "`num_workers` must be positive";
+  std::ofstream udf_log_stream;
+  if (const std::optional<std::string> udf_log_file =
+          absl::GetFlag(FLAGS_udf_log_file);
+      udf_log_file.has_value()) {
+    udf_log_stream.open(*udf_log_file, std::ios_base::app);
+  }
 
   // Initialize BYOB.
   absl::StatusOr<ByobEchoService<>> echo_service = ByobEchoService<>::Create(
@@ -57,12 +65,12 @@ int main(int argc, char** argv) {
   CHECK_OK(echo_service);
 
   // Create load and execute RPC handlers.
-  auto load_fn =
-      [&echo_service](std::string_view udf) -> absl::StatusOr<std::string> {
+  auto load_fn = [&echo_service, num_workers](
+                     std::string_view udf) -> absl::StatusOr<std::string> {
     absl::Notification done;
     absl::Status status;
     absl::StatusOr<std::string> code_token =
-        echo_service->Register(udf, done, status);
+        echo_service->RegisterForLogging(udf, done, status, num_workers);
     if (!status.ok()) {
       return status;
     }
@@ -70,29 +78,46 @@ int main(int argc, char** argv) {
     return code_token;
   };
   auto execute_fn =
-      [&echo_service](
+      [&echo_service, &udf_log_stream](
           std::string_view rpc, std::string_view code_token,
           std::string_view request_json) -> absl::StatusOr<std::string> {
     if (rpc == "Echo") {
       absl::Notification done;
+      absl::StatusOr<std::string> json_response;
+      const std::optional<std::string> udf_log_file =
+          absl::GetFlag(FLAGS_udf_log_file);
       const auto request =
           ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
               request_json);
       if (!request.ok()) {
         return request.status();
       }
-      absl::StatusOr<std::unique_ptr<EchoResponse>> response;
-      if (const auto execution_token = echo_service->Echo(
-              done, *request, response, /*metadata=*/{}, code_token);
-          !execution_token.ok()) {
+      auto callback = [&done, &json_response, &udf_log_stream](
+                          absl::StatusOr<EchoResponse> response,
+                          absl::StatusOr<std::string_view> logs) {
+        if (!response.ok()) {
+          json_response = std::move(response).status();
+        } else {
+          json_response =
+              ::privacy_sandbox::server_common::ProtoToJson<EchoResponse>(
+                  *response);
+        }
+        if (udf_log_stream.is_open() && logs.ok() && !logs->empty()) {
+          udf_log_stream << *logs;
+        }
+        done.Notify();
+      };
+      const auto execution_token =
+          echo_service->Echo(callback, *request, /*metadata=*/{}, code_token);
+      if (!execution_token.ok()) {
         return execution_token.status();
       }
-      done.WaitForNotification();
-      if (!response.ok()) {
-        return response.status();
+      if (udf_log_stream.is_open()) {
+        udf_log_stream << "Execution Token: " << execution_token->value
+                       << std::endl;
       }
-      return ::privacy_sandbox::server_common::ProtoToJson<EchoResponse>(
-          **response);
+      done.WaitForNotification();
+      return json_response;
     }
     return absl::InternalError(absl::StrCat("Unrecognized rpc '", rpc, "'"));
   };
