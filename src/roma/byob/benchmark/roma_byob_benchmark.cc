@@ -384,7 +384,7 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
 
-void BM_ProcessRequestMulipleLanguages(benchmark::State& state) {
+void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
   ByobSampleService<> roma_service =
       GetRomaService(Mode::kModeSandbox, /*num_workers=*/2);
@@ -751,7 +751,7 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
 }
 
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
-BENCHMARK(BM_ProcessRequestMulipleLanguages)
+BENCHMARK(BM_ProcessRequestMultipleLanguages)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
