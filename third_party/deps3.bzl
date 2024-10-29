@@ -59,7 +59,10 @@ def deps3():
     rpmpack_dependencies()
     install_v8_python_deps()
     rules_buf_dependencies()
-    rules_buf_toolchains(version = "v1.27.1")
+    rules_buf_toolchains(
+        version = "v1.39.0",
+        sha256 = "a13fa6afecb3ba0cbf1b1fd4ca2a0f1d0cd935619d20a6b9a069aab9fb31ed05",
+    )
     tink_cc_deps()
     switched_rules_by_language(
         name = "com_google_googleapis_imports",
