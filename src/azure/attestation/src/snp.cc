@@ -24,7 +24,7 @@ SnpType getSnpType() {
     return SnpType::SEV;
   }
   std::ifstream sev_guest_file("/dev/sev-guest");
-  if (sev_file.good()) {
+  if (sev_guest_file.good()) {
     return SnpType::SEV_GUEST;
   }
   return SnpType::NONE;
