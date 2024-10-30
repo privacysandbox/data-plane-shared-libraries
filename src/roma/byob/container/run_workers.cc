@@ -199,9 +199,8 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
     PLOG(INFO) << "connect() to " << socket_name << " failed";
     return std::nullopt;
   }
-  char tmp_file[] = "/tmp/roma_app_server_XXXXXX";
-  const char* pivot_root_dir = ::mkdtemp(tmp_file);
-  if (pivot_root_dir == nullptr) {
+  std::string pivot_root_dir = "/tmp/roma_app_server_XXXXXX";
+  if (::mkdtemp(pivot_root_dir.data()) == nullptr) {
     PLOG(ERROR) << "mkdtemp()";
     return std::nullopt;
   }
@@ -239,7 +238,7 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
   return PidExecutionTokenAndPivotRootDir{
       .pid = pid,
       .execution_token = std::move(execution_token),
-      .pivot_root_dir = std::string(pivot_root_dir),
+      .pivot_root_dir = std::move(pivot_root_dir),
   };
 }
 }  // namespace
