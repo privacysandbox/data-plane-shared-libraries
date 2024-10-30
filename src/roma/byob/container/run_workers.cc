@@ -25,6 +25,7 @@
 #include <unistd.h>
 
 #include <filesystem>
+#include <limits>
 #include <optional>
 #include <string>
 #include <string_view>
@@ -45,6 +46,7 @@
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
+#include "src/util/status_macro/status_macros.h"
 
 ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
           "Server socket for reaching Roma app API");
@@ -77,12 +79,131 @@ struct WorkerImplArg {
   std::string_view log_dir_name;
 };
 
-void SetPrctlOptions(absl::Span<const std::pair<int, int>> option_arg_pairs) {
+absl::Status SetPrctlOptions(
+    absl::Span<const std::pair<int, int>> option_arg_pairs) {
   for (const auto& [option, arg] : option_arg_pairs) {
     if (::prctl(option, arg) < 0) {
-      PLOG(FATAL) << "Failed prctl(" << option << ", " << arg << ")";
+      return absl::ErrnoToStatus(
+          errno, absl::StrCat("Failed prctl(", option, ", ", arg, ")"));
     }
   }
+  return absl::OkStatus();
+}
+
+absl::Status CreateDirectories(const std::filesystem::path& path) {
+  if (std::error_code ec; !std::filesystem::create_directories(path, ec)) {
+    return absl::InternalError(
+        absl::StrCat("Failed to create '", path.native(), "': ", ec.message()));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Mount(const char* source, const char* target,
+                   const char* filesystemtype, int mountflags) {
+  if (::mount(source, target, filesystemtype, mountflags, nullptr) == -1) {
+    return absl::ErrnoToStatus(errno, absl::StrCat("Failed to mount '", source,
+                                                   "' to '", target, "'"));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Dup2(int oldfd, int newfd) {
+  if (::dup2(oldfd, newfd) == -1) {
+    return absl::ErrnoToStatus(errno,
+                               absl::StrCat("dup2(", oldfd, ",", newfd, ")"));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
+  int log_fd = -1;
+  if (worker_impl_arg.enable_log_egress) {
+    const std::filesystem::path log_file_name =
+        std::filesystem::path(worker_impl_arg.log_dir_name) /
+        absl::StrCat(worker_impl_arg.execution_token, ".log");
+    log_fd = ::open(log_file_name.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
+    if (log_fd < 0) {
+      return absl::ErrnoToStatus(
+          errno, absl::StrCat("Failed to open '", log_file_name.native(), "'"));
+    }
+  }
+
+  // Set up restricted filesystem for worker using pivot_root
+  // pivot_root doesn't work under an MS_SHARED mount point.
+  // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
+  PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
+  for (const std::string& mount : worker_impl_arg.mounts) {
+    const std::string target =
+        absl::StrCat(worker_impl_arg.pivot_root_dir, mount);
+    PS_RETURN_IF_ERROR(CreateDirectories(target));
+    PS_RETURN_IF_ERROR(Mount(mount.c_str(), target.c_str(), nullptr, MS_BIND));
+  }
+  const std::string binary_dir =
+      std::filesystem::path(worker_impl_arg.binary_path).parent_path();
+  {
+    const std::string target =
+        absl::StrCat(worker_impl_arg.pivot_root_dir, binary_dir);
+    PS_RETURN_IF_ERROR(CreateDirectories(target));
+    PS_RETURN_IF_ERROR(
+        Mount(binary_dir.c_str(), target.c_str(), nullptr, MS_BIND));
+  }
+
+  // MS_REC needed here to get other mounts (/lib, /lib64 etc)
+  PS_RETURN_IF_ERROR(Mount(worker_impl_arg.pivot_root_dir.data(),
+                           worker_impl_arg.pivot_root_dir.data(), "bind",
+                           MS_REC | MS_BIND));
+  PS_RETURN_IF_ERROR(Mount(worker_impl_arg.pivot_root_dir.data(),
+                           worker_impl_arg.pivot_root_dir.data(), "bind",
+                           MS_REC | MS_SLAVE));
+  {
+    const std::string pivot_dir =
+        absl::StrCat(worker_impl_arg.pivot_root_dir, "/pivot");
+    PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
+    if (::syscall(SYS_pivot_root, worker_impl_arg.pivot_root_dir.data(),
+                  pivot_dir.c_str()) == -1) {
+      return absl::ErrnoToStatus(
+          errno, absl::StrCat("syscall(SYS_pivot_root, '",
+                              worker_impl_arg.pivot_root_dir, "', '", pivot_dir,
+                              "')"));
+    }
+  }
+  if (::chdir("/") == -1) {
+    return absl::ErrnoToStatus(errno, "chdir('/')");
+  }
+  if (::umount2("/pivot", MNT_DETACH) == -1) {
+    return absl::ErrnoToStatus(errno, "mount2('/pivot', MNT_DETACH)");
+  }
+  if (::rmdir("/pivot") == -1) {
+    return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
+  }
+  for (const std::string& mount : worker_impl_arg.mounts) {
+    PS_RETURN_IF_ERROR(
+        Mount(mount.c_str(), mount.c_str(), nullptr, MS_REMOUNT | MS_BIND));
+  }
+  PS_RETURN_IF_ERROR(Mount(binary_dir.c_str(), binary_dir.c_str(), nullptr,
+                           MS_REMOUNT | MS_BIND));
+  PS_RETURN_IF_ERROR(SetPrctlOptions({
+      {PR_CAPBSET_DROP, CAP_SYS_ADMIN},
+      {PR_CAPBSET_DROP, CAP_SETPCAP},
+      {PR_SET_PDEATHSIG, SIGHUP},
+  }));
+  PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO));
+  if (!worker_impl_arg.enable_log_egress) {
+    PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO));
+  } else {
+    PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
+  }
+  return absl::OkStatus();
+}
+
+constexpr uint32_t MaxIntDecimalLength() {
+  int n = std::numeric_limits<int>::max();
+  uint32_t count = 0;
+  while (n > 0) {
+    n /= 10;
+    count++;
+  }
+  return count;
 }
 
 int WorkerImpl(void* arg) {
@@ -92,84 +213,19 @@ int WorkerImpl(void* arg) {
   PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.execution_token.data(),
                  36) == 36);
 
-  int log_fd = -1;
-  if (worker_impl_arg.enable_log_egress) {
-    log_fd = ::open((std::filesystem::path(worker_impl_arg.log_dir_name) /
-                     absl::StrCat(worker_impl_arg.execution_token, ".log"))
-                        .c_str(),
-                    O_CREAT | O_WRONLY | O_APPEND, 0644);
-    CHECK_GE(log_fd, 0);
-  }
+  // Add one to decimal length because `snprintf` adds a null terminator.
+  char connection_fd[MaxIntDecimalLength() + 1];
+  const int fd = ::dup(worker_impl_arg.rpc_fd);
+  PCHECK(fd != -1);
+  PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", fd) > 0);
 
-  // Set up restricted filesystem for worker using pivot_root
-  // pivot_root doesn't work under an MS_SHARED mount point.
-  // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
-  PCHECK(::mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE, nullptr) == 0)
-      << "Failed to mount /";
-  for (const std::string& mount : worker_impl_arg.mounts) {
-    const std::string target =
-        absl::StrCat(worker_impl_arg.pivot_root_dir, mount);
-    CHECK(std::filesystem::create_directories(target));
-    PCHECK(::mount(mount.c_str(), target.c_str(), nullptr, MS_BIND, nullptr) ==
-           0)
-        << "Failed to mount " << mount;
-  }
-  const std::string binary_dir =
-      std::filesystem::path(worker_impl_arg.binary_path).parent_path();
-  {
-    const std::string target =
-        absl::StrCat(worker_impl_arg.pivot_root_dir, binary_dir);
-    CHECK(std::filesystem::create_directories(target));
-    PCHECK(::mount(binary_dir.c_str(), target.c_str(), nullptr, MS_BIND,
-                   nullptr) == 0);
-  }
-
-  // MS_REC needed here to get other mounts (/lib, /lib64 etc)
-  PCHECK(::mount(worker_impl_arg.pivot_root_dir.data(),
-                 worker_impl_arg.pivot_root_dir.data(), "bind",
-                 MS_REC | MS_BIND, nullptr) == 0)
-      << "Failed to mount " << worker_impl_arg.pivot_root_dir;
-  PCHECK(::mount(worker_impl_arg.pivot_root_dir.data(),
-                 worker_impl_arg.pivot_root_dir.data(), "bind",
-                 MS_REC | MS_SLAVE, nullptr) == 0)
-      << "Failed to mount " << worker_impl_arg.pivot_root_dir;
-  {
-    const std::string pivot_dir =
-        absl::StrCat(worker_impl_arg.pivot_root_dir, "/pivot");
-    CHECK(std::filesystem::create_directories(pivot_dir));
-    PCHECK(::syscall(SYS_pivot_root, worker_impl_arg.pivot_root_dir.data(),
-                     pivot_dir.c_str()) == 0);
-  }
-  PCHECK(::chdir("/") == 0);
-  PCHECK(::umount2("/pivot", MNT_DETACH) == 0);
-  PCHECK(::rmdir("/pivot") == 0);
-  for (const std::string& mount : worker_impl_arg.mounts) {
-    PCHECK(::mount(mount.c_str(), mount.c_str(), nullptr, MS_REMOUNT | MS_BIND,
-                   nullptr) == 0)
-        << "Failed to mount " << mount;
-  }
-  PCHECK(::mount(binary_dir.c_str(), binary_dir.c_str(), nullptr,
-                 MS_REMOUNT | MS_BIND, nullptr) == 0);
+  // Destructors will not run after `exec`. All objects must be destroyed and
+  // all heap allocations must be freed prior to `exec`.
+  CHECK_OK(SetupSandbox(worker_impl_arg));
 
   // Exec binary.
-  const std::string connection_fd = [](const int fd) {
-    const int connection_fd = ::dup(fd);
-    PCHECK(connection_fd != -1);
-    return absl::StrCat(connection_fd);
-  }(worker_impl_arg.rpc_fd);
-  SetPrctlOptions({
-      {PR_CAPBSET_DROP, CAP_SYS_ADMIN},
-      {PR_CAPBSET_DROP, CAP_SETPCAP},
-      {PR_SET_PDEATHSIG, SIGHUP},
-  });
-  PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO) != -1);
-  if (!worker_impl_arg.enable_log_egress) {
-    PCHECK(::dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO) != -1);
-  } else {
-    PCHECK(::dup2(log_fd, STDERR_FILENO) != -1);
-  }
   ::execl(worker_impl_arg.binary_path.data(),
-          worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
+          worker_impl_arg.binary_path.data(), connection_fd, nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
 struct PidExecutionTokenAndPivotRootDir {
@@ -224,10 +280,11 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
   // 2^10 bytes) where unneeded.
   // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
   alignas(16) char stack[1 << 20];
-  const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
-                            CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID |
-                                SIGCHLD | CLONE_NEWUTS | CLONE_NEWNS,
-                            &worker_impl_arg);
+  const pid_t pid =
+      ::clone(WorkerImpl, stack + sizeof(stack),
+              CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |
+                  CLONE_NEWUTS | CLONE_NEWNS,
+              &worker_impl_arg);
   if (pid == -1) {
     PLOG(ERROR) << "clone()";
     if (std::error_code ec; !std::filesystem::remove(pivot_root_dir, ec)) {

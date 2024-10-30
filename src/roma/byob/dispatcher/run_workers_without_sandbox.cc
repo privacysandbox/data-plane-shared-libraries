@@ -71,14 +71,15 @@ int WorkerImpl(void* arg) {
   PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.execution_token.data(),
                  36) == 36);
 
+  // The maximum int value is 10 digits and `snprintf` adds a null terminator.
+  char connection_fd[11];
+  const int fd = ::dup(worker_impl_arg.fd);
+  PCHECK(fd != -1);
+  PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", fd) > 0);
+
   // Exec binary.
-  const std::string connection_fd = [worker_impl_arg] {
-    const int connection_fd = ::dup(worker_impl_arg.fd);
-    PCHECK(connection_fd != -1);
-    return absl::StrCat(connection_fd);
-  }();
   ::execl(worker_impl_arg.binary_path.data(),
-          worker_impl_arg.binary_path.data(), connection_fd.c_str(), nullptr);
+          worker_impl_arg.binary_path.data(), connection_fd, nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
 struct PidAndExecutionToken {
@@ -116,7 +117,7 @@ std::optional<PidAndExecutionToken> ConnectSendCloneAndExec(
   // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
   alignas(16) char stack[1 << 20];
   const pid_t pid = ::clone(WorkerImpl, stack + sizeof(stack),
-                            CLONE_VFORK | SIGCHLD, &worker_impl_arg);
+                            CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
   if (pid == -1) {
     PLOG(ERROR) << "clone()";
     return std::nullopt;
