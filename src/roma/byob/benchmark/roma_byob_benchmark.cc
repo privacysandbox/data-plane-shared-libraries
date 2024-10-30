@@ -132,16 +132,21 @@ std::string LoadCode(ByobSampleService<>& roma_service,
   return *std::move(code_id);
 }
 
+ByobSampleService<> GetRomaService(
+    Mode mode, ::privacy_sandbox::server_common::byob::Config<> config) {
+  absl::StatusOr<ByobSampleService<>> sample_interface =
+      ByobSampleService<>::Create(config, mode);
+  CHECK_OK(sample_interface);
+  return *std::move(sample_interface);
+}
+
 ByobSampleService<> GetRomaService(Mode mode, int num_workers) {
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .num_workers = num_workers,
       .roma_container_name = "roma_server",
       .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, mode);
-  CHECK_OK(sample_interface);
-  return *std::move(sample_interface);
+  return GetRomaService(mode, std::move(config));
 }
 
 void VerifyResponse(SampleResponse bin_response,
@@ -386,8 +391,18 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
 
 void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
+  std::string mounts = "/lib,/lib64,/usr";
+  if (lang == Language::kJava) {
+    mounts += ",/proc/self";
+  }
+  ::privacy_sandbox::server_common::byob::Config<> config = {
+      .num_workers = 2,
+      .roma_container_name = "roma_server",
+      .lib_mounts = std::move(mounts),
+      .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
+  };
   ByobSampleService<> roma_service =
-      GetRomaService(Mode::kModeSandbox, /*num_workers=*/2);
+      GetRomaService(Mode::kModeSandbox, std::move(config));
 
   std::string code_token =
       LoadCode(roma_service, GetFilePathFromLanguage(lang));
