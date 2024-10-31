@@ -35,6 +35,7 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
@@ -325,101 +326,103 @@ int main(int argc, char** argv) {
     PLOG(ERROR) << "open failed for /dev/null";
     return -1;
   }
-  struct UdfInstanceMetadata {
-    std::string pivot_root_dir;
-    std::string execution_token;
-    std::string code_token;
-    std::string binary_path;
-    bool enable_log_egress;
-    bool marked_for_deletion = false;
-  };
-
   absl::Mutex mu;
-  absl::flat_hash_map<int, UdfInstanceMetadata> pid_to_udf;  // Guarded by mu.
-  bool shutdown = false;                                     // Guarded by mu.
-  std::thread reloader([&socket_name, &mounts, &mu, &pid_to_udf, &shutdown,
-                        &dev_null_fd, &log_dir_name] {
+  absl::flat_hash_map<int, std::string>
+      pid_to_execution_token;  // Guarded by mu.
+  absl::flat_hash_map<std::string, absl::flat_hash_set<int>>
+      active_code_token_to_pids;  // Guarded by mu.
+  absl::flat_hash_map<std::string, int>
+      code_token_to_thread_count;  // Guarded by mu.
+  auto reload_fn = [&socket_name, &mounts, &log_dir_name, &dev_null_fd, &mu,
+                    &pid_to_execution_token, &active_code_token_to_pids,
+                    &code_token_to_thread_count](int pid,
+                                                 std::string pivot_root_dir,
+                                                 const std::string code_token,
+                                                 const std::string binary_path,
+                                                 const bool enable_log_egress) {
     while (true) {
+      int status;
+      if (::waitpid(pid, &status, /*options=*/0) == -1) {
+        PLOG(INFO) << "waitpid()";
+      }
       {
-        auto fn = [&] {
-          mu.AssertReaderHeld();
-          return !pid_to_udf.empty() || shutdown;
-        };
         absl::MutexLock lock(&mu);
-
-        // Wait until at least one worker has been created before reloading.
-        mu.Await(absl::Condition(&fn));
-        if (shutdown) {
-          return;
+        pid_to_execution_token.erase(pid);
+        if (const auto it = active_code_token_to_pids.find(code_token);
+            it == active_code_token_to_pids.end()) {
+          // Code token is no longer active. Initiate binary cleanup.
+          break;
+        } else {
+          it->second.erase(pid);
         }
       }
-      while (true) {
-        UdfInstanceMetadata udf;
-        int status;
-
-        // Wait for any worker to end.
-        const int pid = ::waitpid(-1, &status, /*options=*/0);
-        if (pid == -1) {
-          PLOG(INFO) << "waitpid()";
-          break;
+      if (!WIFEXITED(status)) {
+        if (WIFSIGNALED(status)) {
+          LOG(INFO) << "Process pid=" << pid
+                    << " terminated (signal=" << WTERMSIG(status)
+                    << ", coredump=" << WCOREDUMP(status) << ")";
+        } else {
+          LOG(INFO) << "Process pid=" << pid << " did not exit";
         }
+      } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
+        LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
+      }
+
+      // Start a new worker.
+      std::optional<PidExecutionTokenAndPivotRootDir>
+          pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
+              mounts, socket_name, code_token, binary_path, dev_null_fd,
+              log_dir_name, enable_log_egress);
+      if (!pid_execution_token_and_pivot_root_dir.has_value()) {
+        break;
+      }
+      pid = pid_execution_token_and_pivot_root_dir->pid;
+      if (std::error_code ec;
+          !std::filesystem::remove_all(pivot_root_dir, ec)) {
+        LOG(ERROR) << "Failed to remove " << pivot_root_dir << ": " << ec;
+      }
+      pivot_root_dir =
+          std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir);
+      {
         absl::MutexLock lock(&mu);
-        if (shutdown) {
-          return;
-        }
-        const auto it = pid_to_udf.find(pid);
-        if (it == pid_to_udf.end()) {
-          LOG(ERROR) << "waitpid() returned unknown pid=" << pid;
-          continue;
-        }
-        udf = std::move(it->second);
-        pid_to_udf.erase(it);
-        if (!WIFEXITED(status)) {
-          if (WIFSIGNALED(status)) {
-            LOG(INFO) << "Process pid=" << pid
-                      << " terminated (signal=" << WTERMSIG(status)
-                      << ", coredump=" << WCOREDUMP(status) << ")";
-          } else {
-            LOG(INFO) << "Process pid=" << pid << " did not exit";
-          }
-        } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
-          LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
-        }
-        CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
-        if (udf.marked_for_deletion) {
-          std::filesystem::remove_all(
-              std::filesystem::path(udf.binary_path).parent_path());
-          continue;
-        }
-
-        // Start a new worker with the same UDF as the most-recently ended
-        // worker.
-        std::optional<PidExecutionTokenAndPivotRootDir>
-            pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
-                mounts, socket_name, udf.code_token, udf.binary_path,
-                dev_null_fd, log_dir_name, udf.enable_log_egress);
-        if (!pid_execution_token_and_pivot_root_dir.has_value()) {
-          return;
-        }
-        udf.pivot_root_dir =
-            std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir);
-        udf.execution_token =
+        pid_to_execution_token[pid] =
             std::move(pid_execution_token_and_pivot_root_dir->execution_token);
-        CHECK(pid_to_udf
-                  .try_emplace(pid_execution_token_and_pivot_root_dir->pid,
-                               std::move(udf))
-                  .second);
+        if (const auto it = active_code_token_to_pids.find(code_token);
+            it == active_code_token_to_pids.end()) {
+          // Code token was deleted. Cleanup on next iteration.
+          if (::kill(pid, SIGKILL) == -1) {
+            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+          }
+        } else {
+          it->second.insert(pid);
+        }
       }
     }
-  });
+    if (std::error_code ec; !std::filesystem::remove_all(pivot_root_dir, ec)) {
+      LOG(ERROR) << "Failed to remove " << pivot_root_dir << ": " << ec;
+    }
+    const std::filesystem::path binary_dir =
+        std::filesystem::path(binary_path).parent_path();
+    absl::MutexLock lock(&mu);
+    const auto it = code_token_to_thread_count.find(code_token);
+    CHECK(it != code_token_to_thread_count.end());
+
+    // Delete binary if this is the last worker for the code token.
+    if (--it->second == 0) {
+      if (std::error_code ec; !std::filesystem::remove_all(binary_dir, ec)) {
+        LOG(INFO) << "Failed to remove " << binary_dir.native() << ": " << ec;
+      }
+      code_token_to_thread_count.erase(it);
+    }
+  };
   absl::Cleanup cleanup = [&] {
     LOG(INFO) << "Shutting down.";
     {
       absl::MutexLock lock(&mu);
-      shutdown = true;
+      active_code_token_to_pids.clear();
 
       // Kill extant workers before exit.
-      for (const auto& [pid, udf] : pid_to_udf) {
+      for (const auto& [pid, _] : pid_to_execution_token) {
         if (::kill(pid, SIGKILL) == -1) {
           // If the process has already terminated, degrade error to a log.
           if (errno == ESRCH) {
@@ -428,24 +431,13 @@ int main(int argc, char** argv) {
             PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
           }
         }
-        if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
-          // If the child has already been reaped (likely by reloader thread),
-          // degrade error to a log.
-          if (errno == ECHILD) {
-            PLOG(INFO) << "waitpid(" << pid << ", nullptr, 0)";
-          } else {
-            PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
-          }
-        }
-        if (std::error_code ec;
-            !std::filesystem::remove_all(udf.pivot_root_dir, ec)) {
-          LOG(ERROR) << "Failed to remove " << udf.pivot_root_dir << ": " << ec;
-        }
-        std::filesystem::remove_all(
-            std::filesystem::path(udf.binary_path).parent_path());
       }
+      auto fn = [&mu, &code_token_to_thread_count] {
+        mu.AssertReaderHeld();
+        return code_token_to_thread_count.empty();
+      };
+      mu.Await(absl::Condition(&fn));
     }
-    reloader.join();
     if (::close(dev_null_fd) == -1) {
       PLOG(ERROR) << "close(" << dev_null_fd << ")";
     }
@@ -463,21 +455,23 @@ int main(int argc, char** argv) {
     if (request.has_delete_binary()) {
       // Kill all workers and mark for removal.
       absl::MutexLock lock(&mu);
-      for (auto& [pid, udf] : pid_to_udf) {
-        if (request.delete_binary().code_token() == udf.code_token) {
+      if (const auto it = active_code_token_to_pids.find(
+              request.delete_binary().code_token());
+          it != active_code_token_to_pids.end()) {
+        for (const int pid : it->second) {
           if (::kill(pid, SIGKILL) == -1) {
             PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
           }
-          udf.marked_for_deletion = true;
         }
+        active_code_token_to_pids.erase(it);
       }
       continue;
     }
     if (request.has_cancel()) {
       // Kill the worker.
       absl::MutexLock lock(&mu);
-      for (const auto& [pid, udf] : pid_to_udf) {
-        if (request.cancel().execution_token() == udf.execution_token) {
+      for (const auto& [pid, execution_token] : pid_to_execution_token) {
+        if (request.cancel().execution_token() == execution_token) {
           if (::kill(pid, SIGKILL) == -1) {
             PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
           }
@@ -526,7 +520,7 @@ int main(int argc, char** argv) {
         return -1;
       }
     } else if (request.load_binary().has_source_bin_code_token()) {
-      std::filesystem::path existing_binary_path =
+      const std::filesystem::path existing_binary_path =
           progdir / request.load_binary().source_bin_code_token() /
           request.load_binary().source_bin_code_token();
       if (!std::filesystem::exists(existing_binary_path)) {
@@ -543,14 +537,14 @@ int main(int argc, char** argv) {
       LOG(ERROR) << "Failed to load binary";
       return -1;
     }
+    {
+      absl::MutexLock lock(&mu);
+      active_code_token_to_pids[request.load_binary().code_token()].reserve(
+          request.load_binary().num_workers());
+    }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
-      // To ensure that the worker metadata exists in the pid_to_udf map when
-      // reloader thread looks for it (post waitpid), acquire lock before
-      // creating the worker and release once the worker metadata is populated
-      // in pid_to_udf map.
       // TODO: b/375622989 - Refactor run_workers to make the code more
       // coherent.
-      absl::MutexLock lock(&mu);
       std::optional<PidExecutionTokenAndPivotRootDir>
           pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
               mounts, socket_name, request.load_binary().code_token(),
@@ -559,26 +553,25 @@ int main(int argc, char** argv) {
       if (!pid_execution_token_and_pivot_root_dir.has_value()) {
         return -1;
       }
-      UdfInstanceMetadata udf{
-          .pivot_root_dir =
-              std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir),
-          .execution_token = std::move(
-              pid_execution_token_and_pivot_root_dir->execution_token),
-          .code_token = request.load_binary().code_token(),
-          .binary_path = binary_path,
-          .enable_log_egress = request.load_binary().enable_log_egress(),
-      };
-      pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
+      {
+        absl::MutexLock lock(&mu);
+        active_code_token_to_pids[request.load_binary().code_token()].insert(
+            pid_execution_token_and_pivot_root_dir->pid);
+        pid_to_execution_token[pid_execution_token_and_pivot_root_dir->pid] =
+            std::move(pid_execution_token_and_pivot_root_dir->execution_token);
+        ++code_token_to_thread_count[request.load_binary().code_token()];
+      }
+      std::thread(
+          reload_fn, pid_execution_token_and_pivot_root_dir->pid,
+          std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir),
+          request.load_binary().code_token(), binary_path,
+          request.load_binary().enable_log_egress())
+          .detach();
     }
 
     // Start n-th worker out of loop.
-    // To ensure that the worker metadata exists in the pid_to_udf map when
-    // reloader thread looks for it (post waitpid), acquire lock before creating
-    // the worker and release once the worker metadata is populated in
-    // pid_to_udf map.
     // TODO: b/375622989 - Refactor run_workers to make the code more
     // coherent.
-    absl::MutexLock lock(&mu);
     std::optional<PidExecutionTokenAndPivotRootDir>
         pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
             mounts, socket_name, request.load_binary().code_token(),
@@ -587,17 +580,20 @@ int main(int argc, char** argv) {
     if (!pid_execution_token_and_pivot_root_dir.has_value()) {
       return -1;
     }
-    UdfInstanceMetadata udf{
-        .pivot_root_dir =
-            std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir),
-        .execution_token =
-            std::move(pid_execution_token_and_pivot_root_dir->execution_token),
-        .code_token =
-            std::move(*request.mutable_load_binary()->mutable_code_token()),
-        .binary_path = binary_path,
-        .enable_log_egress = request.load_binary().enable_log_egress(),
-    };
-    pid_to_udf[pid_execution_token_and_pivot_root_dir->pid] = std::move(udf);
+    {
+      absl::MutexLock lock(&mu);
+      active_code_token_to_pids[request.load_binary().code_token()].insert(
+          pid_execution_token_and_pivot_root_dir->pid);
+      pid_to_execution_token[pid_execution_token_and_pivot_root_dir->pid] =
+          std::move(pid_execution_token_and_pivot_root_dir->execution_token);
+      ++code_token_to_thread_count[request.load_binary().code_token()];
+    }
+    std::thread(
+        reload_fn, pid_execution_token_and_pivot_root_dir->pid,
+        std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir),
+        std::move(*request.mutable_load_binary()->mutable_code_token()),
+        binary_path, request.load_binary().enable_log_egress())
+        .detach();
   }
   return 0;
 }

@@ -184,33 +184,48 @@ void Dispatcher::Cancel(google::scp::roma::ExecutionToken execution_token) {
 }
 
 void Dispatcher::AcceptorImpl() {
+  absl::Mutex thread_count_mu;
+  int thread_count = 0;  // Guarded by `thread_count_mu`.
+  auto read_tokens_and_push_to_queue = [this, &thread_count_mu,
+                                        &thread_count](int fd) {
+    // Read code token and execution token, 36 bytes each.
+    // First is code token, second is execution token.
+    if (absl::StatusOr<std::string> data = Read(fd, kNumTokenBytes * 2);
+        !data.ok()) {
+      LOG(ERROR) << "Read failure: " << data.status();
+      ::close(fd);
+    } else {
+      std::string execution_token = data->substr(kNumTokenBytes);
+      data->resize(kNumTokenBytes);
+      absl::MutexLock lock(&mu_);
+      if (const auto it = code_token_to_fds_and_tokens_.find(*data);
+          it != code_token_to_fds_and_tokens_.end()) {
+        it->second.push(FdAndToken{
+            .fd = fd,
+            .token = std::move(execution_token),
+        });
+      } else {
+        LOG(ERROR) << "Unrecognized code token.";
+        ::close(fd);
+      }
+    }
+    absl::MutexLock lock(&thread_count_mu);
+    --thread_count;
+  };
   while (true) {
     const int fd = ::accept(listen_fd_, nullptr, nullptr);
     if (fd == -1) {
       break;
     }
-    // Read code token and execution token, 36 bytes each.
-    // First is code token, second is execution token.
-    auto data = Read(fd, kNumTokenBytes * 2);
-    if (!data.ok()) {
-      LOG(ERROR) << "Read failure closing socket: " << data.status();
-      ::close(fd);
-      continue;
+    {
+      absl::MutexLock lock(&thread_count_mu);
+      ++thread_count;
     }
-    std::string execution_token = data->substr(kNumTokenBytes);
-    data->resize(kNumTokenBytes);
-    absl::MutexLock lock(&mu_);
-    const auto it = code_token_to_fds_and_tokens_.find(*data);
-    if (it == code_token_to_fds_and_tokens_.end()) {
-      LOG(ERROR) << "Unrecognized code token.";
-      ::close(fd);
-      continue;
-    }
-    it->second.push(FdAndToken{
-        .fd = fd,
-        .token = std::move(execution_token),
-    });
+    std::thread(read_tokens_and_push_to_queue, fd).detach();
   }
+  absl::MutexLock lock(&thread_count_mu);
+  thread_count_mu.Await(
+      absl::Condition(+[](int* i) { return *i == 0; }, &thread_count));
 }
 
 namespace {

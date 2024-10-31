@@ -31,6 +31,7 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
@@ -152,115 +153,102 @@ int main(int argc, char** argv) {
     PLOG(ERROR) << "connect() to " << socket_name << " failed";
     return -1;
   }
-  struct UdfInstanceMetadata {
-    std::string execution_token;
-    std::string code_token;
-    std::string binary_path;
-    bool marked_for_deletion = false;
-  };
-
   absl::Mutex mu;
-  absl::flat_hash_map<int, UdfInstanceMetadata> pid_to_udf;  // Guarded by mu.
-  bool shutdown = false;                                     // Guarded by mu.
-  std::thread reloader([&socket_name, &mu, &pid_to_udf, &shutdown] {
+  absl::flat_hash_map<int, std::string>
+      pid_to_execution_token;  // Guarded by mu.
+  absl::flat_hash_map<std::string, absl::flat_hash_set<int>>
+      active_code_token_to_pids;  // Guarded by mu.
+  absl::flat_hash_map<std::string, int>
+      code_token_to_thread_count;  // Guarded by mu.
+  auto reload_fn = [&socket_name, &mu, &pid_to_execution_token,
+                    &active_code_token_to_pids, &code_token_to_thread_count](
+                       int pid, const std::string code_token,
+                       const std::string binary_path) {
     while (true) {
+      int status;
+      if (::waitpid(pid, &status, /*options=*/0) == -1) {
+        PLOG(INFO) << "waitpid()";
+      }
       {
-        auto fn = [&] {
-          mu.AssertReaderHeld();
-          return !pid_to_udf.empty() || shutdown;
-        };
         absl::MutexLock lock(&mu);
-
-        // Wait until at least one worker has been created before reloading.
-        mu.Await(absl::Condition(&fn));
-        if (shutdown) {
-          return;
+        pid_to_execution_token.erase(pid);
+        if (const auto it = active_code_token_to_pids.find(code_token);
+            it == active_code_token_to_pids.end()) {
+          // Code token is no longer active. Initiate binary cleanup.
+          break;
+        } else {
+          it->second.erase(pid);
         }
       }
-      while (true) {
-        UdfInstanceMetadata udf;
-        int status;
-
-        // Wait for any worker to end.
-        const int pid = ::waitpid(-1, &status, /*options=*/0);
-        if (pid == -1) {
-          PLOG(INFO) << "waitpid()";
-          break;
+      if (!WIFEXITED(status)) {
+        if (WIFSIGNALED(status)) {
+          LOG(INFO) << "Process pid=" << pid
+                    << " terminated (signal=" << WTERMSIG(status)
+                    << ", coredump=" << WCOREDUMP(status) << ")";
+        } else {
+          LOG(INFO) << "Process pid=" << pid << " did not exit";
         }
+      } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
+        LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
+      }
+
+      // Start a new worker.
+      std::optional<PidAndExecutionToken> pid_and_execution_token =
+          ConnectSendCloneAndExec(socket_name, code_token, binary_path);
+      if (!pid_and_execution_token.has_value()) {
+        break;
+      }
+      pid = pid_and_execution_token->pid;
+      {
         absl::MutexLock lock(&mu);
-        if (shutdown) {
-          return;
-        }
-        const auto it = pid_to_udf.find(pid);
-        if (it == pid_to_udf.end()) {
-          LOG(ERROR) << "waitpid() returned unknown pid=" << pid;
-          continue;
-        }
-        udf = std::move(it->second);
-        pid_to_udf.erase(it);
-        if (!WIFEXITED(status)) {
-          if (WIFSIGNALED(status)) {
-            LOG(INFO) << "Process pid=" << pid
-                      << " terminated (signal=" << WTERMSIG(status)
-                      << ", coredump=" << WCOREDUMP(status) << ")";
-          } else {
-            LOG(INFO) << "Process pid=" << pid << " did not exit";
-          }
-        } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
-          LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
-        }
-        if (udf.marked_for_deletion) {
-          std::filesystem::remove_all(
-              std::filesystem::path(udf.binary_path).parent_path());
-          continue;
-        }
-
-        // Start a new worker with the same UDF as the most-recently ended
-        // worker.
-        std::optional<PidAndExecutionToken> pid_and_execution_token =
-            ConnectSendCloneAndExec(socket_name, udf.code_token,
-                                    udf.binary_path);
-        if (!pid_and_execution_token.has_value()) {
-          return;
-        }
-        udf.execution_token =
+        pid_to_execution_token[pid] =
             std::move(pid_and_execution_token->execution_token);
-        CHECK(
-            pid_to_udf.try_emplace(pid_and_execution_token->pid, std::move(udf))
-                .second);
+        if (const auto it = active_code_token_to_pids.find(code_token);
+            it == active_code_token_to_pids.end()) {
+          // Code token was deleted. Cleanup on next iteration.
+          if (::kill(pid, SIGKILL) == -1) {
+            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+          }
+        } else {
+          it->second.insert(pid);
+        }
       }
     }
-  });
+    const std::filesystem::path binary_dir =
+        std::filesystem::path(binary_path).parent_path();
+    absl::MutexLock lock(&mu);
+    const auto it = code_token_to_thread_count.find(code_token);
+    CHECK(it != code_token_to_thread_count.end());
+
+    // Delete binary if this is the last worker for the code token.
+    if (--it->second == 0) {
+      if (std::error_code ec; !std::filesystem::remove_all(binary_dir, ec)) {
+        LOG(INFO) << "Failed to remove " << binary_dir.native() << ": " << ec;
+      }
+      code_token_to_thread_count.erase(it);
+    }
+  };
   absl::Cleanup cleanup = [&] {
     LOG(INFO) << "Shutting down.";
-    {
-      absl::MutexLock lock(&mu);
-      shutdown = true;
+    absl::MutexLock lock(&mu);
+    active_code_token_to_pids.clear();
 
-      // Kill extant workers before exit.
-      for (const auto& [pid, udf] : pid_to_udf) {
-        if (::kill(pid, SIGKILL) == -1) {
-          // If the process has already terminated, degrade error to a log.
-          if (errno == ESRCH) {
-            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
-          } else {
-            PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
-          }
+    // Kill extant workers before exit.
+    for (const auto& [pid, _] : pid_to_execution_token) {
+      if (::kill(pid, SIGKILL) == -1) {
+        // If the process has already terminated, degrade error to a log.
+        if (errno == ESRCH) {
+          PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+        } else {
+          PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
         }
-        if (::waitpid(pid, /*status=*/nullptr, /*options=*/0) == -1) {
-          // If the child has already been reaped (likely by reloader thread),
-          // degrade error to a log.
-          if (errno == ECHILD) {
-            PLOG(INFO) << "waitpid(" << pid << ", nullptr, 0)";
-          } else {
-            PLOG(ERROR) << "waitpid(" << pid << ", nullptr, 0)";
-          }
-        }
-        std::filesystem::remove_all(
-            std::filesystem::path(udf.binary_path).parent_path());
       }
     }
-    reloader.join();
+    auto fn = [&mu, &code_token_to_thread_count] {
+      mu.AssertReaderHeld();
+      return code_token_to_thread_count.empty();
+    };
+    mu.Await(absl::Condition(&fn));
   };
   FileInputStream input(fd);
   while (true) {
@@ -268,24 +256,30 @@ int main(int argc, char** argv) {
     if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
       break;
     }
+    if (request.request_case() == DispatcherRequest::REQUEST_NOT_SET) {
+      LOG(ERROR) << "DispatcherRequest not set.";
+      continue;
+    }
     if (request.has_delete_binary()) {
       // Kill all workers and mark for removal.
       absl::MutexLock lock(&mu);
-      for (auto& [pid, udf] : pid_to_udf) {
-        if (request.delete_binary().code_token() == udf.code_token) {
+      if (const auto it = active_code_token_to_pids.find(
+              request.delete_binary().code_token());
+          it != active_code_token_to_pids.end()) {
+        for (const int pid : it->second) {
           if (::kill(pid, SIGKILL) == -1) {
             PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
           }
-          udf.marked_for_deletion = true;
         }
+        active_code_token_to_pids.erase(it);
       }
       continue;
     }
     if (request.has_cancel()) {
       // Kill the worker.
       absl::MutexLock lock(&mu);
-      for (const auto& [pid, udf] : pid_to_udf) {
-        if (request.cancel().execution_token() == udf.execution_token) {
+      for (const auto& [pid, execution_token] : pid_to_execution_token) {
+        if (request.cancel().execution_token() == execution_token) {
           if (::kill(pid, SIGKILL) == -1) {
             PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
           }
@@ -309,7 +303,7 @@ int main(int argc, char** argv) {
     }
     const std::filesystem::path binary_path =
         binary_dir / request.load_binary().code_token();
-    {
+    if (request.load_binary().has_binary_content()) {
       const int fd =
           ::open(binary_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC, 0500);
       if (fd == -1) {
@@ -333,9 +327,30 @@ int main(int argc, char** argv) {
         PLOG(ERROR) << "close()";
         return -1;
       }
+    } else if (request.load_binary().has_source_bin_code_token()) {
+      const std::filesystem::path existing_binary_path =
+          progdir / request.load_binary().source_bin_code_token() /
+          request.load_binary().source_bin_code_token();
+      if (!std::filesystem::exists(existing_binary_path)) {
+        LOG(ERROR) << "Expected binary " << existing_binary_path.c_str()
+                   << " not found";
+        return -1;
+      } else if (!std::filesystem::is_regular_file(existing_binary_path)) {
+        LOG(ERROR) << "File " << existing_binary_path.c_str()
+                   << " not a regular file";
+        return -1;
+      }
+      std::filesystem::create_hard_link(existing_binary_path, binary_path);
+    } else {
+      LOG(ERROR) << "Failed to load binary";
+      return -1;
+    }
+    {
+      absl::MutexLock lock(&mu);
+      active_code_token_to_pids[request.load_binary().code_token()].reserve(
+          request.load_binary().num_workers());
     }
     for (int i = 0; i < request.load_binary().num_workers() - 1; ++i) {
-      absl::MutexLock lock(&mu);
       std::optional<PidAndExecutionToken> pid_and_execution_token =
           ConnectSendCloneAndExec(socket_name,
                                   request.load_binary().code_token(),
@@ -343,30 +358,38 @@ int main(int argc, char** argv) {
       if (!pid_and_execution_token.has_value()) {
         return -1;
       }
-      UdfInstanceMetadata udf{
-          .execution_token =
-              std::move(pid_and_execution_token->execution_token),
-          .code_token = request.load_binary().code_token(),
-          .binary_path = binary_path,
-      };
-      pid_to_udf[pid_and_execution_token->pid] = std::move(udf);
+      {
+        absl::MutexLock lock(&mu);
+        active_code_token_to_pids[request.load_binary().code_token()].insert(
+            pid_and_execution_token->pid);
+        pid_to_execution_token[pid_and_execution_token->pid] =
+            std::move(pid_and_execution_token->execution_token);
+        ++code_token_to_thread_count[request.load_binary().code_token()];
+      }
+      std::thread(reload_fn, pid_and_execution_token->pid,
+                  request.load_binary().code_token(), binary_path)
+          .detach();
     }
 
     // Start n-th worker out of loop.
-    absl::MutexLock lock(&mu);
     std::optional<PidAndExecutionToken> pid_and_execution_token =
         ConnectSendCloneAndExec(socket_name, request.load_binary().code_token(),
                                 binary_path.native());
     if (!pid_and_execution_token.has_value()) {
       return -1;
     }
-    UdfInstanceMetadata udf{
-        .execution_token = std::move(pid_and_execution_token->execution_token),
-        .code_token =
-            std::move(*request.mutable_load_binary()->mutable_code_token()),
-        .binary_path = binary_path,
-    };
-    pid_to_udf[pid_and_execution_token->pid] = std::move(udf);
+    {
+      absl::MutexLock lock(&mu);
+      active_code_token_to_pids[request.load_binary().code_token()].insert(
+          pid_and_execution_token->pid);
+      pid_to_execution_token[pid_and_execution_token->pid] =
+          std::move(pid_and_execution_token->execution_token);
+      ++code_token_to_thread_count[request.load_binary().code_token()];
+    }
+    std::thread(reload_fn, pid_and_execution_token->pid,
+                std::move(*request.mutable_load_binary()->mutable_code_token()),
+                binary_path)
+        .detach();
   }
   return 0;
 }

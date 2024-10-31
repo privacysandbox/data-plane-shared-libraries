@@ -137,7 +137,7 @@ class Dispatcher {
 
   // Accepts connections from newly created UDF instances, reads code tokens,
   // and pushes file descriptors to the queue.
-  void AcceptorImpl() ABSL_LOCKS_EXCLUDED(mu_);
+  void AcceptorImpl();
   void ExecutorImpl(
       int fd, google::protobuf::Any request,
       absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
