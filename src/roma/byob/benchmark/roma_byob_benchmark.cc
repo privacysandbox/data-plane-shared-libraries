@@ -391,9 +391,10 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
 
 void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
-  std::string mounts = "/lib,/lib64,/usr";
+  // Empty lib_mounts variable leads to default being used.
+  std::string mounts = "";
   if (lang == Language::kJava) {
-    mounts += ",/proc/self";
+    mounts = "/proc/self";
   }
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .num_workers = 2,
