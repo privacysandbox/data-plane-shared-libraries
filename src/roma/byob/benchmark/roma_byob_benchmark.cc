@@ -771,7 +771,8 @@ BENCHMARK(BM_ProcessRequestMultipleLanguages)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
-            (int)Language::kJava,
+            // TODO: b/377349908 - Enable Java benchmarks post-ARM64 fix
+            // (int)Language::kJava,
             (int)Language::kGoLang,
         },
         {
