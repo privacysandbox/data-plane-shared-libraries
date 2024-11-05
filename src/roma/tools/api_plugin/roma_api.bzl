@@ -30,6 +30,7 @@ load(
     "//src/roma/tools/api_plugin:internal/roma_api.bzl",
     "app_api_cc_protoc",
     "app_api_handler_js_protoc",
+    "byob_udf_interface_md",
     "byob_udf_protospec",
     "host_api_cc_protoc",
     "host_api_js_protoc",
@@ -791,7 +792,7 @@ The UDF API specification defines the request and response structures for this
 UDF. This API forms the high-level protocol for the UDF, and is specific to each
 SDK. The spec is defined using [Protocol Buffers (protobuf)](https://protobuf.dev/),
 and is included in the SDK as [udf_interface.proto](../specs/udf_interface.proto).
-
+Details on this specification can be found in [UDF Interface Specifications](udf/UDF%20Interface%20Specifications.md).
 ## The UDF runtime
 
 The UDF binaries are executed within a sandboxed environment. Details on this
@@ -1007,6 +1008,11 @@ def roma_byob_sdk(
         exclude_tools = exclude_tools,
     )
     sdk_runtime_doc(name = name + "_runtime_md")
+    byob_udf_interface_md(
+        name = name + "_udf_interface_md",
+        roma_app_api = roma_app_api,
+    )
+
     copy_file(
         name = name + "_syscalls_md",
         src = select({
@@ -1020,11 +1026,11 @@ def roma_byob_sdk(
             doc = ":{}_guide_md".format(name),
             target_filename = "Guide to the SDK.md",
         ),
-        # Uncomment when UDF Interface Specifications.md has been written.
-        # declare_doc(
-        #     doc = Label("//docs/roma:byob/sdk/docs/udf/UDF Interface Specifications.md"),
-        #     target_subdir = "udf",
-        # ),
+        declare_doc(
+            doc = ":{}_udf_interface_md".format(name),
+            target_filename = "UDF Interface Specifications.md",
+            target_subdir = "udf",
+        ),
         declare_doc(
             doc = ":{}_runtime_md".format(name),
             target_filename = "Execution Environment and Interface.md",

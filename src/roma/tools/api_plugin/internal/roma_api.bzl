@@ -67,6 +67,30 @@ def _roma_api_protoc(*, name, protoc_rule, plugins, roma_api, **kwargs):
         **kwargs
     )
 
+_byob_udf_interface_md_plugins = [
+    struct(
+        name = "byob_udf_interface_md",
+        option = _get_template_options("_udf_interface_specifications.md", "md_protobuf_spec.tmpl", "byob"),
+        outputs = ["{basename}_udf_interface_specifications.md"],
+        tool = Label("//src/roma/tools/api_plugin:roma_api_plugin"),
+    ),
+]
+
+_byob_udf_interface_md = rule(
+    implementation = proto_compile_impl,
+    attrs = _get_proto_compile_attrs(_byob_udf_interface_md_plugins),
+    toolchains = [str(Label("@rules_proto_grpc//protobuf:toolchain_type"))],
+)
+
+def byob_udf_interface_md(*, name, roma_app_api, **kwargs):
+    _roma_api_protoc(
+        name = name,
+        protoc_rule = _byob_udf_interface_md,
+        plugins = _byob_udf_interface_md_plugins,
+        roma_api = roma_app_api,
+        **kwargs
+    )
+
 _cc_app_template_plugins = [
     struct(
         name = "roma_app_api_cc_plugin{}".format(i),
@@ -354,7 +378,7 @@ def byob_udf_protospec(*, name, roma_app_api, **kwargs):
     )
 
 def get_all_roma_api_plugins():
-    return _app_api_cc_plugins + _app_api_handler_js_plugins + _cc_host_template_plugins + _host_api_js_plugins + _protobuf_js_plugins + _byob_udf_protospec_plugins
+    return _app_api_cc_plugins + _app_api_handler_js_plugins + _cc_host_template_plugins + _host_api_js_plugins + _protobuf_js_plugins + _byob_udf_protospec_plugins + _byob_udf_interface_md_plugins
 
 def roma_image(
         *,
