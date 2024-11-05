@@ -106,6 +106,10 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   payload.set_code_token(code_token);
   payload.set_num_workers(num_workers);
   payload.set_enable_log_egress(enable_log_egress);
+  {
+    absl::MutexLock lock(&mu_);
+    code_token_to_fds_and_tokens_.insert({code_token, {}});
+  }
   SerializeDelimitedToFileDescriptor(request, connection_fd_);
   return code_token;
 }
@@ -123,6 +127,10 @@ absl::StatusOr<std::string> Dispatcher::LoadBinaryForLogging(
   payload.set_num_workers(num_workers);
   payload.set_source_bin_code_token(source_bin_code_token);
   payload.set_enable_log_egress(true);
+  {
+    absl::MutexLock lock(&mu_);
+    code_token_to_fds_and_tokens_.insert({code_token, {}});
+  }
   SerializeDelimitedToFileDescriptor(request, connection_fd_);
   return code_token;
 }
@@ -131,6 +139,15 @@ void Dispatcher::Delete(std::string_view code_token) {
   DispatcherRequest request;
   request.mutable_delete_binary()->set_code_token(code_token);
   SerializeDelimitedToFileDescriptor(request, connection_fd_);
+  absl::MutexLock lock(&mu_);
+  if (const auto it = code_token_to_fds_and_tokens_.find(code_token);
+      it != code_token_to_fds_and_tokens_.end()) {
+    while (!it->second.empty()) {
+      ::close(it->second.front().fd);
+      it->second.pop();
+    }
+    code_token_to_fds_and_tokens_.erase(it);
+  }
 }
 
 void Dispatcher::Cancel(google::scp::roma::ExecutionToken execution_token) {
@@ -151,7 +168,12 @@ void Dispatcher::AcceptorImpl() {
     (void)::read(fd, code_token, 36);
     (void)::read(fd, execution_token, 36);
     absl::MutexLock lock(&mu_);
-    code_token_to_fds_and_tokens_[code_token].push(FdAndToken{
+    const auto it = code_token_to_fds_and_tokens_.find(code_token);
+    if (it == code_token_to_fds_and_tokens_.end()) {
+      LOG(INFO) << "Unrecognized code token.";
+      continue;
+    }
+    it->second.push(FdAndToken{
         .fd = fd,
         .token = execution_token,
     });

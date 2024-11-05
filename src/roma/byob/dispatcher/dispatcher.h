@@ -53,18 +53,20 @@ class Dispatcher {
 
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
                                          int num_workers,
-                                         bool enable_log_egress = false);
+                                         bool enable_log_egress = false)
+      ABSL_LOCKS_EXCLUDED(mu_);
 
   absl::StatusOr<std::string> LoadBinaryForLogging(
-      std::string source_bin_code_token, int num_workers);
+      std::string source_bin_code_token, int num_workers)
+      ABSL_LOCKS_EXCLUDED(mu_);
 
-  void Delete(std::string_view code_token);
+  void Delete(std::string_view code_token) ABSL_LOCKS_EXCLUDED(mu_);
 
   void Cancel(google::scp::roma::ExecutionToken execution_token);
 
   template <typename Response, typename Table, typename Metadata,
             typename Request>
-  google::scp::roma::ExecutionToken ProcessRequest(
+  absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, Metadata metadata,
       const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
@@ -76,13 +78,17 @@ class Dispatcher {
     {
       auto fn = [&] {
         mu_.AssertReaderHeld();
-        return !code_token_to_fds_and_tokens_[code_token].empty();
+        const auto it = code_token_to_fds_and_tokens_.find(code_token);
+        return it == code_token_to_fds_and_tokens_.end() || !it->second.empty();
       };
       absl::MutexLock l(&mu_);
       mu_.Await(absl::Condition(&fn));
-      auto& fds_and_tokens = code_token_to_fds_and_tokens_[code_token];
-      fd_and_token = fds_and_tokens.front();
-      fds_and_tokens.pop();
+      const auto it = code_token_to_fds_and_tokens_.find(code_token);
+      if (it == code_token_to_fds_and_tokens_.end()) {
+        return absl::InvalidArgumentError("Unrecognized code token.");
+      }
+      fd_and_token = std::move(it->second.front());
+      it->second.pop();
       ++executor_threads_in_flight_;
     }
     std::thread(

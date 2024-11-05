@@ -220,6 +220,18 @@ TEST(DispatcherTest, LoadAndDeleteGoToWorker) {
       "src/roma/byob/sample_udf/new_udf", /*n_workers=*/3);
   ASSERT_TRUE(code_token.ok());
   dispatcher.Delete(*code_token);
+  {
+    SampleRequest bin_request;
+    absl::flat_hash_map<std::string,
+                        std::function<void(FunctionBindingPayload<int>&)>>
+        function_table;
+    ASSERT_FALSE(dispatcher
+                     .ProcessRequest<SampleResponse>(
+                         *code_token, bin_request, /*metadata=*/0,
+                         function_table,
+                         [](auto /*response*/, auto /*logs*/) {})
+                     .ok());
+  }
   worker.join();
 }
 
@@ -286,12 +298,15 @@ TEST(DispatcherTest, LoadAndExecute) {
         function_table;
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/0, function_table,
-        [&](auto response, absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/0, function_table,
+                [&](auto response, absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -343,11 +358,14 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::Notification done;
-  dispatcher.ProcessRequest<SampleResponse>(
-      *code_token, bin_request, /*metadata=*/0, function_table,
-      [&](auto response, absl::StatusOr<std::string_view> logs) {
-        done.Notify();
-      });
+  ASSERT_TRUE(
+      dispatcher
+          .ProcessRequest<SampleResponse>(
+              *code_token, bin_request, /*metadata=*/0, function_table,
+              [&](auto response, absl::StatusOr<std::string_view> logs) {
+                done.Notify();
+              })
+          .ok());
   done.WaitForNotification();
 }
 
@@ -442,13 +460,16 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
                            }}};
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request,
-        /*metadata=*/std::string{"dummy_data"}, function_table,
-        [&](auto response, absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request,
+                /*metadata=*/std::string{"dummy_data"}, function_table,
+                [&](auto response, absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
     EXPECT_EQ(count, 2);
@@ -526,13 +547,16 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
     bin_request.set_function(FUNCTION_PRIME_SIEVE);
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request,
-        /*metadata=*/std::string{"dummy_data"}, function_table,
-        [&](auto response, absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request,
+                /*metadata=*/std::string{"dummy_data"}, function_table,
+                [&](auto response, absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -622,11 +646,15 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
                          }}};
   absl::BlockingCounter counter(100);
   for (int i = 0; i < 100; ++i) {
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&counter](auto response, absl::StatusOr<std::string_view> logs) {
-          counter.DecrementCount();
-        });
+    ASSERT_TRUE(dispatcher
+                    .ProcessRequest<SampleResponse>(
+                        *code_token, bin_request, /*metadata=*/i,
+                        function_table,
+                        [&counter](auto response,
+                                   absl::StatusOr<std::string_view> logs) {
+                          counter.DecrementCount();
+                        })
+                    .ok());
   }
   counter.Wait();
   for (int i = 0; i < 100; ++i) {
@@ -693,12 +721,14 @@ TEST(DispatcherTest, LoadAndExecuteThenCancel) {
                         std::function<void(FunctionBindingPayload<int>&)>>
         function_table;
     absl::Notification done;
-    ExecutionToken execution_token = dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/0, function_table,
-        [&done](auto response, absl::StatusOr<std::string_view> /*logs*/) {
-          done.Notify();
-        });
-    dispatcher.Cancel(std::move(execution_token));
+    absl::StatusOr<ExecutionToken> execution_token =
+        dispatcher.ProcessRequest<SampleResponse>(
+            *code_token, bin_request, /*metadata=*/0, function_table,
+            [&done](auto response, absl::StatusOr<std::string_view> /*logs*/) {
+              done.Notify();
+            });
+    ASSERT_TRUE(execution_token.ok());
+    dispatcher.Cancel(*std::move(execution_token));
     done.WaitForNotification();
   }
   worker.join();

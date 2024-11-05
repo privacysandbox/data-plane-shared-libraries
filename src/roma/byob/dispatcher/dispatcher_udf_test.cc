@@ -91,13 +91,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_FALSE(bin_response.ok());
   }
@@ -136,13 +139,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world!"));
@@ -182,13 +188,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -227,13 +236,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -272,13 +284,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -316,13 +331,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
@@ -361,13 +379,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a crashing UDF!"));
@@ -406,13 +427,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("I return a non-zero status!"));
@@ -450,9 +474,12 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
                               /*n_workers=*/2);
     ASSERT_TRUE(code_token.ok());
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/0, function_table,
-        [&done](auto /*response*/, auto /*logs*/) { done.Notify(); });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/0, function_table,
+                [&done](auto /*response*/, auto /*logs*/) { done.Notify(); })
+            .ok());
     EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
     dispatcher.Delete(*code_token);
     done.WaitForNotification();
@@ -464,13 +491,16 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(code_token.ok());
     absl::Notification done;
     absl::StatusOr<SampleResponse> bin_response;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/0, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> /*logs*/) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/0, function_table,
+                [&bin_response, &done](
+                    auto response, absl::StatusOr<std::string_view> /*logs*/) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
@@ -506,13 +536,16 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
   absl::Notification done;
-  ExecutionToken execution_token = dispatcher.ProcessRequest<SampleResponse>(
-      *code_token, bin_request, /*metadata=*/0, function_table,
-      [&done](auto /*response*/, absl::StatusOr<std::string_view> /*logs*/) {
-        done.Notify();
-      });
+  absl::StatusOr<ExecutionToken> execution_token =
+      dispatcher.ProcessRequest<SampleResponse>(
+          *code_token, bin_request, /*metadata=*/0, function_table,
+          [&done](auto /*response*/,
+                  absl::StatusOr<std::string_view> /*logs*/) {
+            done.Notify();
+          });
+  ASSERT_TRUE(execution_token.ok());
   EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
-  dispatcher.Cancel(std::move(execution_token));
+  dispatcher.Cancel(*std::move(execution_token));
   done.WaitForNotification();
 }
 
@@ -548,13 +581,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_FALSE(bin_response.ok());
   }
@@ -593,13 +629,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     ASSERT_TRUE(bin_response.ok());
     EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world from Go!"));
@@ -639,13 +678,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -684,13 +726,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
@@ -729,13 +774,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
-    dispatcher.ProcessRequest<SampleResponse>(
-        *code_token, bin_request, /*metadata=*/i, function_table,
-        [&bin_response, &done](auto response,
-                               absl::StatusOr<std::string_view> logs) {
-          bin_response = std::move(response);
-          done.Notify();
-        });
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, /*metadata=*/i, function_table,
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
     done.WaitForNotification();
     EXPECT_TRUE(bin_response.ok());
   }
