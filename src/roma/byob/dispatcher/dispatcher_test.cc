@@ -177,7 +177,7 @@ TEST(DispatcherTest, LoadGoesToWorker) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_TRUE(request.has_load_binary());
-    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(request.load_binary().num_workers(), 7);
     EXPECT_EQ(::close(fd), 0);
   });
@@ -204,7 +204,7 @@ TEST(DispatcherTest, LoadAndDeleteGoToWorker) {
     ASSERT_TRUE(
         ParseDelimitedFromZeroCopyStream(&load_request, &input, nullptr));
     ASSERT_TRUE(load_request.has_load_binary());
-    ASSERT_EQ(load_request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(load_request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(load_request.load_binary().num_workers(), 3);
     DispatcherRequest delete_request;
     ASSERT_TRUE(
@@ -251,19 +251,20 @@ TEST(DispatcherTest, LoadAndExecute) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_TRUE(request.has_load_binary());
-    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
-    EXPECT_EQ(
-        ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
-        36);
+    EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
+                      kNumTokenBytes),
+              kNumTokenBytes);
     {
-      const std::string execution_token(36, 'a');
-      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+      const std::string execution_token(kNumTokenBytes, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), kNumTokenBytes),
+                kNumTokenBytes);
     }
     {
       // Read UDF input.
@@ -329,7 +330,7 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_TRUE(request.has_load_binary());
-    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
@@ -337,11 +338,12 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
     EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
-                      /*count=*/36),
-              36);
+                      /*count=*/kNumTokenBytes),
+              kNumTokenBytes);
     {
-      const std::string execution_token(36, 'a');
-      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+      const std::string execution_token(kNumTokenBytes, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), kNumTokenBytes),
+                kNumTokenBytes);
     }
     EXPECT_EQ(::close(connection_fd), 0);
     EXPECT_EQ(::close(fd), 0);
@@ -385,19 +387,20 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacks) {
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
     ASSERT_TRUE(request.has_load_binary());
-    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
-    EXPECT_EQ(
-        ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
-        36);
+    EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
+                      kNumTokenBytes),
+              kNumTokenBytes);
     {
-      const std::string execution_token(36, 'a');
-      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+      const std::string execution_token(kNumTokenBytes, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), kNumTokenBytes),
+                kNumTokenBytes);
     }
 
     // Read UDF input.
@@ -492,7 +495,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
       FileInputStream input(fd);
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     }
-    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
@@ -500,11 +503,12 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksWithoutReadingResponse) {
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock");
     EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
-                      /*count=*/36),
-              36);
+                      /*count=*/kNumTokenBytes),
+              kNumTokenBytes);
     {
-      const std::string execution_token(36, 'a');
-      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+      const std::string execution_token(kNumTokenBytes, 'a');
+      EXPECT_EQ(::write(connection_fd, execution_token.c_str(), kNumTokenBytes),
+                kNumTokenBytes);
     }
     {
       // Read UDF input.
@@ -580,7 +584,7 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       DispatcherRequest request;
       ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       ASSERT_TRUE(request.has_load_binary());
-      ASSERT_EQ(request.load_binary().code_token().size(), 36);
+      ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
       code_token =
           std::move(*request.mutable_load_binary()->mutable_code_token());
       EXPECT_EQ(request.load_binary().num_workers(), 1);
@@ -591,10 +595,13 @@ TEST(DispatcherTest, LoadAndExecuteWithCallbacksAndMetadata) {
       const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
       ASSERT_NE(connection_fd, -1);
       ConnectToPath(connection_fd, "abcd.sock", /*unlink_path=*/false);
-      EXPECT_EQ(::write(connection_fd, code_token.c_str(), 36), 36);
+      EXPECT_EQ(::write(connection_fd, code_token.c_str(), kNumTokenBytes),
+                kNumTokenBytes);
       {
-        const std::string execution_token(36, 'a');
-        EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+        const std::string execution_token(kNumTokenBytes, 'a');
+        EXPECT_EQ(
+            ::write(connection_fd, execution_token.c_str(), kNumTokenBytes),
+            kNumTokenBytes);
       }
 
       // Read UDF input.
@@ -678,18 +685,19 @@ TEST(DispatcherTest, LoadAndExecuteThenCancel) {
     DispatcherRequest request;
     ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
     ASSERT_TRUE(request.has_load_binary());
-    ASSERT_EQ(request.load_binary().code_token().size(), 36);
+    ASSERT_EQ(request.load_binary().code_token().size(), kNumTokenBytes);
     EXPECT_EQ(request.load_binary().num_workers(), 1);
 
     // Process execution request.
     const int connection_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     ASSERT_NE(connection_fd, -1);
     ConnectToPath(connection_fd, "abcd.sock", /*unlink_path=*/false);
-    EXPECT_EQ(
-        ::write(connection_fd, request.load_binary().code_token().c_str(), 36),
-        36);
-    const std::string execution_token(36, 'a');
-    EXPECT_EQ(::write(connection_fd, execution_token.c_str(), 36), 36);
+    EXPECT_EQ(::write(connection_fd, request.load_binary().code_token().c_str(),
+                      kNumTokenBytes),
+              kNumTokenBytes);
+    const std::string execution_token(kNumTokenBytes, 'a');
+    EXPECT_EQ(::write(connection_fd, execution_token.c_str(), kNumTokenBytes),
+              kNumTokenBytes);
     {
       // Read UDF input.
       google::protobuf::Any any;

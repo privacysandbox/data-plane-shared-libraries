@@ -78,7 +78,7 @@ cc_binary(
     srcs = ["run_workers.cc"],
     deps = [
         "//src/core/common/uuid",
-        "//src/roma/byob/dispatcher:dispatcher_cc_proto",
+        "//src/roma/byob/dispatcher",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/cleanup",
         "@com_google_absl//absl/container:flat_hash_map",

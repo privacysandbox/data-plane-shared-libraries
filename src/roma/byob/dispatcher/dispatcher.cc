@@ -46,6 +46,22 @@ using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::google::scp::core::common::Uuid;
 using ::google::scp::roma::proto::FunctionBindingIoProto;
+
+absl::StatusOr<std::string> Read(int fd, int size) {
+  std::string buffer(size, '\0');
+  size_t read_bytes = 0;
+  while (read_bytes < size) {
+    const ssize_t n = ::read(fd, &buffer[read_bytes], size - read_bytes);
+    if (n == -1) {
+      return absl::ErrnoToStatus(errno, "Failed to read data from fd.");
+    } else if (n == 0) {
+      return absl::UnavailableError("Unexpected EOF.");
+    }
+    read_bytes += n;
+  }
+  return buffer;
+}
+
 }  // namespace
 
 Dispatcher::~Dispatcher() {
@@ -163,19 +179,25 @@ void Dispatcher::AcceptorImpl() {
     if (fd == -1) {
       break;
     }
-    char code_token[37] = {};
-    char execution_token[37] = {};
-    (void)::read(fd, code_token, 36);
-    (void)::read(fd, execution_token, 36);
+    // Read code token and exectution token, both are 36 bytes.
+    // First is code token, second is execution token.
+    auto data = Read(fd, kNumTokenBytes * 2);
+    if (!data.ok()) {
+      LOG(ERROR) << "Read failure closing socket: " << data.status();
+      ::close(fd);
+      continue;
+    }
+    std::string execution_token = data->substr(kNumTokenBytes);
+    data->resize(kNumTokenBytes);
     absl::MutexLock lock(&mu_);
-    const auto it = code_token_to_fds_and_tokens_.find(code_token);
+    const auto it = code_token_to_fds_and_tokens_.find(*data);
     if (it == code_token_to_fds_and_tokens_.end()) {
       LOG(INFO) << "Unrecognized code token.";
       continue;
     }
     it->second.push(FdAndToken{
         .fd = fd,
-        .token = execution_token,
+        .token = std::move(execution_token),
     });
   }
 }

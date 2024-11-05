@@ -44,6 +44,8 @@
 #include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
+inline constexpr size_t kNumTokenBytes = 36;
+
 class Dispatcher {
  public:
   ~Dispatcher();

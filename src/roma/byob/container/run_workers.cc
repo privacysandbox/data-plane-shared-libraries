@@ -45,6 +45,7 @@
 #include "absl/types/span.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/roma/byob/dispatcher/dispatcher.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -59,6 +60,7 @@ namespace {
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::privacy_sandbox::server_common::byob::DispatcherRequest;
+using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 
 bool ConnectToPath(int fd, std::string_view socket_name) {
   ::sockaddr_un sa = {
@@ -209,9 +211,9 @@ constexpr uint32_t MaxIntDecimalLength() {
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
   PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.code_token.data(),
-                 36) == 36);
+                 kNumTokenBytes) == kNumTokenBytes);
   PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.execution_token.data(),
-                 36) == 36);
+                 kNumTokenBytes) == kNumTokenBytes);
 
   // Add one to decimal length because `snprintf` adds a null terminator.
   char connection_fd[MaxIntDecimalLength() + 1];

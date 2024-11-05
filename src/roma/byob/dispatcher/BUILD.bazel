@@ -6,7 +6,7 @@ cc_library(
     name = "dispatcher",
     srcs = ["dispatcher.cc"],
     hdrs = ["dispatcher.h"],
-    visibility = ["//src/roma/byob/interface:__subpackages__"],
+    visibility = ["//src/roma/byob:__subpackages__"],
     deps = [
         ":dispatcher_cc_proto",
         "//src/core/common/uuid",
