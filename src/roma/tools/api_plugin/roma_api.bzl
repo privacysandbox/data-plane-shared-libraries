@@ -774,7 +774,7 @@ This SDK provides the documentation and the binary specification for
 developers of user-defined functions (UDFs).
 """
 
-def sdk_guide_doc(*, name, intro_text = _default_guide_intro, exclude_tools = False):
+def sdk_guide_doc(*, name, roma_byob_sdk_target = "", intro_text = _default_guide_intro, exclude_tools = False):
     """
     Creates a file target for the Guide to the SDK markdown doc.
 
@@ -806,11 +806,55 @@ communications between the UDF runtime and the UDF, and is agnostic of the
 high-level protobuf UDF spec. Details of the communications protocol are
 documented in [Communication Interface](udf/Communication%20Interface.md).
 """
+
+    tools_label = native.package_relative_label(":{}_shell_tools".format(roma_byob_sdk_target))
+
+    repo_name = ""
+    repo_url = ""
+    if "bidding" in str(tools_label):
+        repo_name = "bidding-auction-servers"
+        repo_url = "https://github.com/privacysandbox/bidding-auction-servers"
+    else:
+        repo_name = "protected-auction-key-value-service"
+        repo_url = "https://github.com/privacysandbox/protected-auction-key-value-service"
+
     tools_text = """
 ## Developer tools
 
+This SDK comes packaged with CLI tools to debug and benchmark UDFs.
+
+To use these tools, first clone the [{repo_name}]({repo_url}) repo:
+
+```[sh]
+git clone {repo_url}
+```
+
+From inside the cloned repo, build these CLI tools by building the following target:
+
+```[sh]
+builders/tools/bazel-debian build {tools_label}
+```
+
+These CLI tools are packaged as docker images in the tools/ subdirectory of the SDK. To run said
+images in the SDK directory, first load the respective docker image:
+
+```[sh]
+docker load -i <sdk_root>/tools/{{benchmark/shell}}-cli.tar
+```
+
+This command, if successful, should output `Loaded image: {{DOCKER_IMAGE_TAG}}`
+
+To run this loaded image, run:
+
+```[sh]
+docker run -i {{DOCKER_IMAGE_TAG}}
+```
+
+See more information at:
 * [Roma BYOB Shell CLI tool](tools/shell-cli.md)
-"""
+* [Roma BYOB Benchmark CLI tool](tools/benchmark-cli.md)
+""".format(repo_name = repo_name, repo_url = repo_url, tools_label = tools_label)
+
     content = [
         title,
         intro_text,
@@ -958,6 +1002,7 @@ def roma_byob_sdk(
     )
     sdk_guide_doc(
         name = name + "_guide_md",
+        roma_byob_sdk_target = name,
         intro_text = guide_intro_text,
         exclude_tools = exclude_tools,
     )
