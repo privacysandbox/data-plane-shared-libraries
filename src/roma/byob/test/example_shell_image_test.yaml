@@ -48,6 +48,126 @@ fileExistenceTests:
     uid: {UID}
     gid: {GID}
 
+
+  - name: /udf/callback_payload_read_udf file
+    path: /udf/callback_payload_read_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/callback_payload_write_udf file
+    path: /udf/callback_payload_write_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/example_cc_udf file
+    path: /udf/example_cc_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/example_go_udf file
+    path: /udf/example_go_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/log_benchmark_udf file
+    path: /udf/log_benchmark_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/log_udf file
+    path: /udf/log_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/new_udf file
+    path: /udf/new_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/pause_udf file
+    path: /udf/pause_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/payload_read_udf file
+    path: /udf/payload_read_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/payload_write_udf file
+    path: /udf/payload_write_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/prime_sieve_udf file
+    path: /udf/prime_sieve_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/sample_go_udf file
+    path: /udf/sample_go_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/sample_java_native_udf file
+    path: /udf/sample_java_native_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/sample_udf file
+    path: /udf/sample_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/sort_list_100k_udf file
+    path: /udf/sort_list_100k_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/sort_list_10k_udf file
+    path: /udf/sort_list_10k_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
+  - name: /udf/sort_list_1m_udf file
+    path: /udf/sort_list_1m_udf
+    shouldExist: true
+    permissions: -r-x------
+    uid: {UID}
+    gid: {GID}
+
 commandTests:
   - name: example shell help
     command: /tools/example_shell
@@ -78,3 +198,9 @@ commandTests:
     expectedOutput:
       - '{code_token=.*, response={"message":"Hello, world!"}}'
     exitCode: 0
+
+  - name: sample_java_native
+    command: /udf/sample_java_native_udf
+    exitCode: 1
+    expectedError:
+      - ^Expecting exactly one argument\n$
