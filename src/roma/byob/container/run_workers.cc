@@ -386,14 +386,14 @@ int main(int argc, char** argv) {
         pid_to_udf.erase(it);
         if (!WIFEXITED(status)) {
           if (WIFSIGNALED(status)) {
-            LOG(ERROR) << "Process pid=" << pid
-                       << " terminated (signal=" << WTERMSIG(status)
-                       << ", coredump=" << WCOREDUMP(status) << ")";
+            LOG(INFO) << "Process pid=" << pid
+                      << " terminated (signal=" << WTERMSIG(status)
+                      << ", coredump=" << WCOREDUMP(status) << ")";
           } else {
-            LOG(ERROR) << "Process pid=" << pid << " did not exit";
+            LOG(INFO) << "Process pid=" << pid << " did not exit";
           }
         } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
-          LOG(ERROR) << "Process pid=" << pid << " exit_code=" << exit_code;
+          LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
         }
         CHECK(std::filesystem::remove_all(udf.pivot_root_dir));
         if (udf.marked_for_deletion) {
