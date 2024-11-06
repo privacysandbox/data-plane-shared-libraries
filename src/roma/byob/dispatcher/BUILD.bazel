@@ -31,6 +31,7 @@ cc_binary(
     testonly = True,
     srcs = ["run_workers_without_sandbox.cc"],
     deps = [
+        ":dispatcher",
         ":dispatcher_cc_proto",
         "//src/core/common/uuid",
         "@com_google_absl//absl/cleanup",

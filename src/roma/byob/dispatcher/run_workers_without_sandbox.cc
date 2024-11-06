@@ -40,6 +40,7 @@
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/roma/byob/dispatcher/dispatcher.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 
 ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
@@ -49,6 +50,7 @@ namespace {
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::privacy_sandbox::server_common::byob::DispatcherRequest;
+using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 
 bool ConnectToPath(int fd, std::string_view socket_name) {
   ::sockaddr_un sa = {
@@ -59,23 +61,27 @@ bool ConnectToPath(int fd, std::string_view socket_name) {
 }
 struct WorkerImplArg {
   std::string_view execution_token;
-  int fd;
+  std::string_view socket_name;
   std::string_view code_token;
   std::string_view binary_path;
 };
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
-  PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.code_token.data(), 36) ==
-         36);
-  PCHECK(::write(worker_impl_arg.fd, worker_impl_arg.execution_token.data(),
-                 36) == 36);
+  const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  PCHECK(rpc_fd != -1);
+  if (!ConnectToPath(rpc_fd, worker_impl_arg.socket_name)) {
+    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << " failed";
+    return -1;
+  }
+  PCHECK(::write(rpc_fd, worker_impl_arg.code_token.data(), kNumTokenBytes) ==
+         kNumTokenBytes);
+  PCHECK(::write(rpc_fd, worker_impl_arg.execution_token.data(),
+                 kNumTokenBytes) == kNumTokenBytes);
 
   // The maximum int value is 10 digits and `snprintf` adds a null terminator.
   char connection_fd[11];
-  const int fd = ::dup(worker_impl_arg.fd);
-  PCHECK(fd != -1);
-  PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", fd) > 0);
+  PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", rpc_fd) > 0);
 
   // Exec binary.
   ::execl(worker_impl_arg.binary_path.data(),
@@ -92,23 +98,14 @@ struct PidAndExecutionToken {
 std::optional<PidAndExecutionToken> ConnectSendCloneAndExec(
     std::string_view socket_name, std::string_view code_token,
     std::string_view binary_path) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  if (fd == -1) {
-    PLOG(ERROR) << "socket()";
-    return std::nullopt;
-  }
-  absl::Cleanup cleanup = [fd] {
-    if (::close(fd) == -1) {
-      PLOG(ERROR) << "close()";
-    }
-  };
-  if (!ConnectToPath(fd, socket_name)) {
-    PLOG(INFO) << "connect() to " << socket_name << " failed";
-    return std::nullopt;
-  }
   std::string execution_token =
       ToString(google::scp::core::common::Uuid::GenerateUuid());
-  WorkerImplArg worker_impl_arg{execution_token, fd, code_token, binary_path};
+  WorkerImplArg worker_impl_arg{
+      .execution_token = execution_token,
+      .socket_name = socket_name,
+      .code_token = code_token,
+      .binary_path = binary_path,
+  };
 
   // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may hang
   // or the process may receive SIGBUS (depending on the size of the stack

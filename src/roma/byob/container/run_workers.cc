@@ -73,7 +73,7 @@ struct WorkerImplArg {
   absl::Span<const std::string> mounts;
   std::string_view execution_token;
   std::string_view pivot_root_dir;
-  int rpc_fd;
+  std::string_view socket_name;
   std::string_view code_token;
   std::string_view binary_path;
   int dev_null_fd;
@@ -210,16 +210,20 @@ constexpr uint32_t MaxIntDecimalLength() {
 
 int WorkerImpl(void* arg) {
   const WorkerImplArg& worker_impl_arg = *static_cast<WorkerImplArg*>(arg);
-  PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.code_token.data(),
-                 kNumTokenBytes) == kNumTokenBytes);
-  PCHECK(::write(worker_impl_arg.rpc_fd, worker_impl_arg.execution_token.data(),
+  const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  PCHECK(rpc_fd != -1);
+  if (!ConnectToPath(rpc_fd, worker_impl_arg.socket_name)) {
+    PLOG(INFO) << "connect() to " << worker_impl_arg.socket_name << " failed";
+    return -1;
+  }
+  PCHECK(::write(rpc_fd, worker_impl_arg.code_token.data(), kNumTokenBytes) ==
+         kNumTokenBytes);
+  PCHECK(::write(rpc_fd, worker_impl_arg.execution_token.data(),
                  kNumTokenBytes) == kNumTokenBytes);
 
   // Add one to decimal length because `snprintf` adds a null terminator.
   char connection_fd[MaxIntDecimalLength() + 1];
-  const int fd = ::dup(worker_impl_arg.rpc_fd);
-  PCHECK(fd != -1);
-  PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", fd) > 0);
+  PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", rpc_fd) > 0);
 
   // Destructors will not run after `exec`. All objects must be destroyed and
   // all heap allocations must be freed prior to `exec`.
@@ -243,20 +247,6 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
     std::string_view code_token, std::string_view binary_path,
     const int dev_null_fd, std::string_view log_dir_name,
     bool enable_log_egress = false) {
-  const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-  if (rpc_fd == -1) {
-    PLOG(ERROR) << "socket()";
-    return std::nullopt;
-  }
-  absl::Cleanup cleanup = [rpc_fd] {
-    if (::close(rpc_fd) == -1) {
-      PLOG(ERROR) << "close()";
-    }
-  };
-  if (!ConnectToPath(rpc_fd, socket_name)) {
-    PLOG(INFO) << "connect() to " << socket_name << " failed";
-    return std::nullopt;
-  }
   std::string pivot_root_dir = "/tmp/roma_app_server_XXXXXX";
   if (::mkdtemp(pivot_root_dir.data()) == nullptr) {
     PLOG(ERROR) << "mkdtemp()";
@@ -268,7 +258,7 @@ std::optional<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
       .mounts = mounts,
       .execution_token = execution_token,
       .pivot_root_dir = pivot_root_dir,
-      .rpc_fd = rpc_fd,
+      .socket_name = socket_name,
       .code_token = code_token,
       .binary_path = binary_path,
       .dev_null_fd = dev_null_fd,
