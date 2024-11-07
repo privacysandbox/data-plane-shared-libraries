@@ -54,7 +54,7 @@ namespace privacy_sandbox::server_common::byob {
 namespace internal::roma_service {
 class LocalHandle final {
  public:
-  LocalHandle(int pid, std::string_view mounts, std::string_view socket_name,
+  LocalHandle(int pid, std::string_view mounts, std::string_view socket_path,
               std::string_view logdir);
   ~LocalHandle();
 
@@ -64,7 +64,7 @@ class LocalHandle final {
 
 class ByobHandle final {
  public:
-  ByobHandle(int pid, std::string_view mounts, std::string_view socket_name,
+  ByobHandle(int pid, std::string_view mounts, std::string_view socket_path,
              std::string_view sockdir, std::string container_name,
              std::string_view logdir);
   ~ByobHandle();
@@ -84,14 +84,16 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
   absl::Status Init(Config<TMetadata> config, Mode mode) {
-    if (::mkdtemp(sockdir_) == nullptr) {
+    char socket_dir_tmpl[20] = "/tmp/sockdir_XXXXXX";
+    if (::mkdtemp(socket_dir_tmpl) == nullptr) {
       return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/sockdir_XXXXXX\")");
     }
+    socket_dir_ = socket_dir_tmpl;
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
     if (fd == -1) {
       return absl::ErrnoToStatus(errno, "socket()");
     }
-    socket_name_ = ::tempnam(sockdir_, nullptr);
+    socket_name_ = ::tempnam(socket_dir_.c_str(), /*prefix=*/nullptr);
     if (socket_name_ == nullptr) {
       return absl::ErrnoToStatus(errno, "tempnam()");
     }
@@ -107,10 +109,10 @@ class RomaService final {
         return absl::ErrnoToStatus(errno, "listen()");
       }
     }
-    std::filesystem::permissions(
-        std::filesystem::path(socket_name_).parent_path(),
-        std::filesystem::perms::owner_all | std::filesystem::perms::group_all |
-            std::filesystem::perms::others_all);
+    std::filesystem::permissions(std::filesystem::path(socket_dir_),
+                                 std::filesystem::perms::owner_all |
+                                     std::filesystem::perms::group_all |
+                                     std::filesystem::perms::others_all);
     std::filesystem::permissions(std::filesystem::path(socket_name_),
                                  std::filesystem::perms::owner_read |
                                      std::filesystem::perms::group_read |
@@ -134,13 +136,15 @@ class RomaService final {
     switch (mode) {
       case Mode::kModeSandbox:
         handle_.emplace<internal::roma_service::ByobHandle>(
-            pid, config.lib_mounts, socket_name_, sockdir_,
+            pid, config.lib_mounts, socket_name_, socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_);
         break;
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
             pid, config.lib_mounts, socket_name_, log_dir_);
         break;
+      default:
+        return absl::InternalError("Unsupported mode in switch");
     }
     dispatcher_.emplace();
     PS_RETURN_IF_ERROR(dispatcher_->Init(fd, log_dir_));
@@ -154,16 +158,16 @@ class RomaService final {
 
   ~RomaService() {
     dispatcher_.reset();
-    handle_.emplace<std::monostate>();
-    if (::unlink(socket_name_) == -1) {
-      PLOG(ERROR) << "Failed to unlink " << socket_name_;
-    }
     ::free(socket_name_);
-    if (std::error_code ec; !std::filesystem::remove(sockdir_, ec)) {
-      LOG(ERROR) << "Failed to remove " << sockdir_ << ": " << ec.message();
+    handle_.emplace<std::monostate>();
+    if (std::error_code ec; std::filesystem::remove_all(socket_dir_, ec) ==
+                            static_cast<std::uintmax_t>(-1)) {
+      LOG(ERROR) << "Failed to remove dir " << socket_dir_ << ": "
+                 << ec.message();
     }
-    if (std::error_code ec; !std::filesystem::remove_all(log_dir_, ec)) {
-      LOG(ERROR) << "Failed to remove " << log_dir_ << ": " << ec.message();
+    if (std::error_code ec; std::filesystem::remove_all(log_dir_, ec) ==
+                            static_cast<std::uintmax_t>(-1)) {
+      LOG(ERROR) << "Failed to remove dir " << log_dir_ << ": " << ec.message();
     }
   }
 
@@ -233,7 +237,7 @@ class RomaService final {
 
  private:
   int num_workers_;
-  char sockdir_[20] = "/tmp/sockdir_XXXXXX";
+  std::filesystem::path socket_dir_;
   char log_dir_[20] = "/tmp/log_dir_XXXXXX";
   char* socket_name_ = nullptr;
   std::variant<std::monostate, internal::roma_service::LocalHandle,

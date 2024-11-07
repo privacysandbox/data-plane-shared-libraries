@@ -32,7 +32,7 @@
 namespace privacy_sandbox::server_common::byob::internal::roma_service {
 
 LocalHandle::LocalHandle(int pid, std::string_view mounts,
-                         std::string_view socket_name, std::string_view logdir)
+                         std::string_view socket_path, std::string_view logdir)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -42,7 +42,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
     const std::string mounts_flag =
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts);
     const std::string socket_name_flag =
-        absl::StrCat("--socket_name=", socket_name);
+        absl::StrCat("--socket_name=", socket_path);
     const std::string log_dir_flag = absl::StrCat("--log_dir=", logdir);
     const char* argv[] = {
         run_workers_path.c_str(),
@@ -62,8 +62,9 @@ LocalHandle::~LocalHandle() {
 }
 
 ByobHandle::ByobHandle(int pid, std::string_view mounts,
-                       std::string_view socket_name, std::string_view sockdir,
-                       std::string container_name, std::string_view logdir)
+                       std::string_view socket_path,
+                       std::string_view socket_dir, std::string container_name,
+                       std::string_view logdir)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
@@ -82,14 +83,14 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     config["process"]["args"] = {
         "server/bin/run_workers",
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts),
-        absl::StrCat("--socket_name=", socket_name),
+        absl::StrCat("--socket_name=", socket_path),
         absl::StrCat("--log_dir=", logdir_mount_point),
     };
     config["mounts"] = {
         {
-            {"destination", sockdir},
+            {"destination", socket_dir},
             {"type", "bind"},
-            {"source", sockdir},
+            {"source", socket_dir},
             {"options", {"rbind", "rprivate"}},
         },
         {
