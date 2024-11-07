@@ -17,6 +17,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#include <cstdint>
 #include <filesystem>
 #include <fstream>
 #include <string>
@@ -64,7 +65,9 @@ LocalHandle::~LocalHandle() {
 ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view socket_path,
                        std::string_view socket_dir, std::string container_name,
-                       std::string_view log_dir, bool debug_mode)
+                       std::string_view log_dir,
+                       std::uint64_t memory_limit_soft,
+                       std::uint64_t memory_limit_hard, bool debug_mode)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
@@ -88,6 +91,22 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         absl::StrCat("--socket_name=", socket_path),
         absl::StrCat("--log_dir=", log_dir_mount_point),
     };
+    config["process"]["rlimits"] = {};
+    // If a memory limit has been configured, apply it.
+    if (memory_limit_soft > 0 && memory_limit_hard > 0) {
+      config["process"]["rlimits"] += {
+          {"type", "RLIMIT_AS"},
+          {"hard", memory_limit_hard},
+          {"soft", memory_limit_soft},
+      };
+      // Having this config option does not help because of --ignore-cgroups
+      // flag being used to initialize runsc
+      config["linux"]["resources"]["memory"] = {
+          {"limit", memory_limit_hard},
+          {"reservation", memory_limit_hard},
+          {"disableOOMKiller", true},
+      };
+    }
     config["mounts"] = {
         {
             {"source", socket_dir},
@@ -103,12 +122,10 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         },
     };
     if (!debug_mode) {
-      config["process"]["rlimits"] = {
-          {
-              {"type", "RLIMIT_CORE"},
-              {"hard", 0},
-              {"soft", 0},
-          },
+      config["process"]["rlimits"] += {
+          {"type", "RLIMIT_CORE"},
+          {"hard", 0},
+          {"soft", 0},
       };
     }
     {

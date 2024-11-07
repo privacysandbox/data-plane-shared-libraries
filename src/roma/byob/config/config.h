@@ -17,6 +17,7 @@
 #ifndef SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
 #define SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
 
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -25,6 +26,8 @@
 namespace privacy_sandbox::server_common::byob {
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 struct Config {
+  std::uint64_t memory_limit_soft = 0;
+  std::uint64_t memory_limit_hard = 0;
   std::string roma_container_name;
   std::string lib_mounts;
   std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>

@@ -23,6 +23,7 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <cstdint>
 #include <cstring>
 #include <filesystem>
 #include <functional>
@@ -67,7 +68,8 @@ class ByobHandle final {
  public:
   ByobHandle(int pid, std::string_view mounts, std::string_view socket_path,
              std::string_view sockdir, std::string container_name,
-             std::string_view log_dir, bool debug_mode);
+             std::string_view log_dir, std::uint64_t memory_limit_soft,
+             std::uint64_t memory_limit_hard, bool debug_mode);
   ~ByobHandle();
 
  private:
@@ -172,6 +174,7 @@ class RomaService final {
         handle_.emplace<internal::roma_service::ByobHandle>(
             pid, config.lib_mounts, socket_path.c_str(), socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_.c_str(),
+            config.memory_limit_soft, config.memory_limit_hard,
             /*debug=*/mode == Mode::kModeSandboxDebug);
         break;
       case Mode::kModeNoSandbox:
