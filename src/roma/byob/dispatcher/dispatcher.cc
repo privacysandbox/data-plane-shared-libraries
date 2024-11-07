@@ -202,7 +202,7 @@ void Dispatcher::AcceptorImpl() {
     absl::MutexLock lock(&mu_);
     const auto it = code_token_to_fds_and_tokens_.find(*data);
     if (it == code_token_to_fds_and_tokens_.end()) {
-      LOG(INFO) << "Unrecognized code token.";
+      LOG(ERROR) << "Unrecognized code token.";
       ::close(fd);
       continue;
     }
