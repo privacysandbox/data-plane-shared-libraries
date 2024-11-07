@@ -369,3 +369,19 @@ pkg_files(
     )
     for user in DISTROLESS_USERS
 ]
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [
+        ":udf_binaries",
+    ],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+mkdir -p {dir}
+cp $(execpaths :udf_binaries) {dir}/
+builders/tools/normalize-dist
+EOF""".format(dir = "dist/roma_byob/udf/sample"),
+    executable = True,
+    local = True,
+    message = "copying aws artifacts to dist directory",
+)
