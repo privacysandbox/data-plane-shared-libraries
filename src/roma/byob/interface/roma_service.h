@@ -93,15 +93,12 @@ class RomaService final {
     if (fd == -1) {
       return absl::ErrnoToStatus(errno, "socket()");
     }
-    socket_name_ = ::tempnam(socket_dir_.c_str(), /*prefix=*/nullptr);
-    if (socket_name_ == nullptr) {
-      return absl::ErrnoToStatus(errno, "tempnam()");
-    }
+    std::filesystem::path socket_path = socket_dir_ / "byob_rpc.sock";
     {
       ::sockaddr_un sa = {
           .sun_family = AF_UNIX,
       };
-      std::strncpy(sa.sun_path, socket_name_, sizeof(sa.sun_path));
+      socket_path.string().copy(sa.sun_path, sizeof(sa.sun_path));
       if (::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
         return absl::ErrnoToStatus(errno, "bind()");
       }
@@ -109,21 +106,23 @@ class RomaService final {
         return absl::ErrnoToStatus(errno, "listen()");
       }
     }
-    std::filesystem::permissions(std::filesystem::path(socket_dir_),
+    std::filesystem::permissions(socket_dir_,
                                  std::filesystem::perms::owner_all |
                                      std::filesystem::perms::group_all |
                                      std::filesystem::perms::others_all);
-    std::filesystem::permissions(std::filesystem::path(socket_name_),
+    std::filesystem::permissions(socket_path,
                                  std::filesystem::perms::owner_read |
                                      std::filesystem::perms::group_read |
                                      std::filesystem::perms::others_read |
                                      std::filesystem::perms::owner_write |
                                      std::filesystem::perms::group_write |
                                      std::filesystem::perms::others_write);
-    if (::mkdtemp(log_dir_) == nullptr) {
+    char log_dir_tmpl[20] = "/tmp/log_dir_XXXXXX";
+    if (::mkdtemp(log_dir_tmpl) == nullptr) {
       return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/log_dir_XXXXXX\")");
     }
-    std::filesystem::permissions(std::filesystem::path(log_dir_),
+    log_dir_ = log_dir_tmpl;
+    std::filesystem::permissions(log_dir_,
                                  std::filesystem::perms::owner_all |
                                      std::filesystem::perms::group_all |
                                      std::filesystem::perms::others_all);
@@ -136,12 +135,12 @@ class RomaService final {
     switch (mode) {
       case Mode::kModeSandbox:
         handle_.emplace<internal::roma_service::ByobHandle>(
-            pid, config.lib_mounts, socket_name_, socket_dir_.c_str(),
-            std::move(config.roma_container_name), log_dir_);
+            pid, config.lib_mounts, socket_path.c_str(), socket_dir_.c_str(),
+            std::move(config.roma_container_name), log_dir_.c_str());
         break;
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
-            pid, config.lib_mounts, socket_name_, log_dir_);
+            pid, config.lib_mounts, socket_path.c_str(), log_dir_.c_str());
         break;
       default:
         return absl::InternalError("Unsupported mode in switch");
@@ -158,7 +157,6 @@ class RomaService final {
 
   ~RomaService() {
     dispatcher_.reset();
-    ::free(socket_name_);
     handle_.emplace<std::monostate>();
     if (std::error_code ec; std::filesystem::remove_all(socket_dir_, ec) ==
                             static_cast<std::uintmax_t>(-1)) {
@@ -238,8 +236,7 @@ class RomaService final {
  private:
   int num_workers_;
   std::filesystem::path socket_dir_;
-  char log_dir_[20] = "/tmp/log_dir_XXXXXX";
-  char* socket_name_ = nullptr;
+  std::filesystem::path log_dir_;
   std::variant<std::monostate, internal::roma_service::LocalHandle,
                internal::roma_service::ByobHandle>
       handle_;
