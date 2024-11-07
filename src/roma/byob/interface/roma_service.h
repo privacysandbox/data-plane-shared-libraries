@@ -55,7 +55,7 @@ namespace internal::roma_service {
 class LocalHandle final {
  public:
   LocalHandle(int pid, std::string_view mounts, std::string_view socket_path,
-              std::string_view logdir);
+              std::string_view log_dir);
   ~LocalHandle();
 
  private:
@@ -66,7 +66,7 @@ class ByobHandle final {
  public:
   ByobHandle(int pid, std::string_view mounts, std::string_view socket_path,
              std::string_view sockdir, std::string container_name,
-             std::string_view logdir);
+             std::string_view log_dir);
   ~ByobHandle();
 
  private:
@@ -86,7 +86,7 @@ class RomaService final {
   absl::Status Init(Config<TMetadata> config, Mode mode) {
     char socket_dir_tmpl[20] = "/tmp/sockdir_XXXXXX";
     if (::mkdtemp(socket_dir_tmpl) == nullptr) {
-      return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/sockdir_XXXXXX\")");
+      return absl::ErrnoToStatus(errno, "mkdtemp(socket_dir)");
     }
     socket_dir_ = socket_dir_tmpl;
     const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
@@ -119,7 +119,7 @@ class RomaService final {
                                      std::filesystem::perms::others_write);
     char log_dir_tmpl[20] = "/tmp/log_dir_XXXXXX";
     if (::mkdtemp(log_dir_tmpl) == nullptr) {
-      return absl::ErrnoToStatus(errno, "mkdtemp(\"/tmp/log_dir_XXXXXX\")");
+      return absl::ErrnoToStatus(errno, "mkdtemp(log_dir)");
     }
     log_dir_ = log_dir_tmpl;
     std::filesystem::permissions(log_dir_,

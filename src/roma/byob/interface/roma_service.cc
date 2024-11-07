@@ -32,7 +32,7 @@
 namespace privacy_sandbox::server_common::byob::internal::roma_service {
 
 LocalHandle::LocalHandle(int pid, std::string_view mounts,
-                         std::string_view socket_path, std::string_view logdir)
+                         std::string_view socket_path, std::string_view log_dir)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -43,7 +43,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts);
     const std::string socket_name_flag =
         absl::StrCat("--socket_name=", socket_path);
-    const std::string log_dir_flag = absl::StrCat("--log_dir=", logdir);
+    const std::string log_dir_flag = absl::StrCat("--log_dir=", log_dir);
     const char* argv[] = {
         run_workers_path.c_str(),
         mounts_flag.c_str(),
@@ -64,27 +64,29 @@ LocalHandle::~LocalHandle() {
 ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view socket_path,
                        std::string_view socket_dir, std::string container_name,
-                       std::string_view logdir)
+                       std::string_view log_dir)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
+    std::filesystem::path container_path =
+        std::filesystem::path(CONTAINER_PATH) / "config.json";
     PCHECK(::close(STDIN_FILENO) == 0);
     nlohmann::json config;
     {
-      std::ifstream ifs(std::filesystem::path(CONTAINER_PATH) / "config.json");
+      std::ifstream ifs(container_path);
       config =
           nlohmann::json::parse(std::string(std::istreambuf_iterator<char>(ifs),
                                             std::istreambuf_iterator<char>()));
     }
-    std::string logdir_mount_point = "/tmp/udf_logs";
+    constexpr std::string_view log_dir_mount_point = "/tmp/udf_logs";
     config["root"] = {{"path", CONTAINER_ROOT_RELPATH}};
     config["process"]["args"] = {
         "server/bin/run_workers",
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts),
         absl::StrCat("--socket_name=", socket_path),
-        absl::StrCat("--log_dir=", logdir_mount_point),
+        absl::StrCat("--log_dir=", log_dir_mount_point),
     };
     config["mounts"] = {
         {
@@ -94,14 +96,14 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
             {"options", {"rbind", "rprivate"}},
         },
         {
-            {"destination", logdir_mount_point},
+            {"destination", log_dir_mount_point},
             {"type", "bind"},
-            {"source", logdir},
+            {"source", log_dir},
             {"options", {"rbind", "rprivate"}},
         },
     };
     {
-      std::ofstream ofs(std::filesystem::path(CONTAINER_PATH) / "config.json");
+      std::ofstream ofs(container_path);
       ofs << config.dump();
     }
     PCHECK(::chdir(CONTAINER_PATH) == 0);
