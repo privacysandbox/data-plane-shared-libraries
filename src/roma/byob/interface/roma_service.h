@@ -97,7 +97,7 @@ inline bool AbslParseFlag(absl::string_view text, Mode* mode,
     *mode = Mode::kModeNoSandbox;
     return true;
   }
-  *error = "unknown value for enumeration";
+  *error = "Supported values: on, off, debug.";
   return false;
 }
 
