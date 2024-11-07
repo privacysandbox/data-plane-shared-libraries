@@ -64,8 +64,7 @@ ByobEchoService<> GetRomaService(Mode mode) {
 }
 
 TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
-  Mode mode = Mode::kModeSandbox;
-  ByobEchoService<> roma_service = GetRomaService(mode);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
 
   absl::Notification notif;
   absl::Status notif_status;
@@ -97,8 +96,7 @@ TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
 }
 
 TEST(RomaByobExampleTest, LoadGoBinaryInSandboxMode) {
-  Mode mode = Mode::kModeSandbox;
-  ByobEchoService<> roma_service = GetRomaService(mode);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
   absl::Notification notif;
   absl::Status notif_status;
 

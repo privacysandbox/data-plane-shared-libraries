@@ -64,7 +64,7 @@ LocalHandle::~LocalHandle() {
 ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view socket_path,
                        std::string_view socket_dir, std::string container_name,
-                       std::string_view log_dir)
+                       std::string_view log_dir, bool debug_mode)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
@@ -110,12 +110,37 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     // Note: Rootless runsc should be used judiciously. Since we have disabled
     // network stack (--network=none), rootless runsc should be side-effect
     // free.
-    const char* argv[] = {
-        "/usr/bin/runsc",        "--host-uds=all", "--ignore-cgroups",
-        "--network=none",        "--rootless",     "run",
-        container_name_.c_str(), nullptr,
+    const char* debug_argv[] = {
+        "/usr/bin/runsc",
+        // runsc flags
+        "--host-uds=all",
+        "--ignore-cgroups",
+        "--network=none",
+        "--rootless",
+        // debug flags
+        "--debug",
+        "--debug-log=/tmp/runsc-log/",
+        "--strace",
+        // command
+        "run",
+        container_name_.c_str(),
+        nullptr,
     };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+    const char* argv[] = {
+        "/usr/bin/runsc",
+        // runsc flags
+        "--host-uds=all",
+        "--ignore-cgroups",
+        "--network=none",
+        "--rootless",
+        // command
+        "run",
+        container_name_.c_str(),
+        nullptr,
+    };
+    ::execve(argv[0],
+             const_cast<char* const*>(debug_mode ? &debug_argv[0] : &argv[0]),
+             nullptr);
     PLOG(FATAL) << "execve()";
   }
 }

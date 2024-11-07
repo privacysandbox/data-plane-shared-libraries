@@ -52,6 +52,7 @@
 namespace privacy_sandbox::server_common::byob {
 
 namespace internal::roma_service {
+
 class LocalHandle final {
  public:
   LocalHandle(int pid, std::string_view mounts, std::string_view socket_path,
@@ -66,19 +67,52 @@ class ByobHandle final {
  public:
   ByobHandle(int pid, std::string_view mounts, std::string_view socket_path,
              std::string_view sockdir, std::string container_name,
-             std::string_view log_dir);
+             std::string_view log_dir, bool debug_mode);
   ~ByobHandle();
 
  private:
   int pid_;
   std::string container_name_;
 };
+
 }  // namespace internal::roma_service
 
 enum class Mode {
-  kModeSandbox = 0,
-  kModeNoSandbox = 1,
+  kModeSandbox,
+  kModeSandboxDebug,
+  kModeNoSandbox,
 };
+
+inline bool AbslParseFlag(absl::string_view text, Mode* mode,
+                          std::string* error) {
+  if (text == "on") {
+    *mode = Mode::kModeSandbox;
+    return true;
+  }
+  if (text == "debug") {
+    *mode = Mode::kModeSandboxDebug;
+    return true;
+  }
+  if (text == "off") {
+    *mode = Mode::kModeNoSandbox;
+    return true;
+  }
+  *error = "unknown value for enumeration";
+  return false;
+}
+
+inline std::string AbslUnparseFlag(Mode mode) {
+  switch (mode) {
+    case Mode::kModeSandbox:
+      return "on";
+    case Mode::kModeSandboxDebug:
+      return "debug";
+    case Mode::kModeNoSandbox:
+      return "off";
+    default:
+      return absl::StrCat(mode);
+  }
+}
 
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
@@ -134,9 +168,11 @@ class RomaService final {
     }
     switch (mode) {
       case Mode::kModeSandbox:
+      case Mode::kModeSandboxDebug:
         handle_.emplace<internal::roma_service::ByobHandle>(
             pid, config.lib_mounts, socket_path.c_str(), socket_dir_.c_str(),
-            std::move(config.roma_container_name), log_dir_.c_str());
+            std::move(config.roma_container_name), log_dir_.c_str(),
+            /*debug=*/mode == Mode::kModeSandboxDebug);
         break;
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(

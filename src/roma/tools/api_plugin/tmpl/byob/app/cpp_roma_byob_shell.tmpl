@@ -37,12 +37,14 @@
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/flags/flag.h"
+#include "absl/flags/marshalling.h"
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/synchronization/notification.h"
 #include "src/communication/json_utils.h"
 #include "src/roma/byob/tools/shell_evaluator.h"
@@ -50,15 +52,17 @@
 ABSL_FLAG(int, num_workers, 1, "the number of workers");
 ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
           "a text file with a list of CLI commands to execute");
-ABSL_FLAG(bool, sandbox, true, "run BYOB in sandbox mode");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
           "path with directory to a file in which UDF logs will be stored");
+ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
+  privacy_sandbox::server_common::byob::Mode::kModeSandbox,
+  "run BYOB in sandbox mode");
+
 
 {{$svc := index $file.Services 0}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 {{- $svcName := printf "Byob%s" $svc.Name -}}
 using {{$svcopts.CppNamespace}}::{{$svcName}};
-using privacy_sandbox::server_common::byob::Mode;
 using privacy_sandbox::server_common::byob::ShellEvaluator;
 
 int main(int argc, char** argv) {
@@ -76,7 +80,7 @@ int main(int argc, char** argv) {
   // Initialize BYOB.
   absl::StatusOr<{{$svcName}}<>> service = {{$svcName}}<>::Create(
       /*config=*/{},
-      absl::GetFlag(FLAGS_sandbox) ? Mode::kModeSandbox : Mode::kModeNoSandbox);
+      absl::GetFlag(FLAGS_sandbox));
   CHECK_OK(service);
 
   // Create load and execute RPC handlers.

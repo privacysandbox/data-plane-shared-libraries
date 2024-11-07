@@ -177,8 +177,7 @@ std::pair<SampleResponse, std::string> GetResponseAndLogs(
 }
 
 TEST(RomaByobTest, LoadBinaryInSandboxMode) {
-  Mode mode = Mode::kModeSandbox;
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
 
   absl::Notification notif;
   absl::Status notif_status;

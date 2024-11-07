@@ -563,6 +563,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
             Label("//src/communication:json_utils"),
             "@com_google_absl//absl/container:flat_hash_map",
             "@com_google_absl//absl/flags:flag",
+            "@com_google_absl//absl/flags:marshalling",
             "@com_google_absl//absl/flags:parse",
             "@com_google_absl//absl/flags:usage",
             "@com_google_absl//absl/functional:function_ref",
