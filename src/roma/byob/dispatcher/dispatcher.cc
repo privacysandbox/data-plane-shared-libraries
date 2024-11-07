@@ -111,6 +111,16 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   std::string code_token = ToString(Uuid::GenerateUuid());
   DispatcherRequest request;
   auto& payload = *request.mutable_load_binary();
+  std::error_code ec;
+  if (std::filesystem::file_status fstatus =
+          std::filesystem::status(binary_path, ec);
+      ec) {
+    return absl::PermissionDeniedError(absl::StrCat(
+        "error accessing file ", binary_path.string(), ": ", ec.message()));
+  } else if (fstatus.type() != std::filesystem::file_type::regular) {
+    return absl::InternalError(
+        absl::StrCat("unexpected file type for ", binary_path.string()));
+  }
   if (std::ifstream ifs(std::move(binary_path), std::ios::binary);
       ifs.is_open()) {
     payload.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
