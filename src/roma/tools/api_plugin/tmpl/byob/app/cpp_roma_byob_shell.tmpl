@@ -151,13 +151,18 @@ int main(int argc, char** argv) {
   };
   constexpr std::string_view kServiceSpecificMessage = R"(
 {{- $rpc := index ($svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation") 0 }}
-load - Load a User Defined Function (UDF)
-Usage: load <rpc_command> <udf_file>
-Example: load {{$rpc.Name}} example_udf
-{{range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
-{{$rpc.Name}} - {{- $rpc.Description}}
-Usage: {{$rpc.Name}} <request_file> [response_file]
-{{end -}})";
+     load <command> <filename>
+        Load a User Defined Function (UDF). Example: load {{$rpc.Name}} /path/to/udf/example_udf
+
+{{ $svcName }} commands:
+  Usage: <rpc> <request_file> [<response_file>]
+{{ range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation" }}
+{{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation" }}
+     {{ $rpc.Name }}
+{{- if and $rpcopts (len $rpcopts.Description) }}
+        {{ $rpcopts.Description | wrapWith 75 "\n        " }}
+{{- end }}
+{{ end -}})";
   ShellEvaluator evaluator(kServiceSpecificMessage, std::move(rpcs), load_fn, execute_fn);
   if (const std::optional<std::string> commands_file =
           absl::GetFlag(FLAGS_commands_file);

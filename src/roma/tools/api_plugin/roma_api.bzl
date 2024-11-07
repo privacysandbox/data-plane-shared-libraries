@@ -576,13 +576,22 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs and k != "visibility"}
     )
+    write_file(
+        name = "{}_help_commands_file".format(name),
+        out = "{}_help.commands".format(name),
+        content = ["help"],
+    )
     pkg_files(
         name = "{}_shell_execs".format(name),
-        srcs = ["{}_shell".format(name)],
+        srcs = [
+            "{}_shell".format(name),
+            ":{}_help.commands".format(name),
+        ],
         attributes = pkg_attributes(mode = "0555"),
         prefix = "/tools",
         renames = {
             ":{}_shell".format(name): "shell-cli",
+            ":{}_help.commands".format(name): "help.commands",
         },
     )
     pkg_tar(

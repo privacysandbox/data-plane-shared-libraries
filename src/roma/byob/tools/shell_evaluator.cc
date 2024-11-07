@@ -45,17 +45,20 @@ ShellEvaluator::ShellEvaluator(
 }
 
 namespace {
-constexpr std::string_view kHelpMessage = R"(Shell Commands:
+constexpr std::string_view kHelpMessageCommands = R"(Commands:
 
-help - Display all shell commands
-Usage: help
+     commands <filename>
+        Load and execute commands from a file. Note: Recursion is not permitted.
+)";
 
-commands - Execute commands from specified filename
-    Note: Recursion is not permitted.
-Usage: commands <commands_file>
+constexpr std::string_view kHelpMessageOther = R"(
+Other commands:
 
-exit - Exit the tool
-Usage: exit
+     help
+        Display all shell commands
+
+     exit
+        Exit the tool
 )";
 }  // namespace
 
@@ -72,7 +75,8 @@ ShellEvaluator::NextStep ShellEvaluator::EvalAndPrint(std::string_view line,
   }
   if (command.front() == "help" || command.front() == "h" ||
       command.front() == "?") {
-    std::cout << kHelpMessage << service_specific_message_;
+    std::cout << kHelpMessageCommands << service_specific_message_
+              << kHelpMessageOther;
   } else if (command.front() == "commands") {
     if (disable_commands) {
       std::cerr << "`commands` command is disabled\n";

@@ -16,6 +16,9 @@
 
 schemaVersion: 2.0.0
 
+containerRunOptions:
+  privileged: true
+
 licenseTests:
   - debian: true
 
@@ -31,7 +34,7 @@ fileExistenceTests:
     shouldExist: true
 
 commandTests:
-  - name: shell-cli help
+  - name: shell-cli cli help
     command: /tools/shell-cli
     args: ['--help=_shell.cc']
     exitCode: 1
@@ -52,3 +55,53 @@ commandTests:
     exitCode: 1
     expectedError:
       - "ERROR: Illegal value 'unknown' specified for flag 'sandbox'; Supported values: on, off, debug."
+
+  - name: shell-cli help command
+    command: /tools/shell-cli
+    args: ['--commands_file=/tools/help.commands']
+    exitCode: 0
+    expectedOutput:
+      - |
+        ^Commands:
+
+             commands <filename>
+                Load and execute commands from a file\. Note: Recursion is not permitted\.
+
+             load <command> <filename>
+                Load a User Defined Function \(UDF\)\. Example: load Sample \/path\/to\/udf\/example_udf
+
+        ByobSampleService commands:
+          Usage: <rpc> <request_file> \[<response_file>\]
+
+             Sample
+                The Sample method MethodAnnotation\. Add some information about this rpc
+                method\.
+
+             ReadPayload
+                MethodAnnotation\. Add some information about this rpc method\.
+
+             GeneratePayload
+                MethodAnnotation\. Add some information about this rpc method\.
+
+             ReadCallbackPayload
+                MethodAnnotation
+
+             WriteCallbackPayload
+                MethodAnnotation
+
+             RunPrimeSieve
+                MethodAnnotation
+
+             SortList
+                MethodAnnotation
+
+             Log
+                MethodAnnotation
+
+        Other commands:
+
+             help
+                Display all shell commands
+
+             exit
+                Exit the tool
