@@ -56,7 +56,7 @@ void BindAndListenOnPath(int fd, std::string_view path) {
   };
   path.copy(sa.sun_path, sizeof(sa.sun_path));
   ASSERT_EQ(0, ::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)));
-  ASSERT_EQ(0, ::listen(fd, /*backlog=*/0));
+  ASSERT_EQ(0, ::listen(fd, /*backlog=*/4096));
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {

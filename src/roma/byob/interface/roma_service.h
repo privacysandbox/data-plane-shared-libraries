@@ -136,7 +136,7 @@ class RomaService final {
       if (::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
         return absl::ErrnoToStatus(errno, "bind()");
       }
-      if (::listen(fd, /*backlog=*/0) == -1) {
+      if (::listen(fd, /*backlog=*/4096) == -1) {
         return absl::ErrnoToStatus(errno, "listen()");
       }
     }
