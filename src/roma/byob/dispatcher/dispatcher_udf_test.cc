@@ -75,8 +75,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -122,8 +122,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -171,8 +171,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -219,8 +219,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -267,8 +267,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -315,8 +315,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -363,8 +363,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -411,8 +411,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -459,8 +459,8 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -523,8 +523,8 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -565,8 +565,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -612,8 +612,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -661,8 +661,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -709,8 +709,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
@@ -757,8 +757,8 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
+    ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
