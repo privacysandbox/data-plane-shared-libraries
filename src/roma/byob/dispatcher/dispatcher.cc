@@ -189,7 +189,7 @@ void Dispatcher::AcceptorImpl() {
     if (fd == -1) {
       break;
     }
-    // Read code token and exectution token, both are 36 bytes.
+    // Read code token and execution token, 36 bytes each.
     // First is code token, second is execution token.
     auto data = Read(fd, kNumTokenBytes * 2);
     if (!data.ok()) {
