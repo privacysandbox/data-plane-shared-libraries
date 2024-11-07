@@ -45,3 +45,10 @@ commandTests:
             --num_workers \(Number of workers\.\); default: 1;
             --sandbox \(Run BYOB in sandbox mode\.\); default: on;
             --udf_log_file \(Directory for storing UDF logs\.\); default: ;
+
+  - name: shell-cli sandbox flag
+    command: /tools/shell-cli
+    args: ['--sandbox=unknown']
+    exitCode: 1
+    expectedError:
+      - "ERROR: Illegal value 'unknown' specified for flag 'sandbox'; Supported values: on, off, debug."
