@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@io_bazel_rules_go//go:def.bzl", "go_binary")
 load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
@@ -107,6 +108,19 @@ roma_byob_sdk(
     generated_proto_path = "generated/sample.proto",
     roma_app_api = sample_api,
     visibility = ["//visibility:public"],
+)
+
+container_structure_test(
+    name = "sample_byob_shell_cli_test",
+    size = "medium",
+    configs = [":shell_cli_test.yaml"],
+    image = ":sample_byob_sdk_roma_cc_lib_shell_image",
+    tags = [
+        "noasan",
+        "nomsan",
+        "notsan",
+        "noubsan",
+    ],
 )
 
 roma_integrator_docs(

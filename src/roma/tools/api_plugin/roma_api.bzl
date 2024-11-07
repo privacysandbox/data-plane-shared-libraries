@@ -900,6 +900,8 @@ def roma_byob_sdk(
         <name>_proto -- proto_library
         <name>_cc_proto -- cc_proto_library
         <name>_roma_cc_lib -- roma_byob_app_api_cc_library
+        <name>_roma_cc_lib_shell_image[.tar] -- shell-cli tool
+        <name>_roma_cc_lib_benchmark_image[.tar] -- benchmark-cli tool
     """
     byob_udf_protospec(
         name = name + ".proto",
@@ -914,6 +916,7 @@ def roma_byob_sdk(
         deps = [":{}_proto".format(name)],
         **{k: v for (k, v) in kwargs.items() if k in bazel_build_rule_common_attrs}
     )
+    cc_lib_attrs = _cc_attrs + ["container_structure_test_configs"]
     roma_byob_app_api_cc_library(
         name = name + "_roma_cc_lib",
         udf_name = name,
@@ -923,7 +926,7 @@ def roma_byob_sdk(
             "noasan",
             "notsan",
         ],
-        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
+        **{k: v for (k, v) in kwargs.items() if k in cc_lib_attrs}
     )
     buf_lint_test(
         name = name + "_proto_lint",
