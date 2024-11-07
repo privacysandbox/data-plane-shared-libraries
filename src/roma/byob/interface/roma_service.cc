@@ -30,6 +30,7 @@
 #include "absl/strings/str_cat.h"
 
 namespace privacy_sandbox::server_common::byob::internal::roma_service {
+
 LocalHandle::LocalHandle(int pid, std::string_view mounts,
                          std::string_view socket_name, std::string_view logdir)
     : pid_(pid) {
@@ -115,18 +116,20 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     PLOG(FATAL) << "execve()";
   }
 }
+
 ByobHandle::~ByobHandle() {
   if (::waitpid(pid_, nullptr, /*options=*/0) == -1) {
     PLOG(ERROR) << "waitpid(" << pid_ << ", nullptr, 0)";
   }
+  const char* argv[] = {
+      "/usr/bin/runsc", "delete", "-force", container_name_.c_str(), nullptr,
+  };
   const int pid = ::vfork();
   if (pid == 0) {
-    const char* argv[] = {
-        "/usr/bin/runsc", "delete", "-force", container_name_.c_str(), nullptr,
-    };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+    ::execve(argv[0], const_cast<char* const*>(&argv[0]), /*envp=*/nullptr);
     PLOG(FATAL) << "execve()";
   }
   ::waitpid(pid, nullptr, /*options=*/0);
 }
+
 }  // namespace privacy_sandbox::server_common::byob::internal::roma_service
