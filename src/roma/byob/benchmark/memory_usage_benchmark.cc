@@ -136,12 +136,17 @@ int main(int argc, char** argv) {
         case SortListUdf::k10K:
           code_token = sample_interface->Register("/udf/sort_list_10k_udf",
                                                   done, status, num_workers);
+          break;
         case SortListUdf::k100K:
           code_token = sample_interface->Register("/udf/sort_list_100k_udf",
                                                   done, status, num_workers);
+          break;
         case SortListUdf::k1M:
           code_token = sample_interface->Register("/udf/sort_list_1m_udf", done,
                                                   status, num_workers);
+          break;
+        default:
+          LOG(FATAL) << "Unexpected sort_list_udf input";
       }
       CHECK_OK(status);
       done.WaitForNotification();
