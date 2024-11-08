@@ -166,8 +166,8 @@ cc_binary(
 )
 
 cc_binary(
-    name = "abort_udf",
-    srcs = ["abort_udf.cc"],
+    name = "abort_late_udf",
+    srcs = ["abort_late_udf.cc"],
     visibility = ["//visibility:public"],
     deps = [
         ":sample_byob_sdk_cc_proto",
@@ -343,6 +343,7 @@ native_image(
 filegroup(
     name = "udf_binaries",
     srcs = [
+        ":abort_late_udf",
         ":callback_payload_read_udf",
         ":callback_payload_write_udf",
         ":log_benchmark_udf",

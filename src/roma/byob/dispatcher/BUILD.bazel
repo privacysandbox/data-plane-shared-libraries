@@ -76,7 +76,7 @@ cc_test(
     data = [
         ":run_workers_without_sandbox",
         "//src/roma/byob/sample_udf",
-        "//src/roma/byob/sample_udf:abort_udf",
+        "//src/roma/byob/sample_udf:abort_late_udf",
         "//src/roma/byob/sample_udf:new_udf",
         "//src/roma/byob/sample_udf:nonzero_return_udf",
         "//src/roma/byob/sample_udf:pause_udf",

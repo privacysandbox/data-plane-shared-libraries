@@ -369,7 +369,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/sample_udf/abort_udf",
+      dispatcher.LoadBinary("src/roma/byob/sample_udf/abort_late_udf",
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;

@@ -12,18 +12,17 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <stdlib.h>
-
+#include <cstdlib>
 #include <iostream>
 
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
-using ::google::protobuf::io::FileInputStream;
-using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
-using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
-using ::privacy_sandbox::roma_byob::example::SampleResponse;
+using google::protobuf::io::FileInputStream;
+using google::protobuf::util::ParseDelimitedFromZeroCopyStream;
+using google::protobuf::util::SerializeDelimitedToFileDescriptor;
+using privacy_sandbox::roma_byob::example::SampleResponse;
 
 void ReadRequestFromFd(int fd) {
   google::protobuf::Any bin_request;
@@ -47,5 +46,5 @@ int main(int argc, char* argv[]) {
   SampleResponse bin_response;
   bin_response.set_greeting("I am a crashing UDF!");
   WriteResponseToFd(fd, std::move(bin_response));
-  ::abort();
+  std::abort();
 }
