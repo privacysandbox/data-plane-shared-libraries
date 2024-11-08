@@ -112,10 +112,14 @@ repos:
   rev: v3.1.0
   hooks:
   - id: prettier
-    name: prettier markdown and javascript
+    name: prettier markdown, javascript and json
     types_or:
     - markdown
     - javascript
+    - json
+    exclude: (?x)^(
+      .*-lock\.json
+      )$
 
 - repo: https://github.com/DavidAnson/markdownlint-cli2
   rev: v0.7.1
