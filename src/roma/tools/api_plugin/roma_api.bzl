@@ -499,7 +499,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
 
     cc_library(
         name = name,
-        hdrs = ["{}_roma_byob_app_header".format(name)],
+        hdrs = [":{}_roma_byob_app_header".format(name)],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
             Label("//src/roma/byob/interface:roma_service"),
@@ -530,7 +530,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
     )
     pkg_files(
         name = "{}_benchmark_execs".format(name),
-        srcs = ["{}_benchmark".format(name)],
+        srcs = [":{}_benchmark".format(name)],
         attributes = pkg_attributes(mode = "0555"),
         prefix = "/tools",
         renames = {
@@ -539,7 +539,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
     )
     pkg_tar(
         name = "{}_benchmark_tar".format(name),
-        srcs = ["{}_benchmark_execs".format(name)],
+        srcs = [":{}_benchmark_execs".format(name)],
     )
     repo_tag_prefix = "privacy-sandbox/roma-byob"
     if udf_name:
@@ -584,7 +584,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
     pkg_files(
         name = "{}_shell_execs".format(name),
         srcs = [
-            "{}_shell".format(name),
+            ":{}_shell".format(name),
             ":{}_help.commands".format(name),
         ],
         attributes = pkg_attributes(mode = "0555"),
@@ -596,7 +596,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
     )
     pkg_tar(
         name = "{}_shell_tar".format(name),
-        srcs = ["{}_shell_execs".format(name)],
+        srcs = [":{}_shell_execs".format(name)],
     )
     roma_byob_image(
         name = "{}_shell_image".format(name),
@@ -659,9 +659,7 @@ def roma_integrator_docs(*, name, app_api_cc_library, host_api_cc_libraries = []
     )
     pkg_zip(
         name = name,
-        srcs = [
-            ":{}_doc_artifacts".format(name),
-        ],
+        srcs = [":{}_doc_artifacts".format(name)],
         package_dir = "/{}".format(name),
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
@@ -742,7 +740,7 @@ def roma_v8_sdk(
     pkg_zip(
         name = name,
         srcs = srcs + [
-            "{}".format(app_api_cc_library),
+            app_api_cc_library,
             "{}_cc_service_hdrs".format(app_api_cc_library),
             "{}_cc_hdrs".format(app_api_cc_library),
             ":{}_doc_artifacts".format(name),
@@ -1000,14 +998,14 @@ def roma_byob_sdk(
     if not exclude_tools:
         docs.append(
             declare_doc(
-                doc = "{}_roma_cc_lib_tools_shell_docs".format(name),
+                doc = ":{}_roma_cc_lib_tools_shell_docs".format(name),
                 target_filename = "shell-cli.md",
                 target_subdir = "tools",
             ),
         )
         docs.append(
             declare_doc(
-                doc = "{}_roma_cc_lib_tools_benchmark_docs".format(name),
+                doc = ":{}_roma_cc_lib_tools_benchmark_docs".format(name),
                 target_filename = "benchmark-cli.md",
                 target_subdir = "tools",
             ),
@@ -1033,22 +1031,22 @@ def roma_byob_sdk(
         for dir in docs_subdirs
     ] + [
         Label("//:LICENSE"),
-        "{}_specs".format(name),
+        ":{}_specs".format(name),
     ]
     if not exclude_tools:
         pkg_files(
             name = "{}_shell_tools".format(name),
             srcs = [
-                "{}_roma_cc_lib_shell_image.tar".format(name),
-                "{}_roma_cc_lib_benchmark_image.tar".format(name),
+                ":{}_roma_cc_lib_shell_image.tar".format(name),
+                ":{}_roma_cc_lib_benchmark_image.tar".format(name),
             ],
             prefix = "tools",
             renames = {
-                "{}_roma_cc_lib_shell_image.tar".format(name): "shell-cli.tar",
-                "{}_roma_cc_lib_benchmark_image.tar".format(name): "benchmark-cli.tar",
+                ":{}_roma_cc_lib_shell_image.tar".format(name): "shell-cli.tar",
+                ":{}_roma_cc_lib_benchmark_image.tar".format(name): "benchmark-cli.tar",
             },
         )
-        sdk_srcs.append("{}_shell_tools".format(name))
+        sdk_srcs.append(":{}_shell_tools".format(name))
     pkg_zip(
         name = name,
         srcs = sdk_srcs,
