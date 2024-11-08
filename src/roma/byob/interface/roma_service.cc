@@ -37,8 +37,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
   // The following block does not run in the parent process.
   if (pid_ == 0) {
     const std::string run_workers_path = std::filesystem::path(CONTAINER_PATH) /
-                                         CONTAINER_ROOT_RELPATH /
-                                         "server/bin/run_workers";
+                                         CONTAINER_ROOT_RELPATH / "server" /
+                                         "bin" / "run_workers";
     const std::string mounts_flag =
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts);
     const std::string socket_name_flag =
@@ -83,22 +83,22 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     constexpr std::string_view log_dir_mount_point = "/tmp/udf_logs";
     config["root"] = {{"path", CONTAINER_ROOT_RELPATH}};
     config["process"]["args"] = {
-        "server/bin/run_workers",
+        "/server/bin/run_workers",
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts),
         absl::StrCat("--socket_name=", socket_path),
         absl::StrCat("--log_dir=", log_dir_mount_point),
     };
     config["mounts"] = {
         {
+            {"source", socket_dir},
             {"destination", socket_dir},
             {"type", "bind"},
-            {"source", socket_dir},
             {"options", {"rbind", "rprivate"}},
         },
         {
+            {"source", log_dir},
             {"destination", log_dir_mount_point},
             {"type", "bind"},
-            {"source", log_dir},
             {"options", {"rbind", "rprivate"}},
         },
     };
@@ -150,7 +150,13 @@ ByobHandle::~ByobHandle() {
     PLOG(ERROR) << "waitpid(" << pid_ << ", nullptr, 0)";
   }
   const char* argv[] = {
-      "/usr/bin/runsc", "delete", "-force", container_name_.c_str(), nullptr,
+      "/usr/bin/runsc",
+      // args
+      "delete",
+      "-force",
+      container_name_.c_str(),
+      // end args
+      nullptr,
   };
   const int pid = ::vfork();
   if (pid == 0) {
