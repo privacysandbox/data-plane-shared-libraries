@@ -1,11 +1,9 @@
 {
   "ociVersion": "1.0.2-dev",
   "process": {
-    "terminal": true,
     "user": {
       "uid": 0,
-      "gid": 0,
-      "additionalGids": [0]
+      "gid": 0
     },
     "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "TERM=xterm"],
     "cwd": "/",
@@ -13,9 +11,7 @@
       "bounding": ["CAP_SETPCAP", "CAP_SYS_ADMIN"],
       "effective": ["CAP_SETPCAP", "CAP_SYS_ADMIN"],
       "permitted": ["CAP_SETPCAP", "CAP_SYS_ADMIN"]
-    },
-    "apparmorProfile": "unconfined",
-    "oomScoreAdj": 0
+    }
   },
   "hostname": "runsc",
   "linux": {
