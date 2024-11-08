@@ -401,6 +401,11 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   std::string mounts = "";
   if (lang == Language::kJava) {
     mounts = "/proc/self";
+#if defined(__aarch64__)
+    // TODO: b/377349908 - Enable Java benchmarks post-ARM64 fix
+    state.SkipWithError("Skipping Java test on ARM64");
+    return;
+#endif
   }
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
@@ -765,8 +770,7 @@ BENCHMARK(BM_ProcessRequestMultipleLanguages)
     ->ArgsProduct({
         {
             (int)Language::kCPlusPlus,
-            // TODO: b/377349908 - Enable Java benchmarks post-ARM64 fix
-            // (int)Language::kJava,
+            (int)Language::kJava,
             (int)Language::kGoLang,
         },
         {
