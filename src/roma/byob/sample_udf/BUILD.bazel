@@ -166,6 +166,12 @@ cc_binary(
 )
 
 cc_binary(
+    name = "abort_early_udf",
+    srcs = ["abort_early_udf.cc"],
+    visibility = ["//visibility:public"],
+)
+
+cc_binary(
     name = "abort_late_udf",
     srcs = ["abort_late_udf.cc"],
     visibility = ["//visibility:public"],
@@ -343,6 +349,7 @@ native_image(
 filegroup(
     name = "udf_binaries",
     srcs = [
+        ":abort_early_udf",
         ":abort_late_udf",
         ":callback_payload_read_udf",
         ":callback_payload_write_udf",
