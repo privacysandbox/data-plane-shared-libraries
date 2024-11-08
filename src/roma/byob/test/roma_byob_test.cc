@@ -75,7 +75,7 @@ SampleResponse SendRequestAndGetResponse(
   absl::StatusOr<std::unique_ptr<SampleResponse>> response;
 
   absl::Notification notif;
-  CHECK_OK(roma_service.Sample(notif, bin_request, response,
+  CHECK_OK(roma_service.Sample(notif, std::move(bin_request), response,
                                /*metadata=*/{}, code_token));
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(response);
@@ -168,7 +168,7 @@ std::pair<SampleResponse, std::string> GetResponseAndLogs(
   };
 
   SampleRequest bin_request;
-  CHECK_OK(roma_service.Sample(callback, bin_request,
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
                                /*metadata=*/{}, code_token));
   CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
@@ -278,7 +278,7 @@ TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
     notif.Notify();
   };
 
-  CHECK_OK(roma_service.Sample(callback, bin_request,
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
                                /*metadata=*/{}, code_token));
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
@@ -316,7 +316,7 @@ TEST(RomaByobTest, ProcessRequestCppBinaryWithHostCallbackInSandboxMode) {
       LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename);
   absl::StatusOr<std::unique_ptr<ReadCallbackPayloadResponse>> response;
   absl::Notification notif;
-  CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
+  CHECK_OK(roma_service.ReadCallbackPayload(notif, std::move(request), response,
                                             /*metadata=*/{}, code_token));
 
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -425,7 +425,7 @@ TEST(RomaByobTest, VerifyRegisterWithAndWithoutLog) {
   };
 
   SampleRequest bin_request;
-  CHECK_OK(roma_service.Sample(callback, bin_request,
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
                                /*metadata=*/{}, no_log_code_token));
   CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
@@ -453,15 +453,14 @@ TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
   };
 
   SampleRequest bin_request;
-  CHECK_OK(roma_service.Sample(callback, bin_request,
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
                                /*metadata=*/{}, no_log_code_token));
   CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
 
   std::string log_code_token =
       LoadCodeFromCodeToken(roma_service, no_log_code_token);
-
-  ::sleep(/*seconds=*/5);
+  absl::SleepFor(absl::Milliseconds(25));
 
   roma_service.Delete(no_log_code_token);
 

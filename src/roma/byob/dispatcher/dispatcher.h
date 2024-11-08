@@ -69,13 +69,13 @@ class Dispatcher {
   template <typename Response, typename Table, typename Metadata,
             typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, const Request& request, Metadata metadata,
+      std::string_view code_token, Request request, Metadata metadata,
       const Table& table,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
     google::protobuf::Any request_any;
-    request_any.PackFrom(request);
+    request_any.PackFrom(std::move(request));
     FdAndToken fd_and_token;
     {
       auto fn = [&] {

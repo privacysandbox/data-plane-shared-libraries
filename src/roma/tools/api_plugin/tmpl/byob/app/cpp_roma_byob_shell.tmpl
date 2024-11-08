@@ -106,7 +106,7 @@ int main(int argc, char** argv) {
     if (rpc == "{{$rpc.Name}}") {
       absl::Notification done;
       absl::StatusOr<std::string> json_response;
-      const auto request =
+      auto request =
           ::privacy_sandbox::server_common::JsonToProto<{{$reqType}}>(
               request_json);
       if (!request.ok()) {
@@ -127,8 +127,8 @@ int main(int argc, char** argv) {
         }
         done.Notify();
       };
-      const auto execution_token =
-          service->{{$rpc.Name}}(callback, *request, /*metadata=*/{}, code_token);
+      const auto execution_token = service->{{$rpc.Name}}(
+          callback, *std::move(request), /*metadata=*/{}, code_token);
       if (!execution_token.ok()) {
         return execution_token.status();
       }

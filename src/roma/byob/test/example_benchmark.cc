@@ -62,12 +62,12 @@ void BM_Load(benchmark::State& state) {
   }
 }
 void EchoExecuteImpl(ByobEchoService<>& roma_service,
-                     std::string_view code_token, const EchoRequest& request) {
+                     std::string_view code_token, EchoRequest request) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
-  const auto execution_token =
-      roma_service.Echo(notif, request, response, /*metadata=*/{}, code_token);
+  const auto execution_token = roma_service.Echo(
+      notif, std::move(request), response, /*metadata=*/{}, code_token);
   CHECK_OK(execution_token);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);

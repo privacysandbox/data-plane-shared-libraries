@@ -135,7 +135,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
   absl::Notification notif;
 
-  CHECK_OK(roma_service.Echo(notif, request, response,
+  CHECK_OK(roma_service.Echo(notif, std::move(request), response,
                              /*metadata=*/{}, code_token));
 
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -158,7 +158,7 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
     notif.Notify();
   };
 
-  CHECK_OK(roma_service.Echo(callback, bin_request,
+  CHECK_OK(roma_service.Echo(callback, std::move(bin_request),
                              /*metadata=*/{}, code_token));
 
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -176,7 +176,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
   absl::Notification notif;
 
-  CHECK_OK(roma_service.Echo(notif, request, response,
+  CHECK_OK(roma_service.Echo(notif, std::move(request), response,
                              /*metadata=*/{}, code_token));
 
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
@@ -199,7 +199,7 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
     notif.Notify();
   };
 
-  CHECK_OK(roma_service.Echo(callback, bin_request,
+  CHECK_OK(roma_service.Echo(callback, std::move(bin_request),
                              /*metadata=*/{}, code_token));
 
   ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));

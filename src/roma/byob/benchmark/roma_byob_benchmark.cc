@@ -106,7 +106,7 @@ SampleResponse SendRequestAndGetResponse(
   absl::StatusOr<std::unique_ptr<SampleResponse>> response;
 
   absl::Notification notif;
-  CHECK_OK(roma_service.Sample(notif, bin_request, response,
+  CHECK_OK(roma_service.Sample(notif, std::move(bin_request), response,
                                /*metadata=*/{}, code_token));
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(response);

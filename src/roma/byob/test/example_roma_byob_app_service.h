@@ -159,14 +159,14 @@ class ByobEchoService final {
    */
   absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
       absl::Notification& notification,
-      const ::privacy_sandbox::server_common::byob::example::EchoRequest&
-          request,
+      ::privacy_sandbox::server_common::byob::example::EchoRequest request,
       absl::StatusOr<std::unique_ptr<
           ::privacy_sandbox::server_common::byob::example::EchoResponse>>&
           response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "") {
-    return roma_service_->ProcessRequest(
-        code_token, request, std::move(metadata), notification, response);
+    return roma_service_->ProcessRequest(code_token, std::move(request),
+                                         std::move(metadata), notification,
+                                         response);
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
@@ -174,12 +174,12 @@ class ByobEchoService final {
           void(absl::StatusOr<
                ::privacy_sandbox::server_common::byob::example::EchoResponse>)>
           callback,
-      const ::privacy_sandbox::server_common::byob::example::EchoRequest&
-          request,
+      ::privacy_sandbox::server_common::byob::example::EchoRequest request,
       TMetadata metadata = TMetadata(), std::string_view code_token = "") {
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
-        code_token, request, std::move(metadata), std::move(callback));
+        code_token, std::move(request), std::move(metadata),
+        std::move(callback));
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
@@ -187,12 +187,11 @@ class ByobEchoService final {
                                                  byob::example::EchoResponse>,
                               absl::StatusOr<std::string_view> logs)>
           callback_with_logs_param,
-      const ::privacy_sandbox::server_common::byob::example::EchoRequest&
-          request,
+      ::privacy_sandbox::server_common::byob::example::EchoRequest request,
       TMetadata metadata = TMetadata(), std::string_view code_token = "") {
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
-        code_token, request, std::move(metadata),
+        code_token, std::move(request), std::move(metadata),
         std::move(callback_with_logs_param));
   }
 

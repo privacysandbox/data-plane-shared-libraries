@@ -86,9 +86,8 @@ int main(int argc, char** argv) {
       absl::StatusOr<std::string> json_response;
       const std::optional<std::string> udf_log_file =
           absl::GetFlag(FLAGS_udf_log_file);
-      const auto request =
-          ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
-              request_json);
+      auto request = ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
+          request_json);
       if (!request.ok()) {
         return request.status();
       }
@@ -107,8 +106,8 @@ int main(int argc, char** argv) {
         }
         done.Notify();
       };
-      const auto execution_token =
-          echo_service->Echo(callback, *request, /*metadata=*/{}, code_token);
+      const auto execution_token = echo_service->Echo(
+          callback, *std::move(request), /*metadata=*/{}, code_token);
       if (!execution_token.ok()) {
         return execution_token.status();
       }
