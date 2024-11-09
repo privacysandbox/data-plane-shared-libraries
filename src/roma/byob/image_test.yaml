@@ -27,6 +27,13 @@ fileExistenceTests:
     uid: {UID}
     gid: {GID}
 
+  - name: /roma_container config.json
+    path: /roma_container/config.json
+    shouldExist: true
+    permissions: -rw-------
+    uid: {UID}
+    gid: {GID}
+
   - name: /var/run/runsc dir
     path: /var/run/runsc
     shouldExist: true
