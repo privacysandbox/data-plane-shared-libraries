@@ -5,7 +5,7 @@
       "uid": 0,
       "gid": 0
     },
-    "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin", "TERM=xterm"],
+    "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
     "cwd": "/",
     "capabilities": {
       "bounding": ["CAP_SETPCAP", "CAP_SYS_ADMIN"],
