@@ -38,89 +38,40 @@ execution of arbitrary binaries written in any language.
 
 #### Prerequisites
 
-1. To the `container_deps.bzl`, add the following:
+1. Install container deps:
 
     ```bazel
     load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", common_container_deps = "container_deps")
+
+    common_container_deps()
     ```
 
-    and call `common_container_deps()` from `container_deps()`.
+1. Use the `get_user` macro, specifying either `root` or `nonroot`. For example:
 
-1. Define a variable called user. If you are running Roma BYOB as the user `root`, define:
+1. [For OCI image users] Add create a target using the `roma_byob_image` macro, which supports all
+   the attributes for `oci_image`. Attributes include:
+
+    - `name`: Each image has a corresponding OCI tarball `{name}.tar`
+    - `tars`: Image layers, which are added to the BYOB base image layers.
+    - `repo_tags`: Tags for the resulting image.
+    - `debug`: boolean specifying whether a debug base image is used.
+    - `user`: Struct representing a {uid,gid}, use the `get_user()` macro, passing either `root` or
+      `nonroot` as the arg.
+    - `container_structure_test_configs`: Labels of config files for `container_structure_test`.
+      Refer to docs at <https://github.com/GoogleContainerTools/container-structure-test>.
+    - Other keyword attributes are passed through to `oci_image`.
+
+    The following example will generate a tar file `your_image_name.tar`:
 
     ```bazel
+    load("@google_privacysandbox_servers_common//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
     load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "get_user")
-    user = get_user("root")
-    ```
 
-    If you are running Roma BYOB as the user `nonroot`, define:
-
-    ```bazel
-    load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "get_user")
-    user= get_user("nonroot")
-    ```
-
-1. [For container image users] Add the following container_layers at an appropriate place:
-
-    ```bazel
-    load("@google_privacysandbox_servers_common//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
-    load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
-    load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-
-    pkg_files(
-      name = "gvisor_config_file",
-      srcs = ["@google_privacysandbox_servers_common//src/roma/byob/container:container_config"],
-      attributes = pkg_attributes(mode = "0600"),
+    roma_byob_image(
+      name = "your_image_name",
+      ...
+      user = get_user("nonroot"),
     )
-
-    pkg_tar(
-      name = "gvisor_config_tar",
-      srcs = [":gvisor_config_file"],
-      owner = "{}.{}".format(
-        user.uid,
-        user.gid,
-      ),
-    )
-
-    container_layer(
-      name = "gvisor_config_layer",
-      directory = "{}".format(roma_container_dir),
-        tars = [
-          ":gvisor_config_tar",
-        ],
-    )
-
-    container_layer(
-      name = "byob_server_container_layer",
-      directory = "{roma_container_dir}/{root_dir}".format(roma_container_dir = roma_container_dir, root_dir = roma_container_root_dir),
-      tars = [
-        "@google_privacysandbox_servers_common//src/roma/byob/container:byob_runtime_container_{user}.tar".format(user = user.user),
-      ],
-    )
-    ```
-
-    Add the following layers to the container image running Roma BYOB:
-
-    ```bazel
-    "//path/to/layer:byob_server_container_layer",
-    "//path/to/layer:gvisor_config_layer",
-    ```
-
-    Add the following tarball to your container image:
-
-    ```bazel
-    tars = [
-      "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar_{user}".format(user = user.user),
-      "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar_{user}".format(user = user.user),
-    ],
-    ```
-
-    1. [For OCI image users] Add the following tars to the OCI image running Roma BYOB:
-
-    ```bazel
-    "@google_privacysandbox_servers_common//src/roma/byob/container:gvisor_tar_{user}".format(user.user),
-    "@google_privacysandbox_servers_common//src/roma/byob/container:var_run_runsc_tar_{user}".format(user.user)",
-    "@google_privacysandbox_servers_common//src/roma/byob/container:byob_runtime_container_with_dir_{user}.tar".format(user.user),
     ```
 
 Links to images:

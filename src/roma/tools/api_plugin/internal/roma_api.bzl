@@ -422,19 +422,19 @@ def roma_byob_image(
     """Generates a BYOB OCI container image
 
     Args:
-      name: Each image has a corresponding OCI tarball {name}_tarball.tar
+      name: Each image has a corresponding OCI tarball {name}.tar
       repo_tags: Tags for the resulting image.
-      debug: Whether distroless or debug image should be used.
+      debug: Specifies whether a debug base image is used.
       user: Struct representing a {uid,gid}
+      container_structure_test_configs: Labels of config files for container_structure_test.
+          Refer to docs at https://github.com/GoogleContainerTools/container-structure-test
       **kwargs: keyword args passed through to oci_image.
 
       Note : base arg cannot be overridden and will be ignored.
     """
     byob_tars = [
         Label("//src/roma/byob/container:gvisor_tar_{}".format(user.flavor)),
-        Label("//src/roma/byob/container:container_config_tar_{}".format(user.flavor)),
         Label("//src/roma/byob/container:byob_runtime_container_with_dir_{}.tar".format(user.flavor)),
-        Label("//src/roma/byob/container:var_run_runsc_tar_{}".format(user.flavor)),
     ]
     roma_image(
         name = name,

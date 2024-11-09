@@ -22,8 +22,25 @@ load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 filegroup(
     name = "container_config",
     srcs = ["config.json"],
-    visibility = ["//visibility:public"],
 )
+
+pkg_files(
+    name = "container_config_file",
+    srcs = [":container_config"],
+    attributes = pkg_attributes(mode = "0600"),
+)
+
+[
+    pkg_tar(
+        name = "container_config_{}.tar".format(user.user),
+        srcs = [":container_config_file"],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
 
 pkg_files(
     name = "gvisor_execs",
@@ -39,19 +56,6 @@ pkg_files(
     prefix = "/usr/bin",
 )
 
-[
-    pkg_tar(
-        name = "gvisor_tar_{}".format(user.flavor),
-        srcs = [":gvisor_execs"],
-        owner = "{}.{}".format(
-            user.uid,
-            user.gid,
-        ),
-        visibility = ["//visibility:public"],
-    )
-    for user in DISTROLESS_USERS
-]
-
 pkg_mkdirs(
     name = "var_run_runsc_dir",
     attributes = pkg_attributes(mode = "0700"),
@@ -60,8 +64,11 @@ pkg_mkdirs(
 
 [
     pkg_tar(
-        name = "var_run_runsc_tar_{}".format(user.flavor),
-        srcs = [":var_run_runsc_dir"],
+        name = "gvisor_tar_{}".format(user.flavor),
+        srcs = [
+            ":gvisor_execs",
+            ":var_run_runsc_dir",
+        ],
         owner = "{}.{}".format(
             user.uid,
             user.gid,
@@ -96,7 +103,7 @@ cc_binary(
 pkg_files(
     name = "byob_runtime_execs",
     srcs = [":run_workers"],
-    attributes = pkg_attributes(mode = "0555"),
+    attributes = pkg_attributes(mode = "0500"),
     prefix = "/server/bin",
 )
 
@@ -171,35 +178,19 @@ docker rm $$CID
     for user in DISTROLESS_USERS
 ]
 
-pkg_files(
-    name = "container_config_file",
-    srcs = [":container_config"],
-    attributes = pkg_attributes(mode = "0600"),
-    prefix = roma_container_dir,
-)
-
-[
-    pkg_tar(
-        name = "container_config_tar_{}".format(user.user),
-        srcs = [":container_config_file"],
-        owner = "{}.{}".format(
-            user.uid,
-            user.gid,
-        ),
-        visibility = ["//visibility:public"],
-    )
-    for user in DISTROLESS_USERS
-]
-
 [
     genrule(
         name = "gen_byob_runtime_container_with_dir_tar_{}".format(user.flavor),
-        srcs = [":byob_runtime_container_{}.tar".format(user.flavor)],
+        srcs = [
+            ":byob_runtime_container_{}.tar".format(user.flavor),
+            ":container_config_{}.tar".format(user.user),
+        ],
         outs = ["byob_runtime_container_with_dir_{}.tar".format(user.flavor)],
         cmd_bash = """
 TMPDIR="$$(mktemp --directory roma_container_tmp.XXXXXXXXXX)"
 mkdir --parents --mode=700 "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
-tar --extract --file="$(location byob_runtime_container_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
+tar --extract --file="$(location :byob_runtime_container_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
+tar --extract --file="$(location :container_config_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}"
 tar --create --gzip --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$$TMPDIR" "{roma_container_dir}/"
 rm -rf "$$TMPDIR"
 """.format(
