@@ -155,8 +155,9 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
 }
 
 ByobHandle::~ByobHandle() {
-  if (::waitpid(pid_, nullptr, /*options=*/0) == -1) {
-    PLOG(ERROR) << "waitpid(" << pid_ << ", nullptr, 0)";
+  // TODO: b/378553056 - Create minimal repro for runsc waitpid bug
+  // This waitpid loop is returning a bunch of zombies.
+  while (::waitpid(-1, nullptr, /*options=*/0) >= 0) {
   }
   const char* argv[] = {
       "/usr/bin/runsc",
