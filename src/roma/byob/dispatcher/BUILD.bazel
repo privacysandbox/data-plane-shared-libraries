@@ -1,3 +1,4 @@
+load("@com_google_googleapis_imports//:imports.bzl", "cc_grpc_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
@@ -9,11 +10,13 @@ cc_library(
     visibility = ["//src/roma/byob:__subpackages__"],
     deps = [
         ":dispatcher_cc_proto",
+        ":dispatcher_grpc",
         "//src/core/common/uuid",
         "//src/roma/byob/utility:file_reader",
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface:function_binding_io_cc_proto",
         "//src/util:execution_token",
+        "//src/util/status_macro:status_util",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/status",
@@ -31,8 +34,11 @@ cc_binary(
     deps = [
         ":dispatcher",
         ":dispatcher_cc_proto",
+        ":dispatcher_grpc",
         "//src/core/common/uuid",
         "//src/util/status_macro:status_macros",
+        "//src/util/status_macro:status_util",
+        "@com_github_grpc_grpc//:grpc++",
         "@com_google_absl//absl/cleanup",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
@@ -53,14 +59,7 @@ cc_test(
     data = ["//src/roma/byob/sample_udf:new_udf"],
     deps = [
         ":dispatcher",
-        ":dispatcher_cc_proto",
-        "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
-        "//src/roma/config:function_binding_object_v2",
-        "//src/util:execution_token",
-        "@com_google_absl//absl/cleanup",
-        "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
-        "@com_google_protobuf//:protobuf",
     ],
 )
 
@@ -105,6 +104,14 @@ cc_proto_library(
     name = "dispatcher_cc_proto",
     visibility = ["//src/roma/byob/container:__subpackages__"],
     deps = [":dispatcher_proto"],
+)
+
+cc_grpc_library(
+    name = "dispatcher_grpc",
+    srcs = [":dispatcher_proto"],
+    grpc_only = True,
+    visibility = ["//src/roma/byob/container:__subpackages__"],
+    deps = [":dispatcher_cc_proto"],
 )
 
 buf_lint_test(

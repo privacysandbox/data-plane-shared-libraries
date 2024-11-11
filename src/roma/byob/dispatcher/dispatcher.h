@@ -22,6 +22,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <memory>
 #include <optional>
 #include <queue>
 #include <string>
@@ -37,6 +38,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
+#include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/utility/file_reader.h"
 #include "src/util/execution_token.h"
 
@@ -47,8 +49,9 @@ class Dispatcher {
  public:
   ~Dispatcher();
 
-  // Takes ownership of `listen_fd`. Blocks until a connection is established.
-  absl::Status Init(int listen_fd, std::filesystem::path log_dir);
+  absl::Status Init(std::filesystem::path control_socket_name,
+                    std::filesystem::path udf_socket_name,
+                    std::filesystem::path log_dir);
 
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
                                          int num_workers,
@@ -122,10 +125,8 @@ class Dispatcher {
       ABSL_LOCKS_EXCLUDED(mu_);
 
   int listen_fd_;
-
-  // Connection socket to worker main thread. Used to send load requests.
-  int connection_fd_;
   std::filesystem::path log_dir_;
+  std::unique_ptr<WorkerRunnerService::Stub> stub_;
   std::optional<std::thread> acceptor_;
   absl::Mutex mu_;
   int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;

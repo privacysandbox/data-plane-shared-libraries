@@ -17,6 +17,7 @@
 #include <limits.h>
 #include <signal.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <unistd.h>
 
 #include <filesystem>
@@ -26,6 +27,11 @@
 #include <thread>
 #include <utility>
 
+#include <grpcpp/channel.h>
+#include <grpcpp/client_context.h>
+#include <grpcpp/create_channel.h>
+#include <grpcpp/security/credentials.h>
+
 #include "absl/functional/any_invocable.h"
 #include "absl/log/log.h"
 #include "absl/status/status.h"
@@ -33,13 +39,21 @@
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/util/execution_token.h"
+#include "src/util/status_macro/status_util.h"
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::google::scp::core::common::Uuid;
+using ::privacy_sandbox::server_common::byob::CancelRequest;
+using ::privacy_sandbox::server_common::byob::CancelResponse;
+using ::privacy_sandbox::server_common::byob::DeleteBinaryRequest;
+using ::privacy_sandbox::server_common::byob::DeleteBinaryResponse;
+using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
+using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
 
 absl::StatusOr<std::string> Read(int fd, int size) {
   std::string buffer(size, '\0');
@@ -64,7 +78,6 @@ Dispatcher::~Dispatcher() {
     mu_.Await(absl::Condition(
         +[](int* i) { return *i == 0; }, &executor_threads_in_flight_));
   }
-  ::close(connection_fd_);
   ::shutdown(listen_fd_, SHUT_RDWR);
   if (acceptor_.has_value()) {
     acceptor_->join();
@@ -78,15 +91,47 @@ Dispatcher::~Dispatcher() {
   ::close(listen_fd_);
 }
 
-absl::Status Dispatcher::Init(const int listen_fd,
+absl::Status Dispatcher::Init(std::filesystem::path control_socket_name,
+                              std::filesystem::path udf_socket_name,
                               std::filesystem::path log_dir) {
-  listen_fd_ = listen_fd;
-  log_dir_ = log_dir;
-  connection_fd_ = ::accept(listen_fd_, nullptr, nullptr);
-  if (connection_fd_ == -1) {
-    return absl::InternalError(
-        absl::StrCat("Failed to accept on fd=", listen_fd_));
+  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+  if (fd == -1) {
+    return absl::ErrnoToStatus(errno, "socket()");
   }
+  {
+    ::sockaddr_un sa = {
+        .sun_family = AF_UNIX,
+    };
+    udf_socket_name.native().copy(sa.sun_path, sizeof(sa.sun_path));
+    if (::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
+      ::close(fd);
+      return absl::ErrnoToStatus(errno, "bind()");
+    }
+    if (::listen(fd, /*backlog=*/4096) == -1) {
+      ::close(fd);
+      return absl::ErrnoToStatus(errno, "listen()");
+    }
+  }
+  listen_fd_ = fd;
+  std::filesystem::permissions(udf_socket_name,
+                               std::filesystem::perms::owner_read |
+                                   std::filesystem::perms::group_read |
+                                   std::filesystem::perms::others_read |
+                                   std::filesystem::perms::owner_write |
+                                   std::filesystem::perms::group_write |
+                                   std::filesystem::perms::others_write);
+  log_dir_ = std::move(log_dir);
+  std::shared_ptr<grpc::Channel> channel =
+      grpc::CreateChannel(absl::StrCat("unix:", control_socket_name.native()),
+                          grpc::InsecureChannelCredentials());
+
+  // Blocks for 5 minutes or until a connection is established.
+  if (!channel->WaitForConnected(
+          gpr_time_add(gpr_now(GPR_CLOCK_REALTIME),
+                       gpr_time_from_seconds(300, GPR_TIMESPAN)))) {
+    return absl::DeadlineExceededError("Failed to connect to worker runner.");
+  }
+  stub_ = WorkerRunnerService::NewStub(std::move(channel));
 
   // Ignore SIGPIPE. Otherwise, host process will crash when UDFs close sockets
   // before or while Roma writes requests or callback responses.
@@ -103,8 +148,6 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
         absl::StrCat("`num_workers=", num_workers, "` must be positive"));
   }
   std::string code_token = ToString(Uuid::GenerateUuid());
-  DispatcherRequest request;
-  auto& payload = *request.mutable_load_binary();
   std::error_code ec;
   if (std::filesystem::file_status fstatus =
           std::filesystem::status(binary_path, ec);
@@ -115,22 +158,29 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
     return absl::InternalError(
         absl::StrCat("unexpected file type for ", binary_path.string()));
   }
+  LoadBinaryRequest request;
   if (std::ifstream ifs(std::move(binary_path), std::ios::binary);
       ifs.is_open()) {
-    payload.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
+    request.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
                                            std::istreambuf_iterator<char>()));
   } else {
     return absl::UnavailableError(
         absl::StrCat("Cannot open ", binary_path.native()));
   }
-  payload.set_code_token(code_token);
-  payload.set_num_workers(num_workers);
-  payload.set_enable_log_egress(enable_log_egress);
+  request.set_code_token(code_token);
+  request.set_num_workers(num_workers);
+  request.set_enable_log_egress(enable_log_egress);
   {
     absl::MutexLock lock(&mu_);
     code_token_to_fds_and_tokens_.insert({code_token, {}});
   }
-  SerializeDelimitedToFileDescriptor(request, connection_fd_);
+  grpc::ClientContext context;
+  LoadBinaryResponse response;
+  if (const grpc::Status status =
+          stub_->LoadBinary(&context, request, &response);
+      !status.ok()) {
+    return privacy_sandbox::server_common::ToAbslStatus(status);
+  }
   return code_token;
 }
 
@@ -141,24 +191,33 @@ absl::StatusOr<std::string> Dispatcher::LoadBinaryForLogging(
         absl::StrCat("`num_workers=", num_workers, "` must be positive"));
   }
   std::string code_token = ToString(Uuid::GenerateUuid());
-  DispatcherRequest request;
-  auto& payload = *request.mutable_load_binary();
-  payload.set_code_token(code_token);
-  payload.set_num_workers(num_workers);
-  payload.set_source_bin_code_token(source_bin_code_token);
-  payload.set_enable_log_egress(true);
+  LoadBinaryRequest request;
+  request.set_code_token(code_token);
+  request.set_num_workers(num_workers);
+  request.set_source_bin_code_token(source_bin_code_token);
+  request.set_enable_log_egress(true);
   {
     absl::MutexLock lock(&mu_);
     code_token_to_fds_and_tokens_.insert({code_token, {}});
   }
-  SerializeDelimitedToFileDescriptor(request, connection_fd_);
+  grpc::ClientContext context;
+  LoadBinaryResponse response;
+  if (const grpc::Status status =
+          stub_->LoadBinary(&context, request, &response);
+      !status.ok()) {
+    return privacy_sandbox::server_common::ToAbslStatus(status);
+  }
   return code_token;
 }
 
 void Dispatcher::Delete(std::string_view code_token) {
-  DispatcherRequest request;
-  request.mutable_delete_binary()->set_code_token(code_token);
-  SerializeDelimitedToFileDescriptor(request, connection_fd_);
+  {
+    grpc::ClientContext context;
+    DeleteBinaryRequest request;
+    request.set_code_token(code_token);
+    DeleteBinaryResponse response;
+    stub_->DeleteBinary(&context, request, &response);
+  }
   absl::MutexLock lock(&mu_);
   if (const auto it = code_token_to_fds_and_tokens_.find(code_token);
       it != code_token_to_fds_and_tokens_.end()) {
@@ -171,10 +230,11 @@ void Dispatcher::Delete(std::string_view code_token) {
 }
 
 void Dispatcher::Cancel(google::scp::roma::ExecutionToken execution_token) {
-  DispatcherRequest request;
-  request.mutable_cancel()->set_execution_token(
-      std::move(execution_token).value);
-  SerializeDelimitedToFileDescriptor(request, connection_fd_);
+  grpc::ClientContext context;
+  CancelRequest request;
+  request.set_execution_token(execution_token.value);
+  CancelResponse response;
+  stub_->Cancel(&context, request, &response);
 }
 
 void Dispatcher::AcceptorImpl() {

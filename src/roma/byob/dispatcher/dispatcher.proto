@@ -15,33 +15,35 @@
 syntax = "proto3";
 package privacy_sandbox.server_common.byob;
 
-message DispatcherRequest {
-  message LoadBinary {
-    bytes code_token = 1;
-    // Content to load request can be provided one of two ways. Namely -
-    // 1. binary_content: Contents of the pre-complied, self-contained binary
-    // 2. source_bin_code_token: Code token of a existing binary in the sandbox.
-    // For instance, an existing binary might be reloaded in for logging.
-    oneof content_oneof {
-      bytes binary_content = 2;
-      bytes source_bin_code_token = 5;
-    }
-    int32 num_workers = 3;
-    // Whether or not logs should be stored in a file. Set to false by proto3
-    // default.
-    bool enable_log_egress = 4;
-  }
-
-  message DeleteBinary {
-    bytes code_token = 1;
-  }
-  message Cancel {
-    bytes execution_token = 1;
-  }
-
-  oneof request {
-    LoadBinary load_binary = 1;
-    DeleteBinary delete_binary = 2;
-    Cancel cancel = 3;
-  }
+service WorkerRunnerService {
+  rpc LoadBinary(LoadBinaryRequest) returns (LoadBinaryResponse) {}
+  rpc DeleteBinary(DeleteBinaryRequest) returns (DeleteBinaryResponse) {}
+  rpc Cancel(CancelRequest) returns (CancelResponse) {}
 }
+
+message LoadBinaryRequest {
+  bytes code_token = 1;
+  // Content to load request can be provided one of two ways. Namely -
+  // 1. binary_content: Contents of the pre-complied, self-contained binary
+  // 2. source_bin_code_token: Code token of a existing binary in the sandbox.
+  // For instance, an existing binary might be reloaded in for logging.
+  oneof content_oneof {
+    bytes binary_content = 2;
+    bytes source_bin_code_token = 5;
+  }
+  int32 num_workers = 3;
+  // Whether or not logs should be stored in a file. Set to false by proto3
+  // default.
+  bool enable_log_egress = 4;
+}
+message LoadBinaryResponse {}
+
+message DeleteBinaryRequest {
+  bytes code_token = 1;
+}
+message DeleteBinaryResponse {}
+
+message CancelRequest {
+  bytes execution_token = 1;
+}
+message CancelResponse {}

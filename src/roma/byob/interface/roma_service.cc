@@ -33,7 +33,9 @@
 namespace privacy_sandbox::server_common::byob::internal::roma_service {
 
 LocalHandle::LocalHandle(int pid, std::string_view mounts,
-                         std::string_view socket_path, std::string_view log_dir)
+                         std::string_view control_socket_path,
+                         std::string_view udf_socket_path,
+                         std::string_view log_dir)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -42,13 +44,16 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
                                          "bin" / "run_workers";
     const std::string mounts_flag =
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts);
-    const std::string socket_name_flag =
-        absl::StrCat("--socket_name=", socket_path);
+    const std::string control_socket_name_flag =
+        absl::StrCat("--control_socket_name=", control_socket_path);
+    const std::string udf_socket_name_flag =
+        absl::StrCat("--udf_socket_name=", udf_socket_path);
     const std::string log_dir_flag = absl::StrCat("--log_dir=", log_dir);
     const char* argv[] = {
         run_workers_path.c_str(),
         mounts_flag.c_str(),
-        socket_name_flag.c_str(),
+        control_socket_name_flag.c_str(),
+        udf_socket_name_flag.c_str(),
         log_dir_flag.c_str(),
         nullptr,
     };
@@ -57,13 +62,15 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
   }
 }
 LocalHandle::~LocalHandle() {
+  ::kill(pid_, SIGTERM);
   if (::waitpid(pid_, nullptr, /*options=*/0) == -1) {
     PLOG(ERROR) << "waitpid(" << pid_ << ", nullptr, 0)";
   }
 }
 
 ByobHandle::ByobHandle(int pid, std::string_view mounts,
-                       std::string_view socket_path,
+                       std::string_view control_socket_path,
+                       std::string_view udf_socket_path,
                        std::string_view socket_dir, std::string container_name,
                        std::string_view log_dir,
                        std::uint64_t memory_limit_soft,
@@ -90,7 +97,8 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     config["process"]["args"] = {
         "/server/bin/run_workers",
         absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts),
-        absl::StrCat("--socket_name=", socket_path),
+        absl::StrCat("--control_socket_name=", control_socket_path),
+        absl::StrCat("--udf_socket_name=", udf_socket_path),
         absl::StrCat("--log_dir=", log_dir_mount_point),
     };
     config["process"]["rlimits"] = {};
@@ -174,6 +182,17 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
 }
 
 ByobHandle::~ByobHandle() {
+  {
+    const int pid = ::vfork();
+    if (pid == 0) {
+      const char* argv[] = {
+          "/usr/bin/runsc", "kill", container_name_.c_str(), "SIGTERM", nullptr,
+      };
+      ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+      PLOG(FATAL) << "execve()";
+    }
+    ::waitpid(pid, nullptr, /*options=*/0);
+  }
   // Wait for all processes in the process group to exit.
   uint32_t child_count = 0;
   while (::waitpid(-pid_, /*wstatus=*/nullptr, /*options=*/0) > 0) {

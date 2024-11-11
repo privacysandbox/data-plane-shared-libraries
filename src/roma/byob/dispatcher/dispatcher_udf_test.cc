@@ -15,11 +15,6 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
-#include <string.h>
-#include <sys/socket.h>
-#include <sys/un.h>
-#include <unistd.h>
-
 #include <functional>
 #include <string>
 #include <string_view>
@@ -44,36 +39,29 @@ using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::testing::Contains;
 using ::testing::StrEq;
 
-void BindAndListenOnPath(int fd, std::string_view path) {
-  ::sockaddr_un sa = {
-      .sun_family = AF_UNIX,
-  };
-  path.copy(sa.sun_path, sizeof(sa.sun_path));
-  ASSERT_EQ(0, ::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)));
-  ASSERT_EQ(0, ::listen(fd, /*backlog=*/4096));
-}
-
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -98,26 +86,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -144,26 +134,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
@@ -189,26 +181,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
                             /*num_workers=*/10);
@@ -234,26 +228,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/abort_late_udf",
                             /*num_workers=*/10);
@@ -279,26 +275,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/nonzero_return_udf",
                             /*num_workers=*/10);
@@ -324,26 +322,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
 }
 
 TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   SampleRequest bin_request;
   {
     const absl::StatusOr<std::string> code_token =
@@ -385,26 +385,28 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
 }
 
 TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
                             /*n_workers=*/2);
@@ -424,26 +426,28 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -468,26 +472,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
@@ -514,26 +520,28 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
   const int pid = ::vfork();
   ASSERT_NE(pid, -1);
   if (pid == 0) {
     const char* argv[] = {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
+        "--control_socket_name=xyzw.sock",
+        "--udf_socket_name=abcd.sock",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve() failed: ";
   }
   absl::Cleanup cleanup = [pid] {
+    ASSERT_EQ(::kill(pid, SIGTERM), 0);
     ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
     ASSERT_EQ(::unlink("abcd.sock"), 0);
   };
   Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
+  ASSERT_TRUE(dispatcher
+                  .Init(/*control_socket_name=*/"xyzw.sock",
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                  .ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);

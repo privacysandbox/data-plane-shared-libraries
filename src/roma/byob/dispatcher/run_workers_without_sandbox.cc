@@ -29,6 +29,12 @@
 #include <utility>
 #include <vector>
 
+#include <grpcpp/security/server_credentials.h>
+#include <grpcpp/server.h>
+#include <grpcpp/server_builder.h>
+#include <grpcpp/server_context.h>
+
+#include "absl/base/attributes.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
@@ -41,18 +47,28 @@
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
+#include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/util/status_macro/status_macros.h"
+#include "src/util/status_macro/status_util.h"
 
-ABSL_FLAG(std::string, socket_name, "/sockdir/abcd.sock",
-          "Server socket for reaching Roma app API");
+ABSL_FLAG(std::string, control_socket_name, "/sockdir/xyzw.sock",
+          "Socket for host to run_workers communication");
+ABSL_FLAG(std::string, udf_socket_name, "/sockdir/abcd.sock",
+          "socket for host to UDF communication");
 
 namespace {
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
-using ::privacy_sandbox::server_common::byob::DispatcherRequest;
+using ::privacy_sandbox::server_common::byob::CancelRequest;
+using ::privacy_sandbox::server_common::byob::CancelResponse;
+using ::privacy_sandbox::server_common::byob::DeleteBinaryRequest;
+using ::privacy_sandbox::server_common::byob::DeleteBinaryResponse;
 using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
+using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
+using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
+using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 
 absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
   ::sockaddr_un sa = {
@@ -96,7 +112,7 @@ int WorkerImpl(void* arg) {
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
 
-class WorkerRunner final {
+class WorkerRunner final : public WorkerRunnerService::Service {
  public:
   WorkerRunner(std::string socket_name, const std::filesystem::path& progdir)
       : socket_name_(std::move(socket_name)), progdir_(progdir) {}
@@ -124,58 +140,26 @@ class WorkerRunner final {
     mu_.Await(absl::Condition(&fn));
   }
 
-  absl::Status Run() ABSL_LOCKS_EXCLUDED(mu_) {
-    const int rpc_fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-    if (rpc_fd == -1) {
-      return absl::ErrnoToStatus(errno, "socket()");
-    }
-    absl::Cleanup rpc_fd_cleanup = [rpc_fd] { ::close(rpc_fd); };
-    PS_RETURN_IF_ERROR(ConnectToPath(rpc_fd, socket_name_));
-    FileInputStream input(rpc_fd);
-    while (true) {
-      DispatcherRequest request;
-      if (!ParseDelimitedFromZeroCopyStream(&request, &input, nullptr)) {
-        return absl::OkStatus();
-      }
-      if (request.request_case() == DispatcherRequest::REQUEST_NOT_SET) {
-        LOG(ERROR) << "DispatcherRequest not set.";
-        continue;
-      }
-      if (request.has_delete_binary()) {
-        Delete(std::move(*request.mutable_delete_binary()));
-        continue;
-      }
-      if (request.has_cancel()) {
-        Cancel(std::move(*request.mutable_cancel()));
-        continue;
-      }
-      if (!request.has_load_binary()) {
-        LOG(ERROR) << "Unrecognized request from dispatcher.";
-        continue;
-      }
-      const std::filesystem::path binary_dir =
-          progdir_ / request.load_binary().code_token();
-      if (std::error_code ec;
-          !std::filesystem::create_directory(binary_dir, ec)) {
-        return absl::InternalError(absl::StrCat(
-            "Failed to create ", binary_dir.native(), ": ", ec.message()));
-      }
-      std::filesystem::path binary_path =
-          binary_dir / request.load_binary().code_token();
-      if (request.load_binary().has_binary_content()) {
-        PS_RETURN_IF_ERROR(
-            SaveNewBinary(binary_path, request.load_binary().binary_content()));
-      } else if (request.load_binary().has_source_bin_code_token()) {
-        PS_RETURN_IF_ERROR(CreateHardLinkForExistingBinary(
-            binary_path, request.load_binary().source_bin_code_token()));
-      } else {
-        return absl::InternalError("Failed to load binary");
-      }
-      PS_RETURN_IF_ERROR(CreateWorkerPool(
-          std::move(binary_path),
-          std::move(*request.mutable_load_binary()->mutable_code_token()),
-          request.load_binary().num_workers()));
-    }
+  grpc::Status LoadBinary(grpc::ServerContext* /*context*/,
+                          const LoadBinaryRequest* request,
+                          LoadBinaryResponse* /*response*/)
+      ABSL_LOCKS_EXCLUDED(mu_) {
+    return privacy_sandbox::server_common::FromAbslStatus(Load(*request));
+  }
+
+  grpc::Status DeleteBinary(grpc::ServerContext* /*context*/,
+                            const DeleteBinaryRequest* request,
+                            DeleteBinaryResponse* /*response*/)
+      ABSL_LOCKS_EXCLUDED(mu_) {
+    Delete(request->code_token());
+    return grpc::Status::OK;
+  }
+
+  grpc::Status Cancel(grpc::ServerContext* /*context*/,
+                      const CancelRequest* request,
+                      CancelResponse* /*response*/) ABSL_LOCKS_EXCLUDED(mu_) {
+    Cancel(request->execution_token());
+    return grpc::Status::OK;
   }
 
  private:
@@ -281,11 +265,30 @@ class WorkerRunner final {
     }
   }
 
-  void Delete(DispatcherRequest::DeleteBinary request)
-      ABSL_LOCKS_EXCLUDED(mu_) {
+  absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
+    const std::filesystem::path binary_dir = progdir_ / request.code_token();
+    if (std::error_code ec;
+        !std::filesystem::create_directory(binary_dir, ec)) {
+      return absl::InternalError(absl::StrCat(
+          "Failed to create ", binary_dir.native(), ": ", ec.message()));
+    }
+    std::filesystem::path binary_path = binary_dir / request.code_token();
+    if (request.has_binary_content()) {
+      PS_RETURN_IF_ERROR(SaveNewBinary(binary_path, request.binary_content()));
+    } else if (request.has_source_bin_code_token()) {
+      PS_RETURN_IF_ERROR(CreateHardLinkForExistingBinary(
+          binary_path, request.source_bin_code_token()));
+    } else {
+      return absl::InternalError("Failed to load binary");
+    }
+    return CreateWorkerPool(std::move(binary_path), request.code_token(),
+                            request.num_workers());
+  }
+
+  void Delete(std::string_view request_code_token) ABSL_LOCKS_EXCLUDED(mu_) {
     // Kill all workers and mark for removal.
     absl::MutexLock lock(&mu_);
-    if (const auto it = active_code_token_to_pids_.find(request.code_token());
+    if (const auto it = active_code_token_to_pids_.find(request_code_token);
         it != active_code_token_to_pids_.end()) {
       for (const int pid : it->second) {
         if (::kill(pid, SIGKILL) == -1) {
@@ -296,11 +299,12 @@ class WorkerRunner final {
     }
   }
 
-  void Cancel(DispatcherRequest::Cancel request) ABSL_LOCKS_EXCLUDED(mu_) {
+  void Cancel(std::string_view request_execution_token)
+      ABSL_LOCKS_EXCLUDED(mu_) {
     // Kill the worker.
     absl::MutexLock lock(&mu_);
     for (const auto& [pid, execution_token] : pid_to_execution_token_) {
-      if (request.execution_token() == execution_token) {
+      if (request_execution_token == execution_token) {
         if (::kill(pid, SIGKILL) == -1) {
           PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
         }
@@ -400,6 +404,9 @@ class WorkerRunner final {
   absl::flat_hash_map<std::string, int> code_token_to_thread_count_
       ABSL_GUARDED_BY(mu_);
 };
+
+ABSL_CONST_INIT absl::Mutex signal_mu{absl::kConstInit};
+bool signal_flag = false;
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -419,10 +426,35 @@ int main(int argc, char** argv) {
       LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
     }
   };
-  WorkerRunner runner(absl::GetFlag(FLAGS_socket_name), progdir);
-  if (const absl::Status status = runner.Run(); !status.ok()) {
-    LOG(ERROR) << status;
-    return -1;
+  WorkerRunner runner(absl::GetFlag(FLAGS_udf_socket_name), progdir);
+  grpc::EnableDefaultHealthCheckService(true);
+  std::unique_ptr<grpc::Server> server =
+      grpc::ServerBuilder()
+          .AddListeningPort(
+              absl::StrCat("unix:", absl::GetFlag(FLAGS_control_socket_name)),
+              grpc::InsecureServerCredentials())
+          .SetMaxSendMessageSize(200'000'000)
+          .SetMaxReceiveMessageSize(200'000'000)
+          .AddChannelArgument(GRPC_ARG_KEEPALIVE_TIME_MS,
+                              absl::ToInt64Milliseconds(absl::Minutes(10)))
+          .AddChannelArgument(GRPC_ARG_KEEPALIVE_TIMEOUT_MS,
+                              absl::ToInt64Milliseconds(absl::Seconds(20)))
+          // TODO(b/378743613): Failed to set zerocopy options on socket for
+          // non-Gvisor
+          .AddChannelArgument(GRPC_ARG_TCP_TX_ZEROCOPY_ENABLED, 0)
+          .RegisterService(&runner)
+          .BuildAndStart();
+  server->GetHealthCheckService()->SetServingStatus(true);
+
+  // Run until `SIGTERM` received but then exit normally.
+  ::signal(
+      SIGTERM, +[](int /*sig*/) {
+        absl::MutexLock lock(&signal_mu);
+        signal_flag = true;
+      });
+  {
+    absl::MutexLock lock(&signal_mu);
+    signal_mu.Await(absl::Condition(&signal_flag));
   }
-  return 0;
+  server->GetHealthCheckService()->SetServingStatus(false);
 }

@@ -18,9 +18,8 @@
 #define SRC_ROMA_BYOB_INTERFACE_ROMA_SERVICE_H_
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <sys/prctl.h>
-#include <sys/socket.h>
-#include <sys/un.h>
 #include <unistd.h>
 
 #include <cstdint>
@@ -55,8 +54,9 @@ namespace internal::roma_service {
 
 class LocalHandle final {
  public:
-  LocalHandle(int pid, std::string_view mounts, std::string_view socket_path,
-              std::string_view log_dir);
+  LocalHandle(int pid, std::string_view mounts,
+              std::string_view control_socket_path,
+              std::string_view udf_socket_path, std::string_view log_dir);
   ~LocalHandle();
 
  private:
@@ -65,10 +65,11 @@ class LocalHandle final {
 
 class ByobHandle final {
  public:
-  ByobHandle(int pid, std::string_view mounts, std::string_view socket_path,
-             std::string_view sockdir, std::string container_name,
-             std::string_view log_dir, std::uint64_t memory_limit_soft,
-             std::uint64_t memory_limit_hard, bool debug_mode);
+  ByobHandle(int pid, std::string_view mounts, std::string_view udf_socket_path,
+             std::string_view control_socket_path, std::string_view sockdir,
+             std::string container_name, std::string_view log_dir,
+             std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
+             bool debug_mode);
   ~ByobHandle();
 
  private:
@@ -124,34 +125,10 @@ class RomaService final {
       return absl::ErrnoToStatus(errno, "mkdtemp(socket_dir)");
     }
     socket_dir_ = socket_dir_tmpl;
-    const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
-    if (fd == -1) {
-      return absl::ErrnoToStatus(errno, "socket()");
-    }
-    std::filesystem::path socket_path = socket_dir_ / "byob_rpc.sock";
-    {
-      ::sockaddr_un sa = {
-          .sun_family = AF_UNIX,
-      };
-      socket_path.string().copy(sa.sun_path, sizeof(sa.sun_path));
-      if (::bind(fd, reinterpret_cast<::sockaddr*>(&sa), SUN_LEN(&sa)) == -1) {
-        return absl::ErrnoToStatus(errno, "bind()");
-      }
-      if (::listen(fd, /*backlog=*/4096) == -1) {
-        return absl::ErrnoToStatus(errno, "listen()");
-      }
-    }
     std::filesystem::permissions(socket_dir_,
                                  std::filesystem::perms::owner_all |
                                      std::filesystem::perms::group_all |
                                      std::filesystem::perms::others_all);
-    std::filesystem::permissions(socket_path,
-                                 std::filesystem::perms::owner_read |
-                                     std::filesystem::perms::group_read |
-                                     std::filesystem::perms::others_read |
-                                     std::filesystem::perms::owner_write |
-                                     std::filesystem::perms::group_write |
-                                     std::filesystem::perms::others_write);
     char log_dir_tmpl[20] = "/tmp/log_dir_XXXXXX";
     if (::mkdtemp(log_dir_tmpl) == nullptr) {
       return absl::ErrnoToStatus(errno, "mkdtemp(log_dir)");
@@ -161,6 +138,9 @@ class RomaService final {
                                  std::filesystem::perms::owner_all |
                                      std::filesystem::perms::group_all |
                                      std::filesystem::perms::others_all);
+    std::filesystem::path control_socket_path = socket_dir_ / "control.sock";
+    std::filesystem::path udf_socket_path = socket_dir_ / "byob_rpc.sock";
+
     // Need to set this to ensure all the children can be reaped
     ::prctl(PR_SET_CHILD_SUBREAPER, 1);
     const int pid = ::fork();
@@ -171,20 +151,23 @@ class RomaService final {
       case Mode::kModeSandbox:
       case Mode::kModeSandboxDebug:
         handle_.emplace<internal::roma_service::ByobHandle>(
-            pid, config.lib_mounts, socket_path.c_str(), socket_dir_.c_str(),
+            pid, config.lib_mounts, control_socket_path.c_str(),
+            udf_socket_path.c_str(), socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
             /*debug=*/mode == Mode::kModeSandboxDebug);
         break;
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
-            pid, config.lib_mounts, socket_path.c_str(), log_dir_.c_str());
+            pid, config.lib_mounts, control_socket_path.c_str(),
+            udf_socket_path.c_str(), log_dir_.c_str());
         break;
       default:
         return absl::InternalError("Unsupported mode in switch");
     }
     dispatcher_.emplace();
-    return dispatcher_->Init(fd, log_dir_);
+    return dispatcher_->Init(std::move(control_socket_path),
+                             std::move(udf_socket_path), log_dir_);
   }
 
   ~RomaService() {
