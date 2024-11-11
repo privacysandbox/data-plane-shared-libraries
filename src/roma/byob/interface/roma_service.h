@@ -79,8 +79,8 @@ class ByobHandle final {
 
 enum class Mode {
   kModeSandbox,
-  kModeSandboxDebug,
   kModeNoSandbox,
+  kModeSandboxDebug,
 };
 
 inline bool AbslParseFlag(absl::string_view text, Mode* mode,
