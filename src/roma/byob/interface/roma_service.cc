@@ -102,6 +102,15 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
             {"options", {"rbind", "rprivate"}},
         },
     };
+    if (!debug_mode) {
+      config["process"]["rlimits"] = {
+          {
+              {"type", "RLIMIT_CORE"},
+              {"hard", 0},
+              {"soft", 0},
+          },
+      };
+    }
     {
       std::ofstream ofs(container_path);
       ofs << config.dump();
