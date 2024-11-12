@@ -53,7 +53,6 @@ using ::privacy_sandbox::roma_byob::example::RunPrimeSieveRequest;
 using ::privacy_sandbox::roma_byob::example::RunPrimeSieveResponse;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
-using ::privacy_sandbox::roma_byob::example::SampleService;
 using ::privacy_sandbox::roma_byob::example::SortListRequest;
 using ::privacy_sandbox::roma_byob::example::SortListResponse;
 using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadRequest;

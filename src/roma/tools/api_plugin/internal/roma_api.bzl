@@ -115,11 +115,6 @@ _cc_app_template_plugins = [
             sub_directory = "v8/app",
         ),
         struct(
-            template_file = "hpp_roma.tmpl",
-            suffix = "_roma_app_service.h",
-            sub_directory = "common/app",
-        ),
-        struct(
             template_file = "hpp_roma_byob.tmpl",
             suffix = "_roma_byob_app_service.h",
             sub_directory = "byob/app",

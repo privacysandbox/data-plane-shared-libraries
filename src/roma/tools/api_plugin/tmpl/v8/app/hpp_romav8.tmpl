@@ -28,8 +28,6 @@
 
 #include <memory>
 
-#include "{{$file.Name | trimSuffix (ext $file.Name)}}_roma_app_service.h"
-
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/roma_service/romav8_app_service.h"
 #include "src/util/status_macro/status_macros.h"
@@ -45,7 +43,6 @@
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 {{- $svcName := printf "V8%s" $svc.Name -}}
-{{- $svcCommonInterface := printf "%s::%s"  $svcopts.CppNamespace $svc.Name -}}
 
 namespace {{$svcopts.CppNamespace}} {
 
@@ -54,8 +51,7 @@ namespace {{$svcopts.CppNamespace}} {
  */
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class {{$svcName}} final :
-      public google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata>,
-      public {{$svcCommonInterface}}<TMetadata> {
+      public google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata> {
  public:
   using AppService = google::scp::roma::romav8::app_api::RomaV8AppService<TMetadata>;
   using Config = typename AppService::Config;
@@ -98,8 +94,7 @@ class {{$svcName}} final :
       absl::Notification& notification,
       const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
-      TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") override {
+      TMetadata metadata = TMetadata()) {
     return AppService::Execute(
         notification,
         "{{$svcopts.RomaAppName}}.{{$rpc.Name}}Pb",
@@ -111,8 +106,7 @@ class {{$svcName}} final :
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
-      TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") override {
+      TMetadata metadata = TMetadata()) {
     return AppService::Execute(
         std::move(callback),
         "{{$svcopts.RomaAppName}}.{{$rpc.Name}}Pb",

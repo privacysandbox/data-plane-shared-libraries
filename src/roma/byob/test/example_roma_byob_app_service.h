@@ -28,7 +28,6 @@
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/example/example.pb.h"
 #include "src/roma/byob/interface/roma_service.h"
-#include "src/roma/byob/test/example_roma_app_service.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -37,9 +36,7 @@ namespace privacy_sandbox::server_common::byob::example {
  * service: privacy_sandbox.server_common.byob.EchoService
  */
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
-class ByobEchoService final
-    : public privacy_sandbox::server_common::byob::example::EchoService<
-          TMetadata> {
+class ByobEchoService final {
  public:
   using AppService =
       privacy_sandbox::server_common::byob::RomaService<TMetadata>;
@@ -167,8 +164,7 @@ class ByobEchoService final
       absl::StatusOr<std::unique_ptr<
           ::privacy_sandbox::server_common::byob::example::EchoResponse>>&
           response,
-      TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") override {
+      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
     return roma_service_->ProcessRequest(
         code_token, request, std::move(metadata), notification, response);
   }
@@ -180,8 +176,7 @@ class ByobEchoService final
           callback,
       const ::privacy_sandbox::server_common::byob::example::EchoRequest&
           request,
-      TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") override {
+      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
         code_token, request, std::move(metadata), std::move(callback));

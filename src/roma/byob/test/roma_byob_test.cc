@@ -48,7 +48,6 @@ using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest;
 using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
-using ::privacy_sandbox::roma_byob::example::SampleService;
 using ::privacy_sandbox::server_common::byob::CallbackReadRequest;
 using ::privacy_sandbox::server_common::byob::CallbackReadResponse;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;

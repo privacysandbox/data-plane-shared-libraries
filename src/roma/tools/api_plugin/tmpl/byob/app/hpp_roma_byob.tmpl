@@ -26,8 +26,6 @@
 #ifndef {{$defineGuard}}GVISOR_H_
 #define {{$defineGuard}}GVISOR_H_
 
-#include "{{$file.Name | trimSuffix (ext $file.Name)}}_roma_app_service.h"
-
 #include <filesystem>
 #include <memory>
 #include <string>
@@ -51,14 +49,13 @@
 namespace {{$svcopts.CppNamespace}} {
 
 {{- $svcName := printf "Byob%s" $svc.Name -}}
-{{- $svcCommonInterface := printf "%s::%s"  $svcopts.CppNamespace $svc.Name -}}
 
 
 /*
  * service: {{$svc.FullName}}
  */
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
-class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
+class {{$svcName}} final {
  public:
   using AppService = privacy_sandbox::server_common::byob::RomaService<TMetadata>;
   using Config = privacy_sandbox::server_common::byob::Config<TMetadata>;
@@ -91,7 +88,7 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
   absl::StatusOr<std::string> Register(std::filesystem::path code_path,
                                        absl::Notification& notification,
                                        absl::Status& load_status,
-                                       int num_workers = std::thread::hardware_concurrency()) {
+                                       int num_workers) {
     notification.Notify();
     load_status = absl::OkStatus();
     return roma_service_->LoadBinary(std::move(code_path), num_workers);
@@ -183,8 +180,7 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::Notification& notification, const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
-      TMetadata metadata = TMetadata(), std::string_view code_token = "")
-      override {
+      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
     return roma_service_->ProcessRequest(
       code_token, request, std::move(metadata), notification, response);
   }
@@ -193,7 +189,7 @@ class {{$svcName}} final : public {{$svcCommonInterface}}<TMetadata> {
       absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") override {
+      std::string_view code_token = "") {
     return roma_service_->template ProcessRequest<{{$respType}}>(
       code_token, request, std::move(metadata), std::move(callback));
   }

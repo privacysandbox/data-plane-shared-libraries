@@ -28,7 +28,7 @@
 
 {{- range $file := .Files}}
 
-# Services
+#Services
 {{- range $svc := $file.Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
 <a name="{{$svc.FullName | anchor}}"></a>
@@ -36,13 +36,11 @@
 `{{$svcopts.Description}}`
 
 {{- $svcName := printf "Byob%s" $svc.Name -}}
-{{- $svcCommonInterface := printf "%s::%s"  $svcopts.CppNamespace $svc.Name -}}
 
 **Namespace:** {{$svcopts.CppNamespace}}
 
 ```c++
- class {{$svcName}} final :
-      public {{$svcCommonInterface}}<TMetadata> {
+ class {{$svcName}} final {
  public:
   using AppService = privacy_sandbox::server_common::byob::RomaService<TMetadata>;
   using Config = privacy_sandbox::server_common::byob::Config<TMetadata>;
@@ -64,11 +62,13 @@
    * @param load_status is populated with the status of load once load is
    * completed. If the status is ok, then `code_token` returned by this function
    * can be used for calling this binary in subsequent execution requests.
+   * @param num_workers number of workers in the worker pool.
    * @return absl::StatusOr<std::string> returns the `code_token`.
    */
   absl::StatusOr<std::string> Register(std::string_view code_path,
                                        absl::Notification& notification,
-                                       absl::Status& load_status);
+                                       absl::Status& load_status,
+                                       int num_workers);
 
   /**
   * @brief Creates workers for binary with logging with logging enabled.

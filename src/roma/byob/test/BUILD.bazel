@@ -20,23 +20,9 @@ load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_library(
-    name = "example_roma_app_service",
-    hdrs = ["example_roma_app_service.h"],
-    deps = [
-        "//src/roma/byob/example:example_cc_proto",
-        "//src/roma/config:function_binding_object_v2",
-        "//src/util:execution_token",
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/synchronization",
-    ],
-)
-
-cc_library(
     name = "example_roma_byob_app_service",
     hdrs = ["example_roma_byob_app_service.h"],
     deps = [
-        ":example_roma_app_service",
         "//src/roma/byob/config",
         "//src/roma/byob/example:example_cc_proto",
         "//src/roma/byob/interface:roma_service",
