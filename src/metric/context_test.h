@@ -55,7 +55,7 @@ using DefinitionHistogram =
 using DefinitionGauge =
     Definition<int, Privacy::kNonImpacting, Instrument::kGauge>;
 using DefinitionCustom =
-    Definition<double, Privacy::kImpacting, Instrument::kUpDownCounter>;
+    Definition<double, Privacy::kImpacting, Instrument::kPartitionedCounter>;
 
 inline constexpr DefinitionSafe kIntExactCounter("kIntExactCounter", "");
 inline constexpr DefinitionSafe kIntExactCounter2("kIntExactCounter2", "");
@@ -144,18 +144,27 @@ class BaseTest : public ::testing::Test {
   void InitConfig(telemetry::TelemetryConfig::TelemetryMode mode) {
     telemetry::TelemetryConfig config_proto;
     config_proto.set_mode(mode);
-    auto proto1 = config_proto.add_custom_metric();
-    auto proto2 = config_proto.add_custom_metric();
+    auto* proto1 = config_proto.add_custom_udf_metric();
+    auto* proto2 = config_proto.add_custom_udf_metric();
+    auto* proto3 = config_proto.add_custom_udf_metric();
 
     proto1->set_name("udf_1");
     proto1->set_description("log_1");
     proto1->set_upper_bound(1);
     proto1->set_lower_bound(0);
+    proto1->add_public_partitions("p_1");
 
     proto2->set_name("udf_2");
     proto2->set_description("log_2");
     proto2->set_upper_bound(2);
     proto2->set_lower_bound(0);
+    proto2->add_public_partitions("p_2");
+    proto2->add_public_partitions("p_3");
+
+    proto3->set_name("udf_3");
+    proto3->set_description("log_3");
+    proto3->set_upper_bound(1);
+    proto3->set_lower_bound(0);
 
     metric_config_ =
         std::make_unique<telemetry::BuildDependentConfig>(config_proto);

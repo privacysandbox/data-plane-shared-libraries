@@ -160,7 +160,7 @@ inline auto* GetContextMap(
     absl::Status config_status = config->CheckMetricConfig(definition_list);
     ABSL_LOG_IF(WARNING, !config_status.ok()) << config_status;
     const double total_weight =
-        config->CustomMetricCount() +
+        config->CustomMetricsWeight() - CountOfCustomList() +
         absl::c_accumulate(
             definition_list, 0.0,
             [&config](double total, const DefinitionName* definition) {

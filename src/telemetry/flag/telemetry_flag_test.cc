@@ -181,53 +181,76 @@ TEST(BuildDependentConfig, CustomConfig) {
   TelemetryConfig config_proto1;
   TelemetryConfig config_proto2;
 
-  config_proto1.add_custom_metric()->set_name("test_count_1");
-  config_proto1.add_custom_metric()->set_name("test_count_2");
+  config_proto1.add_custom_udf_metric()->set_name("test_count_1");
+  config_proto1.add_custom_udf_metric()->set_name("test_count_2");
 
-  auto proto1 = config_proto.add_custom_metric();
-  auto proto2 = config_proto.add_custom_metric();
-  auto proto3 = config_proto.add_custom_metric();
-  auto proto4 = config_proto.add_custom_metric();
-  auto proto5 = config_proto.add_custom_metric();
+  auto* proto1 = config_proto.add_custom_udf_metric();
+  auto* proto2 = config_proto.add_custom_udf_metric();
+  auto* proto3 = config_proto.add_custom_udf_metric();
+  auto* proto4 = config_proto.add_custom_udf_metric();
+  auto* proto5 = config_proto.add_custom_udf_metric();
+
   proto1->set_name("udf_1");
   proto1->set_description("log udf 1");
   proto1->set_upper_bound(100);
   proto1->set_lower_bound(0);
+  proto1->set_privacy_budget_weight(1.0);
+  proto1->add_public_partitions("buyer_1");
+  proto1->add_public_partitions("buyer_2");
+  proto1->set_partition_type("log_partition");
+  proto1->set_max_partitions_contributed(2);
+
   proto2->set_name("udf_1");
   proto2->set_description("undefined");
+
   proto3->set_name("udf_3");
   proto3->set_description("log udf 3");
+  proto3->set_privacy_budget_weight(0.5);
+
   proto4->set_name("udf_4");
   proto4->set_description("log udf 4");
+
   proto5->set_name("udf_5");
   proto5->set_description("log udf 5");
+  proto5->set_privacy_budget_weight(0.5);
 
   BuildDependentConfig config1(config_proto1);
-  EXPECT_EQ(config1.CustomMetricCount(), 2);
+  EXPECT_EQ(config1.CustomMetricsWeight(), 2);
   EXPECT_EQ(config1.GetName(metrics::kCustom1), "test_count_1");
   EXPECT_EQ(config1.GetName(metrics::kCustom2), "test_count_2");
   EXPECT_EQ(config1.GetName(metrics::kCustom3), "placeholder_3");
 
   BuildDependentConfig config2(config_proto2);
-  EXPECT_EQ(config2.CustomMetricCount(), 0);
+  EXPECT_EQ(config2.CustomMetricsWeight(), 0);
 
   BuildDependentConfig config(config_proto);
-  EXPECT_EQ(config.CustomMetricCount(), 3);
+  EXPECT_EQ(config.CustomMetricsWeight(), 2.5);
 
   EXPECT_EQ(config.GetName(metrics::kCustom1), "udf_1");
   EXPECT_EQ(config.GetDescription(metrics::kCustom1), "log udf 1");
-  EXPECT_EQ(config.GetCustomDefinition("udf_1"), &metrics::kCustom1);
+  EXPECT_EQ(*config.GetCustomDefinition("udf_1"), &metrics::kCustom1);
+  EXPECT_EQ(config.template GetPartitionType(metrics::kCustom1),
+            "log_partition");
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metrics::kCustom1), 2);
   EXPECT_EQ(config.template GetBound(metrics::kCustom1).lower_bound_, 0);
   EXPECT_EQ(config.template GetBound(metrics::kCustom1).upper_bound_, 100);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metrics::kCustom1), 1.0);
+  EXPECT_THAT(config.template GetPartition(metrics::kCustom1)->view(),
+              testing::ElementsAreArray(kDefaultBuyers));
 
   EXPECT_EQ(config.GetName(metrics::kCustom2), "udf_3");
   EXPECT_EQ(config.GetDescription(metrics::kCustom2), "log udf 3");
-  EXPECT_EQ(config.GetCustomDefinition("udf_3"), &metrics::kCustom2);
+  EXPECT_EQ(*config.GetCustomDefinition("udf_3"), &metrics::kCustom2);
+  EXPECT_EQ(config.template GetPartitionType(metrics::kCustom2), "");
   EXPECT_EQ(config.template GetBound(metrics::kCustom2).lower_bound_, 0);
   EXPECT_EQ(config.template GetBound(metrics::kCustom2).upper_bound_, 1);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metrics::kCustom2), 0.5);
+  EXPECT_EQ(config.template GetMaxPartitionsContributed(metrics::kCustom2), 1);
 
-  EXPECT_EQ(config.GetCustomDefinition("udf_4"), &metrics::kCustom3);
-  EXPECT_EQ(config.GetCustomDefinition("udf_5"), nullptr);
+  EXPECT_EQ(*config.GetCustomDefinition("udf_4"), &metrics::kCustom3);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metrics::kCustom3), 1.0);
+  EXPECT_EQ(config.GetCustomDefinition("udf_5").status().code(),
+            absl::StatusCode::kNotFound);
 }
 
 TEST(BuildDependentConfig, HasFlagMaxPartitionsContributed) {

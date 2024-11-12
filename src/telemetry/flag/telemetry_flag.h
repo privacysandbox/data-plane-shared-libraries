@@ -121,9 +121,14 @@ class BuildDependentConfig {
   // DifferentiallyPrivate's counter. ResetPartitionAsync in
   // DifferentiallyPrivate should be called to reset metric partation
   // dynamically in an atomic fashion.
+
   void SetPartition(std::string_view name,
                     absl::Span<const std::string_view> partitions)
       ABSL_LOCKS_EXCLUDED(partition_mutex_);
+
+  void SetPartitionWithMutex(std::string_view name,
+                             absl::Span<const std::string_view> partitions)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(partition_mutex_);
 
   // Return the public partition of a metric.
   template <typename MetricT>
@@ -153,6 +158,15 @@ class BuildDependentConfig {
                                    int max_partitions_contributed)
       ABSL_LOCKS_EXCLUDED(partition_mutex_);
 
+  // Return partion_type of a metric.
+  template <typename MetricT>
+  std::string GetPartitionType(const MetricT& definition) const {
+    return GetPartitionType(definition, definition.name_);
+  }
+
+  std::string GetPartitionType(const metrics::internal::Partitioned& definition,
+                               absl::string_view name) const;
+
   // Return drop_noisy_values_probability of a metric.
   template <typename MetricT>
   double GetDropNoisyValuesProbability(const MetricT& definition) const {
@@ -181,6 +195,12 @@ class BuildDependentConfig {
   double GetPrivacyBudgetWeight(
       const metrics::internal::DifferentialPrivacy<T>& definition,
       absl::string_view name) const {
+    absl::MutexLock lock(&partition_mutex_);
+    auto it = internal_config_.find(name);
+    if (it != internal_config_.end() &&
+        it->second.has_privacy_budget_weight()) {
+      return it->second.privacy_budget_weight();
+    }
     absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
     if (metric_config.ok() && metric_config->has_privacy_budget_weight()) {
       return metric_config->privacy_budget_weight();
@@ -188,27 +208,31 @@ class BuildDependentConfig {
     return definition.privacy_budget_weight_;
   }
 
-  absl::Status SetCustomConfig(const UDFMetricDefinition& proto)
+  absl::Status SetCustomConfig(const MetricConfig& proto)
       ABSL_LOCKS_EXCLUDED(partition_mutex_);
 
-  const metrics::Definition<double, metrics::Privacy::kImpacting,
-                            metrics::Instrument::kUpDownCounter>*
+  absl::StatusOr<
+      const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kPartitionedCounter>*>
   GetCustomDefinition(absl::string_view udf_name) {
-    return custom_def_map_[udf_name];
+    auto it = custom_def_map_.find(udf_name);
+    if (it == custom_def_map_.end()) {
+      return absl::NotFoundError(udf_name);
+    }
+    return it->second;
   }
 
-  std::string_view GetName(const metrics::DefinitionName& definition) const;
+  std::string GetName(const metrics::DefinitionName& definition) const;
 
-  std::string_view GetDescription(
-      const metrics::DefinitionName& definition) const;
+  std::string GetDescription(const metrics::DefinitionName& definition) const;
 
-  // max number of custom metrics to be defined.
-  int CustomMetricCount() {
-    if (server_config_.custom_metric().size() < metrics::CountOfCustomList()) {
-      return server_config_.custom_metric().size();
-    } else {
-      return metrics::CountOfCustomList();
+  // Total privacy budget weight of all defined custom metrics.
+  double CustomMetricsWeight() {
+    double total = 0.0;
+    for (const auto& def : custom_def_map_) {
+      total += GetPrivacyBudgetWeight(*def.second);
     }
+    return total;
   }
 
   // Return lower_bound and upper_bound of a metric.
@@ -221,33 +245,34 @@ class BuildDependentConfig {
   BoundOverride GetBound(
       const metrics::internal::DifferentialPrivacy<T>& definition,
       absl::string_view name) const {
-    absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
-    absl::StatusOr<const MetricConfig*> internal_config =
-        GetInternalConfig(name);
     double new_lower_bound = definition.lower_bound_;
     double new_upper_bound = definition.upper_bound_;
-    if (internal_config.ok()) {
-      if ((*internal_config)->has_lower_bound())
-        new_lower_bound = (*internal_config)->lower_bound();
-      if ((*internal_config)->has_upper_bound())
-        new_upper_bound = (*internal_config)->upper_bound();
-      if (new_lower_bound < new_upper_bound) {
-        return BoundOverride{
-            .lower_bound_ = new_lower_bound,
-            .upper_bound_ = new_upper_bound,
-        };
+    absl::MutexLock lock(&partition_mutex_);
+    auto it = internal_config_.find(name);
+    if (it != internal_config_.end()) {
+      if (it->second.has_lower_bound()) {
+        new_lower_bound = it->second.lower_bound();
       }
-    } else if (metric_config.ok()) {
-      if (metric_config->has_lower_bound())
-        new_lower_bound = metric_config->lower_bound();
-      if (metric_config->has_upper_bound())
-        new_upper_bound = metric_config->upper_bound();
-      if (new_lower_bound < new_upper_bound) {
-        return BoundOverride{
-            .lower_bound_ = new_lower_bound,
-            .upper_bound_ = new_upper_bound,
-        };
+      if (it->second.has_upper_bound()) {
+        new_upper_bound = it->second.upper_bound();
       }
+    } else {
+      // Only check metric config if internal config is not found.
+      absl::StatusOr<MetricConfig> metric_config = GetMetricConfig(name);
+      if (metric_config.ok()) {
+        if (metric_config->has_lower_bound()) {
+          new_lower_bound = metric_config->lower_bound();
+        }
+        if (metric_config->has_upper_bound()) {
+          new_upper_bound = metric_config->upper_bound();
+        }
+      }
+    }
+    if (new_lower_bound < new_upper_bound) {
+      return BoundOverride{
+          .lower_bound_ = new_lower_bound,
+          .upper_bound_ = new_upper_bound,
+      };
     }
     return BoundOverride{
         .lower_bound_ = double(definition.lower_bound_),
@@ -264,12 +289,11 @@ class BuildDependentConfig {
   absl::flat_hash_map<std::string, std::vector<std::string_view>>
       partition_config_view_ ABSL_GUARDED_BY(partition_mutex_);
 
-  absl::flat_hash_map<std::string, const metrics::Definition<
-                                       double, metrics::Privacy::kImpacting,
-                                       metrics::Instrument::kUpDownCounter>*>
+  absl::flat_hash_map<
+      std::string,
+      const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kPartitionedCounter>*>
       custom_def_map_;
-  absl::StatusOr<const MetricConfig*> GetInternalConfig(
-      std::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_);
 };
 
 }  // namespace privacy_sandbox::server_common::telemetry

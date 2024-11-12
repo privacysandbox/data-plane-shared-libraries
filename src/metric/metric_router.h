@@ -206,7 +206,7 @@ absl::Status MetricRouter::LogSafe(
   } else if constexpr (instrument == Instrument::kUpDownCounter) {
     GetCounterInstrument(definition, value)->Add(value, attribute);
   } else if constexpr (instrument == Instrument::kPartitionedCounter) {
-    attribute.emplace(definition.partition_type_, partition);
+    attribute.emplace(metric_config_->GetPartitionType(definition), partition);
     GetCounterInstrument(definition, value)->Add(value, attribute);
   } else if constexpr (instrument == Instrument::kGauge) {
     return absl::UnimplementedError("gauge not done");

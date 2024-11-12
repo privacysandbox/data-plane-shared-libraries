@@ -52,30 +52,53 @@ TEST_F(BaseTest, FilterNotDefinedPartition) {
 TEST_F(BaseTest, LogUDFMetrics) {
   EXPECT_CALL(
       mock_metric_router_,
-      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom1)), Eq(1), _))
-      .WillOnce(Return(absl::OkStatus()));
-  EXPECT_CALL(
-      mock_metric_router_,
-      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom2)), Eq(5), _))
+      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom1)), Eq(1), "p_1"))
       .WillOnce(Return(absl::OkStatus()));
 
-  BatchUDFMetric udf_metrics1, udf_metrics2;
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom2)), Eq(7), "p_2"))
+      .WillOnce(Return(absl::OkStatus()));
+
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom3)), Eq(1), ""))
+      .WillOnce(Return(absl::OkStatus()));
+
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom2)), Eq(0), "p_3"))
+      .Times(0);
+
+  BatchUDFMetric udf_metrics1, udf_metrics2, udf_metrics3;
   auto udf_metric1 = udf_metrics1.add_udf_metric();
   auto udf_metric2 = udf_metrics1.add_udf_metric();
   auto udf_metric3 = udf_metrics2.add_udf_metric();
   auto udf_metric2a = udf_metrics2.add_udf_metric();
   auto udf_metric4 = udf_metrics2.add_udf_metric();
+  auto udf_metric5 = udf_metrics3.add_udf_metric();
 
   udf_metric1->set_name("udf_1");
   udf_metric1->set_value(1);
+  udf_metric1->set_public_partition("p_1");
+
   udf_metric2->set_name("udf_2");
-  udf_metric2->set_value(2);
+  udf_metric2->set_value(4);
+  udf_metric2->set_public_partition("p_2");
+
   udf_metric2a->set_name("udf_2");
   udf_metric2a->set_value(3);
+  udf_metric2a->set_public_partition("p_2");
+
   udf_metric3->set_name("undefined_1");
   udf_metric4->set_name("undefined_2");
 
+  udf_metric5->set_name("udf_3");
+  udf_metric5->set_value(1);
+
   CHECK_OK(context_->LogUDFMetrics(udf_metrics1));
+
+  CHECK_OK(context_->LogUDFMetrics(udf_metrics3));
   EXPECT_THAT(context_->LogUDFMetrics(udf_metrics2).message(),
               "name not found: undefined_1,undefined_2");
 }

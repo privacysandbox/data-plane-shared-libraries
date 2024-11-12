@@ -103,6 +103,9 @@ class DpAggregator : public DpAggregatorBase {
           partition_view;
       auto bound =
           metric_router_.metric_config().template GetBound(definition_);
+      auto privacy_budget_weight =
+          metric_router_.metric_config().template GetPrivacyBudgetWeight(
+              definition_);
       if constexpr (instrument == Instrument::kPartitionedCounter) {
         max_partitions_contributed =
             metric_router_.metric_config().template GetMaxPartitionsContributed(
@@ -122,8 +125,7 @@ class DpAggregator : public DpAggregatorBase {
                 bounded_sum,
             typename differential_privacy::BoundedSum<TValue>::Builder()
                 .SetEpsilon(privacy_budget_per_weight_.epsilon *
-                            metric_router_.metric_config()
-                                .template GetPrivacyBudgetWeight(definition_))
+                            privacy_budget_weight)
                 .SetLower(bound.lower_bound_)
                 .SetUpper(bound.upper_bound_)
                 .SetMaxPartitionsContributed(max_partitions_contributed)

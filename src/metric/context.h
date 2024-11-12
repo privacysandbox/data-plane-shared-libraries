@@ -222,16 +222,19 @@ class Context {
     absl::Status status;
     std::string not_found;
     for (const auto& metric : metrics.udf_metric()) {
-      const auto& definition =
-          metric_router_->metric_config().GetCustomDefinition(metric.name());
-      if (definition == &kCustom1) {
-        status = AccumulateMetric<kCustom1>(metric.value());
-      } else if (definition == &kCustom2) {
-        status = AccumulateMetric<kCustom2>(metric.value());
-      } else if (definition == &kCustom3) {
-        status = AccumulateMetric<kCustom3>(metric.value());
-      } else {
+      absl::StatusOr<
+          const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                    metrics::Instrument::kPartitionedCounter>*>
+          definition = metric_router_->metric_config().GetCustomDefinition(
+              metric.name());
+      if (!definition.ok()) {
         not_found += metric.name() + ",";
+      } else {
+        if (absl::Status temp_status = LogPartitionedUDF(
+                *definition, metric.value(), metric.public_partition());
+            !temp_status.ok()) {
+          status = temp_status;
+        }
       }
     }
     if (not_found != "") {
@@ -241,6 +244,22 @@ class Context {
     return status;
   }
 
+  absl::Status LogPartitionedUDF(
+      const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kPartitionedCounter>*
+          definition,
+      double value, std::string_view partition) {
+    if (definition == &kCustom1) {
+      return AccumulateMetric<kCustom1>(value, partition);
+    }
+    if (definition == &kCustom2) {
+      return AccumulateMetric<kCustom2>(value, partition);
+    }
+    if (definition == &kCustom3) {
+      return AccumulateMetric<kCustom3>(value, partition);
+    }
+    return absl::UnimplementedError("Not Implemented");
+  }
   // Accumulate metric values, they can be accumulated multiple times during
   // context life time. They will be aggregated and logged at destruction.
   // Metrics must be Privacy::kImpacting.

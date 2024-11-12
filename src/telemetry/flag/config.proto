@@ -50,7 +50,7 @@ message TelemetryConfig {
   // metric exports, must be at least metric_export_interval_ms
   int32 dp_export_interval_ms = 4;
 
-  repeated UDFMetricDefinition custom_metric = 5;
+  repeated MetricConfig custom_udf_metric = 5;
 
 }
 
@@ -80,11 +80,8 @@ message MetricConfig {
   //overwrite metric description
   optional string description = 8;
 
-}
+  //overwrite partition_type in metric definition if being set.
+  //Only used by custom_udf_metric.
+  optional string partition_type = 9;
 
-message UDFMetricDefinition {
-  string name = 1;
-  string description = 2;
-  double lower_bound = 3;
-  double upper_bound = 4;
 }

@@ -23,4 +23,5 @@ message BatchUDFMetric {
 message UDFMetric {
   string name = 1;
   double value = 2;
+  optional string public_partition = 3;
 }

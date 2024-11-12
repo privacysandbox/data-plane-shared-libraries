@@ -72,7 +72,7 @@ BuildDependentConfig::BuildDependentConfig(TelemetryConfig config)
   for (const MetricConfig& m : server_config_.metric()) {
     metric_config_.emplace(m.name(), m);
   }
-  for (const auto& m : server_config_.custom_metric()) {
+  for (const auto& m : server_config_.custom_udf_metric()) {
     auto metric = SetCustomConfig(m);
     if (!metric.ok()) {
       if (metric.code() == absl::StatusCode::kAlreadyExists) {
@@ -145,6 +145,12 @@ void BuildDependentConfig::SetPartition(
     std::string_view name, absl::Span<const std::string_view> partitions)
     ABSL_LOCKS_EXCLUDED(partition_mutex_) {
   absl::MutexLock lock(&partition_mutex_);
+  SetPartitionWithMutex(name, partitions);
+}
+
+void BuildDependentConfig::SetPartitionWithMutex(
+    std::string_view name, absl::Span<const std::string_view> partitions)
+    ABSL_EXCLUSIVE_LOCKS_REQUIRED(partition_mutex_) {
   auto& saved = *internal_config_[name].mutable_public_partitions();
   saved.Assign(partitions.begin(), partitions.end());
   absl::c_sort(saved);
@@ -177,22 +183,31 @@ void BuildDependentConfig::SetMaxPartitionsContributed(
       max_partitions_contributed);
 }
 
-absl::Status BuildDependentConfig::SetCustomConfig(
-    const UDFMetricDefinition& proto) ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+absl::Status BuildDependentConfig::SetCustomConfig(const MetricConfig& proto)
+    ABSL_LOCKS_EXCLUDED(partition_mutex_) {
   absl::MutexLock lock(&partition_mutex_);
-  for (int i = 0; i < CustomMetricCount(); i++) {
-    const server_common::metrics::Definition<
-        double, server_common::metrics::Privacy::kImpacting,
-        server_common::metrics::Instrument::kUpDownCounter>* kCustom =
-        server_common::metrics::kCustomList[i];
+  for (const auto* kCustom : server_common::metrics::kCustomList) {
     if (internal_config_.find(kCustom->name_) == internal_config_.end()) {
       // udf name should be defined only once
-      if (GetCustomDefinition(proto.name()) == nullptr) {
+      if (absl::IsNotFound(GetCustomDefinition(proto.name()).status())) {
         *internal_config_[kCustom->name_].mutable_name() = proto.name();
         *internal_config_[kCustom->name_].mutable_description() =
             proto.description();
+        *internal_config_[kCustom->name_].mutable_partition_type() =
+            proto.partition_type();
         internal_config_[kCustom->name_].set_lower_bound(proto.lower_bound());
         internal_config_[kCustom->name_].set_upper_bound(proto.upper_bound());
+        if (proto.has_max_partitions_contributed()) {
+          internal_config_[kCustom->name_].set_max_partitions_contributed(
+              proto.max_partitions_contributed());
+        }
+        if (proto.has_privacy_budget_weight()) {
+          internal_config_[kCustom->name_].set_privacy_budget_weight(
+              proto.privacy_budget_weight());
+        }
+        std::vector<std::string_view> partitions_view = {
+            proto.public_partitions().begin(), proto.public_partitions().end()};
+        SetPartitionWithMutex(kCustom->name_, partitions_view);
         custom_def_map_[proto.name()] = kCustom;
         return absl::OkStatus();
       } else {
@@ -205,36 +220,37 @@ absl::Status BuildDependentConfig::SetCustomConfig(
       "max number of custom metrics has been reached");
 }
 
-absl::StatusOr<const MetricConfig*> BuildDependentConfig::GetInternalConfig(
-    std::string_view name) const ABSL_LOCKS_EXCLUDED(partition_mutex_) {
+std::string BuildDependentConfig::GetName(
+    const metrics::DefinitionName& definition) const {
+  absl::MutexLock lock(&partition_mutex_);
+  auto it = internal_config_.find(definition.name_);
+  if (it != internal_config_.end() && it->second.has_name()) {
+    return it->second.name();
+  } else {
+    return std::string(definition.name_);
+  }
+}
+
+std::string BuildDependentConfig::GetDescription(
+    const metrics::DefinitionName& definition) const {
+  absl::MutexLock lock(&partition_mutex_);
+  auto it = internal_config_.find(definition.name_);
+  if (it != internal_config_.end() && it->second.has_description()) {
+    return it->second.description();
+  } else {
+    return std::string(definition.description_);
+  }
+}
+
+std::string BuildDependentConfig::GetPartitionType(
+    const metrics::internal::Partitioned& definition,
+    absl::string_view name) const {
   absl::MutexLock lock(&partition_mutex_);
   auto it = internal_config_.find(name);
-  if (it == internal_config_.end()) {
-    return absl::NotFoundError(name);
+  if (it != internal_config_.end() && it->second.has_partition_type()) {
+    return it->second.partition_type();
   }
-  return &(it->second);
-}
-
-std::string_view BuildDependentConfig::GetName(
-    const metrics::DefinitionName& definition) const {
-  absl::StatusOr<const MetricConfig*> internal_config =
-      GetInternalConfig(definition.name_);
-  if (internal_config.ok() && (*internal_config)->has_name()) {
-    return (*internal_config)->name();
-  } else {
-    return definition.name_;
-  }
-}
-
-std::string_view BuildDependentConfig::GetDescription(
-    const metrics::DefinitionName& definition) const {
-  absl::StatusOr<const MetricConfig*> internal_config =
-      GetInternalConfig(definition.name_);
-  if (internal_config.ok() && (*internal_config)->has_description()) {
-    return (*internal_config)->description();
-  } else {
-    return definition.description_;
-  }
+  return std::string(definition.partition_type_);
 }
 
 }  // namespace privacy_sandbox::server_common::telemetry
