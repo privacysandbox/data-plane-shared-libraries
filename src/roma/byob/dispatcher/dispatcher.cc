@@ -241,11 +241,13 @@ void RunCallback(
 }  // namespace
 
 void Dispatcher::ExecutorImpl(
-    const int fd, google::protobuf::Any request,
+    const int fd, const google::protobuf::Message& request,
     absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&> callback,
     absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
         handler) {
-  SerializeDelimitedToFileDescriptor(request, fd);
+  google::protobuf::Any request_any;
+  request_any.PackFrom(request);
+  SerializeDelimitedToFileDescriptor(request_any, fd);
   FileInputStream input(fd);
   absl::Mutex mu;
   int outstanding_threads = 0;  // Guarded by mu.

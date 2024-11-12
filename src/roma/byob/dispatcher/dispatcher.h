@@ -74,8 +74,6 @@ class Dispatcher {
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
-    google::protobuf::Any request_any;
-    request_any.PackFrom(std::move(request));
     FdAndToken fd_and_token;
     {
       auto fn = [&] {
@@ -94,8 +92,7 @@ class Dispatcher {
       ++executor_threads_in_flight_;
     }
     std::thread(
-        &Dispatcher::ExecutorImpl, this, fd_and_token.fd,
-        std::move(request_any),
+        &Dispatcher::ExecutorImpl, this, fd_and_token.fd, std::move(request),
         [callback = std::move(callback),
          log_file_name = log_dir_ / absl::StrCat(fd_and_token.token, ".log")](
             absl::StatusOr<google::protobuf::Any> response_any) mutable {
@@ -139,7 +136,7 @@ class Dispatcher {
   // and pushes file descriptors to the queue.
   void AcceptorImpl();
   void ExecutorImpl(
-      int fd, google::protobuf::Any request,
+      int fd, const google::protobuf::Message& request,
       absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
           callback,
       absl::FunctionRef<void(std::string_view,
