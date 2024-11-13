@@ -29,11 +29,9 @@ pkg_files(
     name = "gvisor_execs",
     srcs = select({
         "@platforms//cpu:arm64": [
-            "@gvisor_containerd_arm64//file",
             "@gvisor_runsc_arm64//file",
         ],
         "@platforms//cpu:x86_64": [
-            "@gvisor_containerd_amd64//file",
             "@gvisor_runsc_amd64//file",
         ],
     }),

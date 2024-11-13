@@ -19,7 +19,7 @@ load(
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-GVISOR_VERSION = "20240807.0"
+GVISOR_VERSION = "20241104.0"
 
 def cc_utils():
     maybe(
@@ -66,17 +66,8 @@ def _gvisor_utils(version = GVISOR_VERSION):
         name = "gvisor_runsc_amd64",
         downloaded_file_path = "runsc",
         executable = True,
-        sha256 = "6fa2a311b93c4f772efa38f041eab476bc51b72f0af99968ea733e55551aead3",
+        sha256 = "6c4ca2b1a0d207e4a9fa53213f2a9a7f664cb3405458fb64550dc50a62662537",
         urls = ["{}/x86_64/runsc".format(release_url)],
-    )
-
-    maybe(
-        http_file,
-        name = "gvisor_containerd_amd64",
-        downloaded_file_path = "containerd-shim-runsc-v1",
-        executable = True,
-        sha256 = "106e7d56332c6e374603b44426fe0ff019c7e6e99eaaa12dccec9cf7edd3e705",
-        urls = ["{}/x86_64/containerd-shim-runsc-v1".format(release_url)],
     )
 
     maybe(
@@ -84,17 +75,8 @@ def _gvisor_utils(version = GVISOR_VERSION):
         name = "gvisor_runsc_arm64",
         downloaded_file_path = "runsc",
         executable = True,
-        sha256 = "5ebba92b7670c67be08fe849b65a6c91dd7802158637a1baf3e5437d13b5efd5",
+        sha256 = "e40d74987a65fa2369ab58060c3caac2759238922da1d6a9b4f4accfef9ec93f",
         urls = ["{}/aarch64/runsc".format(release_url)],
-    )
-
-    maybe(
-        http_file,
-        name = "gvisor_containerd_arm64",
-        downloaded_file_path = "containerd-shim-runsc-v1",
-        executable = True,
-        sha256 = "45d32d3c7ff9bf455a94c3ba3021ad4ae9c3619ce680faf880dc50b49eb2ed48",
-        urls = ["{}/aarch64/containerd-shim-runsc-v1".format(release_url)],
     )
 
     maybe(
