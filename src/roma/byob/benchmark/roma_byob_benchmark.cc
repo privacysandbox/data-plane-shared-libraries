@@ -35,17 +35,12 @@
 #include "src/roma/byob/sample_udf/sample_roma_byob_app_service.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/byob/utility/utils.h"
-#include "src/roma/config/function_binding_object_v2.h"
 
 namespace {
 using ::google::scp::roma::FunctionBindingObjectV2;
 using ::privacy_sandbox::roma_byob::example::ByobSampleService;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
-// using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest;
-// using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse;
 using ::privacy_sandbox::roma_byob::example::FunctionType;
 using ::privacy_sandbox::roma_byob::example::LogRequest;
 using ::privacy_sandbox::roma_byob::example::LogResponse;
@@ -55,12 +50,6 @@ using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::privacy_sandbox::roma_byob::example::SortListRequest;
 using ::privacy_sandbox::roma_byob::example::SortListResponse;
-using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadRequest;
-using ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadResponse;
-using ::privacy_sandbox::server_common::byob::CallbackReadRequest;
-using ::privacy_sandbox::server_common::byob::CallbackReadResponse;
-using ::privacy_sandbox::server_common::byob::CallbackWriteRequest;
-using ::privacy_sandbox::server_common::byob::CallbackWriteResponse;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
 
@@ -71,10 +60,6 @@ const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kJavaBinaryFilename = "sample_java_native_udf";
 const std::filesystem::path kPayloadUdfFilename = "payload_read_udf";
 const std::filesystem::path kPayloadWriteUdfFilename = "payload_write_udf";
-const std::filesystem::path kCallbackPayloadReadUdfFilename =
-    "callback_payload_read_udf";
-const std::filesystem::path kCallbackPayloadWriteUdfFilename =
-    "callback_payload_write_udf";
 constexpr int kPrimeCount = 9592;
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
@@ -143,7 +128,6 @@ ByobSampleService<> GetRomaService(
 ByobSampleService<> GetRomaService(Mode mode) {
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
-      .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
   return GetRomaService(mode, std::move(config));
 }
@@ -210,40 +194,9 @@ std::string GetFunctionTypeStr(FunctionType func_type) {
       return R"(udf:"Hello World")";
     case FUNCTION_PRIME_SIEVE:
       return R"(udf:"Prime Sieve")";
-    case FUNCTION_CALLBACK:
-      return R"(udf:"Callback hook")";
-    case FUNCTION_TEN_CALLBACK_INVOCATIONS:
-      return R"(udf:"Ten callback invocations")";
     default:
       return "udf:Unknown";
   }
-}
-
-void ReadCallbackPayload(google::scp::roma::FunctionBindingPayload<>& wrapper) {
-  CallbackReadRequest req;
-  CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
-  int64_t payload_size = 0;
-  for (const auto& p : req.payloads()) {
-    payload_size += p.size();
-  }
-  CallbackReadResponse resp;
-  resp.set_payload_size(payload_size);
-  wrapper.io_proto.clear_input_bytes();
-  resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
-}
-
-void WriteCallbackPayload(
-    google::scp::roma::FunctionBindingPayload<>& wrapper) {
-  CallbackWriteRequest req;
-  CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
-  CallbackWriteResponse resp;
-  auto* payloads = resp.mutable_payloads();
-  payloads->Reserve(req.element_count());
-  for (auto i = 0; i < req.element_count(); ++i) {
-    payloads->Add(std::string(req.element_size(), 'a'));
-  }
-  wrapper.io_proto.clear_input_bytes();
-  resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
 }
 
 static void LoadArguments(benchmark::internal::Benchmark* b) {
@@ -255,11 +208,8 @@ static void LoadArguments(benchmark::internal::Benchmark* b) {
 
 static void SampleBinaryArguments(benchmark::internal::Benchmark* b) {
   constexpr FunctionType function_types[] = {
-      FUNCTION_HELLO_WORLD,               // Generic "Hello, world!"
-      FUNCTION_PRIME_SIEVE,               // Sieve of primes
-      FUNCTION_CALLBACK,                  // Generic callback hook
-      FUNCTION_TEN_CALLBACK_INVOCATIONS,  // Ten invocations of generic
-                                          // callback hook
+      FUNCTION_HELLO_WORLD,  // Generic "Hello, world!"
+      FUNCTION_PRIME_SIEVE,  // Sieve of primes
   };
   constexpr int64_t num_workers[] = {1, 10, 50, 100};
   for (auto mode : kModes) {
@@ -409,7 +359,6 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
       .lib_mounts = std::move(mounts),
-      .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
   ByobSampleService<> roma_service =
       GetRomaService(Mode::kModeSandbox, std::move(config));
@@ -549,112 +498,6 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
                           req_payload_size);
 }
 
-void BM_ProcessRequestCallbackRequestPayload(benchmark::State& state) {
-  int64_t elem_size = state.range(0);
-  int64_t elem_count = state.range(1);
-  Mode mode = static_cast<Mode>(state.range(2));
-  ::privacy_sandbox::server_common::byob::Config<> config = {
-      .roma_container_name = "roma_server",
-      .function_bindings = {FunctionBindingObjectV2<>{"example",
-                                                      ReadCallbackPayload}},
-  };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, mode);
-  CHECK_OK(sample_interface);
-  ByobSampleService<> roma_service = std::move(*sample_interface);
-
-  const auto rpc = [&roma_service](std::string_view code_token,
-                                   const auto& request) {
-    absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse>>
-        response;
-    absl::Notification notif;
-    CHECK_OK(roma_service.ReadCallbackPayload(notif, request, response,
-                                              /*metadata=*/{}, code_token));
-    notif.WaitForNotification();
-    return response;
-  };
-
-  ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest request;
-  request.set_element_size(elem_size);
-  request.set_element_count(elem_count);
-  const int64_t payload_size = elem_size * elem_count;
-
-  std::string code_tok =
-      LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename,
-               /*enable_log_egress=*/false,
-               /*num_workers=*/2);
-
-  if (const auto response = rpc(code_tok, request); response.ok()) {
-    CHECK((*response)->payload_size() == payload_size);
-  } else {
-    return;
-  }
-
-  for (auto _ : state) {
-    (void)rpc(code_tok, request);
-  }
-  state.counters["elem_byte_size"] = elem_size;
-  state.counters["elem_count"] = elem_count;
-  state.counters["payload_size"] = payload_size;
-  state.SetLabel(GetModeStr(mode));
-  state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
-                          payload_size);
-}
-
-void BM_ProcessRequestCallbackResponsePayload(benchmark::State& state) {
-  int64_t elem_size = state.range(0);
-  int64_t elem_count = state.range(1);
-  Mode mode = static_cast<Mode>(state.range(2));
-  ::privacy_sandbox::server_common::byob::Config<> config = {
-      .roma_container_name = "roma_server",
-      .function_bindings = {FunctionBindingObjectV2<>{"example",
-                                                      WriteCallbackPayload}},
-  };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, mode);
-  CHECK_OK(sample_interface);
-  ByobSampleService<> roma_service = std::move(*sample_interface);
-
-  const auto rpc = [&roma_service](std::string_view code_token,
-                                   const auto& request) {
-    absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadResponse>>
-        response;
-    absl::Notification notif;
-    CHECK_OK(roma_service.WriteCallbackPayload(notif, request, response,
-                                               /*metadata=*/{}, code_token));
-    notif.WaitForNotification();
-    return response;
-  };
-
-  ::privacy_sandbox::roma_byob::example::WriteCallbackPayloadRequest request;
-  request.set_element_size(elem_size);
-  request.set_element_count(elem_count);
-  const int64_t payload_size = elem_size * elem_count;
-
-  std::string code_tok =
-      LoadCode(roma_service, kUdfPath / kCallbackPayloadWriteUdfFilename,
-               /*enable_log_egress=*/false,
-               /*num_workers=*/2);
-
-  if (const auto response = rpc(code_tok, request); response.ok()) {
-    CHECK((*response)->payload_size() == payload_size);
-  } else {
-    return;
-  }
-
-  for (auto _ : state) {
-    (void)rpc(code_tok, request);
-  }
-  state.counters["elem_byte_size"] = elem_size;
-  state.counters["elem_count"] = elem_count;
-  state.counters["payload_size"] = payload_size;
-  state.SetLabel(GetModeStr(mode));
-  state.SetBytesProcessed(static_cast<int64_t>(state.iterations()) *
-                          payload_size);
-}
-
 void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
   ByobSampleService<> roma_service = GetRomaService(mode);
@@ -789,8 +632,6 @@ BENCHMARK(BM_ProcessRequestUsingCallback)
 
 BENCHMARK(BM_ProcessRequestRequestPayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ProcessRequestResponsePayload)->Apply(PayloadArguments);
-BENCHMARK(BM_ProcessRequestCallbackRequestPayload)->Apply(PayloadArguments);
-BENCHMARK(BM_ProcessRequestCallbackResponsePayload)->Apply(PayloadArguments);
 BENCHMARK(BM_ProcessRequestPrimeSieve)
     ->Apply(ExecutePrimeSieveArguments)
     ->ArgNames({"mode", "prime_count"});

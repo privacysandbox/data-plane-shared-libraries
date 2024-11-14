@@ -39,17 +39,11 @@ namespace privacy_sandbox::server_common::byob::test {
 namespace {
 using ::google::scp::roma::FunctionBindingObjectV2;
 using ::privacy_sandbox::roma_byob::example::ByobSampleService;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
 using ::privacy_sandbox::roma_byob::example::FunctionType;
-using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadRequest;
-using ::privacy_sandbox::roma_byob::example::ReadCallbackPayloadResponse;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
-using ::privacy_sandbox::server_common::byob::CallbackReadRequest;
-using ::privacy_sandbox::server_common::byob::CallbackReadResponse;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
 
@@ -59,8 +53,6 @@ const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
 const std::filesystem::path kCPlusPlusPauseBinaryFilename = "pause_udf";
-const std::filesystem::path kCallbackPayloadReadUdfFilename =
-    "callback_payload_read_udf";
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
@@ -137,19 +129,6 @@ ByobSampleService<> GetRomaService(Mode mode) {
       ByobSampleService<>::Create(config, mode);
   CHECK_OK(sample_interface);
   return std::move(*sample_interface);
-}
-
-void ReadCallbackPayload(google::scp::roma::FunctionBindingPayload<>& wrapper) {
-  CallbackReadRequest req;
-  CHECK(req.ParseFromString(wrapper.io_proto.input_bytes()));
-  int64_t payload_size = 0;
-  for (const auto& p : req.payloads()) {
-    payload_size += p.size();
-  }
-  CallbackReadResponse resp;
-  resp.set_payload_size(payload_size);
-  wrapper.io_proto.clear_input_bytes();
-  resp.SerializeToString(wrapper.io_proto.mutable_output_bytes());
 }
 
 std::pair<SampleResponse, std::string> GetResponseAndLogs(
@@ -293,35 +272,6 @@ TEST(RomaByobTest, ProcessRequestGoLangBinaryInSandboxMode) {
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
               ::testing::StrEq(kGoBinaryOutput));
-}
-
-TEST(RomaByobTest, ProcessRequestCppBinaryWithHostCallbackInSandboxMode) {
-  int64_t elem_size = 5;
-  int64_t elem_count = 10;
-  ::privacy_sandbox::server_common::byob::Config<> config = {
-      .roma_container_name = "roma_server",
-      .function_bindings = {FunctionBindingObjectV2<>{"example",
-                                                      ReadCallbackPayload}},
-  };
-  absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config);
-  CHECK_OK(sample_interface);
-  ByobSampleService<> roma_service = std::move(*sample_interface);
-  ReadCallbackPayloadRequest request;
-  request.set_element_size(elem_size);
-  request.set_element_count(elem_count);
-  const int64_t payload_size = elem_size * elem_count;
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCallbackPayloadReadUdfFilename);
-  absl::StatusOr<std::unique_ptr<ReadCallbackPayloadResponse>> response;
-  absl::Notification notif;
-  CHECK_OK(roma_service.ReadCallbackPayload(notif, std::move(request), response,
-                                            /*metadata=*/{}, code_token));
-
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  ASSERT_TRUE(response.ok());
-  EXPECT_EQ((*response)->payload_size(), payload_size);
 }
 
 TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {

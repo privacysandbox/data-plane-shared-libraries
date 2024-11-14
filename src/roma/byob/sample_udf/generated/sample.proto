@@ -89,48 +89,6 @@ message GeneratePayloadResponse {
 }
 
 //
-// UDF rpc: ReadCallbackPayload
-//   MethodAnnotation
-//   request: ReadCallbackPayloadRequest
-//   response: ReadCallbackPayloadResponse
-
-
-message ReadCallbackPayloadRequest {
-  // The size of the payload elements to generate as input to the Host API
-  // function.
-  uint64 element_size = 1;
-  // The number of the payload elements to generate as input to the Host API
-  // function.
-  uint64 element_count = 2;
-}
-
-
-message ReadCallbackPayloadResponse {
-  // The size of the payloads sent to the Host API function.
-  uint64 payload_size = 1;
-}
-
-//
-// UDF rpc: WriteCallbackPayload
-//   MethodAnnotation
-//   request: WriteCallbackPayloadRequest
-//   response: WriteCallbackPayloadResponse
-
-
-message WriteCallbackPayloadRequest {
-  // The size of the payload elements for the Host API function to generate.
-  uint64 element_size = 1;
-  // The number of the payload elements for the Host API function to generate.
-  uint64 element_count = 2;
-}
-
-
-message WriteCallbackPayloadResponse {
-  // The size of the payloads returned by the Host API function.
-  uint64 payload_size = 1;
-}
-
-//
 // UDF rpc: RunPrimeSieve
 //   MethodAnnotation
 //   request: RunPrimeSieveRequest
@@ -186,6 +144,4 @@ enum FunctionType {
   FUNCTION_HELLO_WORLD = 1;
   // The sieve-based prime generator function.
   FUNCTION_PRIME_SIEVE = 2;
-  FUNCTION_CALLBACK = 3;
-  FUNCTION_TEN_CALLBACK_INVOCATIONS = 4;
 }

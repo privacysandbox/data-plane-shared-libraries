@@ -19,19 +19,13 @@
 
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
-#include "src/roma/byob/host/callback.pb.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
 using ::google::protobuf::io::FileInputStream;
-using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
-using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
-using ::privacy_sandbox::server_common::byob::Callback;
 
 // Find all prime numbers less than this:
 constexpr int kPrimeCount = 100'000;
@@ -78,19 +72,6 @@ void WriteResponseToFd(int fd, SampleResponse resp) {
   google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
 }
 
-void RunEchoCallback(int fd) {
-  {
-    Callback callback;
-    callback.set_function_name("example");
-    google::protobuf::Any any;
-    any.PackFrom(std::move(callback));
-    SerializeDelimitedToFileDescriptor(any, fd);
-  }
-  Callback callback;
-  FileInputStream input(fd);
-  ParseDelimitedFromZeroCopyStream(&callback, &input, nullptr);
-}
-
 int main(int argc, char* argv[]) {
   if (argc < 2) {
     std::cerr << "Not enough arguments!" << std::endl;
@@ -105,14 +86,6 @@ int main(int argc, char* argv[]) {
       break;
     case FUNCTION_PRIME_SIEVE:
       RunPrimeSieve(bin_response);
-      break;
-    case FUNCTION_CALLBACK:
-      RunEchoCallback(fd);
-      break;
-    case FUNCTION_TEN_CALLBACK_INVOCATIONS:
-      for (int i = 0; i < 10; ++i) {
-        RunEchoCallback(fd);
-      }
       break;
     default:
       return -1;

@@ -17,7 +17,6 @@ package main
 import (
 	"bufio"
 	ptypes "github.com/golang/protobuf/ptypes/any"
-	cbpb "github.com/privacysandbox/data-plane-shared/apis/roma/binary/callback"
 	pb "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example"
 	protodelim "google.golang.org/protobuf/encoding/protodelim"
 	"io"
@@ -84,20 +83,6 @@ func runPrimeSieve(binResponse *pb.SampleResponse) {
 	}
 }
 
-func runEchoCallback(file *os.File) {
-	callback := &cbpb.Callback{FunctionName: "example"}
-	var any ptypes.Any
-	if err := any.MarshalFrom(callback); err != nil {
-		log.Fatal("Failed to marshal callback: ", err)
-	}
-	if _, err := protodelim.MarshalTo(file, &any); err != nil {
-		log.Fatal("Failed to write callback request: ", err)
-	}
-	if err := protodelim.UnmarshalFrom(bufio.NewReader(file), callback); err != nil {
-		log.Fatal("Failed to read callback response: ", err)
-	}
-}
-
 func main() {
 	if len(os.Args) < 2 {
 		log.Fatal("Not enough input arguments")
@@ -116,12 +101,6 @@ func main() {
 		runHelloWorld(&binResponse)
 	case pb.FunctionType_FUNCTION_PRIME_SIEVE:
 		runPrimeSieve(&binResponse)
-	case pb.FunctionType_FUNCTION_CALLBACK:
-		runEchoCallback(file)
-	case pb.FunctionType_FUNCTION_TEN_CALLBACK_INVOCATIONS:
-		for i := 0; i < 10; i++ {
-			runEchoCallback(file)
-		}
 	default:
 		return
 	}

@@ -27,24 +27,20 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
 #include "absl/log/log.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
-#include "src/roma/config/function_binding_object_v2.h"
 #include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
 using ::google::scp::roma::ExecutionToken;
 using ::google::scp::roma::FunctionBindingPayload;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_CALLBACK;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_TEN_CALLBACK_INVOCATIONS;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::testing::Contains;
@@ -185,102 +181,6 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<SampleResponse> bin_response;
-    absl::Notification done;
-    ASSERT_TRUE(
-        dispatcher
-            .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
-                [&bin_response, &done](auto response,
-                                       absl::StatusOr<std::string_view> logs) {
-                  bin_response = std::move(response);
-                  done.Notify();
-                })
-            .ok());
-    done.WaitForNotification();
-    EXPECT_TRUE(bin_response.ok());
-  }
-}
-
-TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfCallback) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
-  const int pid = ::vfork();
-  ASSERT_NE(pid, -1);
-  if (pid == 0) {
-    const char* argv[] = {
-        "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
-        nullptr,
-    };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
-    PLOG(FATAL) << "execve() failed";
-  }
-  absl::Cleanup cleanup = [pid] {
-    ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
-  };
-  Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
-                            /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
-  SampleRequest bin_request;
-  bin_request.set_function(FUNCTION_CALLBACK);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table = {{"example", [&](auto& payload) {}}};
-  for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<SampleResponse> bin_response;
-    absl::Notification done;
-    ASSERT_TRUE(
-        dispatcher
-            .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
-                [&bin_response, &done](auto response,
-                                       absl::StatusOr<std::string_view> logs) {
-                  bin_response = std::move(response);
-                  done.Notify();
-                })
-            .ok());
-    done.WaitForNotification();
-    EXPECT_TRUE(bin_response.ok());
-  }
-}
-
-TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfTenCallbackInvocations) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
-  const int pid = ::vfork();
-  ASSERT_NE(pid, -1);
-  if (pid == 0) {
-    const char* argv[] = {
-        "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
-        nullptr,
-    };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
-    PLOG(FATAL) << "execve() failed";
-  }
-  absl::Cleanup cleanup = [pid] {
-    ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
-  };
-  Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
-  const absl::StatusOr<std::string> code_token =
-      dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
-                            /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
-  SampleRequest bin_request;
-  bin_request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table = {{"example", [&](auto& payload) {}}};
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
@@ -675,102 +575,6 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   absl::flat_hash_map<std::string,
                       std::function<void(FunctionBindingPayload<int>&)>>
       function_table;
-  for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<SampleResponse> bin_response;
-    absl::Notification done;
-    ASSERT_TRUE(
-        dispatcher
-            .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
-                [&bin_response, &done](auto response,
-                                       absl::StatusOr<std::string_view> logs) {
-                  bin_response = std::move(response);
-                  done.Notify();
-                })
-            .ok());
-    done.WaitForNotification();
-    EXPECT_TRUE(bin_response.ok());
-  }
-}
-
-TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfCallback) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
-  const int pid = ::vfork();
-  ASSERT_NE(pid, -1);
-  if (pid == 0) {
-    const char* argv[] = {
-        "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
-        nullptr,
-    };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
-    PLOG(FATAL) << "execve() failed: ";
-  }
-  absl::Cleanup cleanup = [pid] {
-    ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
-  };
-  Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
-  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
-      /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
-  SampleRequest bin_request;
-  bin_request.set_function(FUNCTION_CALLBACK);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table = {{"example", [&](auto& payload) {}}};
-  for (int i = 0; i < 100; ++i) {
-    absl::StatusOr<SampleResponse> bin_response;
-    absl::Notification done;
-    ASSERT_TRUE(
-        dispatcher
-            .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
-                [&bin_response, &done](auto response,
-                                       absl::StatusOr<std::string_view> logs) {
-                  bin_response = std::move(response);
-                  done.Notify();
-                })
-            .ok());
-    done.WaitForNotification();
-    EXPECT_TRUE(bin_response.ok());
-  }
-}
-
-TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfTenCallbackInvocations) {
-  const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
-  ASSERT_NE(fd, -1);
-  BindAndListenOnPath(fd, "abcd.sock");
-  const int pid = ::vfork();
-  ASSERT_NE(pid, -1);
-  if (pid == 0) {
-    const char* argv[] = {
-        "src/roma/byob/dispatcher/run_workers_without_sandbox",
-        "--socket_name=abcd.sock",
-        nullptr,
-    };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
-    PLOG(FATAL) << "execve() failed: ";
-  }
-  absl::Cleanup cleanup = [pid] {
-    ASSERT_NE(::waitpid(pid, nullptr, /*options=*/0), -1);
-    ASSERT_EQ(::unlink("abcd.sock"), 0);
-  };
-  Dispatcher dispatcher;
-  ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
-  const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
-      "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
-      /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
-  SampleRequest bin_request;
-  bin_request.set_function(FUNCTION_TEN_CALLBACK_INVOCATIONS);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table = {{"example", [&](auto& payload) {}}};
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;

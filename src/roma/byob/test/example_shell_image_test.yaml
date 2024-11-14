@@ -48,21 +48,6 @@ fileExistenceTests:
     uid: {UID}
     gid: {GID}
 
-
-  - name: /udf/callback_payload_read_udf file
-    path: /udf/callback_payload_read_udf
-    shouldExist: true
-    permissions: -r-x------
-    uid: {UID}
-    gid: {GID}
-
-  - name: /udf/callback_payload_write_udf file
-    path: /udf/callback_payload_write_udf
-    shouldExist: true
-    permissions: -r-x------
-    uid: {UID}
-    gid: {GID}
-
   - name: /udf/example_cc_udf file
     path: /udf/example_cc_udf
     shouldExist: true

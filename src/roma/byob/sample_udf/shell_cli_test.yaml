@@ -83,12 +83,6 @@ commandTests:
              GeneratePayload
                 MethodAnnotation\. Add some information about this rpc method\.
 
-             ReadCallbackPayload
-                MethodAnnotation
-
-             WriteCallbackPayload
-                MethodAnnotation
-
              RunPrimeSieve
                 MethodAnnotation
 
