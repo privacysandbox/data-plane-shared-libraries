@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
@@ -22,19 +21,15 @@ using ::privacy_sandbox::roma_byob::example::GeneratePayloadRequest;
 using ::privacy_sandbox::roma_byob::example::GeneratePayloadResponse;
 
 GeneratePayloadRequest ReadRequestFromFd(int fd) {
-  google::protobuf::Any any;
-  google::protobuf::io::FileInputStream stream(fd);
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
-                                                           nullptr);
   GeneratePayloadRequest req;
-  any.UnpackTo(&req);
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &stream,
+                                                           nullptr);
   return req;
 }
 
 void WriteResponseToFd(int fd, GeneratePayloadResponse resp) {
-  google::protobuf::Any any;
-  any.PackFrom(std::move(resp));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(resp, fd);
 }
 
 int main(int argc, char* argv[]) {

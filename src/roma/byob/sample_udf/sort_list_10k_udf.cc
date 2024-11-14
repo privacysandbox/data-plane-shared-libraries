@@ -16,11 +16,11 @@
 #include <array>
 #include <iostream>
 
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
 namespace {
+using ::privacy_sandbox::roma_byob::example::SortListRequest;
 using ::privacy_sandbox::roma_byob::example::SortListResponse;
 
 std::array<int, 10'000> items = {
@@ -2027,16 +2027,15 @@ std::array<int, 10'000> items = {
 };
 
 void ReadRequestFromFd(int fd) {
-  google::protobuf::Any any;
+  SortListRequest request;
   google::protobuf::io::FileInputStream stream(fd);
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&request, &stream,
                                                            nullptr);
 }
 
 void WriteResponseToFd(int fd) {
-  google::protobuf::Any any;
-  any.PackFrom(SortListResponse{});
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(SortListResponse{},
+                                                             fd);
 }
 }  // namespace
 

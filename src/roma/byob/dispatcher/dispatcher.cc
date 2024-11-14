@@ -31,7 +31,6 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
@@ -39,8 +38,6 @@
 
 namespace privacy_sandbox::server_common::byob {
 namespace {
-using ::google::protobuf::io::FileInputStream;
-using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::google::scp::core::common::Uuid;
 
@@ -225,17 +222,11 @@ void Dispatcher::AcceptorImpl() {
       absl::Condition(+[](int* i) { return *i == 0; }, &thread_count));
 }
 
-void Dispatcher::ExecutorImpl(
-    const int fd, const google::protobuf::Message& request,
-    absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
-        callback) {
-  google::protobuf::Any request_any;
-  request_any.PackFrom(request);
-  SerializeDelimitedToFileDescriptor(request_any, fd);
-  FileInputStream input(fd);
-  google::protobuf::Any any;
-  ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
-  std::move(callback)(std::move(any));
+void Dispatcher::ExecutorImpl(const int fd,
+                              const google::protobuf::Message& request,
+                              absl::AnyInvocable<void(int) &&> handler) {
+  SerializeDelimitedToFileDescriptor(request, fd);
+  std::move(handler)(fd);
   ::close(fd);
   absl::MutexLock lock(&mu_);
   --executor_threads_in_flight_;

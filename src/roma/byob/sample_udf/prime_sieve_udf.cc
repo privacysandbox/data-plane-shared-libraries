@@ -14,7 +14,6 @@
 
 #include <iostream>
 
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
@@ -49,19 +48,15 @@ void RunPrimeSieve(int prime_count, RunPrimeSieveResponse& bin_response) {
 }
 
 RunPrimeSieveRequest ReadRequestFromFd(int fd) {
-  google::protobuf::Any any;
-  google::protobuf::io::FileInputStream stream(fd);
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
-                                                           nullptr);
   RunPrimeSieveRequest req;
-  any.UnpackTo(&req);
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &stream,
+                                                           nullptr);
   return req;
 }
 
 void WriteResponseToFd(int fd, RunPrimeSieveResponse resp) {
-  google::protobuf::Any any;
-  any.PackFrom(std::move(resp));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(resp, fd);
 }
 }  // namespace
 

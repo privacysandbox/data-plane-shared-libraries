@@ -27,7 +27,6 @@ import java.net.URL;
 
 import javax.swing.JTable.PrintMode;
 
-import com.google.protobuf.Any;
 import com.google.protobuf.Parser;
 import privacy_sandbox.roma_byob.example.SampleUdfInterface.SampleRequest;
 import privacy_sandbox.roma_byob.example.SampleUdfInterface.SampleResponse;
@@ -38,19 +37,13 @@ class SampleUdf {
 
   private SampleRequest readRequestFromFile(FileDescriptor fileDescriptor) throws FileNotFoundException, IOException {
     FileInputStream stream = new FileInputStream(fileDescriptor);
-    Parser<Any> parser = Any.parser();
-    Any anyProto = parser.parseDelimitedFrom(stream);
-    if (anyProto == null) {
-      return null;
-    }
-    SampleRequest request = SampleRequest.parseFrom(anyProto.getValue());
-    return request;
+    Parser<SampleRequest> parser = SampleRequest.parser();
+    return parser.parseDelimitedFrom(stream);
   }
 
   private void writeResponseToFile(FileDescriptor fileDescriptor, SampleResponse response) throws IOException {
     FileOutputStream output = new FileOutputStream(fileDescriptor);
-    Any anyProto = Any.pack(response);
-    anyProto.writeDelimitedTo(output);
+    response.writeDelimitedTo(output);
   }
 
   void primeSieve(SampleResponse.Builder builder) {

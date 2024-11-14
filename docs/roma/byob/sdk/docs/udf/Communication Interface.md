@@ -29,7 +29,6 @@ and is provided as a positional argument.
 ## Wire format
 
 The request/response to the UDF will be will be passed over the fd as
-[Any](https://protobuf.dev/programming-guides/proto3/#any)-packed,
 [size-delimited](https://protobuf.dev/programming-guides/encoding/) protobuf messages.
 
 ### Reading messages
@@ -40,19 +39,16 @@ other languages:
 -   Construct an
     [io::FileInputStream](https://protobuf.dev/reference/cpp/api-docs/google.protobuf.io.zero_copy_stream_impl/)
     for the fd.
--   Create an [Any](https://protobuf.dev/reference/cpp/cpp-generated/#any) message.
+-   Create a message of the expected type.
 -   Use
     [ParseDelimitedFromZeroCopyStream()](https://github.com/protocolbuffers/protobuf/blob/182699f8fde413e3fdc770ecf3808fe2f2fe01c3/src/google/protobuf/util/delimited_message_util.h#L49-L62)
-    to populate the `Any` message.
--   Create a message of the expected type, then populate it from the `Any` message using the
-    `UnpackTo()` method.
+    to populate the message.
 
 ### Writing messages
 
 To write a message to an fd:
 
--   Create any `Any` message, then populate it using the `PackFrom()` method.
--   Write this `Any` message to the fd in delimited binary format by using the
+-   Write the message to the fd in delimited binary format by using the
     [SerializeDelimitedToFileDescriptor](https://github.com/protocolbuffers/protobuf/blob/182699f8fde413e3fdc770ecf3808fe2f2fe01c3/src/google/protobuf/util/delimited_message_util.h#L27-L44)
     method.
 
@@ -77,7 +73,7 @@ Largely, a UDF's execution can be divided into following stages -
 1. Write response
 
     Once the UDF response is constructed, it needs to be written to the fd. The output should be
-    written as an `Any`-packed, size-delimited proto.
+    written as a size-delimited proto.
 
 1. Cleanup and exit
 
@@ -88,7 +84,6 @@ A C++ example showcasing the stages. It can be extrapolated to other coding lang
 ```cpp
 #include <iostream>
 
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/example/example.pb.h"
 
@@ -96,19 +91,15 @@ using ::privacy_sandbox::server_common::byob::example::EchoRequest;
 using ::privacy_sandbox::server_common::byob::example::EchoResponse;
 
 EchoRequest ReadRequestFromFd(int fd) {
-  google::protobuf::Any any;
-  google::protobuf::io::FileInputStream stream(fd);
-  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&any, &stream,
-                                                           nullptr);
   EchoRequest req;
-  any.UnpackTo(&req);
+  google::protobuf::io::FileInputStream stream(fd);
+  google::protobuf::util::ParseDelimitedFromZeroCopyStream(&req, &stream,
+                                                           nullptr);
   return req;
 }
 
 void WriteResponseToFd(int fd, EchoResponse resp) {
-  google::protobuf::Any any;
-  any.PackFrom(std::move(resp));
-  google::protobuf::util::SerializeDelimitedToFileDescriptor(any, fd);
+  google::protobuf::util::SerializeDelimitedToFileDescriptor(resp, fd);
 }
 
 int main(int argc, char* argv[]) {

@@ -16,7 +16,6 @@ package main
 
 import (
 	"bufio"
-	ptypes "github.com/golang/protobuf/ptypes/any"
 	pb "github.com/privacy-sandbox/data-plane-shared/apis/roma/binary/example"
 	protodelim "google.golang.org/protobuf/encoding/protodelim"
 	"io"
@@ -26,26 +25,18 @@ import (
 )
 
 func ReadRequestFromFd(reader protodelim.Reader) pb.EchoRequest {
-	var any ptypes.Any
-	err := protodelim.UnmarshalFrom(reader, &any)
+	request := pb.EchoRequest{}
+	err := protodelim.UnmarshalFrom(reader, &request)
 	if err == io.EOF {
 		os.Exit(-1)
 	} else if err != nil {
 		log.Fatal("Failed to read proto: ", err)
 	}
-	request := pb.EchoRequest{}
-	if err := any.UnmarshalTo(&request); err != nil {
-		log.Fatal("Failed to unmarshal request proto: ", err)
-	}
 	return request
 }
 
 func WriteResponseToFd(writer io.Writer, response pb.EchoResponse) {
-	var any ptypes.Any
-	if err := any.MarshalFrom(&response); err != nil {
-		log.Fatal("Failed to marshal output: ", err)
-	}
-	if _, err := protodelim.MarshalTo(writer, &any); err != nil {
+	if _, err := protodelim.MarshalTo(writer, &response); err != nil {
 		log.Fatal("Failed to write response proto: %v", err)
 	}
 }

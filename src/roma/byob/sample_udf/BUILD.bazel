@@ -142,7 +142,6 @@ go_binary(
     deps = [
         ":sample_go_proto",
         "@com_github_golang_protobuf//proto:go_default_library",
-        "@com_github_golang_protobuf//ptypes/any",
         "@org_golang_google_protobuf//encoding/protodelim",
     ],
 )
@@ -161,7 +160,10 @@ cc_binary(
     name = "pause_udf",
     srcs = ["pause_udf.cc"],
     visibility = ["//visibility:public"],
-    deps = ["@com_google_protobuf//:protobuf"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
 )
 
 cc_binary(

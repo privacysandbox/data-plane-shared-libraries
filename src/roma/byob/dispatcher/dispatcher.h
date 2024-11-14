@@ -37,7 +37,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
-#include "google/protobuf/any.pb.h"
+#include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/utility/file_reader.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/roma/interface/function_binding_io.pb.h"
@@ -93,18 +93,18 @@ class Dispatcher {
         &Dispatcher::ExecutorImpl, this, fd_and_token.fd, std::move(request),
         [callback = std::move(callback),
          log_file_name = log_dir_ / absl::StrCat(fd_and_token.token, ".log")](
-            absl::StatusOr<google::protobuf::Any> response_any) mutable {
-          absl::StatusOr<FileReader> log_reader =
-              FileReader::Create(log_file_name);
-          if (!response_any.ok()) {
-            std::move(callback)(std::move(response_any).status(),
-                                FileReader::GetContent(log_reader));
-          } else if (Response response; response_any->UnpackTo(&response)) {
-            std::move(callback)(std::move(response),
-                                FileReader::GetContent(log_reader));
+            const int fd) mutable {
+          Response response;
+          if (google::protobuf::io::FileInputStream input(fd);
+              !google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+                  &response, &input, nullptr)) {
+            std::move(callback)(
+                absl::UnavailableError("No UDF response received."),
+                FileReader::GetContent(FileReader::Create(log_file_name)));
           } else {
-            std::move(callback)(absl::UnknownError("Failed to unpack output."),
-                                FileReader::GetContent(log_reader));
+            std::move(callback)(
+                std::move(response),
+                FileReader::GetContent(FileReader::Create(log_file_name)));
           }
         })
         .detach();
@@ -120,10 +120,9 @@ class Dispatcher {
   // Accepts connections from newly created UDF instances, reads code tokens,
   // and pushes file descriptors to the queue.
   void AcceptorImpl();
-  void ExecutorImpl(
-      int fd, const google::protobuf::Message& request,
-      absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
-          callback) ABSL_LOCKS_EXCLUDED(mu_);
+  void ExecutorImpl(int fd, const google::protobuf::Message& request,
+                    absl::AnyInvocable<void(int) &&> handler)
+      ABSL_LOCKS_EXCLUDED(mu_);
 
   int listen_fd_;
 

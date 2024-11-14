@@ -17,14 +17,15 @@
 
 #include <iostream>
 
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
+#include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
+using ::privacy_sandbox::roma_byob::example::SampleRequest;
 
 void ReadRequestFromFd(int fd) {
-  google::protobuf::Any bin_request;
+  SampleRequest bin_request;
   FileInputStream input(fd);
   ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
 }

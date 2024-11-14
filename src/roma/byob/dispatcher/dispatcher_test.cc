@@ -31,7 +31,6 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/synchronization/notification.h"
-#include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
@@ -258,20 +257,16 @@ TEST(DispatcherTest, LoadAndExecute) {
     }
     {
       // Read UDF input.
-      google::protobuf::Any any;
-      FileInputStream input(connection_fd);
-      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
       SampleRequest request;
-      ASSERT_TRUE(any.UnpackTo(&request));
+      FileInputStream input(connection_fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       EXPECT_EQ(request.function(), FUNCTION_HELLO_WORLD);
     }
     {
       // Write UDF output.
       SampleResponse response;
       response.set_greeting("dummy greeting");
-      google::protobuf::Any any;
-      ASSERT_TRUE(any.PackFrom(std::move(response)));
-      ASSERT_TRUE(SerializeDelimitedToFileDescriptor(any, connection_fd));
+      EXPECT_TRUE(SerializeDelimitedToFileDescriptor(response, connection_fd));
     }
     EXPECT_EQ(::close(connection_fd), 0);
     EXPECT_EQ(::close(fd), 0);
@@ -385,11 +380,9 @@ TEST(DispatcherTest, LoadAndExecuteThenCancel) {
               kNumTokenBytes);
     {
       // Read UDF input.
-      google::protobuf::Any any;
-      FileInputStream input(connection_fd);
-      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&any, &input, nullptr));
       SampleRequest request;
-      ASSERT_TRUE(any.UnpackTo(&request));
+      FileInputStream input(connection_fd);
+      ASSERT_TRUE(ParseDelimitedFromZeroCopyStream(&request, &input, nullptr));
       EXPECT_EQ(request.function(), FUNCTION_HELLO_WORLD);
     }
     {
