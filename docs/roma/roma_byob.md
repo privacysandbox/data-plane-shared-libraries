@@ -25,7 +25,6 @@ execution of arbitrary binaries written in any language.
 | [container](/src/roma/byob/container/)   | Contains code that runs inside gVisor's sandbox container.                                                                                              |
 | [dispatcher](/src/roma/byob/dispatcher/) | Containers the business logic for handling requests.                                                                                                    |
 | [example](/src/roma/byob/example/)       | Examples to help UDF developers.                                                                                                                        |
-| [host](/src/roma/byob/host/)             | Host Callback API logic.                                                                                                                                |
 | [interface](/src/roma/byob/interface/)   | Interface for calling into Roma BYOB.                                                                                                                   |
 | [test](/src/roma/byob/test/)             | Contains a myriad of tests for Roma BYOB libraries.                                                                                                     |
 | [udf](/src/roma/byob/sample_udf/)        | UDFs used by [benchmarks](/src/roma/byob/benchmark/) and [tests](/src/roma/byob/test/).                                                                 |
