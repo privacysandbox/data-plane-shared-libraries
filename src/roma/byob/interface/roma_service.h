@@ -124,7 +124,7 @@ class RomaService final {
       return absl::ErrnoToStatus(errno, "mkdtemp(socket_dir)");
     }
     socket_dir_ = socket_dir_tmpl;
-    const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
+    const int fd = ::socket(AF_UNIX, SOCK_STREAM | SOCK_CLOEXEC, 0);
     if (fd == -1) {
       return absl::ErrnoToStatus(errno, "socket()");
     }
