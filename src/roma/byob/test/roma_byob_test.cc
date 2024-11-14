@@ -123,7 +123,6 @@ std::string LoadCodeFromCodeToken(ByobSampleService<>& roma_service,
 ByobSampleService<> GetRomaService(Mode mode) {
   privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
-      .function_bindings = {FunctionBindingObjectV2<>{"example", [](auto&) {}}},
   };
   absl::StatusOr<ByobSampleService<>> sample_interface =
       ByobSampleService<>::Create(config, mode);

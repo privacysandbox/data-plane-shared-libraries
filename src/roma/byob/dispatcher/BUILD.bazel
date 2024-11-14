@@ -10,7 +10,6 @@ cc_library(
     deps = [
         ":dispatcher_cc_proto",
         "//src/core/common/uuid",
-        "//src/roma/byob/host:callback_cc_proto",
         "//src/roma/byob/utility:file_reader",
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface:function_binding_io_cc_proto",
@@ -56,12 +55,10 @@ cc_test(
     deps = [
         ":dispatcher",
         ":dispatcher_cc_proto",
-        "//src/roma/byob/host:callback_cc_proto",
         "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
         "//src/roma/config:function_binding_object_v2",
         "//src/util:execution_token",
         "@com_google_absl//absl/cleanup",
-        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",
         "@com_google_protobuf//:protobuf",
@@ -93,7 +90,6 @@ cc_test(
         "//src/roma/config",
         "//src/util:execution_token",
         "@com_google_absl//absl/cleanup",
-        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/synchronization",
         "@com_google_googletest//:gtest_main",

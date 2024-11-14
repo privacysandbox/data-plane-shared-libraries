@@ -66,11 +66,9 @@ class Dispatcher {
 
   void Cancel(google::scp::roma::ExecutionToken execution_token);
 
-  template <typename Response, typename Table, typename Metadata,
-            typename Request>
+  template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, Request request, Metadata metadata,
-      const Table& table,
+      std::string_view code_token, Request request,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
@@ -108,19 +106,6 @@ class Dispatcher {
             std::move(callback)(absl::UnknownError("Failed to unpack output."),
                                 FileReader::GetContent(log_reader));
           }
-        },
-        [&table, metadata = std::move(metadata)](std::string_view function,
-                                                 auto& io_proto) {
-          if (const auto it = table.find(function); it != table.end()) {
-            google::scp::roma::FunctionBindingPayload<Metadata> wrapper{
-                .io_proto = io_proto,
-                .metadata = metadata,
-            };
-            (it->second)(wrapper);
-          } else {
-            io_proto.mutable_errors()->Add(
-                "ROMA: Could not find C++ function by name.");
-          }
         })
         .detach();
     return google::scp::roma::ExecutionToken{std::move(fd_and_token).token};
@@ -138,10 +123,7 @@ class Dispatcher {
   void ExecutorImpl(
       int fd, const google::protobuf::Message& request,
       absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
-          callback,
-      absl::FunctionRef<void(std::string_view,
-                             google::scp::roma::proto::FunctionBindingIoProto&)>
-          handler) ABSL_LOCKS_EXCLUDED(mu_);
+          callback) ABSL_LOCKS_EXCLUDED(mu_);
 
   int listen_fd_;
 

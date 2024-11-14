@@ -19,7 +19,6 @@
 
 #include <cstdint>
 #include <string>
-#include <vector>
 
 #include "src/roma/config/function_binding_object_v2.h"
 
@@ -30,8 +29,6 @@ struct Config {
   std::uint64_t memory_limit_hard = 0;
   std::string roma_container_name;
   std::string lib_mounts;
-  std::vector<google::scp::roma::FunctionBindingObjectV2<TMetadata>>
-      function_bindings;
 };
 }  // namespace privacy_sandbox::server_common::byob
 

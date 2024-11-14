@@ -27,7 +27,6 @@
 #include <utility>
 
 #include "absl/functional/any_invocable.h"
-#include "absl/functional/function_ref.h"
 #include "absl/log/check.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
@@ -36,7 +35,6 @@
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
-#include "src/roma/byob/host/callback.pb.h"
 #include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
@@ -45,7 +43,6 @@ using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using ::google::scp::core::common::Uuid;
-using ::google::scp::roma::proto::FunctionBindingIoProto;
 
 absl::StatusOr<std::string> Read(int fd, int size) {
   std::string buffer(size, '\0');
@@ -228,52 +225,17 @@ void Dispatcher::AcceptorImpl() {
       absl::Condition(+[](int* i) { return *i == 0; }, &thread_count));
 }
 
-namespace {
-void RunCallback(
-    Callback callback,
-    absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)> handler,
-    int fd, absl::Mutex* mu, int* outstanding_threads) {
-  handler(callback.function_name(), *callback.mutable_io_proto());
-  SerializeDelimitedToFileDescriptor(callback, fd);
-  absl::MutexLock lock(mu);
-  --(*outstanding_threads);
-}
-}  // namespace
-
 void Dispatcher::ExecutorImpl(
     const int fd, const google::protobuf::Message& request,
-    absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&> callback,
-    absl::FunctionRef<void(std::string_view, FunctionBindingIoProto&)>
-        handler) {
+    absl::AnyInvocable<void(absl::StatusOr<google::protobuf::Any>) &&>
+        callback) {
   google::protobuf::Any request_any;
   request_any.PackFrom(request);
   SerializeDelimitedToFileDescriptor(request_any, fd);
   FileInputStream input(fd);
-  absl::Mutex mu;
-  int outstanding_threads = 0;  // Guarded by mu.
-  while (true) {
-    google::protobuf::Any any;
-    ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
-    if (any.Is<Callback>()) {
-      {
-        absl::MutexLock lock(&mu);
-        ++outstanding_threads;
-      }
-      Callback callback;
-      CHECK(any.UnpackTo(&callback));
-      std::thread(RunCallback, std::move(callback), handler, fd, &mu,
-                  &outstanding_threads)
-          .detach();
-    } else {
-      std::move(callback)(std::move(any));
-      break;
-    }
-  }
-  {
-    absl::MutexLock lock(&mu);
-    mu.Await(
-        absl::Condition(+[](int* i) { return *i == 0; }, &outstanding_threads));
-  }
+  google::protobuf::Any any;
+  ParseDelimitedFromZeroCopyStream(&any, &input, nullptr);
+  std::move(callback)(std::move(any));
   ::close(fd);
   absl::MutexLock lock(&mu_);
   --executor_threads_in_flight_;

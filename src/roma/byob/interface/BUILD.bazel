@@ -36,7 +36,6 @@ cc_library(
         "//src/roma/byob/dispatcher",
         "//src/util:execution_token",
         "//src/util/status_macro:status_macros",
-        "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/memory",

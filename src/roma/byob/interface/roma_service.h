@@ -36,7 +36,6 @@
 #include <variant>
 #include <vector>
 
-#include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/memory/memory.h"
@@ -185,13 +184,7 @@ class RomaService final {
         return absl::InternalError("Unsupported mode in switch");
     }
     dispatcher_.emplace();
-    PS_RETURN_IF_ERROR(dispatcher_->Init(fd, log_dir_));
-    function_bindings_.reserve(config.function_bindings.size());
-    for (auto& binding : config.function_bindings) {
-      function_bindings_[std::move(binding.function_name)] =
-          std::move(binding.function);
-    }
-    return absl::OkStatus();
+    return dispatcher_->Init(fd, log_dir_);
   }
 
   ~RomaService() {
@@ -233,12 +226,11 @@ class RomaService final {
 
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, Request request, TMetadata metadata,
+      std::string_view code_token, Request request, TMetadata /*metadata*/,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) {
     return dispatcher_->ProcessRequest(code_token, std::move(request),
-                                       std::move(metadata), function_bindings_,
                                        std::move(callback));
   }
 
@@ -281,10 +273,6 @@ class RomaService final {
                internal::roma_service::ByobHandle>
       handle_;
   std::optional<Dispatcher> dispatcher_;
-  absl::flat_hash_map<
-      std::string, std::function<void(
-                       google::scp::roma::FunctionBindingPayload<TMetadata>&)>>
-      function_bindings_;
 };
 
 }  // namespace privacy_sandbox::server_common::byob

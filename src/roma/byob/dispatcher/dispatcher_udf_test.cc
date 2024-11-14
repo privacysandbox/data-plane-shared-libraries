@@ -26,7 +26,6 @@
 #include <thread>
 
 #include "absl/cleanup/cleanup.h"
-#include "absl/container/flat_hash_map.h"
 #include "absl/log/log.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
@@ -81,16 +80,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -129,16 +125,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -178,16 +171,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -225,16 +215,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -273,16 +260,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -321,16 +305,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -365,9 +346,6 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher.Init(fd, /*logdir=*/"").ok());
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   {
     const absl::StatusOr<std::string> code_token =
         dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
@@ -377,7 +355,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/0, function_table,
+                *code_token, bin_request,
                 [&done](auto /*response*/, auto /*logs*/) { done.Notify(); })
             .ok());
     EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
@@ -394,7 +372,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/0, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/) {
                   bin_response = std::move(response);
@@ -432,13 +410,10 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
       dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
                             /*n_workers=*/2);
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   absl::Notification done;
   absl::StatusOr<ExecutionToken> execution_token =
       dispatcher.ProcessRequest<SampleResponse>(
-          *code_token, bin_request, /*metadata=*/0, function_table,
+          *code_token, bin_request,
           [&done](auto /*response*/,
                   absl::StatusOr<std::string_view> /*logs*/) {
             done.Notify();
@@ -475,16 +450,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
       /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -523,16 +495,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
@@ -572,16 +541,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   ASSERT_TRUE(code_token.ok());
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   for (int i = 0; i < 100; ++i) {
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/i, function_table,
+                *code_token, bin_request,
                 [&bin_response, &done](auto response,
                                        absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);

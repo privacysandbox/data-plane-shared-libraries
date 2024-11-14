@@ -30,7 +30,6 @@
 #include <vector>
 
 #include "absl/cleanup/cleanup.h"
-#include "absl/container/flat_hash_map.h"
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
 #include "google/protobuf/util/delimited_message_util.h"
@@ -217,13 +216,9 @@ TEST(DispatcherTest, LoadAndDeleteGoToWorker) {
   dispatcher.Delete(*code_token);
   {
     SampleRequest bin_request;
-    absl::flat_hash_map<std::string,
-                        std::function<void(FunctionBindingPayload<int>&)>>
-        function_table;
     ASSERT_FALSE(dispatcher
                      .ProcessRequest<SampleResponse>(
-                         *code_token, bin_request, /*metadata=*/0,
-                         function_table,
+                         *code_token, bin_request,
                          [](auto /*response*/, auto /*logs*/) {})
                      .ok());
   }
@@ -289,15 +284,12 @@ TEST(DispatcherTest, LoadAndExecute) {
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_HELLO_WORLD);
-    absl::flat_hash_map<std::string,
-                        std::function<void(FunctionBindingPayload<int>&)>>
-        function_table;
     absl::StatusOr<SampleResponse> bin_response;
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, /*metadata=*/0, function_table,
+                *code_token, bin_request,
                 [&](auto response, absl::StatusOr<std::string_view> logs) {
                   bin_response = std::move(response);
                   done.Notify();
@@ -351,14 +343,11 @@ TEST(DispatcherTest, LoadAndCloseBeforeExecute) {
   worker.join();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
-  absl::flat_hash_map<std::string,
-                      std::function<void(FunctionBindingPayload<int>&)>>
-      function_table;
   absl::Notification done;
   ASSERT_TRUE(
       dispatcher
           .ProcessRequest<SampleResponse>(
-              *code_token, bin_request, /*metadata=*/0, function_table,
+              *code_token, bin_request,
               [&](auto response, absl::StatusOr<std::string_view> logs) {
                 done.Notify();
               })
@@ -421,13 +410,10 @@ TEST(DispatcherTest, LoadAndExecuteThenCancel) {
   {
     SampleRequest bin_request;
     bin_request.set_function(FUNCTION_HELLO_WORLD);
-    absl::flat_hash_map<std::string,
-                        std::function<void(FunctionBindingPayload<int>&)>>
-        function_table;
     absl::Notification done;
     absl::StatusOr<ExecutionToken> execution_token =
         dispatcher.ProcessRequest<SampleResponse>(
-            *code_token, bin_request, /*metadata=*/0, function_table,
+            *code_token, bin_request,
             [&done](auto response, absl::StatusOr<std::string_view> /*logs*/) {
               done.Notify();
             });
