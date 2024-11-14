@@ -37,7 +37,6 @@
 namespace privacy_sandbox::server_common::byob {
 namespace {
 using ::google::scp::roma::ExecutionToken;
-using ::google::scp::roma::FunctionBindingPayload;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;

@@ -22,6 +22,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <optional>
 #include <queue>
 #include <string>
 #include <string_view>
@@ -31,16 +32,12 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/container/flat_hash_map.h"
 #include "absl/functional/any_invocable.h"
-#include "absl/functional/function_ref.h"
-#include "absl/log/check.h"
-#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/utility/file_reader.h"
-#include "src/roma/config/function_binding_object_v2.h"
-#include "src/roma/interface/function_binding_io.pb.h"
 #include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
