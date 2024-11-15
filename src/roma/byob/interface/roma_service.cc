@@ -73,6 +73,8 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
                                              : std::move(container_name)) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
+    // Set the process group id to the process id.
+    PCHECK(::setpgid(0, 0) == 0);
     std::filesystem::path container_path =
         std::filesystem::path(CONTAINER_PATH) / "config.json";
     PCHECK(::close(STDIN_FILENO) == 0);
@@ -172,8 +174,13 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
 }
 
 ByobHandle::~ByobHandle() {
-  if (::waitpid(pid_, nullptr, /*options=*/0) == -1) {
-    PLOG(ERROR) << "waitpid(" << pid_ << ", nullptr, 0)";
+  // Wait for all processes in the process group to exit.
+  uint32_t child_count = 0;
+  while (::waitpid(pid_ * -1, nullptr, /*options=*/0) > 0) {
+    child_count++;
+  }
+  if (child_count == 0) {
+    PLOG(ERROR) << "waitpid unexpectedly didn't wait for any pids";
   }
   const char* argv[] = {
       "/usr/bin/runsc",
