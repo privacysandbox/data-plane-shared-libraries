@@ -104,6 +104,7 @@ int MemoryUsageInBytes() {
   while (::fgets(buffer, sizeof(buffer), stream) != nullptr) {
     absl::StrAppend(&output, buffer);
   }
+  ::close(fd[0]);
   nlohmann::json event_stats;
   event_stats = nlohmann::json::parse(std::move(output));
   return event_stats["data"]["memory"]["usage"]["usage"].get<int>();
