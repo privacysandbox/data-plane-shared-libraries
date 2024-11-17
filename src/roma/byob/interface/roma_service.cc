@@ -74,7 +74,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
   // The following block does not run in the parent process.
   if (pid_ == 0) {
     // Set the process group id to the process id.
-    PCHECK(::setpgid(0, 0) == 0);
+    PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
     std::filesystem::path container_path =
         std::filesystem::path(CONTAINER_PATH) / "config.json";
     PCHECK(::close(STDIN_FILENO) == 0);
@@ -176,7 +176,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
 ByobHandle::~ByobHandle() {
   // Wait for all processes in the process group to exit.
   uint32_t child_count = 0;
-  while (::waitpid(pid_ * -1, nullptr, /*options=*/0) > 0) {
+  while (::waitpid(-pid_, /*wstatus=*/nullptr, /*options=*/0) > 0) {
     child_count++;
   }
   if (child_count == 0) {
