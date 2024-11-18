@@ -357,7 +357,7 @@ TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
   EXPECT_THAT(response_and_logs.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
   EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stderr log.\n"));
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
 TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
@@ -372,7 +372,7 @@ TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
   EXPECT_THAT(response_and_logs.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
   EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stderr log.\n"));
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
 TEST(RomaByobTest, VerifyRegisterWithAndWithoutLog) {
@@ -387,7 +387,7 @@ TEST(RomaByobTest, VerifyRegisterWithAndWithoutLog) {
   EXPECT_THAT(response_and_logs.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
   EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stderr log.\n"));
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 
   absl::Notification exec_notif;
   absl::StatusOr<SampleResponse> bin_response;
@@ -446,12 +446,12 @@ TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
   EXPECT_THAT(response_and_logs.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
   EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stderr log.\n"));
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
   response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
   EXPECT_THAT(response_and_logs.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
   EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stderr log.\n"));
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
 TEST(RomaByobTest, VerifyNoCapabilities) {

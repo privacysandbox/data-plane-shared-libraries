@@ -240,6 +240,7 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
       {PR_SET_PDEATHSIG, SIGHUP},
   }));
   if (worker_impl_arg.enable_log_egress) {
+    PS_RETURN_IF_ERROR(Dup2(log_fd, STDOUT_FILENO));
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
   }
   return SetupPivotRoot(worker_impl_arg.pivot_root_dir,
