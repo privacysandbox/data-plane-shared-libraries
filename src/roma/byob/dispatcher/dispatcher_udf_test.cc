@@ -22,7 +22,6 @@
 
 #include "absl/cleanup/cleanup.h"
 #include "absl/log/log.h"
-#include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/any.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"

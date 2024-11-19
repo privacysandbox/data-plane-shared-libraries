@@ -12,8 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <dirent.h>
 #include <fcntl.h>
 #include <signal.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -22,7 +24,6 @@
 #include <unistd.h>
 
 #include <filesystem>
-#include <optional>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -38,7 +39,6 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
@@ -107,9 +107,100 @@ int WorkerImpl(void* arg) {
   PCHECK(::snprintf(connection_fd, sizeof(connection_fd), "%d", rpc_fd) > 0);
 
   // Exec binary.
+  // Setting cmdline (argv[0]) to a value distinct from the binary path is
+  // unconventional but allows us to lookup the process by execution_token
+  // in `KillByCmdLine`.
   ::execl(worker_impl_arg.binary_path.data(),
-          worker_impl_arg.binary_path.data(), connection_fd, nullptr);
+          worker_impl_arg.execution_token.data(), connection_fd, nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
+}
+struct ReloaderImplArg {
+  std::string_view socket_name;
+  std::string_view code_token;
+  std::string_view binary_path;
+};
+
+int ReloaderImpl(void* arg) {
+  // Group workers with reloaders so they can be killed together.
+  PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
+  const ReloaderImplArg& reloader_impl_arg =
+      *static_cast<ReloaderImplArg*>(arg);
+  while (true) {
+    // Start a new worker.
+    const std::string execution_token =
+        ToString(google::scp::core::common::Uuid::GenerateUuid());
+    WorkerImplArg worker_impl_arg{
+        .execution_token = execution_token,
+        .socket_name = reloader_impl_arg.socket_name,
+        .code_token = reloader_impl_arg.code_token,
+        .binary_path = reloader_impl_arg.binary_path,
+    };
+
+    // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may
+    // hang or the process may receive SIGBUS (depending on the size of the
+    // stack before this function call). Overprovisions stack by at most 15
+    // bytes (of 2^10 bytes) where unneeded.
+    // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
+    alignas(16) char stack[1 << 20];
+    const int pid = ::clone(WorkerImpl, stack + sizeof(stack),
+                            CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
+    if (pid == -1) {
+      PLOG(ERROR) << "clone()";
+      break;
+    }
+
+    int status;
+    if (::waitpid(pid, &status, /*options=*/0) == -1) {
+      PLOG(INFO) << "waitpid()";
+    }
+    if (!WIFEXITED(status)) {
+      if (WIFSIGNALED(status)) {
+        LOG(INFO) << "Process pid=" << pid
+                  << " terminated (signal=" << WTERMSIG(status)
+                  << ", coredump=" << WCOREDUMP(status) << ")";
+      } else {
+        LOG(INFO) << "Process pid=" << pid << " did not exit";
+      }
+    } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
+      LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
+    }
+  }
+  return 0;
+}
+
+// The cmdline (`argv[0]`) of workers is set to the execution_token in the
+// `exec` call at the end of `WorkerImpl` so we can kill workers by
+// execution_token.
+void KillByCmdline(std::string_view cmdline) {
+  DIR* const dir = ::opendir("/proc");
+  if (dir == nullptr) {
+    PLOG(ERROR) << "Failed to open '/proc'";
+    return;
+  }
+  struct ::dirent* entry;
+  while ((entry = ::readdir(dir)) != nullptr) {
+    if (entry->d_type != DT_DIR) {
+      continue;
+    }
+    const int pid = ::atoi(entry->d_name);
+    if (pid <= 0) {
+      continue;
+    }
+    char cmdline_path[32];
+    ::snprintf(cmdline_path, sizeof(cmdline_path), "/proc/%d/cmdline", pid);
+    FILE* const cmdline_file = ::fopen(cmdline_path, "r");
+    if (cmdline_file == nullptr) {
+      continue;
+    }
+    char content[256] = {0};
+    (void)::fgets(content, sizeof(content), cmdline_file);
+    ::fclose(cmdline_file);
+    if (content == cmdline) {
+      ::kill(pid, SIGKILL);
+      break;
+    }
+  }
+  ::closedir(dir);
 }
 
 class WorkerRunner final : public WorkerRunnerService::Service {
@@ -119,25 +210,22 @@ class WorkerRunner final : public WorkerRunnerService::Service {
 
   ~WorkerRunner() {
     LOG(INFO) << "Shutting down.";
-    absl::MutexLock lock(&mu_);
-    active_code_token_to_pids_.clear();
 
     // Kill extant workers before exit.
-    for (const auto& [pid, _] : pid_to_execution_token_) {
-      if (::kill(pid, SIGKILL) == -1) {
-        // If the process has already terminated, degrade error to a log.
-        if (errno == ESRCH) {
-          PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
-        } else {
-          PLOG(ERROR) << "kill(" << pid << ", SIGKILL)";
+    for (const auto& [_, pids] : code_token_to_reloader_pids_) {
+      for (const int pid : pids) {
+        if (::killpg(pid, SIGKILL) == -1) {
+          // If the group has already terminated, degrade error to a log.
+          if (errno == ESRCH) {
+            PLOG(INFO) << "killpg(" << pid << ", SIGKILL)";
+          } else {
+            PLOG(ERROR) << "killpg(" << pid << ", SIGKILL)";
+          }
+        }
+        while (::waitpid(-pid, /*wstatus=*/nullptr, /*options=*/0) > 0) {
         }
       }
     }
-    auto fn = [&] {
-      mu_.AssertReaderHeld();
-      return code_token_to_thread_count_.empty();
-    };
-    mu_.Await(absl::Condition(&fn));
   }
 
   grpc::Status LoadBinary(grpc::ServerContext* /*context*/,
@@ -158,7 +246,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   grpc::Status Cancel(grpc::ServerContext* /*context*/,
                       const CancelRequest* request,
                       CancelResponse* /*response*/) ABSL_LOCKS_EXCLUDED(mu_) {
-    Cancel(request->execution_token());
+    KillByCmdline(request->execution_token());
     return grpc::Status::OK;
   }
 
@@ -167,103 +255,6 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     int pid;
     std::string execution_token;
   };
-
-  absl::StatusOr<PidAndExecutionToken> ConnectSendCloneAndExec(
-      std::string_view code_token, std::string_view binary_path) {
-    std::string execution_token =
-        ToString(google::scp::core::common::Uuid::GenerateUuid());
-    WorkerImplArg worker_impl_arg{
-        .execution_token = execution_token,
-        .socket_name = socket_name_,
-        .code_token = code_token,
-        .binary_path = binary_path,
-    };
-
-    // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may
-    // hang or the process may receive SIGBUS (depending on the size of the
-    // stack before this function call). Overprovisions stack by at most 15
-    // bytes (of 2^10 bytes) where unneeded.
-    // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
-    alignas(16) char stack[1 << 20];
-    const pid_t pid =
-        ::clone(WorkerImpl, stack + sizeof(stack),
-                CLONE_VM | CLONE_VFORK | SIGCHLD, &worker_impl_arg);
-    if (pid == -1) {
-      return absl::ErrnoToStatus(errno, "clone()");
-    }
-    return PidAndExecutionToken{
-        .pid = pid,
-        .execution_token = std::move(execution_token),
-    };
-  }
-
-  void ReloaderImpl(int pid, const std::string code_token,
-                    const std::string binary_path) ABSL_LOCKS_EXCLUDED(mu_) {
-    while (true) {
-      int status;
-      if (::waitpid(pid, &status, /*options=*/0) == -1) {
-        PLOG(INFO) << "waitpid()";
-      }
-      {
-        absl::MutexLock lock(&mu_);
-        pid_to_execution_token_.erase(pid);
-        if (const auto it = active_code_token_to_pids_.find(code_token);
-            it == active_code_token_to_pids_.end()) {
-          // Code token is no longer active. Initiate binary cleanup.
-          break;
-        } else {
-          it->second.erase(pid);
-        }
-      }
-      if (!WIFEXITED(status)) {
-        if (WIFSIGNALED(status)) {
-          LOG(INFO) << "Process pid=" << pid
-                    << " terminated (signal=" << WTERMSIG(status)
-                    << ", coredump=" << WCOREDUMP(status) << ")";
-        } else {
-          LOG(INFO) << "Process pid=" << pid << " did not exit";
-        }
-      } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
-        LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
-      }
-
-      // Start a new worker.
-      absl::StatusOr<PidAndExecutionToken> pid_and_execution_token =
-          ConnectSendCloneAndExec(code_token, binary_path);
-      if (!pid_and_execution_token.ok()) {
-        break;
-      }
-      pid = pid_and_execution_token->pid;
-      {
-        absl::MutexLock lock(&mu_);
-        pid_to_execution_token_[pid] =
-            std::move(pid_and_execution_token->execution_token);
-        if (const auto it = active_code_token_to_pids_.find(code_token);
-            it == active_code_token_to_pids_.end()) {
-          // Code token was deleted. Cleanup on next iteration.
-          if (::kill(pid, SIGKILL) == -1) {
-            PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
-          }
-        } else {
-          it->second.insert(pid);
-        }
-      }
-    }
-    const std::filesystem::path binary_dir =
-        std::filesystem::path(binary_path).parent_path();
-    absl::MutexLock lock(&mu_);
-    const auto it = code_token_to_thread_count_.find(code_token);
-    CHECK(it != code_token_to_thread_count_.end());
-
-    // Delete binary if this is the last worker for the code token.
-    if (--it->second == 0) {
-      if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
-                              static_cast<std::uintmax_t>(-1)) {
-        LOG(INFO) << "Failed to remove " << binary_dir.native() << ": " << ec;
-      }
-      code_token_to_thread_count_.erase(it);
-    }
-  }
 
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
     const std::filesystem::path binary_dir = progdir_ / request.code_token();
@@ -286,29 +277,22 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   }
 
   void Delete(std::string_view request_code_token) ABSL_LOCKS_EXCLUDED(mu_) {
-    // Kill all workers and mark for removal.
     absl::MutexLock lock(&mu_);
-    if (const auto it = active_code_token_to_pids_.find(request_code_token);
-        it != active_code_token_to_pids_.end()) {
+    if (const auto it = code_token_to_reloader_pids_.find(request_code_token);
+        it != code_token_to_reloader_pids_.end()) {
+      // Kill all workers and delete binary.
       for (const int pid : it->second) {
-        if (::kill(pid, SIGKILL) == -1) {
-          PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
+        if (::killpg(pid, SIGKILL) == -1) {
+          PLOG(INFO) << "killpg(" << pid << ", SIGKILL)";
+        }
+        while (::waitpid(-pid, /*wstatus=*/nullptr, /*options=*/0) > 0) {
         }
       }
-      active_code_token_to_pids_.erase(it);
-    }
-  }
-
-  void Cancel(std::string_view request_execution_token)
-      ABSL_LOCKS_EXCLUDED(mu_) {
-    // Kill the worker.
-    absl::MutexLock lock(&mu_);
-    for (const auto& [pid, execution_token] : pid_to_execution_token_) {
-      if (request_execution_token == execution_token) {
-        if (::kill(pid, SIGKILL) == -1) {
-          PLOG(INFO) << "kill(" << pid << ", SIGKILL)";
-        }
-        break;
+      code_token_to_reloader_pids_.erase(it);
+      const std::filesystem::path binary_dir = progdir_ / request_code_token;
+      if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
+                              static_cast<std::uintmax_t>(-1)) {
+        LOG(ERROR) << "Failed to remove " << binary_dir << ": " << ec;
       }
     }
   }
@@ -353,56 +337,36 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   }
 
   absl::Status CreateWorkerPool(std::filesystem::path binary_path,
-                                std::string code_token, const int num_workers)
+                                std::string_view code_token,
+                                const int num_workers)
       ABSL_LOCKS_EXCLUDED(mu_) {
     {
       absl::MutexLock lock(&mu_);
-      active_code_token_to_pids_[code_token].reserve(num_workers);
+      code_token_to_reloader_pids_[code_token].reserve(num_workers);
     }
-    for (int i = 0; i < num_workers - 1; ++i) {
-      PS_ASSIGN_OR_RETURN(
-          PidAndExecutionToken pid_and_execution_token,
-          ConnectSendCloneAndExec(code_token, binary_path.native()));
-      {
-        absl::MutexLock lock(&mu_);
-        active_code_token_to_pids_[code_token].insert(
-            pid_and_execution_token.pid);
-        pid_to_execution_token_[pid_and_execution_token.pid] =
-            std::move(pid_and_execution_token.execution_token);
-        ++code_token_to_thread_count_[code_token];
+    ReloaderImplArg reloader_impl_arg{
+        .socket_name = socket_name_,
+        .code_token = code_token,
+        .binary_path = binary_path.native(),
+    };
+    for (int i = 0; i < num_workers; ++i) {
+      alignas(16) char stack[1 << 20];
+      const pid_t pid = ::clone(ReloaderImpl, stack + sizeof(stack), SIGCHLD,
+                                &reloader_impl_arg);
+      if (pid == -1) {
+        return absl::ErrnoToStatus(errno, "clone()");
       }
-      std::thread(&WorkerRunner::ReloaderImpl, this,
-                  pid_and_execution_token.pid, code_token, binary_path)
-          .detach();
-    }
-
-    // Start n-th worker out of loop.
-    PS_ASSIGN_OR_RETURN(
-        PidAndExecutionToken pid_and_execution_token,
-        ConnectSendCloneAndExec(code_token, binary_path.native()));
-    {
       absl::MutexLock lock(&mu_);
-      active_code_token_to_pids_[code_token].insert(
-          pid_and_execution_token.pid);
-      pid_to_execution_token_[pid_and_execution_token.pid] =
-          std::move(pid_and_execution_token.execution_token);
-      ++code_token_to_thread_count_[code_token];
+      code_token_to_reloader_pids_[code_token].push_back(pid);
     }
-    std::thread(&WorkerRunner::ReloaderImpl, this, pid_and_execution_token.pid,
-                std::move(code_token), std::move(binary_path))
-        .detach();
     return absl::OkStatus();
   }
 
   const std::string socket_name_;
   const std::filesystem::path& progdir_;
   absl::Mutex mu_;
-  absl::flat_hash_map<int, std::string> pid_to_execution_token_
-      ABSL_GUARDED_BY(mu_);
-  absl::flat_hash_map<std::string, absl::flat_hash_set<int>>
-      active_code_token_to_pids_ ABSL_GUARDED_BY(mu_);
-  absl::flat_hash_map<std::string, int> code_token_to_thread_count_
-      ABSL_GUARDED_BY(mu_);
+  absl::flat_hash_map<std::string, std::vector<int>>
+      code_token_to_reloader_pids_ ABSL_GUARDED_BY(mu_);
 };
 
 ABSL_CONST_INIT absl::Mutex signal_mu{absl::kConstInit};
