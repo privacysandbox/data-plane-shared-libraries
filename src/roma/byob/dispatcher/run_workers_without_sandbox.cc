@@ -139,7 +139,8 @@ int main(int argc, char** argv) {
     return -1;
   }
   absl::Cleanup progdir_cleanup = [&progdir] {
-    if (std::error_code ec; !std::filesystem::remove_all(progdir, ec)) {
+    if (std::error_code ec; std::filesystem::remove_all(progdir, ec) ==
+                            static_cast<std::uintmax_t>(-1)) {
       LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
     }
   };
@@ -221,7 +222,8 @@ int main(int argc, char** argv) {
 
     // Delete binary if this is the last worker for the code token.
     if (--it->second == 0) {
-      if (std::error_code ec; !std::filesystem::remove_all(binary_dir, ec)) {
+      if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
+                              static_cast<std::uintmax_t>(-1)) {
         LOG(INFO) << "Failed to remove " << binary_dir.native() << ": " << ec;
       }
       code_token_to_thread_count.erase(it);

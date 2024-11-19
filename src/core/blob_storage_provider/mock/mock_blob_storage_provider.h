@@ -176,7 +176,8 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     std::string full_path =
         absl::StrCat(*delete_blob_context.request->bucket_name, "/",
                      *delete_blob_context.request->blob_name);
-    if (!std::filesystem::remove_all(full_path)) {
+    if (std::error_code ec; std::filesystem::remove_all(full_path, ec) ==
+                            static_cast<std::uintmax_t>(-1)) {
       delete_blob_context.Finish(FailureExecutionResult(
           errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND));
       return SuccessExecutionResult();
