@@ -18,6 +18,7 @@
 #include <memory>
 #include <utility>
 
+#include "absl/time/time.h"
 #include "grpc/grpc.h"
 #include "include/grpc/event_engine/event_engine.h"
 

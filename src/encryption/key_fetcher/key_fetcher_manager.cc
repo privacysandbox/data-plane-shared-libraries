@@ -20,6 +20,7 @@
 
 #include "absl/log/log.h"
 #include "absl/status/statusor.h"
+#include "absl/time/time.h"
 #include "src/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 #include "src/metric/key_fetch.h"

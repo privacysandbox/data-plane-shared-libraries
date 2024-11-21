@@ -19,6 +19,7 @@
 #include <thread>
 
 #include "absl/synchronization/blocking_counter.h"
+#include "absl/time/time.h"
 #include "include/v8.h"
 
 namespace google::scp::roma::worker {

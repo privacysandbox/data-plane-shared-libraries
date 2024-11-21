@@ -16,12 +16,8 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "executor_interface",
-    srcs = [
-        "executor.h",
-    ],
-    hdrs = [
-        "event_engine_executor.h",
-    ],
+    srcs = ["executor.h"],
+    hdrs = ["event_engine_executor.h"],
     visibility = ["//visibility:public"],
     deps = [
         "@com_github_grpc_grpc//:grpc++",
@@ -32,9 +28,7 @@ cc_library(
 cc_library(
     name = "executor",
     srcs = ["event_engine_executor.cc"],
-    hdrs = [
-        "event_engine_executor.h",
-    ],
+    hdrs = ["event_engine_executor.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":executor_interface",

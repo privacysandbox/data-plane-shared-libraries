@@ -23,6 +23,7 @@ cc_library(
         "//src/core/interface",
         "//src/core/interface:async_context",
         "//src/public/core/interface:execution_result",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest",
     ],
 )

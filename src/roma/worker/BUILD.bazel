@@ -16,12 +16,8 @@ load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
 cc_library(
     name = "execution_utils",
-    srcs = [
-        "execution_utils.cc",
-    ],
-    hdrs = [
-        "execution_utils.h",
-    ],
+    srcs = ["execution_utils.cc"],
+    hdrs = ["execution_utils.h"],
     visibility = [
         "//src/roma/sandbox/js_engine:__subpackages__",
     ],
@@ -53,6 +49,7 @@ cc_library(
         "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/base:nullability",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@v8//:v8_icu",
     ],
 )

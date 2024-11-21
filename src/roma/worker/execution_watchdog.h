@@ -23,6 +23,7 @@
 #include "absl/base/nullability.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/time/time.h"
 #include "include/v8.h"
 #include "src/util/duration.h"
 

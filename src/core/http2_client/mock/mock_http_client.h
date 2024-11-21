@@ -19,6 +19,7 @@
 
 #include <memory>
 
+#include "absl/time/time.h"
 #include "src/core/interface/http_client_interface.h"
 
 namespace google::scp::core::http2_client::mock {

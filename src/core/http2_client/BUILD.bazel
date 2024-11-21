@@ -18,9 +18,7 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
     name = "errors",
-    hdrs = [
-        "error_codes.h",
-    ],
+    hdrs = ["error_codes.h"],
     deps = [
         "//src/core/interface:errors",
     ],
@@ -55,6 +53,7 @@ cc_library(
         "@com_google_absl//absl/functional:bind_front",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
     ],
 )
 
@@ -62,9 +61,7 @@ cc_test(
     name = "http2_client_test",
     size = "small",
     timeout = "moderate",
-    srcs = [
-        "http2_client_test.cc",
-    ],
+    srcs = ["http2_client_test.cc"],
     deps = [
         ":http2_client",
         "//src/core/async_executor/mock:core_async_executor_mock",
@@ -84,9 +81,7 @@ cc_test(
     name = "http2_connection_test",
     size = "small",
     timeout = "moderate",
-    srcs = [
-        "http2_connection_test.cc",
-    ],
+    srcs = ["http2_connection_test.cc"],
     deps = [
         ":http2_client",
         "//src/core/async_executor/mock:core_async_executor_mock",
@@ -104,9 +99,7 @@ cc_test(
 cc_test(
     name = "http2_connection_pool_test",
     size = "small",
-    srcs = [
-        "http2_connection_pool_test.cc",
-    ],
+    srcs = ["http2_connection_pool_test.cc"],
     deps = [
         ":http2_client",
         "//src/core/async_executor/mock:core_async_executor_mock",

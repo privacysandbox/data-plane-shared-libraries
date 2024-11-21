@@ -20,10 +20,11 @@
 #include <memory>
 #include <string>
 
-#include "async_context.h"
-#include "http_types.h"
-#include "service_interface.h"
-#include "type_def.h"
+#include "absl/time/time.h"
+#include "src/core/interface/async_context.h"
+#include "src/core/interface/http_types.h"
+#include "src/core/interface/service_interface.h"
+#include "src/core/interface/type_def.h"
 
 namespace google::scp::core {
 inline constexpr absl::Duration kHttpRequestTimeout = absl::Seconds(60L);

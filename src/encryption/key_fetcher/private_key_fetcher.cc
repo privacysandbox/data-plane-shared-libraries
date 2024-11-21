@@ -26,6 +26,7 @@
 #include "absl/strings/substitute.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "proto/hpke.pb.h"
 #include "proto/tink.pb.h"
 #include "src/core/interface/errors.h"

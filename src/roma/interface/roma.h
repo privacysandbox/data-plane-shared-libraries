@@ -26,6 +26,7 @@
 #include "absl/container/flat_hash_map.h"
 #include "absl/functional/any_invocable.h"
 #include "absl/status/statusor.h"
+#include "absl/time/time.h"
 #include "src/roma/config/function_binding_object_v2.h"
 
 namespace google::scp::roma {

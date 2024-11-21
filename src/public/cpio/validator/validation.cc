@@ -34,6 +34,7 @@
 #include "absl/log/globals.h"
 #include "absl/log/initialize.h"
 #include "absl/log/log.h"
+#include "absl/time/time.h"
 #include "src/core/common/time_provider/time_provider.h"
 #include "src/cpio/client_providers/global_cpio/global_cpio.h"
 #include "src/cpio/client_providers/interface/cpio_provider_interface.h"

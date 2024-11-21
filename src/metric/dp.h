@@ -30,6 +30,7 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "algorithms/bounded-sum.h"
 #include "src/metric/definition.h"
 #include "src/telemetry/flag/telemetry_flag.h"

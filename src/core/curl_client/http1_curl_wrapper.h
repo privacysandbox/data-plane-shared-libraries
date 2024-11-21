@@ -22,6 +22,7 @@
 
 #include <curl/curl.h>
 
+#include "absl/time/time.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"
 #include "src/public/core/interface/execution_result.h"

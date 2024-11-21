@@ -32,6 +32,7 @@
 #include "absl/strings/numbers.h"
 #include "absl/strings/str_join.h"
 #include "absl/strings/string_view.h"
+#include "absl/time/time.h"
 #include "absl/types/span.h"
 #include "src/debug/debug-interface.h"
 #include "src/logger/request_context_logger.h"

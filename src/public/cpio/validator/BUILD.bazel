@@ -24,18 +24,14 @@ package(default_visibility = ["//src:scp_internal_pkg"])
 
 pkg_files(
     name = "init_server_enclave_execs",
-    srcs = [
-        ":init_server_enclave",
-    ],
+    srcs = [":init_server_enclave"],
     attributes = pkg_attributes(mode = "0555"),
     prefix = "/server/bin",
 )
 
 pkg_tar(
     name = "init_server_enclave_tar",
-    srcs = [
-        ":init_server_enclave_execs",
-    ],
+    srcs = [":init_server_enclave_execs"],
 )
 
 alias(
@@ -200,6 +196,7 @@ cc_binary(
         "@com_google_absl//absl/log:flags",
         "@com_google_absl//absl/log:globals",
         "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/time",
         "@com_google_protobuf//:protobuf",
     ],
 )

@@ -22,7 +22,8 @@
 #include <string>
 #include <vector>
 
-#include "metrics_recorder.h"
+#include "absl/time/time.h"
+#include "src/telemetry/metrics_recorder.h"
 
 namespace privacy_sandbox::server_common {
 

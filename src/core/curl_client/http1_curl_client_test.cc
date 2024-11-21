@@ -22,6 +22,7 @@
 
 #include "absl/log/check.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/curl_client/error_codes.h"
 #include "src/core/curl_client/http1_curl_wrapper.h"

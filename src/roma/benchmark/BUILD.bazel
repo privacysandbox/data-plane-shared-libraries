@@ -293,6 +293,7 @@ cc_binary(
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
         "@google_benchmark//:benchmark",
         "@nlohmann_json//:lib",
     ],

@@ -23,6 +23,7 @@
 
 #include <nghttp2/asio_http2_client.h>
 
+#include "absl/time/time.h"
 #include "src/core/common/concurrent_map/concurrent_map.h"
 #include "src/core/interface/async_context.h"
 #include "src/core/interface/async_executor_interface.h"

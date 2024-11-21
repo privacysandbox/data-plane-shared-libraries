@@ -101,6 +101,7 @@ cc_library(
         "@com_github_google_glog//:glog",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/status",
+        "@com_google_absl//absl/time",
         "@io_opentelemetry_cpp//sdk/src/metrics",
         "@io_opentelemetry_cpp//sdk/src/resource",
     ],
@@ -215,6 +216,7 @@ cc_library(
     visibility = ["//visibility:public"],
     deps = [
         ":metrics_recorder",
+        "@com_google_absl//absl/time",
         "@com_google_googletest//:gtest",
     ],
 )

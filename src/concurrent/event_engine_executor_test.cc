@@ -22,6 +22,7 @@
 #include <utility>
 
 #include "absl/time/clock.h"
+#include "absl/time/time.h"
 #include "src/concurrent/mocks.h"
 
 namespace privacy_sandbox::server_common {

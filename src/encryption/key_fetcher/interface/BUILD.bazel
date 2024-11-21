@@ -48,5 +48,6 @@ cc_library(
         ":private_key_fetcher_interface",
         ":public_key_fetcher_interface",
         "//src/concurrent:executor",
+        "@com_google_absl//absl/time",
     ],
 )
