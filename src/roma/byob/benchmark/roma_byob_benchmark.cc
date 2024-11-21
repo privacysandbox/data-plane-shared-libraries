@@ -584,6 +584,8 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
                         absl::StatusOr<std::string_view> logs) {
       bin_response = std::move(resp);
       if (enable_log_egress) {
+        // TODO(b/380273785): Find out why this check fails sometimes.
+        CHECK_OK(logs);
         CHECK(absl::StartsWith(*logs, "I am benchmark stderr log.")) << *logs;
       } else {
         CHECK(!logs.ok());
