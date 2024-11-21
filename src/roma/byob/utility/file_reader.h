@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_GVISOR_UTILITY_FILE_READER_H_
-#define SRC_ROMA_GVISOR_UTILITY_FILE_READER_H_
+#ifndef SRC_ROMA_BYOB_UTILITY_FILE_READER_H_
+#define SRC_ROMA_BYOB_UTILITY_FILE_READER_H_
 
 #include <filesystem>
 #include <memory>
@@ -72,4 +72,4 @@ class FileReader final {
 };
 }  // namespace privacy_sandbox::server_common::byob
 
-#endif  // SRC_ROMA_GVISOR_UTILITY_FILE_READER_H_
+#endif  // SRC_ROMA_BYOB_UTILITY_FILE_READER_H_

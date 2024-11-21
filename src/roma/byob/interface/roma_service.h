@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_GVISOR_INTERFACE_ROMA_SERVICE_H_
-#define SRC_ROMA_GVISOR_INTERFACE_ROMA_SERVICE_H_
+#ifndef SRC_ROMA_BYOB_INTERFACE_ROMA_SERVICE_H_
+#define SRC_ROMA_BYOB_INTERFACE_ROMA_SERVICE_H_
 
 #include <stdio.h>
 #include <sys/prctl.h>
@@ -277,4 +277,4 @@ class RomaService final {
 
 }  // namespace privacy_sandbox::server_common::byob
 
-#endif  // SRC_ROMA_GVISOR_INTERFACE_ROMA_SERVICE_H_
+#endif  // SRC_ROMA_BYOB_INTERFACE_ROMA_SERVICE_H_

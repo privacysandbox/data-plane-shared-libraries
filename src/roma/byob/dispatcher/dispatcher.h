@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_GVISOR_DISPATCHER_DISPATCHER_H_
-#define SRC_ROMA_GVISOR_DISPATCHER_DISPATCHER_H_
+#ifndef SRC_ROMA_BYOB_DISPATCHER_DISPATCHER_H_
+#define SRC_ROMA_BYOB_DISPATCHER_DISPATCHER_H_
 
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -134,4 +134,4 @@ class Dispatcher {
 };
 }  // namespace privacy_sandbox::server_common::byob
 
-#endif  // SRC_ROMA_GVISOR_DISPATCHER_DISPATCHER_H_
+#endif  // SRC_ROMA_BYOB_DISPATCHER_DISPATCHER_H_

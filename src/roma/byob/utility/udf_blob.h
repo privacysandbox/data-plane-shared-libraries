@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_GVISOR_UTILITY_UDF_BLOB_H_
-#define SRC_ROMA_GVISOR_UTILITY_UDF_BLOB_H_
+#ifndef SRC_ROMA_BYOB_UTILITY_UDF_BLOB_H_
+#define SRC_ROMA_BYOB_UTILITY_UDF_BLOB_H_
 
 #include <filesystem>
 #include <memory>
@@ -58,4 +58,4 @@ class UdfBlob final {
 };
 }  // namespace privacy_sandbox::server_common::byob
 
-#endif  // SRC_ROMA_GVISOR_UTILITY_UDF_BLOB_H_
+#endif  // SRC_ROMA_BYOB_UTILITY_UDF_BLOB_H_

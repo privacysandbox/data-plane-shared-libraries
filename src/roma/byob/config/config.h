@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
-#define SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
+#ifndef SRC_ROMA_BYOB_CONFIG_CONFIG_H_
+#define SRC_ROMA_BYOB_CONFIG_CONFIG_H_
 
 #include <cstdint>
 #include <string>
@@ -32,4 +32,4 @@ struct Config {
 };
 }  // namespace privacy_sandbox::server_common::byob
 
-#endif  // SRC_ROMA_GVISOR_CONFIG_CONFIG_H_
+#endif  // SRC_ROMA_BYOB_CONFIG_CONFIG_H_
