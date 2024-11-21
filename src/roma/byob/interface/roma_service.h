@@ -228,7 +228,7 @@ class RomaService final {
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, Request request, TMetadata /*metadata*/,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
-                              absl::StatusOr<std::string_view> logs) &&>
+                              absl::StatusOr<std::string_view>) &&>
           callback) {
     return dispatcher_->ProcessRequest(code_token, std::move(request),
                                        std::move(callback));
@@ -242,8 +242,8 @@ class RomaService final {
         code_token, std::move(request), std::move(metadata),
         [callback = std::move(callback)](
             absl::StatusOr<Response> response,
-            absl::StatusOr<std::string_view> logs) mutable {
-          std::move(callback)(response);
+            absl::StatusOr<std::string_view> /*logs*/) mutable {
+          std::move(callback)(std::move(response));
         });
   }
 
@@ -255,7 +255,7 @@ class RomaService final {
     return ProcessRequest<Response>(
         code_token, std::move(request), std::move(metadata),
         [&notif, &output](absl::StatusOr<Response> response,
-                          absl::StatusOr<std::string_view> logs) {
+                          absl::StatusOr<std::string_view> /*logs*/) {
           if (response.ok()) {
             output = std::make_unique<Response>(*std::move(response));
           } else {
