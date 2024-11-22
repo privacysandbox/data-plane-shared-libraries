@@ -19,7 +19,7 @@ load(
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
-GVISOR_VERSION = "20241104.0"
+GVISOR_VERSION = "20241118.0"
 
 def cc_utils():
     maybe(
@@ -66,7 +66,7 @@ def _gvisor_utils(version = GVISOR_VERSION):
         name = "gvisor_runsc_amd64",
         downloaded_file_path = "runsc",
         executable = True,
-        sha256 = "6c4ca2b1a0d207e4a9fa53213f2a9a7f664cb3405458fb64550dc50a62662537",
+        sha256 = "89dda1d8a02feb807da7e6a37e6194e526575fc1d5375014d9b173be0a5ba592",
         urls = ["{}/x86_64/runsc".format(release_url)],
     )
 
@@ -75,7 +75,7 @@ def _gvisor_utils(version = GVISOR_VERSION):
         name = "gvisor_runsc_arm64",
         downloaded_file_path = "runsc",
         executable = True,
-        sha256 = "e40d74987a65fa2369ab58060c3caac2759238922da1d6a9b4f4accfef9ec93f",
+        sha256 = "41b6729893be4bd2ff6275f096d44a71c316d22e3d16758cd6d0a9e641c3a513",
         urls = ["{}/aarch64/runsc".format(release_url)],
     )
 
