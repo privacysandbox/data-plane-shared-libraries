@@ -13,28 +13,44 @@
 # limitations under the License.
 
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
+cc_library(
+    name = "burst_generator",
+    srcs = ["burst_generator.cc"],
+    hdrs = ["burst_generator.h"],
+    deps = [
+        "//src/util:duration",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+    ],
+)
+
 cc_binary(
     name = "traffic_generator",
     srcs = ["traffic_generator.cc"],
     deps = [
+        ":burst_generator",
         "//src/roma/byob/config",
         "//src/roma/byob/interface:roma_service",
         "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
-        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/log:flags",
+        "@com_google_absl//absl/log:globals",
+        "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
-        "@nlohmann_json//:lib",
     ],
 )
 

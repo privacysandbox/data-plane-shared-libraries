@@ -21,9 +21,13 @@
 #include "absl/flags/parse.h"
 #include "absl/flags/usage.h"
 #include "absl/functional/any_invocable.h"
-#include "absl/status/status.h"
+#include "absl/log/globals.h"
+#include "absl/log/initialize.h"
+#include "absl/log/log.h"
+#include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/byob/benchmark/burst_generator.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/interface/roma_service.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
@@ -42,42 +46,22 @@ ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           "Run BYOB in sandbox mode.");
 
 const std::filesystem::path kUdfPath = "/udf/sample_udf";
-// Benchmark data with two columns. Success or not [1 or 0] and time taken to
-// get there.
-const std::filesystem::path kBenchmarkDataPath = "/data/benchmark.csv";
 
 namespace {
+
 using AppService = ::privacy_sandbox::server_common::byob::RomaService<>;
 using Config = ::privacy_sandbox::server_common::byob::Config<>;
 using Mode = ::privacy_sandbox::server_common::byob::Mode;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
-}  // namespace
 
-void SendBurst(AppService* roma_service, std::string_view code_token,
-               int query_number, int burst_size) {
-  for (int exec_count = 1; exec_count <= burst_size; exec_count++) {
-    SampleRequest request;
-    request.set_function(FUNCTION_HELLO_WORLD);
-    int execution_number = query_number * burst_size + exec_count;
-    absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
-        roma_service->ProcessRequest<SampleResponse>(
-            code_token, std::move(request),
-            google::scp::roma::DefaultMetadata(),
-            [execution_number](absl::StatusOr<SampleResponse> response) {
-              std::cout << "SUCCESS :" << execution_number << std::endl
-                        << std::flush;
-              CHECK_OK(response);
-            });
-    CHECK_OK(exec_token) << "FAIL   : " << execution_number << std::endl
-                         << std::flush;
-  }
-}
+}  // namespace
 
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
+  absl::InitializeLog();
+  absl::SetStderrThreshold(absl::LogSeverity::kInfo);
   const int num_workers = absl::GetFlag(FLAGS_num_workers);
   CHECK_GT(num_workers, 0);
   const int num_queries = absl::GetFlag(FLAGS_num_queries);
@@ -92,18 +76,26 @@ int main(int argc, char** argv) {
   absl::StatusOr<std::string> code_token =
       roma_service->LoadBinary(kUdfPath, num_workers);
   CHECK_OK(code_token);
-  // Adding a wait to make sure the workers are ready for work.
+  // Wait to make sure the workers are ready for work.
   absl::SleepFor(absl::Seconds(5));
 
-  // The qps will be a little lower because disregards the time it takes to send
-  // the burst. We can change this later by sleeping for
-  // interval_between_send_bursts - time taken to send the burst.
-  const absl::Duration interval_between_send_bursts =
-      absl::Seconds(1) / queries_per_second;
-  std::cout << "burst interval: " << interval_between_send_bursts << std::endl;
-  for (int query = 0; query < num_queries; query++) {
-    absl::SleepFor(interval_between_send_bursts);
-    SendBurst(roma_service.get(), *code_token, query, burst_size);
-  }
+  ::privacy_sandbox::roma_byob::example::SampleRequest request;
+  request.set_function(FUNCTION_HELLO_WORLD);
+
+  const auto rpc_func = [&roma_service, code_token = *code_token, &request]() {
+    absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
+        roma_service->ProcessRequest<SampleResponse>(
+            code_token, request, google::scp::roma::DefaultMetadata(),
+            [](absl::StatusOr<SampleResponse> response) {
+              CHECK_OK(response);
+            });
+    // CHECK_OK(exec_token) << "FAIL";
+  };
+  using ::privacy_sandbox::server_common::byob::BurstGenerator;
+  const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
+  BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
+                           rpc_func);
+  const BurstGenerator::Stats stats = burst_gen.Run();
+  LOG(INFO) << stats.ToString() << std::endl;
   return 0;
 }
