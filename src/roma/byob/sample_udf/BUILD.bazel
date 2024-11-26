@@ -157,6 +157,19 @@ cc_binary(
 )
 
 cc_binary(
+    name = "cap_udf",
+    srcs = ["cap_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_absl//absl/cleanup",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+        "@libcap",
+    ],
+)
+
+cc_binary(
     name = "pause_udf",
     srcs = ["pause_udf.cc"],
     visibility = ["//visibility:public"],
@@ -327,6 +340,7 @@ filegroup(
     srcs = [
         ":abort_early_udf",
         ":abort_late_udf",
+        ":cap_udf",
         ":log_benchmark_udf",
         ":log_udf",
         ":new_udf",

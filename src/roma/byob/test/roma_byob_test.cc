@@ -50,6 +50,7 @@ using ::privacy_sandbox::server_common::byob::Mode;
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
+const std::filesystem::path kCPlusPlusCapBinaryFilename = "cap_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
 const std::filesystem::path kCPlusPlusPauseBinaryFilename = "pause_udf";
@@ -423,6 +424,16 @@ TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
               ::testing::StrEq(kLogUdfOutput));
   EXPECT_THAT(response_and_logs.second,
               ::testing::StrEq("I am a stderr log.\n"));
+}
+
+TEST(RomaByobTest, VerifyNoCapabilities) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusCapBinaryFilename);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Empty capabilities' set as expected."));
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test
