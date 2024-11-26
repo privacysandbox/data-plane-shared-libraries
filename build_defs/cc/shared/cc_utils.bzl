@@ -15,11 +15,8 @@
 load(
     "@bazel_tools//tools/build_defs/repo:http.bzl",
     "http_archive",
-    "http_file",
 )
 load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
-
-GVISOR_VERSION = "20241118.0"
 
 def cc_utils():
     maybe(
@@ -59,26 +56,7 @@ def cc_utils():
 
     _gvisor_utils()
 
-def _gvisor_utils(version = GVISOR_VERSION):
-    release_url = "https://storage.googleapis.com/gvisor/releases/release/{}".format(version)
-    maybe(
-        http_file,
-        name = "gvisor_runsc_amd64",
-        downloaded_file_path = "runsc",
-        executable = True,
-        sha256 = "89dda1d8a02feb807da7e6a37e6194e526575fc1d5375014d9b173be0a5ba592",
-        urls = ["{}/x86_64/runsc".format(release_url)],
-    )
-
-    maybe(
-        http_file,
-        name = "gvisor_runsc_arm64",
-        downloaded_file_path = "runsc",
-        executable = True,
-        sha256 = "41b6729893be4bd2ff6275f096d44a71c316d22e3d16758cd6d0a9e641c3a513",
-        urls = ["{}/aarch64/runsc".format(release_url)],
-    )
-
+def _gvisor_utils():
     maybe(
         http_archive,
         name = "libcap",
