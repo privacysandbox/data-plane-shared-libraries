@@ -8,10 +8,13 @@
     "env": ["PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"],
     "cwd": "/",
     "capabilities": {
+      "ambient": [],
       "bounding": ["CAP_SETPCAP", "CAP_SYS_ADMIN"],
       "effective": ["CAP_SETPCAP", "CAP_SYS_ADMIN"],
+      "inheritable": [],
       "permitted": ["CAP_SETPCAP", "CAP_SYS_ADMIN"]
-    }
+    },
+    "noNewPrivileges": true
   },
   "hostname": "runsc",
   "linux": {
