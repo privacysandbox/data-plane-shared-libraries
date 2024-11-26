@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
@@ -43,33 +42,6 @@ pkg_files(
     for user in DISTROLESS_USERS
 ]
 
-write_file(
-    name = "runsc_dockerfile",
-    out = "Dockerfile.runsc",
-    content = ["""FROM ubuntu:22.04 AS build-gvisor
-ENV DEBIAN_FRONTEND="noninteractive"
-RUN apt-get update && apt-get --quiet install -y --no-install-recommends \
-  ca-certificates=20211016 \
-  clang="1:14.0-*" \
-  crossbuild-essential-amd64="12.9*" \
-  crossbuild-essential-arm64="12.9*" \
-  curl="7.81.*" \
-  git="1:2.34.*" \
-  libbpf-dev="1:0.5.0-*"
-# This package is needed to build eBPF on amd64, but not on arm64 where it
-# doesn't exist.
-RUN test "$(uname -m)" != x86_64 || apt-get install -y \
-  --no-install-recommends libc6-dev-i386="2.35-*"
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-# Download the official bazel binary. The APT repository isn't used because there is not packages for arm64.
-RUN sh -c 'curl -o /usr/local/bin/bazel https://releases.bazel.build/7.3.2/release/bazel-7.3.2-linux-$(uname -m | sed s/aarch64/arm64/) && chmod ugo+x /usr/local/bin/bazel'
-RUN git clone https://github.com/google/gvisor.git /workspace/gvisor \
-  && git -C /workspace/gvisor checkout 2267c24a41986e12cc72d136b9d6cc4ebaa2f927
-WORKDIR /workspace/gvisor
-RUN /usr/local/bin/bazel build //runsc && cp /workspace/gvisor/bazel-bin/runsc/runsc_/runsc /usr/bin/
-"""],
-)
-
 genrule(
     name = "runsc_bin",
     srcs = [":Dockerfile.runsc"],
@@ -78,10 +50,11 @@ genrule(
 DOCKER_FILE_DIR="$$(mktemp --directory)"
 cp $(execpath :Dockerfile.runsc) "$$DOCKER_FILE_DIR"
 DOCKER_FILE=$$DOCKER_FILE_DIR/Dockerfile.runsc
-docker build -t gvisor-runsc-cli -f $$DOCKER_FILE $$DOCKER_FILE_DIR
+docker build -t gvisor-runsc-cli -f "$$DOCKER_FILE" "$$DOCKER_FILE_DIR"
 CONTAINER_ID=$$(docker create gvisor-runsc-cli)
-docker cp $$CONTAINER_ID:/usr/bin/runsc $@
-docker rm $$CONTAINER_ID
+docker cp "$$CONTAINER_ID":/usr/bin/runsc $@
+docker rm "$$CONTAINER_ID"
+rm -rf "$$DOCKER_FILE_DIR"
 """,
 )
 

@@ -1,0 +1,38 @@
+FROM ubuntu:22.04
+
+ENV DEBIAN_FRONTEND="noninteractive"
+
+RUN apt-get update && apt-get --quiet install -y --no-install-recommends \
+  ca-certificates=20211016 \
+  clang="1:14.0-*" \
+  crossbuild-essential-amd64="12.9*" \
+  crossbuild-essential-arm64="12.9*" \
+  curl="7.81.*" \
+  git="1:2.34.*" \
+  libbpf-dev="1:0.5.0-*" \
+  unzip="6.0-*"
+
+# This package is needed to build eBPF on amd64, but not on arm64 where it
+# doesn't exist.
+RUN test "$(uname -m)" != x86_64 || apt-get install -y \
+  --no-install-recommends libc6-dev-i386="2.35-*"
+
+RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Download the official bazel binary. The APT repository isn't used because there is not packages for arm64.
+RUN curl -o /usr/local/bin/bazel \
+  https://releases.bazel.build/7.3.2/release/bazel-7.3.2-linux-$(uname -m | sed s/aarch64/arm64/) \
+  && chmod ugo+x /usr/local/bin/bazel
+
+WORKDIR /workspace
+
+ARG GVISOR_COMMIT=2267c24a41986e12cc72d136b9d6cc4ebaa2f927
+RUN curl -L "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" --output gvisor.zip && \
+  unzip gvisor.zip && \
+  mv "gvisor-${GVISOR_COMMIT}/" /workspace/gvisor/ && \
+  rm -rf "gvisor-${GVISOR_COMMIT}/" gvisor.zip
+
+WORKDIR /workspace/gvisor
+
+RUN /usr/local/bin/bazel build //runsc \
+  && cp /workspace/gvisor/bazel-bin/runsc/runsc_/runsc /usr/bin/
