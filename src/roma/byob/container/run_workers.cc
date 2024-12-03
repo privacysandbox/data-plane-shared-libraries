@@ -369,7 +369,7 @@ class WorkerRunner final {
     const pid_t pid =
         ::clone(WorkerImpl, stack + sizeof(stack),
                 CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |
-                    CLONE_NEWUTS | CLONE_NEWNS,
+                    CLONE_NEWUTS | CLONE_NEWNS | CLONE_NEWUSER,
                 &worker_impl_arg);
     if (pid == -1) {
       if (std::error_code ec; !std::filesystem::remove(pivot_root_dir, ec)) {
