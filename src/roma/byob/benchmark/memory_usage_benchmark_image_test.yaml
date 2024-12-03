@@ -39,8 +39,8 @@ commandTests:
       - 1
       - --sort_list_udf
       - 10k
-      - --run_duration
-      - 10s
+      - --execute_iterations
+      - 10
     exitCode: 0
 
   - name: events stats 100k
@@ -50,8 +50,8 @@ commandTests:
       - 1
       - --sort_list_udf
       - 100k
-      - --run_duration
-      - 10s
+      - --execute_iterations
+      - 10
     exitCode: 0
 
   - name: events stats 1m
@@ -61,6 +61,6 @@ commandTests:
       - 1
       - --sort_list_udf
       - 1m
-      - --run_duration
-      - 10s
+      - --execute_iterations
+      - 10
     exitCode: 0

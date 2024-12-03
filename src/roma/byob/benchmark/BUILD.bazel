@@ -96,7 +96,7 @@ pkg_files(
 
 # builders/tools/bazel-debian build //src/roma/byob/benchmark:memory_usage_benchmark_root_image.tar
 # docker load -i bazel-bin/src/roma/byob/benchmark/memory_usage_benchmark_root_image_tar/tarball.tar
-# docker run --privileged --volume="${PWD}/src/experimental/${USER}":/data privacy-sandbox/roma-byob/memory_usage_benchmark:v1-root --num_workers 10 --run_duration 10m --output=/data/output.csv
+# docker run --privileged --volume="${PWD}"/dist:/data privacy-sandbox/roma-byob/memory_usage_benchmark:v1-root --num_workers 10 --execute_iterations 10 --output=/data/output.csv
 [
     roma_byob_image(
         name = "memory_usage_benchmark_{}_image".format(user.flavor),

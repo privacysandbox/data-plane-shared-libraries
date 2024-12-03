@@ -37,13 +37,12 @@
 enum class SortListUdf { k10K, k100K, k1M };
 
 ABSL_FLAG(std::optional<int>, num_workers, std::nullopt,
-          "the number of workers");
-ABSL_FLAG(int, n_loads, 1, "number of times to load binary");
-ABSL_FLAG(absl::Duration, run_duration, absl::ZeroDuration(),
-          "length of time to run execute");
+          "Number of pre-created workers");
+ABSL_FLAG(int, load_iterations, 1, "Number of times to load binary");
+ABSL_FLAG(int, execute_iterations, 1, "Number of times to execute binary");
 ABSL_FLAG(SortListUdf, sort_list_udf, SortListUdf::k10K,
-          "which sort list UDF to run");
-ABSL_FLAG(std::string, output, "", "where to save memory usage");
+          "Which sort list UDF to run");
+ABSL_FLAG(std::string, output, "", "Where to save memory usage");
 
 namespace {
 using ::privacy_sandbox::roma_byob::example::ByobSampleService;
@@ -128,9 +127,9 @@ int main(int argc, char** argv) {
                                   num_workers = *num_workers] {
     absl::StatusOr<std::string> code_token;
     const SortListUdf sort_list_udf = absl::GetFlag(FLAGS_sort_list_udf);
-    const int n_loads = absl::GetFlag(FLAGS_n_loads);
-    CHECK_GT(n_loads, 0);
-    for (int i = 0; i < n_loads; ++i) {
+    const int load_iterations = absl::GetFlag(FLAGS_load_iterations);
+    CHECK_GT(load_iterations, 0);
+    for (int i = 0; i < load_iterations; ++i) {
       absl::Notification done;
       absl::Status status;
       switch (sort_list_udf) {
@@ -156,23 +155,20 @@ int main(int argc, char** argv) {
     return *std::move(code_token);
   }();
   std::ofstream ofs(absl::GetFlag(FLAGS_output));
-  ofs << "n_iterations,nanoseconds,bytes\n";
-  const absl::Time start = absl::Now();
-  ofs << "0,0," << MemoryUsageInBytes() << "\n";
+  ofs << "iteration_number,bytes\n";
+  ofs << "0," << MemoryUsageInBytes() << "\n";
 
   // Run executions.
   SortListRequest request;
-  const absl::Duration run_duration = absl::GetFlag(FLAGS_run_duration);
-  int n_iterations = 0;
-  while (absl::Now() - start < run_duration) {
+  const int execute_iterations = absl::GetFlag(FLAGS_execute_iterations);
+  int iteration_number = 0;
+  while (iteration_number++ < execute_iterations) {
     absl::Notification done;
     absl::StatusOr<std::unique_ptr<SortListResponse>> response;
     CHECK_OK(sample_interface->SortList(done, request, response,
                                         /*metadata=*/{}, code_token));
     done.WaitForNotification();
-    ofs << ++n_iterations << ","
-        << absl::ToInt64Nanoseconds(absl::Now() - start) << ","
-        << MemoryUsageInBytes() << "\n";
+    ofs << iteration_number << "," << MemoryUsageInBytes() << "\n";
     CHECK_OK(response);
   }
   return 0;
