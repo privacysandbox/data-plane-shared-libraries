@@ -101,7 +101,7 @@ pkg_files(
     roma_byob_image(
         name = "memory_usage_benchmark_{}_image".format(user.flavor),
         container_structure_test_configs = [":memory_usage_benchmark_{}_image_test.yaml".format(user.flavor)],
-        debug = False,
+        debug = True,
         entrypoint = ["/server/bin/memory_usage_benchmark"],
         repo_tags = ["privacy-sandbox/roma-byob/memory_usage_benchmark:v1-{}".format(user.flavor)],
         tags = [
