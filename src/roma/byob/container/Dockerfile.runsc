@@ -1,38 +1,81 @@
-FROM ubuntu:22.04
+FROM golang:1.23.4-bookworm AS build-env
+ARG CLANG_VER=18
+ARG TARGETARCH
 
-ENV DEBIAN_FRONTEND="noninteractive"
-
-RUN apt-get update && apt-get --quiet install -y --no-install-recommends \
-  ca-certificates=20211016 \
-  clang="1:14.0-*" \
+# install clang and crossbuild
+ADD https://apt.llvm.org/llvm.sh /tmp/llvm.sh
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+  --mount=target=/var/cache/apt,type=cache,sharing=locked \
+  rm -f /etc/apt/apt.conf.d/docker-clean \
+  && apt-get update \
+  && apt-get --quiet install -y --no-install-recommends \
   crossbuild-essential-amd64="12.9*" \
   crossbuild-essential-arm64="12.9*" \
-  curl="7.81.*" \
-  git="1:2.34.*" \
-  libbpf-dev="1:0.5.0-*" \
-  unzip="6.0-*"
+  gnupg="2.2.*" \
+  libbpf-dev="1:1.1.0-*" \
+  "$(test "${TARGETARCH}" = amd64 && echo libc6-dev-i386="2.36-*" || true)" \
+  lsb-release="12.0-*" \
+  software-properties-common="0.99.*" \
+  unzip="6.0-*" \
+  wget="1.21.*" \
+  && chmod +x /tmp/llvm.sh \
+  && /tmp/llvm.sh ${CLANG_VER} \
+  && apt-get --quiet install -y --no-install-recommends \
+  libc++-${CLANG_VER}-dev \
+  libc++abi-${CLANG_VER}-dev \
+  libclang-${CLANG_VER}-dev \
+  && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${CLANG_VER} 100 \
+  && update-alternatives --install /usr/bin/lldb lldb /usr/bin/lldb-${CLANG_VER} 100 \
+  && update-alternatives --install /usr/bin/lld lld /usr/bin/lld-${CLANG_VER} 100 \
+  && update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${CLANG_VER} 100 \
+  && rm -f /tmp/llvm.sh
 
-# This package is needed to build eBPF on amd64, but not on arm64 where it
-# doesn't exist.
-RUN test "$(uname -m)" != x86_64 || apt-get install -y \
-  --no-install-recommends libc6-dev-i386="2.35-*"
+ENV \
+  CC=/usr/bin/clang \
+  CXX=/usr/bin/clang++ \
+  BAZEL_CXXOPTS=-stdlib=libc++ \
+  BAZEL_LINKOPTS=-lc++:-lm \
+  GOPATH=/opt/go \
+  TZ=Etc/UTC \
+  WORKSPACE=/workspace \
+  BAZEL_ROOT=/bazel_root
 
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
+# install bazelisk
+ARG BAZELISK_VERSION=1.24.1
+COPY --chmod=555 generate_system_bazelrc /tmp
+RUN --mount=type=cache,target=/go/pkg/mod \
+  --mount=type=cache,target=/root/.cache/go-build \
+  go install github.com/bazelbuild/bazelisk@v${BAZELISK_VERSION} \
+  && ln -s ${GOPATH}/bin/bazelisk /usr/local/bin/bazel
+RUN /tmp/generate_system_bazelrc && rm -f /tmp/generate_system_bazelrc
 
-# Download the official bazel binary. The APT repository isn't used because there is not packages for arm64.
-RUN curl -o /usr/local/bin/bazel \
-  https://releases.bazel.build/7.3.2/release/bazel-7.3.2-linux-$(uname -m | sed s/aarch64/arm64/) \
-  && chmod ugo+x /usr/local/bin/bazel
+#
+# fetch gvisor sources
+#
+FROM build-env as gvisor-srcs
+ARG GVISOR_COMMIT=b92307b4e648ce8bbb6d0080ff8f9366f014c21e
+RUN curl --silent --location --output /tmp/gvisor.zip "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" \
+  && unzip -q /tmp/gvisor.zip -d /workspace \
+  && mv "/workspace/gvisor-${GVISOR_COMMIT}/" /workspace/gvisor/ \
+  && rm --force /tmp/gvisor.zip
 
-WORKDIR /workspace
-
-ARG GVISOR_COMMIT=2267c24a41986e12cc72d136b9d6cc4ebaa2f927
-RUN curl -L "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" --output gvisor.zip && \
-  unzip gvisor.zip && \
-  mv "gvisor-${GVISOR_COMMIT}/" /workspace/gvisor/ && \
-  rm -rf "gvisor-${GVISOR_COMMIT}/" gvisor.zip
-
+#
+# build runsc
+#
+FROM gvisor-srcs AS runsc-build
 WORKDIR /workspace/gvisor
+RUN --mount=type=cache,target=/root/.cache/bazel \
+  --mount=type=cache,target=/bazel_root/gvisor_build \
+  bazel build \
+  --cache_test_results=no \
+  --curses=no \
+  --progress_report_interval=10 \
+  --show_progress_rate_limit=10 \
+  //runsc \
+  && cp /workspace/gvisor/bazel-bin/runsc/runsc_/runsc /tmp
 
-RUN /usr/local/bin/bazel build //runsc \
-  && cp /workspace/gvisor/bazel-bin/runsc/runsc_/runsc /usr/bin/
+#
+# export the runsc binary
+#
+FROM scratch AS runsc-binary
+COPY --from=runsc-build /tmp/runsc /

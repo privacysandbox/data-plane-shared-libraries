@@ -44,17 +44,14 @@ pkg_files(
 
 genrule(
     name = "runsc_bin",
-    srcs = [":Dockerfile.runsc"],
+    srcs = [
+        ":Dockerfile.runsc",
+        ":generate_system_bazelrc",
+    ],
     outs = ["runsc"],
     cmd_bash = """set -o errexit
-DOCKER_FILE_DIR="$$(mktemp --directory)"
-cp $(execpath :Dockerfile.runsc) "$$DOCKER_FILE_DIR"
-DOCKER_FILE=$$DOCKER_FILE_DIR/Dockerfile.runsc
-docker build -t gvisor-runsc-cli -f "$$DOCKER_FILE" "$$DOCKER_FILE_DIR"
-CONTAINER_ID=$$(docker create gvisor-runsc-cli)
-docker cp "$$CONTAINER_ID":/usr/bin/runsc $@
-docker rm "$$CONTAINER_ID"
-rm -rf "$$DOCKER_FILE_DIR"
+cp $(SRCS) "$(RULEDIR)"
+docker buildx build --progress plain --target runsc-binary --output="$(RULEDIR)" --file="$(RULEDIR)"/Dockerfile.runsc "$(RULEDIR)"
 """,
 )
 
