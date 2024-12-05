@@ -18,32 +18,28 @@
 #define ENCRYPTION_KEY_FETCHER_KEY_FETCHER_MANAGER_H_
 
 #include <memory>
+#include <optional>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
-#include "src/concurrent/executor.h"
 #include "src/encryption/key_fetcher/interface/key_fetcher_manager_interface.h"
 #include "src/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
-#include "src/public/cpio/interface/type_def.h"
+#include "src/util/periodic_closure.h"
 
 namespace privacy_sandbox::server_common {
 
-// Implementation of KeyFetcherManagerInterface that runs a background task that
-// will periodically wake to fetch and maintain the latest public and private
-// keys through its public and private key fetchers.
+// Implementation of KeyFetcherManagerInterface that orchestrates fetching and
+// managing encryption keys.
 class KeyFetcherManager : public KeyFetcherManagerInterface {
  public:
   KeyFetcherManager(
       absl::Duration key_refresh_period,
-      std::unique_ptr<privacy_sandbox::server_common::PublicKeyFetcherInterface>
-          public_key_fetcher,
-      std::unique_ptr<
-          privacy_sandbox::server_common::PrivateKeyFetcherInterface>
-          private_key_fetcher,
-      std::shared_ptr<privacy_sandbox::server_common::Executor> executor,
+      std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
+      std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
       privacy_sandbox::server_common::log::PSLogContext& log_context =
           const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
               privacy_sandbox::server_common::log::kNoOpContext));
@@ -54,13 +50,12 @@ class KeyFetcherManager : public KeyFetcherManagerInterface {
 
   // Begins the (endlessly running) background thread that periodically wakes to
   // trigger the key fetchers to refresh their key caches.
-  void Start() noexcept override;
+  absl::Status Start() noexcept override;
 
   // Fetches a public key used for encrypting outgoing requests.
   absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
   GetPublicKey(CloudPlatform cloud_platform) noexcept override;
 
-  // Fetches the corresponding private key for a given key ID.
   std::optional<privacy_sandbox::server_common::PrivateKey> GetPrivateKey(
       const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept
       override;
@@ -68,24 +63,16 @@ class KeyFetcherManager : public KeyFetcherManagerInterface {
  private:
   void RunPeriodicKeyRefresh();
 
-  // How often to wake the background thread to run the key refresh logic.
+  // How often to refresh encryption keys.
   absl::Duration key_refresh_period_;
 
-  std::shared_ptr<privacy_sandbox::server_common::Executor> executor_;
+  std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher_;
+  std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher_;
 
-  std::unique_ptr<privacy_sandbox::server_common::PublicKeyFetcherInterface>
-      public_key_fetcher_;
-  std::unique_ptr<privacy_sandbox::server_common::PrivateKeyFetcherInterface>
-      private_key_fetcher_;
-
-  // Synchronizes the status of shutdown for destructor and execution loop.
-  absl::Notification shutdown_requested_;
-
-  // Identifier for the next, queued up key refresh task on the executor.
-  TaskId task_id_;
-
-  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging.
   privacy_sandbox::server_common::log::PSLogContext& log_context_;
+
+  std::unique_ptr<PeriodicClosure> key_refresh_closure_;
 };
 
 }  // namespace privacy_sandbox::server_common

@@ -21,7 +21,6 @@
 
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
-#include "src/concurrent/executor.h"
 #include "src/encryption/key_fetcher/interface/private_key_fetcher_interface.h"
 #include "src/encryption/key_fetcher/interface/public_key_fetcher_interface.h"
 #include "src/public/cpio/interface/public_key_client/public_key_client_interface.h"
@@ -45,21 +44,21 @@ class KeyFetcherManagerInterface {
   virtual std::optional<PrivateKey> GetPrivateKey(
       const google::scp::cpio::PublicPrivateKeyPairId& key_id) noexcept = 0;
 
-  // Queues key refresh jobs on the class' executor as often as defined by
-  // 'key_refresh_period'.
-  virtual void Start() noexcept = 0;
+  // Queues key refresh jobs as often as defined by 'key_refresh_period'. The
+  // returned status indicates whether the *initial* key fetching is successful
+  // and can be used to determine if a server can accept traffic on startup.
+  // TODO: Expose a way to get changes in status of whether the server has the
+  // latest encryption keys and should be accepting client traffic.
+  virtual absl::Status Start() noexcept = 0;
 };
 
 // Factory to create KeyFetcherManager.
 class KeyFetcherManagerFactory {
  public:
-  // Creates a KeyFetcherManager given the Public and Private Key Fetchers and
-  // an executor on which to run the periodic background key refresh job.
   static std::unique_ptr<KeyFetcherManagerInterface> Create(
       absl::Duration key_refresh_period,
       std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
       std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-      std::shared_ptr<Executor> executor,
       privacy_sandbox::server_common::log::PSLogContext& log_context =
           const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
               privacy_sandbox::server_common::log::kNoOpContext));

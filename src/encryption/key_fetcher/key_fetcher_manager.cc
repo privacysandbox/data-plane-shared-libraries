@@ -14,9 +14,9 @@
 
 #include "src/encryption/key_fetcher/key_fetcher_manager.h"
 
+#include <string>
 #include <thread>
 #include <utility>
-#include <vector>
 
 #include "absl/log/log.h"
 #include "absl/status/statusor.h"
@@ -28,6 +28,49 @@
 
 namespace privacy_sandbox::server_common {
 
+namespace {
+
+absl::Status MergeStatuses(absl::Status&& status1, absl::Status&& status2) {
+  if (!status1.ok() && !status2.ok()) {
+    std::string combined_message = absl::StrCat(
+        "Multiple errors: ", status1.message(), "; ", status2.message());
+    return absl::Status(absl::StatusCode::kInternal, combined_message);
+  }
+
+  status1.Update(status2);
+  return status1;
+}
+
+absl::Status RefreshKeys(PublicKeyFetcherInterface* public_key_fetcher,
+                         PrivateKeyFetcherInterface* private_key_fetcher) {
+  absl::Status key_fetch_result = absl::OkStatus();
+
+  if (public_key_fetcher) {
+    key_fetch_result = public_key_fetcher->Refresh();
+    if (!key_fetch_result.ok()) {
+      KeyFetchResultCounter::IncrementPublicKeyFetchSyncFailureCount();
+      key_fetch_result = absl::Status(
+          key_fetch_result.code(), absl::StrCat("Public key refresh failed: ",
+                                                key_fetch_result.message()));
+    }
+  }
+
+  absl::Status private_key_refresh_status = private_key_fetcher->Refresh();
+  if (!private_key_refresh_status.ok()) {
+    KeyFetchResultCounter::IncrementPrivateKeyFetchSyncFailureCount();
+    private_key_refresh_status =
+        absl::Status(private_key_refresh_status.code(),
+                     absl::StrCat("Private key refresh failed: ",
+                                  private_key_refresh_status.message()));
+    key_fetch_result = MergeStatuses(std::move(key_fetch_result),
+                                     std::move(private_key_refresh_status));
+  }
+
+  return key_fetch_result;
+}
+
+}  // namespace
+
 using ::google::cmrt::sdk::public_key_service::v1::PublicKey;
 using ::google::scp::cpio::PublicPrivateKeyPairId;
 using ::privacy_sandbox::server_common::PrivateKeyFetcherInterface;
@@ -36,52 +79,38 @@ using ::privacy_sandbox::server_common::PublicKeyFetcherInterface;
 // @param key_refresh_period how often the key refresh flow is to be run.
 // @public_key_fetcher client for interacting with the Public Key Service
 // @private_key_fetcher client for interacting with the Private Key Service
-// @executor executor on which the key refresh tasks will run.
 KeyFetcherManager::KeyFetcherManager(
     absl::Duration key_refresh_period,
     std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
     std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-    std::shared_ptr<privacy_sandbox::server_common::Executor> executor,
     privacy_sandbox::server_common::log::PSLogContext& log_context)
     : key_refresh_period_(key_refresh_period),
-      executor_(std::move(executor)),
       public_key_fetcher_(std::move(public_key_fetcher)),
       private_key_fetcher_(std::move(private_key_fetcher)),
-      log_context_(log_context) {}
+      log_context_(log_context),
+      key_refresh_closure_(PeriodicClosure::Create()) {}
 
-KeyFetcherManager::~KeyFetcherManager() {
-  shutdown_requested_.Notify();
-  // Cancel the next queued up key refresh task.
-  executor_->Cancel(std::move(task_id_));
+KeyFetcherManager::~KeyFetcherManager() { key_refresh_closure_->Stop(); }
+
+absl::Status KeyFetcherManager::Start() noexcept {
+  absl::Status key_fetch_status =
+      RefreshKeys(public_key_fetcher_.get(), private_key_fetcher_.get());
+  if (!key_fetch_status.ok()) {
+    PS_LOG(ERROR, log_context_)
+        << "Initial key fetch failed: " << key_fetch_status;
+    return key_fetch_status;
+  }
+
+  (void)key_refresh_closure_->StartDelayed(
+      key_refresh_period_, [this]() { RunPeriodicKeyRefresh(); });
+  return absl::OkStatus();
 }
 
-void KeyFetcherManager::Start() noexcept { RunPeriodicKeyRefresh(); }
-
 void KeyFetcherManager::RunPeriodicKeyRefresh() {
-  // Queue up another key refresh task.
-  task_id_ = executor_->RunAfter(key_refresh_period_,
-                                 [this]() { RunPeriodicKeyRefresh(); });
-
-  if (!shutdown_requested_.HasBeenNotified()) {
-    if (public_key_fetcher_) {
-      absl::Status public_key_refresh_status = public_key_fetcher_->Refresh();
-      if (!public_key_refresh_status.ok()) {
-        KeyFetchResultCounter::IncrementPublicKeyFetchSyncFailureCount();
-        PS_LOG(ERROR, log_context_) << "Public key refresh failed: "
-                                    << public_key_refresh_status.message();
-      }
-    }
-
-    absl::Status private_key_refresh_status = private_key_fetcher_->Refresh();
-    if (!private_key_refresh_status.ok()) {
-      KeyFetchResultCounter::IncrementPrivateKeyFetchSyncFailureCount();
-      PS_LOG(ERROR, log_context_)
-          << "Private key refresh failed: " << private_key_refresh_status;
-    }
-  } else {
-    PS_LOG(ERROR, log_context_)
-        << "Shutdown requested; skipping run of KeyFetcherManager's key "
-           "refresh flow.";
+  absl::Status key_fetch_status =
+      RefreshKeys(public_key_fetcher_.get(), private_key_fetcher_.get());
+  if (!key_fetch_status.ok()) {
+    PS_LOG(ERROR, log_context_) << key_fetch_status;
   }
 }
 
@@ -99,11 +128,10 @@ std::unique_ptr<KeyFetcherManagerInterface> KeyFetcherManagerFactory::Create(
     absl::Duration key_refresh_period,
     std::unique_ptr<PublicKeyFetcherInterface> public_key_fetcher,
     std::unique_ptr<PrivateKeyFetcherInterface> private_key_fetcher,
-    std::shared_ptr<privacy_sandbox::server_common::Executor> executor,
     privacy_sandbox::server_common::log::PSLogContext& log_context) {
   return std::make_unique<KeyFetcherManager>(
       key_refresh_period, std::move(public_key_fetcher),
-      std::move(private_key_fetcher), std::move(executor), log_context);
+      std::move(private_key_fetcher), log_context);
 }
 
 }  // namespace privacy_sandbox::server_common

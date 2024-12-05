@@ -31,7 +31,9 @@ FakeKeyFetcherManager::FakeKeyFetcherManager(std::string_view public_key,
   private_key_.private_key = absl::HexStringToBytes(private_key);
 }
 
-void FakeKeyFetcherManager::Start() noexcept {}
+absl::Status FakeKeyFetcherManager::Start() noexcept {
+  return absl::OkStatus();
+}
 
 // Fetches a public key used for encrypting outgoing requests.
 absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>

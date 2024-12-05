@@ -48,7 +48,7 @@ class FakeKeyFetcherManager : public KeyFetcherManagerInterface {
   FakeKeyFetcherManager& operator=(const FakeKeyFetcherManager&) = delete;
 
   // No-op.
-  void Start() noexcept override;
+  absl::Status Start() noexcept override;
 
   // Fetches hard coded public key.
   absl::StatusOr<google::cmrt::sdk::public_key_service::v1::PublicKey>
