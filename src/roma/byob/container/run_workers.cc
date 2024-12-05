@@ -577,15 +577,13 @@ int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
   LOG(INFO) << "Starting up.";
-  const std::filesystem::path progdir =
-      std::filesystem::temp_directory_path() /
-      ToString(google::scp::core::common::Uuid::GenerateUuid());
-  if (std::error_code ec; !std::filesystem::create_directories(progdir, ec)) {
-    LOG(ERROR) << "Failed to create " << progdir << ": " << ec;
+  const std::filesystem::path prog_dir = "/prog_dir";
+  if (std::error_code ec; !std::filesystem::create_directories(prog_dir, ec)) {
+    LOG(ERROR) << "Failed to create " << prog_dir << ": " << ec;
     return -1;
   }
-  absl::Cleanup progdir_cleanup = [&progdir] {
-    if (absl::Status status = RemoveDirectories(progdir); !status.ok()) {
+  absl::Cleanup progdir_cleanup = [&prog_dir] {
+    if (absl::Status status = RemoveDirectories(prog_dir); !status.ok()) {
       LOG(ERROR) << status;
     }
   };
@@ -596,7 +594,7 @@ int main(int argc, char** argv) {
   }
   WorkerRunner runner(absl::GetFlag(FLAGS_udf_socket_name),
                       absl::GetFlag(FLAGS_mounts), absl::GetFlag(FLAGS_log_dir),
-                      dev_null_fd, progdir);
+                      dev_null_fd, prog_dir);
   grpc::EnableDefaultHealthCheckService(true);
   std::unique_ptr<grpc::Server> server =
       grpc::ServerBuilder()
