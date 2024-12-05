@@ -30,7 +30,6 @@
 #include <limits>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <utility>
 #include <vector>
 
@@ -43,6 +42,7 @@
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
+#include "absl/container/flat_hash_set.h"
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
@@ -90,13 +90,24 @@ absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
   }
   return absl::OkStatus();
 }
+
+struct PivotRootData {
+  std::filesystem::path new_root_dir;
+  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+      mounts_source_and_target;
+};
+
+// WorkerImplArg contains references to objects whose lifetimes are managed
+// elsewhere. This is considered problematic. However, it is safe in this case
+// because worker clones are created with CLONE_VFORK and CLONE_VM flag. These
+// flags ensure that the calling process does not modify/delete the content
+// before the worker calls exec.
 struct WorkerImplArg {
-  absl::Span<const std::string> mounts;
+  const PivotRootData& pivot_root_data;
   std::string_view execution_token;
-  std::string_view pivot_root_dir;
   std::string_view socket_name;
   std::string_view code_token;
-  std::string_view binary_path;
+  const std::filesystem::path& binary_path;
   int dev_null_fd;
   bool enable_log_egress;
   std::string_view log_dir_name;
@@ -167,45 +178,35 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
           errno, absl::StrCat("Failed to open '", log_file_name.native(), "'"));
     }
   }
-
-  PS_RETURN_IF_ERROR(RemoveDirectories(worker_impl_arg.pivot_root_dir));
+  const PivotRootData& pivot_root_data = worker_impl_arg.pivot_root_data;
+  PS_RETURN_IF_ERROR(RemoveDirectories(pivot_root_data.new_root_dir));
   // Set up restricted filesystem for worker using pivot_root
   // pivot_root doesn't work under an MS_SHARED mount point.
   // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
   PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
-  for (const std::string& mount : worker_impl_arg.mounts) {
-    const std::string target =
-        absl::StrCat(worker_impl_arg.pivot_root_dir, mount);
+  for (const auto& [source, target] :
+       pivot_root_data.mounts_source_and_target) {
     PS_RETURN_IF_ERROR(CreateDirectories(target));
-    PS_RETURN_IF_ERROR(Mount(mount.c_str(), target.c_str(), nullptr, MS_BIND));
-  }
-  const std::string binary_dir =
-      std::filesystem::path(worker_impl_arg.binary_path).parent_path();
-  {
-    const std::string target =
-        absl::StrCat(worker_impl_arg.pivot_root_dir, binary_dir);
-    PS_RETURN_IF_ERROR(CreateDirectories(target));
-    PS_RETURN_IF_ERROR(
-        Mount(binary_dir.c_str(), target.c_str(), nullptr, MS_BIND));
+    PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
   }
 
   // MS_REC needed here to get other mounts (/lib, /lib64 etc)
-  PS_RETURN_IF_ERROR(Mount(worker_impl_arg.pivot_root_dir.data(),
-                           worker_impl_arg.pivot_root_dir.data(), "bind",
+  PS_RETURN_IF_ERROR(Mount(pivot_root_data.new_root_dir.c_str(),
+                           pivot_root_data.new_root_dir.c_str(), "bind",
                            MS_REC | MS_BIND));
-  PS_RETURN_IF_ERROR(Mount(worker_impl_arg.pivot_root_dir.data(),
-                           worker_impl_arg.pivot_root_dir.data(), "bind",
+  PS_RETURN_IF_ERROR(Mount(pivot_root_data.new_root_dir.c_str(),
+                           pivot_root_data.new_root_dir.c_str(), "bind",
                            MS_REC | MS_SLAVE));
   {
-    const std::string pivot_dir =
-        absl::StrCat(worker_impl_arg.pivot_root_dir, "/pivot");
+    const std::filesystem::path pivot_dir =
+        pivot_root_data.new_root_dir / "pivot";
     PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
-    if (::syscall(SYS_pivot_root, worker_impl_arg.pivot_root_dir.data(),
+    if (::syscall(SYS_pivot_root, pivot_root_data.new_root_dir.c_str(),
                   pivot_dir.c_str()) == -1) {
       return absl::ErrnoToStatus(
           errno, absl::StrCat("syscall(SYS_pivot_root, '",
-                              worker_impl_arg.pivot_root_dir, "', '", pivot_dir,
-                              "')"));
+                              pivot_root_data.new_root_dir.c_str(), "', '",
+                              pivot_dir.c_str(), "')"));
     }
   }
   if (::chdir("/") == -1) {
@@ -217,12 +218,10 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
   if (::rmdir("/pivot") == -1) {
     return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
   }
-  for (const std::string& mount : worker_impl_arg.mounts) {
+  for (const auto& [source, _] : pivot_root_data.mounts_source_and_target) {
     PS_RETURN_IF_ERROR(
-        Mount(mount.c_str(), mount.c_str(), nullptr, MS_REMOUNT | MS_BIND));
+        Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
   }
-  PS_RETURN_IF_ERROR(Mount(binary_dir.c_str(), binary_dir.c_str(), nullptr,
-                           MS_REMOUNT | MS_BIND));
   PS_RETURN_IF_ERROR(SetPrctlOptions({
       {PR_CAPBSET_DROP, CAP_SYS_ADMIN},
       {PR_CAPBSET_DROP, CAP_SETPCAP},
@@ -274,19 +273,39 @@ int WorkerImpl(void* arg) {
   // Setting cmdline (argv[0]) to a value distinct from the binary path is
   // unconventional but allows us to lookup the process by execution_token
   // in `KillByCmdLine`.
-  ::execl(worker_impl_arg.binary_path.data(),
+  ::execl(worker_impl_arg.binary_path.c_str(),
           worker_impl_arg.execution_token.data(), connection_fd, nullptr);
   PLOG(FATAL) << "exec '" << worker_impl_arg.binary_path << "' failed";
 }
 struct ReloaderImplArg {
-  absl::Span<const std::string> mounts;
-  std::string_view socket_name;
-  std::string_view code_token;
-  std::string_view binary_path;
+  std::vector<std::string> mounts;
+  std::string socket_name;
+  std::string code_token;
+  std::filesystem::path binary_path;
   int dev_null_fd;
   bool enable_log_egress;
-  std::string_view log_dir_name;
+  std::string log_dir_name;
 };
+
+PivotRootData GetPivotRootData(const std::filesystem::path& pivot_root_dir,
+                               absl::Span<const std::string> mounts_str,
+                               const std::filesystem::path& binary_path) {
+  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+      mounts_source_and_target;
+  for (const std::string& mount_str : mounts_str) {
+    std::filesystem::path target =
+        pivot_root_dir / std::filesystem::path(mount_str).relative_path();
+    mounts_source_and_target.push_back({mount_str, target});
+  }
+  const std::filesystem::path binary_dir = binary_path.parent_path();
+  const std::filesystem::path target =
+      pivot_root_dir / binary_dir.relative_path();
+  mounts_source_and_target.push_back({binary_dir, target});
+  return PivotRootData{
+      .new_root_dir = pivot_root_dir,
+      .mounts_source_and_target = mounts_source_and_target,
+  };
+}
 
 int ReloaderImpl(void* arg) {
   // Group workers with reloaders so they can be killed together.
@@ -296,19 +315,15 @@ int ReloaderImpl(void* arg) {
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
       CreateNewPivotRootDir();
   CHECK_OK(pivot_root_dir);
+  PivotRootData pivot_root_data = GetPivotRootData(
+      *pivot_root_dir, reloader_impl_arg.mounts, reloader_impl_arg.binary_path);
   while (true) {
-    if (absl::Status status = RemoveDirectories(*pivot_root_dir);
-        !status.ok()) {
-      LOG(ERROR) << status;
-    }
-
     // Start a new worker.
     const std::string execution_token =
         ToString(google::scp::core::common::Uuid::GenerateUuid());
     WorkerImplArg worker_impl_arg{
-        .mounts = reloader_impl_arg.mounts,
+        .pivot_root_data = pivot_root_data,
         .execution_token = execution_token,
-        .pivot_root_dir = pivot_root_dir->native(),
         .socket_name = reloader_impl_arg.socket_name,
         .code_token = reloader_impl_arg.code_token,
         .binary_path = reloader_impl_arg.binary_path,
@@ -538,8 +553,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     ReloaderImplArg reloader_impl_arg{
         .mounts = mounts_,
         .socket_name = socket_name_,
-        .code_token = code_token,
-        .binary_path = binary_path.native(),
+        .code_token = std::string(code_token),
+        .binary_path = std::move(binary_path),
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
         .log_dir_name = log_dir_name_,
