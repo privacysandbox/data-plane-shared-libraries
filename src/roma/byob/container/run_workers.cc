@@ -113,10 +113,27 @@ absl::Status SetPrctlOptions(
   return absl::OkStatus();
 }
 
+absl::StatusOr<std::string> CreateNewPivotRootDir() {
+  std::string pivot_root_dir = "/tmp/pivot_root_XXXXXX";
+  if (::mkdtemp(pivot_root_dir.data()) == nullptr) {
+    return absl::ErrnoToStatus(errno, "mkdtemp()");
+  }
+  return pivot_root_dir;
+}
+
 absl::Status CreateDirectories(const std::filesystem::path& path) {
   if (std::error_code ec; !std::filesystem::create_directories(path, ec)) {
     return absl::InternalError(
         absl::StrCat("Failed to create '", path.native(), "': ", ec.message()));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status RemoveDirectories(const std::filesystem::path& path) {
+  if (std::error_code ec; std::filesystem::remove_all(path, ec) ==
+                          static_cast<std::uintmax_t>(-1)) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to remove_all '", path.native(), "': ", ec.message()));
   }
   return absl::OkStatus();
 }
@@ -151,6 +168,7 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
     }
   }
 
+  PS_RETURN_IF_ERROR(RemoveDirectories(worker_impl_arg.pivot_root_dir));
   // Set up restricted filesystem for worker using pivot_root
   // pivot_root doesn't work under an MS_SHARED mount point.
   // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
@@ -315,19 +333,14 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   }
 
  private:
-  struct PidExecutionTokenAndPivotRootDir {
+  struct PidAndExecutionToken {
     int pid;
     std::string execution_token;
-    std::string pivot_root_dir;
   };
 
-  absl::StatusOr<PidExecutionTokenAndPivotRootDir> ConnectSendCloneAndExec(
+  absl::StatusOr<PidAndExecutionToken> ConnectSendCloneAndExec(
       std::string_view code_token, std::string_view binary_path,
-      const bool enable_log_egress) {
-    std::string pivot_root_dir = "/tmp/roma_app_server_XXXXXX";
-    if (::mkdtemp(pivot_root_dir.data()) == nullptr) {
-      return absl::ErrnoToStatus(errno, "mkdtemp()");
-    }
+      const bool enable_log_egress, std::string_view pivot_root_dir) {
     std::string execution_token =
         ToString(google::scp::core::common::Uuid::GenerateUuid());
     WorkerImplArg worker_impl_arg{
@@ -354,15 +367,11 @@ class WorkerRunner final : public WorkerRunnerService::Service {
                     CLONE_NEWUTS | CLONE_NEWNS | CLONE_NEWUSER,
                 &worker_impl_arg);
     if (pid == -1) {
-      if (std::error_code ec; !std::filesystem::remove(pivot_root_dir, ec)) {
-        LOG(ERROR) << "Failed to remove " << pivot_root_dir << ": " << ec;
-      }
       return absl::ErrnoToStatus(errno, "clone()");
     }
-    return PidExecutionTokenAndPivotRootDir{
+    return PidAndExecutionToken{
         .pid = pid,
         .execution_token = std::move(execution_token),
-        .pivot_root_dir = std::move(pivot_root_dir),
     };
   }
 
@@ -398,23 +407,17 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       }
 
       // Start a new worker.
-      absl::StatusOr<PidExecutionTokenAndPivotRootDir>
-          pid_execution_token_and_pivot_root_dir = ConnectSendCloneAndExec(
-              code_token, binary_path, enable_log_egress);
-      if (!pid_execution_token_and_pivot_root_dir.ok()) {
+      absl::StatusOr<PidAndExecutionToken> pid_and_execution_token =
+          ConnectSendCloneAndExec(code_token, binary_path, enable_log_egress,
+                                  pivot_root_dir);
+      if (!pid_and_execution_token.ok()) {
         break;
       }
-      pid = pid_execution_token_and_pivot_root_dir->pid;
-      if (std::error_code ec; std::filesystem::remove_all(pivot_root_dir, ec) ==
-                              static_cast<std::uintmax_t>(-1)) {
-        LOG(ERROR) << "Failed to remove " << pivot_root_dir << ": " << ec;
-      }
-      pivot_root_dir =
-          std::move(pid_execution_token_and_pivot_root_dir->pivot_root_dir);
+      pid = pid_and_execution_token->pid;
       {
         absl::MutexLock lock(&mu_);
         pid_to_execution_token_[pid] =
-            std::move(pid_execution_token_and_pivot_root_dir->execution_token);
+            std::move(pid_and_execution_token->execution_token);
         if (const auto it = active_code_token_to_pids_.find(code_token);
             it == active_code_token_to_pids_.end()) {
           // Code token was deleted. Cleanup on next iteration.
@@ -426,9 +429,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         }
       }
     }
-    if (std::error_code ec; std::filesystem::remove_all(pivot_root_dir, ec) ==
-                            static_cast<std::uintmax_t>(-1)) {
-      LOG(ERROR) << "Failed to remove " << pivot_root_dir << ": " << ec;
+    if (absl::Status status = RemoveDirectories(pivot_root_dir); !status.ok()) {
+      LOG(ERROR) << status;
     }
     const std::filesystem::path binary_dir =
         std::filesystem::path(binary_path).parent_path();
@@ -438,9 +440,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
 
     // Delete binary if this is the last worker for the code token.
     if (--it->second == 0) {
-      if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
-                              static_cast<std::uintmax_t>(-1)) {
-        LOG(INFO) << "Failed to remove " << binary_dir.native() << ": " << ec;
+      if (absl::Status status = RemoveDirectories(binary_dir); !status.ok()) {
+        LOG(ERROR) << status;
       }
       code_token_to_thread_count_.erase(it);
     }
@@ -544,47 +545,44 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     for (int i = 0; i < num_workers - 1; ++i) {
       // TODO: b/375622989 - Refactor run_workers to make the code more
       // coherent.
+      PS_ASSIGN_OR_RETURN(std::string pivot_root_dir, CreateNewPivotRootDir());
       PS_ASSIGN_OR_RETURN(
-          PidExecutionTokenAndPivotRootDir
-              pid_execution_token_and_pivot_root_dir,
+          PidAndExecutionToken pid_and_execution_token,
           ConnectSendCloneAndExec(code_token, binary_path.native(),
-                                  enable_log_egress));
+                                  enable_log_egress, pivot_root_dir));
       {
         absl::MutexLock lock(&mu_);
         active_code_token_to_pids_[code_token].insert(
-            pid_execution_token_and_pivot_root_dir.pid);
-        pid_to_execution_token_[pid_execution_token_and_pivot_root_dir.pid] =
-            std::move(pid_execution_token_and_pivot_root_dir.execution_token);
+            pid_and_execution_token.pid);
+        pid_to_execution_token_[pid_and_execution_token.pid] =
+            std::move(pid_and_execution_token.execution_token);
         ++code_token_to_thread_count_[code_token];
       }
-      std::thread(
-          &WorkerRunner::ReloaderImpl, this,
-          pid_execution_token_and_pivot_root_dir.pid,
-          std::move(pid_execution_token_and_pivot_root_dir.pivot_root_dir),
-          code_token, binary_path, enable_log_egress)
+      std::thread(&WorkerRunner::ReloaderImpl, this,
+                  pid_and_execution_token.pid, std::move(pivot_root_dir),
+                  code_token, binary_path, enable_log_egress)
           .detach();
     }
 
     // Start n-th worker out of loop.
     // TODO: b/375622989 - Refactor run_workers to make the code more
     // coherent.
+    PS_ASSIGN_OR_RETURN(std::string pivot_root_dir, CreateNewPivotRootDir());
     PS_ASSIGN_OR_RETURN(
-        PidExecutionTokenAndPivotRootDir pid_execution_token_and_pivot_root_dir,
+        PidAndExecutionToken pid_and_execution_token,
         ConnectSendCloneAndExec(code_token, binary_path.native(),
-                                enable_log_egress));
+                                enable_log_egress, pivot_root_dir));
     {
       absl::MutexLock lock(&mu_);
       active_code_token_to_pids_[code_token].insert(
-          pid_execution_token_and_pivot_root_dir.pid);
-      pid_to_execution_token_[pid_execution_token_and_pivot_root_dir.pid] =
-          std::move(pid_execution_token_and_pivot_root_dir.execution_token);
+          pid_and_execution_token.pid);
+      pid_to_execution_token_[pid_and_execution_token.pid] =
+          std::move(pid_and_execution_token.execution_token);
       ++code_token_to_thread_count_[code_token];
     }
-    std::thread(
-        &WorkerRunner::ReloaderImpl, this,
-        pid_execution_token_and_pivot_root_dir.pid,
-        std::move(pid_execution_token_and_pivot_root_dir.pivot_root_dir),
-        std::move(code_token), std::move(binary_path), enable_log_egress)
+    std::thread(&WorkerRunner::ReloaderImpl, this, pid_and_execution_token.pid,
+                std::move(pivot_root_dir), std::move(code_token),
+                std::move(binary_path), enable_log_egress)
         .detach();
     return absl::OkStatus();
   }
@@ -619,9 +617,8 @@ int main(int argc, char** argv) {
     return -1;
   }
   absl::Cleanup progdir_cleanup = [&progdir] {
-    if (std::error_code ec; std::filesystem::remove_all(progdir, ec) ==
-                            static_cast<std::uintmax_t>(-1)) {
-      LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
+    if (absl::Status status = RemoveDirectories(progdir); !status.ok()) {
+      LOG(ERROR) << status;
     }
   };
   const int dev_null_fd = ::open("/dev/null", O_WRONLY);
