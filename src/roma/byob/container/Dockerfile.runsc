@@ -1,4 +1,5 @@
-FROM golang:1.23.4-bookworm AS build-env
+FROM golang:1.23.4-bookworm AS clang
+ARG BAZELISK_VERSION=1.24.1
 ARG CLANG_VER=18
 ARG TARGETARCH
 
@@ -20,40 +21,47 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   wget="1.21.*" \
   && chmod +x /tmp/llvm.sh \
   && /tmp/llvm.sh ${CLANG_VER} \
-  && apt-get --quiet install -y --no-install-recommends \
-  libc++-${CLANG_VER}-dev \
-  libc++abi-${CLANG_VER}-dev \
-  libclang-${CLANG_VER}-dev \
-  && update-alternatives --install /usr/bin/clang clang /usr/bin/clang-${CLANG_VER} 100 \
-  && update-alternatives --install /usr/bin/lldb lldb /usr/bin/lldb-${CLANG_VER} 100 \
-  && update-alternatives --install /usr/bin/lld lld /usr/bin/lld-${CLANG_VER} 100 \
-  && update-alternatives --install /usr/bin/ld.lld ld.lld /usr/bin/ld.lld-${CLANG_VER} 100 \
+  && apt-get --quiet install -y --no-install-recommends libc++-${CLANG_VER}-dev libc++abi-${CLANG_VER}-dev libclang-${CLANG_VER}-dev \
+  && for p in clang lldb lld ld.lld; do update-alternatives --install /usr/bin/${p} ${p} /usr/bin/${p}-${CLANG_VER} 100; done \
   && rm -f /tmp/llvm.sh
 
 ENV \
   CC=/usr/bin/clang \
   CXX=/usr/bin/clang++ \
+  GOPATH=/opt/go \
+  TZ=Etc/UTC
+
+#
+# install bazelisk and bazel
+#
+FROM clang AS build-env
+
+ENV \
   BAZEL_CXXOPTS=-stdlib=libc++ \
   BAZEL_LINKOPTS=-lc++:-lm \
-  GOPATH=/opt/go \
-  TZ=Etc/UTC \
-  WORKSPACE=/workspace \
-  BAZEL_ROOT=/bazel_root
+  BAZEL_ROOT=/bazel_root \
+  USE_BAZEL_VERSION=7.4.1
 
-# install bazelisk
-ARG BAZELISK_VERSION=1.24.1
-COPY --chmod=555 generate_system_bazelrc /tmp
 RUN --mount=type=cache,target=/go/pkg/mod \
   --mount=type=cache,target=/root/.cache/go-build \
   go install github.com/bazelbuild/bazelisk@v${BAZELISK_VERSION} \
-  && ln -s ${GOPATH}/bin/bazelisk /usr/local/bin/bazel
-RUN /tmp/generate_system_bazelrc && rm -f /tmp/generate_system_bazelrc
+  && ln -s ${GOPATH}/bin/bazelisk /usr/local/bin/bazel \
+  && bazel version
+
+COPY --chmod=555 generate_system_bazelrc /tmp
+
+RUN cd /tmp \
+  && touch WORKSPACE \
+  && ./generate_system_bazelrc \
+  && rm -f WORKSPACE generate_system_bazelrc
 
 #
 # fetch gvisor sources
 #
 FROM build-env as gvisor-srcs
 ARG GVISOR_COMMIT=b92307b4e648ce8bbb6d0080ff8f9366f014c21e
+
+ENV WORKSPACE=/workspace
 RUN curl --silent --location --output /tmp/gvisor.zip "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" \
   && unzip -q /tmp/gvisor.zip -d /workspace \
   && mv "/workspace/gvisor-${GVISOR_COMMIT}/" /workspace/gvisor/ \
