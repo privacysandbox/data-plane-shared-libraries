@@ -23,7 +23,6 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
-#include <optional>
 #include <queue>
 #include <string>
 #include <string_view>
@@ -119,7 +118,7 @@ class Dispatcher {
 
   // Accepts connections from newly created UDF instances, reads code tokens,
   // and pushes file descriptors to the queue.
-  void AcceptorImpl();
+  void AcceptorImpl(std::string parent_code_token) ABSL_LOCKS_EXCLUDED(mu_);
   void ExecutorImpl(int fd, const google::protobuf::Message& request,
                     absl::AnyInvocable<void(int) &&> handler)
       ABSL_LOCKS_EXCLUDED(mu_);
@@ -127,8 +126,8 @@ class Dispatcher {
   int listen_fd_;
   std::filesystem::path log_dir_;
   std::unique_ptr<WorkerRunnerService::Stub> stub_;
-  std::optional<std::thread> acceptor_;
   absl::Mutex mu_;
+  int acceptor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
   int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
   absl::flat_hash_map<std::string, std::queue<FdAndToken>>
       code_token_to_fds_and_tokens_ ABSL_GUARDED_BY(mu_);
