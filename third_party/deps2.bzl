@@ -101,8 +101,8 @@ def _quiche_deps():
     maybe(
         http_archive,
         name = "com_google_googleurl",
-        sha256 = "3db90606ea9ca123d11f85c6fa3627a1e1e403d38c7fd1854a628cf1da3be5e2",
-        urls = ["https://storage.googleapis.com/quiche-envoy-integration/googleurl-9cdb1f4d1a365ebdbcbf179dadf7f8aa5ee802e7.tar.gz"],
+        # sha256 is unstable for this url
+        urls = ["https://quiche.googlesource.com/googleurl/+archive/9cdb1f4d1a365ebdbcbf179dadf7f8aa5ee802e7.tar.gz"],
     )
 
 def _nodejs_deps():
