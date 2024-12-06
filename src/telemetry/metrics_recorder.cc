@@ -45,9 +45,6 @@ constexpr double kDefaultHistogramBuckets[] = {
 };
 
 class NoopMetricsRecorder : public MetricsRecorder {
- public:
-  ~NoopMetricsRecorder() override = default;
-
   void IncrementEventStatus(std::string event, absl::Status status,
                             uint64_t count = 1) override {}
 
@@ -75,15 +72,13 @@ class MetricsRecorderImpl : public MetricsRecorder {
     event_status_count_ = meter->CreateUInt64Counter(
         "EventStatus", "Count of status code associated with events.");
 
-    // Catch-all histogram, with preconfigured buckets which should work for
+    // Catch all histogram, with preconfigured buckets which should work for
     // most latencies distribution.
-    RegisterHistogramView("Latency", "Latency View", "ns", {});
+    RegisterHistogramView("Latency", "Latency View", {});
     latency_histogram_ = meter->CreateUInt64Histogram(
         "Latency", "Histogram of latencies associated with events.",
         "nanosecond");
   }
-
-  ~MetricsRecorderImpl() override = default;
 
   void IncrementEventStatus(std::string event, absl::Status status,
                             uint64_t count = 1) override {
@@ -137,7 +132,7 @@ class MetricsRecorderImpl : public MetricsRecorder {
         key_iter != histograms_.end()) {
       return;
     }
-    RegisterHistogramView(event, description, unit, bucket_boundaries);
+    RegisterHistogramView(event, description, bucket_boundaries);
     auto meter = GetMeter();
     auto histogram = meter->CreateUInt64Histogram(event, description, unit);
     histograms_.insert_or_assign(std::move(event), std::move(histogram));
@@ -148,9 +143,7 @@ class MetricsRecorderImpl : public MetricsRecorder {
   }
 
  private:
-  void RegisterHistogramView(const std::string& name,
-                             const std::string& description,
-                             const std::string& units,
+  void RegisterHistogramView(std::string name, std::string description,
                              std::vector<double> bucket_boundaries) {
     if (bucket_boundaries.empty()) {
       bucket_boundaries.insert(bucket_boundaries.begin(),
@@ -168,13 +161,13 @@ class MetricsRecorderImpl : public MetricsRecorder {
     }
     auto histogram_instrument_selector =
         std::make_unique<metric_sdk::InstrumentSelector>(
-            metric_sdk::InstrumentType::kHistogram, name, units);
+            metric_sdk::InstrumentType::kHistogram, name);
     auto histogram_meter_selector = GetMeterSelector(std::string{kSchema});
     auto histogram_aggregation_config =
         std::make_shared<metric_sdk::HistogramAggregationConfig>();
     histogram_aggregation_config->boundaries_ = bucket_boundaries;
     auto histogram_view = std::make_unique<metric_sdk::View>(
-        name, description, units, metric_sdk::AggregationType::kHistogram,
+        name, description, metric_sdk::AggregationType::kHistogram,
         std::move(histogram_aggregation_config));
     sdk_provider->AddView(std::move(histogram_instrument_selector),
                           std::move(histogram_meter_selector),
