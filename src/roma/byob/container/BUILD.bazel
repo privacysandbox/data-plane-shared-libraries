@@ -22,6 +22,8 @@ load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 filegroup(
     name = "container_config",
     srcs = ["config.json"],
+    # TODO: b/383174230 - Revert once server teams move to rules_oci
+    visibility = ["//visibility:public"],
 )
 
 pkg_files(
@@ -66,6 +68,8 @@ pkg_mkdirs(
     name = "var_run_runsc_dir",
     attributes = pkg_attributes(mode = "0700"),
     dirs = ["/var/run/runsc"],
+    # TODO: b/383174230 - Revert once server teams move to rules_oci
+    visibility = ["//visibility:public"],
 )
 
 [
