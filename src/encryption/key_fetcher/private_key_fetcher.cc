@@ -98,6 +98,8 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                               const ExecutionResult result,
                               const ListPrivateKeysResponse response) {
     if (result.Successful()) {
+      PS_VLOG(3, log_context_) << "Number of private keys listed: "
+                               << response.private_keys().size();
       KeyFetchResultCounter::SetNumPrivateKeysFetched(
           response.private_keys().size());
       absl::MutexLock lock(&mutex_);
@@ -158,10 +160,11 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   if (const absl::Status error = private_key_client_->ListPrivateKeys(
           request, std::move(list_priv_key_cb));
       !error.ok()) {
-    return absl::Status(error.code(),
-                        absl::Substitute(kKeyFetchFailMessage,
-                                         absl::StrJoin(request.key_ids(), ", "),
-                                         error.message()));
+    auto error_message = absl::Substitute(
+        kKeyFetchFailMessage, absl::StrJoin(request.key_ids(), ", "),
+        error.message());
+    PS_LOG(ERROR, log_context_) << "ListPrivateKeys failed: " << error_message;
+    return absl::Status(error.code(), error_message);
   }
 
   PS_VLOG(3, log_context_) << "Private key fetch pending...";
@@ -202,6 +205,7 @@ std::unique_ptr<PrivateKeyFetcherInterface> PrivateKeyFetcherFactory::Create(
   PrivateKeyClientOptions options;
   options.primary_private_key_vending_endpoint = primary_endpoint;
   options.secondary_private_key_vending_endpoints = secondary_endpoints;
+  options.log_context = log_context;
 
   std::unique_ptr<PrivateKeyClientInterface> private_key_client =
       google::scp::cpio::PrivateKeyClientFactory::Create(options);

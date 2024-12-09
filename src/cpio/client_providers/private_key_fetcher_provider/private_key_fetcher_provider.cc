@@ -53,6 +53,10 @@ ExecutionResult PrivateKeyFetcherProvider::Init() noexcept {
         SC_PRIVATE_KEY_FETCHER_PROVIDER_HTTP_CLIENT_NOT_FOUND);
     SCP_ERROR(kPrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to get http client.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to get http client. Error message: " << error_message;
     return execution_result;
   }
   return SuccessExecutionResult();
@@ -88,6 +92,10 @@ void PrivateKeyFetcherProvider::SignHttpRequestCallback(
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, private_key_fetching_context,
                       execution_result, "Failed to sign http request.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to sign http request. Error message: " << error_message;
     private_key_fetching_context.Finish(execution_result);
     return;
   }
@@ -105,6 +113,13 @@ void PrivateKeyFetcherProvider::SignHttpRequestCallback(
         "Failed to perform sign http request to reach endpoint %s.",
         private_key_fetching_context.request->key_vending_endpoint
             ->private_key_vending_service_endpoint.c_str());
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to perform sign http request to reach endpoint ."
+        << private_key_fetching_context.request->key_vending_endpoint
+               ->private_key_vending_service_endpoint.c_str()
+        << ". Error message: " << error_message;
     private_key_fetching_context.Finish(execution_result);
   }
 }
@@ -118,6 +133,10 @@ void PrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
     SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, private_key_fetching_context,
                       private_key_fetching_context.result,
                       "Failed to fetch private key.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        private_key_fetching_context.result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to fetch private key. Error message: " << error_message;
     private_key_fetching_context.Finish();
     return;
   }
@@ -128,6 +147,10 @@ void PrivateKeyFetcherProvider::PrivateKeyFetchingCallback(
   if (!result.Successful()) {
     SCP_ERROR_CONTEXT(kPrivateKeyFetcherProvider, private_key_fetching_context,
                       result, "Failed to parse private key.");
+    auto error_message =
+        google::scp::core::errors::GetErrorMessage(result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to parse private key. Error message: " << error_message;
     private_key_fetching_context.Finish(result);
     return;
   }

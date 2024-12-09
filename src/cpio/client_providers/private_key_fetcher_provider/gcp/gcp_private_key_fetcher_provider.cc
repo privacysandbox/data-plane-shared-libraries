@@ -57,6 +57,11 @@ ExecutionResult GcpPrivateKeyFetcherProvider::Init() noexcept {
         SC_GCP_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND);
     SCP_ERROR(kGcpPrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to get credentials provider.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to get credentials provider. Error message: "
+        << error_message;
     return execution_result;
   }
 
@@ -93,6 +98,12 @@ void GcpPrivateKeyFetcherProvider::OnGetSessionTokenCallback(
         get_token_context.result,
         "Failed to get the access token for audience target %s.",
         get_token_context.request->token_target_audience_uri->c_str());
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        get_token_context.result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to get the access token for audience target "
+        << get_token_context.request->token_target_audience_uri->c_str()
+        << ". Error message: " << error_message;
     sign_request_context.Finish(get_token_context.result);
     return;
   }
@@ -113,8 +124,9 @@ std::unique_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
     HttpClientInterface* http_client,
     RoleCredentialsProviderInterface* role_credentials_provider,
-    AuthTokenProviderInterface* auth_token_provider) {
-  return std::make_unique<GcpPrivateKeyFetcherProvider>(http_client,
-                                                        auth_token_provider);
+    AuthTokenProviderInterface* auth_token_provider,
+    privacy_sandbox::server_common::log::PSLogContext& log_context) {
+  return std::make_unique<GcpPrivateKeyFetcherProvider>(
+      http_client, auth_token_provider, log_context);
 }
 }  // namespace google::scp::cpio::client_providers

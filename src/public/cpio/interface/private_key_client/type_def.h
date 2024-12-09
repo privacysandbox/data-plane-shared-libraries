@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "src/logger/request_context_logger.h"
 #include "src/public/cpio/interface/type_def.h"
 
 namespace google::scp::cpio {
@@ -60,6 +61,10 @@ struct PrivateKeyClientOptions {
   /// This list of endpoints host the remaining parts of the private key.
   std::vector<PrivateKeyVendingEndpoint>
       secondary_private_key_vending_endpoints;
+  /// Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context =
+      const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+          privacy_sandbox::server_common::log::kNoOpContext);
 };
 }  // namespace google::scp::cpio
 

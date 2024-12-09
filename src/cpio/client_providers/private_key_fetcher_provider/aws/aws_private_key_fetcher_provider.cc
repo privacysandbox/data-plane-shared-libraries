@@ -76,6 +76,11 @@ ExecutionResult AwsPrivateKeyFetcherProvider::Init() noexcept {
         SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_CREDENTIALS_PROVIDER_NOT_FOUND);
     SCP_ERROR(kAwsPrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to get credentials provider.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to get credentials provider. Error message: "
+        << error_message;
     return execution_result;
   }
 
@@ -113,6 +118,10 @@ void AwsPrivateKeyFetcherProvider::
   if (!execution_result.Successful()) {
     SCP_ERROR_CONTEXT(kAwsPrivateKeyFetcherProvider, sign_request_context,
                       execution_result, "Failed to get AWS credentials.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to get AWS credentials. Error message: " << error_message;
     sign_request_context.Finish(get_session_credentials_context.result);
     return;
   }
@@ -150,6 +159,10 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
         SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_FAILED_TO_GET_URI);
     SCP_ERROR(kAwsPrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to get URI.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to get URI. Error message: " << error_message;
     return execution_result;
   }
   auto uri = Aws::Http::URI(std::move(*path_with_query));
@@ -160,6 +173,10 @@ ExecutionResult AwsPrivateKeyFetcherProvider::SignHttpRequestUsingV4Signer(
         SC_AWS_PRIVATE_KEY_FETCHER_PROVIDER_FAILED_TO_SIGN);
     SCP_ERROR(kAwsPrivateKeyFetcherProvider, kZeroUuid, execution_result,
               "Failed to sign HTTP request.");
+    auto error_message = google::scp::core::errors::GetErrorMessage(
+        execution_result.status_code);
+    PS_LOG(ERROR, log_context_)
+        << "Failed to sign HTTP request. Error message: " << error_message;
     return execution_result;
   }
 
@@ -174,8 +191,9 @@ std::unique_ptr<PrivateKeyFetcherProviderInterface>
 PrivateKeyFetcherProviderFactory::Create(
     HttpClientInterface* http_client,
     RoleCredentialsProviderInterface* role_credentials_provider,
-    AuthTokenProviderInterface* auth_token_provider) {
+    AuthTokenProviderInterface* auth_token_provider,
+    privacy_sandbox::server_common::log::PSLogContext& log_context) {
   return std::make_unique<AwsPrivateKeyFetcherProvider>(
-      http_client, role_credentials_provider);
+      http_client, role_credentials_provider, log_context);
 }
 }  // namespace google::scp::cpio::client_providers

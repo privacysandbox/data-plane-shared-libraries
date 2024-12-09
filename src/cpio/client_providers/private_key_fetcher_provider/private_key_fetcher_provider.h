@@ -34,8 +34,12 @@ class PrivateKeyFetcherProvider : public PrivateKeyFetcherProviderInterface {
  public:
   virtual ~PrivateKeyFetcherProvider() = default;
 
-  explicit PrivateKeyFetcherProvider(core::HttpClientInterface* http_client)
-      : http_client_(http_client) {}
+  explicit PrivateKeyFetcherProvider(
+      core::HttpClientInterface* http_client,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext))
+      : http_client_(http_client), log_context_(log_context) {}
 
   core::ExecutionResult Init() noexcept override;
 
@@ -86,6 +90,11 @@ class PrivateKeyFetcherProvider : public PrivateKeyFetcherProviderInterface {
 
   /// HttpClient for issuing HTTP actions.
   core::HttpClientInterface* http_client_;
+
+  // Log context for PS_VLOG and PS_LOG to enable console or otel logging
+  privacy_sandbox::server_common::log::PSLogContext& log_context_ =
+      const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+          privacy_sandbox::server_common::log::kNoOpContext);
 };
 }  // namespace google::scp::cpio::client_providers
 

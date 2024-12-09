@@ -150,7 +150,10 @@ class PrivateKeyFetcherProviderFactory {
   Create(absl::Nonnull<core::HttpClientInterface*> http_client,
          absl::Nonnull<RoleCredentialsProviderInterface*>
              role_credentials_provider,
-         absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider);
+         absl::Nonnull<AuthTokenProviderInterface*> auth_token_provider,
+         privacy_sandbox::server_common::log::PSLogContext& log_context =
+             const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+                 privacy_sandbox::server_common::log::kNoOpContext));
 };
 }  // namespace google::scp::cpio::client_providers
 

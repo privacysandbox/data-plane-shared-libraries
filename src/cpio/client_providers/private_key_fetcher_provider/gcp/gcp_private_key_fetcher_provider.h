@@ -39,9 +39,13 @@ class GcpPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
    * @param auth_token_provider auth token provider.
    * service.
    */
-  GcpPrivateKeyFetcherProvider(core::HttpClientInterface* http_client,
-                               AuthTokenProviderInterface* auth_token_provider)
-      : PrivateKeyFetcherProvider(http_client),
+  GcpPrivateKeyFetcherProvider(
+      core::HttpClientInterface* http_client,
+      AuthTokenProviderInterface* auth_token_provider,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext))
+      : PrivateKeyFetcherProvider(http_client, log_context),
         auth_token_provider_(auth_token_provider) {}
 
   core::ExecutionResult Init() noexcept override;

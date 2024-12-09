@@ -30,8 +30,11 @@ class MockPrivateKeyFetcherProviderWithOverrides
     : public PrivateKeyFetcherProvider {
  public:
   MockPrivateKeyFetcherProviderWithOverrides(
-      core::HttpClientInterface* http_client)
-      : PrivateKeyFetcherProvider(http_client) {}
+      core::HttpClientInterface* http_client,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext))
+      : PrivateKeyFetcherProvider(http_client, log_context) {}
 
   core::ExecutionResult sign_http_request_result_mock =
       core::SuccessExecutionResult();

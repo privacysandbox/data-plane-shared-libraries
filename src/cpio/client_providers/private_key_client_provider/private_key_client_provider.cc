@@ -58,18 +58,30 @@ namespace google::scp::cpio::client_providers {
 absl::Status PrivateKeyClientProvider::ListPrivateKeys(
     AsyncContext<ListPrivateKeysRequest, ListPrivateKeysResponse>&
         list_private_keys_context) noexcept {
+  PS_VLOG(5, private_key_client_options_.log_context)
+      << "Listing private keys...";
   auto list_keys_status = std::make_shared<ListPrivateKeysStatus>();
-  list_keys_status->listing_method =
-      list_private_keys_context.request->key_ids().empty()
-          ? ListingMethod::kByMaxAge
-          : ListingMethod::kByKeyId;
+  if (list_private_keys_context.request->key_ids().empty()) {
+    list_keys_status->listing_method = ListingMethod::kByMaxAge;
+    PS_VLOG(5, private_key_client_options_.log_context)
+        << "Private key listing request by max age.";
+  } else {
+    list_keys_status->listing_method = ListingMethod::kByKeyId;
+    PS_VLOG(5, private_key_client_options_.log_context)
+        << "Private key listing request by key ids.";
+  }
   list_keys_status->result_list =
       std::vector<KeysResultPerEndpoint>(endpoint_count_);
+  PS_VLOG(5, private_key_client_options_.log_context)
+      << "Private key listing endpoint count: " << endpoint_count_;
 
   list_keys_status->call_count_per_endpoint =
       list_keys_status->listing_method == ListingMethod::kByKeyId
           ? list_private_keys_context.request->key_ids().size()
           : 1;
+  PS_VLOG(5, private_key_client_options_.log_context)
+      << "Private key listing call count per endpoint: "
+      << list_keys_status->call_count_per_endpoint;
 
   for (size_t call_index = 0;
        call_index < list_keys_status->call_count_per_endpoint; ++call_index) {
@@ -79,9 +91,14 @@ absl::Status PrivateKeyClientProvider::ListPrivateKeys(
       if (list_keys_status->listing_method == ListingMethod::kByKeyId) {
         request->key_id = std::make_shared<std::string>(
             list_private_keys_context.request->key_ids(call_index));
+        PS_VLOG(5, private_key_client_options_.log_context)
+            << "Private key fetching request key id: " << request->key_id;
       } else {
         request->max_age_seconds =
             list_private_keys_context.request->max_age_seconds();
+        PS_VLOG(5, private_key_client_options_.log_context)
+            << "Private key fetching max age seconds: "
+            << request->max_age_seconds;
       }
 
       const auto& endpoint = endpoint_list_[uri_index];
@@ -111,9 +128,13 @@ absl::Status PrivateKeyClientProvider::ListPrivateKeys(
                     endpoint.private_key_vending_service_endpoint.c_str());
           list_private_keys_context.Finish(execution_result);
         }
-
-        return absl::UnknownError(google::scp::core::errors::GetErrorMessage(
-            execution_result.status_code));
+        auto error_message = google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code);
+        PS_LOG(ERROR, private_key_client_options_.log_context)
+            << "Failed to fetch private key with endpoint: "
+            << endpoint.private_key_vending_service_endpoint.c_str()
+            << ". Error message: " << error_message;
+        return absl::UnknownError(error_message);
       }
     }
   }
@@ -178,6 +199,10 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
                                                                 true)) {
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
                           execution_result, "Failed to get the key data.");
+        auto error_message = google::scp::core::errors::GetErrorMessage(
+            execution_result.status_code);
+        PS_LOG(ERROR, private_key_client_options_.log_context)
+            << "GetKmsDecryptRequest failed. Error message: " << error_message;
         list_private_keys_context.Finish(execution_result);
       }
       return;
@@ -205,6 +230,8 @@ void PrivateKeyClientProvider::OnFetchPrivateKeyCallback(
                                                                 true)) {
         SCP_ERROR_CONTEXT(kPrivateKeyClientProvider, list_private_keys_context,
                           error, "Failed to send decrypt request.");
+        PS_LOG(ERROR, private_key_client_options_.log_context)
+            << "Failed to send decrypt request. Error message: " << error;
         list_private_keys_context.Finish(FailureExecutionResult(SC_UNKNOWN));
       }
       return;
@@ -281,6 +308,11 @@ void PrivateKeyClientProvider::OnDecryptCallback(
                             list_private_keys_context, execution_result,
                             "Failed to fetch the private key for key ID: %s",
                             key_id.c_str());
+          auto error_message = google::scp::core::errors::GetErrorMessage(
+              execution_result.status_code);
+          PS_LOG(ERROR, private_key_client_options_.log_context)
+              << "Failed to fetch the private key for key ID: "
+              << key_id.c_str() << ". Error message: " << error_message;
           list_private_keys_context.Finish(execution_result);
           return;
         }
@@ -309,6 +341,13 @@ void PrivateKeyClientProvider::OnDecryptCallback(
                   "Unmatched endpoints number and private key  split "
                   "data size for key ID %s.",
                   encryption_key->key_id->c_str());
+              auto error_message = google::scp::core::errors::GetErrorMessage(
+                  list_private_keys_context.result.status_code);
+              PS_LOG(ERROR, private_key_client_options_.log_context)
+                  << "Unmatched endpoints number and private key  split  data "
+                     "size for key ID "
+                  << encryption_key->key_id->c_str()
+                  << ". Error message: " << error_message;
               return;
             } else {
               // For ListByAge, the key split count might not match the
@@ -319,6 +358,10 @@ void PrivateKeyClientProvider::OnDecryptCallback(
                   "Unmatched endpoints number and private key split "
                   "data size for key ID %s.",
                   encryption_key->key_id->c_str());
+              PS_VLOG(3, private_key_client_options_.log_context)
+                  << "Unmatched endpoints number and private key split data "
+                     "size for key ID: "
+                  << encryption_key->key_id->c_str();
               all_splits_are_available = false;
               break;
             }
@@ -333,6 +376,11 @@ void PrivateKeyClientProvider::OnDecryptCallback(
           SCP_ERROR_CONTEXT(kPrivateKeyClientProvider,
                             list_private_keys_context, private_key_or.result(),
                             "Failed to construct private key.");
+          auto error_message = google::scp::core::errors::GetErrorMessage(
+              private_key_or.result().status_code);
+          PS_LOG(ERROR, private_key_client_options_.log_context)
+              << "Failed to construct private key. Error message: "
+              << error_message;
           list_private_keys_context.Finish(private_key_or.result());
           return;
         }
@@ -355,7 +403,8 @@ PrivateKeyClientProviderFactory::Create(
   return std::make_unique<PrivateKeyClientProvider>(
       std::move(options),
       PrivateKeyFetcherProviderFactory::Create(
-          http_client, role_credentials_provider, auth_token_provider),
+          http_client, role_credentials_provider, auth_token_provider,
+          options.log_context),
       KmsClientProviderFactory::Create(role_credentials_provider,
                                        io_async_executor));
 }

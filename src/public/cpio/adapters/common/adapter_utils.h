@@ -67,8 +67,7 @@ auto Execute(Fn&& func, TRequest request, Callback<TResponse> callback) {
       activity_id, activity_id);
   if constexpr (std::is_invocable_r_v<core::ExecutionResult, Fn,
                                       decltype(context)&>) {
-    return core::utils::ConvertToPublicExecutionResult(
-        std::invoke(std::forward<Fn>(func), context));
+    return std::invoke(std::forward<Fn>(func), context);
   } else {
     static_assert(std::is_invocable_r_v<absl::Status, Fn, decltype(context)&>);
     return std::invoke(std::forward<Fn>(func), context);

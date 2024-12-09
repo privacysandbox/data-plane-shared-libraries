@@ -41,8 +41,11 @@ class AwsPrivateKeyFetcherProvider : public PrivateKeyFetcherProvider {
    */
   AwsPrivateKeyFetcherProvider(
       core::HttpClientInterface* http_client,
-      RoleCredentialsProviderInterface* role_credentials_provider)
-      : PrivateKeyFetcherProvider(http_client),
+      RoleCredentialsProviderInterface* role_credentials_provider,
+      privacy_sandbox::server_common::log::PSLogContext& log_context =
+          const_cast<privacy_sandbox::server_common::log::NoOpContext&>(
+              privacy_sandbox::server_common::log::kNoOpContext))
+      : PrivateKeyFetcherProvider(http_client, log_context),
         role_credentials_provider_(role_credentials_provider) {}
 
   core::ExecutionResult Init() noexcept override;
