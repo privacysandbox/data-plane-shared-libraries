@@ -49,10 +49,10 @@ def _absl_deps():
     maybe(
         http_archive,
         name = "com_google_absl",
-        # commit f845e60 2023-12-05
-        sha256 = "b1e113eaf442b817f2a9e3bb471cb36129cd456dd999b0e0360fa891f177013b",
-        strip_prefix = "abseil-cpp-f845e60acd880dbf07788a5a2c0dbad0f9c57231",
-        urls = ["https://github.com/abseil/abseil-cpp/archive/f845e60acd880dbf07788a5a2c0dbad0f9c57231.zip"],
+        # commit e83ef279 2024-11-06
+        sha256 = "950869f55ffcfc316abd2213137de058664234ce6466514c8c80f7b5b30695ab",
+        strip_prefix = "abseil-cpp-e83ef279682c46a0f8009a8f0727241693e96233",
+        urls = ["https://github.com/abseil/abseil-cpp/archive/e83ef279682c46a0f8009a8f0727241693e96233.zip"],
     )
 
     # use an older version of absl only for //src/aws/proxy:all. This is
