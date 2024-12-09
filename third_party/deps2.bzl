@@ -86,9 +86,9 @@ def _quiche_deps():
         name = "com_github_google_quiche",
         patch_args = ["-p1"],
         patches = [Label("//third_party:quiche.patch")],
-        sha256 = "563cbc483a006d4999e2e9b1114fec02cdc904fcdafa29721e4e6d816c8d648a",
-        strip_prefix = "quiche-cc0614c8ab209e297f7b17ab3d04618fee327a4f",
-        urls = ["https://github.com/google/quiche/archive/cc0614c8ab209e297f7b17ab3d04618fee327a4f.tar.gz"],
+        sha256 = "2ffbbccd545a21277c47f95d9c40fb12ecc9acd1aba5c0d5aa9a2ae712be8450",
+        strip_prefix = "quiche-c2c9d880e3a09956d3b6ad81aeb05b7e89766529",
+        urls = ["https://github.com/google/quiche/archive/c2c9d880e3a09956d3b6ad81aeb05b7e89766529.tar.gz"],
     )
     maybe(
         http_archive,

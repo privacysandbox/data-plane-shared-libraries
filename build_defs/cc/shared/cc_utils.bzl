@@ -35,6 +35,8 @@ def cc_utils():
         # Release 2021.10.0 dated 2023-07-24
         sha256 = "78fb7bb29b415f53de21a68c4fdf97de8ae035090d9ee9caa221e32c6e79567c",
         strip_prefix = "oneTBB-2021.10.0",
+        patches = [Label("//build_defs/cc/shared:oneTBB.patch")],
+        patch_args = ["-p1"],
         urls = ["https://github.com/oneapi-src/oneTBB/archive/refs/tags/v2021.10.0.zip"],
     )
 

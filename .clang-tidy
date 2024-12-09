@@ -6,6 +6,7 @@ ExtraArgs:
   - -Wno-unused-const-variable
   - -Wno-format
   - -Wno-unused-function
+  - -Wno-vla-cxx-extension
 
 Checks: >
     -*,

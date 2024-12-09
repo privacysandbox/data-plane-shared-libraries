@@ -140,7 +140,7 @@ class Context {
     request_state_.result = std::move(s);
   }
 
-  const absl::Status& request_result() ABSL_LOCKS_EXCLUDED(mutex_) {
+  absl::Status request_result() ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
     return request_state_.result;
   }

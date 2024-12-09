@@ -20,6 +20,7 @@
 #include <utility>
 #include <variant>
 
+#include "absl/log/check.h"
 #include "src/core/common/proto/common.pb.h"
 
 namespace google::scp::core {
@@ -314,9 +315,17 @@ class ExecutionResultOr : public std::variant<ExecutionResult, T> {
 
   // Returns a pointer to the value held by this.
   // Returns nullptr if no value is contained.
-  const T* operator->() const { return std::get_if<T>(this); }
+  const T* operator->() const {
+    CHECK(has_value())
+        << "Attempting to access value of failed ExecutionResultOr";
+    return std::get_if<T>(this);
+  }
 
-  T* operator->() { return std::get_if<T>(this); }
+  T* operator->() {
+    CHECK(has_value())
+        << "Attempting to access value of failed ExecutionResultOr";
+    return std::get_if<T>(this);
+  }
 
   // alias for value() && but no call to std::move() is necessary.
   T&& release() { return std::move(this->value()); }
