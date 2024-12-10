@@ -61,9 +61,9 @@ absl::Status ExecutionUtils::OverrideConsoleLog(v8::Isolate* isolate,
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
   constexpr auto js_code = R"(
-    console.log = ROMA_LOG;
-    console.warn = ROMA_WARN;
-    console.error = ROMA_ERROR;
+    console.log = (...inputs) => ROMA_LOG(inputs.join(' '));
+    console.warn = (...inputs) => ROMA_WARN(inputs.join(' '));
+    console.error = (...inputs) => ROMA_ERROR(inputs.join(' '));
   )";
   v8::Local<v8::String> source =
       v8::String::NewFromUtf8(isolate, js_code).ToLocalChecked();

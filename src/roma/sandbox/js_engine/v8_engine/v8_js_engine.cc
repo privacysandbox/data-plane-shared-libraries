@@ -453,22 +453,16 @@ std::unique_ptr<V8IsolateWrapper> V8JsEngine::CreateIsolate(
   isolate->SetFatalErrorHandler(FatalErrorCallback);
   isolate->AddGCPrologueCallback(GCPrologueCallback);
   isolate->AddGCEpilogueCallback(GCEpilogueCallback);
+  v8::debug::SetConsoleDelegate(isolate, console());
   return V8IsolateFactory::Create(isolate, std::move(allocator),
                                   enable_profilers_);
 }
 
-V8Console* V8JsEngine::console(v8::Isolate* isolate)
-    ABSL_LOCKS_EXCLUDED(console_mutex_) {
+V8Console* V8JsEngine::console() ABSL_LOCKS_EXCLUDED(console_mutex_) {
   absl::MutexLock lock(&console_mutex_);
-  auto handle_log_func = [this](std::string_view function_name,
-                                std::string_view msg, LogOptions log_options) {
-    return HandleLog(function_name, msg, std::move(log_options));
-  };
-
   if (console_ == nullptr) {
-    console_ = std::make_unique<V8Console>(isolate, handle_log_func);
+    console_ = std::make_unique<V8Console>();
   }
-
   return console_.get();
 }
 

@@ -80,7 +80,6 @@ cc_library(
 
 cc_library(
     name = "v8_console",
-    srcs = ["v8_console.cc"],
     hdrs = ["v8_console.h"],
     copts = [
         "-Wno-macro-redefined",  # v8 and absl define redundant log macros

@@ -40,37 +40,20 @@
 // clang-format on
 
 namespace google::scp::roma::sandbox::js_engine::v8_js_engine {
-
+// No-op implementation of the V8Console, allowing for logging from inline WASM
 class V8Console : public v8::debug::ConsoleDelegate {
  private:
-  using LogFunctionHandler =
-      absl::AnyInvocable<absl::Status(std::string_view, std::string_view,
-                                      google::scp::roma::logging::LogOptions)>;
-
  public:
-  explicit V8Console(absl::Nonnull<v8::Isolate*> isolate,
-                     LogFunctionHandler handle_log_func_);
+  V8Console() = default;
   ~V8Console() override = default;
-
-  void SetIds(std::string_view uuid, std::string_view id);
-  void SetMinLogLevel(absl::LogSeverity severity);
 
  private:
   void Log(const v8::debug::ConsoleCallArguments& args,
-           const v8::debug::ConsoleContext&) override;
+           const v8::debug::ConsoleContext&) override {};
   void Warn(const v8::debug::ConsoleCallArguments& args,
-            const v8::debug::ConsoleContext&) override;
+            const v8::debug::ConsoleContext&) override {};
   void Error(const v8::debug::ConsoleCallArguments& args,
-             const v8::debug::ConsoleContext&) override;
-
-  void HandleLog(const v8::debug::ConsoleCallArguments& args,
-                 std::string_view function_name);
-
-  v8::Isolate* isolate_;
-  std::string invocation_req_uuid_;
-  std::string invocation_req_id_;
-  absl::LogSeverity min_log_level_ = absl::LogSeverity::kInfo;
-  LogFunctionHandler handle_log_func_;
+             const v8::debug::ConsoleContext&) override {};
 };
 
 }  // namespace google::scp::roma::sandbox::js_engine::v8_js_engine

@@ -47,8 +47,14 @@ struct TypeConverter<std::string> {
     if (val.IsEmpty() || !val->IsString()) {
       return false;
     }
+    v8::HandleScope scope(isolate);
+    v8::TryCatch trycatch(isolate);
 
-    v8::Local<v8::String> str = v8::Local<v8::String>::Cast(val);
+    v8::Local<v8::String> str;
+    if (!val->ToString(isolate->GetCurrentContext()).ToLocal(&str)) {
+      return false;
+    }
+
     const size_t len = str->Utf8Length(isolate);
     out->resize(len);
     str->WriteUtf8(isolate, &(*out)[0], len, nullptr,

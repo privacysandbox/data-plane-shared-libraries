@@ -225,7 +225,7 @@ class V8JsEngine : public JsEngine {
   /// timeouts the execution in set time.
   std::unique_ptr<roma::worker::ExecutionWatchDog> execution_watchdog_{nullptr};
 
-  V8Console* console(v8::Isolate* isolate) ABSL_LOCKS_EXCLUDED(console_mutex_);
+  V8Console* console() ABSL_LOCKS_EXCLUDED(console_mutex_);
   std::unique_ptr<V8Console> console_ ABSL_GUARDED_BY(console_mutex_);
   absl::Mutex console_mutex_;
   const bool skip_v8_cleanup_;
