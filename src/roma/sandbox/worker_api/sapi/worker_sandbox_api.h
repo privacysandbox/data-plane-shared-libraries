@@ -64,8 +64,6 @@ class WorkerSandboxApi {
    * @param v8_flags List of flags to pass into v8. (Ex. {"--FLAG_1",
    * "--FLAG_2"})
    * @param enable_profilers Enable the V8 CPU and Heap Profilers
-   * @param logging_function_set Whether a logging function has been registered
-   * in Roma
    * @param disable_udf_stacktraces_in_response Whether UDF stacktrace should be
    * returned in response
    */
@@ -80,7 +78,7 @@ class WorkerSandboxApi {
       size_t sandbox_request_response_shared_buffer_size_mb,
       bool enable_sandbox_sharing_request_response_with_buffer_only,
       const std::vector<std::string>& v8_flags, bool enable_profilers,
-      bool logging_function_set, bool disable_udf_stacktraces_in_response);
+      bool disable_udf_stacktraces_in_response);
 
   absl::Status Init();
 
@@ -130,7 +128,6 @@ class WorkerSandboxApi {
   const bool enable_sandbox_sharing_request_response_with_buffer_only_;
   std::vector<std::string> v8_flags_;
   const bool enable_profilers_;
-  const bool logging_function_set_;
   const bool disable_udf_stacktraces_in_response_;
 };
 }  // namespace google::scp::roma::sandbox::worker_api

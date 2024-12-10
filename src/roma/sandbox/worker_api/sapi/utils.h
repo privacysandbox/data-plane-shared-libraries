@@ -43,7 +43,6 @@ struct V8WorkerEngineParams {
   bool skip_v8_cleanup = false;
   std::vector<std::string> v8_flags;
   bool enable_profilers = false;
-  bool logging_function_set = false;
   bool disable_udf_stacktraces_in_response = false;
 };
 

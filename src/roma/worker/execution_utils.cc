@@ -52,12 +52,7 @@ constexpr std::string_view kRegisteredWasmExports = "RomaRegisteredWasmExports";
 
 }  // namespace
 
-absl::Status ExecutionUtils::OverrideConsoleLog(v8::Isolate* isolate,
-                                                bool logging_function_set) {
-  if (!logging_function_set) {
-    return absl::OkStatus();
-  }
-
+absl::Status ExecutionUtils::OverrideConsoleLog(v8::Isolate* isolate) {
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
   constexpr auto js_code = R"(
@@ -81,14 +76,13 @@ absl::Status ExecutionUtils::OverrideConsoleLog(v8::Isolate* isolate,
 }
 
 absl::Status ExecutionUtils::CompileRunJS(
-    std::string_view js, bool logging_function_set,
+    std::string_view js,
     absl::Nullable<v8::Local<v8::UnboundScript>*> unbound_script) {
   auto isolate = v8::Isolate::GetCurrent();
   v8::TryCatch try_catch(isolate);
   v8::Local<v8::Context> context(isolate->GetCurrentContext());
 
-  if (auto result = OverrideConsoleLog(isolate, logging_function_set);
-      !result.ok()) {
+  if (auto result = OverrideConsoleLog(isolate); !result.ok()) {
     privacy_sandbox::server_common::StatusBuilder builder(
         absl::InvalidArgumentError("Failed to compile JavaScript code object"));
     builder << ExecutionUtils::DescribeError(isolate, &try_catch);
@@ -297,9 +291,7 @@ absl::Status ExecutionUtils::CreateUnboundScript(
   v8::Context::Scope context_scope(context);
 
   v8::Local<v8::UnboundScript> local_unbound_script;
-  bool logging_function_set = false;
-  PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js, logging_function_set,
-                                                  &local_unbound_script));
+  PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js, &local_unbound_script));
 
   // Store unbound_script_ in a Global handle in isolate.
   unbound_script.Reset(isolate, local_unbound_script);

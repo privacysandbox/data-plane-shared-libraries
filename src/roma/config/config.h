@@ -134,12 +134,6 @@ class Config {
   bool disable_udf_stacktraces_in_response = false;
 
   /**
-   * @brief Indicates whether a custom logging function has been registered.
-   *
-   */
-  bool logging_function_set = false;
-
-  /**
    * @brief Enable metadata storage.
    *
    */
@@ -269,7 +263,6 @@ class Config {
   }
 
   void SetLoggingFunction(LogCallback logging_func) {
-    logging_function_set = true;
     logging_func_ = std::move(logging_func);
   }
 

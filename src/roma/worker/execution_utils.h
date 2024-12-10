@@ -42,7 +42,7 @@ class ExecutionUtils {
    * @return absl::Status
    */
   static absl::Status CompileRunJS(
-      std::string_view js, bool logging_function_set = false,
+      std::string_view js,
       absl::Nullable<v8::Local<v8::UnboundScript>*> unbound_script = nullptr);
 
   /**
@@ -191,8 +191,7 @@ class ExecutionUtils {
   static absl::Status V8PromiseHandler(absl::Nonnull<v8::Isolate*> isolate,
                                        v8::Local<v8::Value>& result);
 
-  static absl::Status OverrideConsoleLog(v8::Isolate* isolate,
-                                         bool logging_function_set);
+  static absl::Status OverrideConsoleLog(v8::Isolate* isolate);
 };
 }  // namespace google::scp::roma::worker
 

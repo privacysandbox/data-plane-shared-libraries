@@ -211,14 +211,12 @@ V8JsEngine::V8JsEngine(
     std::unique_ptr<V8IsolateFunctionBinding> isolate_function_binding,
     const bool skip_v8_cleanup, const bool enable_profilers,
     const JsEngineResourceConstraints& v8_resource_constraints,
-    const bool logging_function_set,
     const bool disable_udf_stacktraces_in_response)
     : isolate_function_binding_(std::move(isolate_function_binding)),
       v8_resource_constraints_(v8_resource_constraints),
       execution_watchdog_(std::make_unique<roma::worker::ExecutionWatchDog>()),
       skip_v8_cleanup_(skip_v8_cleanup),
       enable_profilers_(enable_profilers),
-      logging_function_set_(logging_function_set),
       disable_udf_stacktraces_in_response_(
           disable_udf_stacktraces_in_response) {
   if (isolate_function_binding_) {
@@ -328,8 +326,7 @@ absl::Status V8JsEngine::CreateSnapshot(v8::StartupData& startup_data,
     // Create a context scope, which has essential side-effects for compilation
     v8::Context::Scope context_scope(context);
     //  Compile and run JavaScript code object.
-    PS_RETURN_IF_ERROR(
-        ExecutionUtils::CompileRunJS(js_code, logging_function_set_));
+    PS_RETURN_IF_ERROR(ExecutionUtils::CompileRunJS(js_code));
     // Set above context with compiled and run code as the default context for
     // the StartupData blob to create.
     creator.SetDefaultContext(context);
