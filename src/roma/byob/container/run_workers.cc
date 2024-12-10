@@ -41,6 +41,7 @@
 #include <uuid/uuid.h>
 
 #include "absl/base/attributes.h"
+#include "absl/base/no_destructor.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
@@ -81,6 +82,8 @@ using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
 using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
+
+const absl::NoDestructor<std::filesystem::path> kBinaryExe("bin.exe");
 
 std::string GenerateUuid() {
   uuid_t uuid;
@@ -477,7 +480,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       return absl::InternalError(absl::StrCat(
           "Failed to create ", binary_dir.native(), ": ", ec.message()));
     }
-    std::filesystem::path binary_path = binary_dir / request.code_token();
+    std::filesystem::path binary_path = binary_dir / *kBinaryExe;
     if (request.has_binary_content()) {
       PS_RETURN_IF_ERROR(SaveNewBinary(binary_path, request.binary_content()));
     } else if (request.has_source_bin_code_token()) {
@@ -538,7 +541,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       const std::filesystem::path& binary_path,
       std::string_view source_bin_code_token) {
     const std::filesystem::path existing_binary_path =
-        progdir_ / source_bin_code_token / source_bin_code_token;
+        progdir_ / source_bin_code_token / *kBinaryExe;
     if (!std::filesystem::exists(existing_binary_path)) {
       return absl::FailedPreconditionError(absl::StrCat(
           "Expected binary ", existing_binary_path.native(), " not found"));
