@@ -37,6 +37,31 @@ cc_test(
 )
 
 cc_library(
+    name = "periodic_closure",
+    srcs = [
+        "periodic_closure.cc",
+    ],
+    hdrs = ["periodic_closure.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_test(
+    name = "periodic_closure_test",
+    size = "small",
+    srcs = ["periodic_closure_test.cc"],
+    deps = [
+        ":periodic_closure",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_library(
     name = "protoutil",
     srcs = ["protoutil.cc"],
     hdrs = ["protoutil.h"],
