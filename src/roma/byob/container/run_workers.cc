@@ -305,6 +305,7 @@ PivotRootData GetPivotRootData(const std::filesystem::path& pivot_root_dir,
                                const std::filesystem::path& binary_path) {
   std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
       mounts_source_and_target;
+  mounts_source_and_target.reserve(mounts_str.size() + 1);
   for (const std::string& mount_str : mounts_str) {
     std::filesystem::path target =
         pivot_root_dir / std::filesystem::path(mount_str).relative_path();
