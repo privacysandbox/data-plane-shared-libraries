@@ -85,7 +85,6 @@ using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 std::string GenerateUuid() {
   uuid_t uuid;
   uuid_generate(uuid);
-  // 36 chars no null terminator.
   std::string uuid_cstr(kNumTokenBytes, '\0');
   uuid_unparse(uuid, uuid_cstr.data());
   return uuid_cstr;
