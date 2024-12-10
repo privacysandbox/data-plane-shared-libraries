@@ -307,14 +307,13 @@ PivotRootData GetPivotRootData(const std::filesystem::path& pivot_root_dir,
       mounts_source_and_target;
   mounts_source_and_target.reserve(mounts_str.size() + 1);
   for (const std::string& mount_str : mounts_str) {
-    std::filesystem::path target =
-        pivot_root_dir / std::filesystem::path(mount_str).relative_path();
-    mounts_source_and_target.push_back({mount_str, target});
+    mounts_source_and_target.push_back(
+        {mount_str,
+         pivot_root_dir / std::filesystem::path(mount_str).relative_path()});
   }
   const std::filesystem::path binary_dir = binary_path.parent_path();
-  const std::filesystem::path target =
-      pivot_root_dir / binary_dir.relative_path();
-  mounts_source_and_target.push_back({binary_dir, target});
+  mounts_source_and_target.push_back(
+      {binary_dir, pivot_root_dir / binary_dir.relative_path()});
   return PivotRootData{
       .new_root_dir = pivot_root_dir,
       .mounts_source_and_target = mounts_source_and_target,
