@@ -179,6 +179,8 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   if (const grpc::Status status =
           stub_->LoadBinary(&context, request, &response);
       !status.ok()) {
+    absl::MutexLock lock(&mu_);
+    code_token_to_fds_and_tokens_.erase(code_token);
     return privacy_sandbox::server_common::ToAbslStatus(status);
   }
   return code_token;
@@ -205,6 +207,8 @@ absl::StatusOr<std::string> Dispatcher::LoadBinaryForLogging(
   if (const grpc::Status status =
           stub_->LoadBinary(&context, request, &response);
       !status.ok()) {
+    absl::MutexLock lock(&mu_);
+    code_token_to_fds_and_tokens_.erase(code_token);
     return privacy_sandbox::server_common::ToAbslStatus(status);
   }
   return code_token;
