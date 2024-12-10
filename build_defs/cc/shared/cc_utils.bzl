@@ -67,3 +67,13 @@ def _gvisor_utils():
             "https://git.kernel.org/pub/scm/libs/libcap/libcap.git/snapshot/libcap-2.70.tar.gz",
         ],
     )
+
+    maybe(
+        http_archive,
+        name = "libuuid",
+        build_file = Label("//build_defs/cc/shared/build_targets:libuuid.BUILD"),
+        strip_prefix = "util-linux-2.39.3",
+        urls = [
+            "https://github.com/util-linux/util-linux/archive/refs/tags/v2.39.3.zip",
+        ],
+    )

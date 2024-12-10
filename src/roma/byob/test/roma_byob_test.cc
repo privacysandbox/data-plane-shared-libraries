@@ -90,7 +90,7 @@ absl::StatusOr<std::string> GetContentsOfFile(std::filesystem::path filename) {
 
 std::string LoadCode(ByobSampleService<>& roma_service,
                      std::filesystem::path file_path,
-                     bool enable_log_egress = false, int num_workers = 1) {
+                     bool enable_log_egress = false, int num_workers = 20) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id;
@@ -109,7 +109,7 @@ std::string LoadCode(ByobSampleService<>& roma_service,
 
 std::string LoadCodeFromCodeToken(ByobSampleService<>& roma_service,
                                   std::string no_log_code_token,
-                                  int num_workers = 1) {
+                                  int num_workers = 20) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
@@ -324,6 +324,7 @@ TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
                /*enable_log_egress=*/true);
+  ::sleep(1);
 
   auto response_and_logs = GetResponseAndLogs(roma_service, code_token);
   EXPECT_THAT(response_and_logs.first.greeting(),

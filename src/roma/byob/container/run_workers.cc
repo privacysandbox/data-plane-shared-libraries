@@ -38,6 +38,8 @@
 #include <grpcpp/server_builder.h>
 #include <grpcpp/server_context.h>
 
+#include <uuid/uuid.h>
+
 #include "absl/base/attributes.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
@@ -79,6 +81,15 @@ using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
 using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
+
+std::string GenerateUuid() {
+  uuid_t uuid;
+  uuid_generate(uuid);
+  // 36 chars no null terminator.
+  std::string uuid_cstr(kNumTokenBytes, '\0');
+  uuid_unparse(uuid, uuid_cstr.data());
+  return uuid_cstr;
+}
 
 absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
   ::sockaddr_un sa = {
@@ -319,8 +330,7 @@ int ReloaderImpl(void* arg) {
       *pivot_root_dir, reloader_impl_arg.mounts, reloader_impl_arg.binary_path);
   while (true) {
     // Start a new worker.
-    const std::string execution_token =
-        ToString(google::scp::core::common::Uuid::GenerateUuid());
+    const std::string execution_token = GenerateUuid();
     WorkerImplArg worker_impl_arg{
         .pivot_root_data = pivot_root_data,
         .execution_token = execution_token,
