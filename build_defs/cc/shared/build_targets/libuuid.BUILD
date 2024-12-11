@@ -39,7 +39,6 @@ cc_library(
     ],
     defines = ["HAVE_NANOSLEEP"],
     includes = ["include"],
-    visibility = ["//visibility:public"],
 )
 
 cc_library(
