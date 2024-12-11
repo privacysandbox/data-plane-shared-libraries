@@ -59,7 +59,8 @@ RUN cd /tmp \
 # fetch gvisor sources
 #
 FROM build-env as gvisor-srcs
-ARG GVISOR_COMMIT=b92307b4e648ce8bbb6d0080ff8f9366f014c21e
+# c88ffa32 2024-12-10
+ARG GVISOR_COMMIT=c88ffa321eb93cced829ca29b98d28be3c200f0a
 
 ENV WORKSPACE=/workspace
 RUN curl --silent --location --output /tmp/gvisor.zip "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" \
