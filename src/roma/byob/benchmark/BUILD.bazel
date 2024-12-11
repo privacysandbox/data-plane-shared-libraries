@@ -20,6 +20,85 @@ load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 cc_binary(
+    name = "traffic_generator",
+    srcs = ["traffic_generator.cc"],
+    deps = [
+        "//src/roma/byob/config",
+        "//src/roma/byob/interface:roma_service",
+        "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+pkg_files(
+    name = "traffic_generator_execs",
+    srcs = [":traffic_generator"],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/server/bin",
+)
+
+[
+    pkg_tar(
+        name = "traffic_generator_tar_{}".format(user.flavor),
+        srcs = [
+            ":traffic_generator_execs",
+        ],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
+
+[
+    expand_template(
+        name = "traffic_generator_{}_image_test_yaml".format(user.flavor),
+        out = "traffic_generator_{}_image_test.yaml".format(user.flavor),
+        substitutions = {
+            "{GID}": str(user.gid),
+            "{UID}": str(user.uid),
+        },
+        template = ":traffic_generator_image_test.yaml",
+    )
+    for user in DISTROLESS_USERS
+]
+
+# builders/tools/bazel-debian build //src/roma/byob/benchmark:traffic_generator_root_image.tar
+# docker load -i bazel-bin/src/roma/byob/benchmark/traffic_generator_root_image_tar/tarball.tar
+# docker run --privileged --volume="${PWD}"/dist:/tmp/runsc-log --cpus=64 --memory=512gb \
+#  -it --entrypoint=sh \
+#  privacy-sandbox/roma-byob/traffic_generator:v1-root
+[
+    roma_byob_image(
+        name = "traffic_generator_{}_image".format(user.flavor),
+        container_structure_test_configs = [":traffic_generator_{}_image_test.yaml".format(user.flavor)],
+        debug = False,
+        entrypoint = ["/server/bin/traffic_generator"],
+        repo_tags = ["privacy-sandbox/roma-byob/traffic_generator:v1-{}".format(user.flavor)],
+        tags = [
+            "noasan",
+            "notsan",
+            "noubsan",
+        ],
+        tars = [
+            ":traffic_generator_tar_{}".format(user.flavor),
+            "//src/roma/byob/sample_udf:udf_{}_tar".format(user.flavor),
+        ],
+        user = user,
+    )
+    for user in DISTROLESS_USERS
+]
+
+cc_binary(
     name = "memory_usage_benchmark",
     srcs = ["memory_usage_benchmark.cc"],
     deps = [
