@@ -1,5 +1,4 @@
 FROM golang:1.23.4-bookworm AS clang
-ARG BAZELISK_VERSION=1.24.1
 ARG CLANG_VER=18
 ARG TARGETARCH
 
@@ -28,13 +27,13 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 ENV \
   CC=/usr/bin/clang \
   CXX=/usr/bin/clang++ \
-  GOPATH=/opt/go \
   TZ=Etc/UTC
 
 #
 # install bazelisk and bazel
 #
 FROM clang AS build-env
+ARG BAZELISK_VERSION=1.24.1
 
 ENV \
   BAZEL_CXXOPTS=-stdlib=libc++ \
@@ -63,9 +62,11 @@ FROM build-env as gvisor-srcs
 ARG GVISOR_COMMIT=c88ffa321eb93cced829ca29b98d28be3c200f0a
 
 ENV WORKSPACE=/workspace
-RUN curl --silent --location --output /tmp/gvisor.zip "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" \
-  && unzip -q /tmp/gvisor.zip -d /workspace \
-  && mv "/workspace/gvisor-${GVISOR_COMMIT}/" /workspace/gvisor/ \
+COPY gvisor.patch /tmp
+ADD "https://github.com/google/gvisor/archive/${GVISOR_COMMIT}.zip" /tmp/gvisor.zip
+RUN unzip -q /tmp/gvisor.zip -d /workspace \
+  && mv "/workspace/gvisor-${GVISOR_COMMIT}" /workspace/gvisor \
+  && patch -p1 --directory=/workspace/gvisor --input=/tmp/gvisor.patch \
   && rm --force /tmp/gvisor.zip
 
 #

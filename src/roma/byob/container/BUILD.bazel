@@ -49,6 +49,7 @@ genrule(
     srcs = [
         ":Dockerfile.runsc",
         ":generate_system_bazelrc",
+        ":gvisor.patch",
     ],
     outs = ["runsc"],
     cmd_bash = """set -o errexit
