@@ -240,10 +240,7 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
       {PR_CAPBSET_DROP, CAP_SETPCAP},
       {PR_SET_PDEATHSIG, SIGHUP},
   }));
-  PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO));
-  if (!worker_impl_arg.enable_log_egress) {
-    PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO));
-  } else {
+  if (worker_impl_arg.enable_log_egress) {
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
   }
   return absl::OkStatus();
@@ -325,6 +322,8 @@ int ReloaderImpl(void* arg) {
   PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
   const ReloaderImplArg& reloader_impl_arg =
       *static_cast<ReloaderImplArg*>(arg);
+  CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDOUT_FILENO));
+  CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDERR_FILENO));
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
       CreateNewPivotRootDir();
   CHECK_OK(pivot_root_dir);

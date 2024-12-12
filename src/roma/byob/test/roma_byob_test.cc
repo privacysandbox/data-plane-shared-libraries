@@ -154,6 +154,27 @@ std::pair<SampleResponse, std::string> GetResponseAndLogs(
   return {*bin_response, logs_acquired};
 }
 
+std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
+    ByobSampleService<>& roma_service, std::string_view code_token) {
+  absl::Notification exec_notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  absl::Status log_status;
+  auto callback = [&exec_notif, &bin_response, &log_status](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> logs) {
+    bin_response = std::move(resp);
+    log_status = std::move(logs.status());
+    exec_notif.Notify();
+  };
+
+  SampleRequest bin_request;
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
+                               /*metadata=*/{}, code_token));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+  return {*bin_response, log_status};
+}
+
 TEST(RomaByobTest, LoadBinaryInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
 
@@ -280,8 +301,11 @@ TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
-  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+  auto response_and_log_status =
+      GetResponseAndLogStatus(roma_service, code_token);
+  EXPECT_THAT(response_and_log_status.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
+  EXPECT_EQ(response_and_log_status.second.code(), absl::StatusCode::kNotFound);
 }
 
 TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
