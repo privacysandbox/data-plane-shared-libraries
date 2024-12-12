@@ -39,6 +39,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
+    // Set the process group id to the process id.
+    PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
     const std::string run_workers_path = std::filesystem::path(CONTAINER_PATH) /
                                          CONTAINER_ROOT_RELPATH / "server" /
                                          "bin" / "run_workers";
@@ -63,8 +65,13 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
 }
 LocalHandle::~LocalHandle() {
   ::kill(pid_, SIGTERM);
-  if (::waitpid(pid_, nullptr, /*options=*/0) == -1) {
-    PLOG(ERROR) << "waitpid(" << pid_ << ", nullptr, 0)";
+  // Wait for all processes in the process group to exit.
+  uint32_t child_count = 0;
+  while (::waitpid(-pid_, /*wstatus=*/nullptr, /*options=*/0) > 0) {
+    child_count++;
+  }
+  if (child_count == 0) {
+    PLOG(ERROR) << "waitpid unexpectedly didn't wait for any pids";
   }
 }
 

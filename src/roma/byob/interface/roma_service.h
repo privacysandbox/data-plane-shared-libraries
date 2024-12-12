@@ -141,8 +141,6 @@ class RomaService final {
     std::filesystem::path control_socket_path = socket_dir_ / "control.sock";
     std::filesystem::path udf_socket_path = socket_dir_ / "byob_rpc.sock";
 
-    // Need to set this to ensure all the children can be reaped
-    ::prctl(PR_SET_CHILD_SUBREAPER, 1);
     const int pid = ::fork();
     if (pid == -1) {
       return absl::ErrnoToStatus(errno, "fork()");
