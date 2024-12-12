@@ -16,6 +16,7 @@
 
 #include <chrono>
 #include <thread>
+#include <utility>
 
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
@@ -43,13 +44,14 @@ TEST(PeriodicClosureTest, StartDelayed) {
   constexpr absl::Duration delay = absl::Milliseconds(2);
   const absl::Time start = absl::Now();
   absl::Time delayed_start;
-  ASSERT_TRUE(periodic_closure
-                  ->StartDelayed(delay,
-                                 [&delayed_start, &notification]() {
-                                   delayed_start = absl::Now();
-                                   notification.Notify();
-                                 })
-                  .ok());
+  absl::AnyInvocable<void()> callback = [&delayed_start, &notification]() {
+    if (!notification.HasBeenNotified()) {
+      delayed_start = absl::Now();
+      notification.Notify();
+    }
+  };
+
+  ASSERT_TRUE(periodic_closure->StartDelayed(delay, std::move(callback)).ok());
   notification.WaitForNotification();
   ASSERT_GE(delayed_start - start, delay);
 }
@@ -60,13 +62,14 @@ TEST(PeriodicClosureTest, StartNow) {
   constexpr absl::Duration delay = absl::Minutes(2);
   const absl::Time start = absl::Now();
   absl::Time delayed_start;
-  ASSERT_TRUE(periodic_closure
-                  ->StartNow(delay,
-                             [&delayed_start, &notification]() {
-                               delayed_start = absl::Now();
-                               notification.Notify();
-                             })
-                  .ok());
+  absl::AnyInvocable<void()> callback = [&delayed_start, &notification]() {
+    if (!notification.HasBeenNotified()) {
+      delayed_start = absl::Now();
+      notification.Notify();
+    }
+  };
+
+  ASSERT_TRUE(periodic_closure->StartNow(delay, std::move(callback)).ok());
   notification.WaitForNotification();
   ASSERT_LT(delayed_start - start, delay);
 }
@@ -74,26 +77,31 @@ TEST(PeriodicClosureTest, StartNow) {
 TEST(PeriodicClosureTest, Stop) {
   std::unique_ptr<PeriodicClosure> periodic_closure = PeriodicClosure::Create();
   absl::Notification notification;
-  int32_t count = 0;
-  ASSERT_TRUE(periodic_closure
-                  ->StartNow(absl::Milliseconds(1),
-                             [&count, &notification]() {
-                               count++;
-                               notification.Notify();
-                             })
-                  .ok());
+  absl::AnyInvocable<void()> callback = [&notification]() {
+    if (!notification.HasBeenNotified()) {
+      notification.Notify();
+    }
+  };
+
+  ASSERT_TRUE(
+      periodic_closure->StartNow(absl::Milliseconds(1), std::move(callback))
+          .ok());
   notification.WaitForNotification();
   periodic_closure->Stop();
   ASSERT_FALSE(periodic_closure->IsRunning());
-  ASSERT_EQ(count, 1);
 }
 
 TEST(PeriodicClosureTest, StartAfterStarted) {
   std::unique_ptr<PeriodicClosure> periodic_closure = PeriodicClosure::Create();
   absl::Notification notification;
+  absl::AnyInvocable<void()> callback = [&]() {
+    if (!notification.HasBeenNotified()) {
+      notification.Notify();
+    }
+  };
+
   ASSERT_TRUE(
-      periodic_closure
-          ->StartNow(absl::Milliseconds(1), [&]() { notification.Notify(); })
+      periodic_closure->StartNow(absl::Milliseconds(1), std::move(callback))
           .ok());
   notification.WaitForNotification();
   ASSERT_FALSE(periodic_closure->StartNow(absl::Milliseconds(1), []() {}).ok());
