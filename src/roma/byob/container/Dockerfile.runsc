@@ -58,8 +58,8 @@ RUN cd /tmp \
 # fetch gvisor sources
 #
 FROM build-env as gvisor-srcs
-# c88ffa32 2024-12-10
-ARG GVISOR_COMMIT=c88ffa321eb93cced829ca29b98d28be3c200f0a
+# 9fcf0b5 2024-12-13
+ARG GVISOR_COMMIT=9fcf0b5b5360d9314aa355c83a8f16fbe4e69e97
 
 ENV WORKSPACE=/workspace
 COPY gvisor.patch /tmp
