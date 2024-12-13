@@ -19,6 +19,7 @@
 
 #include <gmock/gmock.h>
 
+#include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "include/gtest/gtest.h"
 #include "src/encryption/key_fetcher/interface/key_fetcher_manager_interface.h"
@@ -42,7 +43,7 @@ class MockKeyFetcherManager : public KeyFetcherManagerInterface {
               (const google::scp::cpio::PublicPrivateKeyPairId& key_id),
               (noexcept));
 
-  MOCK_METHOD(void, Start, (), (noexcept));
+  MOCK_METHOD(absl::Status, Start, (), (noexcept));
 };
 
 }  // namespace privacy_sandbox::server_common
