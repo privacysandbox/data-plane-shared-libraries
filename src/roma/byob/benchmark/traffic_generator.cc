@@ -99,7 +99,8 @@ int main(int argc, char** argv) {
   // the burst. We can change this later by sleeping for
   // interval_between_send_bursts - time taken to send the burst.
   const absl::Duration interval_between_send_bursts =
-      absl::Milliseconds(1000.00 / queries_per_second);
+      absl::Seconds(1) / queries_per_second;
+  std::cout << "burst interval: " << interval_between_send_bursts << std::endl;
   for (int query = 0; query < num_queries; query++) {
     absl::SleepFor(interval_between_send_bursts);
     SendBurst(roma_service.get(), *code_token, query, burst_size);
