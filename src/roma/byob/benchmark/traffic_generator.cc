@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
       roma_service->LoadBinary(kUdfPath, num_workers);
   CHECK_OK(code_token);
   // Adding a wait to make sure the workers are ready for work.
-  absl::SleepFor(absl::Milliseconds(5'000));
+  absl::SleepFor(absl::Seconds(5));
 
   // The qps will be a little lower because disregards the time it takes to send
   // the burst. We can change this later by sleeping for
