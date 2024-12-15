@@ -23,6 +23,7 @@
 #include <string>
 #include <string_view>
 #include <thread>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -119,9 +120,24 @@ class NativeFunctionHandlerSapiIpc {
           // Get function name
           if (const auto function_name = wrapper_proto.function_name();
               !function_name.empty()) {
-            if (auto reader = ScopedValueReader<TMetadata>::Create(
-                    metadata_storage_->GetMetadataMap(), invocation_req_uuid);
-                !reader.ok()) {
+            if (metadata_storage_ == nullptr) {
+              if constexpr (std::is_default_constructible<TMetadata>::value) {
+                TMetadata dummy_metadata;
+                if (FunctionBindingPayload<TMetadata> wrapper{
+                        *io_proto,
+                        dummy_metadata,
+                    };
+                    !function_table_->Call(function_name, wrapper).ok()) {
+                  // If execution failed, add errors to the proto to return
+                  io_proto->mutable_errors()->Add(
+                      std::string(kFailedNativeHandlerExecution));
+                  ROMA_VLOG(1) << kFailedNativeHandlerExecution;
+                }
+              }
+            } else if (auto reader = ScopedValueReader<TMetadata>::Create(
+                           metadata_storage_->GetMetadataMap(),
+                           invocation_req_uuid);
+                       !reader.ok()) {
               // If mutex can't be found, add errors to the proto to return
               io_proto->mutable_errors()->Add(std::string(kCouldNotFindMutex));
               ROMA_VLOG(1) << kCouldNotFindMutex;
