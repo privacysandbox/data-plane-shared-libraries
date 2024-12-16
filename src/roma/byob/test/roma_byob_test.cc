@@ -121,14 +121,16 @@ std::string LoadCodeFromCodeToken(ByobSampleService<>& roma_service,
   return *std::move(code_id);
 }
 
-ByobSampleService<> GetRomaService(Mode mode) {
-  privacy_sandbox::server_common::byob::Config<> config = {
-      .roma_container_name = "roma_server",
-  };
+ByobSampleService<> GetRomaService(
+    ::privacy_sandbox::server_common::byob::Config<> config, Mode mode) {
   absl::StatusOr<ByobSampleService<>> sample_interface =
-      ByobSampleService<>::Create(config, mode);
+      ByobSampleService<>::Create(std::move(config), mode);
   CHECK_OK(sample_interface);
   return std::move(*sample_interface);
+}
+
+ByobSampleService<> GetRomaService(Mode mode) {
+  return GetRomaService(/*config=*/{}, std::move(mode));
 }
 
 std::pair<SampleResponse, std::string> GetResponseAndLogs(
@@ -286,7 +288,8 @@ TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
 }
 
 TEST(RomaByobTest, ProcessRequestGoLangBinaryInSandboxMode) {
-  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
+  ByobSampleService<> roma_service =
+      GetRomaService({.lib_mounts = ""}, Mode::kModeSandbox);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);

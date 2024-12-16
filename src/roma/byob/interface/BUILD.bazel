@@ -21,14 +21,7 @@ cc_library(
     local_defines = [
         'CONTAINER_PATH=\\"{}\\"'.format(roma_container_dir),
         'CONTAINER_ROOT_RELPATH=\\"{}\\"'.format(roma_container_root_dir),
-    ] + select({
-        "@platforms//cpu:arm64": [
-            'LIB_MOUNTS=\\"/lib,/usr/lib\\"',
-        ],
-        "@platforms//cpu:x86_64": [
-            'LIB_MOUNTS=\\"/lib,/lib64,/usr/lib\\"',
-        ],
-    }),
+    ],
     visibility = ["//visibility:public"],
     deps = [
         "//src/core/common/uuid",

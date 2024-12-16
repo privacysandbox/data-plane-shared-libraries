@@ -346,7 +346,6 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
 
 void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
-  // Empty lib_mounts variable leads to default being used.
   std::string mounts = "";
   if (lang == Language::kJava) {
     mounts = "/proc/self";
@@ -355,6 +354,8 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
     state.SkipWithError("Skipping Java test on ARM64");
     return;
 #endif
+  } else if (lang == Language::kGoLang) {
+    mounts = "";
   }
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",

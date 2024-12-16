@@ -44,8 +44,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
     const std::string run_workers_path = std::filesystem::path(CONTAINER_PATH) /
                                          CONTAINER_ROOT_RELPATH / "server" /
                                          "bin" / "run_workers";
-    const std::string mounts_flag =
-        absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts);
+    const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
     const std::string control_socket_name_flag =
         absl::StrCat("--control_socket_name=", control_socket_path);
     const std::string udf_socket_name_flag =
@@ -103,7 +102,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     config["root"] = {{"path", CONTAINER_ROOT_RELPATH}};
     config["process"]["args"] = {
         "/server/bin/run_workers",
-        absl::StrCat("--mounts=", mounts.empty() ? LIB_MOUNTS : mounts),
+        absl::StrCat("--mounts=", mounts),
         absl::StrCat("--control_socket_name=", control_socket_path),
         absl::StrCat("--udf_socket_name=", udf_socket_path),
         absl::StrCat("--log_dir=", log_dir_mount_point),

@@ -22,13 +22,21 @@
 
 #include "src/roma/config/function_binding_object_v2.h"
 
+#ifndef LIB_MOUNTS
+#if defined(__aarch64__)
+#define LIB_MOUNTS "/lib,/usr/lib"
+#else
+#define LIB_MOUNTS "/lib,/lib64,/usr/lib"
+#endif
+#endif /* LIB_MOUNTS */
+
 namespace privacy_sandbox::server_common::byob {
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 struct Config {
   std::uint64_t memory_limit_soft = 0;
   std::uint64_t memory_limit_hard = 0;
   std::string roma_container_name;
-  std::string lib_mounts;
+  std::string lib_mounts = LIB_MOUNTS;
 };
 }  // namespace privacy_sandbox::server_common::byob
 

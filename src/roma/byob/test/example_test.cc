@@ -53,14 +53,16 @@ std::string LoadCode(ByobEchoService<>& roma_service,
   return *std::move(code_id);
 }
 
-ByobEchoService<> GetRomaService(Mode mode) {
-  privacy_sandbox::server_common::byob::Config<> config = {
-      .roma_container_name = "roma_server",
-  };
+ByobEchoService<> GetRomaService(
+    ::privacy_sandbox::server_common::byob::Config<> config, Mode mode) {
   absl::StatusOr<ByobEchoService<>> echo_interface =
-      ByobEchoService<>::Create(config, mode);
+      ByobEchoService<>::Create(std::move(config), std::move(mode));
   CHECK_OK(echo_interface);
   return std::move(*echo_interface);
+}
+
+ByobEchoService<> GetRomaService(Mode mode) {
+  return GetRomaService(/*config=*/{}, std::move(mode));
 }
 
 TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
@@ -167,7 +169,11 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
 }
 
 TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
+  ByobEchoService<> roma_service = GetRomaService(
+      {
+          .lib_mounts = "",
+      },
+      Mode::kModeSandbox);
   const std::string message = "I am a test Go binary message.";
   const std::string code_token = LoadCode(
       roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);
@@ -186,7 +192,11 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
+  ByobEchoService<> roma_service = GetRomaService(
+      {
+          .lib_mounts = "",
+      },
+      Mode::kModeSandbox);
   const std::string message = "I am a test Go binary message.";
   const std::string code_token = LoadCode(
       roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);

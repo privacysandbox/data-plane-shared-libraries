@@ -42,10 +42,12 @@ ABSL_FLAG(int, burst_size, 14,
           "Number of times to call ProcessRequest for a single query");
 ABSL_FLAG(int, num_queries, 10'000, "Number of queries to be sent");
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
-          privacy_sandbox::server_common::byob::Mode::kModeNoSandbox,
+          privacy_sandbox::server_common::byob::Mode::kModeSandbox,
           "Run BYOB in sandbox mode.");
-
-const std::filesystem::path kUdfPath = "/udf/sample_udf";
+ABSL_FLAG(std::string, lib_mounts, "",
+          "Mount paths to include in the pivot_root environment. Example "
+          "/lib,/lib64,/usr/lib");
+ABSL_FLAG(std::string, binary_path, "/udf/sample_go_udf", "Path to binary");
 
 namespace {
 
@@ -70,11 +72,12 @@ int main(int argc, char** argv) {
   CHECK_GT(burst_size, 0);
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
-
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
-  CHECK_OK(roma_service->Init(/*config=*/{}, absl::GetFlag(FLAGS_sandbox)));
+  CHECK_OK(roma_service->Init(/*config=*/
+                              {.lib_mounts = absl::GetFlag(FLAGS_lib_mounts)},
+                              absl::GetFlag(FLAGS_sandbox)));
   absl::StatusOr<std::string> code_token =
-      roma_service->LoadBinary(kUdfPath, num_workers);
+      roma_service->LoadBinary(absl::GetFlag(FLAGS_binary_path), num_workers);
   CHECK_OK(code_token);
   // Wait to make sure the workers are ready for work.
   absl::SleepFor(absl::Seconds(5));
@@ -89,7 +92,7 @@ int main(int argc, char** argv) {
             [](absl::StatusOr<SampleResponse> response) {
               CHECK_OK(response);
             });
-    // CHECK_OK(exec_token) << "FAIL";
+    CHECK_OK(exec_token) << "FAIL";
   };
   using ::privacy_sandbox::server_common::byob::BurstGenerator;
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
