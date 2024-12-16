@@ -57,12 +57,14 @@ class NativeFunctionHandlerNonSapi {
   NativeFunctionHandlerNonSapi(NativeFunctionTable<TMetadata>* function_table,
                                MetadataStorage<TMetadata>* metadata_storage,
                                const std::vector<int>& local_fds,
-                               std::vector<int> remote_fds)
+                               std::vector<int> remote_fds,
+                               bool skip_callback_for_cancelled = true)
       : stop_(false),
         function_table_(function_table),
         metadata_storage_(metadata_storage),
         remote_fds_(std::move(remote_fds)),
-        local_fds_(local_fds) {}
+        local_fds_(local_fds),
+        skip_callback_for_cancelled_(skip_callback_for_cancelled) {}
 
   void Run() ABSL_LOCKS_EXCLUDED(canceled_requests_mu_) {
     ROMA_VLOG(9) << "Calling native function handler" << std::endl;
@@ -233,6 +235,7 @@ class NativeFunctionHandlerNonSapi {
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
   std::vector<int> local_fds_;
+  bool skip_callback_for_cancelled_;
 };
 
 template <typename T>

@@ -71,11 +71,13 @@ class NativeFunctionHandlerSapiIpc {
   NativeFunctionHandlerSapiIpc(NativeFunctionTable<TMetadata>* function_table,
                                MetadataStorage<TMetadata>* metadata_storage,
                                const std::vector<int>& local_fds,
-                               std::vector<int> remote_fds)
+                               std::vector<int> remote_fds,
+                               bool skip_callback_for_cancelled = true)
       : stop_(false),
         function_table_(function_table),
         metadata_storage_(metadata_storage),
-        remote_fds_(std::move(remote_fds)) {
+        remote_fds_(std::move(remote_fds)),
+        skip_callback_for_cancelled_(skip_callback_for_cancelled) {
     ipc_comms_.reserve(local_fds.size());
     for (const int local_fd : local_fds) {
       ipc_comms_.emplace_back(local_fd);
@@ -101,7 +103,7 @@ class NativeFunctionHandlerSapiIpc {
 
           auto io_proto = wrapper_proto.mutable_io_proto();
           const auto& invocation_req_uuid = wrapper_proto.request_uuid();
-          {
+          if (skip_callback_for_cancelled_) {
             absl::MutexLock lock(&canceled_requests_mu_);
             if (const auto it = canceled_requests_.find(invocation_req_uuid);
                 it != canceled_requests_.end()) {
@@ -215,6 +217,7 @@ class NativeFunctionHandlerSapiIpc {
   absl::Mutex canceled_requests_mu_;
   // We need the remote file descriptors to unblock the local ones when stopping
   std::vector<int> remote_fds_;
+  bool skip_callback_for_cancelled_;
 };
 
 template <typename T>

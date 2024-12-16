@@ -245,7 +245,8 @@ class RomaService {
       metadata_ptr = &metadata_storage_;
     }
     native_function_binding_handler_.emplace(
-        &native_function_binding_table_, metadata_ptr, local_fds, remote_fds);
+        &native_function_binding_table_, metadata_ptr, local_fds, remote_fds,
+        config_.skip_callback_for_cancelled);
 
     NativeFunctionBindingSetup setup{
         .remote_file_descriptors = std::move(remote_fds),
