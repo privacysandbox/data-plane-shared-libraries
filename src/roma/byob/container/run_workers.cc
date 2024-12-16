@@ -104,19 +104,15 @@ absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
   return absl::OkStatus();
 }
 
-struct PivotRootData {
-  std::filesystem::path new_root_dir;
-  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      mounts_source_and_target;
-};
-
 // WorkerImplArg contains references to objects whose lifetimes are managed
 // elsewhere. This is considered problematic. However, it is safe in this case
 // because worker clones are created with CLONE_VFORK and CLONE_VM flag. These
 // flags ensure that the calling process does not modify/delete the content
 // before the worker calls exec.
 struct WorkerImplArg {
-  const PivotRootData& pivot_root_data;
+  const std::filesystem::path& pivot_root_dir;
+  absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
+      sources_and_targets;
   std::string_view execution_token;
   std::string_view socket_name;
   std::string_view code_token;
@@ -137,7 +133,7 @@ absl::Status SetPrctlOptions(
   return absl::OkStatus();
 }
 
-absl::StatusOr<std::filesystem::path> CreateNewPivotRootDir() {
+absl::StatusOr<std::filesystem::path> CreatePivotRootDir() {
   std::string pivot_root_dir = "/tmp/pivot_root_XXXXXX";
   if (::mkdtemp(pivot_root_dir.data()) == nullptr) {
     return absl::ErrnoToStatus(errno, "mkdtemp()");
@@ -179,6 +175,53 @@ absl::Status Dup2(int oldfd, int newfd) {
   return absl::OkStatus();
 }
 
+absl::Status SetupPivotRoot(
+    const std::filesystem::path& pivot_root_dir,
+    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
+        sources_and_targets) {
+  PS_RETURN_IF_ERROR(RemoveDirectories(pivot_root_dir));
+
+  // Set up restricted filesystem for worker using pivot_root
+  // pivot_root doesn't work under an MS_SHARED mount point.
+  // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
+  PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
+  for (const auto& [source, target] : sources_and_targets) {
+    PS_RETURN_IF_ERROR(CreateDirectories(target));
+    PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
+  }
+
+  // MS_REC needed here to get other mounts (/lib, /lib64 etc)
+  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
+                           "bind", MS_REC | MS_BIND));
+  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
+                           "bind", MS_REC | MS_SLAVE));
+  {
+    const std::filesystem::path pivot_dir = pivot_root_dir / "pivot";
+    PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
+    if (::syscall(SYS_pivot_root, pivot_root_dir.c_str(), pivot_dir.c_str()) ==
+        -1) {
+      return absl::ErrnoToStatus(
+          errno,
+          absl::StrCat("syscall(SYS_pivot_root, '", pivot_root_dir.c_str(),
+                       "', '", pivot_dir.c_str(), "')"));
+    }
+  }
+  if (::chdir("/") == -1) {
+    return absl::ErrnoToStatus(errno, "chdir('/')");
+  }
+  if (::umount2("/pivot", MNT_DETACH) == -1) {
+    return absl::ErrnoToStatus(errno, "mount2('/pivot', MNT_DETACH)");
+  }
+  if (::rmdir("/pivot") == -1) {
+    return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
+  }
+  for (const auto& [source, _] : sources_and_targets) {
+    PS_RETURN_IF_ERROR(
+        Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
+  }
+  return absl::OkStatus();
+}
+
 absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
   int log_fd = -1;
   if (worker_impl_arg.enable_log_egress) {
@@ -191,50 +234,6 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
           errno, absl::StrCat("Failed to open '", log_file_name.native(), "'"));
     }
   }
-  const PivotRootData& pivot_root_data = worker_impl_arg.pivot_root_data;
-  PS_RETURN_IF_ERROR(RemoveDirectories(pivot_root_data.new_root_dir));
-  // Set up restricted filesystem for worker using pivot_root
-  // pivot_root doesn't work under an MS_SHARED mount point.
-  // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
-  PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
-  for (const auto& [source, target] :
-       pivot_root_data.mounts_source_and_target) {
-    PS_RETURN_IF_ERROR(CreateDirectories(target));
-    PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
-  }
-
-  // MS_REC needed here to get other mounts (/lib, /lib64 etc)
-  PS_RETURN_IF_ERROR(Mount(pivot_root_data.new_root_dir.c_str(),
-                           pivot_root_data.new_root_dir.c_str(), "bind",
-                           MS_REC | MS_BIND));
-  PS_RETURN_IF_ERROR(Mount(pivot_root_data.new_root_dir.c_str(),
-                           pivot_root_data.new_root_dir.c_str(), "bind",
-                           MS_REC | MS_SLAVE));
-  {
-    const std::filesystem::path pivot_dir =
-        pivot_root_data.new_root_dir / "pivot";
-    PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
-    if (::syscall(SYS_pivot_root, pivot_root_data.new_root_dir.c_str(),
-                  pivot_dir.c_str()) == -1) {
-      return absl::ErrnoToStatus(
-          errno, absl::StrCat("syscall(SYS_pivot_root, '",
-                              pivot_root_data.new_root_dir.c_str(), "', '",
-                              pivot_dir.c_str(), "')"));
-    }
-  }
-  if (::chdir("/") == -1) {
-    return absl::ErrnoToStatus(errno, "chdir('/')");
-  }
-  if (::umount2("/pivot", MNT_DETACH) == -1) {
-    return absl::ErrnoToStatus(errno, "mount2('/pivot', MNT_DETACH)");
-  }
-  if (::rmdir("/pivot") == -1) {
-    return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
-  }
-  for (const auto& [source, _] : pivot_root_data.mounts_source_and_target) {
-    PS_RETURN_IF_ERROR(
-        Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
-  }
   PS_RETURN_IF_ERROR(SetPrctlOptions({
       {PR_CAPBSET_DROP, CAP_SYS_ADMIN},
       {PR_CAPBSET_DROP, CAP_SETPCAP},
@@ -243,7 +242,8 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
   if (worker_impl_arg.enable_log_egress) {
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
   }
-  return absl::OkStatus();
+  return SetupPivotRoot(worker_impl_arg.pivot_root_dir,
+                        worker_impl_arg.sources_and_targets);
 }
 
 constexpr uint32_t MaxIntDecimalLength() {
@@ -297,24 +297,17 @@ struct ReloaderImplArg {
   std::string log_dir_name;
 };
 
-PivotRootData GetPivotRootData(const std::filesystem::path& pivot_root_dir,
-                               absl::Span<const std::string> mounts_str,
-                               const std::filesystem::path& binary_path) {
+std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+GetSourcesAndTargets(const std::filesystem::path& pivot_root_dir,
+                     absl::Span<const std::string> mounts) {
   std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      mounts_source_and_target;
-  mounts_source_and_target.reserve(mounts_str.size() + 1);
-  for (const std::string& mount_str : mounts_str) {
-    mounts_source_and_target.push_back(
-        {mount_str,
-         pivot_root_dir / std::filesystem::path(mount_str).relative_path()});
+      sources_and_targets;
+  sources_and_targets.reserve(mounts.size());
+  for (const std::filesystem::path mount : mounts) {
+    sources_and_targets.push_back(
+        {mount, pivot_root_dir / mount.relative_path()});
   }
-  const std::filesystem::path binary_dir = binary_path.parent_path();
-  mounts_source_and_target.push_back(
-      {binary_dir, pivot_root_dir / binary_dir.relative_path()});
-  return PivotRootData{
-      .new_root_dir = pivot_root_dir,
-      .mounts_source_and_target = mounts_source_and_target,
-  };
+  return sources_and_targets;
 }
 
 int ReloaderImpl(void* arg) {
@@ -325,15 +318,30 @@ int ReloaderImpl(void* arg) {
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDOUT_FILENO));
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDERR_FILENO));
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
-      CreateNewPivotRootDir();
+      CreatePivotRootDir();
   CHECK_OK(pivot_root_dir);
-  PivotRootData pivot_root_data = GetPivotRootData(
-      *pivot_root_dir, reloader_impl_arg.mounts, reloader_impl_arg.binary_path);
+  const std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+      sources_and_targets =
+          GetSourcesAndTargets(*pivot_root_dir, reloader_impl_arg.mounts);
+  {
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+        reloader_sources_and_targets = sources_and_targets;
+    const std::filesystem::path socket_dir =
+        std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
+
+    // SetupPivotRoot reduces the base filesystem image size. This pivot root
+    // includes the socket_dir, which must not be shared with the pivot_root
+    // created by the worker.
+    reloader_sources_and_targets.push_back(
+        {socket_dir, *pivot_root_dir / socket_dir.relative_path()});
+    CHECK_OK(SetupPivotRoot(*pivot_root_dir, reloader_sources_and_targets));
+  }
   while (true) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
     WorkerImplArg worker_impl_arg{
-        .pivot_root_data = pivot_root_data,
+        .pivot_root_dir = *pivot_root_dir,
+        .sources_and_targets = sources_and_targets,
         .execution_token = execution_token,
         .socket_name = reloader_impl_arg.socket_name,
         .code_token = reloader_impl_arg.code_token,
@@ -561,8 +569,13 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       absl::MutexLock lock(&mu_);
       code_token_to_reloader_pids_[code_token].reserve(num_workers);
     }
+    std::vector<std::string> mounts = mounts_;
+    mounts.push_back(binary_path.parent_path());
+    if (enable_log_egress) {
+      mounts.push_back(log_dir_name_);
+    }
     ReloaderImplArg reloader_impl_arg{
-        .mounts = mounts_,
+        .mounts = std::move(mounts),
         .socket_name = socket_name_,
         .code_token = std::string(code_token),
         .binary_path = std::move(binary_path),
@@ -574,8 +587,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       // TODO: b/375622989 - Refactor run_workers to make the code more
       // coherent.
       alignas(16) char stack[1 << 20];
-      const pid_t pid = ::clone(ReloaderImpl, stack + sizeof(stack), SIGCHLD,
-                                &reloader_impl_arg);
+      const pid_t pid = ::clone(ReloaderImpl, stack + sizeof(stack),
+                                CLONE_NEWNS | SIGCHLD, &reloader_impl_arg);
       if (pid == -1) {
         return absl::ErrnoToStatus(errno, "clone()");
       }
