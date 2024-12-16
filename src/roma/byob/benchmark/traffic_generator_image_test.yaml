@@ -35,14 +35,9 @@ commandTests:
   - name: events stats 10k
     command: /server/bin/traffic_generator
     args:
-      - --num_workers
-      - 1
-      - --num_queries
-      - 1
-      - --burst_size
-      - 1
-      - --queries_per_second
-      - 1
-      - --sandbox
-      - on
+      - --num_workers=1
+      - --num_queries=1
+      - --burst_size=2
+      - --queries_per_second=1
+      - --sandbox=on
     exitCode: 0

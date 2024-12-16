@@ -85,14 +85,21 @@ int main(int argc, char** argv) {
   ::privacy_sandbox::roma_byob::example::SampleRequest request;
   request.set_function(FUNCTION_HELLO_WORLD);
 
-  const auto rpc_func = [&roma_service, code_token = *code_token, &request]() {
+  const auto rpc_func = [&roma_service, code_token = *code_token, &request](
+                            privacy_sandbox::server_common::Stopwatch stopwatch,
+                            absl::StatusOr<absl::Duration>* duration) {
     absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
         roma_service->ProcessRequest<SampleResponse>(
             code_token, request, google::scp::roma::DefaultMetadata(),
-            [](absl::StatusOr<SampleResponse> response) {
+            [stopwatch = std::move(stopwatch),
+             duration](absl::StatusOr<SampleResponse> response) {
+              *duration = stopwatch.GetElapsedTime();
               CHECK_OK(response);
             });
-    CHECK_OK(exec_token) << "FAIL";
+    // CHECK_OK(exec_token) << "FAIL";
+    if (!exec_token.ok()) {
+      *duration = exec_token.status();
+    }
   };
   using ::privacy_sandbox::server_common::byob::BurstGenerator;
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;

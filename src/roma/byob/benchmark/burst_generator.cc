@@ -26,8 +26,10 @@
 #include "src/util/duration.h"
 
 namespace {
+
 template <typename T>
 struct Percentiles {
+  size_t count;
   T min;
   T p50;
   T p90;
@@ -40,6 +42,7 @@ template <typename T>
 Percentiles<T> get_percentiles(std::vector<T> values) {
   std::sort(values.begin(), values.end());
   return Percentiles<T>{
+      .count = values.size(),
       .min = values[0],
       .p50 = values[std::floor(0.5 * values.size())],
       .p90 = values[std::floor(0.9 * values.size())],
@@ -49,28 +52,55 @@ Percentiles<T> get_percentiles(std::vector<T> values) {
   };
 }
 
+template <typename T>
+Percentiles<T> get_status_percentiles(std::vector<absl::StatusOr<T>> values) {
+  std::vector<T> inv_durations;
+  inv_durations.reserve(values.size());
+  int failure_count = 0;
+  for (absl::StatusOr<T> l : values) {
+    if (l.ok()) {
+      inv_durations.push_back(*l);
+    } else {
+      failure_count++;
+    }
+  }
+  if (failure_count > 0) {
+    LOG(ERROR) << "failure count: " << failure_count;
+  }
+  return get_percentiles(inv_durations);
+}
+
 }  // namespace
 
 namespace privacy_sandbox::server_common::byob {
 
 std::string BurstGenerator::Stats::ToString() const {
-  Percentiles<absl::Duration> ptiles = get_percentiles(burst_latencies);
-  return absl::StrCat("total runtime: ", total_elapsed,
-                      ", invocation count: ", total_invocation_count,
-                      " late bursts: ", late_count, "\nburst latencies",
-                      "\n  min: ", ptiles.min, "\n  p50: ", ptiles.p50,
-                      "\n  p90: ", ptiles.p90, "\n  p95: ", ptiles.p95,
-                      "\n  p99: ", ptiles.p99, "\n  max: ", ptiles.max);
+  Percentiles<absl::Duration> burst_ptiles = get_percentiles(burst_latencies);
+  Percentiles<absl::Duration> invocation_ptiles =
+      get_status_percentiles(invocation_latencies);
+  return absl::StrCat(
+      "total runtime: ", total_elapsed,
+      ", invocation count: ", total_invocation_count,
+      " late bursts: ", late_count, "\nburst latencies",
+      "\n  count: ", burst_ptiles.count, "\n  min: ", burst_ptiles.min,
+      "\n  p50: ", burst_ptiles.p50, "\n  p90: ", burst_ptiles.p90,
+      "\n  p95: ", burst_ptiles.p95, "\n  p99: ", burst_ptiles.p99,
+      "\n  max: ", burst_ptiles.max, "\ninvocation latencies",
+      "\n  count: ", invocation_ptiles.count,
+      "\n  min: ", invocation_ptiles.min, "\n  p50: ", invocation_ptiles.p50,
+      "\n  p90: ", invocation_ptiles.p90, "\n  p95: ", invocation_ptiles.p95,
+      "\n  p99: ", invocation_ptiles.p99, "\n  max: ", invocation_ptiles.max);
 }
 
 BurstGenerator::Stats BurstGenerator::Run() const {
-  Stats stats(burst_size_);
+  Stats stats(burst_size_, num_bursts_);
   LOG(INFO) << "starting burst generator run."
             << "\n  num bursts: " << num_bursts_
             << "\n  burst cadence: " << cadence_
             << "\n  burst size: " << burst_size_ << std::endl;
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::Time expected_start = absl::Now();
+  auto latencies_it = stats.invocation_latencies.begin();
   for (int i = 0; i < num_bursts_; i++) {
     std::string id = absl::StrCat("b", i);
     absl::Duration wait_time = expected_start - absl::Now();
@@ -81,38 +111,24 @@ BurstGenerator::Stats BurstGenerator::Run() const {
     } else {
       absl::SleepFor(wait_time);
     }
-    absl::Duration gen_latency = Generate(id);
+    absl::Duration gen_latency = Generate(id, &*latencies_it);
     stats.burst_latencies.push_back(gen_latency);
     stats.total_invocation_count += burst_size_;
+    latencies_it += burst_size_;
     expected_start += cadence_;
   }
   stats.total_elapsed = stopwatch.GetElapsedTime();
   return stats;
 }
 
-absl::Duration BurstGenerator::Generate(std::string burst_id) const {
+absl::Duration BurstGenerator::Generate(
+    std::string burst_id, absl::StatusOr<absl::Duration>* latencies_ptr) const {
   privacy_sandbox::server_common::Stopwatch stopwatch;
   const std::string qid = absl::StrCat(id_, "-", burst_id);
-#ifndef NDEBUG
-  std::vector<absl::Duration> timings;
-  timings.reserve(burst_size_);
-#endif
   for (int i = 0; i < burst_size_; ++i) {
-#ifndef NDEBUG
     privacy_sandbox::server_common::Stopwatch fn_stopwatch;
-#endif
-    func_();
-#ifndef NDEBUG
-    timings.push_back(fn_stopwatch.GetElapsedTime());
-#endif
+    func_(std::move(fn_stopwatch), latencies_ptr++);
   }
-#ifndef NDEBUG
-  Percentiles<absl::Duration> ptiles = get_percentiles(std::move(timings));
-  LOG(INFO) << "burst time: " << stopwatch.GetElapsedTime()
-            << "\n  min: " << ptiles.min << "\n  p50: " << ptiles.p50
-            << "\n  p90: " << ptiles.p90 << "\n  p95: " << ptiles.p95
-            << "\n  p99: " << ptiles.p99 << "\n  max: " << ptiles.max << "\n";
-#endif
   return stopwatch.GetElapsedTime();
 }
 
