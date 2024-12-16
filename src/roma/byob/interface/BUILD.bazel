@@ -23,10 +23,10 @@ cc_library(
         'CONTAINER_ROOT_RELPATH=\\"{}\\"'.format(roma_container_root_dir),
     ] + select({
         "@platforms//cpu:arm64": [
-            'LIB_MOUNTS=\\"/lib,/usr\\"',
+            'LIB_MOUNTS=\\"/lib,/usr/lib\\"',
         ],
         "@platforms//cpu:x86_64": [
-            'LIB_MOUNTS=\\"/lib,/lib64,/usr\\"',
+            'LIB_MOUNTS=\\"/lib,/lib64,/usr/lib\\"',
         ],
     }),
     visibility = ["//visibility:public"],
