@@ -31,6 +31,7 @@
 #include "absl/strings/str_join.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/byob/config/config.h"
 #include "src/roma/byob/sample_udf/sample_callback.pb.h"
 #include "src/roma/byob/sample_udf/sample_roma_byob_app_service.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
@@ -357,11 +358,7 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   } else if (lang == Language::kGoLang) {
     mounts = "";
   } else {
-#if defined(__aarch64__)
-    mounts = "/usr/lib,/lib";
-#else
-    mounts = "/usr/lib,/lib,/lib64";
-#endif
+    mounts = LIB_MOUNTS;
   }
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",

@@ -44,10 +44,10 @@ ABSL_FLAG(int, num_queries, 10'000, "Number of queries to be sent");
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeSandbox,
           "Run BYOB in sandbox mode.");
-ABSL_FLAG(std::string, lib_mounts, "",
+ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
           "Mount paths to include in the pivot_root environment. Example "
-          "/lib,/lib64,/usr/lib");
-ABSL_FLAG(std::string, binary_path, "/udf/sample_go_udf", "Path to binary");
+          "/dir1,/dir2");
+ABSL_FLAG(std::string, binary_path, "/udf/sample_udf", "Path to binary");
 
 namespace {
 

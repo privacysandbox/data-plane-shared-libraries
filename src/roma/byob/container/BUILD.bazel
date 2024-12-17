@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
@@ -19,9 +20,18 @@ load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
-filegroup(
+alias(
+    name = "config_json",
+    actual = select({
+        "@platforms//cpu:aarch64": ":config-aarch64.json",
+        "@platforms//cpu:x86_64": ":config-amd64.json",
+    }),
+)
+
+copy_file(
     name = "container_config",
-    srcs = ["config.json"],
+    src = ":config_json",
+    out = "config.json",
     # TODO: b/383174230 - Revert once server teams move to rules_oci
     visibility = ["//visibility:public"],
 )
@@ -209,9 +219,29 @@ MACHINE="$$(uname --machine)"
 mkdir --parents --mode=700 "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
 tar --extract --file="$(location :byob_runtime_container_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
 tar --extract --file="$(location :container_config_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}"
-cp "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}/usr/lib/$$MACHINE-linux-gnu"/libstdc++.so* "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"/lib/$$MACHINE-linux-gnu/
-tar --create --gzip --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$$TMPDIR" "{roma_container_dir}/"
-rm -rf "$$TMPDIR"
+
+readonly ROOT_DIR="$${{TMPDIR}}/{roma_container_dir}/{roma_container_root_dir}"
+if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
+  TARGET_DIR="$${{ROOT_DIR}}/lib64"
+elif [[ -d $${{ROOT_DIR}}/lib ]]; then
+  TARGET_DIR="$${{ROOT_DIR}}/lib"
+else
+  printf "Error: Expecting either /lib64 or /lib to exist\n" &>/dev/stderr
+  exit -1
+fi
+cp --dereference \
+  "$${{ROOT_DIR}}/usr/lib/$${{MACHINE}}-linux-gnu"/libstdc++.so.6 \
+  "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/{{libc.so.6,libgcc_s.so.1,libm.so.6,libpthread.so.0}} \
+  "$${{TARGET_DIR}}"
+rm -rf "$${{ROOT_DIR}}/usr/lib"
+if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
+   # move ld.so to /lib64
+  mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/ld-2.31.so "$${{ROOT_DIR}}/lib64/ld-linux-$${{MACHINE/_/-}}.so.2"
+  rm -rf "$${{ROOT_DIR}}/lib"
+fi
+
+tar --create --gzip --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$${{TMPDIR}}" "{roma_container_dir}/"
+rm -rf "$${{TMPDIR}}"
 """.format(
             flavor = user.flavor,
             gid = user.gid,

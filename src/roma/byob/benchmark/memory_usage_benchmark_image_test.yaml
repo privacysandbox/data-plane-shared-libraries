@@ -35,32 +35,23 @@ commandTests:
   - name: events stats 10k
     command: /server/bin/memory_usage_benchmark
     args:
-      - --num_workers
-      - 1
-      - --sort_list_udf
-      - 10k
-      - --execute_iterations
-      - 10
+      - --num_workers=1
+      - --sort_list_udf=10k
+      - --execute_iterations=10
     exitCode: 0
 
   - name: events stats 100k
     command: /server/bin/memory_usage_benchmark
     args:
-      - --num_workers
-      - 1
-      - --sort_list_udf
-      - 100k
-      - --execute_iterations
-      - 10
+      - --num_workers=1
+      - --sort_list_udf=100k
+      - --execute_iterations=10
     exitCode: 0
 
   - name: events stats 1m
     command: /server/bin/memory_usage_benchmark
     args:
-      - --num_workers
-      - 1
-      - --sort_list_udf
-      - 1m
-      - --execute_iterations
-      - 10
+      - --num_workers=1
+      - --sort_list_udf=1m
+      - --execute_iterations=10
     exitCode: 0

@@ -105,7 +105,7 @@ Step 2: Run the following from a command line:
     roma_byob_image(
         name = "traffic_generator_{}_image".format(user.flavor),
         container_structure_test_configs = [":traffic_generator_{}_image_test.yaml".format(user.flavor)],
-        debug = False,
+        debug = True,
         entrypoint = ["/server/bin/traffic_generator"],
         repo_tags = ["privacy-sandbox/roma-byob/traffic_generator:v1-{}".format(user.flavor)],
         tags = [
@@ -225,6 +225,7 @@ cc_binary(
     name = "roma_byob_benchmark",
     srcs = ["roma_byob_benchmark.cc"],
     deps = [
+        "//src/roma/byob/config",
         "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
         "//src/roma/byob/sample_udf:sample_byob_sdk_roma_cc_lib",
         "//src/roma/byob/sample_udf:sample_callback_cc_proto",

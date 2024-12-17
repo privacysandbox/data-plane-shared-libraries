@@ -26,7 +26,7 @@
 #if defined(__aarch64__)
 #define LIB_MOUNTS "/lib"
 #else
-#define LIB_MOUNTS "/lib,/lib64"
+#define LIB_MOUNTS "/lib64"
 #endif
 #endif /* LIB_MOUNTS */
 
