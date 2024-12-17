@@ -19,12 +19,13 @@ cc_library(
     srcs = ["utils.cc"],
     hdrs = ["utils.h"],
     visibility = [
-        "//src/roma/byob/benchmark:__subpackages__",
-        "//src/roma/byob/test:__subpackages__",
+        "//src/roma/byob:__subpackages__",
     ],
     deps = [
-        "//src/roma/byob/interface:roma_service",
+        "//src/roma/byob/config",
+        "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/log",
+        "@com_google_absl//absl/status",
         "@libcap",
     ],
 )

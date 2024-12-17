@@ -24,13 +24,51 @@
 
 #ifndef LIB_MOUNTS
 #if defined(__aarch64__)
-#define LIB_MOUNTS "/lib,/usr/lib"
+#define LIB_MOUNTS "/lib"
 #else
-#define LIB_MOUNTS "/lib,/lib64,/usr/lib"
+#define LIB_MOUNTS "/lib,/lib64"
 #endif
 #endif /* LIB_MOUNTS */
 
 namespace privacy_sandbox::server_common::byob {
+
+enum class Mode {
+  kModeSandbox,
+  kModeNoSandbox,
+  kModeSandboxDebug,
+};
+
+inline bool AbslParseFlag(absl::string_view text, Mode* mode,
+                          std::string* error) {
+  if (text == "on") {
+    *mode = Mode::kModeSandbox;
+    return true;
+  }
+  if (text == "debug") {
+    *mode = Mode::kModeSandboxDebug;
+    return true;
+  }
+  if (text == "off") {
+    *mode = Mode::kModeNoSandbox;
+    return true;
+  }
+  *error = "Supported values: on, off, debug.";
+  return false;
+}
+
+inline std::string AbslUnparseFlag(Mode mode) {
+  switch (mode) {
+    case Mode::kModeSandbox:
+      return "on";
+    case Mode::kModeSandboxDebug:
+      return "debug";
+    case Mode::kModeNoSandbox:
+      return "off";
+    default:
+      return absl::StrCat(mode);
+  }
+}
+
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 struct Config {
   std::uint64_t memory_limit_soft = 0;

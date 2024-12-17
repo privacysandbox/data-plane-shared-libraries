@@ -29,21 +29,30 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
+#include "src/roma/byob/utility/utils.h"
 
 namespace privacy_sandbox::server_common::byob::internal::roma_service {
 
 LocalHandle::LocalHandle(int pid, std::string_view mounts,
                          std::string_view control_socket_path,
                          std::string_view udf_socket_path,
-                         std::string_view log_dir)
+                         std::string_view socket_dir, std::string_view log_dir)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
     // Set the process group id to the process id.
     PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
-    const std::string run_workers_path = std::filesystem::path(CONTAINER_PATH) /
-                                         CONTAINER_ROOT_RELPATH / "server" /
-                                         "bin" / "run_workers";
+    const std::string root_dir =
+        std::filesystem::path(CONTAINER_PATH) / CONTAINER_ROOT_RELPATH;
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+        sources_and_targets = {
+            {log_dir,
+             root_dir / std::filesystem::path(log_dir).relative_path()},
+            {socket_dir,
+             root_dir / std::filesystem::path(socket_dir).relative_path()},
+            {"/dev", root_dir / std::filesystem::path("/dev").relative_path()}};
+    CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
+        root_dir, sources_and_targets, /*cleanup_pivot_root_dir=*/false));
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
     const std::string control_socket_name_flag =
         absl::StrCat("--control_socket_name=", control_socket_path);
@@ -51,7 +60,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         absl::StrCat("--udf_socket_name=", udf_socket_path);
     const std::string log_dir_flag = absl::StrCat("--log_dir=", log_dir);
     const char* argv[] = {
-        run_workers_path.c_str(),
+        "/server/bin/run_workers",
         mounts_flag.c_str(),
         control_socket_name_flag.c_str(),
         udf_socket_name_flag.c_str(),
@@ -98,14 +107,13 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
           nlohmann::json::parse(std::string(std::istreambuf_iterator<char>(ifs),
                                             std::istreambuf_iterator<char>()));
     }
-    constexpr std::string_view log_dir_mount_point = "/tmp/udf_logs";
     config["root"] = {{"path", CONTAINER_ROOT_RELPATH}};
     config["process"]["args"] = {
         "/server/bin/run_workers",
         absl::StrCat("--mounts=", mounts),
         absl::StrCat("--control_socket_name=", control_socket_path),
         absl::StrCat("--udf_socket_name=", udf_socket_path),
-        absl::StrCat("--log_dir=", log_dir_mount_point),
+        absl::StrCat("--log_dir=", log_dir),
     };
     config["process"]["rlimits"] = {};
     // If a memory limit has been configured, apply it.
@@ -132,7 +140,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         },
         {
             {"source", log_dir},
-            {"destination", log_dir_mount_point},
+            {"destination", log_dir},
             {"type", "bind"},
             {"options", {"rbind", "rprivate"}},
         },

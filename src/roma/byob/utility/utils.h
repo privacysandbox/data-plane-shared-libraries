@@ -13,14 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <filesystem>
+#include <utility>
 
-#include "src/roma/byob/interface/roma_service.h"
+#include "absl/status/status.h"
+#include "absl/types/span.h"
+#include "src/roma/byob/config/config.h"
 
 namespace privacy_sandbox::server_common::byob {
+
+absl::Status CreateDirectories(const std::filesystem::path& path);
+absl::Status RemoveDirectories(const std::filesystem::path& path);
+
+absl::Status Mount(const char* source, const char* target,
+                   const char* filesystemtype, int mountflags);
 
 // Returns false if the calling process does not have CAP_SYS_ADMIN privileges
 // to create non-Sandbox mode worker. True otherwise.
 bool HasClonePermissionsByobWorker(
     ::privacy_sandbox::server_common::byob::Mode mode);
 
+absl::Status SetupPivotRoot(
+    const std::filesystem::path& pivot_root_dir,
+    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
+        sources_and_targets,
+    bool cleanup_pivot_root_dir = true);
 }  // namespace privacy_sandbox::server_common::byob

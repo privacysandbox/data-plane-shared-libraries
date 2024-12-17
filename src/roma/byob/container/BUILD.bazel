@@ -96,6 +96,7 @@ cc_binary(
         "//src/roma/byob/dispatcher",
         "//src/roma/byob/dispatcher:dispatcher_cc_proto",
         "//src/roma/byob/dispatcher:dispatcher_grpc",
+        "//src/roma/byob/utility:utils",
         "//src/util/status_macro:status_macros",
         "//src/util/status_macro:status_util",
         "@com_github_grpc_grpc//:grpc++",
@@ -204,9 +205,11 @@ docker rm $$CID
         outs = ["byob_runtime_container_with_dir_{}.tar".format(user.flavor)],
         cmd_bash = """
 TMPDIR="$$(mktemp --directory roma_container_tmp.XXXXXXXXXX)"
+MACHINE="$$(uname --machine)"
 mkdir --parents --mode=700 "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
 tar --extract --file="$(location :byob_runtime_container_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"
 tar --extract --file="$(location :container_config_{flavor}.tar)" --directory="$$TMPDIR/{roma_container_dir}"
+cp "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}/usr/lib/$$MACHINE-linux-gnu"/libstdc++.so* "$$TMPDIR/{roma_container_dir}/{roma_container_root_dir}"/lib/$$MACHINE-linux-gnu/
 tar --create --gzip --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$$TMPDIR" "{roma_container_dir}/"
 rm -rf "$$TMPDIR"
 """.format(

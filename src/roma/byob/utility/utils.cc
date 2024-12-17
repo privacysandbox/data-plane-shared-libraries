@@ -15,11 +15,44 @@
 #include "src/roma/byob/utility/utils.h"
 
 #include <sys/capability.h>
+#include <sys/mount.h>
+#include <sys/syscall.h>
+
+#include <filesystem>
+#include <utility>
 
 #include "absl/log/log.h"
-#include "src/roma/byob/interface/roma_service.h"
+#include "absl/status/status.h"
+#include "src/roma/byob/config/config.h"
+#include "src/util/status_macro/status_macros.h"
 
 namespace privacy_sandbox::server_common::byob {
+absl::Status CreateDirectories(const std::filesystem::path& path) {
+  std::error_code ec;
+  if (std::filesystem::create_directories(path, ec); ec) {
+    return absl::InternalError(
+        absl::StrCat("Failed to create '", path.native(), "': ", ec.message()));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status RemoveDirectories(const std::filesystem::path& path) {
+  if (std::error_code ec; std::filesystem::remove_all(path, ec) ==
+                          static_cast<std::uintmax_t>(-1)) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to remove_all '", path.native(), "': ", ec.message()));
+  }
+  return absl::OkStatus();
+}
+
+absl::Status Mount(const char* source, const char* target,
+                   const char* filesystemtype, int mountflags) {
+  if (::mount(source, target, filesystemtype, mountflags, nullptr) == -1) {
+    return absl::ErrnoToStatus(errno, absl::StrCat("Failed to mount '", source,
+                                                   "' to '", target, "'"));
+  }
+  return absl::OkStatus();
+}
 
 using ::privacy_sandbox::server_common::byob::Mode;
 
@@ -46,6 +79,55 @@ bool HasClonePermissionsByobWorker(Mode mode) {
     LOG(INFO) << "Process does not have CAP_SYS_ADMIN";
     return false;
   }
+}
+
+absl::Status SetupPivotRoot(
+    const std::filesystem::path& pivot_root_dir,
+    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
+        sources_and_targets,
+    const bool cleanup_pivot_root_dir) {
+  if (cleanup_pivot_root_dir) {
+    PS_RETURN_IF_ERROR(RemoveDirectories(pivot_root_dir));
+  }
+  // Set up restricted filesystem for worker using pivot_root
+  // pivot_root doesn't work under an MS_SHARED mount point.
+  // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
+  PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
+  for (const auto& [source, target] : sources_and_targets) {
+    PS_RETURN_IF_ERROR(CreateDirectories(target));
+    PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
+  }
+
+  // MS_REC needed here to get other mounts (/lib, /lib64 etc)
+  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
+                           "bind", MS_REC | MS_BIND));
+  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
+                           "bind", MS_REC | MS_SLAVE));
+  {
+    const std::filesystem::path pivot_dir = pivot_root_dir / "pivot";
+    PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
+    if (::syscall(SYS_pivot_root, pivot_root_dir.c_str(), pivot_dir.c_str()) ==
+        -1) {
+      return absl::ErrnoToStatus(
+          errno,
+          absl::StrCat("syscall(SYS_pivot_root, '", pivot_root_dir.c_str(),
+                       "', '", pivot_dir.c_str(), "')"));
+    }
+  }
+  if (::chdir("/") == -1) {
+    return absl::ErrnoToStatus(errno, "chdir('/')");
+  }
+  if (::umount2("/pivot", MNT_DETACH) == -1) {
+    return absl::ErrnoToStatus(errno, "mount2('/pivot', MNT_DETACH)");
+  }
+  if (::rmdir("/pivot") == -1) {
+    return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
+  }
+  for (const auto& [source, _] : sources_and_targets) {
+    PS_RETURN_IF_ERROR(
+        Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
+  }
+  return absl::OkStatus();
 }
 
 }  // namespace privacy_sandbox::server_common::byob

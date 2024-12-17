@@ -204,7 +204,7 @@ TEST(RomaByobTest, LoadBinaryInNonSandboxMode) {
       roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
                             notif_status, /*num_workers=*/1);
 
-  EXPECT_TRUE(code_id.status().ok());
+  EXPECT_TRUE(code_id.status().ok()) << code_id.status();
   EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   EXPECT_TRUE(notif_status.ok());
 }

@@ -59,6 +59,7 @@
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
+#include "src/roma/byob/utility/utils.h"
 #include "src/util/status_macro/status_macros.h"
 #include "src/util/status_macro/status_util.h"
 
@@ -141,83 +142,10 @@ absl::StatusOr<std::filesystem::path> CreatePivotRootDir() {
   return pivot_root_dir;
 }
 
-absl::Status CreateDirectories(const std::filesystem::path& path) {
-  if (std::error_code ec; !std::filesystem::create_directories(path, ec)) {
-    return absl::InternalError(
-        absl::StrCat("Failed to create '", path.native(), "': ", ec.message()));
-  }
-  return absl::OkStatus();
-}
-
-absl::Status RemoveDirectories(const std::filesystem::path& path) {
-  if (std::error_code ec; std::filesystem::remove_all(path, ec) ==
-                          static_cast<std::uintmax_t>(-1)) {
-    return absl::InternalError(absl::StrCat(
-        "Failed to remove_all '", path.native(), "': ", ec.message()));
-  }
-  return absl::OkStatus();
-}
-
-absl::Status Mount(const char* source, const char* target,
-                   const char* filesystemtype, int mountflags) {
-  if (::mount(source, target, filesystemtype, mountflags, nullptr) == -1) {
-    return absl::ErrnoToStatus(errno, absl::StrCat("Failed to mount '", source,
-                                                   "' to '", target, "'"));
-  }
-  return absl::OkStatus();
-}
-
 absl::Status Dup2(int oldfd, int newfd) {
   if (::dup2(oldfd, newfd) == -1) {
     return absl::ErrnoToStatus(errno,
                                absl::StrCat("dup2(", oldfd, ",", newfd, ")"));
-  }
-  return absl::OkStatus();
-}
-
-absl::Status SetupPivotRoot(
-    const std::filesystem::path& pivot_root_dir,
-    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-        sources_and_targets) {
-  PS_RETURN_IF_ERROR(RemoveDirectories(pivot_root_dir));
-
-  // Set up restricted filesystem for worker using pivot_root
-  // pivot_root doesn't work under an MS_SHARED mount point.
-  // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
-  PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
-  for (const auto& [source, target] : sources_and_targets) {
-    PS_RETURN_IF_ERROR(CreateDirectories(target));
-    PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
-  }
-
-  // MS_REC needed here to get other mounts (/lib, /lib64 etc)
-  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
-                           "bind", MS_REC | MS_BIND));
-  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
-                           "bind", MS_REC | MS_SLAVE));
-  {
-    const std::filesystem::path pivot_dir = pivot_root_dir / "pivot";
-    PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
-    if (::syscall(SYS_pivot_root, pivot_root_dir.c_str(), pivot_dir.c_str()) ==
-        -1) {
-      return absl::ErrnoToStatus(
-          errno,
-          absl::StrCat("syscall(SYS_pivot_root, '", pivot_root_dir.c_str(),
-                       "', '", pivot_dir.c_str(), "')"));
-    }
-  }
-  if (::chdir("/") == -1) {
-    return absl::ErrnoToStatus(errno, "chdir('/')");
-  }
-  if (::umount2("/pivot", MNT_DETACH) == -1) {
-    return absl::ErrnoToStatus(errno, "mount2('/pivot', MNT_DETACH)");
-  }
-  if (::rmdir("/pivot") == -1) {
-    return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
-  }
-  for (const auto& [source, _] : sources_and_targets) {
-    PS_RETURN_IF_ERROR(
-        Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
   }
   return absl::OkStatus();
 }
@@ -243,8 +171,8 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDOUT_FILENO));
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
   }
-  return SetupPivotRoot(worker_impl_arg.pivot_root_dir,
-                        worker_impl_arg.sources_and_targets);
+  return ::privacy_sandbox::server_common::byob::SetupPivotRoot(
+      worker_impl_arg.pivot_root_dir, worker_impl_arg.sources_and_targets);
 }
 
 constexpr uint32_t MaxIntDecimalLength() {
@@ -335,7 +263,8 @@ int ReloaderImpl(void* arg) {
     // created by the worker.
     reloader_sources_and_targets.push_back(
         {socket_dir, *pivot_root_dir / socket_dir.relative_path()});
-    CHECK_OK(SetupPivotRoot(*pivot_root_dir, reloader_sources_and_targets));
+    CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
+        *pivot_root_dir, reloader_sources_and_targets));
   }
   while (true) {
     // Start a new worker.
@@ -623,7 +552,9 @@ int main(int argc, char** argv) {
     return -1;
   }
   absl::Cleanup progdir_cleanup = [&prog_dir] {
-    if (absl::Status status = RemoveDirectories(prog_dir); !status.ok()) {
+    if (absl::Status status =
+            ::privacy_sandbox::server_common::byob::RemoveDirectories(prog_dir);
+        !status.ok()) {
       LOG(ERROR) << status;
     }
   };

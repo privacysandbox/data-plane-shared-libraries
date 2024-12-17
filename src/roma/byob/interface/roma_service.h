@@ -55,8 +55,9 @@ namespace internal::roma_service {
 class LocalHandle final {
  public:
   LocalHandle(int pid, std::string_view mounts,
-              std::string_view control_socket_path,
-              std::string_view udf_socket_path, std::string_view log_dir);
+              std::string_view udf_socket_path,
+              std::string_view control_socket_path, std::string_view sockdir,
+              std::string_view log_dir);
   ~LocalHandle();
 
  private:
@@ -78,43 +79,6 @@ class ByobHandle final {
 };
 
 }  // namespace internal::roma_service
-
-enum class Mode {
-  kModeSandbox,
-  kModeNoSandbox,
-  kModeSandboxDebug,
-};
-
-inline bool AbslParseFlag(absl::string_view text, Mode* mode,
-                          std::string* error) {
-  if (text == "on") {
-    *mode = Mode::kModeSandbox;
-    return true;
-  }
-  if (text == "debug") {
-    *mode = Mode::kModeSandboxDebug;
-    return true;
-  }
-  if (text == "off") {
-    *mode = Mode::kModeNoSandbox;
-    return true;
-  }
-  *error = "Supported values: on, off, debug.";
-  return false;
-}
-
-inline std::string AbslUnparseFlag(Mode mode) {
-  switch (mode) {
-    case Mode::kModeSandbox:
-      return "on";
-    case Mode::kModeSandboxDebug:
-      return "debug";
-    case Mode::kModeNoSandbox:
-      return "off";
-    default:
-      return absl::StrCat(mode);
-  }
-}
 
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
@@ -142,6 +106,7 @@ class RomaService final {
     std::filesystem::path udf_socket_path = socket_dir_ / "byob_rpc.sock";
 
     const int pid = ::fork();
+    ::unshare(CLONE_NEWNS);
     if (pid == -1) {
       return absl::ErrnoToStatus(errno, "fork()");
     }
@@ -158,7 +123,7 @@ class RomaService final {
       case Mode::kModeNoSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
             pid, config.lib_mounts, control_socket_path.c_str(),
-            udf_socket_path.c_str(), log_dir_.c_str());
+            udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str());
         break;
       default:
         return absl::InternalError("Unsupported mode in switch");

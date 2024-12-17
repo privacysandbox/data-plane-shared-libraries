@@ -27,6 +27,7 @@ cc_library(
         "//src/core/common/uuid",
         "//src/roma/byob/config",
         "//src/roma/byob/dispatcher",
+        "//src/roma/byob/utility:utils",
         "//src/util:execution_token",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/log",
