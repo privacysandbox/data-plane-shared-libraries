@@ -348,7 +348,7 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   Language lang = static_cast<Language>(state.range(0));
   std::string mounts = "";
   if (lang == Language::kJava) {
-    mounts = "/proc/self";
+    mounts = "/proc";
 #if defined(__aarch64__)
     // TODO: b/377349908 - Enable Java benchmarks post-ARM64 fix
     state.SkipWithError("Skipping Java test on ARM64");
