@@ -88,11 +88,18 @@ pkg_files(
     for user in DISTROLESS_USERS
 ]
 
-# builders/tools/bazel-debian build //src/roma/byob/benchmark:traffic_generator_root_image.tar
-# docker load -i bazel-bin/src/roma/byob/benchmark/traffic_generator_root_image_tar/tarball.tar
-# docker run --privileged --volume="${PWD}"/dist:/tmp/runsc-log --cpus=64 --memory=512gb \
-#  -it --entrypoint=sh \
-#  privacy-sandbox/roma-byob/traffic_generator:v1-root
+"""
+(Optional) Step 1: Make ProcessRequest in dispatcher.h async by removing wait
+  for worker and returning early with an error.
+Step 2: Run the following from a command line:
+    builders/tools/bazel-debian build //src/roma/byob/benchmark:traffic_generator_root_image.tar
+    docker load -i bazel-bin/src/roma/byob/benchmark/traffic_generator_root_image_tar/tarball.tar
+    docker run --privileged --volume="${PWD}"/dist:/tmp/runsc-log --cpus=64 --memory=512gb \
+    privacy-sandbox/roma-byob/traffic_generator:v1-root \
+      --num_workers=84 --queries_per_second=10 --burst_size=14 \
+      --num_queries=1000 --sandbox=off --lib_mounts="" --binary_path="/udf/sample_go_udf"
+"""
+
 [
     roma_byob_image(
         name = "traffic_generator_{}_image".format(user.flavor),
