@@ -356,6 +356,12 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
 #endif
   } else if (lang == Language::kGoLang) {
     mounts = "";
+  } else {
+#if defined(__aarch64__)
+    mounts = "/usr/lib,/lib";
+#else
+    mounts = "/usr/lib,/lib,/lib64";
+#endif
   }
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
