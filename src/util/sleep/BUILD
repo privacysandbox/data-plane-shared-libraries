@@ -22,7 +22,7 @@ cc_library(
     hdrs = [
         "sleepfor.h",
     ],
-    visibility = ["//src/errors:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status",
@@ -46,7 +46,7 @@ cc_library(
     name = "sleepfor_mock",
     testonly = True,
     hdrs = ["sleepfor_mock.h"],
-    visibility = ["//src/errors:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         ":sleepfor",
         "@com_google_googletest//:gtest",
