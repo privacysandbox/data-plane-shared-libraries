@@ -88,6 +88,8 @@ bool IsProd();
 //  this return the proto message to export
 // 2. void Set (const T& field)
 //  this sets one of its field
+// 3. void ShouldExport ()
+//  EventMessageProvider indicates if it should be exported
 template <typename EventMessageProvider = std::nullptr_t>
 class ContextImpl final : public PSLogContext {
  public:
@@ -134,12 +136,14 @@ class ContextImpl final : public PSLogContext {
     }
   }
 
-  void ExportEventMessage(bool if_export_consented = false) {
+  void ExportEventMessage(bool if_export_consented = false,
+                          bool if_export_prod_debug = false) {
     if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
       if (is_debug_response()) {
         AddEventMessage(provider_.Get(), debug_response_sink_.debug_info_);
       }
-      if ((if_export_consented && is_consented()) || prod_debug_) {
+      if ((if_export_consented && is_consented()) ||
+          (if_export_prod_debug && prod_debug_)) {
         absl::StatusOr<std::string> json_str = ProtoToJson(provider_.Get());
         if (json_str.ok()) {
           logger_private->EmitLogRecord(
@@ -156,6 +160,14 @@ class ContextImpl final : public PSLogContext {
   }
 
   bool is_prod_debug() const { return prod_debug_; }
+
+  bool ShouldExportEvent() const {
+    if constexpr (!std::is_same_v<std::nullptr_t, EventMessageProvider>) {
+      return provider_.ShouldExport();
+    } else {
+      return false;
+    }
+  }
 
  private:
   friend class ConsentedLogTest;

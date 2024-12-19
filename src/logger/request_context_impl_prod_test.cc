@@ -176,7 +176,8 @@ TEST_F(EventMessageTest, ProdDebug) {
   SetServerTokenForTestOnly(kServerToken);
   CHECK(!em_instance_->is_consented());
   em_instance_->SetEventMessageField(std::string("test gen id"));
-  em_instance_->ExportEventMessage(/*if_export_consented=*/true);
+  em_instance_->ExportEventMessage(/*if_export_consented=*/true,
+                                   /*if_export_prod_debug=*/true);
   std::string otlp_output = ReadSs();
   EXPECT_THAT(otlp_output, ContainsRegex("test gen id"));
   EXPECT_THAT(otlp_output, ContainsRegex("ps_tee_log_type: event_message"));
