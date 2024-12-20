@@ -72,6 +72,7 @@ int main(int argc, char** argv) {
   CHECK_GT(burst_size, 0);
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
+
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
   CHECK_OK(roma_service->Init(/*config=*/
                               {.lib_mounts = absl::GetFlag(FLAGS_lib_mounts)},
@@ -106,6 +107,9 @@ int main(int argc, char** argv) {
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                            rpc_func);
   const BurstGenerator::Stats stats = burst_gen.Run();
+  // RomaService must be cleaned up before stats are reported, to ensure the
+  // service's work is completed
+  roma_service.reset();
   LOG(INFO) << stats.ToString() << std::endl;
   return 0;
 }
