@@ -29,6 +29,7 @@
 #include "absl/log/check.h"
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
+#include "src/roma/byob/config/config.h"
 #include "src/roma/byob/utility/utils.h"
 
 namespace privacy_sandbox::server_common::byob::internal::roma_service {
@@ -67,7 +68,13 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         log_dir_flag.c_str(),
         nullptr,
     };
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+    constexpr std::string_view kLdLibPath = "LD_LIBRARY_PATH=" LIB_MOUNTS;
+    const char* envp[] = {
+        kLdLibPath.data(),
+        nullptr,
+    };
+    ::execve(argv[0], const_cast<char* const*>(&argv[0]),
+             const_cast<char* const*>(&envp[0]));
     PLOG(FATAL) << "execve()";
   }
 }
