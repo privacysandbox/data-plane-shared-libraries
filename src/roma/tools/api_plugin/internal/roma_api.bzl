@@ -382,6 +382,7 @@ def roma_image(
         debug = False,
         user = get_user("root"),
         container_structure_test_configs = [],
+        container_structure_test_size = "medium",
         **kwargs):
     debug_str = "debug" if debug else "nondebug"
     oci_image(
@@ -405,9 +406,9 @@ def roma_image(
     if container_structure_test_configs:
         container_structure_test(
             name = "{}_test".format(name),
-            size = "medium",
             configs = container_structure_test_configs,
             image = ":{}".format(name),
+            size = container_structure_test_size,
             tags = kwargs.get("tags", ["noasan", "nomsan", "notsan", "noubsan"]),
         )
 
@@ -418,6 +419,7 @@ def roma_byob_image(
         debug = False,
         user = get_user("root"),
         container_structure_test_configs = [],
+        container_structure_test_size = "medium",
         **kwargs):
     """Generates a BYOB OCI container image
 
@@ -445,5 +447,6 @@ def roma_byob_image(
         container_structure_test_configs = container_structure_test_configs + [
             Label("//src/roma/byob:image_{}_test.yaml".format(user.flavor)),
         ],
+        container_structure_test_size = container_structure_test_size,
         **{k: v for (k, v) in kwargs.items() if k not in ["tars"]}
     )
