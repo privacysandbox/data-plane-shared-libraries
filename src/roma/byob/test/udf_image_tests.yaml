@@ -33,7 +33,6 @@ fileExistenceTests:
     gid: {GID}
 
 commandTests:
-  - name: Roma BYOB help
+  - name: Roma BYOB test
     command: {COMMAND}
-    args: ['--help']
     exitCode: 0
