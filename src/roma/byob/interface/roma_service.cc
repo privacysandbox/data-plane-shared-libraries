@@ -68,9 +68,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         log_dir_flag.c_str(),
         nullptr,
     };
-    constexpr std::string_view kLdLibPath = "LD_LIBRARY_PATH=" LIB_MOUNTS;
     const char* envp[] = {
-        kLdLibPath.data(),
+        kLdLibraryPath.data(),
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]),
@@ -197,7 +196,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     };
     ::execve(argv[0],
              const_cast<char* const*>(debug_mode ? &debug_argv[0] : &argv[0]),
-             nullptr);
+             /*envp=*/nullptr);
     PLOG(FATAL) << "execve()";
   }
 }
@@ -209,7 +208,7 @@ ByobHandle::~ByobHandle() {
       const char* argv[] = {
           "/usr/bin/runsc", "kill", container_name_.c_str(), "SIGTERM", nullptr,
       };
-      ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
+      ::execve(argv[0], const_cast<char* const*>(&argv[0]), /*envp=*/nullptr);
       PLOG(FATAL) << "execve()";
     }
     ::waitpid(pid, nullptr, /*options=*/0);
@@ -233,7 +232,8 @@ ByobHandle::~ByobHandle() {
   };
   const int pid = ::vfork();
   if (pid == 0) {
-    ::execve(argv[0], const_cast<char* const*>(&argv[0]), /*envp=*/nullptr);
+    ::execve(argv[0], const_cast<char* const*>(&argv[0]),
+             /*envp=*/nullptr);
     PLOG(FATAL) << "execve()";
   }
   ::waitpid(pid, nullptr, /*options=*/0);

@@ -32,6 +32,9 @@
 
 namespace privacy_sandbox::server_common::byob {
 
+inline constexpr std::string_view kLdLibraryPath =
+    "LD_LIBRARY_PATH=" LIB_MOUNTS;
+
 enum class Mode {
   kModeSandbox,
   kModeNoSandbox,
