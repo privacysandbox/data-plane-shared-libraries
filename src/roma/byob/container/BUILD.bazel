@@ -86,7 +86,7 @@ docker buildx build --progress plain --target runsc-binary --output="$(RULEDIR)"
 
 pkg_files(
     name = "gvisor_execs",
-    srcs = [":runsc_bin"],
+    srcs = [":runsc"],
     attributes = pkg_attributes(mode = "0500"),
     prefix = "/usr/bin",
 )
