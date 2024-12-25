@@ -32,7 +32,7 @@ functional_test_files_for(<a href="#functional_test_files_for-glob_spec">glob_sp
 
 <pre>
 rpc_diff_test(<a href="#rpc_diff_test-name">name</a>, <a href="#rpc_diff_test-request">request</a>, <a href="#rpc_diff_test-golden_reply">golden_reply</a>, <a href="#rpc_diff_test-endpoint">endpoint</a>, <a href="#rpc_diff_test-rpc">rpc</a>, <a href="#rpc_diff_test-protoset">protoset</a>, <a href="#rpc_diff_test-custom_rpc_invoker_tarball">custom_rpc_invoker_tarball</a>,
-              <a href="#rpc_diff_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_diff_test-jq_post_filter">jq_post_filter</a>, <a href="#rpc_diff_test-jq_post_slurp">jq_post_slurp</a>, <a href="#rpc_diff_test-tags">tags</a>, <a href="#rpc_diff_test-plaintext">plaintext</a>, <a href="#rpc_diff_test-kwargs">kwargs</a>)
+              <a href="#rpc_diff_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_diff_test-jq_post_filter">jq_post_filter</a>, <a href="#rpc_diff_test-jq_post_slurp">jq_post_slurp</a>, <a href="#rpc_diff_test-tags">tags</a>, <a href="#rpc_diff_test-plaintext">plaintext</a>, <a href="#rpc_diff_test-client_type">client_type</a>, <a href="#rpc_diff_test-kwargs">kwargs</a>)
 </pre>
 
 Generates a diff test for a grpc request/reply.
@@ -54,6 +54,7 @@ Generates a diff test for a grpc request/reply.
 | <a id="rpc_diff_test-jq_post_slurp"></a>jq_post_slurp |  boolean to indicate use of jq --slurp for the rpc response   |  <code>False</code> |
 | <a id="rpc_diff_test-tags"></a>tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="rpc_diff_test-plaintext"></a>plaintext |  boolean to indicate plaintext request   |  <code>False</code> |
+| <a id="rpc_diff_test-client_type"></a>client_type |  client type to use for the rpc request   |  <code>""</code> |
 | <a id="rpc_diff_test-kwargs"></a>kwargs |  additional test args   |  none |
 
 

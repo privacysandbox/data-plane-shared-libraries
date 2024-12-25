@@ -53,6 +53,7 @@ def rpc_diff_test(
         jq_post_slurp = False,
         tags = [],
         plaintext = False,
+        client_type = "",
         **kwargs):
     """Generates a diff test for a grpc request/reply.
 
@@ -69,6 +70,7 @@ def rpc_diff_test(
       jq_post_slurp: boolean to indicate use of jq --slurp for the rpc response
       tags: tag list for the tests
       plaintext: boolean to indicate plaintext request
+      client_type: client type to use for the rpc request
       **kwargs: additional test args
     """
     runner = Label("//bazel:rpc_diff_test_runner")
@@ -120,6 +122,8 @@ def rpc_diff_test(
 
     if plaintext:
         args.extend(["--plaintext"])
+    if client_type:
+        args.extend(["--client-type", client_type])
     if jq_pre_filter:
         args.extend(["--jq-pre-filter", "$(execpath {})".format(jq_pre_filter)])
         data.append(jq_pre_filter)

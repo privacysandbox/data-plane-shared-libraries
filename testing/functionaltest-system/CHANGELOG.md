@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.19.1 (2024-09-27)
+
+
+### Features
+
+* Add client-type to rpc_diff_test
+
+## 0.19.0 (2024-09-23)
+
+
+### Features
+
+* Add build-amazonlinux2023 to pull and push scripts
+* Add filtered reply to test outputs
+* Use Docker volumes instead of bind mounts in diff tests
+
+
+### Bug Fixes
+
+* Copy wrk2 request files to the container
+* Load request files in the init function
+* Remove WORKSPACE env var from wrk2_test_runner
+
+## 0.18.0 (2024-07-02)
+
+
+### Features
+
+* Create tmp subdir in sut work dir
+
 ## 0.17.0 (2024-06-27)
 
 

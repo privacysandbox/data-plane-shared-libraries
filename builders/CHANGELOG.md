@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.76.0 (2024-12-16)
+
+
+### Features
+
+* Remove support for Amazon Linux 2
+
 ## 0.75.1 (2024-11-22)
 
 

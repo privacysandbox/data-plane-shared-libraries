@@ -23,6 +23,7 @@ usage:
     --reply <filename>              golden reply against which to diff the output
     --plaintext                     send plaintext request
     --http-path <string>            path used with endpoint hostport
+    --client-type <string>          client-type used to encrypt the request
 environment variables:
     TEST_TOOLS_IMAGE                docker image uri for test tools
 USAGE
@@ -84,6 +85,10 @@ while [[ $# -gt 0 ]]; do
       HTTP_PATH="$2"
       shift 2
       ;;
+    --client-type)
+      CLIENT_TYPE="$2"
+      shift 2
+      ;;
     --help | -h) usage 0 ;;
     *) usage 1 ;;
   esac
@@ -120,11 +125,23 @@ else
   printf '.\n' >"${TMP_JQ_POST_PROGRAM_FILENAME}"
 fi
 
+if [[ -z "${TEST_DATA_SOURCE}" ]]; then
+  TEST_DATA_SOURCE="$(docker volume create)"
+  export TEST_DATA_SOURCE
+  readonly TEST_DATA_SOURCE
+fi
+if [[ -z "${TEST_DATA_TARGET}" ]]; then
+  TEST_DATA_TARGET="/data"
+  export TEST_DATA_TARGET
+  readonly TEST_DATA_TARGET
+fi
+
 trap cleanup EXIT
 function cleanup() {
   local -r -i STATUS=$?
   if [[ ${STATUS} -eq 0 ]]; then
     rm -rf "${TMP_DIR}"
+    docker volume rm "${TEST_DATA_SOURCE}"
   fi
   exit ${STATUS}
 }
@@ -133,7 +150,8 @@ declare -a DOCKER_ARGS=(
   "--rm"
   "--interactive"
   "--entrypoint=/bin/bash"
-  "--volume=/tmp:/tmp"
+  "--mount=type=bind,source=/tmp,target=/tmp"
+  "--mount=type=volume,source=${TEST_DATA_SOURCE},target=${TEST_DATA_TARGET}"
   "--tmpfs=/work"
   "--workdir=/work"
 )
@@ -172,19 +190,37 @@ if [[ -n ${HTTP_PATH} ]]; then
   )
 fi
 
+if [[ -n ${CLIENT_TYPE} ]]; then
+  RPC_INVOKER_ARGS+=(
+    --client-type
+    "${CLIENT_TYPE}"
+  )
+fi
+
 declare -a JQ_POST_ARGS=()
 if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
   JQ_POST_ARGS+=(--slurp)
 fi
 
+function copy_file_to_container() {
+  local -r INPUT_FILE="$1"
+  local -r OUTPUT_FILE="$2"
+
+  docker run "${DOCKER_ARGS[@]}" \
+    "${TEST_TOOLS_IMAGE}" \
+    -c "cat /dev/stdin > '${OUTPUT_FILE}'" \
+    <"${INPUT_FILE}"
+}
+
+copy_file_to_container "${TMP_JQ_PRE_PROGRAM_FILENAME}" "${TEST_DATA_TARGET}/pre-filter.jq"
 docker run "${DOCKER_ARGS[@]}" \
-  --volume="$(realpath "${TMP_JQ_PRE_PROGRAM_FILENAME}"):/work/pre-filter.jq" \
   "${TEST_TOOLS_IMAGE}" \
-  -c "jq --exit-status --from-file pre-filter.jq" \
+  -c "jq --exit-status --from-file '${TEST_DATA_TARGET}/pre-filter.jq'" \
   <"${REQUEST_FILENAME}" \
   >"${TMP_FILTERED_REQUEST}"
 
-
+copy_file_to_container "${TMP_PROTOSET_FILENAME}" "${TEST_DATA_TARGET}/protoset.pb"
+copy_file_to_container "${TMP_FILTERED_REQUEST}" "${TEST_DATA_TARGET}/req.json"
 if [[ ${RPC_INVOKER_TYPE} == binary ]]; then
   "${RPC_INVOKER}" \
     --protoset "${TMP_PROTOSET_FILENAME}" \
@@ -208,14 +244,19 @@ fi
 
 # Check if TMP_RAW_REPLY is a valid json. If not, diff the raw reply without jq.
 if docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "jq ${JQ_POST_ARGS[*]}" <"${TMP_RAW_REPLY}"; then
+  copy_file_to_container "${TMP_JQ_POST_PROGRAM_FILENAME}" "${TEST_DATA_TARGET}/post-filter.jq"
   docker run "${DOCKER_ARGS[@]}" \
-    --volume="$(realpath "${TMP_JQ_POST_PROGRAM_FILENAME}"):/work/post-filter.jq" \
     "${TEST_TOOLS_IMAGE}" \
-    -c "jq --from-file post-filter.jq ${JQ_POST_ARGS[*]}" \
+    -c "jq --from-file '${TEST_DATA_TARGET}/post-filter.jq' ${JQ_POST_ARGS[*]}" \
     <"${TMP_RAW_REPLY}" \
     >"${TMP_FILTERED_REPLY}"
 else
   ln -s "${TMP_RAW_REPLY}" "${TMP_FILTERED_REPLY}"
 fi
+
+cp "${REQUEST_FILENAME}" "${TEST_UNDECLARED_OUTPUTS_DIR}/raw_request.json"
+cp "${TMP_FILTERED_REQUEST}" "${TEST_UNDECLARED_OUTPUTS_DIR}/filtered_request.json"
+cp "${TMP_RAW_REPLY}" "${TEST_UNDECLARED_OUTPUTS_DIR}/raw_reply.json"
+cp "${TMP_FILTERED_REPLY}" "${TEST_UNDECLARED_OUTPUTS_DIR}/filtered_reply.json"
 
 diff "${TMP_FILTERED_REPLY}" "${GOLDEN_REPLY}"

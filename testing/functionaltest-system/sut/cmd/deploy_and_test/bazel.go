@@ -102,6 +102,11 @@ func configureBazelisk() error {
 	// override the HOME variable
 	// os.Setenv("XDG_CACHE_HOME", bazelHomeDir)
 	os.Setenv("HOME", bazelHomeDir)
+	sutTmpDir := path.Join(sutWorkdir, "tmp")
+	if err := os.MkdirAll(sutTmpDir, 0755); err != nil {
+		return err
+	}
+	os.Setenv("TMPDIR", sutTmpDir)
 	return nil
 }
 

@@ -19,7 +19,6 @@ IMAGE="build-debian"
 VERBOSE=0
 declare -r -a IMAGE_LIST=(
   "build-debian"
-  "build-amazonlinux2"
   "build-amazonlinux2023"
   "presubmit"
 )
