@@ -13,12 +13,28 @@
 # limitations under the License.
 
 load("@aspect_bazel_lib//lib:copy_file.bzl", "copy_file")
+load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
+
+[
+    expand_template(
+        name = "config-{}_json".format(arch),
+        out = "config-{}.json".format(arch),
+        substitutions = {
+            "@ld_library_path@": ld_library_path,
+        },
+        template = ":config.json.tmpl",
+    )
+    for arch, ld_library_path in (
+        ("aarch64", "/lib"),
+        ("amd64", "/lib64"),
+    )
+]
 
 alias(
     name = "config_json",
