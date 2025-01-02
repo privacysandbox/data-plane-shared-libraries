@@ -80,6 +80,20 @@ class ByobHandle final {
   std::string container_name_;
 };
 
+class NsJailHandle final {
+ public:
+  NsJailHandle(int pid, std::string_view mounts,
+               std::string_view control_socket_path,
+               std::string_view udf_socket_path, std::string_view socket_dir,
+               std::string container_name, std::string_view log_dir,
+               std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
+               bool enable_seccomp_filter);
+  ~NsJailHandle();
+
+ private:
+  int pid_;
+};
+
 }  // namespace internal::roma_service
 
 template <typename TMetadata = google::scp::roma::DefaultMetadata>
@@ -128,6 +142,14 @@ class RomaService final {
             pid, config.lib_mounts, control_socket_path.c_str(),
             udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str(),
             /*enable_seccomp_filter=*/config.enable_seccomp_filter);
+        break;
+      case Mode::kModeNsJailSandbox:
+        handle_.emplace<internal::roma_service::NsJailHandle>(
+            pid, config.lib_mounts, control_socket_path.c_str(),
+            udf_socket_path.c_str(), socket_dir_.c_str(),
+            std::move(config.roma_container_name), log_dir_.c_str(),
+            config.memory_limit_soft, config.memory_limit_hard,
+            config.enable_seccomp_filter);
         break;
       default:
         return absl::InternalError("Unsupported mode in switch");
@@ -220,7 +242,8 @@ class RomaService final {
   std::filesystem::path socket_dir_;
   std::filesystem::path log_dir_;
   std::variant<std::monostate, internal::roma_service::LocalHandle,
-               internal::roma_service::ByobHandle>
+               internal::roma_service::ByobHandle,
+               internal::roma_service::NsJailHandle>
       handle_;
   std::optional<Dispatcher> dispatcher_;
 };

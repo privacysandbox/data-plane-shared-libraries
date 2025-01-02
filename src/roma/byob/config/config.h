@@ -39,6 +39,7 @@ enum class Mode {
   kModeGvisorSandbox,
   kModeGvisorSandboxDebug,
   kModeMinimalSandbox,
+  kModeNsJailSandbox,
 };
 
 inline bool AbslParseFlag(absl::string_view text, Mode* mode,
@@ -55,7 +56,11 @@ inline bool AbslParseFlag(absl::string_view text, Mode* mode,
     *mode = Mode::kModeMinimalSandbox;
     return true;
   }
-  *error = "Supported values: gvisor, gvisor-debug, minimal.";
+  if (text == "nsjail") {
+    *mode = Mode::kModeNsJailSandbox;
+    return true;
+  }
+  *error = "Supported values: gvisor, gvisor-debug, minimal, nsjail.";
   return false;
 }
 
@@ -67,6 +72,8 @@ inline std::string AbslUnparseFlag(Mode mode) {
       return "gvisor-debug";
     case Mode::kModeMinimalSandbox:
       return "minimal";
+    case Mode::kModeNsJailSandbox:
+      return "nsjail";
     default:
       return absl::StrCat(mode);
   }

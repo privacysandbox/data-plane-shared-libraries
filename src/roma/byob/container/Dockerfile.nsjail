@@ -1,0 +1,69 @@
+FROM ubuntu:20.04 AS build-env
+
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+  --mount=target=/var/cache/apt,type=cache,sharing=locked \
+  rm -f /etc/apt/apt.conf.d/docker-clean \
+  && apt-get update \
+  && apt-get --quiet install -y --no-install-recommends \
+  autoconf="2.69-*" \
+  bison="2:3.5.1+*" \
+  ca-certificates="20240203~*" \
+  flex="2.6.4-*" \
+  gcc="4:9.3.0-*" \
+  g++="4:9.3.0-*" \
+  git="1:2.25.1-*" \
+  libprotobuf-dev="3.6.1.3-*" \
+  libnl-route-3-dev="3.4.0-*" \
+  libtool="2.4.6-*" \
+  make="4.2.1-*" \
+  patch="2.7.6-*" \
+  pkg-config="0.29.1-*" \
+  protobuf-compiler="3.6.1.3-*"
+
+#
+# fetch nsjail sources
+#
+FROM build-env AS nsjail-srcs
+# bc30a1a 2024-11-04
+ARG NSJAIL_COMMIT=bc30a1a335bb4d5d2a24d1a7abeb420af9bb3388
+
+WORKDIR /workspace/nsjail
+RUN git clone https://github.com/google/nsjail.git /workspace/nsjail \
+  && git checkout "${NSJAIL_COMMIT}"
+
+#
+# build nsjail
+#
+FROM nsjail-srcs AS nsjail-build
+ARG TARGETARCH
+
+RUN make clean && make
+RUN mkdir /workspace/nsjail/lib
+RUN if [ "${TARGETARCH}" = "arm64" ]; then \
+  printf "Architecture is aarch64 (arm64)\n" \
+  && cp -r --dereference \
+  "/lib/aarch64-linux-gnu/libprotobuf.so.17" \
+  "/lib/aarch64-linux-gnu/libnl-route-3.so.200" \
+  "/lib/aarch64-linux-gnu/libnl-3.so.200" \
+  "/lib/aarch64-linux-gnu/libz.so.1" \
+  /workspace/nsjail/lib ; \
+  elif [ "${TARGETARCH}" = "amd64" ]; then \
+  printf "Architecture is AMD64\n" \
+  && cp -r --dereference \
+  "/lib/x86_64-linux-gnu/libprotobuf.so.17" \
+  "/lib/x86_64-linux-gnu/libnl-route-3.so.200" \
+  "/lib/x86_64-linux-gnu/libnl-3.so.200" \
+  "/lib/x86_64-linux-gnu/libz.so.1" \
+  /workspace/nsjail/lib ; \
+  else \
+  printf "Unsupported architecture\n" \
+  && exit 1 ; \
+  fi
+#
+# export the nsjail binary
+#
+FROM scratch AS nsjail-binary
+COPY --from=nsjail-build \
+  /workspace/nsjail/lib/* \
+  /workspace/nsjail/nsjail \
+  /

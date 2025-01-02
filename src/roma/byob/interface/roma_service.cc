@@ -91,6 +91,75 @@ LocalHandle::~LocalHandle() {
   }
 }
 
+NsJailHandle::NsJailHandle(int pid, std::string_view mounts,
+                           std::string_view control_socket_path,
+                           std::string_view udf_socket_path,
+                           std::string_view socket_dir,
+                           std::string container_name, std::string_view log_dir,
+                           std::uint64_t memory_limit_soft,
+                           std::uint64_t memory_limit_hard,
+                           bool enable_seccomp_filter)
+    : pid_(pid) {
+  // The following block does not run in the parent process.
+  if (pid_ == 0) {
+    // Set the process group id to the process id.
+    PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
+    const std::string root_dir =
+        std::filesystem::path(CONTAINER_PATH) / CONTAINER_ROOT_RELPATH;
+    const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
+    const std::string seccomp_filter_flag =
+        absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter);
+    const std::string log_dir_mount = absl::StrCat(log_dir, ":/log_dir");
+    const std::string socket_dir_mount =
+        absl::StrCat(socket_dir, ":/socket_dir");
+    const char* argv[] = {
+        "/usr/byob/nsjail/bin/nsjail",
+        "-Mo",
+        "--chroot",
+        root_dir.data(),
+        "-B",
+        log_dir_mount.c_str(),
+        "-B",
+        socket_dir_mount.c_str(),
+        "-R",
+        "/dev/null",
+        "--disable_rlimits",
+        "--env",
+        kLdLibraryPath.data(),
+        "--forward_signals",
+        "--keep_caps",
+        "--really_quiet",
+        "--rw",
+        "--",
+        "/server/bin/run_workers",
+        mounts_flag.c_str(),
+        "--control_socket_name=/socket_dir/control.sock",
+        "--udf_socket_name=/socket_dir/byob_rpc.sock",
+        "--log_dir=/log_dir",
+        seccomp_filter_flag.c_str(),
+        nullptr,
+    };
+    const char* envp[] = {
+        "LD_LIBRARY_PATH=/usr/byob/nsjail/lib",
+        nullptr,
+    };
+    ::execve(argv[0], const_cast<char* const*>(&argv[0]),
+             const_cast<char* const*>(&envp[0]));
+    PLOG(FATAL) << "execve()";
+  }
+}
+NsJailHandle::~NsJailHandle() {
+  ::kill(pid_, SIGTERM);
+  // Wait for all processes in the process group to exit.
+  uint32_t child_count = 0;
+  while (::waitpid(-pid_, /*wstatus=*/nullptr, /*options=*/0) > 0) {
+    child_count++;
+  }
+  if (child_count == 0) {
+    PLOG(ERROR) << "waitpid unexpectedly didn't wait for any pids";
+  }
+}
+
 ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view control_socket_path,
                        std::string_view udf_socket_path,

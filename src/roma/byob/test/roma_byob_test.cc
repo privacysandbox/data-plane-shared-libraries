@@ -617,6 +617,8 @@ std::string GetModeStr(Mode mode) {
       return "MinimalSandbox";
     case Mode::kModeGvisorSandboxDebug:
       return "GvisorSandboxDebug";
+    case Mode::kModeNsJailSandbox:
+      return "NsJailSandbox";
     default:
       return "UnknownMode";
   }
@@ -637,8 +639,10 @@ INSTANTIATE_TEST_SUITE_P(
     testing::ValuesIn<RomaByobTestParam>(
         {{.mode = Mode::kModeGvisorSandbox, .enable_seccomp_filter = false},
          {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = false},
+         {.mode = Mode::kModeNsJailSandbox, .enable_seccomp_filter = false},
          {.mode = Mode::kModeGvisorSandbox, .enable_seccomp_filter = true},
-         {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = true}}),
+         {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = true},
+         {.mode = Mode::kModeNsJailSandbox, .enable_seccomp_filter = true}}),
     [](const testing::TestParamInfo<RomaByobTest::ParamType>& info) {
       return absl::StrCat(GetModeStr(info.param.mode),
                           GetFilterStr(info.param.enable_seccomp_filter));

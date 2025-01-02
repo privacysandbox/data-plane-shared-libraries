@@ -70,6 +70,25 @@ pkg_files(
 ]
 
 genrule(
+    name = "nsjail_bin",
+    srcs = [
+        ":Dockerfile.nsjail",
+    ],
+    outs = [
+        "nsjail",
+        "libprotobuf.so.17",
+        "libnl-route-3.so.200",
+        "libnl-3.so.200",
+        "libz.so.1",
+    ],
+    cmd_bash = """set -o errexit
+set -o xtrace
+cp $(SRCS) "$(RULEDIR)"
+docker buildx build --progress plain --target nsjail-binary --output="$(RULEDIR)" --file="$(RULEDIR)"/Dockerfile.nsjail "$(RULEDIR)"
+""",
+)
+
+genrule(
     name = "runsc_bin",
     srcs = [
         ":Dockerfile.runsc",
@@ -90,6 +109,27 @@ pkg_files(
     prefix = "/usr/bin",
 )
 
+pkg_files(
+    name = "nsjail_execs",
+    srcs = [
+        ":nsjail",
+    ],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/usr/byob/nsjail/bin",
+)
+
+pkg_files(
+    name = "nsjail_libs",
+    srcs = [
+        ":libnl-3.so.200",
+        ":libnl-route-3.so.200",
+        ":libprotobuf.so.17",
+        ":libz.so.1",
+    ],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/usr/byob/nsjail/lib",
+)
+
 pkg_mkdirs(
     name = "var_run_runsc_dir",
     attributes = pkg_attributes(mode = "0700"),
@@ -103,6 +143,8 @@ pkg_mkdirs(
         name = "gvisor_tar_{}".format(user.flavor),
         srcs = [
             ":gvisor_execs",
+            ":nsjail_execs",
+            ":nsjail_libs",
             ":var_run_runsc_dir",
         ],
         owner = "{}.{}".format(
