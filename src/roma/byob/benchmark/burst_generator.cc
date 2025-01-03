@@ -15,6 +15,7 @@
 #include "src/roma/byob/benchmark/burst_generator.h"
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 #include <utility>
@@ -78,15 +79,19 @@ std::string BurstGenerator::Stats::ToString() const {
   Percentiles<absl::Duration> burst_ptiles = get_percentiles(burst_latencies);
   Percentiles<absl::Duration> invocation_ptiles =
       get_status_percentiles(invocation_latencies);
+  const double late_burst_pct =
+      static_cast<double>(
+          std::lround(static_cast<double>(late_count) / total_bursts * 1000)) /
+      10;
   return absl::StrCat(
       "total runtime: ", total_elapsed,
-      ", invocation count: ", total_invocation_count,
-      " late bursts: ", late_count, "\nburst latencies",
-      "\n  count: ", burst_ptiles.count, "\n  min: ", burst_ptiles.min,
-      "\n  p50: ", burst_ptiles.p50, "\n  p90: ", burst_ptiles.p90,
-      "\n  p95: ", burst_ptiles.p95, "\n  p99: ", burst_ptiles.p99,
-      "\n  max: ", burst_ptiles.max, "\ninvocation latencies",
-      "\n  count: ", invocation_ptiles.count,
+      "\n invocation count: ", total_invocation_count,
+      "\n late bursts: ", late_count, " (", late_burst_pct, "%)",
+      "\nburst latencies", "\n  count: ", burst_ptiles.count,
+      "\n  min: ", burst_ptiles.min, "\n  p50: ", burst_ptiles.p50,
+      "\n  p90: ", burst_ptiles.p90, "\n  p95: ", burst_ptiles.p95,
+      "\n  p99: ", burst_ptiles.p99, "\n  max: ", burst_ptiles.max,
+      "\ninvocation latencies", "\n  count: ", invocation_ptiles.count,
       "\n  min: ", invocation_ptiles.min, "\n  p50: ", invocation_ptiles.p50,
       "\n  p90: ", invocation_ptiles.p90, "\n  p95: ", invocation_ptiles.p95,
       "\n  p99: ", invocation_ptiles.p99, "\n  max: ", invocation_ptiles.max);
@@ -94,10 +99,6 @@ std::string BurstGenerator::Stats::ToString() const {
 
 BurstGenerator::Stats BurstGenerator::Run() const {
   Stats stats(burst_size_, num_bursts_);
-  LOG(INFO) << "starting burst generator run."
-            << "\n  num bursts: " << num_bursts_
-            << "\n  burst cadence: " << cadence_
-            << "\n  burst size: " << burst_size_ << std::endl;
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::Time expected_start = absl::Now();
   auto latencies_it = stats.invocation_latencies.begin();

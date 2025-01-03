@@ -35,13 +35,15 @@ class BurstGenerator final {
     explicit Stats(int burst_size, int num_bursts)
         : total_elapsed(absl::ZeroDuration()),
           total_invocation_count(0),
+          total_bursts(num_bursts),
           late_count(0) {
-      burst_latencies.reserve(burst_size);
+      burst_latencies.reserve(num_bursts);
       invocation_latencies.resize(burst_size * num_bursts);
     }
 
     absl::Duration total_elapsed;
     int64_t total_invocation_count;
+    int total_bursts;
     int late_count;
     std::vector<absl::Duration> burst_latencies;
     std::vector<absl::StatusOr<absl::Duration>> invocation_latencies;

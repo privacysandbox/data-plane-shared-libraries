@@ -131,6 +131,12 @@ int main(int argc, char** argv) {
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                            rpc_func);
+
+  LOG(INFO) << "starting burst generator run."
+            << "\n  burst size: " << burst_size
+            << "\n  burst cadence: " << burst_cadence
+            << "\n  num bursts: " << num_queries << std::endl;
+
   const BurstGenerator::Stats stats = burst_gen.Run();
   // RomaService must be cleaned up before stats are reported, to ensure the
   // service's work is completed
@@ -138,6 +144,9 @@ int main(int argc, char** argv) {
   privacy_sandbox::server_common::Stopwatch stopwatch;
   roma_service.reset();
   LOG(INFO) << "Roma shutdown duration: " << stopwatch.GetElapsedTime();
+  LOG(INFO) << "\n  burst size: " << burst_size
+            << "\n  burst cadence: " << burst_cadence
+            << "\n  num bursts: " << num_queries << std::endl;
   LOG(INFO) << stats.ToString() << std::endl;
   return 0;
 }
