@@ -174,7 +174,6 @@ alias(
     oci_image(
         name = "byob_runtime_image_{}".format(user.flavor),
         base = ":runtime-debian-nondebug-nonroot",
-        cmd = ["/server/bin/run_workers"],
         tars = [":byob_runtime_tar_{}".format(user.flavor)],
     )
     for user in DISTROLESS_USERS
@@ -209,7 +208,7 @@ _server_image = "byob_server:v1-{flavor}"
         outs = ["byob_runtime_container_{}.tar".format(user.flavor)],
         cmd_bash = """
 docker load -i "$(location :byob_runtime_image_{flavor}.tar)"
-CID=$$(docker create --privileged "{image_uri}")
+CID=$$(docker create --entrypoint /server/bin/run_workers --privileged "{image_uri}")
 docker export $$CID -o $@
 docker rm $$CID
 """.format(
