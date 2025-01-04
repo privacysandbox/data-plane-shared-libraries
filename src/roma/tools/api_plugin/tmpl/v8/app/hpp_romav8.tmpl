@@ -28,17 +28,17 @@
 
 #include <memory>
 
-#include "src/roma/config/function_binding_object_v2.h"
-#include "src/roma/roma_service/romav8_app_service.h"
-#include "src/util/status_macro/status_macros.h"
-#include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
-
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "src/roma/config/function_binding_object_v2.h"
+#include "src/roma/roma_service/romav8_app_service.h"
 #include "src/util/execution_token.h"
+#include "src/util/status_macro/status_macros.h"
+#include "{{$file.Name | trimSuffix (ext $file.Name)}}.pb.h"
+
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}

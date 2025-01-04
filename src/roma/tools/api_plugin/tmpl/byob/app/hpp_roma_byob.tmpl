@@ -32,16 +32,16 @@
 #include <string_view>
 #include <utility>
 
-#include "src/roma/byob/config/config.h"
-#include "src/roma/byob/interface/roma_service.h"
-#include "src/util/execution_token.h"
-#include "src/util/status_macro/status_macros.h"
-#include "{{$file.Name | trimSuffix (ext $file.Name)}}_udf_interface.pb.h"
-
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
+#include "src/roma/byob/config/config.h"
+#include "src/roma/byob/interface/roma_service.h"
+#include "src/roma/config/function_binding_object_v2.h"
+#include "src/util/execution_token.h"
+#include "src/util/status_macro/status_macros.h"
+#include "{{$file.Name | trimSuffix (ext $file.Name)}}_udf_interface.pb.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}

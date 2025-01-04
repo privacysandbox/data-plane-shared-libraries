@@ -45,6 +45,7 @@
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
+#include "src/roma/config/function_binding_object_v2.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 
