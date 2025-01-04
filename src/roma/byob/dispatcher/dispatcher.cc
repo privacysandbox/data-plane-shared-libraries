@@ -41,6 +41,7 @@
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
+#include "src/roma/byob/dispatcher/interface.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_util.h"
 

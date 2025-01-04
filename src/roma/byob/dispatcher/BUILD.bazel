@@ -4,6 +4,12 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_proto_library", "c
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 cc_library(
+    name = "interface",
+    hdrs = ["interface.h"],
+    visibility = ["//src/roma/byob:__subpackages__"],
+)
+
+cc_library(
     name = "dispatcher",
     srcs = ["dispatcher.cc"],
     hdrs = ["dispatcher.h"],
@@ -11,6 +17,7 @@ cc_library(
     deps = [
         ":dispatcher_cc_proto",
         ":dispatcher_grpc",
+        ":interface",
         "//src/core/common/uuid",
         "//src/roma/byob/utility:file_reader",
         "//src/roma/config:function_binding_object_v2",
@@ -32,9 +39,9 @@ cc_binary(
     testonly = True,
     srcs = ["run_workers_without_sandbox.cc"],
     deps = [
-        ":dispatcher",
         ":dispatcher_cc_proto",
         ":dispatcher_grpc",
+        ":interface",
         "//src/core/common/uuid",
         "//src/util/status_macro:status_macros",
         "//src/util/status_macro:status_util",

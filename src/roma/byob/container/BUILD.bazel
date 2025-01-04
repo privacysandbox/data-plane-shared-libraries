@@ -119,9 +119,9 @@ cc_binary(
     name = "run_workers",
     srcs = ["run_workers.cc"],
     deps = [
-        "//src/roma/byob/dispatcher",
         "//src/roma/byob/dispatcher:dispatcher_cc_proto",
         "//src/roma/byob/dispatcher:dispatcher_grpc",
+        "//src/roma/byob/dispatcher:interface",
         "//src/roma/byob/utility:utils",
         "//src/util/status_macro:status_macros",
         "//src/util/status_macro:status_util",
