@@ -148,5 +148,5 @@ int main(int argc, char** argv) {
             << "\n  burst cadence: " << burst_cadence
             << "\n  num bursts: " << num_queries << std::endl;
   LOG(INFO) << stats.ToString() << std::endl;
-  return 0;
+  return stats.late_count == 0 ? 0 : 1;
 }
