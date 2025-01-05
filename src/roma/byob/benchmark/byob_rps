@@ -31,6 +31,9 @@ declare HANDLER_NAME="${DEFAULT_HANDLER_NAME}"
 declare -r DEFAULT_INPUT_ARGS=""
 declare INPUT_ARGS="${DEFAULT_INPUT_ARGS}"
 
+declare -r DEFAULT_OUTPUT_FILE=""
+declare OUTPUT_FILE="${DEFAULT_OUTPUT_FILE}"
+
 function usage() {
   local exitval=${1-1}
   cat &>/dev/stderr << USAGE
@@ -42,6 +45,7 @@ usage:
     --num-workers <range>      number of workers to execute, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_NUM_WORKERS}.
     --num-qps <range>          queries per second, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_QPS}.
     --mode <string>           traffic generator mode: 'byob' or 'v8'. Default: byob
+    --output-file <string>    path to output JSON. Default: print to stdout.
 
   V8 Mode settings:
     --udf-path <string>      path to JavaScript UDF file. Default: ${DEFAULT_UDF_PATH}
@@ -78,6 +82,7 @@ while [[ $# -gt 0 ]]; do
     --udf-path) UDF_PATH="$2"; shift 2 || usage 1 ;;
     --handler-name) HANDLER_NAME="$2"; shift 2 || usage 1 ;;
     --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
+    --output-file) OUTPUT_FILE="$2"; shift 2 || usage 1 ;;
     -h | --help) usage 0 ;;
     *)
       printf "unrecognized arg: %s\n" "$1"
@@ -111,6 +116,7 @@ function run_test() {
     "--num_workers=${num_workers}"
     "--queries_per_second=${qps}"
     "--mode=${MODE}"
+    "--output_file=${OUTPUT_FILE}"
   )
 
   if [[ ${MODE} == v8 ]]; then

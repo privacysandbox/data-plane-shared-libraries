@@ -13,23 +13,65 @@
 # limitations under the License.
 
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
+load(
+    "@com_google_googleapis_imports//:imports.bzl",
+    "cc_proto_library",
+)
+load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_proto//proto:defs.bzl", "proto_descriptor_set", "proto_library")
 load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
+
+package(default_visibility = ["//visibility:public"])
+
+proto_library(
+    name = "traffic_generator_proto",
+    srcs = ["traffic_generator.proto"],
+    deps = [
+        "@com_google_protobuf//:descriptor_proto",
+        "@com_google_protobuf//:duration_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "traffic_generator_cc_proto",
+    deps = [
+        ":traffic_generator_proto",
+    ],
+)
+
+buf_lint_test(
+    name = "traffic_generator_proto_lint",
+    size = "small",
+    config = "//src:buf.yaml",
+    targets = [
+        ":traffic_generator_proto",
+    ],
+)
+
+proto_descriptor_set(
+    name = "traffic_generator_descriptor_set",
+    deps = [
+        ":traffic_generator_proto",
+    ],
+)
 
 cc_library(
     name = "burst_generator",
     srcs = ["burst_generator.cc"],
     hdrs = ["burst_generator.h"],
     deps = [
+        ":traffic_generator_cc_proto",
         "//src/util:duration",
         "@com_google_absl//absl/functional:any_invocable",
         "@com_google_absl//absl/log",
         "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
+        "@com_google_protobuf//:protobuf",
     ],
 )
 
@@ -54,6 +96,7 @@ cc_binary(
     deps = [
         ":burst_generator",
         ":roma_byob_rpc_factory",
+        "//src/communication:json_utils",
         "//src/roma/byob/config",
         "//src/roma/byob/interface:roma_service",
         "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
@@ -71,6 +114,7 @@ cc_binary(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
         "@com_google_absl//absl/time",
+        "@com_google_protobuf//:protobuf",
     ],
 )
 

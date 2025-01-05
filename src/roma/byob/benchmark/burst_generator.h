@@ -25,9 +25,11 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/time/time.h"
+#include "src/roma/byob/benchmark/traffic_generator.pb.h"
 #include "src/util/duration.h"
 
 namespace privacy_sandbox::server_common::byob {
+using privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report;
 
 class BurstGenerator final {
  public:
@@ -49,6 +51,7 @@ class BurstGenerator final {
     std::vector<absl::StatusOr<absl::Duration>> invocation_latencies;
 
     std::string ToString() const;
+    Report ToReport() const;
   };
 
   BurstGenerator(

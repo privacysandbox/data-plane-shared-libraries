@@ -28,9 +28,12 @@
 #include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
+#include "google/protobuf/util/json_util.h"
+#include "src/communication/json_utils.h"
 #include "src/roma/byob/benchmark/burst_generator.h"
 #include "src/roma/byob/benchmark/roma_byob_rpc_factory.h"
 #include "src/roma/byob/config/config.h"
@@ -42,6 +45,8 @@
 #include "src/util/periodic_closure.h"
 #include "src/util/status_macro/status_macros.h"
 
+ABSL_FLAG(std::string, run_id, "",
+          "Arbitrary identifier included in the report");
 ABSL_FLAG(int, num_workers, 84, "Number of pre-created workers");
 ABSL_FLAG(int, queries_per_second, 42,
           "Number of queries to be sent in a second");
@@ -62,6 +67,8 @@ ABSL_FLAG(std::string, handler_name, "",
           "Name of the handler function to call (V8 mode only)");
 ABSL_FLAG(std::vector<std::string>, input_args, {},
           "Arguments to pass to the handler function (V8 mode only)");
+ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
+ABSL_FLAG(bool, verbose, false, "Enable verbose logging");
 
 namespace {
 
@@ -82,6 +89,7 @@ int main(int argc, char** argv) {
   CHECK_GT(burst_size, 0);
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
+  const std::string output_file = absl::GetFlag(FLAGS_output_file);
 
   const std::string lib_mounts = absl::GetFlag(FLAGS_lib_mounts);
   const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
@@ -145,7 +153,33 @@ int main(int argc, char** argv) {
   LOG(INFO) << "\n  burst size: " << burst_size
             << "\n  burst cadence: " << burst_cadence
             << "\n  num bursts: " << num_queries << std::endl;
-  LOG(INFO) << stats.ToString() << std::endl;
+
+  if (!output_file.empty()) {
+    if (std::ofstream outfile(output_file, std::ios::app); outfile.is_open()) {
+      auto report = stats.ToReport();
+      report.set_run_id(absl::GetFlag(FLAGS_run_id));
+      report.mutable_params()->set_burst_size(burst_size);
+      report.mutable_params()->set_query_count(num_queries);
+      report.mutable_params()->set_queries_per_second(queries_per_second);
+      report.mutable_params()->set_num_workers(num_workers);
+
+      google::protobuf::util::JsonPrintOptions options = {
+          .add_whitespace = false,
+          .always_print_primitive_fields = true,
+      };
+      auto report_json =
+          privacy_sandbox::server_common::ProtoToJson(report, options);
+      CHECK(report_json.ok())
+          << "Failed to convert report to JSON: " << report_json.status();
+      outfile << report_json.value() << std::endl;
+    } else {
+      LOG(ERROR) << "Failed to open output file: " << output_file;
+    }
+  }
+
+  if (absl::GetFlag(FLAGS_verbose)) {
+    LOG(INFO) << stats.ToString();
+  }
 
   return stats.late_count == 0 ? 0 : 1;
 }

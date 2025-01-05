@@ -47,14 +47,15 @@ absl::StatusOr<ProtoMessage> JsonToProto(std::string_view json) {
 
 // Converts a proto to a JSON string.
 template <typename ProtoMessage>
-absl::StatusOr<std::string> ProtoToJson(const ProtoMessage& proto) {
+absl::StatusOr<std::string> ProtoToJson(
+    const ProtoMessage& proto,
+    google::protobuf::util::JsonPrintOptions options = {
+        .add_whitespace = false,
+    }) {
   static_assert(std::is_base_of<google::protobuf::Message, ProtoMessage>::value,
                 "ProtoToJson only encodes from protobuf messages.");
 
   std::string body;
-  google::protobuf::util::JsonPrintOptions options = {
-      .add_whitespace = false,
-  };
   if (const auto s =
           google::protobuf::util::MessageToJsonString(proto, &body, options);
       !s.ok()) {
