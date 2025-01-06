@@ -106,7 +106,6 @@ class RomaService final {
     std::filesystem::path udf_socket_path = socket_dir_ / "byob_rpc.sock";
 
     const int pid = ::fork();
-    ::unshare(CLONE_NEWNS);
     if (pid == -1) {
       return absl::ErrnoToStatus(errno, "fork()");
     }

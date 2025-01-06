@@ -41,6 +41,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
+    PCHECK(::unshare(CLONE_NEWNS) == 0);
     // Set the process group id to the process id.
     PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
     const std::string root_dir =
