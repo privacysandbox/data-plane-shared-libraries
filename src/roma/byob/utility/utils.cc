@@ -18,6 +18,7 @@
 #include <sys/mount.h>
 #include <sys/syscall.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <utility>
 
@@ -84,8 +85,10 @@ bool HasClonePermissionsByobWorker(Mode mode) {
 absl::Status SetupPivotRoot(
     const std::filesystem::path& pivot_root_dir,
     absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-        sources_and_targets,
-    const bool cleanup_pivot_root_dir) {
+        sources_and_targets_read_only,
+    const bool cleanup_pivot_root_dir,
+    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
+        sources_and_targets_read_and_write) {
   if (cleanup_pivot_root_dir) {
     PS_RETURN_IF_ERROR(RemoveDirectories(pivot_root_dir));
   }
@@ -93,7 +96,12 @@ absl::Status SetupPivotRoot(
   // pivot_root doesn't work under an MS_SHARED mount point.
   // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
   PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
-  for (const auto& [source, target] : sources_and_targets) {
+  for (const auto& [source, target] : sources_and_targets_read_only) {
+    PS_RETURN_IF_ERROR(CreateDirectories(target));
+    PS_RETURN_IF_ERROR(
+        Mount(source.c_str(), target.c_str(), nullptr, MS_BIND | MS_RDONLY));
+  }
+  for (const auto& [source, target] : sources_and_targets_read_and_write) {
     PS_RETURN_IF_ERROR(CreateDirectories(target));
     PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
   }
@@ -101,8 +109,6 @@ absl::Status SetupPivotRoot(
   // MS_REC needed here to get other mounts (/lib, /lib64 etc)
   PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
                            "bind", MS_REC | MS_BIND));
-  PS_RETURN_IF_ERROR(Mount(pivot_root_dir.c_str(), pivot_root_dir.c_str(),
-                           "bind", MS_REC | MS_SLAVE));
   {
     const std::filesystem::path pivot_dir = pivot_root_dir / "pivot";
     PS_RETURN_IF_ERROR(CreateDirectories(pivot_dir));
@@ -123,7 +129,11 @@ absl::Status SetupPivotRoot(
   if (::rmdir("/pivot") == -1) {
     return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
   }
-  for (const auto& [source, _] : sources_and_targets) {
+  for (const auto& [source, _] : sources_and_targets_read_only) {
+    PS_RETURN_IF_ERROR(Mount(source.c_str(), source.c_str(), nullptr,
+                             MS_REMOUNT | MS_BIND | MS_RDONLY));
+  }
+  for (const auto& [source, _] : sources_and_targets_read_and_write) {
     PS_RETURN_IF_ERROR(
         Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
   }

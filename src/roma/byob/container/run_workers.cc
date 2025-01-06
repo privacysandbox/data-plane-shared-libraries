@@ -249,28 +249,27 @@ int ReloaderImpl(void* arg) {
       CreatePivotRootDir();
   CHECK_OK(pivot_root_dir);
   const std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets =
+      sources_and_targets_read_only =
           GetSourcesAndTargets(*pivot_root_dir, reloader_impl_arg.mounts);
   {
-    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-        reloader_sources_and_targets = sources_and_targets;
     const std::filesystem::path socket_dir =
         std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
-
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+        socket_dir_read_and_write = {
+            {socket_dir, *pivot_root_dir / socket_dir.relative_path()}};
     // SetupPivotRoot reduces the base filesystem image size. This pivot root
     // includes the socket_dir, which must not be shared with the pivot_root
     // created by the worker.
-    reloader_sources_and_targets.push_back(
-        {socket_dir, *pivot_root_dir / socket_dir.relative_path()});
     CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
-        *pivot_root_dir, reloader_sources_and_targets));
+        *pivot_root_dir, socket_dir_read_and_write,
+        /*cleanup_pivot_root_dir=*/true, sources_and_targets_read_only));
   }
   while (true) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
     WorkerImplArg worker_impl_arg{
         .pivot_root_dir = *pivot_root_dir,
-        .sources_and_targets = sources_and_targets,
+        .sources_and_targets = sources_and_targets_read_only,
         .execution_token = execution_token,
         .socket_name = reloader_impl_arg.socket_name,
         .code_token = reloader_impl_arg.code_token,
