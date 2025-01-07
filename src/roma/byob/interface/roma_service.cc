@@ -105,12 +105,13 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
   if (pid_ == 0) {
     // Set the process group id to the process id.
     PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
-    std::filesystem::path container_path =
+    std::filesystem::path container_config_path =
         std::filesystem::path(CONTAINER_PATH) / "config.json";
+    CHECK(std::filesystem::exists(container_config_path));
     PCHECK(::close(STDIN_FILENO) == 0);
     nlohmann::json config;
     {
-      std::ifstream ifs(container_path);
+      std::ifstream ifs(container_config_path);
       config =
           nlohmann::json::parse(std::string(std::istreambuf_iterator<char>(ifs),
                                             std::istreambuf_iterator<char>()));
@@ -161,7 +162,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
       };
     }
     {
-      std::ofstream ofs(container_path);
+      std::ofstream ofs(container_config_path);
       ofs << config.dump();
     }
     PCHECK(::chdir(CONTAINER_PATH) == 0);
