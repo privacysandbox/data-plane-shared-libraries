@@ -56,7 +56,7 @@ commandTests:
     expectedError:
       - "ERROR: Illegal value 'unknown' specified for flag 'sandbox'; Supported values: on, off, debug."
 
-  - name: shell-cli help command
+  - name: shell-cli help commands file
     command: /tools/shell-cli
     args: ['--commands_file=/tools/help.commands']
     exitCode: 0
