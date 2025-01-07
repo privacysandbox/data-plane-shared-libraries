@@ -33,14 +33,31 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "roma_byob_rpc_factory",
+    hdrs = ["roma_byob_rpc_factory.h"],
+    deps = [
+        "//src/roma/byob/config",
+        "//src/roma/byob/interface:roma_service",
+        "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
+        "//src/util:execution_token",
+        "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+    ],
+)
+
 cc_binary(
     name = "traffic_generator",
     srcs = ["traffic_generator.cc"],
     deps = [
         ":burst_generator",
+        ":roma_byob_rpc_factory",
         "//src/roma/byob/config",
         "//src/roma/byob/interface:roma_service",
         "//src/roma/byob/sample_udf:sample_byob_sdk_cc_proto",
+        "//src/roma/tools/v8_cli:roma_v8_rpc_factory",
         "//src/util:periodic_closure",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",

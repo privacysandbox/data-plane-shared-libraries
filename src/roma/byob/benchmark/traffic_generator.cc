@@ -13,9 +13,11 @@
 // limitations under the License.
 
 #include <filesystem>
+#include <fstream>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
@@ -30,10 +32,12 @@
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
 #include "src/roma/byob/benchmark/burst_generator.h"
+#include "src/roma/byob/benchmark/roma_byob_rpc_factory.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/interface/roma_service.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/roma/tools/v8_cli/roma_v8_rpc_factory.h"
 #include "src/util/execution_token.h"
 #include "src/util/periodic_closure.h"
 #include "src/util/status_macro/status_macros.h"
@@ -51,15 +55,17 @@ ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
           "Mount paths to include in the pivot_root environment. Example "
           "/dir1,/dir2");
 ABSL_FLAG(std::string, binary_path, "/udf/sample_udf", "Path to binary");
+ABSL_FLAG(std::string, mode, "byob", "Traffic generator mode: 'byob' or 'v8'");
+ABSL_FLAG(std::string, udf_path, "",
+          "Path to JavaScript UDF file (V8 mode only)");
+ABSL_FLAG(std::string, handler_name, "",
+          "Name of the handler function to call (V8 mode only)");
+ABSL_FLAG(std::vector<std::string>, input_args, {},
+          "Arguments to pass to the handler function (V8 mode only)");
 
 namespace {
 
-using AppService = ::privacy_sandbox::server_common::byob::RomaService<>;
-using Config = ::privacy_sandbox::server_common::byob::Config<>;
-using Mode = ::privacy_sandbox::server_common::byob::Mode;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
-using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
-using ::privacy_sandbox::roma_byob::example::SampleResponse;
+using ::google::scp::roma::tools::v8_cli::CreateV8RpcFunc;
 using ::privacy_sandbox::server_common::PeriodicClosure;
 
 }  // namespace
@@ -77,18 +83,23 @@ int main(int argc, char** argv) {
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
 
-  std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
-  CHECK_OK(roma_service->Init(/*config=*/
-                              {.lib_mounts = absl::GetFlag(FLAGS_lib_mounts)},
-                              absl::GetFlag(FLAGS_sandbox)));
-  absl::StatusOr<std::string> code_token =
-      roma_service->LoadBinary(absl::GetFlag(FLAGS_binary_path), num_workers);
-  CHECK_OK(code_token);
-  // Wait to make sure the workers are ready for work.
-  absl::SleepFor(absl::Seconds(5));
+  const std::string lib_mounts = absl::GetFlag(FLAGS_lib_mounts);
+  const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
+  const privacy_sandbox::server_common::byob::Mode sandbox =
+      absl::GetFlag(FLAGS_sandbox);
 
-  ::privacy_sandbox::roma_byob::example::SampleRequest request;
-  request.set_function(FUNCTION_HELLO_WORLD);
+  const std::string udf_path = absl::GetFlag(FLAGS_udf_path);
+  const std::string handler_name = absl::GetFlag(FLAGS_handler_name);
+  const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
+
+  const std::string mode = absl::GetFlag(FLAGS_mode);
+  CHECK(mode == "byob" || mode == "v8")
+      << "Invalid mode. Must be 'byob' or 'v8'";
+
+  absl::AnyInvocable<void()> stop_func;
+  absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
+                          absl::StatusOr<absl::Duration>*) const>
+      rpc_func;
 
   const std::int64_t expected_completions = num_queries * burst_size;
   std::atomic<std::int64_t> completions = 0;
@@ -108,29 +119,19 @@ int main(int argc, char** argv) {
       !s.ok()) {
     LOG(FATAL) << s;
   }
-  const auto rpc_func = [&roma_service, code_token = *code_token, &request,
-                         &completions](
-                            privacy_sandbox::server_common::Stopwatch stopwatch,
-                            absl::StatusOr<absl::Duration>* duration) {
-    absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
-        roma_service->ProcessRequest<SampleResponse>(
-            code_token, request, google::scp::roma::DefaultMetadata(),
-            [stopwatch = std::move(stopwatch), duration,
-             &completions](absl::StatusOr<SampleResponse> response) {
-              *duration = stopwatch.GetElapsedTime();
-              completions++;
-              CHECK_OK(response);
-            });
-    // CHECK_OK(exec_token) << "FAIL";
-    if (!exec_token.ok()) {
-      *duration = exec_token.status();
-      completions++;
-    }
-  };
+
+  if (mode == "byob") {
+    std::tie(rpc_func, stop_func) = CreateByobRpcFunc(
+        num_workers, lib_mounts, binary_path, sandbox, completions);
+  } else {  // v8 mode
+    std::tie(rpc_func, stop_func) = CreateV8RpcFunc(
+        num_workers, udf_path, handler_name, input_args, completions);
+  }
+
   using ::privacy_sandbox::server_common::byob::BurstGenerator;
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
-                           rpc_func);
+                           std::move(rpc_func));
 
   LOG(INFO) << "starting burst generator run."
             << "\n  burst size: " << burst_size
@@ -140,13 +141,11 @@ int main(int argc, char** argv) {
   const BurstGenerator::Stats stats = burst_gen.Run();
   // RomaService must be cleaned up before stats are reported, to ensure the
   // service's work is completed
-  LOG(INFO) << "Shutting down Roma";
-  privacy_sandbox::server_common::Stopwatch stopwatch;
-  roma_service.reset();
-  LOG(INFO) << "Roma shutdown duration: " << stopwatch.GetElapsedTime();
+  stop_func();
   LOG(INFO) << "\n  burst size: " << burst_size
             << "\n  burst cadence: " << burst_cadence
             << "\n  num bursts: " << num_queries << std::endl;
   LOG(INFO) << stats.ToString() << std::endl;
+
   return stats.late_count == 0 ? 0 : 1;
 }
