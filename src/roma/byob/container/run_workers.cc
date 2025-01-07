@@ -428,6 +428,14 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       return absl::InternalError(absl::StrCat(
           "Failed to create ", binary_dir.native(), ": ", ec.message()));
     }
+    std::error_code ec;
+    if (std::filesystem::permissions(binary_dir,
+                                     std::filesystem::perms::owner_all, ec);
+        ec) {
+      return absl::InternalError(
+          absl::StrCat("Failed to modify permissions for ", binary_dir.native(),
+                       ": ", ec.message()));
+    }
     std::filesystem::path binary_path = binary_dir / *kBinaryExe;
     if (request.has_binary_content()) {
       PS_RETURN_IF_ERROR(SaveNewBinary(binary_path, request.binary_content()));
@@ -559,6 +567,13 @@ int main(int argc, char** argv) {
   const std::filesystem::path prog_dir = "/prog_dir";
   if (std::error_code ec; !std::filesystem::create_directories(prog_dir, ec)) {
     LOG(ERROR) << "Failed to create " << prog_dir << ": " << ec;
+    return -1;
+  }
+  std::error_code ec;
+  if (std::filesystem::permissions(prog_dir, std::filesystem::perms::owner_all,
+                                   ec);
+      ec) {
+    LOG(ERROR) << "Failed to modify permission for " << prog_dir << ": " << ec;
     return -1;
   }
   absl::Cleanup progdir_cleanup = [&prog_dir] {
