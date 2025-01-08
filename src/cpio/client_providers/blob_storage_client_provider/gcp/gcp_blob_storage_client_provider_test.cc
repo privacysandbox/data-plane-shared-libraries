@@ -103,6 +103,7 @@ constexpr std::string_view kInstanceResourceName =
 constexpr std::string_view kBucketName = "bucket";
 constexpr std::string_view kBlobName1 = "blob_1";
 constexpr std::string_view kBlobName2 = "blob_2";
+constexpr std::string_view kBlobNameEmpty = "blob_empty";
 
 constexpr uint64_t kDefaultMaxPageSize = 1000;
 }  // namespace
@@ -412,6 +413,36 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlobNotFound) {
     EXPECT_THAT(context.result,
                 ResultIs(FailureExecutionResult(SC_GCP_NOT_FOUND)));
     EXPECT_THAT(context.response, IsNull());
+
+    absl::MutexLock lock(&finish_called_mu_);
+    finish_called_ = true;
+  };
+
+  EXPECT_TRUE(gcp_cloud_storage_client_->GetBlob(get_blob_context_).ok());
+
+  absl::MutexLock lock(&finish_called_mu_);
+  finish_called_mu_.Await(absl::Condition(&finish_called_));
+}
+
+TEST_F(GcpBlobStorageClientProviderTest, GetBlobEmpty) {
+  get_blob_context_.request->mutable_blob_metadata()->set_bucket_name(
+      kBucketName);
+  get_blob_context_.request->mutable_blob_metadata()->set_blob_name(
+      kBlobNameEmpty);
+
+  EXPECT_CALL(*mock_client_,
+              ReadObject(ReadObjectRequestEqual(kBucketName, kBlobNameEmpty)))
+      .WillOnce(Return(ByMove(BuildReadResponseFromString(std::string()))));
+
+  get_blob_context_.callback = [this](auto& context) {
+    ASSERT_SUCCESS(context.result);
+
+    Blob expected_blob;
+    expected_blob.mutable_metadata()->set_bucket_name(kBucketName);
+    expected_blob.mutable_metadata()->set_blob_name(kBlobNameEmpty);
+
+    ASSERT_THAT(context.response, NotNull());
+    EXPECT_THAT(context.response->blob(), BlobEquals(expected_blob));
 
     absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;

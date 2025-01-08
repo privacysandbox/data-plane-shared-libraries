@@ -224,12 +224,26 @@ void GcpBlobStorageClientProvider::GetBlobInternal(
       get_blob_context.request->blob_metadata().bucket_name(),
       get_blob_context.request->blob_metadata().blob_name(),
       DisableCrc32cChecksum(true), EnableMD5Hash(), read_range);
+  // ValidateStream checks if the blob_stream status is successful. If not, it
+  // will invoke FinishContext and return an error. In the empty blob case,
+  // the blob_stream should still be successful.
   if (!ValidateStream(get_blob_context, blob_stream).Successful()) {
     return;
   }
 
-  // blob_stream.size() always has the full size of the object, not just the
-  // read range.
+  get_blob_context.response = std::make_shared<GetBlobResponse>();
+  get_blob_context.response->mutable_blob()->mutable_metadata()->CopyFrom(
+      get_blob_context.request->blob_metadata());
+
+  // blob_stream.size() always has the full size of the object, including when
+  // byte ranges are requested. The blob size isn't set (std::optional) if the
+  // requested blob size is zero.
+  if (!blob_stream.size().has_value()) {
+    FinishContext(SuccessExecutionResult(), get_blob_context,
+                  *cpu_async_executor_);
+    return;
+  }
+
   size_t content_length = *blob_stream.size();
   if (get_blob_context.request->has_byte_range()) {
     const size_t max_end_index = content_length - 1;
@@ -242,19 +256,12 @@ void GcpBlobStorageClientProvider::GetBlobInternal(
     content_length = 1 + end_index -
                      get_blob_context.request->byte_range().begin_byte_index();
   }
-
-  get_blob_context.response = std::make_shared<GetBlobResponse>();
-  get_blob_context.response->mutable_blob()->mutable_metadata()->CopyFrom(
-      get_blob_context.request->blob_metadata());
-
   auto& blob_bytes = *get_blob_context.response->mutable_blob()->mutable_data();
   blob_bytes.resize(content_length);
-
   blob_stream.read(blob_bytes.data(), content_length);
   if (!ValidateStream(get_blob_context, blob_stream).Successful()) {
     return;
   }
-
   FinishContext(SuccessExecutionResult(), get_blob_context,
                 *cpu_async_executor_);
 }
