@@ -170,6 +170,16 @@ cc_binary(
 )
 
 cc_binary(
+    name = "socket_finder_udf",
+    srcs = ["socket_finder_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
     name = "pause_udf",
     srcs = ["pause_udf.cc"],
     visibility = ["//visibility:public"],
@@ -365,6 +375,7 @@ filegroup(
         ":sample_go_udf",
         ":sample_java_native_udf",
         ":sample_udf",
+        ":socket_finder_udf",
         ":sort_list_100k_udf",
         ":sort_list_10k_udf",
         ":sort_list_1m_udf",

@@ -97,13 +97,18 @@ absl::Status SetupPivotRoot(
   // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
   PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
   for (const auto& [source, target] : sources_and_targets_read_only) {
-    PS_RETURN_IF_ERROR(CreateDirectories(target));
-    PS_RETURN_IF_ERROR(
-        Mount(source.c_str(), target.c_str(), nullptr, MS_BIND | MS_RDONLY));
+    const std::filesystem::path mount_target =
+        pivot_root_dir / target.relative_path();
+    PS_RETURN_IF_ERROR(CreateDirectories(mount_target));
+    PS_RETURN_IF_ERROR(Mount(source.c_str(), mount_target.c_str(), nullptr,
+                             MS_BIND | MS_RDONLY));
   }
   for (const auto& [source, target] : sources_and_targets_read_and_write) {
-    PS_RETURN_IF_ERROR(CreateDirectories(target));
-    PS_RETURN_IF_ERROR(Mount(source.c_str(), target.c_str(), nullptr, MS_BIND));
+    const std::filesystem::path mount_target =
+        pivot_root_dir / target.relative_path();
+    PS_RETURN_IF_ERROR(CreateDirectories(mount_target));
+    PS_RETURN_IF_ERROR(
+        Mount(source.c_str(), mount_target.c_str(), nullptr, MS_BIND));
   }
 
   // MS_REC needed here to get other mounts (/lib, /lib64 etc)
@@ -129,13 +134,13 @@ absl::Status SetupPivotRoot(
   if (::rmdir("/pivot") == -1) {
     return absl::ErrnoToStatus(errno, "rmdir('/pivot')");
   }
-  for (const auto& [source, _] : sources_and_targets_read_only) {
-    PS_RETURN_IF_ERROR(Mount(source.c_str(), source.c_str(), nullptr,
+  for (const auto& [_, target] : sources_and_targets_read_only) {
+    PS_RETURN_IF_ERROR(Mount(target.c_str(), target.c_str(), nullptr,
                              MS_REMOUNT | MS_BIND | MS_RDONLY));
   }
-  for (const auto& [source, _] : sources_and_targets_read_and_write) {
+  for (const auto& [_, target] : sources_and_targets_read_and_write) {
     PS_RETURN_IF_ERROR(
-        Mount(source.c_str(), source.c_str(), nullptr, MS_REMOUNT | MS_BIND));
+        Mount(target.c_str(), target.c_str(), nullptr, MS_REMOUNT | MS_BIND));
   }
   return absl::OkStatus();
 }

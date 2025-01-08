@@ -226,14 +226,16 @@ struct ReloaderImplArg {
 };
 
 std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-GetSourcesAndTargets(const std::filesystem::path& pivot_root_dir,
-                     absl::Span<const std::string> mounts) {
+GetSourcesAndTargets(absl::Span<const std::string> mounts) {
   std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
       sources_and_targets;
   sources_and_targets.reserve(mounts.size());
   for (const std::filesystem::path mount : mounts) {
+    // Mount /x -> /x and /y/z -> /z.
     sources_and_targets.push_back(
-        {mount, pivot_root_dir / mount.relative_path()});
+        {mount,
+         "/" /
+             (mount.has_filename() ? mount : mount.parent_path()).filename()});
   }
   return sources_and_targets;
 }
@@ -248,21 +250,32 @@ int ReloaderImpl(void* arg) {
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
       CreatePivotRootDir();
   CHECK_OK(pivot_root_dir);
-  const std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets_read_only =
-          GetSourcesAndTargets(*pivot_root_dir, reloader_impl_arg.mounts);
   {
     const std::filesystem::path socket_dir =
         std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
     std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-        socket_dir_read_and_write = {
-            {socket_dir, *pivot_root_dir / socket_dir.relative_path()}};
+        sources_and_targets_read_only =
+            GetSourcesAndTargets(reloader_impl_arg.mounts);
+    sources_and_targets_read_only.push_back({socket_dir, socket_dir});
+
     // SetupPivotRoot reduces the base filesystem image size. This pivot root
     // includes the socket_dir, which must not be shared with the pivot_root
     // created by the worker.
     CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
-        *pivot_root_dir, socket_dir_read_and_write,
-        /*cleanup_pivot_root_dir=*/true, sources_and_targets_read_only));
+        *pivot_root_dir, sources_and_targets_read_only,
+        /*cleanup_pivot_root_dir=*/true,
+        /*sources_and_targets_read_and_write=*/
+        {{reloader_impl_arg.log_dir_name, reloader_impl_arg.log_dir_name}}));
+  }
+
+  // Reloader mounts /x -> /x and /y/z -> /z.
+  // Workers mounts /a -> /a.
+  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+      sources_and_targets_read_only;
+  sources_and_targets_read_only.reserve(reloader_impl_arg.mounts.size());
+  for (const auto& [_, target] :
+       GetSourcesAndTargets(reloader_impl_arg.mounts)) {
+    sources_and_targets_read_only.push_back({target, target});
   }
   while (true) {
     // Start a new worker.
@@ -488,7 +501,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     return absl::OkStatus();
   }
 
-  absl::Status CreateWorkerPool(std::filesystem::path binary_path,
+  absl::Status CreateWorkerPool(const std::filesystem::path binary_path,
                                 std::string_view code_token,
                                 const int num_workers,
                                 const bool enable_log_egress)
@@ -498,15 +511,14 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       code_token_to_reloader_pids_[code_token].reserve(num_workers);
     }
     std::vector<std::string> mounts = mounts_;
-    mounts.push_back(binary_path.parent_path());
-    if (enable_log_egress) {
-      mounts.push_back(log_dir_name_);
-    }
+    const std::filesystem::path binary_dir = binary_path.parent_path();
+    mounts.push_back(binary_dir);
     ReloaderImplArg reloader_impl_arg{
         .mounts = std::move(mounts),
         .socket_name = socket_name_,
         .code_token = std::string(code_token),
-        .binary_path = std::move(binary_path),
+        // Within the pivot root, binary_dir is a child of root, not progdir.
+        .binary_path = binary_dir.filename() / binary_path.filename(),
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
         .log_dir_name = log_dir_name_,

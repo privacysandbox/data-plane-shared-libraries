@@ -77,6 +77,7 @@ struct Config {
   std::uint64_t memory_limit_soft = 0;
   std::uint64_t memory_limit_hard = 0;
   std::string roma_container_name;
+  // Mounts /x -> /x and /y/z -> /z.
   std::string lib_mounts = LIB_MOUNTS;
 };
 }  // namespace privacy_sandbox::server_common::byob

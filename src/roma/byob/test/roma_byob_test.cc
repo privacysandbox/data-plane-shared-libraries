@@ -51,6 +51,8 @@ const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusCapBinaryFilename = "cap_udf";
+const std::filesystem::path kCPlusPlusSocketFinderBinaryFilename =
+    "socket_finder_udf";
 const std::filesystem::path kCPlusPlusFileSystemModificationFilename =
     "filesystem_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
@@ -179,8 +181,33 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
   return {*bin_response, log_status};
 }
 
-// TODO: b/387989444 - Enable once the filesystem egression issue is fixed.
-TEST(RomaByobTest, DISABLED_NoFileSystemChangeEgressionInNonSandboxMode) {
+TEST(RomaByobTest, NoSocketFileInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusSocketFinderBinaryFilename,
+               /*enable_log_egress=*/true, /*num_workers=*/1);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Success."));
+}
+
+TEST(RomaByobTest, NoSocketFileInSandboxMode) {
+  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusSocketFinderBinaryFilename,
+               /*enable_log_egress=*/true, /*num_workers=*/1);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Success."));
+}
+
+TEST(RomaByobTest, NoFileSystemChangeEgressionInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
@@ -189,11 +216,10 @@ TEST(RomaByobTest, DISABLED_NoFileSystemChangeEgressionInNonSandboxMode) {
 
   std::string code_token = LoadCode(
       roma_service, kUdfPath / kCPlusPlusFileSystemModificationFilename,
-      /*enable_log_egress=*/false, /*num_workers=*/1);
+      /*enable_log_egress=*/true, /*num_workers=*/1);
 
-  EXPECT_THAT(
-      SendRequestAndGetResponse(roma_service, code_token).greeting(),
-      ::testing::StrEq("Success. Could not write file in any directory."));
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Success."));
 }
 
 TEST(RomaByobTest, LoadBinaryInSandboxMode) {

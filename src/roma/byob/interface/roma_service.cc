@@ -48,29 +48,21 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         std::filesystem::path(CONTAINER_PATH) / CONTAINER_ROOT_RELPATH;
     std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
         sources_and_targets = {
-            {log_dir,
-             root_dir / std::filesystem::path(log_dir).relative_path()},
-            {socket_dir,
-             root_dir / std::filesystem::path(socket_dir).relative_path()},
+            {log_dir, "/log_dir"},
+            {socket_dir, "/socket_dir"},
             // Needs to be mounted for Cancel to work (kill by cmdline)
-            {"/proc",
-             root_dir / std::filesystem::path("/proc").relative_path()},
-            {"/dev", root_dir / std::filesystem::path("/dev").relative_path()}};
+            {"/proc", "/proc"},
+            {"/dev", "/dev"}};
     CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
         root_dir, /*sources_and_targets_read_only=*/{},
         /*cleanup_pivot_root_dir=*/false, sources_and_targets));
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
-    const std::string control_socket_name_flag =
-        absl::StrCat("--control_socket_name=", control_socket_path);
-    const std::string udf_socket_name_flag =
-        absl::StrCat("--udf_socket_name=", udf_socket_path);
-    const std::string log_dir_flag = absl::StrCat("--log_dir=", log_dir);
     const char* argv[] = {
         "/server/bin/run_workers",
         mounts_flag.c_str(),
-        control_socket_name_flag.c_str(),
-        udf_socket_name_flag.c_str(),
-        log_dir_flag.c_str(),
+        "--control_socket_name=/socket_dir/control.sock",
+        "--udf_socket_name=/socket_dir/byob_rpc.sock",
+        "--log_dir=/log_dir",
         nullptr,
     };
     const char* envp[] = {
@@ -123,9 +115,9 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     config["process"]["args"] = {
         "/server/bin/run_workers",
         absl::StrCat("--mounts=", mounts),
-        absl::StrCat("--control_socket_name=", control_socket_path),
-        absl::StrCat("--udf_socket_name=", udf_socket_path),
-        absl::StrCat("--log_dir=", log_dir),
+        "--control_socket_name=/socket_dir/control.sock",
+        "--udf_socket_name=/socket_dir/byob_rpc.sock",
+        "--log_dir=/log_dir",
     };
     config["process"]["rlimits"] = {};
     // If a memory limit has been configured, apply it.
@@ -146,13 +138,13 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     config["mounts"] = {
         {
             {"source", socket_dir},
-            {"destination", socket_dir},
+            {"destination", "/socket_dir"},
             {"type", "bind"},
             {"options", {"rbind", "rprivate"}},
         },
         {
             {"source", log_dir},
-            {"destination", log_dir},
+            {"destination", "/log_dir"},
             {"type", "bind"},
             {"options", {"rbind", "rprivate"}},
         },
