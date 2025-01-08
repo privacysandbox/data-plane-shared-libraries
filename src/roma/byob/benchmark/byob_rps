@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o pipefail
+
 declare -r -i DEFAULT_NUM_QUERIES=100
 declare -i NUM_QUERIES=${DEFAULT_NUM_QUERIES}
 
@@ -14,10 +16,20 @@ declare SANDBOX=off
 declare -r -i DEFAULT_CPUS=100
 declare -i CPUS=${DEFAULT_CPUS}
 declare -r DEFAULT_MEMORY=100G
-declare MEMORY=${DEFAULT_MEMORY}
+declare MEMORY="${DEFAULT_MEMORY}"
 
 declare -r DEFAULT_QPS="10:5:100"
 declare QPS="${DEFAULT_QPS}"
+
+declare -r DEFAULT_MODE="byob"
+declare MODE="${DEFAULT_MODE}"
+declare -r DEFAULT_UDF_PATH="src/roma/tools/v8_cli/test_udfs/simple_udf.js"
+declare UDF_PATH="${DEFAULT_UDF_PATH}"
+declare -r DEFAULT_HANDLER_NAME="Handler"
+declare HANDLER_NAME="${DEFAULT_HANDLER_NAME}"
+
+declare -r DEFAULT_INPUT_ARGS=""
+declare INPUT_ARGS="${DEFAULT_INPUT_ARGS}"
 
 function usage() {
   local exitval=${1-1}
@@ -29,6 +41,12 @@ usage:
     --burst-size <range>         number of RPCs within a burst. Default: ${DEFAULT_BURST_SIZE}.
     --num-workers <range>      number of workers to execute, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_NUM_WORKERS}.
     --num-qps <range>          queries per second, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_QPS}.
+    --mode <string>           traffic generator mode: 'byob' or 'v8'. Default: byob
+
+  V8 Mode settings:
+    --udf-path <string>      path to JavaScript UDF file. Default: ${DEFAULT_UDF_PATH}
+    --handler-name <string>  name of the handler function to call. Default: ${DEFAULT_HANDLER_NAME}
+    --input-args <string>    comma-separated arguments to pass to the handler function. Default: ${DEFAULT_INPUT_ARGS}
 
   Container settings:
     --cpus <int>               CPU count allocated to the container. Default: ${DEFAULT_CPUS}.
@@ -52,9 +70,14 @@ while [[ $# -gt 0 ]]; do
     --burst-size) BURST_SIZE="$2"; shift 2 || usage 1 ;;
     --num-workers) NUM_WORKERS="$2"; shift 2 || usage 1 ;;
     --num-qps) QPS="$2"; shift 2 || usage 1 ;;
+    --mode) MODE="$2"; shift 2 || usage 1 ;;
 
     --cpus) CPUS=$2; shift 2 || usage 1 ;;
     --memory) MEMORY="$2"; shift 2 || usage 1 ;;
+
+    --udf-path) UDF_PATH="$2"; shift 2 || usage 1 ;;
+    --handler-name) HANDLER_NAME="$2"; shift 2 || usage 1 ;;
+    --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
     -h | --help) usage 0 ;;
     *)
       printf "unrecognized arg: %s\n" "$1"
@@ -65,6 +88,7 @@ done
 
 
 IMAGE=privacy-sandbox/roma-byob/traffic_generator:v1-root
+TRAFFIC_GENERATOR_PATH="src/roma/byob/benchmark:traffic_generator"
 
 declare -i FAILURE_COUNT=0
 declare -r -i MAX_FAILURES=1
@@ -80,16 +104,44 @@ function run_test() {
   declare -r -i qps=$1; shift
   declare -r -i num_workers=$1; shift
   printf "running qps: %d\n" ${qps}
+
+  declare -a CMD_ARGS=(
+    "--burst_size=${burst_size}"
+    "--num_queries=${NUM_QUERIES}"
+    "--num_workers=${num_workers}"
+    "--queries_per_second=${qps}"
+    "--mode=${MODE}"
+  )
+
+  if [[ ${MODE} == v8 ]]; then
+    if [[ -n ${UDF_PATH} ]]; then
+      CMD_ARGS+=("--udf_path=${UDF_PATH}")
+    fi
+    if [[ -n ${HANDLER_NAME} ]]; then
+      CMD_ARGS+=("--handler_name=${HANDLER_NAME}")
+    fi
+    if [[ -n ${INPUT_ARGS} ]]; then
+      CMD_ARGS+=("--input_args=${INPUT_ARGS}")
+    fi
+  else
+    CMD_ARGS+=("--sandbox=${SANDBOX}")
+  fi
+
   set -o xtrace
-  if ! docker run \
-    "${DOCKER_ARGS[@]}" \
-    "${IMAGE}" \
-    --burst_size="${burst_size}" \
-    --num_queries="${NUM_QUERIES}" \
-    --sandbox="${SANDBOX}" \
-    --num_workers="${num_workers}" \
-    --queries_per_second="${qps}"; then
-    FAILURE_COUNT=$((FAILURE_COUNT+1))
+  if [[ "${MODE}" == "v8" ]]; then
+    if ! builders/tools/bazel-debian run \
+      "${TRAFFIC_GENERATOR_PATH}" \
+      -- \
+      "${CMD_ARGS[@]}" 2>&1 | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc"; then
+      FAILURE_COUNT=$((FAILURE_COUNT+1))
+    fi
+  else
+    if ! docker run \
+      "${DOCKER_ARGS[@]}" \
+      "${IMAGE}" \
+      "${CMD_ARGS[@]}"; then
+      FAILURE_COUNT=$((FAILURE_COUNT+1))
+    fi
   fi
 }
 
