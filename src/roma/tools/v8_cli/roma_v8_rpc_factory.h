@@ -32,6 +32,19 @@ namespace google::scp::roma::tools::v8_cli {
 
 using RomaV8Service = google::scp::roma::sandbox::roma_service::RomaService<>;
 
+std::unique_ptr<FunctionBindingObjectV2<>> CreateFunctionBindingObjectV2(
+    std::string_view function_name,
+    std::function<void(FunctionBindingPayload<>&)> function) {
+  return std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+      .function_name = std::string(function_name),
+      .function = function,
+  });
+}
+
+void StringOutFunction(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string("Function from C++");
+}
+
 std::string GetUDF(std::string_view udf_file_path) {
   LOG(INFO) << "Loading UDF from file \"" << udf_file_path << "\"...";
   std::ifstream input_str(udf_file_path.data());
@@ -60,6 +73,8 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                        const RomaV8Service::TMetadata& metadata,
                        std::string_view msg) { LOG(LEVEL(severity)) << msg; };
   config.SetLoggingFunction(std::move(logging_fn));
+  config.RegisterFunctionBinding(
+      CreateFunctionBindingObjectV2("callback", StringOutFunction));
 
   LOG(INFO) << "Initializing RomaService with " << num_workers << " workers...";
   auto roma_service = std::make_unique<RomaV8Service>(std::move(config));
