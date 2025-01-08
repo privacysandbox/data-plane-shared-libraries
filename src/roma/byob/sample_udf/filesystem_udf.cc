@@ -54,11 +54,11 @@ bool FileExists(const std::filesystem::path& file_path) {
 // it. If the file exists or if the file was able to be written fails. Else,
 // succeeds.
 absl::Status ParseFileSystemAndVerifyNoWrite(std::filesystem::path dir) {
-  for (const auto& entry : std::filesystem::directory_iterator(dir)) {
-    if (!entry.is_directory()) {
-      continue;
+  auto verify_no_write = [](const std::filesystem::path& path) {
+    if (!std::filesystem::is_directory(path)) {
+      return absl::OkStatus();
     }
-    auto new_file_path = entry.path() / kNewFileName;
+    auto new_file_path = path / kNewFileName;
     if (std::filesystem::exists(new_file_path)) {
       return absl::AlreadyExistsError(absl::StrCat(
           "Failure. File ", new_file_path.c_str(), " already exists."));
@@ -70,9 +70,14 @@ absl::Status ParseFileSystemAndVerifyNoWrite(std::filesystem::path dir) {
           absl::StrCat("Failure. Able to write ", new_file_path.c_str(),
                        ". Expected read-only filesystem."));
     }
+    return absl::OkStatus();
+  };
+  if (auto status = verify_no_write(dir); !status.ok()) {
+    return status;
+  }
+  for (const auto& entry : std::filesystem::recursive_directory_iterator(dir)) {
     // Recursively traverse subdirectories
-    if (auto status = ParseFileSystemAndVerifyNoWrite(entry.path());
-        !status.ok()) {
+    if (auto status = verify_no_write(entry.path()); !status.ok()) {
       return status;
     }
   }

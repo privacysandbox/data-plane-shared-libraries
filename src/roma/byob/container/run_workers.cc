@@ -171,7 +171,10 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
   }
   return ::privacy_sandbox::server_common::byob::SetupPivotRoot(
-      worker_impl_arg.pivot_root_dir, worker_impl_arg.sources_and_targets);
+      worker_impl_arg.pivot_root_dir, worker_impl_arg.sources_and_targets,
+      /*cleanup_pivot_root_dir=*/true,
+      /*sources_and_targets_read_and_write=*/{},
+      /*remount_root_as_read_only=*/true);
 }
 
 constexpr uint32_t MaxIntDecimalLength() {
@@ -265,7 +268,10 @@ int ReloaderImpl(void* arg) {
         *pivot_root_dir, sources_and_targets_read_only,
         /*cleanup_pivot_root_dir=*/true,
         /*sources_and_targets_read_and_write=*/
-        {{reloader_impl_arg.log_dir_name, reloader_impl_arg.log_dir_name}}));
+        {{reloader_impl_arg.log_dir_name, reloader_impl_arg.log_dir_name}},
+        // Cannot remount root as read-only since creation of per-worker
+        // pivot_root needs write permissions.
+        /*remount_root_as_read_only=*/false));
   }
 
   // Reloader mounts /x -> /x and /y/z -> /z.

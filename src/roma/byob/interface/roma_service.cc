@@ -55,7 +55,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
             {"/dev", "/dev"}};
     CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
         root_dir, /*sources_and_targets_read_only=*/{},
-        /*cleanup_pivot_root_dir=*/false, sources_and_targets));
+        /*cleanup_pivot_root_dir=*/false, sources_and_targets,
+        /*remount_root_as_read_only=*/false));
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
     const char* argv[] = {
         "/server/bin/run_workers",

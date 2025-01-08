@@ -39,5 +39,6 @@ absl::Status SetupPivotRoot(
         sources_and_targets_read_only,
     bool cleanup_pivot_root_dir = true,
     absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-        sources_and_targets_read_and_write = {});
+        sources_and_targets_read_and_write = {},
+    bool remount_root_as_read_only = true);
 }  // namespace privacy_sandbox::server_common::byob
