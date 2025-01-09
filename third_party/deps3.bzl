@@ -42,7 +42,7 @@ def _npm_deps():
         name = "npm",
         npmrc = Label("//:.npmrc"),
         pnpm_lock = Label("//:pnpm-lock.yaml"),
-        verify_node_modules_ignored = "//:.bazelignore",
+        verify_node_modules_ignored = Label("//:.bazelignore"),
     )
 
 def deps3():
