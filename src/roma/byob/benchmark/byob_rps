@@ -34,6 +34,12 @@ declare INPUT_ARGS="${DEFAULT_INPUT_ARGS}"
 declare -r DEFAULT_OUTPUT_FILE=""
 declare OUTPUT_FILE="${DEFAULT_OUTPUT_FILE}"
 
+declare -r -i DEFAULT_RUNS=1
+declare -i RUNS=${DEFAULT_RUNS}
+
+declare -r -i DEFAULT_TOTAL_INVOCATIONS=0
+declare -i TOTAL_INVOCATIONS=${DEFAULT_TOTAL_INVOCATIONS}
+
 function usage() {
   local exitval=${1-1}
   cat &>/dev/stderr << USAGE
@@ -44,6 +50,8 @@ usage:
     --burst-size <range>         number of RPCs within a burst. Default: ${DEFAULT_BURST_SIZE}.
     --num-workers <range>      number of workers to execute, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_NUM_WORKERS}.
     --num-qps <range>          queries per second, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_QPS}.
+    --runs <int>             number of times to run each configuration. Default: ${DEFAULT_RUNS}.
+    --total-invocations <int> total number of invocations to execute. Default: ${DEFAULT_TOTAL_INVOCATIONS}.
     --mode <string>           traffic generator mode: 'byob' or 'v8'. Default: byob
     --output-file <string>    path to output JSON. Default: print to stdout.
 
@@ -74,6 +82,8 @@ while [[ $# -gt 0 ]]; do
     --burst-size) BURST_SIZE="$2"; shift 2 || usage 1 ;;
     --num-workers) NUM_WORKERS="$2"; shift 2 || usage 1 ;;
     --num-qps) QPS="$2"; shift 2 || usage 1 ;;
+    --runs) RUNS=$2; shift 2 || usage 1 ;;
+    --total-invocations) TOTAL_INVOCATIONS=$2; shift 2 || usage 1 ;;
     --mode) MODE="$2"; shift 2 || usage 1 ;;
 
     --cpus) CPUS=$2; shift 2 || usage 1 ;;
@@ -108,7 +118,8 @@ function run_test() {
   declare -r -i burst_size=$1; shift
   declare -r -i qps=$1; shift
   declare -r -i num_workers=$1; shift
-  printf "running qps: %d\n" ${qps}
+  declare -r run_id=$1; shift
+  printf "running qps: %d with run_id: %s\n" ${qps} "${run_id}"
 
   declare -a CMD_ARGS=(
     "--burst_size=${burst_size}"
@@ -117,6 +128,8 @@ function run_test() {
     "--queries_per_second=${qps}"
     "--mode=${MODE}"
     "--output_file=${OUTPUT_FILE}"
+    "--total_invocations=${TOTAL_INVOCATIONS}"
+    "--run_id=${run_id}"
   )
 
   if [[ ${MODE} == v8 ]]; then
@@ -171,14 +184,18 @@ declare -a NUM_WORKERS_LIST=($(seq ${NUM_WORKERS//:/ }))
 declare -a BURST_SIZE_LIST=($(seq ${BURST_SIZE//:/ }))
 
 declare -i qps num_workers burst_size
+declare BASE_RUN_ID
 for qps in "${QPS_LIST[@]}"; do
   for num_workers in "${NUM_WORKERS_LIST[@]}"; do
     for burst_size in "${BURST_SIZE_LIST[@]}"; do
-      run_test ${burst_size} ${qps} ${num_workers}
-      if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
-        printf "%d failures. Exiting\n" ${FAILURE_COUNT}
-        exit 1
-      fi
+      BASE_RUN_ID="$(mktemp --dry-run XXXX)"
+      for ((run=1; run<=RUNS; run++)); do
+        run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}"
+        if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
+          printf "%d failures. Exiting\n" ${FAILURE_COUNT}
+          exit 1
+        fi
+      done
     done
   done
 done

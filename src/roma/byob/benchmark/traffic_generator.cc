@@ -45,7 +45,9 @@
 #include "src/util/periodic_closure.h"
 #include "src/util/status_macro/status_macros.h"
 
-ABSL_FLAG(std::string, run_id, "",
+ABSL_FLAG(std::string, run_id,
+          google::scp::core::common::ToString(
+              google::scp::core::common::Uuid::GenerateUuid()),
           "Arbitrary identifier included in the report");
 ABSL_FLAG(int, num_workers, 84, "Number of pre-created workers");
 ABSL_FLAG(int, queries_per_second, 42,
@@ -53,6 +55,9 @@ ABSL_FLAG(int, queries_per_second, 42,
 ABSL_FLAG(int, burst_size, 14,
           "Number of times to call ProcessRequest for a single query");
 ABSL_FLAG(int, num_queries, 10'000, "Number of queries to be sent");
+ABSL_FLAG(int, total_invocations, 0,
+          "Number of invocations to be sent. If non-zero, overrides "
+          "num_queries, and num_queries = total_invocations / burst_size.");
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeSandbox,
           "Run BYOB in sandbox mode.");
@@ -83,13 +88,20 @@ int main(int argc, char** argv) {
   absl::SetStderrThreshold(absl::LogSeverity::kInfo);
   const int num_workers = absl::GetFlag(FLAGS_num_workers);
   CHECK_GT(num_workers, 0);
-  const int num_queries = absl::GetFlag(FLAGS_num_queries);
-  CHECK_GT(num_queries, 0);
   const int burst_size = absl::GetFlag(FLAGS_burst_size);
   CHECK_GT(burst_size, 0);
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
   const std::string output_file = absl::GetFlag(FLAGS_output_file);
+
+  int num_queries = absl::GetFlag(FLAGS_num_queries);
+  const int total_invocations = absl::GetFlag(FLAGS_total_invocations);
+  CHECK_GE(total_invocations, 0);
+  if (total_invocations > 0) {
+    num_queries = total_invocations / burst_size;
+  } else {
+    CHECK_GT(num_queries, 0);
+  }
 
   const std::string lib_mounts = absl::GetFlag(FLAGS_lib_mounts);
   const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
