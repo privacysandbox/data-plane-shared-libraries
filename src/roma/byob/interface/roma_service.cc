@@ -52,6 +52,9 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
              root_dir / std::filesystem::path(log_dir).relative_path()},
             {socket_dir,
              root_dir / std::filesystem::path(socket_dir).relative_path()},
+            // Needs to be mounted for Cancel to work (kill by cmdline)
+            {"/proc",
+             root_dir / std::filesystem::path("/proc").relative_path()},
             {"/dev", root_dir / std::filesystem::path("/dev").relative_path()}};
     CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
         root_dir, /*sources_and_targets_read_only=*/{},

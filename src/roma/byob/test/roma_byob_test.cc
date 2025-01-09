@@ -283,8 +283,35 @@ TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
       ::testing::StrEq(kFirstUdfOutput));
 }
 
-TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
+TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinaryInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
+
+  // Data we are sending to the server.
+  SampleRequest bin_request;
+  bin_request.set_function(FUNCTION_HELLO_WORLD);
+  absl::Notification notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  auto callback = [&notif, &bin_response](absl::StatusOr<SampleResponse> resp) {
+    bin_response = std::move(resp);
+    notif.Notify();
+  };
+
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
+                               /*metadata=*/{}, code_token));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+  EXPECT_THAT(bin_response->greeting(), kFirstUdfOutput);
+}
+
+TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinaryInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
@@ -317,7 +344,21 @@ TEST(RomaByobTest, ProcessRequestGoLangBinaryInSandboxMode) {
               ::testing::StrEq(kGoBinaryOutput));
 }
 
-TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
+TEST(RomaByobTest, ProcessRequestGoLangBinaryInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService({.lib_mounts = ""}, mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq(kGoBinaryOutput));
+}
+
+TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefaultInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
 
   std::string code_token =
@@ -330,7 +371,24 @@ TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
   EXPECT_EQ(response_and_log_status.second.code(), absl::StatusCode::kNotFound);
 }
 
-TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
+TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefaultInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  auto response_and_log_status =
+      GetResponseAndLogStatus(roma_service, code_token);
+  EXPECT_THAT(response_and_log_status.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_EQ(response_and_log_status.second.code(), absl::StatusCode::kNotFound);
+}
+
+TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinaryInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
@@ -349,7 +407,34 @@ TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
       ::testing::StrEq(kNewUdfOutput));
 }
 
-TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
+TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinaryInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  const std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
+  absl::Notification notif;
+
+  CHECK_OK(roma_service.Sample(
+      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
+      SampleRequest{},
+      /*metadata=*/{}, code_token));
+  EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+
+  roma_service.Delete(code_token);
+  notif.WaitForNotification();
+  const std::string second_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
+
+  EXPECT_THAT(
+      SendRequestAndGetResponse(roma_service, second_code_token).greeting(),
+      ::testing::StrEq(kNewUdfOutput));
+}
+
+TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinaryInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
   const std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
@@ -361,16 +446,36 @@ TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
   CHECK_OK(execution_token);
   EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
   roma_service.Cancel(*execution_token);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
 }
 
-TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
+TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinaryInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  const std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
+  absl::Notification notif;
+  const auto execution_token = roma_service.Sample(
+      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
+      SampleRequest{},
+      /*metadata=*/{}, code_token);
+  CHECK_OK(execution_token);
+
+  EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+  roma_service.Cancel(*execution_token);
+  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
+}
+
+TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoiceInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
                /*enable_log_egress=*/true);
-  ::sleep(1);
 
   auto response_and_logs = GetResponseAndLogs(roma_service, code_token);
   EXPECT_THAT(response_and_logs.first.greeting(),
@@ -379,7 +484,25 @@ TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
               ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
-TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
+TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoiceInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
+               /*enable_log_egress=*/true);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
+}
+
+TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorksInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
@@ -394,7 +517,26 @@ TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
               ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
-TEST(RomaByobTest, VerifyRegisterWithAndWithoutLog) {
+TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorksInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+  std::string no_log_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  std::string log_code_token =
+      LoadCodeFromCodeToken(roma_service, no_log_code_token);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
+}
+
+TEST(RomaByobTest, VerifyRegisterWithAndWithoutLogInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
@@ -431,7 +573,48 @@ TEST(RomaByobTest, VerifyRegisterWithAndWithoutLog) {
   EXPECT_EQ(log_status.code(), absl::StatusCode::kNotFound);
 }
 
-TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
+TEST(RomaByobTest, VerifyRegisterWithAndWithoutLogInNonSandbox) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+  std::string no_log_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  std::string log_code_token =
+      LoadCodeFromCodeToken(roma_service, no_log_code_token);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
+
+  absl::Notification exec_notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  absl::Status log_status;
+  auto callback = [&exec_notif, &bin_response, &log_status](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> logs) {
+    bin_response = std::move(resp);
+    CHECK(!logs.ok());
+    // Making a copy -- try not to IRL.
+    log_status = logs.status();
+    exec_notif.Notify();
+  };
+
+  SampleRequest bin_request;
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
+                               /*metadata=*/{}, no_log_code_token));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+
+  EXPECT_THAT(bin_response->greeting(), ::testing::StrEq(kLogUdfOutput));
+  EXPECT_EQ(log_status.code(), absl::StatusCode::kNotFound);
+}
+
+TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginalInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
@@ -473,8 +656,69 @@ TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
               ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
-TEST(RomaByobTest, VerifyNoCapabilities) {
+TEST(RomaByobTest,
+     VerifyHardLinkExecuteWorksAfterDeleteOriginalInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+  std::string no_log_code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
+
+  absl::Notification exec_notif;
+  absl::StatusOr<SampleResponse> bin_response;
+  absl::Status log_status;
+  auto callback = [&exec_notif, &bin_response, &log_status](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> logs) {
+    bin_response = std::move(resp);
+    CHECK(!logs.ok());
+    // Making a copy -- try not to IRL.
+    log_status = logs.status();
+    exec_notif.Notify();
+  };
+
+  SampleRequest bin_request;
+  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
+                               /*metadata=*/{}, no_log_code_token));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(bin_response);
+
+  std::string log_code_token =
+      LoadCodeFromCodeToken(roma_service, no_log_code_token);
+  absl::SleepFor(absl::Milliseconds(25));
+
+  roma_service.Delete(no_log_code_token);
+
+  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
+  response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq(kLogUdfOutput));
+  EXPECT_THAT(response_and_logs.second,
+              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
+}
+
+TEST(RomaByobTest, VerifyNoCapabilitiesInSandboxMode) {
   ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusCapBinaryFilename);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Empty capabilities' set as expected."));
+}
+
+TEST(RomaByobTest, VerifyNoCapabilitiesInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusCapBinaryFilename);
