@@ -36,14 +36,16 @@ absl::Status Mount(const char* source, const char* target,
 bool HasClonePermissionsByobWorker(
     ::privacy_sandbox::server_common::byob::Mode mode);
 
-absl::Status SetupPivotRoot(
-    const std::filesystem::path& pivot_root_dir,
-    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-        sources_and_targets_read_only,
-    bool cleanup_pivot_root_dir = true,
-    absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-        sources_and_targets_read_and_write = {},
-    bool remount_root_as_read_only = true);
+struct SetupPivotRootMount {
+  std::filesystem::path source;
+  // `relative_target` is the target path relative to the `pivot_root_dir`.
+  std::filesystem::path relative_target;
+  bool read_only;
+};
+absl::Status SetupPivotRoot(const std::filesystem::path& pivot_root_dir,
+                            absl::Span<const SetupPivotRootMount> mounts,
+                            bool cleanup_pivot_root_dir,
+                            bool remount_root_as_read_only);
 }  // namespace privacy_sandbox::server_common::byob
 
 #endif  // SRC_ROMA_BYOB_UTILITY_UTILS_H_

@@ -97,6 +97,7 @@ using ::privacy_sandbox::server_common::byob::DeleteBinaryResponse;
 using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
+using ::privacy_sandbox::server_common::byob::SetupPivotRootMount;
 using ::privacy_sandbox::server_common::byob::SyscallFiltering;
 using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 
@@ -324,15 +325,13 @@ absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
 // flags ensure that the calling process does not modify/delete the content
 // before the worker calls exec.
 struct WorkerImplArg {
-  absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets_read_and_write;
   std::string_view execution_token;
   std::string_view socket_name;
   std::string_view code_token;
   const std::filesystem::path& binary_path;
   int dev_null_fd;
   bool enable_log_egress;
-  std::string_view log_dir_name;
+  const std::filesystem::path& log_dir_name;
   std::string_view socket_dir_name;
   const scmp_filter_ctx* scmp_filter;
 };
@@ -368,7 +367,7 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
   int log_fd = -1;
   if (worker_impl_arg.enable_log_egress) {
     const std::filesystem::path log_file_name =
-        std::filesystem::path(worker_impl_arg.log_dir_name) /
+        worker_impl_arg.log_dir_name /
         absl::StrCat(worker_impl_arg.execution_token, ".log");
     log_fd = ::open(log_file_name.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
     if (log_fd < 0) {
@@ -387,12 +386,12 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
         errno,
         absl::StrCat("Failed to umount ", worker_impl_arg.socket_dir_name));
   }
-  // Read/Write mounted directories must not be exposed to the udf.
-  for (const auto& [_, target] :
-       worker_impl_arg.sources_and_targets_read_and_write) {
-    if (::umount2(target.c_str(), MNT_DETACH) == -1) {
+  // Unmount the log_dir.
+  if (worker_impl_arg.enable_log_egress) {
+    if (::umount2(worker_impl_arg.log_dir_name.c_str(), MNT_DETACH) == -1) {
       return absl::ErrnoToStatus(
-          errno, absl::StrCat("umount2(", target.native(), ")"));
+          errno,
+          absl::StrCat("umount2(", worker_impl_arg.log_dir_name.native(), ")"));
     }
   }
   // Root directory and any umounted targets must be read-only.
@@ -466,23 +465,8 @@ struct ReloaderImplArg {
   bool enable_log_egress;
   SyscallFiltering syscall_filtering;
   bool disable_ipc_namespace;
-  std::string log_dir_name;
+  std::filesystem::path log_dir_name;
 };
-
-std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-GetSourcesAndTargets(absl::Span<const std::string> mounts) {
-  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets;
-  sources_and_targets.reserve(mounts.size());
-  for (const std::filesystem::path mount : mounts) {
-    // Mount /x -> /x and /y/z -> /z.
-    sources_and_targets.push_back(
-        {mount,
-         "/" /
-             (mount.has_filename() ? mount : mount.parent_path()).filename()});
-  }
-  return sources_and_targets;
-}
 
 int ReloaderImpl(void* arg) {
   // Group workers with reloaders so they can be killed together.
@@ -501,26 +485,36 @@ int ReloaderImpl(void* arg) {
   }
   const std::filesystem::path socket_dir =
       std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
-  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets_read_and_write;
-  if (reloader_impl_arg.enable_log_egress) {
-    sources_and_targets_read_and_write.emplace_back(
-        reloader_impl_arg.log_dir_name, reloader_impl_arg.log_dir_name);
-  }
   {
-    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-        sources_and_targets_read_only =
-            GetSourcesAndTargets(reloader_impl_arg.mounts);
-    sources_and_targets_read_only.push_back({socket_dir, socket_dir});
+    std::vector<SetupPivotRootMount> mounts;
+    for (const std::filesystem::path mount : reloader_impl_arg.mounts) {
+      mounts.push_back({
+          .source = mount,
+          // Reloader mounts /x -> /x and /y/z -> /z.
+          .relative_target =
+              (mount.has_filename() ? mount : mount.parent_path()).filename(),
+          .read_only = true,
+      });
+    }
+    mounts.push_back({
+        .source = socket_dir,
+        .relative_target = socket_dir.relative_path(),
+        .read_only = true,
+    });
+    if (reloader_impl_arg.enable_log_egress) {
+      mounts.push_back({
+          .source = reloader_impl_arg.log_dir_name,
+          .relative_target = reloader_impl_arg.log_dir_name.relative_path(),
+          .read_only = false,
+      });
+    }
 
     // SetupPivotRoot reduces the base filesystem image size. This pivot root
     // includes the socket_dir, which must not be shared with the pivot_root
     // created by the worker.
     CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
-        reloader_impl_arg.pivot_root_dir, sources_and_targets_read_only,
+        reloader_impl_arg.pivot_root_dir, mounts,
         /*cleanup_pivot_root_dir=*/true,
-        /*sources_and_targets_read_and_write=*/
-        {{reloader_impl_arg.log_dir_name, reloader_impl_arg.log_dir_name}},
         // Cannot remount root as read-only since creation of per-worker
         // pivot_root needs write permissions.
         /*remount_root_as_read_only=*/false));
@@ -554,8 +548,6 @@ int ReloaderImpl(void* arg) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
     WorkerImplArg worker_impl_arg{
-        .sources_and_targets_read_and_write =
-            sources_and_targets_read_and_write,
         .execution_token = execution_token,
         .socket_name = reloader_impl_arg.socket_name,
         .code_token = reloader_impl_arg.code_token,

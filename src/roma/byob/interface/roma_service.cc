@@ -41,20 +41,40 @@ int LocalImpl(void* arg) {
   PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
   const std::string root_dir =
       std::filesystem::path(CONTAINER_PATH) / CONTAINER_ROOT_RELPATH;
-  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets = {
-          {options.log_dir, "/log_dir"},
-          {options.socket_dir, "/socket_dir"},
-          {options.binary_dir, "/binary_dir"},
-          // Needs to be mounted for Cancel to work (kill by cmdline)
-          {"/proc", "/proc"},
-          {"/dev", "/dev"}};
 
   // Remount /proc to ensure it reflects namespace changes.
   PCHECK(::mount("/proc", "/proc", "proc", /*mountflags=*/0, nullptr) == 0);
   CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
-      root_dir, /*sources_and_targets_read_only=*/{},
-      /*cleanup_pivot_root_dir=*/false, sources_and_targets,
+      root_dir, /*mounts=*/
+      {
+          {
+              .source = options.log_dir,
+              .relative_target = "log_dir",
+              .read_only = false,
+          },
+          {
+              .source = options.socket_dir,
+              .relative_target = "socket_dir",
+              .read_only = false,
+          },
+          {
+              .source = options.binary_dir,
+              .relative_target = "binary_dir",
+              .read_only = false,
+          },
+          {
+              // Needs to be mounted for Cancel to work (kill by cmdline)
+              .source = "/proc",
+              .relative_target = "proc",
+              .read_only = false,
+          },
+          {
+              .source = "/dev",
+              .relative_target = "dev",
+              .read_only = false,
+          },
+      },
+      /*cleanup_pivot_root_dir=*/false,
       /*remount_root_as_read_only=*/false));
   const std::string mounts_flag = absl::StrCat("--mounts=", options.mounts);
   const std::string syscall_filtering_flag = absl::StrCat(
@@ -109,18 +129,37 @@ int NsjailImpl(void* arg) {
   PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
   const std::string root_dir =
       std::filesystem::path(CONTAINER_PATH) / CONTAINER_ROOT_RELPATH;
-  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets = {
-          {options.log_dir, "/log_dir"},
-          {options.socket_dir, "/socket_dir"},
-          // Needs to be mounted for Cancel to work (kill by cmdline)
-          {"/proc", "/proc"},
-          {"/dev", "/dev"},
-          {options.binary_dir, "/binary_dir"},
-      };
   CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
-      root_dir, /*sources_and_targets_read_only=*/{},
-      /*cleanup_pivot_root_dir=*/false, sources_and_targets,
+      root_dir, /*mounts=*/
+      {
+          {
+              .source = options.log_dir,
+              .relative_target = "log_dir",
+              .read_only = false,
+          },
+          {
+              .source = options.socket_dir,
+              .relative_target = "socket_dir",
+              .read_only = false,
+          },
+          {
+              .source = options.binary_dir,
+              .relative_target = "binary_dir",
+              .read_only = false,
+          },
+          {
+              // Needs to be mounted for Cancel to work (kill by cmdline)
+              .source = "/proc",
+              .relative_target = "proc",
+              .read_only = false,
+          },
+          {
+              .source = "/dev",
+              .relative_target = "dev",
+              .read_only = false,
+          },
+      },
+      /*cleanup_pivot_root_dir=*/false,
       /*remount_root_as_read_only=*/false));
   const std::string mounts_flag = absl::StrCat("--mounts=", options.mounts);
   const std::string syscall_filtering_flag = absl::StrCat(
