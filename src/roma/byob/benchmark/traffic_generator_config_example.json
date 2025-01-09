@@ -1,0 +1,22 @@
+[
+  {
+    "qps": 1,
+    "burst_size": 1
+  },
+  {
+    "qps": 10,
+    "burst_size": 10
+  },
+  {
+    "qps": 100,
+    "burst_size": 100
+  },
+  {
+    "qps": 1000,
+    "burst_size": 1000
+  },
+  {
+    "qps": 10000,
+    "burst_size": 10000
+  }
+]

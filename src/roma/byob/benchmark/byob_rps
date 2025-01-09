@@ -40,6 +40,9 @@ declare -i RUNS=${DEFAULT_RUNS}
 declare -r -i DEFAULT_TOTAL_INVOCATIONS=0
 declare -i TOTAL_INVOCATIONS=${DEFAULT_TOTAL_INVOCATIONS}
 
+declare -r DEFAULT_CONFIG_FILE=""
+declare CONFIG_FILE="${DEFAULT_CONFIG_FILE}"
+
 function usage() {
   local exitval=${1-1}
   cat &>/dev/stderr << USAGE
@@ -50,6 +53,7 @@ usage:
     --burst-size <range>         number of RPCs within a burst. Default: ${DEFAULT_BURST_SIZE}.
     --num-workers <range>      number of workers to execute, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_NUM_WORKERS}.
     --num-qps <range>          queries per second, as an integer or a range (min:increment:max or min:max). Default: ${DEFAULT_QPS}.
+    --config-file <path>      JSON file containing specific QPS/burst-size configurations. Format: [{"qps": X, "burst_size": Y}, ...]. Default: ${DEFAULT_CONFIG_FILE}.
     --runs <int>             number of times to run each configuration. Default: ${DEFAULT_RUNS}.
     --total-invocations <int> total number of invocations to execute. Default: ${DEFAULT_TOTAL_INVOCATIONS}.
     --mode <string>           traffic generator mode: 'byob' or 'v8'. Default: byob
@@ -93,6 +97,7 @@ while [[ $# -gt 0 ]]; do
     --handler-name) HANDLER_NAME="$2"; shift 2 || usage 1 ;;
     --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
     --output-file) OUTPUT_FILE="$2"; shift 2 || usage 1 ;;
+    --config-file) CONFIG_FILE="$2"; shift 2 || usage 1 ;;
     -h | --help) usage 0 ;;
     *)
       printf "unrecognized arg: %s\n" "$1"
@@ -185,11 +190,19 @@ declare -a BURST_SIZE_LIST=($(seq ${BURST_SIZE//:/ }))
 
 declare -i qps num_workers burst_size
 declare BASE_RUN_ID
-for qps in "${QPS_LIST[@]}"; do
-  for num_workers in "${NUM_WORKERS_LIST[@]}"; do
-    for burst_size in "${BURST_SIZE_LIST[@]}"; do
+if [[ -n "${CONFIG_FILE}" ]]; then
+  echo "Reading configurations from ${CONFIG_FILE}"
+  echo "Content of config file:"
+  cat "${CONFIG_FILE}"
+
+  while IFS= read -r config; do
+    qps=$(echo "${config}" | jq -r '.qps')
+    burst_size=$(echo "${config}" | jq -r '.burst_size')
+
+    for num_workers in "${NUM_WORKERS_LIST[@]}"; do
       BASE_RUN_ID="$(mktemp --dry-run XXXX)"
       for ((run=1; run<=RUNS; run++)); do
+        echo "Running test with qps=${qps}, burst_size=${burst_size}, workers=${num_workers}, run=${run}"  # Debug line
         run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}"
         if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
           printf "%d failures. Exiting\n" ${FAILURE_COUNT}
@@ -197,5 +210,20 @@ for qps in "${QPS_LIST[@]}"; do
         fi
       done
     done
+  done < <(jq -c '.[]' "${CONFIG_FILE}")
+else
+  for qps in "${QPS_LIST[@]}"; do
+    for num_workers in "${NUM_WORKERS_LIST[@]}"; do
+      for burst_size in "${BURST_SIZE_LIST[@]}"; do
+        BASE_RUN_ID="$(mktemp --dry-run XXXX)"
+        for ((run=1; run<=RUNS; run++)); do
+          run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}"
+          if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
+            printf "%d failures. Exiting\n" ${FAILURE_COUNT}
+            exit 1
+          fi
+        done
+      done
+    done
   done
-done
+fi
