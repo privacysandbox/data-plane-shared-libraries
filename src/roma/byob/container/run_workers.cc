@@ -112,7 +112,7 @@ absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
 struct WorkerImplArg {
   const std::filesystem::path& pivot_root_dir;
   absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets;
+      sources_and_targets_read_and_write;
   std::string_view execution_token;
   std::string_view socket_name;
   std::string_view code_token;
@@ -120,6 +120,7 @@ struct WorkerImplArg {
   int dev_null_fd;
   bool enable_log_egress;
   std::string_view log_dir_name;
+  std::string_view socket_dir_name;
 };
 
 absl::Status SetPrctlOptions(
@@ -170,11 +171,27 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDOUT_FILENO));
     PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
   }
-  return ::privacy_sandbox::server_common::byob::SetupPivotRoot(
-      worker_impl_arg.pivot_root_dir, worker_impl_arg.sources_and_targets,
-      /*cleanup_pivot_root_dir=*/true,
-      /*sources_and_targets_read_and_write=*/{},
-      /*remount_root_as_read_only=*/true);
+  // socket_dir is mounted read-only but must not be exposed to the udf.
+  if (::umount2(worker_impl_arg.socket_dir_name.data(), MNT_DETACH) == -1) {
+    return absl::ErrnoToStatus(
+        errno,
+        absl::StrCat("Failed to umount ", worker_impl_arg.socket_dir_name));
+  }
+  // Read/Write mounted directories must not be expsed to the udf.
+  for (const auto& [_, target] :
+       worker_impl_arg.sources_and_targets_read_and_write) {
+    if (::umount2(target.c_str(), MNT_DETACH) == -1) {
+      return absl::ErrnoToStatus(
+          errno, absl::StrCat("umount2(", target.native(), ")"));
+    }
+  }
+  // Root directory and any umounted targets must be read-only.
+  PS_RETURN_IF_ERROR(::privacy_sandbox::server_common::byob::Mount(
+      "/", "/", nullptr, MS_REMOUNT | MS_BIND | MS_RDONLY));
+  if (::unshare(CLONE_NEWUSER) == -1) {
+    return absl::ErrnoToStatus(errno, "unshare(CLONE_NEWUSER)");
+  }
+  return absl::OkStatus();
 }
 
 constexpr uint32_t MaxIntDecimalLength() {
@@ -253,9 +270,15 @@ int ReloaderImpl(void* arg) {
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
       CreatePivotRootDir();
   CHECK_OK(pivot_root_dir);
+  const std::filesystem::path socket_dir =
+      std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
+  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+      sources_and_targets_read_and_write;
+  if (reloader_impl_arg.enable_log_egress) {
+    sources_and_targets_read_and_write.emplace_back(
+        reloader_impl_arg.log_dir_name, reloader_impl_arg.log_dir_name);
+  }
   {
-    const std::filesystem::path socket_dir =
-        std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
     std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
         sources_and_targets_read_only =
             GetSourcesAndTargets(reloader_impl_arg.mounts);
@@ -288,7 +311,8 @@ int ReloaderImpl(void* arg) {
     const std::string execution_token = GenerateUuid();
     WorkerImplArg worker_impl_arg{
         .pivot_root_dir = *pivot_root_dir,
-        .sources_and_targets = sources_and_targets_read_only,
+        .sources_and_targets_read_and_write =
+            sources_and_targets_read_and_write,
         .execution_token = execution_token,
         .socket_name = reloader_impl_arg.socket_name,
         .code_token = reloader_impl_arg.code_token,
@@ -296,7 +320,7 @@ int ReloaderImpl(void* arg) {
         .dev_null_fd = reloader_impl_arg.dev_null_fd,
         .enable_log_egress = reloader_impl_arg.enable_log_egress,
         .log_dir_name = reloader_impl_arg.log_dir_name,
-    };
+        .socket_dir_name = socket_dir.native()};
 
     // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may
     // hang or the process may receive SIGBUS (depending on the size of the
@@ -307,7 +331,7 @@ int ReloaderImpl(void* arg) {
     const int pid =
         ::clone(WorkerImpl, stack + sizeof(stack),
                 CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |
-                    CLONE_NEWUTS | CLONE_NEWNS | CLONE_NEWUSER,
+                    CLONE_NEWUTS | CLONE_NEWNS,
                 &worker_impl_arg);
     if (pid == -1) {
       PLOG(ERROR) << "clone()";
