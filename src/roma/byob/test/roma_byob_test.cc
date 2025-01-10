@@ -53,8 +53,12 @@ const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusCapBinaryFilename = "cap_udf";
 const std::filesystem::path kCPlusPlusSocketFinderBinaryFilename =
     "socket_finder_udf";
-const std::filesystem::path kCPlusPlusFileSystemModificationFilename =
-    "filesystem_udf";
+const std::filesystem::path kCPlusPlusFileSystemAddFilename =
+    "filesystem_add_udf";
+const std::filesystem::path kCPlusPlusFileSystemDeleteFilename =
+    "filesystem_delete_udf";
+const std::filesystem::path kCPlusPlusFileSystemEditFilename =
+    "filesystem_edit_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
 const std::filesystem::path kCPlusPlusPauseBinaryFilename = "pause_udf";
@@ -207,16 +211,46 @@ TEST(RomaByobTest, NoSocketFileInSandboxMode) {
               ::testing::StrEq("Success."));
 }
 
-TEST(RomaByobTest, NoFileSystemChangeEgressionInNonSandboxMode) {
+TEST(RomaByobTest, NoFileSystemCreateEgressionInNonSandboxMode) {
   Mode mode = Mode::kModeNoSandbox;
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(mode);
 
-  std::string code_token = LoadCode(
-      roma_service, kUdfPath / kCPlusPlusFileSystemModificationFilename,
-      /*enable_log_egress=*/true, /*num_workers=*/1);
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemAddFilename,
+               /*enable_log_egress=*/true, /*num_workers=*/1);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Success."));
+}
+
+TEST(RomaByobTest, NoFileSystemDeleteEgressionInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemDeleteFilename,
+               /*enable_log_egress=*/true, /*num_workers=*/1);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Success."));
+}
+
+TEST(RomaByobTest, NoFileSystemEditEgressionInNonSandboxMode) {
+  Mode mode = Mode::kModeNoSandbox;
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemEditFilename,
+               /*enable_log_egress=*/true, /*num_workers=*/1);
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
               ::testing::StrEq("Success."));

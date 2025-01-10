@@ -190,13 +190,33 @@ cc_binary(
 )
 
 cc_binary(
-    name = "filesystem_udf",
-    srcs = ["filesystem_udf.cc"],
+    name = "filesystem_add_udf",
+    srcs = ["filesystem_add_udf.cc"],
     visibility = ["//visibility:public"],
     deps = [
         ":sample_byob_sdk_cc_proto",
-        "//src/roma/byob/dispatcher:interface",
-        "//src/roma/byob/utility:utils",
+        "@com_google_absl//absl/status",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "filesystem_edit_udf",
+    srcs = ["filesystem_edit_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_absl//absl/status",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
+    name = "filesystem_delete_udf",
+    srcs = ["filesystem_delete_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
         "@com_google_absl//absl/status",
         "@com_google_protobuf//:protobuf",
     ],
@@ -364,7 +384,9 @@ filegroup(
         ":abort_early_udf",
         ":abort_late_udf",
         ":cap_udf",
-        ":filesystem_udf",
+        ":filesystem_add_udf",
+        ":filesystem_delete_udf",
+        ":filesystem_edit_udf",
         ":log_benchmark_udf",
         ":log_udf",
         ":new_udf",

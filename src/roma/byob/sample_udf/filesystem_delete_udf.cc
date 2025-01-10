@@ -15,22 +15,20 @@
 #include <fcntl.h>
 
 #include <cstdlib>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
+#include <system_error>
 
 #include "absl/status/status.h"
 #include "google/protobuf/util/delimited_message_util.h"
-#include "src/roma/byob/dispatcher/interface.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
-#include "src/roma/byob/utility/utils.h"
 
 using google::protobuf::io::FileInputStream;
 using google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using google::protobuf::util::SerializeDelimitedToFileDescriptor;
 using privacy_sandbox::roma_byob::example::SampleRequest;
 using privacy_sandbox::roma_byob::example::SampleResponse;
-
-const std::filesystem::path kNewFileName = "new_file_path.txt";
 
 SampleRequest ReadRequestFromFd(int fd) {
   SampleRequest req;
@@ -46,38 +44,26 @@ void WriteResponseToFd(int fd, std::string_view greeting) {
   google::protobuf::util::SerializeDelimitedToFileDescriptor(response, fd);
 }
 
-bool FileExists(const std::filesystem::path& file_path) {
-  return std::filesystem::exists(file_path);
-}
-
-// Parses the file system directory structure and tries to write a new file to
-// it. If the file exists or if the file was able to be written fails. Else,
-// succeeds.
-absl::Status ParseFileSystemAndVerifyNoWrite(std::filesystem::path dir) {
-  auto verify_no_write = [](const std::filesystem::path& path) {
-    if (!std::filesystem::is_directory(path)) {
-      return absl::OkStatus();
-    }
-    auto new_file_path = path / kNewFileName;
-    if (std::filesystem::exists(new_file_path)) {
-      return absl::AlreadyExistsError(absl::StrCat(
-          "Failure. File ", new_file_path.c_str(), " already exists."));
-    }
-    if (int new_file_fd =
-            ::open(new_file_path.c_str(), O_CREAT | O_WRONLY | O_APPEND, 0644);
-        new_file_fd > 0) {
+// Parses the file system directory structure and tries to delete an existing
+// file/directory. If a file/directory can be deleted to, it sends a fail
+// message. Else, it succeeds.
+absl::Status ParseFileSystemAndVerifyNoDelete(std::filesystem::path path) {
+  auto verify_no_delete = [](const std::filesystem::path& path) {
+    if (std::error_code ec; std::filesystem::remove_all(path, ec) !=
+                            static_cast<std::uintmax_t>(-1)) {
       return absl::InternalError(
-          absl::StrCat("Failure. Able to write ", new_file_path.c_str(),
+          absl::StrCat("Failure. Able to delete ", path.c_str(),
                        ". Expected read-only filesystem."));
     }
     return absl::OkStatus();
   };
-  if (auto status = verify_no_write(dir); !status.ok()) {
+  if (auto status = verify_no_delete(path); !status.ok()) {
     return status;
   }
-  for (const auto& entry : std::filesystem::recursive_directory_iterator(dir)) {
+  for (const auto& entry :
+       std::filesystem::recursive_directory_iterator(path)) {
     // Recursively traverse subdirectories
-    if (auto status = verify_no_write(entry.path()); !status.ok()) {
+    if (auto status = verify_no_delete(entry.path()); !status.ok()) {
       return status;
     }
   }
@@ -91,7 +77,7 @@ int main(int argc, char* argv[]) {
   }
   int fd = std::stoi(argv[1]);
   SampleRequest sample_request = ReadRequestFromFd(fd);
-  auto status = ParseFileSystemAndVerifyNoWrite("/");
+  auto status = ParseFileSystemAndVerifyNoDelete("/");
   if (status.ok()) {
     WriteResponseToFd(fd, "Success.");
   } else {
