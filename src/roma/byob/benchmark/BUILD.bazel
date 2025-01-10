@@ -381,6 +381,14 @@ pkg_files(
     for user in DISTROLESS_USERS
 ]
 
+"""
+Sample usage:
+
+builders/tools/bazel-debian run //src/roma/byob/benchmark:copy_to_dist
+docker load -i dist/roma_byob/benchmark_root_image.tar
+docker run -it --privileged privacy-sandbox/roma-byob/microbenchmarks:v1-root
+"""
+
 genrule(
     name = "copy_to_dist",
     srcs = [

@@ -320,6 +320,16 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
     for test_name, entrypoint in TEST_NAME_TO_ENTRYPOINT_MAP
 ]
 
+"""
+Sample usage:
+
+builders/tools/bazel-debian run //src/roma/byob/test:copy_to_dist
+docker load -i dist/roma_byob/sample_test_root_image.tar
+docker run -it --privileged roma_byob_sample_test_image:v1-root
+docker load -i dist/roma_byob/sample_test_nonroot_image.tar
+docker run -it --privileged roma_byob_sample_test_image:v1-nonroot
+"""
+
 genrule(
     name = "copy_to_dist",
     srcs = [
