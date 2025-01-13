@@ -166,8 +166,8 @@ commandTests:
           Flags from src/roma/byob/test/example_shell\.cc:
             --commands_file \(a text file with a list of CLI commands to execute\);
               default: ;
+            --gvisor \(Run BYOB with gVisor\.\); default: on;
             --num_workers \(the number of workers\); default: 1;
-            --sandbox \(run BYOB in sandbox mode\); default: true;
             --udf_log_file \(path with directory to a file in which UDF logs will be\
               stored\); default: ;
 

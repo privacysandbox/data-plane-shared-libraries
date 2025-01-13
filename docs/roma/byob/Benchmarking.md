@@ -25,9 +25,9 @@ Namely,
 -   `dist/roma_byob/benchmark_nonroot_debug_image.tar`
 -   `dist/roma_byob/benchmark_root_debug_image.tar`
 
-Based on the choice of configuration, you can compare the numbers between sandbox and non-sandbox
-mode. In non-sandbox mode, the gVisor sandbox layer is not used. The clone-pivot_root-exec construct
-is utilized in both the sandbox and non-sandbox modes.
+Based on the choice of configuration, you can compare the numbers between gVisor and non-gVisor
+mode. In non-gVisor mode, the gVisor layer is not used. The clone-pivot_root-exec construct is
+utilized in both the gVisor and non-gVisor modes.
 
 The remainder of this doc focuses on non-debug images. Debug images are largely the same image with
 the addition of a shell. See
@@ -122,24 +122,24 @@ nitro-cli run-enclave --cpu-count 2 --memory 1684 --eif-path roma_byob_benchmark
 
 Running the benchmarks on an ARM64 machine with `8 X 50 MHz CPUs` yielded the following results:
 
-| Benchmark                                               | Time    | CPU      | Iterations | Details          |
-| ------------------------------------------------------- | ------- | -------- | ---------- | ---------------- |
-| BM_ProcessRequestPrimeSieve/mode:0/prime_count:100000   | 4.37 ms | 0.067 ms | 1000       | mode:Sandbox     |
-| BM_ProcessRequestPrimeSieve/mode:1/prime_count:100000   | 15.7 ms | 0.071 ms | 1000       | mode:Non-Sandbox |
-| BM_ProcessRequestPrimeSieve/mode:0/prime_count:500000   | 5.20 ms | 0.071 ms | 1000       | mode:Sandbox     |
-| BM_ProcessRequestPrimeSieve/mode:1/prime_count:500000   | 15.6 ms | 0.078 ms | 1000       | mode:Non-Sandbox |
-| BM_ProcessRequestPrimeSieve/mode:0/prime_count:1000000  | 5.69 ms | 0.071 ms | 1000       | mode:Sandbox     |
-| BM_ProcessRequestPrimeSieve/mode:1/prime_count:1000000  | 15.7 ms | 0.084 ms | 1000       | mode:Non-Sandbox |
-| BM_ProcessRequestPrimeSieve/mode:0/prime_count:5000000  | 18.3 ms | 0.085 ms | 1000       | mode:Sandbox     |
-| BM_ProcessRequestPrimeSieve/mode:1/prime_count:5000000  | 17.7 ms | 0.073 ms | 1000       | mode:Non-Sandbox |
-| BM_ProcessRequestPrimeSieve/mode:0/prime_count:10000000 | 37.4 ms | 0.094 ms | 100        | mode:Sandbox     |
-| BM_ProcessRequestPrimeSieve/mode:1/prime_count:10000000 | 36.7 ms | 0.091 ms | 100        | mode:Non-Sandbox |
-| BM_ProcessRequestSortList/mode:0/n_items:10000          | 4.60 ms | 0.065 ms | 1000       | mode:Sandbox     |
-| BM_ProcessRequestSortList/mode:1/n_items:10000          | 15.6 ms | 0.072 ms | 1000       | mode:Non-Sandbox |
-| BM_ProcessRequestSortList/mode:0/n_items:100000         | 7.05 ms | 0.071 ms | 1000       | mode:Sandbox     |
-| BM_ProcessRequestSortList/mode:1/n_items:100000         | 15.7 ms | 0.073 ms | 1000       | mode:Non-Sandbox |
-| BM_ProcessRequestSortList/mode:0/n_items:1000000        | 64.6 ms | 0.094 ms | 100        | mode:Sandbox     |
-| BM_ProcessRequestSortList/mode:1/n_items:1000000        | 64.9 ms | 0.096 ms | 100        | mode:Non-Sandbox |
+| Benchmark                                               | Time    | CPU      | Iterations | Details         |
+| ------------------------------------------------------- | ------- | -------- | ---------- | --------------- |
+| BM_ProcessRequestPrimeSieve/mode:0/prime_count:100000   | 4.37 ms | 0.067 ms | 1000       | mode:gVisor     |
+| BM_ProcessRequestPrimeSieve/mode:1/prime_count:100000   | 15.7 ms | 0.071 ms | 1000       | mode:Non-gVisor |
+| BM_ProcessRequestPrimeSieve/mode:0/prime_count:500000   | 5.20 ms | 0.071 ms | 1000       | mode:gVisor     |
+| BM_ProcessRequestPrimeSieve/mode:1/prime_count:500000   | 15.6 ms | 0.078 ms | 1000       | mode:Non-gVisor |
+| BM_ProcessRequestPrimeSieve/mode:0/prime_count:1000000  | 5.69 ms | 0.071 ms | 1000       | mode:gVisor     |
+| BM_ProcessRequestPrimeSieve/mode:1/prime_count:1000000  | 15.7 ms | 0.084 ms | 1000       | mode:Non-gVisor |
+| BM_ProcessRequestPrimeSieve/mode:0/prime_count:5000000  | 18.3 ms | 0.085 ms | 1000       | mode:gVisor     |
+| BM_ProcessRequestPrimeSieve/mode:1/prime_count:5000000  | 17.7 ms | 0.073 ms | 1000       | mode:Non-gVisor |
+| BM_ProcessRequestPrimeSieve/mode:0/prime_count:10000000 | 37.4 ms | 0.094 ms | 100        | mode:gVisor     |
+| BM_ProcessRequestPrimeSieve/mode:1/prime_count:10000000 | 36.7 ms | 0.091 ms | 100        | mode:Non-gVisor |
+| BM_ProcessRequestSortList/mode:0/n_items:10000          | 4.60 ms | 0.065 ms | 1000       | mode:gVisor     |
+| BM_ProcessRequestSortList/mode:1/n_items:10000          | 15.6 ms | 0.072 ms | 1000       | mode:Non-gVisor |
+| BM_ProcessRequestSortList/mode:0/n_items:100000         | 7.05 ms | 0.071 ms | 1000       | mode:gVisor     |
+| BM_ProcessRequestSortList/mode:1/n_items:100000         | 15.7 ms | 0.073 ms | 1000       | mode:Non-gVisor |
+| BM_ProcessRequestSortList/mode:0/n_items:1000000        | 64.6 ms | 0.094 ms | 100        | mode:gVisor     |
+| BM_ProcessRequestSortList/mode:1/n_items:1000000        | 64.9 ms | 0.096 ms | 100        | mode:Non-gVisor |
 
 These results include only some of the benchmarks run. For all benchmarks, consider running them
 yourself. Refer also to the source code for the benchmarks in

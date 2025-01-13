@@ -60,7 +60,8 @@ using ::privacy_sandbox::server_common::byob::Mode;
 bool HasClonePermissionsByobWorker(Mode mode) {
   // For sandbox mode, since runsc container tries to clone workers, it doesn't
   // matter if the calling process had CAP_SYS_ADMIN.
-  if (mode == Mode::kModeSandbox || mode == Mode::kModeSandboxDebug) {
+  if (mode == Mode::kSandboxModeWithGvisor ||
+      mode == Mode::kSandboxModeWithGvisorDebug) {
     return true;
   }
   cap_t capabilities = cap_get_proc();

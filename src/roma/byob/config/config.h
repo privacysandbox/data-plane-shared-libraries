@@ -36,23 +36,23 @@ inline constexpr std::string_view kLdLibraryPath =
     "LD_LIBRARY_PATH=" LIB_MOUNTS;
 
 enum class Mode {
-  kModeSandbox,
-  kModeNoSandbox,
-  kModeSandboxDebug,
+  kSandboxModeWithGvisor,
+  kSandboxModeWithoutGvisor,
+  kSandboxModeWithGvisorDebug,
 };
 
 inline bool AbslParseFlag(absl::string_view text, Mode* mode,
                           std::string* error) {
   if (text == "on") {
-    *mode = Mode::kModeSandbox;
+    *mode = Mode::kSandboxModeWithGvisor;
     return true;
   }
   if (text == "debug") {
-    *mode = Mode::kModeSandboxDebug;
+    *mode = Mode::kSandboxModeWithGvisorDebug;
     return true;
   }
   if (text == "off") {
-    *mode = Mode::kModeNoSandbox;
+    *mode = Mode::kSandboxModeWithoutGvisor;
     return true;
   }
   *error = "Supported values: on, off, debug.";
@@ -61,11 +61,11 @@ inline bool AbslParseFlag(absl::string_view text, Mode* mode,
 
 inline std::string AbslUnparseFlag(Mode mode) {
   switch (mode) {
-    case Mode::kModeSandbox:
+    case Mode::kSandboxModeWithGvisor:
       return "on";
-    case Mode::kModeSandboxDebug:
+    case Mode::kSandboxModeWithGvisorDebug:
       return "debug";
-    case Mode::kModeNoSandbox:
+    case Mode::kSandboxModeWithoutGvisor:
       return "off";
     default:
       return absl::StrCat(mode);

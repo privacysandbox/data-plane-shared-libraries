@@ -62,7 +62,7 @@ class {{$svcName}} final {
   using Mode = privacy_sandbox::server_common::byob::Mode;
 
   static absl::StatusOr<{{$svcName}}<TMetadata>> Create(Config config,
-                                                        Mode mode = Mode::kModeSandbox) {
+                                                        Mode mode = Mode::kSandboxModeWithGvisor) {
     auto roma_service = std::make_unique<AppService>();
     PS_RETURN_IF_ERROR(roma_service->Init(std::move(config), mode));
     return {{$svcName}}<TMetadata>(std::move(roma_service));

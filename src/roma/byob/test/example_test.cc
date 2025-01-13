@@ -65,8 +65,8 @@ ByobEchoService<> GetRomaService(Mode mode) {
   return GetRomaService(/*config=*/{}, std::move(mode));
 }
 
-TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
+TEST(RomaByobExampleTest, LoadCppBinaryInGvisorMode) {
+  ByobEchoService<> roma_service = GetRomaService(Mode::kSandboxModeWithGvisor);
 
   absl::Notification notif;
   absl::Status notif_status;
@@ -79,8 +79,8 @@ TEST(RomaByobExampleTest, LoadCppBinaryInSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
-  Mode mode = Mode::kModeNoSandbox;
+TEST(RomaByobExampleTest, LoadCppBinaryInNonGvisorMode) {
+  Mode mode = Mode::kSandboxModeWithoutGvisor;
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -97,8 +97,8 @@ TEST(RomaByobExampleTest, LoadCppBinaryInNonSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobExampleTest, LoadGoBinaryInSandboxMode) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
+TEST(RomaByobExampleTest, LoadGoBinaryInGvisorMode) {
+  ByobEchoService<> roma_service = GetRomaService(Mode::kSandboxModeWithGvisor);
   absl::Notification notif;
   absl::Status notif_status;
 
@@ -110,8 +110,8 @@ TEST(RomaByobExampleTest, LoadGoBinaryInSandboxMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
-  Mode mode = Mode::kModeNoSandbox;
+TEST(RomaByobExampleTest, LoadGoBinaryInNonGvisorMode) {
+  Mode mode = Mode::kSandboxModeWithoutGvisor;
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -128,7 +128,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInNonSandboxMode) {
 }
 
 TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kSandboxModeWithGvisor);
   const std::string message = "I am a test Cpp message.";
   const std::string code_token = LoadCode(
       roma_service, kUdfPath / kCPlusPlusBinaryFilename, /*num_workers=*/2);
@@ -147,7 +147,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
-  ByobEchoService<> roma_service = GetRomaService(Mode::kModeSandbox);
+  ByobEchoService<> roma_service = GetRomaService(Mode::kSandboxModeWithGvisor);
   const std::string message = "I am a test Cpp message.";
   const std::string code_token = LoadCode(
       roma_service, kUdfPath / kCPlusPlusBinaryFilename, /*num_workers=*/2);
@@ -173,7 +173,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
       {
           .lib_mounts = "",
       },
-      Mode::kModeSandbox);
+      Mode::kSandboxModeWithGvisor);
   const std::string message = "I am a test Go binary message.";
   const std::string code_token = LoadCode(
       roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);
@@ -196,7 +196,7 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
       {
           .lib_mounts = "",
       },
-      Mode::kModeSandbox);
+      Mode::kSandboxModeWithGvisor);
   const std::string message = "I am a test Go binary message.";
   const std::string code_token = LoadCode(
       roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);

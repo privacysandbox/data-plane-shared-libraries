@@ -54,9 +54,9 @@ ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
           "Text file containing shell commands to execute.");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
           "Directory for storing UDF logs.");
-ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
-  privacy_sandbox::server_common::byob::Mode::kModeSandbox,
-  "Run BYOB in sandbox mode.");
+ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, gvisor,
+  privacy_sandbox::server_common::byob::Mode::kSandboxModeWithGvisor,
+  "Run BYOB with gVisor.");
 
 
 {{$svc := index $file.Services 0}}
@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
   // Initialize BYOB.
   absl::StatusOr<{{$svcName}}<>> service = {{$svcName}}<>::Create(
       /*config=*/{},
-      absl::GetFlag(FLAGS_sandbox));
+      absl::GetFlag(FLAGS_gvisor));
   CHECK_OK(service);
 
   // Create load and execute RPC handlers.

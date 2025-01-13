@@ -111,16 +111,16 @@ class RomaService final {
       return absl::ErrnoToStatus(errno, "fork()");
     }
     switch (mode) {
-      case Mode::kModeSandbox:
-      case Mode::kModeSandboxDebug:
+      case Mode::kSandboxModeWithGvisor:
+      case Mode::kSandboxModeWithGvisorDebug:
         handle_.emplace<internal::roma_service::ByobHandle>(
             pid, config.lib_mounts, control_socket_path.c_str(),
             udf_socket_path.c_str(), socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
-            /*debug=*/mode == Mode::kModeSandboxDebug);
+            /*debug=*/mode == Mode::kSandboxModeWithGvisorDebug);
         break;
-      case Mode::kModeNoSandbox:
+      case Mode::kSandboxModeWithoutGvisor:
         handle_.emplace<internal::roma_service::LocalHandle>(
             pid, config.lib_mounts, control_socket_path.c_str(),
             udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str());

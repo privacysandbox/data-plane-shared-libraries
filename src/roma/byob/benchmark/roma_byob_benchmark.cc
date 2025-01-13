@@ -67,8 +67,8 @@ constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kJavaOutput = "Hello, world from Java!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
 constexpr Mode kModes[] = {
-    Mode::kModeSandbox,
-    Mode::kModeNoSandbox,
+    Mode::kSandboxModeWithGvisor,
+    Mode::kSandboxModeWithoutGvisor,
 };
 
 enum class Language {
@@ -167,10 +167,10 @@ std::filesystem::path GetFilePathFromLanguage(Language lang) {
 
 std::string GetModeStr(Mode mode) {
   switch (mode) {
-    case Mode::kModeSandbox:
-      return "mode:Sandbox";
-    case Mode::kModeNoSandbox:
-      return "mode:Non-Sandbox";
+    case Mode::kSandboxModeWithGvisor:
+      return "mode:gVisor";
+    case Mode::kSandboxModeWithoutGvisor:
+      return "mode:Non-gVisor";
     default:
       return "mode:Unknown";
   }
@@ -365,7 +365,7 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
       .lib_mounts = std::move(mounts),
   };
   ByobSampleService<> roma_service =
-      GetRomaService(Mode::kModeSandbox, std::move(config));
+      GetRomaService(Mode::kSandboxModeWithGvisor, std::move(config));
 
   std::string code_token =
       LoadCode(roma_service, GetFilePathFromLanguage(lang),
@@ -568,7 +568,8 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
 
 void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
   const Log log = static_cast<Log>(state.range(0));
-  ByobSampleService<> roma_service = GetRomaService(Mode::kModeSandbox);
+  ByobSampleService<> roma_service =
+      GetRomaService(Mode::kSandboxModeWithGvisor);
   const bool enable_log_egress = [](Log log) {
     switch (log) {
       case Log::kLogToDevNull:

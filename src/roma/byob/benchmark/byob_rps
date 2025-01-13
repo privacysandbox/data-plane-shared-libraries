@@ -143,7 +143,7 @@ function run_test() {
       CMD_ARGS+=("--input_args=${INPUT_ARGS}")
     fi
   else
-    CMD_ARGS+=("--sandbox=${SANDBOX}")
+    CMD_ARGS+=("--gvisor=${SANDBOX}")
   fi
 
   set -o xtrace

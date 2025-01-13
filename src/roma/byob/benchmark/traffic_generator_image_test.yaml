@@ -39,5 +39,5 @@ commandTests:
       - --num_queries=1
       - --burst_size=2
       - --queries_per_second=1
-      - --sandbox=on
+      - --gvisor=on
     exitCode: 0

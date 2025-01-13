@@ -44,7 +44,7 @@ class ByobEchoService final {
   using Mode = privacy_sandbox::server_common::byob::Mode;
 
   static absl::StatusOr<ByobEchoService<TMetadata>> Create(
-      Config config, Mode mode = Mode::kModeSandbox) {
+      Config config, Mode mode = Mode::kSandboxModeWithGvisor) {
     auto roma_service = std::make_unique<AppService>();
     PS_RETURN_IF_ERROR(roma_service->Init(std::move(config), mode));
     return ByobEchoService<TMetadata>(std::move(roma_service));
