@@ -69,9 +69,12 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
             google::scp::roma::DefaultMetadata(),
             [stopwatch = std::move(stopwatch), duration,
              &completions](absl::StatusOr<SampleResponse> response) {
-              *duration = stopwatch.GetElapsedTime();
+              if (response.ok()) {
+                *duration = stopwatch.GetElapsedTime();
+              } else {
+                *duration = std::move(response.status());
+              }
               completions++;
-              CHECK_OK(response);
             });
     if (!exec_token.ok()) {
       *duration = exec_token.status();

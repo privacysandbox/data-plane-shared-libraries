@@ -120,9 +120,12 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
             [&execute_finished, duration, stopwatch = std::move(stopwatch),
              &completions](
                 absl::StatusOr<google::scp::roma::ResponseObject> resp) {
-              *duration = stopwatch.GetElapsedTime();
+              if (resp.ok()) {
+                *duration = stopwatch.GetElapsedTime();
+              } else {
+                *duration = std::move(resp.status());
+              }
               completions++;
-              CHECK_OK(resp);
               execute_finished.Notify();
             });
 
