@@ -49,6 +49,7 @@ using ::testing::TestWithParam;
 
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
+const std::filesystem::path kJavaBinaryFilename = "sample_java_native_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "sample_udf";
 const std::filesystem::path kCPlusPlusCapBinaryFilename = "cap_udf";
 const std::filesystem::path kCPlusPlusSocketFinderBinaryFilename =
@@ -65,6 +66,7 @@ const std::filesystem::path kCPlusPlusPauseBinaryFilename = "pause_udf";
 constexpr std::string_view kFirstUdfOutput = "Hello, world!";
 constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
+constexpr std::string_view kJavaBinaryOutput = "Hello, world from Java!";
 constexpr std::string_view kLogUdfOutput = "I am a UDF that logs.";
 
 SampleResponse SendRequestAndGetResponse(
@@ -343,6 +345,25 @@ TEST_P(RomaByobTest, ProcessRequestGoLangBinary) {
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
               ::testing::StrEq(kGoBinaryOutput));
+}
+
+TEST_P(RomaByobTest, ProcessRequestJavaBinary) {
+  Mode mode = GetParam();
+  if (!HasClonePermissionsByobWorker(mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+#if defined(__aarch64__)
+  // TODO: b/377349908 - Enable Java benchmarks post-ARM64 fix
+  GTEST_SKIP() << "Java tests disabled for ARM64";
+#endif
+  ByobSampleService<> roma_service =
+      GetRomaService({.lib_mounts = "/proc"}, mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kJavaBinaryFilename);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq(kJavaBinaryOutput));
 }
 
 TEST_P(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
