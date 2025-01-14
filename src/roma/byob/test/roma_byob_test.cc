@@ -571,6 +571,8 @@ TEST_P(RomaByobTest, VerifyNoCapabilities) {
 
 INSTANTIATE_TEST_SUITE_P(
     RomaByobTestSuiteInstantiation, RomaByobTest,
+    // Since we don't want to run tests for gVisor debug mode,
+    // Mode::kSandboxModeWithGvisorDebug has not included in the list.
     testing::ValuesIn<Mode>({Mode::kSandboxModeWithGvisor,
                              Mode::kSandboxModeWithoutGvisor}),
     [](const testing::TestParamInfo<RomaByobTest::ParamType>& info) {
