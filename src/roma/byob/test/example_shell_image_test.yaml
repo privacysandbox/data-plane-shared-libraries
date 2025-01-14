@@ -168,6 +168,7 @@ commandTests:
               default: ;
             --gvisor \(Run BYOB with gVisor\.\); default: on;
             --num_workers \(the number of workers\); default: 1;
+            --syscall_filter \(Whether to enable syscall filtering\.\); default: false;
             --udf_log_file \(path with directory to a file in which UDF logs will be\
               stored\); default: ;
 

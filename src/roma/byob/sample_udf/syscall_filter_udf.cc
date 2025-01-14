@@ -12,12 +12,10 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <sys/capability.h>
+#include <unistd.h>
 
 #include <iostream>
 
-#include "absl/cleanup/cleanup.h"
-#include "absl/strings/str_cat.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
@@ -45,19 +43,10 @@ int main(int argc, char* argv[]) {
   int fd = std::stoi(argv[1]);
   ReadRequestFromFd(fd);
   SampleResponse bin_response;
-  cap_t caps = cap_get_proc();
-  absl::Cleanup caps_cleaner = [caps] { cap_free(caps); };
-  if (caps == nullptr) {
-    bin_response.set_greeting("Failed to get capabilites.");
-  } else if (cap_t empty_caps = cap_init();
-             cap_compare(caps, empty_caps) == 0) {
-    // All good.
-    cap_free(empty_caps);
-    bin_response.set_greeting("Empty capabilities set as expected.");
+  if (::dup(STDIN_FILENO) == -1 && errno == EPERM) {
+    bin_response.set_greeting("Blocked dup.");
   } else {
-    char* cap_str = cap_to_text(caps, nullptr);
-    bin_response.set_greeting(
-        absl::StrCat("Non-empty capability set: ", cap_str));
+    bin_response.set_greeting("Failed to block dup with correct error.");
   }
   WriteResponseToFd(fd, std::move(bin_response));
   return 0;

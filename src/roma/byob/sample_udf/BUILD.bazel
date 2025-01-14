@@ -157,6 +157,16 @@ cc_binary(
 )
 
 cc_binary(
+    name = "syscall_filter_udf",
+    srcs = ["syscall_filter_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
+cc_binary(
     name = "cap_udf",
     srcs = ["cap_udf.cc"],
     visibility = ["//visibility:public"],
@@ -401,6 +411,7 @@ filegroup(
         ":sort_list_100k_udf",
         ":sort_list_10k_udf",
         ":sort_list_1m_udf",
+        ":syscall_filter_udf",
         "//src/roma/byob/example:example_cc_udf",
         "//src/roma/byob/example:example_go_udf",
     ],

@@ -14,6 +14,7 @@
 
 #include <dirent.h>
 #include <fcntl.h>
+#include <seccomp.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -21,10 +22,13 @@
 #include <sys/mount.h>
 #include <sys/prctl.h>
 #include <sys/socket.h>
+#include <sys/stat.h>
 #include <sys/syscall.h>
 #include <sys/un.h>
 #include <sys/wait.h>
 #include <unistd.h>
+
+#include <linux/seccomp.h>
 
 #include <filesystem>
 #include <limits>
@@ -70,6 +74,8 @@ ABSL_FLAG(std::vector<std::string>, mounts,
           std::vector<std::string>({"/lib", "/lib64"}),
           "Mounts containing dependencies needed by the binary");
 ABSL_FLAG(std::string, log_dir, "/log_dir", "Directory used for storing logs");
+ABSL_FLAG(bool, enable_seccomp_filter, false,
+          "Decides whether seccomp filtering should be applied.");
 
 namespace {
 using ::google::protobuf::io::FileInputStream;
@@ -85,12 +91,147 @@ using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 
 const absl::NoDestructor<std::filesystem::path> kBinaryExe("bin.exe");
 
+constexpr std::array<int, 112> kSyscallAllowlist = {
+    SCMP_SYS(arch_prctl),
+    SCMP_SYS(brk),
+    // Only needed by cap_udf test to verify no capabilities are available to
+    // the binary.
+    SCMP_SYS(capget),
+    SCMP_SYS(clone),
+    SCMP_SYS(clone3),
+    SCMP_SYS(close),
+    SCMP_SYS(epoll_create),
+    SCMP_SYS(epoll_create1),
+    SCMP_SYS(epoll_ctl),
+    SCMP_SYS(epoll_ctl_old),
+    SCMP_SYS(epoll_pwait),
+    SCMP_SYS(epoll_wait),
+    SCMP_SYS(epoll_wait_old),
+    SCMP_SYS(execve),
+    SCMP_SYS(execveat),
+    SCMP_SYS(exit),
+    SCMP_SYS(exit_group),
+    SCMP_SYS(fstat),
+    SCMP_SYS(fstat64),
+    SCMP_SYS(fstatat64),
+    SCMP_SYS(fstatfs),
+    SCMP_SYS(fstatfs64),
+    SCMP_SYS(fsync),
+    SCMP_SYS(futex),
+    SCMP_SYS(futex_time64),
+    SCMP_SYS(futimesat),
+    SCMP_SYS(getdents),
+    SCMP_SYS(getdents64),
+    SCMP_SYS(getegid),
+    SCMP_SYS(getegid32),
+    SCMP_SYS(geteuid),
+    SCMP_SYS(geteuid32),
+    SCMP_SYS(getgid),
+    SCMP_SYS(getgid32),
+    SCMP_SYS(getgroups),
+    SCMP_SYS(getgroups32),
+    SCMP_SYS(getpgid),
+    SCMP_SYS(getpgrp),
+    SCMP_SYS(getpid),
+    SCMP_SYS(getpmsg),
+    SCMP_SYS(getppid),
+    SCMP_SYS(getpriority),
+    SCMP_SYS(getrandom),
+    SCMP_SYS(getresgid),
+    SCMP_SYS(getresgid32),
+    SCMP_SYS(getresuid),
+    SCMP_SYS(getresuid32),
+    SCMP_SYS(getrlimit),
+    SCMP_SYS(getrusage),
+    SCMP_SYS(getsid),
+    SCMP_SYS(getsockname),
+    SCMP_SYS(getsockopt),
+    SCMP_SYS(getuid),
+    SCMP_SYS(getuid32),
+    SCMP_SYS(getxattr),
+    SCMP_SYS(link),
+    SCMP_SYS(linkat),
+    SCMP_SYS(lock),
+    SCMP_SYS(lseek),
+    SCMP_SYS(lsetxattr),
+    SCMP_SYS(lstat),
+    SCMP_SYS(lstat64),
+    SCMP_SYS(madvise),
+    SCMP_SYS(mmap),
+    SCMP_SYS(mmap2),
+    SCMP_SYS(mprotect),
+    SCMP_SYS(mremap),
+    SCMP_SYS(munmap),
+    SCMP_SYS(name_to_handle_at),
+    SCMP_SYS(newfstatat),
+    SCMP_SYS(open),
+    SCMP_SYS(openat),
+    // Needed by the pause_udf for testing.
+    SCMP_SYS(pause),
+    SCMP_SYS(poll),
+    SCMP_SYS(ppoll),
+    SCMP_SYS(ppoll_time64),
+    SCMP_SYS(prctl),
+    SCMP_SYS(pread64),
+    SCMP_SYS(preadv),
+    SCMP_SYS(preadv2),
+    SCMP_SYS(prlimit64),
+    SCMP_SYS(pwrite64),
+    SCMP_SYS(pwritev),
+    SCMP_SYS(pwritev2),
+    SCMP_SYS(read),
+    SCMP_SYS(readlink),
+    SCMP_SYS(readlinkat),
+    SCMP_SYS(readv),
+    SCMP_SYS(rt_sigaction),
+    SCMP_SYS(rt_sigpending),
+    SCMP_SYS(rt_sigprocmask),
+    SCMP_SYS(rt_sigreturn),
+    SCMP_SYS(rt_sigsuspend),
+    SCMP_SYS(rt_sigtimedwait),
+    SCMP_SYS(rt_sigtimedwait_time64),
+    SCMP_SYS(sched_getaffinity),
+    SCMP_SYS(set_robust_list),
+    SCMP_SYS(set_tid_address),
+    SCMP_SYS(setsockopt),
+    SCMP_SYS(sigaltstack),
+    SCMP_SYS(socket),
+    SCMP_SYS(stat),
+    SCMP_SYS(stat64),
+    SCMP_SYS(uname),
+    SCMP_SYS(unlink),
+    SCMP_SYS(unlinkat),
+    SCMP_SYS(write),
+    // Added for generate_bid_bin
+    SCMP_SYS(clock_gettime),
+    SCMP_SYS(gettid),
+    SCMP_SYS(nanosleep),
+    SCMP_SYS(rseq),
+};
+
 std::string GenerateUuid() {
   uuid_t uuid;
   uuid_generate(uuid);
   std::string uuid_cstr(kNumTokenBytes, '\0');
   uuid_unparse(uuid, uuid_cstr.data());
   return uuid_cstr;
+}
+
+// Creates and returns a scmp_filter_ctx which allowlists specific syscalls and
+// causes an EPERM for syscalls not on the allowlist.
+absl::StatusOr<scmp_filter_ctx> GetSeccompFilter() {
+  scmp_filter_ctx ctx;
+  if ((ctx = seccomp_init(SCMP_ACT_ERRNO(EPERM))) == NULL) {
+    return absl::ErrnoToStatus(errno, "Failed to seccomp_init");
+  }
+  for (const auto& syscall : kSyscallAllowlist) {
+    if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscall, /*arg_cnt=*/0) < 0) {
+      seccomp_release(ctx);
+      return absl::ErrnoToStatus(
+          errno, absl::StrCat("Failed to seccomp_rule_add ", syscall));
+    }
+  }
+  return ctx;
 }
 
 absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
@@ -121,6 +262,7 @@ struct WorkerImplArg {
   bool enable_log_egress;
   std::string_view log_dir_name;
   std::string_view socket_dir_name;
+  const scmp_filter_ctx* scmp_filter;
 };
 
 absl::Status SetPrctlOptions(
@@ -191,6 +333,10 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
   if (::unshare(CLONE_NEWUSER) == -1) {
     return absl::ErrnoToStatus(errno, "unshare(CLONE_NEWUSER)");
   }
+  if (worker_impl_arg.scmp_filter != nullptr &&
+      seccomp_load(*worker_impl_arg.scmp_filter) < 0) {
+    return absl::ErrnoToStatus(errno, absl::StrCat("Failed to seccomp_load"));
+  }
   return absl::OkStatus();
 }
 
@@ -242,6 +388,7 @@ struct ReloaderImplArg {
   std::filesystem::path binary_path;
   int dev_null_fd;
   bool enable_log_egress;
+  bool enable_seccomp_filter;
   std::string log_dir_name;
 };
 
@@ -267,6 +414,11 @@ int ReloaderImpl(void* arg) {
       *static_cast<ReloaderImplArg*>(arg);
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDOUT_FILENO));
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDERR_FILENO));
+  absl::StatusOr<scmp_filter_ctx> scmp_filter;
+  if (reloader_impl_arg.enable_seccomp_filter) {
+    scmp_filter = GetSeccompFilter();
+    CHECK_OK(scmp_filter);
+  }
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
       CreatePivotRootDir();
   CHECK_OK(pivot_root_dir);
@@ -325,7 +477,11 @@ int ReloaderImpl(void* arg) {
         .dev_null_fd = reloader_impl_arg.dev_null_fd,
         .enable_log_egress = reloader_impl_arg.enable_log_egress,
         .log_dir_name = reloader_impl_arg.log_dir_name,
-        .socket_dir_name = socket_dir.native()};
+        .socket_dir_name = socket_dir.native(),
+        .scmp_filter =
+            (reloader_impl_arg.enable_seccomp_filter ? &(*scmp_filter)
+                                                     : nullptr),
+    };
 
     // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may
     // hang or the process may receive SIGBUS (depending on the size of the
@@ -358,6 +514,9 @@ int ReloaderImpl(void* arg) {
     } else if (const int exit_code = WEXITSTATUS(status); exit_code != 0) {
       LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
     }
+  }
+  if (reloader_impl_arg.enable_seccomp_filter) {
+    seccomp_release(*scmp_filter);
   }
   return 0;
 }
@@ -481,7 +640,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       return absl::InternalError("Failed to load binary");
     }
     return CreateWorkerPool(std::move(binary_path), request.code_token(),
-                            request.num_workers(), request.enable_log_egress());
+                            request.num_workers(), request.enable_log_egress(),
+                            absl::GetFlag(FLAGS_enable_seccomp_filter));
   }
 
   void Delete(std::string_view request_code_token) ABSL_LOCKS_EXCLUDED(mu_) {
@@ -547,7 +707,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   absl::Status CreateWorkerPool(const std::filesystem::path binary_path,
                                 std::string_view code_token,
                                 const int num_workers,
-                                const bool enable_log_egress)
+                                const bool enable_log_egress,
+                                const bool enable_seccomp_filter)
       ABSL_LOCKS_EXCLUDED(mu_) {
     {
       absl::MutexLock lock(&mu_);
@@ -564,6 +725,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         .binary_path = binary_dir.filename() / binary_path.filename(),
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
+        .enable_seccomp_filter = enable_seccomp_filter,
         .log_dir_name = log_dir_name_,
     };
     for (int i = 0; i < num_workers; ++i) {

@@ -47,6 +47,7 @@ commandTests:
               default: ;
             --gvisor \(Run BYOB with gVisor\.\); default: on;
             --num_workers \(Number of workers\.\); default: 1;
+            --syscall_filter \(Whether to enable syscall filtering\.\); default: false;
             --udf_log_file \(Directory for storing UDF logs\.\); default: ;
 
   - name: shell-cli sandbox flag

@@ -37,7 +37,8 @@ namespace privacy_sandbox::server_common::byob::internal::roma_service {
 LocalHandle::LocalHandle(int pid, std::string_view mounts,
                          std::string_view control_socket_path,
                          std::string_view udf_socket_path,
-                         std::string_view socket_dir, std::string_view log_dir)
+                         std::string_view socket_dir, std::string_view log_dir,
+                         bool enable_seccomp_filter)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -58,12 +59,15 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         /*cleanup_pivot_root_dir=*/false, sources_and_targets,
         /*remount_root_as_read_only=*/false));
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
+    const std::string seccomp_filter_flag =
+        absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter);
     const char* argv[] = {
         "/server/bin/run_workers",
         mounts_flag.c_str(),
         "--control_socket_name=/socket_dir/control.sock",
         "--udf_socket_name=/socket_dir/byob_rpc.sock",
         "--log_dir=/log_dir",
+        seccomp_filter_flag.c_str(),
         nullptr,
     };
     const char* envp[] = {
@@ -93,7 +97,8 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view socket_dir, std::string container_name,
                        std::string_view log_dir,
                        std::uint64_t memory_limit_soft,
-                       std::uint64_t memory_limit_hard, bool debug_mode)
+                       std::uint64_t memory_limit_hard, bool debug_mode,
+                       bool enable_seccomp_filter)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
@@ -119,6 +124,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         "--control_socket_name=/socket_dir/control.sock",
         "--udf_socket_name=/socket_dir/byob_rpc.sock",
         "--log_dir=/log_dir",
+        absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter),
     };
     config["process"]["rlimits"] = {};
     // If a memory limit has been configured, apply it.

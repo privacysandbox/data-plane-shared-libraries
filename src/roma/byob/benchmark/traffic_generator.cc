@@ -61,6 +61,7 @@ ABSL_FLAG(int, total_invocations, 0,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, gvisor,
           privacy_sandbox::server_common::byob::Mode::kSandboxModeWithGvisor,
           "Run BYOB with gVisor.");
+ABSL_FLAG(bool, syscall_filter, false, "Whether to enable syscall filtering.");
 ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
           "Mount paths to include in the pivot_root environment. Example "
           "/dir1,/dir2");
@@ -107,6 +108,7 @@ int main(int argc, char** argv) {
   const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
   const privacy_sandbox::server_common::byob::Mode sandbox =
       absl::GetFlag(FLAGS_gvisor);
+  const bool enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter);
 
   const std::string udf_path = absl::GetFlag(FLAGS_udf_path);
   const std::string handler_name = absl::GetFlag(FLAGS_handler_name);
@@ -141,8 +143,9 @@ int main(int argc, char** argv) {
   }
 
   if (mode == "byob") {
-    std::tie(rpc_func, stop_func) = CreateByobRpcFunc(
-        num_workers, lib_mounts, binary_path, sandbox, completions);
+    std::tie(rpc_func, stop_func) =
+        CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
+                          completions, enable_seccomp_filter);
   } else {  // v8 mode
     std::tie(rpc_func, stop_func) = CreateV8RpcFunc(
         num_workers, udf_path, handler_name, input_args, completions);

@@ -58,7 +58,7 @@ class LocalHandle final {
   LocalHandle(int pid, std::string_view mounts,
               std::string_view udf_socket_path,
               std::string_view control_socket_path, std::string_view sockdir,
-              std::string_view log_dir);
+              std::string_view log_dir, bool enable_seccomp_filter);
   ~LocalHandle();
 
  private:
@@ -71,7 +71,7 @@ class ByobHandle final {
              std::string_view control_socket_path, std::string_view sockdir,
              std::string container_name, std::string_view log_dir,
              std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
-             bool debug_mode);
+             bool debug_mode, bool enable_seccomp_filter);
   ~ByobHandle();
 
  private:
@@ -118,12 +118,14 @@ class RomaService final {
             udf_socket_path.c_str(), socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
-            /*debug=*/mode == Mode::kSandboxModeWithGvisorDebug);
+            /*debug=*/mode == Mode::kSandboxModeWithGvisorDebug,
+            /*enable_seccomp_filter=*/config.enable_seccomp_filter);
         break;
       case Mode::kSandboxModeWithoutGvisor:
         handle_.emplace<internal::roma_service::LocalHandle>(
             pid, config.lib_mounts, control_socket_path.c_str(),
-            udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str());
+            udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str(),
+            /*enable_seccomp_filter=*/config.enable_seccomp_filter);
         break;
       default:
         return absl::InternalError("Unsupported mode in switch");

@@ -60,6 +60,8 @@ const std::filesystem::path kCPlusPlusFileSystemDeleteFilename =
     "filesystem_delete_udf";
 const std::filesystem::path kCPlusPlusFileSystemEditFilename =
     "filesystem_edit_udf";
+const std::filesystem::path kCPlusPlusSyscallFilterBinaryFilename =
+    "syscall_filter_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
 const std::filesystem::path kCPlusPlusPauseBinaryFilename = "pause_udf";
@@ -139,10 +141,6 @@ ByobSampleService<> GetRomaService(
   return std::move(*sample_interface);
 }
 
-ByobSampleService<> GetRomaService(Mode mode) {
-  return GetRomaService(/*config=*/{}, std::move(mode));
-}
-
 std::pair<SampleResponse, std::string> GetResponseAndLogs(
     ByobSampleService<>& roma_service, std::string_view code_token) {
   absl::Notification exec_notif;
@@ -187,14 +185,19 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
   return {*bin_response, log_status};
 }
 
-using RomaByobTest = TestWithParam<Mode>;
+struct RomaByobTestParam {
+  Mode mode;
+  bool enable_seccomp_filter;
+};
+using RomaByobTest = TestWithParam<RomaByobTestParam>;
 
 TEST_P(RomaByobTest, NoSocketFile) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusSocketFinderBinaryFilename,
@@ -205,11 +208,12 @@ TEST_P(RomaByobTest, NoSocketFile) {
 }
 
 TEST_P(RomaByobTest, NoFileSystemCreateEgression) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemAddFilename,
@@ -220,11 +224,12 @@ TEST_P(RomaByobTest, NoFileSystemCreateEgression) {
 }
 
 TEST_P(RomaByobTest, NoFileSystemDeleteEgression) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemDeleteFilename,
@@ -235,11 +240,12 @@ TEST_P(RomaByobTest, NoFileSystemDeleteEgression) {
 }
 
 TEST_P(RomaByobTest, NoFileSystemEditEgression) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemEditFilename,
@@ -250,11 +256,12 @@ TEST_P(RomaByobTest, NoFileSystemEditEgression) {
 }
 
 TEST_P(RomaByobTest, LoadBinary) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   absl::Notification notif;
   absl::Status notif_status;
@@ -268,11 +275,12 @@ TEST_P(RomaByobTest, LoadBinary) {
 }
 
 TEST_P(RomaByobTest, ProcessRequestMultipleCppBinaries) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string first_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
@@ -288,11 +296,12 @@ TEST_P(RomaByobTest, ProcessRequestMultipleCppBinaries) {
 }
 
 TEST_P(RomaByobTest, LoadBinaryUsingUdfBlob) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   auto content = GetContentsOfFile(kUdfPath / kCPlusPlusBinaryFilename);
   CHECK_OK(content);
@@ -307,11 +316,12 @@ TEST_P(RomaByobTest, LoadBinaryUsingUdfBlob) {
 }
 
 TEST_P(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
@@ -334,11 +344,13 @@ TEST_P(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
 }
 
 TEST_P(RomaByobTest, ProcessRequestGoLangBinary) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService({.lib_mounts = ""}, mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.lib_mounts = "", .enable_seccomp_filter = param.enable_seccomp_filter},
+      param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);
@@ -348,8 +360,8 @@ TEST_P(RomaByobTest, ProcessRequestGoLangBinary) {
 }
 
 TEST_P(RomaByobTest, ProcessRequestJavaBinary) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
 #if defined(__aarch64__)
@@ -357,7 +369,9 @@ TEST_P(RomaByobTest, ProcessRequestJavaBinary) {
   GTEST_SKIP() << "Java tests disabled for ARM64";
 #endif
   ByobSampleService<> roma_service =
-      GetRomaService({.lib_mounts = "/proc"}, mode);
+      GetRomaService({.lib_mounts = "/proc",
+                      .enable_seccomp_filter = param.enable_seccomp_filter},
+                     param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kJavaBinaryFilename);
@@ -367,11 +381,12 @@ TEST_P(RomaByobTest, ProcessRequestJavaBinary) {
 }
 
 TEST_P(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
@@ -384,11 +399,12 @@ TEST_P(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
 }
 
 TEST_P(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   const std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
@@ -411,11 +427,12 @@ TEST_P(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
 }
 
 TEST_P(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   const std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
@@ -432,11 +449,12 @@ TEST_P(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
 }
 
 TEST_P(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
@@ -450,11 +468,12 @@ TEST_P(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
 }
 
 TEST_P(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
@@ -469,11 +488,12 @@ TEST_P(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
 }
 
 TEST_P(RomaByobTest, VerifyRegisterWithAndWithoutLogs) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
@@ -510,11 +530,12 @@ TEST_P(RomaByobTest, VerifyRegisterWithAndWithoutLogs) {
 }
 
 TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
@@ -556,36 +577,73 @@ TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
 }
 
 TEST_P(RomaByobTest, VerifyNoCapabilities) {
-  Mode mode = GetParam();
-  if (!HasClonePermissionsByobWorker(mode)) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  ByobSampleService<> roma_service = GetRomaService(mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusCapBinaryFilename);
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              ::testing::StrEq("Empty capabilities' set as expected."));
+              ::testing::StrEq("Empty capabilities set as expected."));
+}
+
+TEST_P(RomaByobTest, VerifySyscallFilter) {
+  RomaByobTestParam param = GetParam();
+  if (!param.enable_seccomp_filter) {
+    GTEST_SKIP() << "Seccomp filtering is disabled";
+  }
+  if (!HasClonePermissionsByobWorker(param.mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / kCPlusPlusSyscallFilterBinaryFilename);
+
+  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
+              ::testing::StrEq("Blocked dup."));
+}
+
+std::string GetModeStr(Mode mode) {
+  switch (mode) {
+    case Mode::kSandboxModeWithGvisor:
+      return "Gvisor";
+    case Mode::kSandboxModeWithoutGvisor:
+      return "NoGvisor";
+    case Mode::kSandboxModeWithGvisorDebug:
+      return "GvisorDebug";
+    default:
+      return "UnknownMode";
+  }
+}
+
+std::string GetFilterStr(bool enable_seccomp_filter) {
+  if (enable_seccomp_filter) {
+    return "SeccompFilterEnabled";
+  } else {
+    return "SeccompFilterDisabled";
+  }
 }
 
 INSTANTIATE_TEST_SUITE_P(
     RomaByobTestSuiteInstantiation, RomaByobTest,
     // Since we don't want to run tests for gVisor debug mode,
     // Mode::kSandboxModeWithGvisorDebug has not included in the list.
-    testing::ValuesIn<Mode>({Mode::kSandboxModeWithGvisor,
-                             Mode::kSandboxModeWithoutGvisor}),
+    testing::ValuesIn<RomaByobTestParam>(
+        {{.mode = Mode::kSandboxModeWithGvisor, .enable_seccomp_filter = false},
+         {.mode = Mode::kSandboxModeWithoutGvisor,
+          .enable_seccomp_filter = false},
+         {.mode = Mode::kSandboxModeWithGvisor, .enable_seccomp_filter = true},
+         {.mode = Mode::kSandboxModeWithoutGvisor,
+          .enable_seccomp_filter = true}}),
     [](const testing::TestParamInfo<RomaByobTest::ParamType>& info) {
-      switch (info.param) {
-        case Mode::kSandboxModeWithGvisor:
-          return "Gvisor";
-        case Mode::kSandboxModeWithoutGvisor:
-          return "NoGvisor";
-        case Mode::kSandboxModeWithGvisorDebug:
-          return "GvisorDebug";
-        default:
-          return "UnknownMode";
-      }
+      return absl::StrCat(GetModeStr(info.param.mode),
+                          GetFilterStr(info.param.enable_seccomp_filter));
     });
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test

@@ -161,7 +161,8 @@ Step 2: Run the following from a command line:
     docker run --privileged --volume="${PWD}"/dist:/tmp/runsc-log --cpus=64 --memory=512gb \
     privacy-sandbox/roma-byob/traffic_generator:v1-root \
       --num_workers=84 --queries_per_second=10 --burst_size=14 \
-      --num_queries=1000 --gvisor=off --lib_mounts="" --binary_path="/udf/sample_go_udf"
+      --num_queries=1000 --gvisor=off --syscall_filter=true --lib_mounts="" \
+      --binary_path="/udf/sample_go_udf"
 """
 
 [

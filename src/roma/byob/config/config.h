@@ -79,6 +79,7 @@ struct Config {
   std::string roma_container_name;
   // Mounts /x -> /x and /y/z -> /z.
   std::string lib_mounts = LIB_MOUNTS;
+  bool enable_seccomp_filter = false;
 };
 }  // namespace privacy_sandbox::server_common::byob
 

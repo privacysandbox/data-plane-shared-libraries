@@ -39,6 +39,7 @@ ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, gvisor,
           privacy_sandbox::server_common::byob::Mode::kSandboxModeWithGvisor,
           "Run BYOB with gVisor.");
+ABSL_FLAG(bool, syscall_filter, false, "Whether to enable syscall filtering.");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
           "path with directory to a file in which UDF logs will be stored");
 
@@ -62,7 +63,8 @@ int main(int argc, char** argv) {
 
   // Initialize BYOB.
   absl::StatusOr<ByobEchoService<>> echo_service = ByobEchoService<>::Create(
-      /*config=*/{}, absl::GetFlag(FLAGS_gvisor));
+      /*config=*/{.enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter)},
+      absl::GetFlag(FLAGS_gvisor));
   CHECK_OK(echo_service);
 
   // Create load and execute RPC handlers.
