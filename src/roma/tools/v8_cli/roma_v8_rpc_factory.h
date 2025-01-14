@@ -112,13 +112,11 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                          &completions](
                             privacy_sandbox::server_common::Stopwatch stopwatch,
                             absl::StatusOr<absl::Duration>* duration) {
-    absl::Notification execute_finished;
     absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
         roma_service->Execute(
             std::make_unique<google::scp::roma::InvocationStrRequest<>>(
                 execution_object),
-            [&execute_finished, duration, stopwatch = std::move(stopwatch),
-             &completions](
+            [duration, stopwatch = std::move(stopwatch), &completions](
                 absl::StatusOr<google::scp::roma::ResponseObject> resp) {
               if (resp.ok()) {
                 *duration = stopwatch.GetElapsedTime();
@@ -126,7 +124,6 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                 *duration = std::move(resp.status());
               }
               completions++;
-              execute_finished.Notify();
             });
 
     if (!exec_token.ok()) {
@@ -134,7 +131,6 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
       completions++;
       return;
     }
-    execute_finished.WaitForNotification();
   };
 
   auto callback = [roma_service = std::move(roma_service)]() {
