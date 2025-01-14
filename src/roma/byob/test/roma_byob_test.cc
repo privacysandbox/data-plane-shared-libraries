@@ -37,7 +37,6 @@
 namespace privacy_sandbox::server_common::byob::test {
 
 namespace {
-using ::google::scp::roma::FunctionBindingObjectV2;
 using ::privacy_sandbox::roma_byob::example::ByobSampleService;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
@@ -46,6 +45,7 @@ using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
+using ::testing::TestWithParam;
 
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "sample_go_udf";
@@ -185,8 +185,10 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
   return {*bin_response, log_status};
 }
 
-TEST(RomaByobTest, NoSocketFileInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+using RomaByobTest = TestWithParam<Mode>;
+
+TEST_P(RomaByobTest, NoSocketFile) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -200,20 +202,8 @@ TEST(RomaByobTest, NoSocketFileInNonGvisorMode) {
               ::testing::StrEq("Success."));
 }
 
-TEST(RomaByobTest, NoSocketFileInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusSocketFinderBinaryFilename,
-               /*enable_log_egress=*/true, /*num_workers=*/1);
-
-  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              ::testing::StrEq("Success."));
-}
-
-TEST(RomaByobTest, NoFileSystemCreateEgressionInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, NoFileSystemCreateEgression) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -227,8 +217,8 @@ TEST(RomaByobTest, NoFileSystemCreateEgressionInNonGvisorMode) {
               ::testing::StrEq("Success."));
 }
 
-TEST(RomaByobTest, NoFileSystemDeleteEgressionInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, NoFileSystemDeleteEgression) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -242,8 +232,8 @@ TEST(RomaByobTest, NoFileSystemDeleteEgressionInNonGvisorMode) {
               ::testing::StrEq("Success."));
 }
 
-TEST(RomaByobTest, NoFileSystemEditEgressionInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, NoFileSystemEditEgression) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -257,23 +247,8 @@ TEST(RomaByobTest, NoFileSystemEditEgressionInNonGvisorMode) {
               ::testing::StrEq("Success."));
 }
 
-TEST(RomaByobTest, LoadBinaryInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  absl::Notification notif;
-  absl::Status notif_status;
-  absl::StatusOr<std::string> code_id =
-      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
-                            notif_status, /*num_workers=*/1);
-
-  EXPECT_TRUE(code_id.status().ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  EXPECT_TRUE(notif_status.ok());
-}
-
-TEST(RomaByobTest, LoadBinaryInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, LoadBinary) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -290,25 +265,8 @@ TEST(RomaByobTest, LoadBinaryInNonGvisorMode) {
   EXPECT_TRUE(notif_status.ok());
 }
 
-TEST(RomaByobTest, ProcessRequestMultipleCppBinariesInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  std::string first_code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
-  std::string second_code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
-
-  EXPECT_THAT(
-      SendRequestAndGetResponse(roma_service, first_code_token).greeting(),
-      ::testing::StrEq(kFirstUdfOutput));
-  EXPECT_THAT(
-      SendRequestAndGetResponse(roma_service, second_code_token).greeting(),
-      ::testing::StrEq(kNewUdfOutput));
-}
-
-TEST(RomaByobTest, ProcessRequestMultipleCppBinariesInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, ProcessRequestMultipleCppBinaries) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -327,8 +285,8 @@ TEST(RomaByobTest, ProcessRequestMultipleCppBinariesInNonGvisorMode) {
       ::testing::StrEq(kNewUdfOutput));
 }
 
-TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, LoadBinaryUsingUdfBlob) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -346,32 +304,8 @@ TEST(RomaByobTest, LoadBinaryUsingUdfBlob) {
       ::testing::StrEq(kFirstUdfOutput));
 }
 
-TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinaryInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
-
-  // Data we are sending to the server.
-  SampleRequest bin_request;
-  bin_request.set_function(FUNCTION_HELLO_WORLD);
-  absl::Notification notif;
-  absl::StatusOr<SampleResponse> bin_response;
-  auto callback = [&notif, &bin_response](absl::StatusOr<SampleResponse> resp) {
-    bin_response = std::move(resp);
-    notif.Notify();
-  };
-
-  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
-                               /*metadata=*/{}, code_token));
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(bin_response);
-  EXPECT_THAT(bin_response->greeting(), kFirstUdfOutput);
-}
-
-TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinaryInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -397,19 +331,8 @@ TEST(RomaByobTest, AsyncCallbackProcessRequestCppBinaryInNonGvisorMode) {
   EXPECT_THAT(bin_response->greeting(), kFirstUdfOutput);
 }
 
-TEST(RomaByobTest, ProcessRequestGoLangBinaryInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService({.lib_mounts = ""}, Mode::kSandboxModeWithGvisor);
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kGoLangBinaryFilename);
-
-  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              ::testing::StrEq(kGoBinaryOutput));
-}
-
-TEST(RomaByobTest, ProcessRequestGoLangBinaryInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, ProcessRequestGoLangBinary) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -422,22 +345,8 @@ TEST(RomaByobTest, ProcessRequestGoLangBinaryInNonGvisorMode) {
               ::testing::StrEq(kGoBinaryOutput));
 }
 
-TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefaultInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
-
-  auto response_and_log_status =
-      GetResponseAndLogStatus(roma_service, code_token);
-  EXPECT_THAT(response_and_log_status.first.greeting(),
-              ::testing::StrEq(kLogUdfOutput));
-  EXPECT_EQ(response_and_log_status.second.code(), absl::StatusCode::kNotFound);
-}
-
-TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefaultInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -453,28 +362,8 @@ TEST(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefaultInNonGvisorMode) {
   EXPECT_EQ(response_and_log_status.second.code(), absl::StatusCode::kNotFound);
 }
 
-TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinaryInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-  const std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
-  absl::Notification notif;
-  CHECK_OK(roma_service.Sample(
-      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
-      SampleRequest{},
-      /*metadata=*/{}, code_token));
-  EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
-  roma_service.Delete(code_token);
-  notif.WaitForNotification();
-  const std::string second_code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename);
-  EXPECT_THAT(
-      SendRequestAndGetResponse(roma_service, second_code_token).greeting(),
-      ::testing::StrEq(kNewUdfOutput));
-}
-
-TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinaryInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -500,24 +389,8 @@ TEST(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinaryInNonGvisorMode) {
       ::testing::StrEq(kNewUdfOutput));
 }
 
-TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinaryInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-  const std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
-  absl::Notification notif;
-  const auto execution_token = roma_service.Sample(
-      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
-      SampleRequest{},
-      /*metadata=*/{}, code_token);
-  CHECK_OK(execution_token);
-  EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
-  roma_service.Cancel(*execution_token);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
-}
-
-TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinaryInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -537,23 +410,8 @@ TEST(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinaryInNonGvisorMode) {
   CHECK(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
 }
 
-TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoiceInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
-               /*enable_log_egress=*/true);
-
-  auto response_and_logs = GetResponseAndLogs(roma_service, code_token);
-  EXPECT_THAT(response_and_logs.first.greeting(),
-              ::testing::StrEq(kLogUdfOutput));
-  EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
-}
-
-TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoiceInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -570,24 +428,8 @@ TEST(RomaByobTest, VerifyStdOutStdErrEgressionByChoiceInNonGvisorMode) {
               ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
-TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorksInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-  std::string no_log_code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
-
-  std::string log_code_token =
-      LoadCodeFromCodeToken(roma_service, no_log_code_token);
-
-  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
-  EXPECT_THAT(response_and_logs.first.greeting(),
-              ::testing::StrEq(kLogUdfOutput));
-  EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
-}
-
-TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorksInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -605,46 +447,8 @@ TEST(RomaByobTest, VerifyCodeTokenBasedLoadWorksInNonGvisorMode) {
               ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
-TEST(RomaByobTest, VerifyRegisterWithAndWithoutLogInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-  std::string no_log_code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
-
-  std::string log_code_token =
-      LoadCodeFromCodeToken(roma_service, no_log_code_token);
-
-  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
-  EXPECT_THAT(response_and_logs.first.greeting(),
-              ::testing::StrEq(kLogUdfOutput));
-  EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
-
-  absl::Notification exec_notif;
-  absl::StatusOr<SampleResponse> bin_response;
-  absl::Status log_status;
-  auto callback = [&exec_notif, &bin_response, &log_status](
-                      absl::StatusOr<SampleResponse> resp,
-                      absl::StatusOr<std::string_view> logs) {
-    bin_response = std::move(resp);
-    CHECK(!logs.ok());
-    // Making a copy -- try not to IRL.
-    log_status = logs.status();
-    exec_notif.Notify();
-  };
-
-  SampleRequest bin_request;
-  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
-                               /*metadata=*/{}, no_log_code_token));
-  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(bin_response);
-
-  EXPECT_THAT(bin_response->greeting(), ::testing::StrEq(kLogUdfOutput));
-  EXPECT_EQ(log_status.code(), absl::StatusCode::kNotFound);
-}
-
-TEST(RomaByobTest, VerifyRegisterWithAndWithoutLogInNonSandbox) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, VerifyRegisterWithAndWithoutLogs) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -684,52 +488,8 @@ TEST(RomaByobTest, VerifyRegisterWithAndWithoutLogInNonSandbox) {
   EXPECT_EQ(log_status.code(), absl::StatusCode::kNotFound);
 }
 
-TEST(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginalInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-  std::string no_log_code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
-
-  absl::Notification exec_notif;
-  absl::StatusOr<SampleResponse> bin_response;
-  absl::Status log_status;
-  auto callback = [&exec_notif, &bin_response, &log_status](
-                      absl::StatusOr<SampleResponse> resp,
-                      absl::StatusOr<std::string_view> logs) {
-    bin_response = std::move(resp);
-    CHECK(!logs.ok());
-    // Making a copy -- try not to IRL.
-    log_status = logs.status();
-    exec_notif.Notify();
-  };
-
-  SampleRequest bin_request;
-  CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
-                               /*metadata=*/{}, no_log_code_token));
-  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(bin_response);
-
-  std::string log_code_token =
-      LoadCodeFromCodeToken(roma_service, no_log_code_token);
-  absl::SleepFor(absl::Milliseconds(25));
-
-  roma_service.Delete(no_log_code_token);
-
-  auto response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
-  EXPECT_THAT(response_and_logs.first.greeting(),
-              ::testing::StrEq(kLogUdfOutput));
-  EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
-  response_and_logs = GetResponseAndLogs(roma_service, log_code_token);
-  EXPECT_THAT(response_and_logs.first.greeting(),
-              ::testing::StrEq(kLogUdfOutput));
-  EXPECT_THAT(response_and_logs.second,
-              ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
-}
-
-TEST(RomaByobTest,
-     VerifyHardLinkExecuteWorksAfterDeleteOriginalInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -774,19 +534,8 @@ TEST(RomaByobTest,
               ::testing::StrEq("I am a stdout log.\nI am a stderr log.\n"));
 }
 
-TEST(RomaByobTest, VerifyNoCapabilitiesInGvisorMode) {
-  ByobSampleService<> roma_service =
-      GetRomaService(Mode::kSandboxModeWithGvisor);
-
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusCapBinaryFilename);
-
-  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              ::testing::StrEq("Empty capabilities' set as expected."));
-}
-
-TEST(RomaByobTest, VerifyNoCapabilitiesInNonGvisorMode) {
-  Mode mode = Mode::kSandboxModeWithoutGvisor;
+TEST_P(RomaByobTest, VerifyNoCapabilities) {
+  Mode mode = GetParam();
   if (!HasClonePermissionsByobWorker(mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
@@ -798,5 +547,22 @@ TEST(RomaByobTest, VerifyNoCapabilitiesInNonGvisorMode) {
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
               ::testing::StrEq("Empty capabilities' set as expected."));
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    RomaByobTestSuiteInstantiation, RomaByobTest,
+    testing::ValuesIn<Mode>({Mode::kSandboxModeWithGvisor,
+                             Mode::kSandboxModeWithoutGvisor}),
+    [](const testing::TestParamInfo<RomaByobTest::ParamType>& info) {
+      switch (info.param) {
+        case Mode::kSandboxModeWithGvisor:
+          return "Gvisor";
+        case Mode::kSandboxModeWithoutGvisor:
+          return "NoGvisor";
+        case Mode::kSandboxModeWithGvisorDebug:
+          return "GvisorDebug";
+        default:
+          return "UnknownMode";
+      }
+    });
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test
