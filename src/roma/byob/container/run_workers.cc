@@ -396,12 +396,12 @@ class WorkerRunner final : public WorkerRunnerService::Service {
  public:
   WorkerRunner(std::string socket_name, std::vector<std::string> mounts,
                std::string log_dir_name, const int dev_null_fd,
-               const std::filesystem::path& progdir)
+               const std::filesystem::path& prog_dir)
       : socket_name_(std::move(socket_name)),
         mounts_(std::move(mounts)),
         log_dir_name_(std::move(log_dir_name)),
         dev_null_fd_(dev_null_fd),
-        progdir_(progdir) {}
+        prog_dir_(prog_dir) {}
 
   ~WorkerRunner() {
     LOG(INFO) << "Shutting down.";
@@ -452,7 +452,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   };
 
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
-    const std::filesystem::path binary_dir = progdir_ / request.code_token();
+    const std::filesystem::path binary_dir = prog_dir_ / request.code_token();
     if (std::error_code ec;
         !std::filesystem::create_directory(binary_dir, ec)) {
       return absl::InternalError(absl::StrCat(
@@ -492,7 +492,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         }
       }
       code_token_to_reloader_pids_.erase(it);
-      const std::filesystem::path binary_dir = progdir_ / request_code_token;
+      const std::filesystem::path binary_dir = prog_dir_ / request_code_token;
       if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
                               static_cast<std::uintmax_t>(-1)) {
         LOG(ERROR) << "Failed to remove " << binary_dir << ": " << ec;
@@ -527,7 +527,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       const std::filesystem::path& binary_path,
       std::string_view source_bin_code_token) {
     const std::filesystem::path existing_binary_path =
-        progdir_ / source_bin_code_token / *kBinaryExe;
+        prog_dir_ / source_bin_code_token / *kBinaryExe;
     if (!std::filesystem::exists(existing_binary_path)) {
       return absl::FailedPreconditionError(absl::StrCat(
           "Expected binary ", existing_binary_path.native(), " not found"));
@@ -555,7 +555,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         .mounts = std::move(mounts),
         .socket_name = socket_name_,
         .code_token = std::string(code_token),
-        // Within the pivot root, binary_dir is a child of root, not progdir.
+        // Within the pivot root, binary_dir is a child of root, not prog_dir.
         .binary_path = binary_dir.filename() / binary_path.filename(),
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
@@ -580,7 +580,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   const std::vector<std::string> mounts_;
   const std::string log_dir_name_;
   const int dev_null_fd_;
-  const std::filesystem::path& progdir_;
+  const std::filesystem::path& prog_dir_;
   absl::Mutex mu_;
   absl::flat_hash_map<std::string, std::vector<int>>
       code_token_to_reloader_pids_ ABSL_GUARDED_BY(mu_);
@@ -606,7 +606,7 @@ int main(int argc, char** argv) {
     LOG(ERROR) << "Failed to modify permission for " << prog_dir << ": " << ec;
     return -1;
   }
-  absl::Cleanup progdir_cleanup = [&prog_dir] {
+  absl::Cleanup prog_dir_cleanup = [&prog_dir] {
     if (absl::Status status =
             ::privacy_sandbox::server_common::byob::RemoveDirectories(prog_dir);
         !status.ok()) {
