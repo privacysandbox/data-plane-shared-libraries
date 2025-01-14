@@ -56,9 +56,9 @@ def cc_utils():
         urls = ["https://github.com/google/tcmalloc/archive/cda5074afb75ab02cf4d621986308ab7421dbbf8.zip"],
     )
 
-    _gvisor_utils()
+    _byob_utils()
 
-def _gvisor_utils():
+def _byob_utils():
     maybe(
         http_archive,
         name = "libcap",
@@ -67,6 +67,19 @@ def _gvisor_utils():
         strip_prefix = "libcap-2.70",
         urls = [
             "https://git.kernel.org/pub/scm/libs/libcap/libcap.git/snapshot/libcap-2.70.tar.gz",
+        ],
+    )
+
+    maybe(
+        http_archive,
+        name = "libseccomp",
+        build_file = Label("//build_defs/cc/shared/build_targets:libseccomp.BUILD"),
+        patches = [Label("//build_defs/cc/shared:libseccomp.patch")],
+        patch_args = ["-p1"],
+        sha256 = "cc1f5110ed71aa0e7457147e9aa0543c4b19dd12f676ee180a7ab729d2056d73",
+        strip_prefix = "libseccomp-2.5.5",
+        urls = [
+            "https://github.com/seccomp/libseccomp/archive/refs/tags/v2.5.5.zip",
         ],
     )
 
