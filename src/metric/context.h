@@ -342,7 +342,7 @@ class Context {
     using DefinitionType =
         std::remove_cv_t<std::remove_reference_t<decltype(definition)>>;
     static_assert(std::is_same_v<typename DefinitionType::TypeT, T>,
-                  "value type does not match Metric Defintion");
+                  "value type does not match Metric Definition");
     static_assert(
         std::is_same_v<DefinitionType, Definition<T, definition.type_privacy,
                                                   definition.type_instrument>>);

@@ -49,7 +49,7 @@ fi
 # Start the enclave in debug-mode.
 nitro-cli run-enclave --cpu-count=2 --memory=7000 --eif-path=/opt/google/scp/enclave.eif --debug-mode
 
-# Immedately attach a console to the first enclave (assuming the previous command succeeded).
+# Immediately attach a console to the first enclave (assuming the previous command succeeded).
 nitro-cli console --enclave-id $(nitro-cli describe-enclaves | jq .[0].EnclaveID -r)
 
 set +x

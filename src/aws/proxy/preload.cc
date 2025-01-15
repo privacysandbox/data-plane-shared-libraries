@@ -123,7 +123,7 @@ EXPORT int epoll_ctl(int epfd, int op, int fd,
   // such as boost::asio, may add the socket into an epoll instance before
   // connect(). This is trouble some, because we need to make that a VSOCK
   // socket, and it does not happen automatically in the epoll instance. We'll
-  // essentially need to remove the old fd, covert to VSOCK, and add to epoll
+  // essentially need to remove the old fd, convert to VSOCK, and add to epoll
   // again with the same epoll_event. This would require us to remember
   // epoll_events. To avoid doing that, we convert the socket before adding to
   // the epoll instance.

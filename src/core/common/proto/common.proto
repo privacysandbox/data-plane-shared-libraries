@@ -19,7 +19,7 @@ package google.scp.core.common.proto;
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
 
-// Global unique identidier.
+// Global unique identifier.
 message Uuid {
   uint64 high = 1; // The higher 64 bits.
   uint64 low = 2; // The lower 64 bits.

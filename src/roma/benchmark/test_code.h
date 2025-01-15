@@ -886,7 +886,7 @@ const std::string_view kCodeJetstreamDeltaBlue = R"JS_CODE(
 // This implementation of the DeltaBlue benchmark is derived
 // from the Smalltalk implementation by John Maloney and Mario
 // Wolczko. Some parts have been translated directly, whereas
-// others have been modified more aggresively to make it feel
+// others have been modified more aggressively to make it feel
 // more like a JavaScript program.
 
 
@@ -1061,7 +1061,7 @@ Constraint.prototype.destroyConstraint = function () {
 /**
  * Normal constraints are not input constraints.  An input constraint
  * is one that depends on external state, such as the mouse, the
- * keybord, a clock, or some arbitraty piece of imperative code.
+ * keyboard, a clock, or some arbitrary piece of imperative code.
  */
 Constraint.prototype.isInput = function () {
   return false;
@@ -1439,7 +1439,7 @@ function Planner() {
 
 /**
  * Attempt to satisfy the given constraint and, if successful,
- * incrementally update the dataflow graph.  Details: If satifying
+ * incrementally update the dataflow graph.  Details: If satisfying
  * the constraint is successful, it may override a weaker constraint
  * on its output. The algorithm attempts to resatisfy that
  * constraint using some other method. This process is repeated
@@ -1656,7 +1656,7 @@ Plan.prototype.execute = function () {
  * In case 1, the added constraint is stronger than the stay
  * constraint and values must propagate down the entire length of the
  * chain. In case 2, the added constraint is weaker than the stay
- * constraint so it cannot be accomodated. The cost in this case is,
+ * constraint so it cannot be accommodated. The cost in this case is,
  * of course, very low. Typical situations lie somewhere between these
  * two extremes.
  */

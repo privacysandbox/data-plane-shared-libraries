@@ -316,7 +316,7 @@ class [[nodiscard]] StatusBuilder {
   // average construction/destruction time (e.g. the `stream` is fairly
   // expensive). Stacks can also be blown if StatusBuilder grows too large.
   // This is primarily an issue for debug builds, which do not necessarily
-  // re-use stack space within a function across the sub-scopes used by
+  // reuse stack space within a function across the sub-scopes used by
   // status macros.
   struct Rep {
     explicit Rep(const absl::Status& s);

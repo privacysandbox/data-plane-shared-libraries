@@ -25,7 +25,7 @@ string full_path = "../test/test_config.json";
 // Constructs ConfigProvider with full_path.
 google::scp::core::ConfigProvider config(full_path);
 
-// Initilizes ConfigProvider.
+// Initializes ConfigProvider.
 config.Init();
 
 // Gets the string value for a parameter.
@@ -52,7 +52,7 @@ config.Get("server-run", out_bool);
 }
 ```
 
-## Limitaion
+## Limitations
 
 -   Only supports .json configuration file.
 -   The structure of .json file should be a flat layer.

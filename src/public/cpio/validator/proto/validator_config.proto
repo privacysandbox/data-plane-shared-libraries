@@ -21,7 +21,7 @@ message ValidatorConfig {
 }
 
 message TestCase {
-  // User provided (preferrably unique) name for the test case.
+  // User provided (preferably unique) name for the test case.
   string name = 1;
 
   oneof client_config {

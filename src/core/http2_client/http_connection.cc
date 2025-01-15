@@ -148,7 +148,7 @@ ExecutionResult HttpConnection::Stop() noexcept {
 
   try {
     work_guard_->reset();
-    // Post io_service_->stop to make sure pervious tasks completed before
+    // Post io_service_->stop to make sure previous tasks completed before
     // stop io_service_.
     post(*io_service_, [this]() {
       io_service_->stop();

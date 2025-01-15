@@ -165,7 +165,7 @@ message AeadEncryptRequest {
 // Encrypted data for Aead. Do not put data which should not be sent over wire
 // here.
 message AeadEncryptedData {
-  // Encryped payload.
+  // Encrypted payload.
   bytes ciphertext = 1;
 }
 

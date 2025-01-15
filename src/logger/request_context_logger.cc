@@ -40,10 +40,11 @@ ABSL_CONST_INIT std::atomic<int> max_verbosity(0);
 
 void SetGlobalPSVLogLevel(int verbosity_level) {
   if (verbosity_level < 0) {
-    fprintf(stderr,
-            "Warning: max verbosity cannot be set with negtive verbosity level "
-            "%d.\n",
-            verbosity_level);
+    fprintf(
+        stderr,
+        "Warning: max verbosity cannot be set with negative verbosity level "
+        "%d.\n",
+        verbosity_level);
     return;
   }
   if (const int max_v = max_verbosity.load(std::memory_order_relaxed);

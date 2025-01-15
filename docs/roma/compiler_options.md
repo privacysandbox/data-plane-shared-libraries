@@ -42,7 +42,7 @@ about Turboshaft [here](https://v8.dev/blog/holiday-season-2023)
 ## Performance Impact
 
 The impact of a given combination of optimizing compilers varies depending on UDF size and
-complexity. Integrators are reccomended to conduct their own benchmarks with an appropriately sized
+complexity. Integrators are recommended to conduct their own benchmarks with an appropriately sized
 UDF, and adjust compiler options based on their results. Some preliminary benchmarks have already
 been found, measuring the performance of loading and executing UDFs of various sizes and
 complexities. Below are the 5 most performant flag combinations, with the average % improvement

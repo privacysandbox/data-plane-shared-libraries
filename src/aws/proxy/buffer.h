@@ -375,7 +375,7 @@ class BasicBuffer {
   std::shared_ptr<Freelist<Block>> freelist_;
   // The number of blocks in the block list.
   size_t block_cnt_;
-  // The commited data size.
+  // The committed data size.
   size_t data_size_;
   // Indicate if there is an outstanding Reserve().
   bool reserved_;

@@ -53,7 +53,7 @@ void FakeBaServer::LoadSync(std::string_view version,
   LoadRequest request;
   request.version_string = version;
   request.js = js;
-  // Note: This is a BlockingCounter rather than a Notificaiton because that's
+  // Note: This is a BlockingCounter rather than a Notification because that's
   // what B&A uses.
   absl::BlockingCounter is_loading(1);
 

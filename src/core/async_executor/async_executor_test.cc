@@ -112,7 +112,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadWithAffinity) {
         [&] {
           auto thread_id = std::this_thread::get_id();
           count.DecrementCount();
-          // Schedule another increment - test the affinitized path with
+          // Schedule another increment - test the affinity path with
           // matching thread IDs.
           executor.Schedule(
               [&count, thread_id = thread_id] {
@@ -139,7 +139,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadScheduleForWithAffinity) {
         [&] {
           auto thread_id = std::this_thread::get_id();
           count.DecrementCount();
-          // Schedule another incrementation - test the affinitized path with
+          // Schedule another incrementation - test the affinity path with
           // matching thread IDs.
           executor.ScheduleFor(
               [&count, thread_id = thread_id] {
@@ -165,7 +165,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadNormalToUrgent) {
     executor.Schedule(
         [&] {
           count.DecrementCount();
-          // Schedule another incrementation - test the affinitized path with
+          // Schedule another incrementation - test the affinity path with
           // matching thread IDs.
           executor.ScheduleFor(
               [&] { count.DecrementCount(); }, 123456,
@@ -186,7 +186,7 @@ TEST(AsyncExecutorTests, CountWorkSingleThreadUrgentToNormal) {
     executor.ScheduleFor(
         [&] {
           count.DecrementCount();
-          // Schedule another incrementation - test the affinitized path with
+          // Schedule another incrementation - test the affinity path with
           // matching thread IDs.
           executor.Schedule(
               [&] { count.DecrementCount(); }, AsyncPriority::Normal,

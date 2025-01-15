@@ -26,7 +26,7 @@
 #   enclave_watcher.sh (start|stop)
 set -euo pipefail
 
-# Allow values to be overriden with environment variables.
+# Allow values to be overridden with environment variables.
 ENCLAVE_PATH="${ENCLAVE_PATH:-/opt/google/scp/enclave.eif}"
 ALLOCATOR_YAML_PATH="${ALLOCATOR_YAML_PATH:-/etc/nitro_enclaves/allocator.yaml}"
 ENABLE_ENCLAVE_DEBUG_MODE="${ENABLE_ENCLAVE_DEBUG_MODE:-0}"

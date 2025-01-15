@@ -387,7 +387,7 @@ class DifferentiallyPrivate {
     int max_partitions_contributed;
   };
 
-  // Output aggregated results with DP noise added for all defintions with
+  // Output aggregated results with DP noise added for all definitions with
   // logged metric.
   absl::StatusOr<absl::flat_hash_map<std::string_view,
                                      std::vector<differential_privacy::Output>>>

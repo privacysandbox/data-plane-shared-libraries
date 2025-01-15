@@ -81,7 +81,7 @@ class NativeFunctionHandlerNonSapi {
             break;
           }
           if (bytesRead == -1) {
-            ROMA_VLOG(9) << "Could Not Receieve Message: " << strerror(errno);
+            ROMA_VLOG(9) << "Could Not Receive Message: " << strerror(errno);
             continue;
           }
           std::string serialized_proto = std::string(buffer, bytesRead);

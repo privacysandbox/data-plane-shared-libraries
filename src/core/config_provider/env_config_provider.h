@@ -93,7 +93,7 @@ class EnvConfigProvider : public ConfigProviderInterface {
    * @tparam T The type to convert the list items to.
    * @param key The configuration (environment variable) name.
    * @param out The parsed list.
-   * @return ExecutionResult Failure if the list cant't be parsed, or the config
+   * @return ExecutionResult Failure if the list can't be parsed, or the config
    * does not exist.
    */
   template <typename T>

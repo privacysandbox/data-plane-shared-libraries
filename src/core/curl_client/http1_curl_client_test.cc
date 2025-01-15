@@ -29,7 +29,7 @@
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
-using testing::AtLeast;
+using testing::AtLeast;  // codespell:ignore AtLeast
 using testing::ByMove;
 using testing::ExplainMatchResult;
 using testing::InSequence;
@@ -169,7 +169,7 @@ TEST_F(Http1CurlClientTest, FailureEnds) {
   response.body = BytesBuffer("resp");
 
   EXPECT_CALL(*wrapper_, PerformRequest)
-      .Times(AtLeast(2))
+      .Times(AtLeast(2))  // codespell:ignore AtLeast
       .WillRepeatedly(
           Return(RetryExecutionResult(errors::SC_CURL_CLIENT_REQUEST_FAILED)));
 

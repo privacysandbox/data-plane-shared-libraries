@@ -87,7 +87,7 @@ fi
 # named after the build target, so changing the build target will lose history
 # if not preserved. To remedy this, add a map from "json_file_names" to
 # "perfgate_benchmark_name" in https://source.corp.google.com/piper///depot/google3/chrome/privacy_sandbox/kiwi_air_force/perfgate/backfill_placer_data.sh;l=44.
-# IMPORTANT: When changing target names, please change all other occurances.
+# IMPORTANT: When changing target names, please change all other occurrences.
 if [[ ${#targets[@]} -eq 0 ]]; then
   targets+=(
     //src/aws/proxy:benchmark_test

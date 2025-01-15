@@ -43,12 +43,12 @@ class NativeFunctionInvoker {
    * @brief Invoke a native function linked to the given function invocation.
    * @param function_name is the name of the function to invoke. This is the
    * name that was used to register the function on the JS side.
-   * @param[inout] rpc_wrapper is a wrapper around the function binding context
+   * @param[input] rpc_wrapper is a wrapper around the function binding context
    * and associated execution info needed for host process execution. The
    * function binding context is a two-way proto that contains the input to be
    * passed to the c++ function and the return value that is set by the c++
    * function and which is passed to the JS function as a return. The execution
-   * info neeeded in the host process includes the associated invocation
+   * info needed in the host process includes the associated invocation
    * request's id and uuid, and the name of the native function to call with
    * the function binding context in the host process.
    */

@@ -78,7 +78,7 @@ class AwsInstanceClientProvider : public InstanceClientProviderInterface {
                              GetInstanceDetailsByResourceNameResponse>&
           context) noexcept override;
 
-  // Not implemeted. AWS SDK supports this command, see
+  // Not implemented. AWS SDK supports this command, see
   // `DescribeAutoScalingGroups`. Please use it directly. Alternatively, that
   // SDK logic can also be put here.
   absl::Status ListInstanceDetailsByEnvironment(

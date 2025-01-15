@@ -218,7 +218,7 @@ TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
   }
 
   // result is a JSON representation of a string-serialized proto. Construct a
-  // tempory JSON object to remove JSON-escaped characters. Necessary because
+  // temporary JSON object to remove JSON-escaped characters. Necessary because
   // nlohmann can only parse JSON objects.
   std::string jsonStr = R"({"result": )" + result + "}";
   nlohmann::json j = nlohmann::json::parse(jsonStr);

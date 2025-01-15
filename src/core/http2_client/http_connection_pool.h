@@ -106,7 +106,7 @@ class HttpConnectionPool {
 
   /**
    * @brief If a connection goes bad for any reason, the connection pool will
-   * recycle the connection by stopping it and reseting the object.
+   * recycle the connection by stopping it and resetting the object.
    *
    * @param connection The connection to be recycled.
    */

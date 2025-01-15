@@ -1,0 +1,3 @@
+[codespell]
+ignore-words-list = Affinitized,AtLeast,CopyIn,assertIn
+skip = src/roma/benchmark/test_code.h,src/roma/roma_service/function_binding_test.cc

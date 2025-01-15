@@ -17,7 +17,7 @@ load("@bazel_tools//tools/build_defs/repo:utils.bzl", "maybe")
 
 # Loads com_github_grpc_grpc.
 # Defines @com_github_grpc_grpc before @com_github_googleapis_google_cloud_cpp
-# to override the dependenices in @com_github_googleapis_google_cloud_cpp.
+# to override the dependencies in @com_github_googleapis_google_cloud_cpp.
 
 def grpc():
     maybe(

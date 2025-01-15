@@ -26,7 +26,7 @@ namespace google::scp::core {
 inline constexpr size_t kMaxThreadCount = 10000;
 /// The maximum queue cap could be set.
 inline constexpr size_t kMaxQueueCap = std::numeric_limits<uint64_t>::max();
-/// The sleep interval for shutting down threads in miliseconds.
+/// The sleep interval for shutting down threads in milliseconds.
 inline constexpr size_t kSleepDurationMs = 10;
 /// Indicates an infinite wait time.
 inline constexpr std::chrono::nanoseconds kInfiniteWaitDurationNs =

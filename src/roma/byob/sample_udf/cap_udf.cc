@@ -48,7 +48,7 @@ int main(int argc, char* argv[]) {
   cap_t caps = cap_get_proc();
   absl::Cleanup caps_cleaner = [caps] { cap_free(caps); };
   if (caps == nullptr) {
-    bin_response.set_greeting("Failed to get capabilites.");
+    bin_response.set_greeting("Failed to get capabilities.");
   } else if (cap_t empty_caps = cap_init();
              cap_compare(caps, empty_caps) == 0) {
     // All good.
