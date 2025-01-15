@@ -306,6 +306,11 @@ int ReloaderImpl(void* arg) {
        GetSourcesAndTargets(reloader_impl_arg.mounts)) {
     sources_and_targets_read_only.push_back({target, target});
   }
+  CHECK_OK(SetPrctlOptions({{PR_CAPBSET_DROP, CAP_SYS_BOOT},
+                            {PR_CAPBSET_DROP, CAP_SYS_MODULE},
+                            {PR_CAPBSET_DROP, CAP_SYS_RAWIO},
+                            {PR_CAPBSET_DROP, CAP_MKNOD},
+                            {PR_CAPBSET_DROP, CAP_NET_ADMIN}}));
   while (true) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
