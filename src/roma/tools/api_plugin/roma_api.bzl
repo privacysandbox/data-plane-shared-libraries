@@ -448,6 +448,8 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
         <name>_shell.md
         <name>_benchmark.cc
         <name>_benchmark.md
+        <name>_traffic_generator.cc
+        <name>_traffic_generator.md
 
     Targets:
         <name> -- cc_library
@@ -488,6 +490,11 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
         suffixes = ["benchmark.md"],
     )
     _filter_files_suffix(
+        name = name + "_tools_traffic_generator_docs",
+        targets = [name_proto],
+        suffixes = ["traffic_generator.md"],
+    )
+    _filter_files_suffix(
         name = "{}_benchmark.cc".format(name),
         targets = [name_proto],
         suffixes = ["benchmark.cc"],
@@ -496,6 +503,11 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
         name = "{}_shell.cc".format(name),
         targets = [name_proto],
         suffixes = ["shell.cc"],
+    )
+    _filter_files_suffix(
+        name = "{}_traffic_generator.cc".format(name),
+        targets = [name_proto],
+        suffixes = ["traffic_generator.cc"],
     )
 
     cc_library(
@@ -604,6 +616,49 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
         entrypoint = ["/tools/shell-cli"],
         repo_tags = ["{}/shell:v1".format(repo_tag_prefix)],
         tars = [":{}_shell_tar".format(name)],
+        **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
+    )
+
+    cc_binary(
+        name = "{}_traffic_generator".format(name),
+        srcs = [":{}_traffic_generator.cc".format(name)],
+        deps = [
+            udf_cc_proto_lib,
+            ":{}".format(name),
+            Label("//src/communication:json_utils"),
+            Label("//src/roma/byob/benchmark:burst_generator"),
+            Label("//src/util:periodic_closure"),
+            "@com_google_absl//absl/flags:flag",
+            "@com_google_absl//absl/flags:parse",
+            "@com_google_absl//absl/log:check",
+            "@com_google_absl//absl/log",
+            "@com_google_absl//absl/log:globals",
+            "@com_google_absl//absl/status",
+            "@com_google_absl//absl/status:statusor",
+            "@com_google_absl//absl/strings",
+            "@com_google_absl//absl/log:initialize",
+            "@com_google_absl//absl/synchronization",
+        ],
+        **{k: v for (k, v) in kwargs.items() if k in _cc_attrs and k != "visibility"}
+    )
+    pkg_files(
+        name = "{}_traffic_generator_execs".format(name),
+        srcs = [":{}_traffic_generator".format(name)],
+        attributes = pkg_attributes(mode = "0555"),
+        prefix = "/tools",
+        renames = {
+            ":{}_traffic_generator".format(name): "traffic-generator-cli",
+        },
+    )
+    pkg_tar(
+        name = "{}_traffic_generator_tar".format(name),
+        srcs = [":{}_traffic_generator_execs".format(name)],
+    )
+    roma_byob_image(
+        name = "{}_traffic_generator_image".format(name),
+        entrypoint = ["/tools/traffic-generator-cli"],
+        repo_tags = ["{}/traffic-generator:v1".format(repo_tag_prefix)],
+        tars = [":{}_traffic_generator_tar".format(name)],
         **{k: v for (k, v) in kwargs.items() if k not in ["base", "tars", "visibility"]}
     )
 
@@ -1061,6 +1116,13 @@ def roma_byob_sdk(
                 target_subdir = "tools",
             ),
         )
+        docs.append(
+            declare_doc(
+                doc = ":{}_roma_cc_lib_tools_traffic_generator_docs".format(name),
+                target_filename = "traffic-generator-cli.md",
+                target_subdir = "tools",
+            ),
+        )
 
     docs_subdirs = {d.target_subdir: 0 for d in docs}.keys()
 
@@ -1090,11 +1152,13 @@ def roma_byob_sdk(
             srcs = [
                 ":{}_roma_cc_lib_shell_image.tar".format(name),
                 ":{}_roma_cc_lib_benchmark_image.tar".format(name),
+                ":{}_roma_cc_lib_traffic_generator_image.tar".format(name),
             ],
             prefix = "tools",
             renames = {
                 ":{}_roma_cc_lib_shell_image.tar".format(name): "shell-cli.tar",
                 ":{}_roma_cc_lib_benchmark_image.tar".format(name): "benchmark-cli.tar",
+                ":{}_roma_cc_lib_traffic_generator_image.tar".format(name): "traffic-generator-cli.tar",
             },
         )
         sdk_srcs.append(":{}_shell_tools".format(name))

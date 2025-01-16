@@ -140,6 +140,16 @@ _cc_app_template_plugins = [
             sub_directory = "byob/app",
         ),
         struct(
+            template_file = "cpp_roma_byob_traffic_generator.tmpl",
+            suffix = "_traffic_generator.cc",
+            sub_directory = "byob/app",
+        ),
+        struct(
+            template_file = "md_roma_byob_traffic_generator.tmpl",
+            suffix = "_traffic_generator.md",
+            sub_directory = "byob/app",
+        ),
+        struct(
             template_file = "md_cpp_client_sdk.tmpl",
             suffix = "_cc_byob_app_api_client_sdk.md",
             sub_directory = "byob/app",

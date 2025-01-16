@@ -1,0 +1,28 @@
+# Roma BYOB traffic Generator
+
+## Overview
+
+Run with:
+```
+docker load -i tools/traffic-generator-cli.tar
+docker run \
+  --privileged \
+  -it \
+  --rm \
+  --volume /absolute/path/my_udfs:/udf \
+  privacy-sandbox/sample-byob-sdk/roma-byob/traffic-generator:v1 \
+  <flags>
+```
+
+## Flags
+
+| Flag                   | Description                                                 |
+| ---------------------- | ----------------------------------------------------------- |
+| `--udf`                | the UDF executable to be benchmarked                        |
+| `--rpc`                | the name of the rpc method to invoke                        |
+| `--request`            | the file for the UDF request, in json or text proto format  |
+| `--sandbox_mode`       | BYOB sandboxing mode                                        |
+| `--num_workers`        | number of workers                                           |
+| `--num_queries`        | number of queries to be sent                                |
+| `--burst_size`         | number of times to execute for a single query               |
+| `--queries_per_second` | number of queries to be sent in a second                    |
