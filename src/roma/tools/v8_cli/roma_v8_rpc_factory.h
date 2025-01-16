@@ -45,6 +45,15 @@ void StringOutFunction(FunctionBindingPayload<>& wrapper) {
   wrapper.io_proto.set_output_string("Function from C++");
 }
 
+void SleepFunction(FunctionBindingPayload<>& wrapper) {
+  absl::Duration duration;
+  CHECK(absl::ParseDuration(wrapper.io_proto.input_string(), &duration));
+  privacy_sandbox::server_common::Stopwatch stopwatch;
+  absl::SleepFor(duration);
+  wrapper.io_proto.set_output_string(
+      absl::StrCat("Callback Duration: ", stopwatch.GetElapsedTime()));
+}
+
 std::string GetUDF(std::string_view udf_file_path) {
   LOG(INFO) << "Loading UDF from file \"" << udf_file_path << "\"...";
   std::ifstream input_str(udf_file_path.data());
@@ -75,6 +84,8 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
   config.SetLoggingFunction(std::move(logging_fn));
   config.RegisterFunctionBinding(
       CreateFunctionBindingObjectV2("callback", StringOutFunction));
+  config.RegisterFunctionBinding(
+      CreateFunctionBindingObjectV2("sleep", SleepFunction));
 
   LOG(INFO) << "Initializing RomaService with " << num_workers << " workers...";
   auto roma_service = std::make_unique<RomaV8Service>(std::move(config));
