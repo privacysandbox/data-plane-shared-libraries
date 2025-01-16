@@ -36,6 +36,7 @@
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
+#include "absl/synchronization/notification.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/utility/file_reader.h"
@@ -70,28 +71,28 @@ class Dispatcher {
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
-    FdAndToken fd_and_token;
+    RequestMetadata* request_metadata;
     {
       auto fn = [&] {
         mu_.AssertReaderHeld();
-        const auto it = code_token_to_fds_and_tokens_.find(code_token);
-        return it == code_token_to_fds_and_tokens_.end() || !it->second.empty();
+        const auto it = code_token_to_request_metadatas_.find(code_token);
+        return it == code_token_to_request_metadatas_.end() ||
+               !it->second.empty();
       };
       absl::MutexLock l(&mu_);
       mu_.Await(absl::Condition(&fn));
-      const auto it = code_token_to_fds_and_tokens_.find(code_token);
-      if (it == code_token_to_fds_and_tokens_.end()) {
+      const auto it = code_token_to_request_metadatas_.find(code_token);
+      if (it == code_token_to_request_metadatas_.end()) {
         return absl::InvalidArgumentError("Unrecognized code token.");
       }
-      fd_and_token = std::move(it->second.front());
+      request_metadata = it->second.front();
       it->second.pop();
-      ++executor_threads_in_flight_;
     }
-    std::thread(
-        &Dispatcher::ExecutorImpl, this, fd_and_token.fd, std::move(request),
-        [callback = std::move(callback),
-         log_file_name = log_dir_ / absl::StrCat(fd_and_token.token, ".log")](
-            const int fd) mutable {
+    request_metadata->handler =
+        [request = std::move(request), callback = std::move(callback)](
+            const int fd, std::filesystem::path log_file_name) mutable {
+          google::protobuf::util::SerializeDelimitedToFileDescriptor(request,
+                                                                     fd);
           Response response;
           if (google::protobuf::io::FileInputStream input(fd);
               !google::protobuf::util::ParseDelimitedFromZeroCopyStream(
@@ -104,32 +105,32 @@ class Dispatcher {
                 std::move(response),
                 FileReader::GetContent(FileReader::Create(log_file_name)));
           }
-        })
-        .detach();
-    return google::scp::roma::ExecutionToken{std::move(fd_and_token).token};
+          ::close(fd);
+        };
+    google::scp::roma::ExecutionToken execution_token{
+        std::move(request_metadata->token)};
+    request_metadata->ready.Notify();
+    return execution_token;
   }
 
  private:
-  struct FdAndToken {
-    int fd;
+  struct RequestMetadata {
     std::string token;
+    absl::AnyInvocable<void(int, std::filesystem::path) &&> handler;
+    absl::Notification ready;
   };
 
   // Accepts connections from newly created UDF instances, reads code tokens,
   // and pushes file descriptors to the queue.
   void AcceptorImpl(std::string parent_code_token) ABSL_LOCKS_EXCLUDED(mu_);
-  void ExecutorImpl(int fd, const google::protobuf::Message& request,
-                    absl::AnyInvocable<void(int) &&> handler)
-      ABSL_LOCKS_EXCLUDED(mu_);
 
   int listen_fd_;
   std::filesystem::path log_dir_;
   std::unique_ptr<WorkerRunnerService::Stub> stub_;
   absl::Mutex mu_;
   int acceptor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
-  int executor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
-  absl::flat_hash_map<std::string, std::queue<FdAndToken>>
-      code_token_to_fds_and_tokens_ ABSL_GUARDED_BY(mu_);
+  absl::flat_hash_map<std::string, std::queue<RequestMetadata*>>
+      code_token_to_request_metadatas_ ABSL_GUARDED_BY(mu_);
 };
 }  // namespace privacy_sandbox::server_common::byob
 
