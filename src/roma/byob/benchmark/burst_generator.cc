@@ -180,7 +180,9 @@ absl::Duration BurstGenerator::Generate(
   const std::string qid = absl::StrCat(id_, "-", burst_id);
   for (int i = 0; i < burst_size_; ++i) {
     privacy_sandbox::server_common::Stopwatch fn_stopwatch;
-    func_(std::move(fn_stopwatch), latencies_ptr++);
+    notifications_.emplace_back(std::make_unique<absl::Notification>());
+    func_(std::move(fn_stopwatch), latencies_ptr++,
+          notifications_.back().get());
   }
   return stopwatch.GetElapsedTime();
 }

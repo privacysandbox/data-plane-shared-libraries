@@ -28,9 +28,9 @@
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 
-using ExecutionFunc =
-    absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                            absl::StatusOr<absl::Duration>*)>;
+using ExecutionFunc = absl::AnyInvocable<void(
+    privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
+    absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace google::scp::roma::tools::v8_cli {
@@ -127,12 +127,14 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
   const auto execute_rpc_func =
       [roma_service = roma_service.get(), execution_objects, &completions](
           privacy_sandbox::server_common::Stopwatch stopwatch,
-          absl::StatusOr<absl::Duration>* duration) mutable {
+          absl::StatusOr<absl::Duration>* duration,
+          absl::Notification* done) mutable {
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->Execute(
                 std::make_unique<google::scp::roma::InvocationStrRequest<>>(
                     execution_objects[0]),
-                [duration, stopwatch = std::move(stopwatch), &completions](
+                [duration, stopwatch = std::move(stopwatch), done,
+                 &completions](
                     absl::StatusOr<google::scp::roma::ResponseObject> resp) {
                   if (resp.ok()) {
                     *duration = stopwatch.GetElapsedTime();
@@ -140,11 +142,13 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                     *duration = std::move(resp.status());
                   }
                   completions++;
+                  done->Notify();
                 });
 
         if (!exec_token.ok()) {
           *duration = exec_token.status();
           completions++;
+          done->Notify();
           return;
         }
       };
@@ -153,10 +157,11 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
       [roma_service = roma_service.get(),
        execution_objects = std::move(execution_objects),
        &completions](privacy_sandbox::server_common::Stopwatch stopwatch,
-                     absl::StatusOr<absl::Duration>* duration) mutable {
+                     absl::StatusOr<absl::Duration>* duration,
+                     absl::Notification* done) mutable {
         absl::Status status = roma_service->BatchExecute(
             execution_objects,
-            [duration, stopwatch = std::move(stopwatch), &completions](
+            [duration, stopwatch = std::move(stopwatch), done, &completions](
                 const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
               if (batch_resp[0].ok()) {
                 *duration = stopwatch.GetElapsedTime();
@@ -164,12 +169,14 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                 *duration = std::move(batch_resp[0].status());
               }
               completions += batch_resp.size();
+              done->Notify();
             });
 
         if (!status.ok()) {
           std::cout << status.message() << std::endl;
           *duration = status;
           completions++;
+          done->Notify();
           return;
         }
       };

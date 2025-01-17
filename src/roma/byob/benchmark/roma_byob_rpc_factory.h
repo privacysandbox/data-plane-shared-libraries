@@ -36,9 +36,9 @@ using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 
-using ExecutionFunc =
-    absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                            absl::StatusOr<absl::Duration>*)>;
+using ExecutionFunc = absl::AnyInvocable<void(
+    privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
+    absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace privacy_sandbox::server_common::byob {
@@ -62,7 +62,8 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   const auto rpc_func = [roma_service = roma_service.get(),
                          code_token = std::move(code_token), &completions](
                             privacy_sandbox::server_common::Stopwatch stopwatch,
-                            absl::StatusOr<absl::Duration>* duration) {
+                            absl::StatusOr<absl::Duration>* duration,
+                            absl::Notification* done) {
     ::privacy_sandbox::roma_byob::example::SampleRequest request;
     request.set_function(FUNCTION_HELLO_WORLD);
 
@@ -70,7 +71,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
         roma_service->ProcessRequest<SampleResponse>(
             std::string_view(*code_token), request,
             google::scp::roma::DefaultMetadata(),
-            [stopwatch = std::move(stopwatch), duration,
+            [stopwatch = std::move(stopwatch), duration, done,
              &completions](absl::StatusOr<SampleResponse> response) {
               if (response.ok()) {
                 *duration = stopwatch.GetElapsedTime();
@@ -78,10 +79,12 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
                 *duration = std::move(response.status());
               }
               completions++;
+              done->Notify();
             });
     if (!exec_token.ok()) {
       *duration = exec_token.status();
       completions++;
+      done->Notify();
     }
   };
 

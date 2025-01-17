@@ -83,9 +83,9 @@ namespace {
 using ::google::scp::roma::tools::v8_cli::CreateV8RpcFunc;
 using ::privacy_sandbox::server_common::PeriodicClosure;
 
-using ExecutionFunc =
-    absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                            absl::StatusOr<absl::Duration>*)>;
+using ExecutionFunc = absl::AnyInvocable<void(
+    privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
+    absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 }  // namespace
@@ -174,6 +174,12 @@ int main(int argc, char** argv) {
             << "\n  num bursts: " << num_queries << std::endl;
 
   const BurstGenerator::Stats stats = burst_gen.Run();
+
+  // Wait for all RPCs to complete before stopping the service
+  LOG(INFO) << "Waiting for all RPCs to complete...";
+  burst_gen.WaitForCompletion();
+  LOG(INFO) << "All RPCs completed.";
+
   // RomaService must be cleaned up before stats are reported, to ensure the
   // service's work is completed
   stop_func();

@@ -161,7 +161,7 @@ void RunTrafficGenerator() {
       CHECK(google::protobuf::TextFormat::ParseFromString(request_content,
                                                           &request.emplace()));
     }
-    auto rpc_func = [&] (auto stopwatch, auto* duration) {
+    auto rpc_func = [&] (auto stopwatch, auto* duration, absl::Notification* done) {
       {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, completions, std::move(stopwatch),
                                *duration, *request);
     };
