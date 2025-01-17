@@ -58,7 +58,7 @@ class BurstGenerator final {
       std::string id, int64_t num_bursts, int64_t burst_size,
       absl::Duration cadence,
       absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                              absl::StatusOr<absl::Duration>*) const>
+                              absl::StatusOr<absl::Duration>*)>
           func)
       : id_(std::move(id)),
         num_bursts_(num_bursts),
@@ -67,9 +67,9 @@ class BurstGenerator final {
         func_(std::move(func)) {}
   ~BurstGenerator() = default;
 
-  Stats Run() const;
+  Stats Run();
   absl::Duration Generate(std::string burst_id,
-                          absl::StatusOr<absl::Duration>* latencies_ptr) const;
+                          absl::StatusOr<absl::Duration>* latencies_ptr);
 
  private:
   std::string id_;
@@ -77,7 +77,7 @@ class BurstGenerator final {
   int64_t burst_size_;
   absl::Duration cadence_;
   absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                          absl::StatusOr<absl::Duration>*) const>
+                          absl::StatusOr<absl::Duration>*)>
       func_;
 };
 

@@ -149,7 +149,7 @@ Report BurstGenerator::Stats::ToReport() const {
   return report;
 }
 
-BurstGenerator::Stats BurstGenerator::Run() const {
+BurstGenerator::Stats BurstGenerator::Run() {
   Stats stats(burst_size_, num_bursts_);
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::Time expected_start = absl::Now();
@@ -175,7 +175,7 @@ BurstGenerator::Stats BurstGenerator::Run() const {
 }
 
 absl::Duration BurstGenerator::Generate(
-    std::string burst_id, absl::StatusOr<absl::Duration>* latencies_ptr) const {
+    std::string burst_id, absl::StatusOr<absl::Duration>* latencies_ptr) {
   privacy_sandbox::server_common::Stopwatch stopwatch;
   const std::string qid = absl::StrCat(id_, "-", burst_id);
   for (int i = 0; i < burst_size_; ++i) {

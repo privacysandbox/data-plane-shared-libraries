@@ -28,6 +28,11 @@
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 
+using ExecutionFunc =
+    absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
+                            absl::StatusOr<absl::Duration>*)>;
+using CleanupFunc = absl::AnyInvocable<void()>;
+
 namespace google::scp::roma::tools::v8_cli {
 
 using RomaV8Service = google::scp::roma::sandbox::roma_service::RomaService<>;
@@ -64,15 +69,13 @@ std::string GetUDF(std::string_view udf_file_path) {
                      (std::istreambuf_iterator<char>()));
 }
 
-using ExecutionFunc =
-    absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                            absl::StatusOr<absl::Duration>*) const>;
-using CleanupFunc = absl::AnyInvocable<void()>;
-
+// If batch_execute is true, burst_size requests will be bundled and executed
+// using RomaService::BatchExecute Otherwise, burst_size requests will be
+// executed individually using RomaService::Execute
 std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
     int num_workers, std::string_view udf_path, std::string_view handler_name,
-    std::vector<std::string> input_args,
-    std::atomic<std::int64_t>& completions) {
+    std::vector<std::string> input_args, std::atomic<std::int64_t>& completions,
+    int burst_size = 1, bool batch_execute = false) {
   CHECK(!udf_path.empty()) << "UDF path must be specified in V8 mode";
   CHECK(!handler_name.empty()) << "Handler name must be specified in V8 mode";
 
@@ -110,39 +113,72 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
   load_finished.WaitForNotification();
   LOG(INFO) << "UDF loaded successfully";
 
-  google::scp::roma::InvocationStrRequest<> execution_object = {
-      .id = google::scp::core::common::ToString(
-          google::scp::core::common::Uuid::GenerateUuid()),
-      .version_string = "v1",
-      .handler_name = std::string(handler_name),
-      .input = std::move(input_args),
-  };
+  std::vector<google::scp::roma::InvocationStrRequest<>> execution_objects;
+  for (int i = 0; i < burst_size; i++) {
+    execution_objects.push_back({
+        .id = google::scp::core::common::ToString(
+            google::scp::core::common::Uuid::GenerateUuid()),
+        .version_string = "v1",
+        .handler_name = std::string(handler_name),
+        .input = std::move(input_args),
+    });
+  }
 
-  const auto rpc_func = [roma_service = roma_service.get(),
-                         execution_object = std::move(execution_object),
-                         &completions](
-                            privacy_sandbox::server_common::Stopwatch stopwatch,
-                            absl::StatusOr<absl::Duration>* duration) {
-    absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
-        roma_service->Execute(
-            std::make_unique<google::scp::roma::InvocationStrRequest<>>(
-                execution_object),
+  const auto execute_rpc_func =
+      [roma_service = roma_service.get(), execution_objects, &completions](
+          privacy_sandbox::server_common::Stopwatch stopwatch,
+          absl::StatusOr<absl::Duration>* duration) mutable {
+        absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
+            roma_service->Execute(
+                std::make_unique<google::scp::roma::InvocationStrRequest<>>(
+                    execution_objects[0]),
+                [duration, stopwatch = std::move(stopwatch), &completions](
+                    absl::StatusOr<google::scp::roma::ResponseObject> resp) {
+                  if (resp.ok()) {
+                    *duration = stopwatch.GetElapsedTime();
+                  } else {
+                    *duration = std::move(resp.status());
+                  }
+                  completions++;
+                });
+
+        if (!exec_token.ok()) {
+          *duration = exec_token.status();
+          completions++;
+          return;
+        }
+      };
+
+  const auto batch_execute_rpc_func =
+      [roma_service = roma_service.get(),
+       execution_objects = std::move(execution_objects),
+       &completions](privacy_sandbox::server_common::Stopwatch stopwatch,
+                     absl::StatusOr<absl::Duration>* duration) mutable {
+        absl::Status status = roma_service->BatchExecute(
+            execution_objects,
             [duration, stopwatch = std::move(stopwatch), &completions](
-                absl::StatusOr<google::scp::roma::ResponseObject> resp) {
-              if (resp.ok()) {
+                const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
+              if (batch_resp[0].ok()) {
                 *duration = stopwatch.GetElapsedTime();
               } else {
-                *duration = std::move(resp.status());
+                *duration = std::move(batch_resp[0].status());
               }
-              completions++;
+              completions += batch_resp.size();
             });
 
-    if (!exec_token.ok()) {
-      *duration = exec_token.status();
-      completions++;
-      return;
-    }
-  };
+        if (!status.ok()) {
+          std::cout << status.message() << std::endl;
+          *duration = status;
+          completions++;
+          return;
+        }
+      };
+
+  ExecutionFunc rpc_func = std::move(execute_rpc_func);
+  if (batch_execute) {
+    LOG(INFO) << "Batching enabled";
+    rpc_func = std::move(batch_execute_rpc_func);
+  }
 
   auto callback = [roma_service = std::move(roma_service)]() {
     privacy_sandbox::server_common::Stopwatch stopwatch;

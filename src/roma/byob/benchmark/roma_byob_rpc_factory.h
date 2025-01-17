@@ -36,12 +36,12 @@ using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 
-namespace privacy_sandbox::server_common::byob {
 using ExecutionFunc =
     absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                            absl::StatusOr<absl::Duration>*) const>;
+                            absl::StatusOr<absl::Duration>*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
+namespace privacy_sandbox::server_common::byob {
 std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
     int num_workers, std::string_view lib_mounts, std::string_view binary_path,
     Mode mode, std::atomic<std::int64_t>& completions,
