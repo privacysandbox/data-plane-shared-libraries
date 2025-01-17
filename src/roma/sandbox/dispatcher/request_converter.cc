@@ -64,10 +64,6 @@ void AddMetadata(std::string version_string, std::string id,
   } else {
     params.set_code(std::move(request.wasm));
   }
-  if (const auto it = request.tags.find(google::scp::roma::kWasmCodeArrayName);
-      it != request.tags.end()) {
-    metadata[google::scp::roma::kWasmCodeArrayName] = it->second;
-  }
   return params;
 }
 }  // namespace google::scp::roma::sandbox

@@ -67,6 +67,20 @@ cc_library(
 )
 
 cc_test(
+    name = "request_converter_test",
+    size = "small",
+    srcs = ["request_converter_test.cc"],
+    deps = [
+        ":request_converter",
+        "//src/core/test/utils",
+        "//src/roma/interface",
+        "//src/roma/sandbox/worker_api/sapi:worker_sandbox_api",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "dispatcher_test",
     size = "small",
     srcs = ["dispatcher_test.cc"],
