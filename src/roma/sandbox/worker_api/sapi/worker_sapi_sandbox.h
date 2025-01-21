@@ -51,6 +51,12 @@ class WorkerSapiSandbox : public WorkerWrapperSandbox {
  protected:
   // Gets extra arguments to be passed to the sandboxee.
   void GetArgs(std::vector<std::string>* args) const override {
+    absl::SetVLogLevel("*monitor_ptrace.cc*", 0);
+    absl::SetVLogLevel("*sandbox.cc*", 0);
+    absl::SetVLogLevel("*var_abstract.cc*", 0);
+    absl::SetVLogLevel("*monitor_base.cc*", 0);
+    absl::SetVLogLevel("*policy.cc*", 0);
+
 #ifdef ABSL_MIN_LOG_LEVEL
     // Gets ABSL_MIN_LOG_LEVEL value and pass it into sandbox.
     args->push_back(
