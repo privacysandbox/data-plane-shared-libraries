@@ -221,8 +221,8 @@ if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
   mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/ld-2.31.so "$${{ROOT_DIR}}/lib64/ld-linux-$${{MACHINE/_/-}}.so.2"
   rm -rf "$${{ROOT_DIR}}/lib"
 fi
-
-tar --create --gzip --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$${{TMPDIR}}" "{roma_container_dir}/"
+# TODO: b/330312036 - Avoid compressing this tar till rules_docker is deprecated.
+tar --create --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$${{TMPDIR}}" "{roma_container_dir}/"
 rm -rf "$${{TMPDIR}}"
 """.format(
             flavor = user.flavor,
