@@ -27,7 +27,7 @@ proto_library(
 buf_lint_test(
     name = "options_proto_lint",
     size = "small",
-    config = "//src:buf.yaml",
+    config = "//apis:buf.yaml",
     targets = [
         ":options_proto",
     ],
