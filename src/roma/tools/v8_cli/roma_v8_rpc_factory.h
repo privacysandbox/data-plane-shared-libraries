@@ -74,8 +74,9 @@ std::string GetUDF(std::string_view udf_file_path) {
 // executed individually using RomaService::Execute
 std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
     int num_workers, std::string_view udf_path, std::string_view handler_name,
-    std::vector<std::string> input_args, std::atomic<std::int64_t>& completions,
-    int burst_size = 1, bool batch_execute = false) {
+    const std::vector<std::string>& input_args,
+    std::atomic<std::int64_t>& completions, int burst_size = 1,
+    bool batch_execute = false) {
   CHECK(!udf_path.empty()) << "UDF path must be specified in V8 mode";
   CHECK(!handler_name.empty()) << "Handler name must be specified in V8 mode";
 
@@ -114,13 +115,17 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
   LOG(INFO) << "UDF loaded successfully";
 
   std::vector<google::scp::roma::InvocationStrRequest<>> execution_objects;
+  std::vector<std::string> escaped_input_args;
+  for (const auto& arg : input_args) {
+    escaped_input_args.push_back(absl::StrCat("\"", arg, "\""));
+  }
   for (int i = 0; i < burst_size; i++) {
     execution_objects.push_back({
         .id = google::scp::core::common::ToString(
             google::scp::core::common::Uuid::GenerateUuid()),
         .version_string = "v1",
         .handler_name = std::string(handler_name),
-        .input = std::move(input_args),
+        .input = escaped_input_args,
     });
   }
 
