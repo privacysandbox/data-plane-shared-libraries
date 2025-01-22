@@ -18,7 +18,7 @@ exclude: (?x)^(
   bazel-(bin|out|testlogs|workspace)/.*|
   .bazel_output/.*|
   builders/.*|
-  (third_party|src)/.*\.patch|
+  .*\.patch|
   version.txt|
   docs/cpio/protobuf/.*\.md
   )$
