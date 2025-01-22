@@ -1160,6 +1160,96 @@ TEST(SandboxedServiceTest, BatchExecute) {
   ASSERT_TRUE(roma_service.Stop().ok());
 }
 
+void CallbackFunc(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string("Hello world!");
+}
+
+TEST(SandboxedServiceTest, DISABLED_CanReuseRequestForMultipleBatches) {
+  Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "callback",
+          .function = CallbackFunc,
+      }));
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::vector<absl::StatusOr<ResponseObject>> batch_responses;
+  int res_count = 0;
+  constexpr size_t kBatchSize = 5;
+  absl::Notification load_finished;
+  absl::Notification execute_batch_1_finished;
+  absl::Notification execute_batch_2_finished;
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+    function Handler() { return callback();
+    }
+  )JS_CODE",
+    });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  {
+    // First batch will be executed, as a side effect, each request will have a
+    // {kRequestUuid, uuid_str} pair in its tags.
+    auto execution_obj = InvocationStrRequest<>({
+        .id = "foo",
+        .version_string = "v1",
+        .handler_name = "Handler",
+    });
+
+    std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
+    ASSERT_TRUE(
+        roma_service
+            .BatchExecute(
+                batch,
+                [&](const std::vector<absl::StatusOr<ResponseObject>>&
+                        batch_resp) { execute_batch_1_finished.Notify(); })
+            .ok());
+    ASSERT_TRUE(execute_batch_1_finished.WaitForNotificationWithTimeout(
+        absl::Seconds(10)));
+
+    // The second batch should still be able to be executed, ensuring the
+    // {kRequestUuid, uuid_str} pair in each request's tags is updated.
+    ASSERT_TRUE(
+        roma_service
+            .BatchExecute(batch,
+                          [&](const std::vector<absl::StatusOr<ResponseObject>>&
+                                  batch_resp) {
+                            batch_responses = batch_resp;
+                            res_count = batch_resp.size();
+                            execute_batch_2_finished.Notify();
+                          })
+            .ok());
+
+    ASSERT_TRUE(execute_batch_2_finished.WaitForNotificationWithTimeout(
+        absl::Seconds(10)));
+  }
+
+  for (auto resp : batch_responses) {
+    EXPECT_TRUE(resp.ok());
+    EXPECT_THAT(resp->resp, StrEq(R"("Hello world!")"));
+  }
+  EXPECT_EQ(res_count, kBatchSize);
+
+  ASSERT_TRUE(roma_service.Stop().ok());
+}
+
 TEST(SandboxedServiceTest,
      BatchExecuteShouldExecuteAllRequestsEvenWithSmallQueues) {
   Config config;
