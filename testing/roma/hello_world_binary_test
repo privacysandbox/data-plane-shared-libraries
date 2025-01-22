@@ -1,0 +1,29 @@
+#!/bin/bash
+
+set -e
+
+echo "Building hello_world_binary..."
+builders/tools/bazel-debian build -c opt testing/roma:hello_world_binary
+
+echo "Running hello_world_binary..."
+output="$(bazel-bin/testing/roma/hello_world_binary 2>&1 | grep -Ev "sandbox.cc|monitor_base.cc|sandbox2.cc")"
+
+if ! echo "${output}" | grep -q "Execution result:.*success.*true"; then
+  echo "ERROR: Execution was not successful"
+  echo "Output: ${output}"
+  exit 1
+fi
+
+time_str="$(echo "${output}" | grep "Execution duration:" | sed -E 's/.*: (.+)$/\1/')"
+ms="$(echo "${time_str}" | sed -E 's/([0-9.]+)ms/\1/')"
+
+
+if (( $(echo "${ms} > 10" | bc -l) )); then
+  echo "ERROR: Execution took longer than 10ms (${time_str})"
+  echo "This usually indicates a build configuration issue."
+  echo "Make sure you're building with --compilation_mode=opt"
+  exit 1
+fi
+
+echo "SUCCESS: Hello world test passed"
+echo "Execution time: ${time_str}"
