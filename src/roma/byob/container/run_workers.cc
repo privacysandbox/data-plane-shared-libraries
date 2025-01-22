@@ -91,7 +91,7 @@ using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 
 const absl::NoDestructor<std::filesystem::path> kBinaryExe("bin.exe");
 
-constexpr std::array<int, 112> kSyscallAllowlist = {
+constexpr std::array<int, 121> kSyscallAllowlist = {
     SCMP_SYS(arch_prctl),
     SCMP_SYS(brk),
     // Only needed by cap_udf test to verify no capabilities are available to
@@ -100,6 +100,9 @@ constexpr std::array<int, 112> kSyscallAllowlist = {
     SCMP_SYS(clone),
     SCMP_SYS(clone3),
     SCMP_SYS(close),
+    SCMP_SYS(connect),
+    SCMP_SYS(dup2),
+    SCMP_SYS(dup3),
     SCMP_SYS(epoll_create),
     SCMP_SYS(epoll_create1),
     SCMP_SYS(epoll_ctl),
@@ -159,6 +162,7 @@ constexpr std::array<int, 112> kSyscallAllowlist = {
     SCMP_SYS(madvise),
     SCMP_SYS(mmap),
     SCMP_SYS(mmap2),
+    SCMP_SYS(mount),
     SCMP_SYS(mprotect),
     SCMP_SYS(mremap),
     SCMP_SYS(munmap),
@@ -183,6 +187,7 @@ constexpr std::array<int, 112> kSyscallAllowlist = {
     SCMP_SYS(readlink),
     SCMP_SYS(readlinkat),
     SCMP_SYS(readv),
+    SCMP_SYS(restart_syscall),
     SCMP_SYS(rt_sigaction),
     SCMP_SYS(rt_sigpending),
     SCMP_SYS(rt_sigprocmask),
@@ -191,6 +196,7 @@ constexpr std::array<int, 112> kSyscallAllowlist = {
     SCMP_SYS(rt_sigtimedwait),
     SCMP_SYS(rt_sigtimedwait_time64),
     SCMP_SYS(sched_getaffinity),
+    SCMP_SYS(sched_yield),
     SCMP_SYS(set_robust_list),
     SCMP_SYS(set_tid_address),
     SCMP_SYS(setsockopt),
@@ -198,7 +204,11 @@ constexpr std::array<int, 112> kSyscallAllowlist = {
     SCMP_SYS(socket),
     SCMP_SYS(stat),
     SCMP_SYS(stat64),
+    SCMP_SYS(wait4),
+    SCMP_SYS(waitpid),
+    SCMP_SYS(umount2),
     SCMP_SYS(uname),
+    SCMP_SYS(unshare),
     SCMP_SYS(unlink),
     SCMP_SYS(unlinkat),
     SCMP_SYS(write),
@@ -262,7 +272,6 @@ struct WorkerImplArg {
   bool enable_log_egress;
   std::string_view log_dir_name;
   std::string_view socket_dir_name;
-  const scmp_filter_ctx* scmp_filter;
 };
 
 absl::Status SetPrctlOptions(
@@ -332,10 +341,6 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
       "/", "/", nullptr, MS_REMOUNT | MS_BIND | MS_RDONLY));
   if (::unshare(CLONE_NEWUSER) == -1) {
     return absl::ErrnoToStatus(errno, "unshare(CLONE_NEWUSER)");
-  }
-  if (worker_impl_arg.scmp_filter != nullptr &&
-      seccomp_load(*worker_impl_arg.scmp_filter) < 0) {
-    return absl::ErrnoToStatus(errno, absl::StrCat("Failed to seccomp_load"));
   }
   return absl::OkStatus();
 }
@@ -414,11 +419,6 @@ int ReloaderImpl(void* arg) {
       *static_cast<ReloaderImplArg*>(arg);
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDOUT_FILENO));
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDERR_FILENO));
-  absl::StatusOr<scmp_filter_ctx> scmp_filter;
-  if (reloader_impl_arg.enable_seccomp_filter) {
-    scmp_filter = GetSeccompFilter();
-    CHECK_OK(scmp_filter);
-  }
   const absl::StatusOr<std::filesystem::path> pivot_root_dir =
       CreatePivotRootDir();
   CHECK_OK(pivot_root_dir);
@@ -463,6 +463,12 @@ int ReloaderImpl(void* arg) {
                             {PR_CAPBSET_DROP, CAP_SYS_RAWIO},
                             {PR_CAPBSET_DROP, CAP_MKNOD},
                             {PR_CAPBSET_DROP, CAP_NET_ADMIN}}));
+  absl::StatusOr<scmp_filter_ctx> scmp_filter;
+  if (reloader_impl_arg.enable_seccomp_filter) {
+    scmp_filter = GetSeccompFilter();
+    CHECK_OK(scmp_filter);
+    PCHECK(seccomp_load(*scmp_filter) == 0);
+  }
   while (true) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
@@ -478,9 +484,6 @@ int ReloaderImpl(void* arg) {
         .enable_log_egress = reloader_impl_arg.enable_log_egress,
         .log_dir_name = reloader_impl_arg.log_dir_name,
         .socket_dir_name = socket_dir.native(),
-        .scmp_filter =
-            (reloader_impl_arg.enable_seccomp_filter ? &(*scmp_filter)
-                                                     : nullptr),
     };
 
     // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may
