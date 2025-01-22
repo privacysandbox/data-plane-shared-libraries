@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef SRC_ROMA_BYOB_UTILITY_UTILS_H_
+#define SRC_ROMA_BYOB_UTILITY_UTILS_H_
+
 #include <filesystem>
 #include <utility>
 
@@ -42,3 +45,5 @@ absl::Status SetupPivotRoot(
         sources_and_targets_read_and_write = {},
     bool remount_root_as_read_only = true);
 }  // namespace privacy_sandbox::server_common::byob
+
+#endif  // SRC_ROMA_BYOB_UTILITY_UTILS_H_
