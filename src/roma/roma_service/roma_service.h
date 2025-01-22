@@ -381,7 +381,11 @@ class RomaService {
           google::scp::core::common::ToString(request_unique_id);
       // Save uuids for later removal in callback_wrapper
       uuids.push_back(uuid_str);
-      request.tags.insert({std::string(kRequestUuid), uuid_str});
+      auto [it, inserted] =
+          request.tags.insert({std::string(kRequestUuid), uuid_str});
+      if (!inserted) {
+        it->second = uuid_str;
+      }
       PS_RETURN_IF_ERROR(
           StoreMetadata(std::move(uuid_str), std::move(request.metadata)));
     }

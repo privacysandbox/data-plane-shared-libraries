@@ -216,7 +216,12 @@ TEST(MetadataSapiTest, MetadataAssociatedWithBatchedFunctions) {
             }
             local_execute.Notify();
           };
-      while (!roma_service.BatchExecute(batch, batch_callback).ok()) {
+      // Each retry needs to be done with a copy of the batch to give each
+      // request its own metadata, as BatchExecute moves metadata from each
+      // request in the batch to MetadataStorage.
+      for (auto batch_copy = batch;
+           !roma_service.BatchExecute(batch_copy, batch_callback).ok();
+           batch_copy = batch) {
       }
 
       // Thread cannot join until batch_callback is called.
