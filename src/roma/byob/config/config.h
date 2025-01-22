@@ -164,7 +164,7 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 struct Config {
   std::uint64_t memory_limit_soft = 0;
   std::uint64_t memory_limit_hard = 0;
-  std::string roma_container_name;
+  std::string roma_container_name = "default_roma_container_name";
   // Mounts /x -> /x and /y/z -> /z.
   std::string lib_mounts = LIB_MOUNTS;
   SyscallFiltering syscall_filtering =
