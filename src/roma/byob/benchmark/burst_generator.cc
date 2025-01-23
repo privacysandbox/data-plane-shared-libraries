@@ -23,8 +23,10 @@
 
 #include "absl/log/log.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_split.h"
 #include "absl/time/time.h"
 #include "google/protobuf/util/time_util.h"
+#include "src/roma/byob/benchmark/latency_formatter.h"
 #include "src/roma/byob/benchmark/traffic_generator.pb.h"
 #include "src/util/duration.h"
 
@@ -86,11 +88,14 @@ std::string BurstGenerator::Stats::ToString() const {
   Percentiles<absl::Duration> burst_ptiles = get_percentiles(burst_latencies);
   Percentiles<absl::Duration> invocation_ptiles =
       get_status_percentiles(invocation_latencies);
+  std::vector<absl::Duration> output_latencies =
+      LatencyFormatter::Parse(invocation_outputs);
+
   const double late_burst_pct =
       static_cast<double>(
           std::lround(static_cast<double>(late_count) / total_bursts * 1000)) /
       10;
-  return absl::StrCat(
+  auto stats_str = absl::StrCat(
       "total runtime: ", total_elapsed,
       "\n invocation count: ", total_invocation_count,
       "\n late bursts: ", late_count, " (", late_burst_pct, "%)",
@@ -102,6 +107,19 @@ std::string BurstGenerator::Stats::ToString() const {
       "\n  min: ", invocation_ptiles.min, "\n  p50: ", invocation_ptiles.p50,
       "\n  p90: ", invocation_ptiles.p90, "\n  p95: ", invocation_ptiles.p95,
       "\n  p99: ", invocation_ptiles.p99, "\n  max: ", invocation_ptiles.max);
+  // Each invocation should have a corresponding output, except in the case of
+  // batch_execute, where each invocation would be associated with a batch of
+  // outputs.
+  if (output_latencies.size() >= invocation_outputs.size()) {
+    Percentiles<absl::Duration> output_ptiles =
+        get_percentiles(output_latencies);
+    stats_str = absl::StrCat(
+        stats_str, "\noutput latencies", "\n  count: ", output_ptiles.count,
+        "\n  min: ", output_ptiles.min, "\n  p50: ", output_ptiles.p50,
+        "\n  p90: ", output_ptiles.p90, "\n  p95: ", output_ptiles.p95,
+        "\n  p99: ", output_ptiles.p99, "\n  max: ", output_ptiles.max);
+  }
+  return stats_str;
 }
 
 Report BurstGenerator::Stats::ToReport() const {
@@ -112,6 +130,8 @@ Report BurstGenerator::Stats::ToReport() const {
   Percentiles<absl::Duration> burst_ptiles = get_percentiles(burst_latencies);
   Percentiles<absl::Duration> invocation_ptiles =
       get_status_percentiles(invocation_latencies);
+  std::vector<absl::Duration> output_latencies =
+      LatencyFormatter::Parse(invocation_outputs);
 
   Report report;
 
@@ -146,6 +166,21 @@ Report BurstGenerator::Stats::ToReport() const {
   *inv_stats->mutable_p99() = DurationToProto(invocation_ptiles.p99);
   *inv_stats->mutable_max() = DurationToProto(invocation_ptiles.max);
 
+  // Each invocation should have a corresponding output, except in the case of
+  // batch_execute, where each invocation would be associated with a batch of
+  // outputs.
+  if (output_latencies.size() >= invocation_outputs.size()) {
+    Percentiles<absl::Duration> output_ptiles =
+        get_percentiles(output_latencies);
+    auto* output_stats = report.mutable_output_latencies();
+    output_stats->set_count(output_ptiles.count);
+    *output_stats->mutable_min() = DurationToProto(output_ptiles.min);
+    *output_stats->mutable_p50() = DurationToProto(output_ptiles.p50);
+    *output_stats->mutable_p90() = DurationToProto(output_ptiles.p90);
+    *output_stats->mutable_p95() = DurationToProto(output_ptiles.p95);
+    *output_stats->mutable_p99() = DurationToProto(output_ptiles.p99);
+    *output_stats->mutable_max() = DurationToProto(output_ptiles.max);
+  }
   return report;
 }
 
@@ -154,6 +189,7 @@ BurstGenerator::Stats BurstGenerator::Run() {
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::Time expected_start = absl::Now();
   auto latencies_it = stats.invocation_latencies.begin();
+  auto outputs_it = stats.invocation_outputs.begin();
   for (int i = 0; i < num_bursts_; i++) {
     std::string id = absl::StrCat("b", i);
     absl::Duration wait_time = expected_start - absl::Now();
@@ -164,10 +200,11 @@ BurstGenerator::Stats BurstGenerator::Run() {
     } else {
       absl::SleepFor(wait_time);
     }
-    absl::Duration gen_latency = Generate(id, &*latencies_it);
+    absl::Duration gen_latency = Generate(id, &*latencies_it, &*outputs_it);
     stats.burst_latencies.push_back(gen_latency);
     stats.total_invocation_count += burst_size_;
     latencies_it += burst_size_;
+    outputs_it += burst_size_;
     expected_start += cadence_;
   }
   stats.total_elapsed = stopwatch.GetElapsedTime();
@@ -175,7 +212,8 @@ BurstGenerator::Stats BurstGenerator::Run() {
 }
 
 absl::Duration BurstGenerator::Generate(
-    std::string burst_id, absl::StatusOr<absl::Duration>* latencies_ptr) {
+    std::string burst_id, absl::StatusOr<absl::Duration>* latencies_ptr,
+    absl::StatusOr<std::string>* outputs_ptr) {
   privacy_sandbox::server_common::Stopwatch stopwatch;
   const std::string qid = absl::StrCat(id_, "-", burst_id);
   for (int i = 0; i < burst_size_; ++i) {
@@ -183,7 +221,7 @@ absl::Duration BurstGenerator::Generate(
     absl::Notification* notify =
         notifications_.emplace_back(std::make_unique<absl::Notification>())
             .get();
-    func_(std::move(fn_stopwatch), latencies_ptr++, notify);
+    func_(std::move(fn_stopwatch), latencies_ptr++, outputs_ptr++, notify);
   }
   return stopwatch.GetElapsedTime();
 }

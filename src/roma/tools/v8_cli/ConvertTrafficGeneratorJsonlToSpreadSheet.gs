@@ -52,7 +52,8 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
   var sheet = ss.getSheetByName(SHEET_NAME);
 
   // 3. Define the desired column headers and their corresponding JSON paths
-  const columnMapping = [
+  let columnMapping = [
+    { header: 'Run ID', path: 'runId' },
     { header: 'Burst Size', path: 'params.burstSize' },
     { header: 'QPS', path: 'params.queriesPerSecond' },
     { header: 'Num Bursts', path: 'params.queryCount' },
@@ -74,6 +75,15 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     { header: 'Invocation Latencies p99 (ms)', path: 'invocationLatencies.p99', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Invocation Latencies max (ms)', path: 'invocationLatencies.max', transform: (val) => secondsToMilliseconds(val) },
   ];
+
+  if (jsonData[0].outputLatencies?.min) {
+    columnMapping.push({ header: 'Output Latencies min (ms)', path: 'outputLatencies.min', transform: (val) => secondsToMilliseconds(val) });
+    columnMapping.push({ header: 'Output Latencies p50 (ms)', path: 'outputLatencies.p50', transform: (val) => secondsToMilliseconds(val) });
+    columnMapping.push({ header: 'Output Latencies p90 (ms)', path: 'outputLatencies.p90', transform: (val) => secondsToMilliseconds(val) });
+    columnMapping.push({ header: 'Output Latencies p95 (ms)', path: 'outputLatencies.p95', transform: (val) => secondsToMilliseconds(val) });
+    columnMapping.push({ header: 'Output Latencies p99 (ms)', path: 'outputLatencies.p99', transform: (val) => secondsToMilliseconds(val) });
+    columnMapping.push({ header: 'Output Latencies max (ms)', path: 'outputLatencies.max', transform: (val) => secondsToMilliseconds(val) });
+  }
 
   // 4. Prepare the data
   var data = [];

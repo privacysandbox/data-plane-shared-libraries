@@ -53,4 +53,5 @@ message Report {
   BurstGeneratorStatistics statistics = 3;
   DurationStatistics burst_latencies = 4;
   DurationStatistics invocation_latencies = 5;
+  DurationStatistics output_latencies = 6;
 }

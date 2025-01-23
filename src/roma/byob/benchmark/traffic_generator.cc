@@ -85,7 +85,7 @@ using ::privacy_sandbox::server_common::PeriodicClosure;
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::Notification*)>;
+    absl::StatusOr<std::string>*, absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 }  // namespace

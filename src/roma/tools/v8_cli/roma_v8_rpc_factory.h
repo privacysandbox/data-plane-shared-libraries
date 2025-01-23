@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <chrono>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -22,6 +23,7 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
+#include "src/roma/byob/benchmark/latency_formatter.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
@@ -30,7 +32,7 @@
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::Notification*)>;
+    absl::StatusOr<std::string>*, absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace google::scp::roma::tools::v8_cli {
@@ -55,8 +57,7 @@ void SleepFunction(FunctionBindingPayload<>& wrapper) {
   CHECK(absl::ParseDuration(wrapper.io_proto.input_string(), &duration));
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::SleepFor(duration);
-  wrapper.io_proto.set_output_string(
-      absl::StrCat("Callback Duration: ", stopwatch.GetElapsedTime()));
+  wrapper.io_proto.set_output_string(absl::StrCat(stopwatch.GetElapsedTime()));
 }
 
 std::string GetUDF(std::string_view udf_file_path) {
@@ -133,18 +134,21 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
       [roma_service = roma_service.get(), execution_objects, &completions](
           privacy_sandbox::server_common::Stopwatch stopwatch,
           absl::StatusOr<absl::Duration>* duration,
+          absl::StatusOr<std::string>* output,
           absl::Notification* done) mutable {
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->Execute(
                 std::make_unique<google::scp::roma::InvocationStrRequest<>>(
                     execution_objects[0]),
-                [duration, stopwatch = std::move(stopwatch), done,
+                [duration, output, stopwatch = std::move(stopwatch), done,
                  &completions](
                     absl::StatusOr<google::scp::roma::ResponseObject> resp) {
                   if (resp.ok()) {
                     *duration = stopwatch.GetElapsedTime();
+                    *output = resp->resp.substr(1, resp->resp.size() - 2);
                   } else {
                     *duration = std::move(resp.status());
+                    *output = duration->status();
                   }
                   completions++;
                   done->Notify();
@@ -152,6 +156,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
 
         if (!exec_token.ok()) {
           *duration = exec_token.status();
+          *output = duration->status();
           completions++;
           done->Notify();
           return;
@@ -163,15 +168,20 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
        execution_objects = std::move(execution_objects),
        &completions](privacy_sandbox::server_common::Stopwatch stopwatch,
                      absl::StatusOr<absl::Duration>* duration,
+                     absl::StatusOr<std::string>* output,
                      absl::Notification* done) mutable {
         absl::Status status = roma_service->BatchExecute(
             execution_objects,
-            [duration, stopwatch = std::move(stopwatch), done, &completions](
+            [duration, output, stopwatch = std::move(stopwatch), done,
+             &completions](
                 const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
               if (batch_resp[0].ok()) {
                 *duration = stopwatch.GetElapsedTime();
+                *output = privacy_sandbox::server_common::byob::
+                    LatencyFormatter::Stringify(batch_resp);
               } else {
                 *duration = std::move(batch_resp[0].status());
+                *output = duration->status();
               }
               completions += batch_resp.size();
               done->Notify();
@@ -180,6 +190,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
         if (!status.ok()) {
           std::cout << status.message() << std::endl;
           *duration = status;
+          *output = status;
           completions++;
           done->Notify();
           return;

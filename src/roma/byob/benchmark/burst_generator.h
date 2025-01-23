@@ -43,6 +43,7 @@ class BurstGenerator final {
           late_count(0) {
       burst_latencies.reserve(num_bursts);
       invocation_latencies.resize(burst_size * num_bursts);
+      invocation_outputs.resize(burst_size * num_bursts);
     }
 
     absl::Duration total_elapsed;
@@ -51,6 +52,7 @@ class BurstGenerator final {
     int late_count;
     std::vector<absl::Duration> burst_latencies;
     std::vector<absl::StatusOr<absl::Duration>> invocation_latencies;
+    std::vector<absl::StatusOr<std::string>> invocation_outputs;
 
     std::string ToString() const;
     Report ToReport() const;
@@ -60,7 +62,8 @@ class BurstGenerator final {
                  absl::Duration cadence,
                  absl::AnyInvocable<
                      void(privacy_sandbox::server_common::Stopwatch,
-                          absl::StatusOr<absl::Duration>*, absl::Notification*)>
+                          absl::StatusOr<absl::Duration>*,
+                          absl::StatusOr<std::string>*, absl::Notification*)>
                      func)
       : id_(std::move(id)),
         num_bursts_(num_bursts),
@@ -73,7 +76,8 @@ class BurstGenerator final {
 
   Stats Run();
   absl::Duration Generate(std::string burst_id,
-                          absl::StatusOr<absl::Duration>* latencies_ptr);
+                          absl::StatusOr<absl::Duration>* latencies_ptr,
+                          absl::StatusOr<std::string>* outputs_ptr);
 
   // Wait for all RPCs to complete
   void WaitForCompletion() {
@@ -88,7 +92,8 @@ class BurstGenerator final {
   int64_t burst_size_;
   absl::Duration cadence_;
   absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                          absl::StatusOr<absl::Duration>*, absl::Notification*)>
+                          absl::StatusOr<absl::Duration>*,
+                          absl::StatusOr<std::string>*, absl::Notification*)>
       func_;
   std::vector<std::unique_ptr<absl::Notification>> notifications_;
 };

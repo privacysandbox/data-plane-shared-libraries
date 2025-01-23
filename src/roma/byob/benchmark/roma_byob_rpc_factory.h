@@ -38,7 +38,7 @@ using ::privacy_sandbox::roma_byob::example::SampleResponse;
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::Notification*)>;
+    absl::StatusOr<std::string>*, absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace privacy_sandbox::server_common::byob {
@@ -63,6 +63,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
                          code_token = std::move(code_token), &completions](
                             privacy_sandbox::server_common::Stopwatch stopwatch,
                             absl::StatusOr<absl::Duration>* duration,
+                            absl::StatusOr<std::string>* output,
                             absl::Notification* done) {
     ::privacy_sandbox::roma_byob::example::SampleRequest request;
     request.set_function(FUNCTION_HELLO_WORLD);
