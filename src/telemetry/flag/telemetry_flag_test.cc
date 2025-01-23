@@ -120,6 +120,7 @@ TEST(BuildDependentConfig, CheckMetricConfigInList) {
 }
 
 constexpr std::string_view kDefaultBuyers[] = {"buyer_1", "buyer_2"};
+constexpr double kDefaultHistogramBoundaries[] = {0, 0.5, 1};
 constexpr metrics::Definition<int, metrics::Privacy::kNonImpacting,
                               metrics::Instrument::kPartitionedCounter>
     partition_metric("partition_metric", "", "partition_type", kDefaultBuyers);
@@ -190,6 +191,12 @@ TEST(BuildDependentConfig, CustomConfig) {
   auto* proto4 = config_proto.add_custom_udf_metric();
   auto* proto5 = config_proto.add_custom_udf_metric();
 
+  auto* proto6 = config_proto.add_custom_udf_metric();
+  auto* proto7 = config_proto.add_custom_udf_metric();
+  auto* proto8 = config_proto.add_custom_udf_metric();
+  auto* proto9 = config_proto.add_custom_udf_metric();
+  auto* proto10 = config_proto.add_custom_udf_metric();
+
   proto1->set_name("udf_1");
   proto1->set_description("log udf 1");
   proto1->set_upper_bound(100);
@@ -214,6 +221,33 @@ TEST(BuildDependentConfig, CustomConfig) {
   proto5->set_description("log udf 5");
   proto5->set_privacy_budget_weight(0.5);
 
+  proto6->set_name("udf_6");
+  proto6->set_description("log histogram udf 6");
+  proto6->add_histogram_boundaries(0.5);
+  proto6->add_histogram_boundaries(0);
+  proto6->add_histogram_boundaries(1);
+  proto6->set_max_partitions_contributed(2);
+
+  proto7->set_name("udf_7");
+  proto7->set_description("log histogram udf 7");
+  proto7->add_histogram_boundaries(0);
+  proto7->add_histogram_boundaries(1);
+
+  proto8->set_name("udf_3");
+  proto8->set_description("log histogram udf 1");
+  proto8->add_histogram_boundaries(0);
+  proto8->add_histogram_boundaries(1);
+
+  proto9->set_name("udf_8");
+  proto9->set_description("log histogram udf 8");
+  proto9->add_histogram_boundaries(0);
+  proto9->add_histogram_boundaries(1);
+
+  proto10->set_name("udf_9");
+  proto10->set_description("log histogram udf 9");
+  proto10->add_histogram_boundaries(0);
+  proto10->add_histogram_boundaries(1);
+
   BuildDependentConfig config1(config_proto1);
   EXPECT_EQ(config1.CustomMetricsWeight(), 2);
   EXPECT_EQ(config1.GetName(metrics::kCustom1), "test_count_1");
@@ -224,7 +258,7 @@ TEST(BuildDependentConfig, CustomConfig) {
   EXPECT_EQ(config2.CustomMetricsWeight(), 0);
 
   BuildDependentConfig config(config_proto);
-  EXPECT_EQ(config.CustomMetricsWeight(), 2.5);
+  EXPECT_EQ(config.CustomMetricsWeight(), 5.5);
 
   EXPECT_EQ(config.GetName(metrics::kCustom1), "udf_1");
   EXPECT_EQ(config.GetDescription(metrics::kCustom1), "log udf 1");
@@ -250,6 +284,29 @@ TEST(BuildDependentConfig, CustomConfig) {
   EXPECT_EQ(*config.GetCustomDefinition("udf_4"), &metrics::kCustom3);
   EXPECT_EQ(config.template GetPrivacyBudgetWeight(metrics::kCustom3), 1.0);
   EXPECT_EQ(config.GetCustomDefinition("udf_5").status().code(),
+            absl::StatusCode::kNotFound);
+
+  EXPECT_EQ(*config.GetCustomHistogramDefinition("udf_6"),
+            &metrics::kCustomHistogram1);
+  EXPECT_EQ(config.template GetPrivacyBudgetWeight(metrics::kCustomHistogram1),
+            1.0);
+  EXPECT_EQ(
+      config.template GetMaxPartitionsContributed(metrics::kCustomHistogram1),
+      2);
+  EXPECT_THAT(
+      config.template GetHistogramBoundaries(metrics::kCustomHistogram1),
+      testing::ElementsAreArray(kDefaultHistogramBoundaries));
+
+  EXPECT_EQ(*config.GetCustomHistogramDefinition("udf_7"),
+            &metrics::kCustomHistogram2);
+  EXPECT_EQ(
+      config.template GetMaxPartitionsContributed(metrics::kCustomHistogram2),
+      1);
+  EXPECT_EQ(*config.GetCustomHistogramDefinition("udf_8"),
+            &metrics::kCustomHistogram3);
+  EXPECT_EQ(config.GetCustomHistogramDefinition("udf_9").status().code(),
+            absl::StatusCode::kNotFound);
+  EXPECT_EQ(config.GetCustomHistogramDefinition("udf_3").status().code(),
             absl::StatusCode::kNotFound);
 }
 

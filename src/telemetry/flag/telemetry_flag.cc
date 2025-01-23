@@ -75,7 +75,9 @@ BuildDependentConfig::BuildDependentConfig(TelemetryConfig config)
   for (const auto& m : server_config_.custom_udf_metric()) {
     auto metric = SetCustomConfig(m);
     if (!metric.ok()) {
-      if (metric.code() == absl::StatusCode::kAlreadyExists) {
+      if (metric.code() == absl::StatusCode::kAlreadyExists ||
+          metric.code() == absl::StatusCode::kOutOfRange) {
+        ABSL_LOG(ERROR) << metric.message();
         continue;
       } else {
         ABSL_LOG(ERROR) << metric.message();
@@ -186,38 +188,34 @@ void BuildDependentConfig::SetMaxPartitionsContributed(
 absl::Status BuildDependentConfig::SetCustomConfig(const MetricConfig& proto)
     ABSL_LOCKS_EXCLUDED(partition_mutex_) {
   absl::MutexLock lock(&partition_mutex_);
-  for (const auto* kCustom : server_common::metrics::kCustomList) {
-    if (internal_config_.find(kCustom->name_) == internal_config_.end()) {
-      // udf name should be defined only once
-      if (absl::IsNotFound(GetCustomDefinition(proto.name()).status())) {
-        *internal_config_[kCustom->name_].mutable_name() = proto.name();
-        *internal_config_[kCustom->name_].mutable_description() =
-            proto.description();
-        *internal_config_[kCustom->name_].mutable_partition_type() =
-            proto.partition_type();
-        internal_config_[kCustom->name_].set_lower_bound(proto.lower_bound());
-        internal_config_[kCustom->name_].set_upper_bound(proto.upper_bound());
-        if (proto.has_max_partitions_contributed()) {
-          internal_config_[kCustom->name_].set_max_partitions_contributed(
-              proto.max_partitions_contributed());
-        }
-        if (proto.has_privacy_budget_weight()) {
-          internal_config_[kCustom->name_].set_privacy_budget_weight(
-              proto.privacy_budget_weight());
-        }
-        std::vector<std::string_view> partitions_view = {
-            proto.public_partitions().begin(), proto.public_partitions().end()};
-        SetPartitionWithMutex(kCustom->name_, partitions_view);
+  if (!(absl::IsNotFound(GetCustomDefinition(proto.name()).status()) &&
+        absl::IsNotFound(
+            GetCustomHistogramDefinition(proto.name()).status()))) {
+    return absl::AlreadyExistsError(
+        absl::StrCat(proto.name(), " has already been defined"));
+  }
+
+  if (proto.histogram_boundaries_size() <= 0) {
+    for (const auto* kCustom : server_common::metrics::kCustomList) {
+      if (internal_config_.find(kCustom->name_) == internal_config_.end()) {
+        SetInternalConfig(internal_config_, proto, kCustom->name_);
         custom_def_map_[proto.name()] = kCustom;
         return absl::OkStatus();
-      } else {
-        return absl::AlreadyExistsError(
-            absl::StrCat(proto.name(), " has already been defined"));
       }
     }
+    return absl::OutOfRangeError(
+        "max number of custom partitioned metrics has been reached");
+  } else {
+    for (const auto* kCustom : server_common::metrics::kCustomHistogramList) {
+      if (internal_config_.find(kCustom->name_) == internal_config_.end()) {
+        SetInternalConfig(internal_config_, proto, kCustom->name_);
+        custom_histogram_def_map_[proto.name()] = kCustom;
+        return absl::OkStatus();
+      }
+    }
+    return absl::OutOfRangeError(
+        "max number of custom histogram metrics has been reached");
   }
-  return absl::ResourceExhaustedError(
-      "max number of custom metrics has been reached");
 }
 
 std::string BuildDependentConfig::GetName(
@@ -253,4 +251,15 @@ std::string BuildDependentConfig::GetPartitionType(
   return std::string(definition.partition_type_);
 }
 
+absl::Span<const double> BuildDependentConfig::GetHistogramBoundaries(
+    const metrics::internal::Histogram& definition,
+    absl::string_view name) const {
+  absl::MutexLock lock(&partition_mutex_);
+  auto it = internal_config_.find(name);
+  if (it != internal_config_.end() &&
+      (it->second.histogram_boundaries_size() > 0)) {
+    return it->second.histogram_boundaries();
+  }
+  return definition.histogram_boundaries_;
+}
 }  // namespace privacy_sandbox::server_common::telemetry

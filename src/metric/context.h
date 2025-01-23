@@ -42,6 +42,9 @@ namespace privacy_sandbox::server_common::metrics {
 inline constexpr int kLogStandardFreqSec = 60;
 inline constexpr int kLogLowFreqSec = kLogStandardFreqSec * 10;
 inline constexpr std::string_view kDefaultGenerationId = "not_consented";
+inline constexpr const DefinitionName* custom_metric_list[] = {
+    &kCustom1,          &kCustom2,          &kCustom3,
+    &kCustomHistogram1, &kCustomHistogram2, &kCustomHistogram3};
 
 /*
 One context will be created for one request, used to log metric. It will use
@@ -225,13 +228,29 @@ class Context {
       absl::StatusOr<
           const metrics::Definition<double, metrics::Privacy::kImpacting,
                                     metrics::Instrument::kPartitionedCounter>*>
-          definition = metric_router_->metric_config().GetCustomDefinition(
-              metric.name());
-      if (!definition.ok()) {
+          definition_partition =
+              metric_router_->metric_config().GetCustomDefinition(
+                  metric.name());
+      absl::StatusOr<
+          const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                    metrics::Instrument::kHistogram>*>
+          definition_histogram =
+              metric_router_->metric_config().GetCustomHistogramDefinition(
+                  metric.name());
+      if (!definition_partition.ok() && !definition_histogram.ok()) {
         not_found += metric.name() + ",";
+        continue;
+      }
+      if (definition_partition.ok()) {
+        if (absl::Status temp_status =
+                LogPartitionedUDF(*definition_partition, metric.value(),
+                                  metric.public_partition());
+            !temp_status.ok()) {
+          status = temp_status;
+        }
       } else {
-        if (absl::Status temp_status = LogPartitionedUDF(
-                *definition, metric.value(), metric.public_partition());
+        if (absl::Status temp_status =
+                LogHistogramUDF(*definition_histogram, metric.value());
             !temp_status.ok()) {
           status = temp_status;
         }
@@ -260,6 +279,23 @@ class Context {
     }
     return absl::UnimplementedError("Not Implemented");
   }
+
+  absl::Status LogHistogramUDF(
+      const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                metrics::Instrument::kHistogram>* definition,
+      double value) {
+    if (definition == &kCustomHistogram1) {
+      return AccumulateMetric<kCustomHistogram1>(value);
+    }
+    if (definition == &kCustomHistogram2) {
+      return AccumulateMetric<kCustomHistogram2>(value);
+    }
+    if (definition == &kCustomHistogram3) {
+      return AccumulateMetric<kCustomHistogram3>(value);
+    }
+    return absl::UnimplementedError("Not Implemented");
+  }
+
   // Accumulate metric values, they can be accumulated multiple times during
   // context life time. They will be aggregated and logged at destruction.
   // Metrics must be Privacy::kImpacting.
@@ -365,7 +401,8 @@ class Context {
     static_assert(
         std::is_same_v<DefinitionType, Definition<T, definition.type_privacy,
                                                   definition.type_instrument>>);
-    static_assert(IsInList(definition, definition_list));
+    static_assert(IsInList(definition, definition_list) ||
+                  IsInList(definition, custom_metric_list));
     if constexpr (safe_metric_only) {
       static_assert(definition.type_privacy == Privacy::kNonImpacting);
     }

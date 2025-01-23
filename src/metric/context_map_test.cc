@@ -132,9 +132,8 @@ constexpr Definition<int, Privacy::kImpacting, Instrument::kUpDownCounter>
     kUnsafe2("kUnsafe2", "", 0, 0);
 constexpr Definition<int, Privacy::kImpacting, Instrument::kUpDownCounter>
     kUnsafe3("kUnsafe3", "", 0, 0);
-constexpr const DefinitionName* unsafe_list[] = {
-    &kUnsafe1, &kUnsafe2, &kUnsafe3,        &kCustom1,
-    &kCustom2, &kCustom3, &kIntExactCounter};
+constexpr const DefinitionName* unsafe_list[] = {&kUnsafe1, &kUnsafe2,
+                                                 &kUnsafe3, &kIntExactCounter};
 constexpr absl::Span<const DefinitionName* const> unsafe_list_span =
     unsafe_list;
 
@@ -145,26 +144,32 @@ class MetricConfigTest : public ::testing::Test {
     config_proto_.add_metric()->set_name("kUnsafe1");
     config_proto_.add_metric()->set_name("kUnsafe2");
     config_proto_.add_metric()->set_name("not_defined");
-    config_proto_.add_metric()->set_name("placeholder_1");
-    config_proto_.add_metric()->set_name("placeholder_2");
-    config_proto_.add_metric()->set_name("placeholder_3");
     auto* proto1 = config_proto_.add_custom_udf_metric();
-    proto1->set_name("placeholder_1");
+    auto* proto2 = config_proto_.add_custom_udf_metric();
+    auto* proto3 = config_proto_.add_custom_udf_metric();
+    proto1->set_name("p1");
     proto1->set_privacy_budget_weight(0.5);
-    config_proto_.add_custom_udf_metric()->set_name("placeholder_2");
+    config_proto_.add_custom_udf_metric()->set_name("p2");
+    proto2->set_name("h1");
+    proto2->set_privacy_budget_weight(0.5);
+    proto2->add_histogram_boundaries(0);
+    proto2->add_histogram_boundaries(1);
+    proto3->set_name("h2");
+    proto3->add_histogram_boundaries(0);
+    proto3->add_histogram_boundaries(1);
   }
 
   telemetry::TelemetryConfig config_proto_;
 };
 
 TEST_F(MetricConfigTest, PrivacyBudget) {
-  constexpr PrivacyBudget budget{/*epsilon*/ 7};
+  constexpr PrivacyBudget budget{/*epsilon*/ 10};
   auto metric_config =
       std::make_unique<telemetry::BuildDependentConfig>(config_proto_);
   auto c = GetContextMap<Foo, unsafe_list_span>(std::move(metric_config),
                                                 nullptr, "", "", budget);
-  // privacy budget = epsilon/(CustomMetricsWeight() - CountOfCustomList() +
-  // accumulated weight) = 7/(1.5 - 3 + 5)
+  // privacy budget = epsilon/(CustomMetricsWeight() + accumulated weight) =
+  // 10/(3 + 2)
   EXPECT_DOUBLE_EQ(c->metric_router().dp().privacy_budget_per_weight().epsilon,
                    2);
 }

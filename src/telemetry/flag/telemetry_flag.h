@@ -222,6 +222,27 @@ class BuildDependentConfig {
     return it->second;
   }
 
+  absl::StatusOr<const metrics::Definition<double, metrics::Privacy::kImpacting,
+                                           metrics::Instrument::kHistogram>*>
+  GetCustomHistogramDefinition(absl::string_view udf_name) {
+    auto it = custom_histogram_def_map_.find(udf_name);
+    if (it == custom_histogram_def_map_.end()) {
+      return absl::NotFoundError(udf_name);
+    }
+    return it->second;
+  }
+
+  // Return histogram_boundaries of a metric.
+  template <typename MetricT>
+  absl::Span<const double> GetHistogramBoundaries(
+      const MetricT& definition) const {
+    return GetHistogramBoundaries(definition, definition.name_);
+  }
+
+  absl::Span<const double> GetHistogramBoundaries(
+      const metrics::internal::Histogram& definition,
+      absl::string_view name) const;
+
   std::string GetName(const metrics::DefinitionName& definition) const;
 
   std::string GetDescription(const metrics::DefinitionName& definition) const;
@@ -229,8 +250,11 @@ class BuildDependentConfig {
   // Total privacy budget weight of all defined custom metrics.
   double CustomMetricsWeight() {
     double total = 0.0;
-    for (const auto& def : custom_def_map_) {
-      total += GetPrivacyBudgetWeight(*def.second);
+    for (const auto& def1 : custom_def_map_) {
+      total += GetPrivacyBudgetWeight(*def1.second);
+    }
+    for (const auto& def2 : custom_histogram_def_map_) {
+      total += GetPrivacyBudgetWeight(*def2.second);
     }
     return total;
   }
@@ -294,6 +318,42 @@ class BuildDependentConfig {
       const metrics::Definition<double, metrics::Privacy::kImpacting,
                                 metrics::Instrument::kPartitionedCounter>*>
       custom_def_map_;
+
+  absl::flat_hash_map<std::string, const metrics::Definition<
+                                       double, metrics::Privacy::kImpacting,
+                                       metrics::Instrument::kHistogram>*>
+      custom_histogram_def_map_;
+
+  void SetInternalConfig(
+      absl::flat_hash_map<std::string, MetricConfig>& internal_config,
+      const MetricConfig& proto, absl::string_view name)
+      ABSL_EXCLUSIVE_LOCKS_REQUIRED(partition_mutex_) {
+    *internal_config[name].mutable_name() = proto.name();
+    *internal_config[name].mutable_description() = proto.description();
+    *internal_config[name].mutable_partition_type() = proto.partition_type();
+    internal_config[name].set_lower_bound(proto.lower_bound());
+    internal_config[name].set_upper_bound(proto.upper_bound());
+    if (proto.has_max_partitions_contributed()) {
+      internal_config[name].set_max_partitions_contributed(
+          proto.max_partitions_contributed());
+    }
+    if (proto.has_privacy_budget_weight()) {
+      internal_config[name].set_privacy_budget_weight(
+          proto.privacy_budget_weight());
+    }
+    if (proto.public_partitions_size() > 0) {
+      std::vector<std::string_view> partitions_view = {
+          proto.public_partitions().begin(), proto.public_partitions().end()};
+      SetPartitionWithMutex(name, partitions_view);
+    } else if (proto.histogram_boundaries_size() > 0) {
+      std::vector<double> histogram_boundaries = {
+          proto.histogram_boundaries().begin(),
+          proto.histogram_boundaries().end()};
+      auto& saved = *internal_config[name].mutable_histogram_boundaries();
+      saved.Assign(histogram_boundaries.begin(), histogram_boundaries.end());
+      absl::c_sort(saved);
+    }
+  }
 };
 
 }  // namespace privacy_sandbox::server_common::telemetry

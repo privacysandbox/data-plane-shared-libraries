@@ -364,6 +364,8 @@ inline constexpr Definition<int, Privacy::kNonImpacting,
                                 "Total number of errors occurred for the "
                                 "requests received by the server");
 
+// all custom metrics should not be in definition_list used to initialize
+// ContextMap
 inline constexpr Definition<double, Privacy::kImpacting,
                             Instrument::kPartitionedCounter>
     kCustom1("placeholder_1", "No. of times metric 1 return udf request",
@@ -377,6 +379,22 @@ inline constexpr Definition<double, Privacy::kImpacting,
     kCustom3("placeholder_3", "No. of times metric 3 return udf request",
              kEmptyPartitionType, 1, kEmptyPublicPartition, 1, 0);
 
+inline constexpr Definition<double, Privacy::kImpacting, Instrument::kHistogram>
+    kCustomHistogram1("placeholder_H1", "Histogram metric 1 for UDF request",
+                      kEmptyHistogramBoundaries, 1, 0);
+inline constexpr Definition<double, Privacy::kImpacting, Instrument::kHistogram>
+    kCustomHistogram2("placeholder_H2", "Histogram metric 2 for UDF request",
+                      kEmptyHistogramBoundaries, 1, 0);
+inline constexpr Definition<double, Privacy::kImpacting, Instrument::kHistogram>
+    kCustomHistogram3("placeholder_H3", "Histogram metric 3 for UDF request",
+                      kEmptyHistogramBoundaries, 1, 0);
+inline constexpr const Definition<double, Privacy::kImpacting,
+                                  Instrument::kHistogram>*
+    kCustomHistogramList[] = {
+        &kCustomHistogram1,
+        &kCustomHistogram2,
+        &kCustomHistogram3,
+};
 inline constexpr const Definition<double, Privacy::kImpacting,
                                   Instrument::kPartitionedCounter>*
     kCustomList[] = {
@@ -384,10 +402,6 @@ inline constexpr const Definition<double, Privacy::kImpacting,
         &kCustom2,
         &kCustom3,
 };
-
-constexpr int CountOfCustomList() {
-  return std::end(kCustomList) - std::begin(kCustomList);
-}
 
 }  // namespace privacy_sandbox::server_common::metrics
 

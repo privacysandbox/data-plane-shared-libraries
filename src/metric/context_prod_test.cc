@@ -70,6 +70,24 @@ TEST_F(BaseTest, LogUDFMetrics) {
       LogUnSafe(Matcher<const DefinitionCustom&>(Ref(kCustom2)), Eq(0), "p_3"))
       .Times(0);
 
+  EXPECT_CALL(mock_metric_router_,
+              LogUnSafe(Matcher<const DefinitionCustomHistogram&>(
+                            Ref(kCustomHistogram1)),
+                        Eq(1), ""))
+      .WillOnce(Return(absl::OkStatus()));
+
+  EXPECT_CALL(mock_metric_router_,
+              LogUnSafe(Matcher<const DefinitionCustomHistogram&>(
+                            Ref(kCustomHistogram2)),
+                        Eq(0.5), ""))
+      .WillOnce(Return(absl::OkStatus()));
+
+  EXPECT_CALL(mock_metric_router_,
+              LogUnSafe(Matcher<const DefinitionCustomHistogram&>(
+                            Ref(kCustomHistogram3)),
+                        Eq(0), ""))
+      .WillOnce(Return(absl::OkStatus()));
+
   BatchUDFMetric udf_metrics1, udf_metrics2, udf_metrics3;
   auto udf_metric1 = udf_metrics1.add_udf_metric();
   auto udf_metric2 = udf_metrics1.add_udf_metric();
@@ -77,6 +95,9 @@ TEST_F(BaseTest, LogUDFMetrics) {
   auto udf_metric2a = udf_metrics2.add_udf_metric();
   auto udf_metric4 = udf_metrics2.add_udf_metric();
   auto udf_metric5 = udf_metrics3.add_udf_metric();
+  auto udf_metric_h1 = udf_metrics3.add_udf_metric();
+  auto udf_metric_h2 = udf_metrics3.add_udf_metric();
+  auto udf_metric_h3 = udf_metrics3.add_udf_metric();
 
   udf_metric1->set_name("udf_1");
   udf_metric1->set_value(1);
@@ -95,6 +116,15 @@ TEST_F(BaseTest, LogUDFMetrics) {
 
   udf_metric5->set_name("udf_3");
   udf_metric5->set_value(1);
+
+  udf_metric_h1->set_name("udf_h1");
+  udf_metric_h1->set_value(1);
+
+  udf_metric_h2->set_name("udf_h2");
+  udf_metric_h2->set_value(0.5);
+
+  udf_metric_h3->set_name("udf_h3");
+  udf_metric_h3->set_value(0);
 
   CHECK_OK(context_->LogUDFMetrics(udf_metrics1));
 

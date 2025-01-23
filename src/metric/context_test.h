@@ -56,6 +56,8 @@ using DefinitionGauge =
     Definition<int, Privacy::kNonImpacting, Instrument::kGauge>;
 using DefinitionCustom =
     Definition<double, Privacy::kImpacting, Instrument::kPartitionedCounter>;
+using DefinitionCustomHistogram =
+    Definition<double, Privacy::kImpacting, Instrument::kHistogram>;
 
 inline constexpr DefinitionSafe kIntExactCounter("kIntExactCounter", "");
 inline constexpr DefinitionSafe kIntExactCounter2("kIntExactCounter2", "");
@@ -82,18 +84,9 @@ inline constexpr DefinitionHistogram kIntExactHistogram("kIntExactHistogram",
 inline constexpr DefinitionGauge kIntExactGauge("kIntExactGauge", "");
 
 inline constexpr const DefinitionName* metric_list[] = {
-    &kIntExactCounter,
-    &kIntExactCounter2,
-    &kIntApproximateCounter,
-    &kIntApproximateCounter2,
-    &kIntExactPartitioned,
-    &kIntUnSafePartitioned,
-    &kIntExactHistogram,
-    &kIntExactGauge,
-    &kIntExactAnyPartitioned,
-    &kCustom1,
-    &kCustom2,
-    &kCustom3};
+    &kIntExactCounter,        &kIntExactCounter2,    &kIntApproximateCounter,
+    &kIntApproximateCounter2, &kIntExactPartitioned, &kIntUnSafePartitioned,
+    &kIntExactHistogram,      &kIntExactGauge,       &kIntExactAnyPartitioned};
 inline constexpr absl::Span<const DefinitionName* const> metric_list_span =
     metric_list;
 [[maybe_unused]] inline constexpr DefinitionSafe kNotInList("kNotInList", "");
@@ -137,6 +130,11 @@ class MockMetricRouter {
   MOCK_METHOD(absl::Status, LogSafe,
               ((const DefinitionCustom&), double, std::string_view,
                (absl::flat_hash_map<std::string, std::string>)));
+  MOCK_METHOD(absl::Status, LogUnSafe,
+              ((const DefinitionCustomHistogram&), double, std::string_view));
+  MOCK_METHOD(absl::Status, LogSafe,
+              ((const DefinitionCustomHistogram&), double, std::string_view,
+               (absl::flat_hash_map<std::string, std::string>)));
 };
 
 class BaseTest : public ::testing::Test {
@@ -147,6 +145,9 @@ class BaseTest : public ::testing::Test {
     auto* proto1 = config_proto.add_custom_udf_metric();
     auto* proto2 = config_proto.add_custom_udf_metric();
     auto* proto3 = config_proto.add_custom_udf_metric();
+    auto* proto_h1 = config_proto.add_custom_udf_metric();
+    auto* proto_h2 = config_proto.add_custom_udf_metric();
+    auto* proto_h3 = config_proto.add_custom_udf_metric();
 
     proto1->set_name("udf_1");
     proto1->set_description("log_1");
@@ -165,6 +166,23 @@ class BaseTest : public ::testing::Test {
     proto3->set_description("log_3");
     proto3->set_upper_bound(1);
     proto3->set_lower_bound(0);
+
+    proto_h1->set_name("udf_h1");
+    proto_h1->set_description("log_h1");
+    proto_h1->set_upper_bound(5);
+    proto_h1->set_lower_bound(0);
+    proto_h1->add_histogram_boundaries(0);
+    proto_h1->add_histogram_boundaries(5);
+    proto_h1->add_histogram_boundaries(10);
+
+    proto_h2->set_name("udf_h2");
+    proto_h2->set_description("log_h2");
+    proto_h2->add_histogram_boundaries(0);
+    proto_h2->add_histogram_boundaries(0.5);
+
+    proto_h3->set_name("udf_h3");
+    proto_h3->set_description("log_h3");
+    proto_h3->add_histogram_boundaries(1);
 
     metric_config_ =
         std::make_unique<telemetry::BuildDependentConfig>(config_proto);

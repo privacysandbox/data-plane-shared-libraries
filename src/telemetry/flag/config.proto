@@ -84,4 +84,8 @@ message MetricConfig {
   //Only used by custom_udf_metric.
   optional string partition_type = 9;
 
+  //overwrite histogram_boundaries in metric definition if being set.
+  //Only used by custom_udf_metric.
+  repeated double histogram_boundaries = 10;
+
 }

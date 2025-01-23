@@ -220,7 +220,11 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
       : metric_router_(*metric_router),
         definition_(*definition),
         privacy_budget_per_weight_(privacy_budget_per_weight) {
-    for (size_t i = 0; i < definition_.histogram_boundaries_.size() + 1; ++i) {
+    for (size_t i = 0; i < metric_router_.metric_config()
+                                   .template GetHistogramBoundaries(definition_)
+                                   .size() +
+                               1;
+         ++i) {
       auto bounded_sum =
           typename differential_privacy::BoundedSum<int>::Builder()
               .SetEpsilon(privacy_budget_per_weight_.epsilon *
@@ -245,7 +249,9 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
   absl::Status Aggregate(TValue value, std::string_view partition)
       ABSL_LOCKS_EXCLUDED(mutex_) {
     absl::MutexLock mutex_lock(&mutex_);
-    absl::Span<const double> boundaries = definition_.histogram_boundaries_;
+    absl::Span<const double> boundaries =
+        metric_router_.metric_config().template GetHistogramBoundaries(
+            definition_);
     auto bound = metric_router_.metric_config().template GetBound(definition_);
     TValue bounded_value = std::min(std::max(double(value), bound.lower_bound_),
                                     bound.upper_bound_);
@@ -265,7 +271,9 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
     absl::MutexLock mutex_lock(&mutex_);
     std::vector<differential_privacy::Output> ret(bounded_sums_.size());
     auto it = ret.begin();
-    absl::Span<const double> boundaries = definition_.histogram_boundaries_;
+    absl::Span<const double> boundaries =
+        metric_router_.metric_config().template GetHistogramBoundaries(
+            definition_);
     auto bound = metric_router_.metric_config().template GetBound(definition_);
     int j = std::lower_bound(boundaries.begin(), boundaries.end(),
                              bound.lower_bound_) -
@@ -276,8 +284,7 @@ class DpAggregator<TMetricRouter, TValue, privacy, Instrument::kHistogram>
     for (; j <= upper; ++j) {
       auto& bounded_sum = bounded_sums_[j];
       PS_ASSIGN_OR_RETURN(*it, bounded_sum->PartialResult());
-      auto bucket_mean =
-          (TValue)BucketMean(j, definition_.histogram_boundaries_);
+      auto bucket_mean = (TValue)BucketMean(j, boundaries);
       for (int i = 0, count = differential_privacy::GetValue<int>(*it);
            i < count; ++i) {
         PS_RETURN_IF_ERROR((metric_router_.LogSafe(definition_, bucket_mean, "",
