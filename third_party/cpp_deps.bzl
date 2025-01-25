@@ -148,6 +148,8 @@ def cpp_dependencies():
         name = "com_google_differential_privacy",
         sha256 = "161ae3676b7c75bb948a58c81bc982e5be4922f4ca7438237d8439857c42c640",
         strip_prefix = "differential-privacy-2.1.0",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:beam_differential_privacy.patch")],
         urls = ["https://github.com/google/differential-privacy/archive/refs/tags/v2.1.0.zip"],
     )
     maybe(
