@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include <chrono>
 #include <fstream>
 #include <memory>
 #include <string>
@@ -57,7 +56,12 @@ void SleepFunction(FunctionBindingPayload<>& wrapper) {
   CHECK(absl::ParseDuration(wrapper.io_proto.input_string(), &duration));
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::SleepFor(duration);
-  wrapper.io_proto.set_output_string(absl::StrCat(stopwatch.GetElapsedTime()));
+  const auto elapsed = stopwatch.GetElapsedTime();
+  const auto start = stopwatch.GetStartTime();
+  const auto end = start + elapsed;
+  LOG(INFO) << "Start Time: " << start;
+  LOG(INFO) << "End Time: " << end;
+  wrapper.io_proto.set_output_string(absl::StrCat(elapsed));
 }
 
 std::string GetUDF(std::string_view udf_file_path) {
