@@ -205,8 +205,8 @@ void KillByCmdline(std::string_view cmdline) {
 
 class WorkerRunner final : public WorkerRunnerService::Service {
  public:
-  WorkerRunner(std::string socket_name, const std::filesystem::path& progdir)
-      : socket_name_(std::move(socket_name)), progdir_(progdir) {}
+  WorkerRunner(std::string socket_name, const std::filesystem::path& prog_dir)
+      : socket_name_(std::move(socket_name)), prog_dir_(prog_dir) {}
 
   ~WorkerRunner() {
     LOG(INFO) << "Shutting down.";
@@ -257,7 +257,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   };
 
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
-    const std::filesystem::path binary_dir = progdir_ / request.code_token();
+    const std::filesystem::path binary_dir = prog_dir_ / request.code_token();
     if (std::error_code ec;
         !std::filesystem::create_directory(binary_dir, ec)) {
       return absl::InternalError(absl::StrCat(
@@ -289,7 +289,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         }
       }
       code_token_to_reloader_pids_.erase(it);
-      const std::filesystem::path binary_dir = progdir_ / request_code_token;
+      const std::filesystem::path binary_dir = prog_dir_ / request_code_token;
       if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
                               static_cast<std::uintmax_t>(-1)) {
         LOG(ERROR) << "Failed to remove " << binary_dir << ": " << ec;
@@ -324,7 +324,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
       const std::filesystem::path& binary_path,
       std::string_view source_bin_code_token) {
     const std::filesystem::path existing_binary_path =
-        progdir_ / source_bin_code_token / source_bin_code_token;
+        prog_dir_ / source_bin_code_token / source_bin_code_token;
     if (!std::filesystem::exists(existing_binary_path)) {
       return absl::FailedPreconditionError(absl::StrCat(
           "Expected binary ", existing_binary_path.native(), " not found"));
@@ -363,7 +363,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   }
 
   const std::string socket_name_;
-  const std::filesystem::path& progdir_;
+  const std::filesystem::path& prog_dir_;
   absl::Mutex mu_;
   absl::flat_hash_map<std::string, std::vector<int>>
       code_token_to_reloader_pids_ ABSL_GUARDED_BY(mu_);
@@ -377,20 +377,20 @@ int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
   LOG(INFO) << "Starting up.";
-  const std::filesystem::path progdir =
+  const std::filesystem::path prog_dir =
       std::filesystem::temp_directory_path() /
       ToString(google::scp::core::common::Uuid::GenerateUuid());
-  if (std::error_code ec; !std::filesystem::create_directories(progdir, ec)) {
-    LOG(ERROR) << "Failed to create " << progdir << ": " << ec;
+  if (std::error_code ec; !std::filesystem::create_directories(prog_dir, ec)) {
+    LOG(ERROR) << "Failed to create " << prog_dir << ": " << ec;
     return -1;
   }
-  absl::Cleanup progdir_cleanup = [&progdir] {
-    if (std::error_code ec; std::filesystem::remove_all(progdir, ec) ==
+  absl::Cleanup prog_dir_cleanup = [&prog_dir] {
+    if (std::error_code ec; std::filesystem::remove_all(prog_dir, ec) ==
                             static_cast<std::uintmax_t>(-1)) {
-      LOG(ERROR) << "Failed to remove " << progdir << ": " << ec;
+      LOG(ERROR) << "Failed to remove " << prog_dir << ": " << ec;
     }
   };
-  WorkerRunner runner(absl::GetFlag(FLAGS_udf_socket_name), progdir);
+  WorkerRunner runner(absl::GetFlag(FLAGS_udf_socket_name), prog_dir);
   grpc::EnableDefaultHealthCheckService(true);
   std::unique_ptr<grpc::Server> server =
       grpc::ServerBuilder()
