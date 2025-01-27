@@ -36,37 +36,37 @@ inline constexpr std::string_view kLdLibraryPath =
     "LD_LIBRARY_PATH=" LIB_MOUNTS;
 
 enum class Mode {
-  kSandboxModeWithGvisor,
-  kSandboxModeWithoutGvisor,
-  kSandboxModeWithGvisorDebug,
+  kModeGvisorSandbox,
+  kModeGvisorSandboxDebug,
+  kModeMinimalSandbox,
 };
 
 inline bool AbslParseFlag(absl::string_view text, Mode* mode,
                           std::string* error) {
-  if (text == "on") {
-    *mode = Mode::kSandboxModeWithGvisor;
+  if (text == "gvisor") {
+    *mode = Mode::kModeGvisorSandbox;
     return true;
   }
-  if (text == "debug") {
-    *mode = Mode::kSandboxModeWithGvisorDebug;
+  if (text == "gvisor-debug") {
+    *mode = Mode::kModeGvisorSandboxDebug;
     return true;
   }
-  if (text == "off") {
-    *mode = Mode::kSandboxModeWithoutGvisor;
+  if (text == "minimal") {
+    *mode = Mode::kModeMinimalSandbox;
     return true;
   }
-  *error = "Supported values: on, off, debug.";
+  *error = "Supported values: gvisor, gvisor-debug, minimal.";
   return false;
 }
 
 inline std::string AbslUnparseFlag(Mode mode) {
   switch (mode) {
-    case Mode::kSandboxModeWithGvisor:
-      return "on";
-    case Mode::kSandboxModeWithGvisorDebug:
-      return "debug";
-    case Mode::kSandboxModeWithoutGvisor:
-      return "off";
+    case Mode::kModeGvisorSandbox:
+      return "gvisor";
+    case Mode::kModeGvisorSandboxDebug:
+      return "gvisor-debug";
+    case Mode::kModeMinimalSandbox:
+      return "minimal";
     default:
       return absl::StrCat(mode);
   }

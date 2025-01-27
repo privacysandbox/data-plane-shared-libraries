@@ -611,12 +611,12 @@ TEST_P(RomaByobTest, VerifySyscallFilter) {
 
 std::string GetModeStr(Mode mode) {
   switch (mode) {
-    case Mode::kSandboxModeWithGvisor:
-      return "Gvisor";
-    case Mode::kSandboxModeWithoutGvisor:
-      return "NoGvisor";
-    case Mode::kSandboxModeWithGvisorDebug:
-      return "GvisorDebug";
+    case Mode::kModeGvisorSandbox:
+      return "GvisorSandbox";
+    case Mode::kModeMinimalSandbox:
+      return "MinimalSandbox";
+    case Mode::kModeGvisorSandboxDebug:
+      return "GvisorSandboxDebug";
     default:
       return "UnknownMode";
   }
@@ -633,14 +633,12 @@ std::string GetFilterStr(bool enable_seccomp_filter) {
 INSTANTIATE_TEST_SUITE_P(
     RomaByobTestSuiteInstantiation, RomaByobTest,
     // Since we don't want to run tests for gVisor debug mode,
-    // Mode::kSandboxModeWithGvisorDebug has not included in the list.
+    // Mode::kModeGvisorSandboxDebug has not included in the list.
     testing::ValuesIn<RomaByobTestParam>(
-        {{.mode = Mode::kSandboxModeWithGvisor, .enable_seccomp_filter = false},
-         {.mode = Mode::kSandboxModeWithoutGvisor,
-          .enable_seccomp_filter = false},
-         {.mode = Mode::kSandboxModeWithGvisor, .enable_seccomp_filter = true},
-         {.mode = Mode::kSandboxModeWithoutGvisor,
-          .enable_seccomp_filter = true}}),
+        {{.mode = Mode::kModeGvisorSandbox, .enable_seccomp_filter = false},
+         {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = false},
+         {.mode = Mode::kModeGvisorSandbox, .enable_seccomp_filter = true},
+         {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = true}}),
     [](const testing::TestParamInfo<RomaByobTest::ParamType>& info) {
       return absl::StrCat(GetModeStr(info.param.mode),
                           GetFilterStr(info.param.enable_seccomp_filter));

@@ -58,9 +58,9 @@ ABSL_FLAG(int, num_queries, 10'000, "Number of queries to be sent");
 ABSL_FLAG(int, total_invocations, 0,
           "Number of invocations to be sent. If non-zero, overrides "
           "num_queries, and num_queries = total_invocations / burst_size.");
-ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, gvisor,
-          privacy_sandbox::server_common::byob::Mode::kSandboxModeWithGvisor,
-          "Run BYOB with gVisor.");
+ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
+          privacy_sandbox::server_common::byob::Mode::kModeMinimalSandbox,
+          "Run BYOB with mode: gvisor, gvisor-debug, minimal.");
 ABSL_FLAG(bool, syscall_filter, false, "Whether to enable syscall filtering.");
 ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
           "Mount paths to include in the pivot_root environment. Example "
@@ -115,7 +115,7 @@ int main(int argc, char** argv) {
   const std::string lib_mounts = absl::GetFlag(FLAGS_lib_mounts);
   const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
   const privacy_sandbox::server_common::byob::Mode sandbox =
-      absl::GetFlag(FLAGS_gvisor);
+      absl::GetFlag(FLAGS_sandbox);
   const bool enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter);
 
   const std::string udf_path = absl::GetFlag(FLAGS_udf_path);

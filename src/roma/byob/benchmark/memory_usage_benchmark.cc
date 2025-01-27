@@ -119,7 +119,7 @@ int main(int argc, char** argv) {
           {
               .roma_container_name = "roma_server",
           },
-          Mode::kSandboxModeWithGvisor);
+          Mode::kModeGvisorSandbox);
   CHECK_OK(sample_interface);
 
   // Load UDF.

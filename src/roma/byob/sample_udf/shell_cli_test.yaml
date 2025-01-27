@@ -45,17 +45,18 @@ commandTests:
           Flags from bazel-out/.*/bin/src/roma/byob/sample_udf/sample_shell.cc:
             --commands_file \(Text file containing shell commands to execute\.\);
               default: ;
-            --gvisor \(Run BYOB with gVisor\.\); default: on;
             --num_workers \(Number of workers\.\); default: 1;
+            --sandbox \(Run BYOB with mode: gvisor, gvisor-debug, minimal\.\);
+              default: minimal;
             --syscall_filter \(Whether to enable syscall filtering\.\); default: false;
             --udf_log_file \(Directory for storing UDF logs\.\); default: ;
 
   - name: shell-cli sandbox flag
     command: /tools/shell-cli
-    args: ['--gvisor=unknown']
+    args: ['--sandbox=unknown']
     exitCode: 1
     expectedError:
-      - "ERROR: Illegal value 'unknown' specified for flag 'gvisor'; Supported values: on, off, debug."
+      - "ERROR: Illegal value 'unknown' specified for flag 'sandbox'; Supported values: gvisor, gvisor-debug, minimal."
 
   - name: shell-cli help commands file
     command: /tools/shell-cli

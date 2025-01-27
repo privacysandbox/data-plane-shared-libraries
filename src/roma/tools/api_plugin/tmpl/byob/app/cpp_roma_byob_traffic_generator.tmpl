@@ -51,7 +51,7 @@ ABSL_FLAG(std::string, rpc, "", "the name of the rpc method to invoke");
 ABSL_FLAG(std::string, request, "",
           "the file for the UDF request, in json or text proto format");
 ABSL_FLAG(::privacy_sandbox::server_common::byob::Mode, sandbox_mode,
-          ::privacy_sandbox::server_common::byob::Mode::kSandboxModeWithGvisor,
+          ::privacy_sandbox::server_common::byob::Mode::kModeGvisorSandbox,
           "BYOB sandboxing mode");
 ABSL_FLAG(int, num_workers, 1, "number of workers");
 ABSL_FLAG(int, num_queries, 10'000, "number of queries to be sent");

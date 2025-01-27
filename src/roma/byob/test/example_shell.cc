@@ -36,9 +36,9 @@
 ABSL_FLAG(int, num_workers, 1, "the number of workers");
 ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
           "a text file with a list of CLI commands to execute");
-ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, gvisor,
-          privacy_sandbox::server_common::byob::Mode::kSandboxModeWithGvisor,
-          "Run BYOB with gVisor.");
+ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
+          privacy_sandbox::server_common::byob::Mode::kModeMinimalSandbox,
+          "Run BYOB with mode: gvisor, gvisor-debug, minimal.");
 ABSL_FLAG(bool, syscall_filter, false, "Whether to enable syscall filtering.");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
           "path with directory to a file in which UDF logs will be stored");
@@ -64,7 +64,7 @@ int main(int argc, char** argv) {
   // Initialize BYOB.
   absl::StatusOr<ByobEchoService<>> echo_service = ByobEchoService<>::Create(
       /*config=*/{.enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter)},
-      absl::GetFlag(FLAGS_gvisor));
+      absl::GetFlag(FLAGS_sandbox));
   CHECK_OK(echo_service);
 
   // Create load and execute RPC handlers.

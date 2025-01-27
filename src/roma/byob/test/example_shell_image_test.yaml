@@ -166,8 +166,9 @@ commandTests:
           Flags from src/roma/byob/test/example_shell\.cc:
             --commands_file \(a text file with a list of CLI commands to execute\);
               default: ;
-            --gvisor \(Run BYOB with gVisor\.\); default: on;
             --num_workers \(the number of workers\); default: 1;
+            --sandbox \(Run BYOB with mode: gvisor, gvisor-debug, minimal\.\);
+              default: minimal;
             --syscall_filter \(Whether to enable syscall filtering\.\); default: false;
             --udf_log_file \(path with directory to a file in which UDF logs will be\
               stored\); default: ;
@@ -181,6 +182,8 @@ commandTests:
       - /tools/echo_commands_file.txt
       - --udf_log_file
       - /tools/udf_log_file.txt
+      - --sandbox
+      - gvisor
     expectedOutput:
       - '{code_token=.*, response={"message":"Hello, world!"}}'
     exitCode: 0

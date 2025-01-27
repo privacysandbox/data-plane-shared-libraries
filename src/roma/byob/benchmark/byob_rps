@@ -11,7 +11,7 @@ declare BURST_SIZE=${DEFAULT_BURST_SIZE}
 declare -r DEFAULT_NUM_WORKERS=100
 declare NUM_WORKERS=${DEFAULT_NUM_WORKERS}
 
-declare SANDBOX=off
+declare SANDBOX=minimal
 
 declare -r -i DEFAULT_CPUS=100
 declare -i CPUS=${DEFAULT_CPUS}
@@ -156,7 +156,7 @@ function run_test() {
       CMD_ARGS+=("--batching=${BATCHING}")
     fi
   else
-    CMD_ARGS+=("--gvisor=${SANDBOX}")
+    CMD_ARGS+=("--sandbox=${SANDBOX}")
   fi
 
   set -o xtrace
