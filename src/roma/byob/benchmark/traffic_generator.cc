@@ -205,6 +205,9 @@ int main(int argc, char** argv) {
       CHECK(report_json.ok())
           << "Failed to convert report to JSON: " << report_json.status();
       outfile << report_json.value() << std::endl;
+      if (absl::GetFlag(FLAGS_verbose)) {
+        LOG(INFO) << "JSON_L" << report_json.value() << "JSON_L";
+      }
     } else {
       LOG(ERROR) << "Failed to open output file: " << output_file;
     }
