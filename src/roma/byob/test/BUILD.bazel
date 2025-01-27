@@ -301,6 +301,7 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
                 test_name = test_name,
             ),
         ],
+        container_structure_test_shared_count = 2,
         debug = False,
         entrypoint = entrypoint,
         labels = {"tee.launch_policy.log_redirect": "always"},
