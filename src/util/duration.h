@@ -78,6 +78,13 @@ class SteadyTime {
     return t1.time_ != t2.time_;
   }
 
+  friend std::ostream& operator<<(std::ostream& os, const SteadyTime& t) {
+    auto duration = t.time_.time_since_epoch();
+    auto ns = std::chrono::duration_cast<std::chrono::nanoseconds>(duration);
+    os << absl::FormatTime(absl::FromUnixNanos(ns.count()));
+    return os;
+  }
+
  private:
   explicit SteadyTime(std::chrono::time_point<std::chrono::steady_clock> time)
       : time_(time) {}
