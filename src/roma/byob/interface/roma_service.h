@@ -56,8 +56,8 @@ namespace internal::roma_service {
 class LocalHandle final {
  public:
   LocalHandle(int pid, std::string_view mounts,
-              std::string_view udf_socket_path,
-              std::string_view control_socket_path, std::string_view sockdir,
+              std::string_view control_socket_path,
+              std::string_view udf_socket_path, std::string_view sock_dir,
               std::string_view log_dir, bool enable_seccomp_filter);
   ~LocalHandle();
 
@@ -67,8 +67,9 @@ class LocalHandle final {
 
 class ByobHandle final {
  public:
-  ByobHandle(int pid, std::string_view mounts, std::string_view udf_socket_path,
-             std::string_view control_socket_path, std::string_view sockdir,
+  ByobHandle(int pid, std::string_view mounts,
+             std::string_view control_socket_path,
+             std::string_view udf_socket_path, std::string_view sock_dir,
              std::string container_name, std::string_view log_dir,
              std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
              bool debug_mode, bool enable_seccomp_filter);
@@ -85,7 +86,7 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
   absl::Status Init(Config<TMetadata> config, Mode mode) {
-    char socket_dir_tmpl[20] = "/tmp/sockdir_XXXXXX";
+    char socket_dir_tmpl[21] = "/tmp/sock_dir_XXXXXX";
     if (::mkdtemp(socket_dir_tmpl) == nullptr) {
       return absl::ErrnoToStatus(errno, "mkdtemp(socket_dir)");
     }

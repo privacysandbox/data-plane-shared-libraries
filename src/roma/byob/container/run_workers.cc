@@ -66,9 +66,9 @@
 #include "src/util/status_macro/status_macros.h"
 #include "src/util/status_macro/status_util.h"
 
-ABSL_FLAG(std::string, control_socket_name, "/sockdir/xyzw.sock",
+ABSL_FLAG(std::string, control_socket_name, "/sock_dir/xyzw.sock",
           "Socket for host to run_workers communication");
-ABSL_FLAG(std::string, udf_socket_name, "/sockdir/abcd.sock",
+ABSL_FLAG(std::string, udf_socket_name, "/sock_dir/abcd.sock",
           "Socket for host to UDF communication");
 ABSL_FLAG(std::vector<std::string>, mounts,
           std::vector<std::string>({"/lib", "/lib64"}),
