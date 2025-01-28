@@ -38,7 +38,7 @@ using ::privacy_sandbox::roma_byob::example::SampleResponse;
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::StatusOr<std::string>*, absl::Notification*)>;
+    absl::StatusOr<std::string>*, absl::Notification*) const>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace privacy_sandbox::server_common::byob {

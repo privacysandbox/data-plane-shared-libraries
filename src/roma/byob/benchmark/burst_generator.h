@@ -61,10 +61,10 @@ class BurstGenerator final {
 
   BurstGenerator(std::string id, int64_t num_bursts, int64_t burst_size,
                  absl::Duration cadence,
-                 absl::AnyInvocable<
-                     void(privacy_sandbox::server_common::Stopwatch,
-                          absl::StatusOr<absl::Duration>*,
-                          absl::StatusOr<std::string>*, absl::Notification*)>
+                 absl::AnyInvocable<void(
+                     privacy_sandbox::server_common::Stopwatch,
+                     absl::StatusOr<absl::Duration>*,
+                     absl::StatusOr<std::string>*, absl::Notification*) const>
                      func)
       : id_(std::move(id)),
         num_bursts_(num_bursts),
@@ -94,7 +94,8 @@ class BurstGenerator final {
   absl::Duration cadence_;
   absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
                           absl::StatusOr<absl::Duration>*,
-                          absl::StatusOr<std::string>*, absl::Notification*)>
+                          absl::StatusOr<std::string>*, absl::Notification*)
+                         const>
       func_;
   std::vector<std::unique_ptr<absl::Notification>> notifications_;
 };

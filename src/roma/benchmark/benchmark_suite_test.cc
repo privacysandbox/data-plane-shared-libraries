@@ -29,7 +29,6 @@ static void RomaPayloadTest(benchmark::State& state) {
       .workers = 1,
       .queue_size = 10,
       .request_threads = 1,
-      .batch_size = 1,
       .requests_per_thread = 10'000,
   };
   for (auto _ : state) {
@@ -44,7 +43,6 @@ static void RomaJsonInputParsingTest(benchmark::State& state) {
       .workers = 1,
       .queue_size = 100,
       .request_threads = 1,
-      .batch_size = 1,
       .requests_per_thread = 10'000,
   };
   for (auto _ : state) {
@@ -59,7 +57,6 @@ static void RomaWorkerAndQueueTest(benchmark::State& state) {
       .workers = static_cast<size_t>(state.range(0)),
       .queue_size = static_cast<size_t>(state.range(1)),
       .request_threads = 1,
-      .batch_size = 1,
       .requests_per_thread = 10'000,
   };
   for (auto _ : state) {
@@ -78,28 +75,12 @@ static void CustomArgumentsForWorkerAndQueueTest(
   }
 }
 
-static void RomaBatchSizeTest(benchmark::State& state) {
-  TestConfiguration test_configuration = {
-      .inputs_type = InputsType::kSimpleString,
-      .input_payload_in_byte = 500'000,
-      .workers = 16,
-      .queue_size = 10,
-      .request_threads = 1,
-      .batch_size = static_cast<size_t>(state.range(0)),
-      .requests_per_thread = 10'000,
-  };
-  for (auto _ : state) {
-    RomaBenchmarkSuite(test_configuration);
-  }
-}
-
 // Register the function as a benchmark
 BENCHMARK(RomaPayloadTest)->RangeMultiplier(10)->Range(1, 1024 * 1024 * 10);
 BENCHMARK(RomaJsonInputParsingTest)->RangeMultiplier(10)->Range(1, 1000);
 BENCHMARK(RomaJsonInputParsingTest)->RangeMultiplier(10)->Range(1, 100'000);
 BENCHMARK(RomaPayloadTest)->DenseRange(0, 1024 * 1024, 1024 * 500);
 BENCHMARK(RomaWorkerAndQueueTest)->Apply(CustomArgumentsForWorkerAndQueueTest);
-BENCHMARK(RomaBatchSizeTest)->RangeMultiplier(10)->Range(1, 100);
 
 // Run the benchmark
 BENCHMARK_MAIN();

@@ -169,7 +169,6 @@ cc_library(
         "//src/roma/tools/v8_cli:test_udfs",
     ],
     deps = [
-        "//src/roma/byob/benchmark:latency_formatter",
         "//src/roma/interface",
         "//src/roma/roma_service",
         "//src/util:duration",

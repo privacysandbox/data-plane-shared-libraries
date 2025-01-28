@@ -115,16 +115,6 @@ class RomaService {
     dispatcher_->Cancel(token);
   }
 
-  // Async & Batch API.
-  // Batch execute a batch of invocation requests. Can only be called when a
-  // valid code object has been loaded.
-  template <typename InputType>
-  absl::Status BatchExecute(
-      std::vector<InvocationRequest<InputType, TMetadata>>& batch,
-      BatchCallback batch_callback) {
-    return BatchExecuteInternal(batch, std::move(batch_callback));
-  }
-
   absl::Status Stop() { return StopInternal(); }
 
  private:
@@ -364,64 +354,6 @@ class RomaService {
     PS_RETURN_IF_ERROR(dispatcher_->Invoke(std::move(*invocation_req),
                                            std::move(callback_wrapper)));
     return ExecutionToken{std::move(uuid_str)};
-  }
-
-  template <typename InputType>
-  absl::Status BatchExecuteInternal(
-      std::vector<InvocationRequest<InputType, TMetadata>>& batch,
-      BatchCallback batch_callback) {
-    std::vector<std::string> uuids;
-    uuids.reserve(batch.size());
-
-    for (auto& request : batch) {
-      PS_RETURN_IF_ERROR(
-          AssertInvocationRequestIsValid("BatchExecute", request));
-      auto request_unique_id = google::scp::core::common::Uuid::GenerateUuid();
-      std::string uuid_str =
-          google::scp::core::common::ToString(request_unique_id);
-      // Save uuids for later removal in callback_wrapper
-      uuids.push_back(uuid_str);
-      auto [it, inserted] =
-          request.tags.insert({std::string(kRequestUuid), uuid_str});
-      if (!inserted) {
-        it->second = uuid_str;
-      }
-      PS_RETURN_IF_ERROR(
-          StoreMetadata(std::move(uuid_str), std::move(request.metadata)));
-    }
-    auto batch_callback_ptr = std::make_shared<BatchCallback>(
-        [&, uuids = std::move(uuids),
-         batch_callback = std::move(batch_callback)](
-            std::vector<absl::StatusOr<ResponseObject>> batch_resp) mutable {
-          std::move(batch_callback)(std::move(batch_resp));
-          for (const auto& uuid : uuids) {
-            DeleteMetadata(uuid);
-          }
-        });
-    const auto batch_size = batch.size();
-    auto batch_response =
-        std::make_shared<std::vector<absl::StatusOr<ResponseObject>>>(
-            batch_size, absl::StatusOr<ResponseObject>());
-    auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
-    for (size_t index = 0; index < batch_size; ++index) {
-      auto callback = [batch_response, finished_counter, batch_callback_ptr,
-                       index](absl::StatusOr<ResponseObject> obj_response) {
-        (*batch_response)[index] = std::move(obj_response);
-        auto finished_value = finished_counter->fetch_add(1);
-        if (finished_value + 1 == batch_response->size()) {
-          (*batch_callback_ptr)(std::move(*batch_response));
-        }
-      };
-      absl::Status result;
-      while (!(result = dispatcher_->Invoke(batch[index], callback)).ok()) {
-        // If the first request from the batch got a failure, return failure
-        // without waiting.
-        if (index == 0) {
-          return result;
-        }
-      }
-    }
-    return absl::OkStatus();
   }
 
   // V8 fails to initialize if Roma workers aren't given at least

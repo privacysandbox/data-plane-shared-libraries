@@ -179,8 +179,7 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
             << "\n\tqueue_size: " << test_configuration.queue_size
             << "\n\trequest_threads: " << test_configuration.request_threads
             << "\n\trequests per thread: "
-            << test_configuration.requests_per_thread
-            << "\n\tBatch size: " << test_configuration.batch_size << std::endl;
+            << test_configuration.requests_per_thread << std::endl;
 
   if (auto status =
           LoadCodeObject(*roma_service, test_configuration.js_source_code);
@@ -195,7 +194,6 @@ void RomaBenchmarkSuite(const TestConfiguration& test_configuration) {
       test_configuration.input_json_nested_depth);
 
   RomaBenchmark roma_benchmark(std::move(roma_service), test_execute_request,
-                               test_configuration.batch_size,
                                test_configuration.request_threads,
                                test_configuration.requests_per_thread);
 
@@ -254,11 +252,10 @@ absl::Status LoadCodeObject(RomaService<>& roma_service,
 RomaBenchmark::RomaBenchmark(
     std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
         roma_service,
-    const InvocationSharedRequest<>& test_request, size_t batch_size,
-    size_t threads, size_t requests_per_thread)
+    const InvocationSharedRequest<>& test_request, size_t threads,
+    size_t requests_per_thread)
     : code_obj_(test_request),
       threads_(threads),
-      batch_size_(batch_size),
       requests_per_thread_(requests_per_thread),
       latency_metrics_(threads * requests_per_thread, BenchmarkMetrics()),
       roma_service_(std::move(roma_service)) {}
@@ -277,12 +274,7 @@ void RomaBenchmark::RunTest() {
   auto work_threads = std::vector<std::thread>();
   work_threads.reserve(threads_);
   for (auto i = 0; i < threads_; i++) {
-    if (batch_size_ > 1) {
-      work_threads.push_back(
-          std::thread(&RomaBenchmark::SendRequestBatch, this));
-    } else {
-      work_threads.push_back(std::thread(&RomaBenchmark::SendRequest, this));
-    }
+    work_threads.push_back(std::thread(&RomaBenchmark::SendRequest, this));
   }
 
   for (auto& t : work_threads) {
@@ -408,25 +400,6 @@ void RomaBenchmark::ConsoleTestMetrics() {
   }
 }
 
-void RomaBenchmark::SendRequestBatch() {
-  std::vector<InvocationSharedRequest<>> requests;
-  for (auto i = 0; i < batch_size_; i++) {
-    requests.push_back(code_obj_);
-  }
-  std::atomic<size_t> sent_request = 0;
-  while (sent_request < requests_per_thread_) {
-    while (!roma_service_
-                ->BatchExecute(
-                    requests,
-                    std::bind(&RomaBenchmark::CallbackBatch, this,
-                              std::placeholders::_1,
-                              privacy_sandbox::server_common::Stopwatch()))
-                .ok()) {
-    }
-    sent_request++;
-  }
-}
-
 void RomaBenchmark::SendRequest() {
   std::atomic<size_t> sent_request = 0;
   while (sent_request < requests_per_thread_) {
@@ -444,23 +417,6 @@ void RomaBenchmark::SendRequest() {
     }
     sent_request++;
   }
-}
-
-void RomaBenchmark::CallbackBatch(
-    const std::vector<absl::StatusOr<ResponseObject>> resp_batch,
-    privacy_sandbox::server_common::Stopwatch stopwatch) {
-  for (auto resp : resp_batch) {
-    if (!resp.ok()) {
-      failed_requests_.fetch_add(1);
-      return;
-    }
-  }
-
-  success_requests_.fetch_add(1);
-  BenchmarkMetrics metric;
-  metric.total_execute_time = stopwatch.GetElapsedTime();
-  latency_metrics_.at(metric_index_) = metric;
-  metric_index_.fetch_add(1);
 }
 
 void RomaBenchmark::Callback(

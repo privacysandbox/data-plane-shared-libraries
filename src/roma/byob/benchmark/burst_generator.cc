@@ -26,7 +26,6 @@
 #include "absl/strings/str_split.h"
 #include "absl/time/time.h"
 #include "google/protobuf/util/time_util.h"
-#include "src/roma/byob/benchmark/latency_formatter.h"
 #include "src/roma/byob/benchmark/traffic_generator.pb.h"
 #include "src/util/duration.h"
 
@@ -78,6 +77,22 @@ google::protobuf::Duration DurationToProto(absl::Duration duration) {
       absl::ToInt64Nanoseconds(duration));
 }
 
+std::vector<absl::Duration> ParseOutputLatencies(
+    const std::vector<absl::StatusOr<std::string>>& invocation_outputs) {
+  std::vector<absl::Duration> output_latencies;
+  for (const auto& output : invocation_outputs) {
+    if (output.ok()) {
+      absl::Duration duration;
+      if (absl::ParseDuration(*output, &duration)) {
+        output_latencies.push_back(duration);
+      } else {
+        break;
+      }
+    }
+  }
+  return output_latencies;
+}
+
 template <typename Ptile>
 void CopyStats(const Ptile ptile,
                ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::
@@ -100,7 +115,7 @@ std::string BurstGenerator::Stats::ToString() const {
   const auto [invocation_ptiles, failure_count] =
       get_status_percentiles(invocation_latencies);
   std::vector<absl::Duration> output_latencies =
-      LatencyFormatter::Parse(invocation_outputs);
+      ParseOutputLatencies(invocation_outputs);
 
   const float late_burst_pct =
       static_cast<float>(
@@ -123,10 +138,8 @@ std::string BurstGenerator::Stats::ToString() const {
       "\n  min: ", invocation_ptiles.min, "\n  p50: ", invocation_ptiles.p50,
       "\n  p90: ", invocation_ptiles.p90, "\n  p95: ", invocation_ptiles.p95,
       "\n  p99: ", invocation_ptiles.p99, "\n  max: ", invocation_ptiles.max);
-  // Each invocation should have a corresponding output, except in the case of
-  // batch_execute, where each invocation would be associated with a batch of
-  // outputs.
-  if (output_latencies.size() >= invocation_outputs.size()) {
+  // Each invocation should have a corresponding output
+  if (output_latencies.size() == invocation_outputs.size()) {
     Percentiles<absl::Duration> output_ptiles =
         get_percentiles(output_latencies);
     stats_str = absl::StrCat(
@@ -149,7 +162,7 @@ void BurstGenerator::Stats::ToReport(
   const auto [invocation_ptiles, failure_count] =
       get_status_percentiles(invocation_latencies);
   std::vector<absl::Duration> output_latencies =
-      LatencyFormatter::Parse(invocation_outputs);
+      ParseOutputLatencies(invocation_outputs);
 
   const float late_burst_pct =
       static_cast<float>(
@@ -174,10 +187,8 @@ void BurstGenerator::Stats::ToReport(
   // Set invocation latencies
   CopyStats(invocation_ptiles, *report.mutable_invocation_latencies());
 
-  // Each invocation should have a corresponding output, except in the case of
-  // batch_execute, where each invocation would be associated with a batch of
-  // outputs.
-  if (output_latencies.size() >= invocation_outputs.size()) {
+  // Each invocation should have a corresponding output
+  if (output_latencies.size() == invocation_outputs.size()) {
     Percentiles<absl::Duration> output_ptiles =
         get_percentiles(output_latencies);
     CopyStats(output_ptiles, *report.mutable_output_latencies());

@@ -1094,325 +1094,6 @@ TEST(SandboxedServiceTest, CanRunAsyncJsCode) {
   ASSERT_TRUE(roma_service.Stop().ok());
 }
 
-TEST(SandboxedServiceTest, BatchExecute) {
-  Config config;
-  config.number_of_workers = 2;
-  RomaService<> roma_service(std::move(config));
-  ASSERT_TRUE(roma_service.Init().ok());
-
-  std::vector<absl::StatusOr<ResponseObject>> batch_responses;
-  int res_count = 0;
-  constexpr size_t kBatchSize = 5;
-  absl::Notification load_finished;
-  absl::Notification execute_finished;
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = R"JS_CODE(
-    function Handler(input) { return "Hello world! " + JSON.stringify(input);
-    }
-  )JS_CODE",
-    });
-
-    absl::Status response_status;
-    ASSERT_TRUE(roma_service
-                    .LoadCodeObj(std::move(code_obj),
-                                 [&](absl::StatusOr<ResponseObject> resp) {
-                                   response_status = resp.status();
-                                   load_finished.Notify();
-                                 })
-                    .ok());
-    ASSERT_TRUE(
-        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(response_status.ok());
-  }
-
-  {
-    auto execution_obj = InvocationStrRequest<>({
-        .id = "foo",
-        .version_string = "v1",
-        .handler_name = "Handler",
-        .input = {R"("Foobar")"},
-    });
-
-    std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
-    ASSERT_TRUE(
-        roma_service
-            .BatchExecute(batch,
-                          [&](const std::vector<absl::StatusOr<ResponseObject>>&
-                                  batch_resp) {
-                            batch_responses = batch_resp;
-                            res_count = batch_resp.size();
-                            execute_finished.Notify();
-                          })
-            .ok());
-    ASSERT_TRUE(
-        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-  }
-
-  for (auto resp : batch_responses) {
-    EXPECT_TRUE(resp.ok());
-    EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
-  }
-  EXPECT_EQ(res_count, kBatchSize);
-
-  ASSERT_TRUE(roma_service.Stop().ok());
-}
-
-void CallbackFunc(FunctionBindingPayload<>& wrapper) {
-  wrapper.io_proto.set_output_string("Hello world!");
-}
-
-TEST(SandboxedServiceTest, DISABLED_CanReuseRequestForMultipleBatches) {
-  Config config;
-  config.number_of_workers = 2;
-  config.RegisterFunctionBinding(
-      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
-          .function_name = "callback",
-          .function = CallbackFunc,
-      }));
-  RomaService<> roma_service(std::move(config));
-  ASSERT_TRUE(roma_service.Init().ok());
-
-  std::vector<absl::StatusOr<ResponseObject>> batch_responses;
-  int res_count = 0;
-  constexpr size_t kBatchSize = 5;
-  absl::Notification load_finished;
-  absl::Notification execute_batch_1_finished;
-  absl::Notification execute_batch_2_finished;
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = R"JS_CODE(
-    function Handler() { return callback();
-    }
-  )JS_CODE",
-    });
-
-    absl::Status response_status;
-    ASSERT_TRUE(roma_service
-                    .LoadCodeObj(std::move(code_obj),
-                                 [&](absl::StatusOr<ResponseObject> resp) {
-                                   response_status = resp.status();
-                                   load_finished.Notify();
-                                 })
-                    .ok());
-    ASSERT_TRUE(
-        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(response_status.ok());
-  }
-
-  {
-    // First batch will be executed, as a side effect, each request will have a
-    // {kRequestUuid, uuid_str} pair in its tags.
-    auto execution_obj = InvocationStrRequest<>({
-        .id = "foo",
-        .version_string = "v1",
-        .handler_name = "Handler",
-    });
-
-    std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
-    ASSERT_TRUE(
-        roma_service
-            .BatchExecute(
-                batch,
-                [&](const std::vector<absl::StatusOr<ResponseObject>>&
-                        batch_resp) { execute_batch_1_finished.Notify(); })
-            .ok());
-    ASSERT_TRUE(execute_batch_1_finished.WaitForNotificationWithTimeout(
-        absl::Seconds(10)));
-
-    // The second batch should still be able to be executed, ensuring the
-    // {kRequestUuid, uuid_str} pair in each request's tags is updated.
-    ASSERT_TRUE(
-        roma_service
-            .BatchExecute(batch,
-                          [&](const std::vector<absl::StatusOr<ResponseObject>>&
-                                  batch_resp) {
-                            batch_responses = batch_resp;
-                            res_count = batch_resp.size();
-                            execute_batch_2_finished.Notify();
-                          })
-            .ok());
-
-    ASSERT_TRUE(execute_batch_2_finished.WaitForNotificationWithTimeout(
-        absl::Seconds(10)));
-  }
-
-  for (auto resp : batch_responses) {
-    EXPECT_TRUE(resp.ok());
-    EXPECT_THAT(resp->resp, StrEq(R"("Hello world!")"));
-  }
-  EXPECT_EQ(res_count, kBatchSize);
-
-  ASSERT_TRUE(roma_service.Stop().ok());
-}
-
-TEST(SandboxedServiceTest,
-     BatchExecuteShouldExecuteAllRequestsEvenWithSmallQueues) {
-  Config config;
-  // Queue of size one and 10 workers. Incoming work should block while
-  // workers are busy and can't pick up items.
-  config.worker_queue_max_items = 1;
-  config.number_of_workers = 10;
-  RomaService<> roma_service(std::move(config));
-  ASSERT_TRUE(roma_service.Init().ok());
-
-  absl::Mutex mu;
-  std::vector<absl::StatusOr<ResponseObject>> batch_responses;
-  int res_count = 0;
-  // Large batch
-  constexpr size_t kBatchSize = 100;
-  absl::Notification load_finished;
-  absl::Notification execute_finished;
-  {
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = R"JS_CODE(
-    function Handler(input) { return "Hello world! " + JSON.stringify(input);
-    }
-  )JS_CODE",
-    });
-
-    absl::Status response_status;
-    ASSERT_TRUE(roma_service
-                    .LoadCodeObj(std::move(code_obj),
-                                 [&](absl::StatusOr<ResponseObject> resp) {
-                                   response_status = resp.status();
-                                   load_finished.Notify();
-                                 })
-                    .ok());
-    ASSERT_TRUE(
-        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(response_status.ok());
-  }
-
-  {
-    auto execution_obj = InvocationStrRequest<>({
-        .id = "foo",
-        .version_string = "v1",
-        .handler_name = "Handler",
-        .input = {R"("Foobar")"},
-    });
-
-    std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
-
-    auto status = absl::InternalError("fail");
-    while (!status.ok()) {
-      status = roma_service.BatchExecute(
-          batch,
-          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            batch_responses = batch_resp;
-            res_count = batch_resp.size();
-            execute_finished.Notify();
-          });
-    }
-    EXPECT_TRUE(status.ok());
-  }
-
-  for (auto resp : batch_responses) {
-    EXPECT_TRUE(resp.ok());
-    EXPECT_THAT(resp->resp, StrEq(R"("Hello world! \"Foobar\"")"));
-  }
-
-  execute_finished.WaitForNotification();
-  EXPECT_EQ(res_count, kBatchSize);
-
-  ASSERT_TRUE(roma_service.Stop().ok());
-}
-
-TEST(SandboxedServiceTest, MultiThreadedBatchExecuteSmallQueue) {
-  Config config;
-  config.worker_queue_max_items = 1;
-  config.number_of_workers = 10;
-  RomaService<> roma_service(std::move(config));
-  ASSERT_TRUE(roma_service.Init().ok());
-  {
-    absl::Notification load_finished;
-    auto code_obj = std::make_unique<CodeObject>(CodeObject{
-        .id = "foo",
-        .version_string = "v1",
-        .js = R"JS_CODE(
-    function Handler(input) { return "Hello world! " + JSON.stringify(input);
-    }
-  )JS_CODE",
-    });
-
-    absl::Status response_status;
-    ASSERT_TRUE(roma_service
-                    .LoadCodeObj(std::move(code_obj),
-                                 [&](absl::StatusOr<ResponseObject> resp) {
-                                   response_status = resp.status();
-                                   load_finished.Notify();
-                                 })
-                    .ok());
-    ASSERT_TRUE(
-        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(response_status.ok());
-  }
-
-  absl::Mutex res_count_mu;
-  int res_count = 0;
-
-  constexpr int kNumThreads = 10;
-  constexpr size_t kBatchSize = 100;
-  std::vector<std::thread> threads;
-  threads.reserve(kNumThreads);
-  for (int i = 0; i < kNumThreads; i++) {
-    threads.emplace_back([&, i]() {
-      absl::Notification local_execute;
-      InvocationStrRequest<> execution_obj{
-          .id = "foo",
-          .version_string = "v1",
-          .handler_name = "Handler",
-          .input = {absl::StrCat(R"(")", "Foobar", i, R"(")")},
-      };
-
-      std::vector<InvocationStrRequest<>> batch(kBatchSize, execution_obj);
-      std::vector<absl::StatusOr<ResponseObject>> batch_responses;
-
-      auto batch_callback =
-          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            batch_responses = batch_resp;
-            {
-              absl::MutexLock lock(&res_count_mu);
-              res_count += batch_resp.size();
-            }
-            local_execute.Notify();
-          };
-      while (!roma_service.BatchExecute(batch, batch_callback).ok()) {
-      }
-
-      // Thread cannot join until batch_callback is called.
-      ASSERT_TRUE(
-          local_execute.WaitForNotificationWithTimeout(absl::Seconds(10)));
-
-      for (auto resp : batch_responses) {
-        if (resp.ok()) {
-          EXPECT_THAT(
-              resp->resp,
-              StrEq(absl::StrCat("\"Hello world! \\\"Foobar", i, "\\\"\"")));
-        } else {
-          ADD_FAILURE() << "resp is NOT OK.";
-        }
-      }
-    });
-  }
-
-  for (auto& t : threads) {
-    t.join();
-  }
-  {
-    absl::MutexLock lock(&res_count_mu);
-    EXPECT_EQ(res_count, kBatchSize * kNumThreads);
-  }
-
-  ASSERT_TRUE(roma_service.Stop().ok());
-}
-
 TEST(SandboxedServiceTest, ExecuteCodeConcurrently) {
   Config config;
   config.number_of_workers = 2;
@@ -1792,7 +1473,9 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
 
-  std::string result;
+  const int kNumExecutions = 50;
+
+  std::vector<std::string> results(kNumExecutions);
 
   // Load version 1
   {
@@ -1819,31 +1502,29 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
         load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
   }
 
-  // Start a batch execution
+  // Start kNumExecutions executions
   {
-    absl::Notification execute_finished;
-    {
-      std::vector<InvocationStrRequest<>> batch;
-      for (int i = 0; i < 50; i++) {
-        InvocationStrRequest<> req{
-            .id = "foo",
-            .version_string = "v1",
-            .handler_name = "Handler",
-            .input = {R"("Foobar")"},
-        };
-        batch.push_back(req);
-      }
-      auto batch_result = roma_service.BatchExecute(
-          batch,
-          [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-            for (auto& resp : batch_resp) {
-              EXPECT_TRUE(resp.ok());
-              if (resp.ok()) {
-                result = std::move(resp->resp);
-              }
-            }
-            execute_finished.Notify();
+    std::vector<absl::Notification> execute_finished(kNumExecutions);
+    for (int i = 0; i < kNumExecutions; i++) {
+      std::cout << "Executing " << i << std::endl;
+      auto req =
+          std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+              .id = "foo",
+              .version_string = "v1",
+              .handler_name = "Handler",
+              .input = {R"("Foobar")"},
           });
+      EXPECT_TRUE(
+          roma_service
+              .Execute(std::move(req),
+                       [&, i = i](const absl::StatusOr<ResponseObject>& resp) {
+                         EXPECT_TRUE(resp.ok());
+                         if (resp.ok()) {
+                           results[i] = std::move(resp->resp);
+                         }
+                         execute_finished[i].Notify();
+                       })
+              .ok());
     }
 
     // Load version 2 while execution is happening
@@ -1853,9 +1534,10 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
           .id = "foo",
           .version_string = "v2",
           .js = R"JS_CODE(
-    function Handler(input) { return "Hello world2! " + JSON.stringify(input);
-    }
-  )JS_CODE",
+      function Handler(input) { return "Hello world2! " +
+      JSON.stringify(input);
+      }
+    )JS_CODE",
       });
 
       ASSERT_TRUE(roma_service
@@ -1868,11 +1550,15 @@ TEST(SandboxedServiceTest, ShouldAllowLoadingVersionWhileDispatching) {
     }
     ASSERT_TRUE(
         load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(
-        execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    for (int i = 0; i < kNumExecutions; i++) {
+      ASSERT_TRUE(execute_finished[i].WaitForNotificationWithTimeout(
+          absl::Seconds(10)));
+    }
   }
 
-  EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
+  for (const auto& result : results) {
+    EXPECT_THAT(result, StrEq(R"("Hello world1! \"Foobar\"")"));
+  }
 
   ASSERT_TRUE(roma_service.Stop().ok());
 }

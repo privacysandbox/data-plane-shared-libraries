@@ -80,8 +80,6 @@ ABSL_FLAG(std::vector<std::string>, input_args, {},
           "Arguments to pass to the handler function (V8 mode only)");
 ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
 ABSL_FLAG(bool, verbose, false, "Enable verbose logging");
-ABSL_FLAG(bool, batching, false,
-          "Enable batching of BURST_SIZE queries for V8 mode");
 ABSL_FLAG(std::optional<int>, sigpending, std::nullopt,
           "Set the pending signals rlimit");
 
@@ -92,7 +90,7 @@ using ::privacy_sandbox::server_common::PeriodicClosure;
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::StatusOr<std::string>*, absl::Notification*)>;
+    absl::StatusOr<std::string>*, absl::Notification*) const>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 std::string GetKernelVersion() {
@@ -121,12 +119,11 @@ int main(int argc, char** argv) {
   absl::SetStderrThreshold(absl::LogSeverity::kInfo);
   const int num_workers = absl::GetFlag(FLAGS_num_workers);
   CHECK_GT(num_workers, 0);
-  int burst_size = absl::GetFlag(FLAGS_burst_size);
+  const int burst_size = absl::GetFlag(FLAGS_burst_size);
   CHECK_GT(burst_size, 0);
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
   const std::string output_file = absl::GetFlag(FLAGS_output_file);
-  const bool batching = absl::GetFlag(FLAGS_batching);
 
   int num_queries = absl::GetFlag(FLAGS_num_queries);
   const int total_invocations = absl::GetFlag(FLAGS_total_invocations);
@@ -187,16 +184,11 @@ int main(int argc, char** argv) {
           ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
                               completions, enable_seccomp_filter)
           : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
-                            completions, burst_size, batching);
-
-  // If batching is enabled, use 1 instead of burst_size. Instead of calling
-  // rpc_func with a single execution burst_size times, rpc_func is called 1
-  // time with a batch of burst_size executions.
-  int size = batching ? 1 : burst_size;
+                            completions);
 
   using ::privacy_sandbox::server_common::byob::BurstGenerator;
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
-  BurstGenerator burst_gen("tg1", num_queries, size, burst_cadence,
+  BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                            std::move(rpc_func));
 
   LOG(INFO) << "starting burst generator run."

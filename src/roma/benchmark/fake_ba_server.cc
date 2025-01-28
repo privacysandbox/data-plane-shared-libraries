@@ -67,8 +67,11 @@ void FakeBaServer::LoadSync(std::string_view version,
 }
 
 void FakeBaServer::BatchExecute(std::vector<DispatchRequest>& batch) const {
+  using BatchCallback =
+      absl::AnyInvocable<void(std::vector<absl::StatusOr<ResponseObject>>)>;
+
   absl::Notification notification;
-  auto batch_callback =
+  BatchCallback batch_callback =
       [&notification](
           const std::vector<absl::StatusOr<DispatchResponse>>& result) {
         for (const auto& status_or : result) {
@@ -77,8 +80,38 @@ void FakeBaServer::BatchExecute(std::vector<DispatchRequest>& batch) const {
         notification.Notify();
       };
 
-  // This call schedules the code to be executed:
-  CHECK_OK(roma_service_->BatchExecute(batch, std::move(batch_callback)));
+  const size_t batch_size = batch.size();
+  auto batch_response =
+      std::make_shared<std::vector<absl::StatusOr<DispatchResponse>>>(
+          batch_size, absl::StatusOr<DispatchResponse>());
+  auto finished_counter = std::make_shared<std::atomic<size_t>>(0);
+  auto batch_callback_ptr =
+      std::make_shared<BatchCallback>(std::move(batch_callback));
+
+  for (size_t index = 0; index < batch_size; ++index) {
+    auto single_callback =
+        [batch_response, finished_counter, batch_callback_ptr,
+         index](absl::StatusOr<DispatchResponse> obj_response) {
+          (*batch_response)[index] = std::move(obj_response);
+          auto finished_value = finished_counter->fetch_add(1);
+          if (finished_value + 1 == batch_response->size()) {
+            (*batch_callback_ptr)(std::move(*batch_response));
+          }
+        };
+
+    absl::Status result;
+    while (!(result =
+                 roma_service_
+                     ->Execute(std::make_unique<DispatchRequest>(batch[index]),
+                               single_callback)
+                     .status())
+                .ok()) {
+      // If the first request from the batch got a failure, return failure
+      // without waiting.
+      CHECK_NE(index, 0);
+    }
+  }
+
   notification.WaitForNotificationWithTimeout(kExecuteCodeTimeout);
   CHECK(notification.HasBeenNotified()) << "Timed out waiting for UDF result.";
 }

@@ -50,8 +50,6 @@ struct TestConfiguration {
   size_t queue_size;
   // how many threads used to send request to Roma
   size_t request_threads;
-  // the number of requests for a batch request
-  size_t batch_size;
   // the requests sent per thread
   size_t requests_per_thread;
   // JS source code for test. This only can be non-parameter JS code. If no
@@ -142,15 +140,14 @@ class RomaBenchmark {
    *
    * @param payload_size the invocation request payload size set by increasing
    * the input size.
-   * @param batch_size the size of requests for each batch.
    * @param threads number of threads used to send request.
    * @param requests_per_thread number of requests sent by each thread.
    */
   explicit RomaBenchmark(
       std::unique_ptr<google::scp::roma::sandbox::roma_service::RomaService<>>
           roma_service,
-      const InvocationSharedRequest<>& test_request, size_t batch_size,
-      size_t threads, size_t requests_per_thread);
+      const InvocationSharedRequest<>& test_request, size_t threads,
+      size_t requests_per_thread);
 
   ~RomaBenchmark();
 
@@ -169,13 +166,7 @@ class RomaBenchmark {
   void ConsoleTestMetrics();
 
  private:
-  void SendRequestBatch();
-
   void SendRequest();
-
-  void CallbackBatch(
-      const std::vector<absl::StatusOr<ResponseObject>> resp_batch,
-      privacy_sandbox::server_common::Stopwatch stopwatch);
 
   void Callback(absl::StatusOr<ResponseObject> resp,
                 privacy_sandbox::server_common::Stopwatch stopwatch);
@@ -183,7 +174,6 @@ class RomaBenchmark {
   InvocationSharedRequest<> code_obj_;
 
   size_t threads_{0};
-  size_t batch_size_{0};
   size_t requests_per_thread_{0};
 
   std::atomic<uint64_t> success_requests_{0};

@@ -60,22 +60,10 @@ proto_descriptor_set(
 )
 
 cc_library(
-    name = "latency_formatter",
-    hdrs = ["latency_formatter.h"],
-    deps = [
-        "//src/roma/interface",
-        "@com_google_absl//absl/status:statusor",
-        "@com_google_absl//absl/strings",
-        "@com_google_absl//absl/time",
-    ],
-)
-
-cc_library(
     name = "burst_generator",
     srcs = ["burst_generator.cc"],
     hdrs = ["burst_generator.h"],
     deps = [
-        ":latency_formatter",
         ":traffic_generator_cc_proto",
         "//src/util:duration",
         "@com_google_absl//absl/functional:any_invocable",

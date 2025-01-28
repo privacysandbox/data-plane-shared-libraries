@@ -35,7 +35,8 @@ the rest of the system.
 
 ## Interface
 
-The ROMA interface provides three public static functions for interacting with Roma:
+The ROMA interface provides two public functions for interacting with Roma through the RomaService
+class:
 
 -   **Roma::LoadCodeObj():** This function loads a code object into Roma. Once loaded, the code
     object is cached with its version for future invocations. There are two layers of code caches
@@ -46,12 +47,6 @@ The ROMA interface provides three public static functions for interacting with R
     When the request is sent to the sandbox, the sandbox will retrieve the compiled context or
     source code by its version and run the invocation request with inputs. Refer to
     [Compilation Persistence](#source-code-cache-and-compilation-persistence) for more details.
--   **Roma::BatchExecute():** This function executes a batch of invocation requests. Invocation
-    requests in a batch are like invocation requests from `Roma::Execute()`, except that the
-    `BatchExecute()` callback function handles the responses of all the requests in the batch. Note:
-    the Dispatcher only returns a failure to `Roma::BatchExecute()` when the queue is full before
-    the batch starts to enqueue. Once the batch starts to enqueue, the batch blocks until all
-    requests in the batch are enqueued.
 
 To learn more about the structure of Roma requests and the API functions that are available, see the
 [roma interface](/src/roma/interface/roma.h) directory.
@@ -224,8 +219,8 @@ converters for every odd type in Roma.
         });
     ```
 
-1. Roma can execute both single and batch invocation requests. To send an invocation request to
-   Roma, you can use the following methods:
+1. Roma executes a single invocation request. To send an invocation request to Roma, you can use the
+   following method:
 
     ```cpp
     // Create an invocation request.
@@ -239,21 +234,6 @@ converters for every odd type in Roma.
                           [&](absl::StatusOr<ResponseObject> resp) {
                             // define a callback function for response handling.
                           });
-
-    // Create a batch request and do batch execution.
-    auto execution_obj = InvocationStrRequest();
-    execution_obj.id = "foo";
-    execution_obj.version_string = "v1";
-    execution_obj.handler_name = "Handler";
-    execution_obj.input.push_back("\"Foobar\"");
-
-    // Here we use the same execution object, but these could be different objects
-    // with different inputs, for example.
-    vector<InvocationStrRequest<>> batch(5 /*batch size*/, execution_obj);
-    status = roma_service.BatchExecute(
-        batch, [&](const std::vector<absl::StatusOr<ResponseObject>>& batch_resp) {
-          // define a callback function for response handling.
-        });
     ```
 
 1. Stop Roma
