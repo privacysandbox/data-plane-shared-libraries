@@ -97,7 +97,8 @@ absl::Status SetupPivotRoot(
   // Set up restricted filesystem for worker using pivot_root
   // pivot_root doesn't work under an MS_SHARED mount point.
   // https://man7.org/linux/man-pages/man2/pivot_root.2.html.
-  PS_RETURN_IF_ERROR(Mount(nullptr, "/", nullptr, MS_REC | MS_PRIVATE));
+  PS_RETURN_IF_ERROR(Mount(/*source=*/nullptr, /*target=*/"/",
+                           /*filesystemtype=*/nullptr, MS_REC | MS_PRIVATE));
   for (const auto& [source, target] : sources_and_targets_read_only) {
     const std::filesystem::path mount_target =
         pivot_root_dir / target.relative_path();
