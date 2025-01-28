@@ -1,0 +1,42 @@
+// Copyright 2024 Google LLC
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+
+package privacysandbox.apis.parc.v0;
+
+import "apis/privacysandbox/apis/parc/v0/blob.proto";
+import "apis/privacysandbox/apis/parc/v0/parameter.proto";
+
+// For faster allocations of sub-messages.
+option cc_enable_arenas = true;
+
+// Provides Parc Server service definitions.
+service ParcService {
+  /*
+   *  Blob service RPC definitions.
+   */
+  // Gets a blob from blob storage.
+  rpc GetBlob(GetBlobRequest) returns (stream GetBlobResponse) {}
+  // Lists blobs metadata in blob storage.
+  rpc ListBlobsMetadata(ListBlobsMetadataRequest) returns (ListBlobsMetadataResponse) {}
+  // Gets a blobs metadata in blob storage.
+  rpc GetBlobMetadata(GetBlobMetadataRequest) returns (GetBlobMetadataResponse) {}
+
+  /*
+   *  Parameter service RPC definitions.
+   */
+  // Fetches a parameter from cloud parameter store.
+  rpc GetParameter(GetParameterRequest) returns (GetParameterResponse) {}
+}
