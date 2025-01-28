@@ -89,7 +89,11 @@ int MemoryUsageInBytes() {
     ::close(fd[0]);
     PCHECK(::dup2(fd[1], STDOUT_FILENO) != -1);
     const char* argv[] = {
-        "/usr/bin/runsc", "events", "-stats", "roma_server", nullptr,
+        "/usr/byob/gvisor/bin/runsc",
+        "events",
+        "-stats",
+        "roma_server",
+        nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
     PLOG(FATAL) << "execve()";

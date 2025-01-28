@@ -41,8 +41,8 @@ fileExistenceTests:
     uid: {UID}
     gid: {GID}
 
-  - name: /usr/bin/runsc
-    path: /usr/bin/runsc
+  - name: /usr/byob/gvisor/bin/runsc
+    path: /usr/byob/gvisor/bin/runsc
     permissions: -r-x------
     isExecutableBy: owner
     uid: {UID}

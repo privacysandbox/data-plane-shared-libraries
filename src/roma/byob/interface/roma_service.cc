@@ -241,7 +241,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
     // network stack (--network=none), rootless runsc should be side-effect
     // free.
     const char* debug_argv[] = {
-        "/usr/bin/runsc",
+        "/usr/byob/gvisor/bin/runsc",
         // runsc flags
         "--host-uds=all",
         "--ignore-cgroups",
@@ -257,7 +257,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         nullptr,
     };
     const char* argv[] = {
-        "/usr/bin/runsc",
+        "/usr/byob/gvisor/bin/runsc",
         // runsc flags
         "--host-uds=all",
         "--ignore-cgroups",
@@ -280,7 +280,11 @@ ByobHandle::~ByobHandle() {
     const int pid = ::vfork();
     if (pid == 0) {
       const char* argv[] = {
-          "/usr/bin/runsc", "kill", container_name_.c_str(), "SIGTERM", nullptr,
+          "/usr/byob/gvisor/bin/runsc",
+          "kill",
+          container_name_.c_str(),
+          "SIGTERM",
+          nullptr,
       };
       ::execve(argv[0], const_cast<char* const*>(&argv[0]), /*envp=*/nullptr);
       PLOG(FATAL) << "execve()";
@@ -296,7 +300,7 @@ ByobHandle::~ByobHandle() {
     PLOG(ERROR) << "waitpid unexpectedly didn't wait for any pids";
   }
   const char* argv[] = {
-      "/usr/bin/runsc",
+      "/usr/byob/gvisor/bin/runsc",
       // args
       "delete",
       "-force",

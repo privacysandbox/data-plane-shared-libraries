@@ -106,7 +106,7 @@ pkg_files(
     name = "gvisor_execs",
     srcs = [":runsc"],
     attributes = pkg_attributes(mode = "0500"),
-    prefix = "/usr/bin",
+    prefix = "/usr/byob/gvisor/bin",
 )
 
 pkg_files(
