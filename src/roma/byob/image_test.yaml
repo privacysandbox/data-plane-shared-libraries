@@ -47,3 +47,38 @@ fileExistenceTests:
     isExecutableBy: owner
     uid: {UID}
     gid: {GID}
+
+  - name: /usr/byob/nsjail/bin/nsjail
+    path: /usr/byob/nsjail/bin/nsjail
+    permissions: -r-x------
+    isExecutableBy: owner
+    uid: {UID}
+    gid: {GID}
+
+  - name: /usr/byob/nsjail/lib/libprotobuf.so.17
+    path: /usr/byob/nsjail/lib/libprotobuf.so.17
+    permissions: -r-x------
+    isExecutableBy: owner
+    uid: {UID}
+    gid: {GID}
+
+  - name: /usr/byob/nsjail/lib/libnl-route-3.so.200
+    path: /usr/byob/nsjail/lib/libnl-route-3.so.200
+    permissions: -r-x------
+    isExecutableBy: owner
+    uid: {UID}
+    gid: {GID}
+
+  - name: /usr/byob/nsjail/lib/libnl-3.so.200
+    path: /usr/byob/nsjail/lib/libnl-3.so.200
+    permissions: -r-x------
+    isExecutableBy: owner
+    uid: {UID}
+    gid: {GID}
+
+  - name: /usr/byob/nsjail/lib/libz.so.1
+    path: /usr/byob/nsjail/lib/libz.so.1
+    permissions: -r-x------
+    isExecutableBy: owner
+    uid: {UID}
+    gid: {GID}
