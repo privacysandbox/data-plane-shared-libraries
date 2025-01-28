@@ -35,6 +35,31 @@ namespace privacy_sandbox::server_common::byob {
 inline constexpr std::string_view kLdLibraryPath =
     "LD_LIBRARY_PATH=" LIB_MOUNTS;
 
+// TODO: b/394338833 - Use a default-deny policy for better security.
+inline constexpr std::string_view kSeccompBpfPolicy =
+    "KILL_PROCESS { "
+    "ptrace, "
+    "process_vm_readv, "
+    "process_vm_writev } "
+    "ERRNO(1) { "
+// The following syscalls are not supported by AARCH64 but are supported by
+// AMD64 hence can only be denylisted for AMD64. See -
+// https://github.com/google/kafel/blob/f6020305eb4f404edcbd0a5543580073544b8ead/src/syscalls/aarch64_syscalls.c
+// https://github.com/google/kafel/blob/f6020305eb4f404edcbd0a5543580073544b8ead/src/syscalls/amd64_syscalls.c
+#if defined(__x86_64__)
+    "alarm, "
+    "chmod, "
+    "chown, "
+    "lchown, "
+    "rename, "
+#endif
+    "fchmod, "
+    "fchown, "
+    "reboot, "
+    "setuid, "
+    "setgid, "
+    "sched_setaffinity } "
+    "DEFAULT ALLOW";
 // NOTE: The numbering of these modes is used for microbenchmark upload flow for
 // perfgate. Please do not renumber these modes.
 enum class Mode {
