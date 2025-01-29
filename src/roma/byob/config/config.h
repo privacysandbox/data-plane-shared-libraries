@@ -35,11 +35,13 @@ namespace privacy_sandbox::server_common::byob {
 inline constexpr std::string_view kLdLibraryPath =
     "LD_LIBRARY_PATH=" LIB_MOUNTS;
 
+// NOTE: The numbering of these modes is used for microbenchmark upload flow for
+// perfgate. Please do not renumber these modes.
 enum class Mode {
-  kModeGvisorSandbox,
-  kModeGvisorSandboxDebug,
-  kModeMinimalSandbox,
-  kModeNsJailSandbox,
+  kModeGvisorSandbox = 0,
+  kModeGvisorSandboxDebug = 1,
+  kModeMinimalSandbox = 2,
+  kModeNsJailSandbox = 3,
 };
 
 inline bool AbslParseFlag(absl::string_view text, Mode* mode,
