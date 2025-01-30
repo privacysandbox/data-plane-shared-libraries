@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.20.0 (2025-01-29)
+
+
+### Dependencies
+
+* **deps:** Upgrade absl to e83ef27 2024-11-06
+* **deps:** Upgrade bazel_skylib to 1.7.1
+* **deps:** Upgrade build-system to 0.71.0
+* **deps:** Upgrade container_structure_test to 1.19.3
+* **deps:** Upgrade go toolchain to 1.23.4
+
 ## 0.19.1 (2024-09-27)
 
 

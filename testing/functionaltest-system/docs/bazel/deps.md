@@ -30,6 +30,6 @@ Install golang packages.
 | Name  | Description | Default Value |
 | :------------- | :------------- | :------------- |
 | <a id="go_dependencies-register_toolchains"></a>register_toolchains |  <p align="center"> - </p>   |  <code>True</code> |
-| <a id="go_dependencies-go_version"></a>go_version |  <p align="center"> - </p>   |  <code>"1.22.3"</code> |
+| <a id="go_dependencies-go_version"></a>go_version |  <p align="center"> - </p>   |  <code>"1.23.4"</code> |
 
 

@@ -39,7 +39,7 @@ def dependencies():
 # gazelle update-repos -to_macro deps.bzl%go_dependencies -from_file package/go.mod
 #
 
-_GO_VERSION = "1.22.3"
+_GO_VERSION = "1.23.4"
 
 def go_dependencies(register_toolchains = True, go_version = _GO_VERSION):
     """Install golang packages."""

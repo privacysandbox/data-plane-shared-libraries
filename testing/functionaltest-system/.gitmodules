@@ -1,9 +1,9 @@
 [submodule "build-system"]
 	path = builders
 	url = https://github.com/privacysandbox/build-system
-	branch = release-0.64.1
+	branch = release-0.71.0
 
 [submodule "build-system-test-servers"]
 	path = tests/servers/builders
 	url = https://github.com/privacysandbox/build-system
-	branch = release-0.64.1
+	branch = release-0.71.0
