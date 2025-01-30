@@ -87,7 +87,7 @@ void {{$rpc.Name}}ExecuteImpl(
     std::atomic_int& completions,
     privacy_sandbox::server_common::Stopwatch stopwatch,
     absl::StatusOr<absl::Duration>& duration,
-    {{$reqType}} request) {
+    const {{$reqType}}& request) {
   const auto execution_token = roma_service.{{$rpc.Name}}(
       [&, stopwatch = std::move(stopwatch)] (auto response) {
         if (response.ok()) {
@@ -97,7 +97,7 @@ void {{$rpc.Name}}ExecuteImpl(
         }
         completions++;
       },
-      std::move(request), /*metadata=*/{}, code_token);
+      request, /*metadata=*/{}, code_token);
   if (!execution_token.ok()) {
     duration = std::move(execution_token).status();
     completions++;

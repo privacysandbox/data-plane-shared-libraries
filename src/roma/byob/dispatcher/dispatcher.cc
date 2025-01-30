@@ -276,6 +276,7 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
       continue;
     }
     RequestMetadata request_metadata{
+        .fd = fd,
         .token = data->substr(kNumTokenBytes),
         .handler =
             +[](int fd, std::filesystem::path /*log_file_name*/) {

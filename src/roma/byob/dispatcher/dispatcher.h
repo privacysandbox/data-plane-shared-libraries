@@ -67,7 +67,7 @@ class Dispatcher {
 
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, Request request,
+      std::string_view code_token, const Request& request,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
@@ -89,10 +89,8 @@ class Dispatcher {
       it->second.pop();
     }
     request_metadata->handler =
-        [request = std::move(request), callback = std::move(callback)](
+        [callback = std::move(callback)](
             const int fd, std::filesystem::path log_file_name) mutable {
-          google::protobuf::util::SerializeDelimitedToFileDescriptor(request,
-                                                                     fd);
           Response response;
           if (google::protobuf::io::FileInputStream input(fd);
               !google::protobuf::util::ParseDelimitedFromZeroCopyStream(
@@ -110,11 +108,14 @@ class Dispatcher {
     google::scp::roma::ExecutionToken execution_token{
         std::move(request_metadata->token)};
     request_metadata->ready.Notify();
+    google::protobuf::util::SerializeDelimitedToFileDescriptor(
+        request, request_metadata->fd);
     return execution_token;
   }
 
  private:
   struct RequestMetadata {
+    int fd;
     std::string token;
     absl::AnyInvocable<void(int, std::filesystem::path) &&> handler;
     absl::Notification ready;

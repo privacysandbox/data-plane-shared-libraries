@@ -81,12 +81,12 @@ void BM_Load(benchmark::State& state) {
 void {{$rpc.Name}}ExecuteImpl(
     {{$svcName}}<>& roma_service,
     std::string_view code_token,
-    {{$reqType}} request) {
+    const {{$reqType}}& request) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::unique_ptr<{{$respType}}>> response;
   const auto execution_token = roma_service.{{$rpc.Name}}(
-      notif, std::move(request), response, /*metadata=*/{}, code_token);
+      notif, request, response, /*metadata=*/{}, code_token);
   CHECK_OK(execution_token);
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);

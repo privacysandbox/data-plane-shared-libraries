@@ -198,20 +198,21 @@ class RomaService final {
 
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, Request request, TMetadata /*metadata*/,
+      std::string_view code_token, const Request& request,
+      TMetadata /*metadata*/,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view>) &&>
           callback) {
-    return dispatcher_->ProcessRequest(code_token, std::move(request),
+    return dispatcher_->ProcessRequest(code_token, request,
                                        std::move(callback));
   }
 
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, Request request, TMetadata metadata,
+      std::string_view code_token, const Request& request, TMetadata metadata,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
     return ProcessRequest<Response>(
-        code_token, std::move(request), std::move(metadata),
+        code_token, request, std::move(metadata),
         [callback = std::move(callback)](
             absl::StatusOr<Response> response,
             absl::StatusOr<std::string_view> /*logs*/) mutable {
@@ -221,11 +222,11 @@ class RomaService final {
 
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, Request request, TMetadata metadata,
+      std::string_view code_token, const Request& request, TMetadata metadata,
       absl::Notification& notif,
       absl::StatusOr<std::unique_ptr<Response>>& output) {
     return ProcessRequest<Response>(
-        code_token, std::move(request), std::move(metadata),
+        code_token, request, std::move(metadata),
         [&notif, &output](absl::StatusOr<Response> response,
                           absl::StatusOr<std::string_view> /*logs*/) {
           if (response.ok()) {
