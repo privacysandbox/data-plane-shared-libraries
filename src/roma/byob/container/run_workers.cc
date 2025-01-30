@@ -446,16 +446,6 @@ int ReloaderImpl(void* arg) {
         // pivot_root needs write permissions.
         /*remount_root_as_read_only=*/false));
   }
-
-  // Reloader mounts /x -> /x and /y/z -> /z.
-  // Workers mounts /a -> /a.
-  std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
-      sources_and_targets_read_only;
-  sources_and_targets_read_only.reserve(reloader_impl_arg.mounts.size());
-  for (const auto& [_, target] :
-       GetSourcesAndTargets(reloader_impl_arg.mounts)) {
-    sources_and_targets_read_only.push_back({target, target});
-  }
   CHECK_OK(SetPrctlOptions({{PR_CAPBSET_DROP, CAP_SYS_BOOT},
                             {PR_CAPBSET_DROP, CAP_SYS_MODULE},
                             {PR_CAPBSET_DROP, CAP_SYS_RAWIO},
