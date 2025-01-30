@@ -59,35 +59,34 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   // Wait to make sure the workers are ready for work.
   absl::SleepFor(absl::Seconds(5));
 
-  const auto rpc_func = [roma_service = roma_service.get(),
-                         code_token = std::move(code_token), &completions](
-                            privacy_sandbox::server_common::Stopwatch stopwatch,
-                            absl::StatusOr<absl::Duration>* duration,
-                            absl::StatusOr<std::string>* output,
-                            absl::Notification* done) {
-    ::privacy_sandbox::roma_byob::example::SampleRequest request;
-    request.set_function(FUNCTION_HELLO_WORLD);
-
-    absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
-        roma_service->ProcessRequest<SampleResponse>(
-            std::string_view(*code_token), request,
-            google::scp::roma::DefaultMetadata(),
-            [stopwatch = std::move(stopwatch), duration, done,
-             &completions](absl::StatusOr<SampleResponse> response) {
-              if (response.ok()) {
-                *duration = stopwatch.GetElapsedTime();
-              } else {
-                *duration = std::move(response.status());
-              }
-              completions++;
-              done->Notify();
-            });
-    if (!exec_token.ok()) {
-      *duration = exec_token.status();
-      completions++;
-      done->Notify();
-    }
-  };
+  ::privacy_sandbox::roma_byob::example::SampleRequest request;
+  request.set_function(FUNCTION_HELLO_WORLD);
+  const auto rpc_func =
+      [roma_service = roma_service.get(), code_token = std::move(code_token),
+       &completions, request = std::move(request)](
+          privacy_sandbox::server_common::Stopwatch stopwatch,
+          absl::StatusOr<absl::Duration>* duration,
+          absl::StatusOr<std::string>* output, absl::Notification* done) {
+        absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
+            roma_service->ProcessRequest<SampleResponse>(
+                std::string_view(*code_token), request,
+                google::scp::roma::DefaultMetadata(),
+                [stopwatch = std::move(stopwatch), duration, done,
+                 &completions](absl::StatusOr<SampleResponse> response) {
+                  if (response.ok()) {
+                    *duration = stopwatch.GetElapsedTime();
+                  } else {
+                    *duration = std::move(response.status());
+                  }
+                  completions++;
+                  done->Notify();
+                });
+        if (!exec_token.ok()) {
+          *duration = exec_token.status();
+          completions++;
+          done->Notify();
+        }
+      };
 
   auto callback = [roma_service = std::move(roma_service)]() mutable {
     LOG(INFO) << "Shutting down Roma";
