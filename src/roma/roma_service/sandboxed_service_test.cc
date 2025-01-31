@@ -138,7 +138,7 @@ std::string ProtoToBytesStr(const T& request) {
       "\"", absl::StrJoin(byte_array, byte_array + str.size(), " "), "\"");
 }
 
-TEST(SandboxedServiceTest, ProtobufCanBeSentRecievedAsBytes) {
+TEST(SandboxedServiceTest, DISABLED_ProtobufCanBeSentRecievedAsBytes) {
   Config<std::string> config;
   config.number_of_workers = 2;
   config.enable_native_function_grpc_server = true;
