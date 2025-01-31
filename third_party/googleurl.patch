@@ -1,0 +1,146 @@
+
+diff --git a/copy.bara.sky b/copy.bara.sky
+index 44173d6..de2bb2e 100644
+--- a/copy.bara.sky
++++ b/copy.bara.sky
+@@ -74,7 +74,6 @@ polyfilled_headers = [
+     "base/logging.h",
+     "base/notreached.h",
+     "base/trace_event/memory_usage_estimator.h",
+-    "third_party/perfetto/include/perfetto/tracing/traced_value.h",
+ ]
+ 
+ transformations = [
+@@ -98,9 +97,6 @@ transformations = [
+     # it to a .cc file.
+     core.move("url/url_idna_icu_alternatives_ios.mm", "url/url_idna_ascii_only.cc"),
+ 
+-    # Fix some Perfetto includes.
+-    core.replace("perfetto/tracing/traced_value_forward.h", "perfetto/tracing/traced_value.h"),
+-
+     core.replace("#include \"base/win/windows_types.h\"", "#include <windows.h>"),
+     core.replace("#include \"base/strings/string_number_conversions_win.h\"", ""),
+ 
+diff --git a/polyfills/BUILD b/polyfills/BUILD
+index 6a58eec..0fe7214 100644
+--- a/polyfills/BUILD
++++ b/polyfills/BUILD
+@@ -19,7 +19,6 @@ cc_library(
+         "base/metrics/histogram_macros.h",
+         "base/notreached.h",
+         "base/trace_event/memory_usage_estimator.h",
+-        "third_party/perfetto/include/perfetto/tracing/traced_value.h",
+     ],
+     copts = build_config.default_copts,
+     visibility = ["//visibility:public"],
+diff --git a/polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h b/polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h
+deleted file mode 100644
+index b2f0286..0000000
+--- a/polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h
++++ /dev/null
+@@ -1,17 +0,0 @@
+-// Copyright (c) 2021 The Chromium Authors. All rights reserved.
+-// Use of this source code is governed by a BSD-style license that can be
+-// found in the LICENSE file.
+-
+-#ifndef POLYFILLS_THIRD_PARTY_PERFETTO_INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
+-#define POLYFILLS_THIRD_PARTY_PERFETTO_INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
+-
+-namespace perfetto {
+-
+-class TracedValue {
+- public:
+-  void WriteString(const std::string&) && {}
+-};
+-
+-}  // namespace perfetto
+-
+-#endif  // POLYFILLS_THIRD_PARTY_PERFETTO_INCLUDE_PERFETTO_TRACING_TRACED_VALUE_H_
+diff --git a/url/gurl.cc b/url/gurl.cc
+index 3dd0228..77ba85d 100644
+--- a/url/gurl.cc
++++ b/url/gurl.cc
+@@ -16,7 +16,6 @@
+ #include "base/strings/string_piece.h"
+ #include "base/strings/string_util.h"
+ #include "polyfills/base/trace_event/memory_usage_estimator.h"
+-#include "polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h"
+ #include "url/url_canon_stdstring.h"
+ #include "url/url_util.h"
+ 
+@@ -519,10 +518,6 @@ bool GURL::IsAboutPath(gurl_base::StringPiece actual_path,
+   return false;
+ }
+ 
+-void GURL::WriteIntoTrace(perfetto::TracedValue context) const {
+-  std::move(context).WriteString(possibly_invalid_spec());
+-}
+-
+ std::ostream& operator<<(std::ostream& out, const GURL& url) {
+   return out << url.possibly_invalid_spec();
+ }
+diff --git a/url/gurl.h b/url/gurl.h
+index ee009de..a726ce2 100644
+--- a/url/gurl.h
++++ b/url/gurl.h
+@@ -15,7 +15,6 @@
+ #include "polyfills/base/debug/alias.h"
+ #include "base/debug/crash_logging.h"
+ #include "base/strings/string_piece.h"
+-#include "polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h"
+ #include "url/third_party/mozilla/url_parse.h"
+ #include "url/url_canon.h"
+ #include "url/url_canon_stdstring.h"
+@@ -448,8 +447,6 @@ class COMPONENT_EXPORT(URL) GURL {
+   static bool IsAboutPath(gurl_base::StringPiece actual_path,
+                           gurl_base::StringPiece allowed_path);
+ 
+-  void WriteIntoTrace(perfetto::TracedValue context) const;
+-
+  private:
+   // Variant of the string parsing constructor that allows the caller to elect
+   // retain trailing whitespace, if any, on the passed URL spec, but only if
+diff --git a/url/origin.cc b/url/origin.cc
+index e943d4f..19ea38a 100644
+--- a/url/origin.cc
++++ b/url/origin.cc
+@@ -19,7 +19,6 @@
+ #include "base/strings/string_number_conversions.h"
+ #include "base/strings/string_piece.h"
+ #include "base/strings/string_util.h"
+-#include "polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h"
+ #include "url/gurl.h"
+ #include "url/url_canon.h"
+ #include "url/url_canon_stdstring.h"
+@@ -389,10 +388,6 @@ absl::optional<Origin> Origin::Deserialize(const std::string& value) {
+   return origin;
+ }
+ 
+-void Origin::WriteIntoTrace(perfetto::TracedValue context) const {
+-  std::move(context).WriteString(GetDebugString());
+-}
+-
+ std::ostream& operator<<(std::ostream& out, const url::Origin& origin) {
+   out << origin.GetDebugString();
+   return out;
+diff --git a/url/origin.h b/url/origin.h
+index c1ad177..bc722b0 100644
+--- a/url/origin.h
++++ b/url/origin.h
+@@ -19,7 +19,6 @@
+ #include "build/build_config.h"
+ #include "ipc/ipc_param_traits.h"
+ #include "absl/types/optional.h"
+-#include "polyfills/third_party/perfetto/include/perfetto/tracing/traced_value.h"
+ #include "url/scheme_host_port.h"
+ #include "url/third_party/mozilla/url_parse.h"
+ #include "url/url_canon.h"
+@@ -305,8 +304,6 @@ class COMPONENT_EXPORT(URL) Origin {
+       const gurl_base::android::JavaRef<jobject>& java_origin);
+ #endif  // BUILDFLAG(IS_ANDROID)
+ 
+-  void WriteIntoTrace(perfetto::TracedValue context) const;
+-
+  private:
+   friend class blink::SecurityOrigin;
+   friend class blink::SecurityOriginTest;

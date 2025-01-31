@@ -101,6 +101,8 @@ def _quiche_deps():
     maybe(
         http_archive,
         name = "com_google_googleurl",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:googleurl.patch")],
         # sha256 is unstable for this url
         urls = ["https://quiche.googlesource.com/googleurl/+archive/9cdb1f4d1a365ebdbcbf179dadf7f8aa5ee802e7.tar.gz"],
     )
