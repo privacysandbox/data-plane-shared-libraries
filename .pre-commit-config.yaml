@@ -33,7 +33,8 @@ repos:
   - id: mixed-line-ending
   - id: trailing-whitespace
     exclude: (?x)^(
-      build_defs/.*\.patch
+      build_defs/.*\.patch|
+      testing/.*\.reply\.json
       )$
   - id: check-case-conflict
   - id: check-merge-conflict
