@@ -41,6 +41,9 @@ repos:
     args:
     - --allow-multiple-documents
   - id: check-json
+    exclude: (?x)^(
+      testing/.*\.reply
+      )\.json$
   - id: check-symlinks
   - id: check-added-large-files
     exclude: ^src/\.*/sort_list_\.*.cc$
@@ -120,8 +123,9 @@ repos:
     - javascript
     - json
     exclude: (?x)^(
-      .*-lock\.json
-      )$
+      .*-lock|
+      testing/.*\.reply
+      )\.json$
 
 - repo: https://github.com/DavidAnson/markdownlint-cli2
   rev: v0.7.1
