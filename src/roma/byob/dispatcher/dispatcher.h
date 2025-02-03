@@ -73,17 +73,13 @@ class Dispatcher {
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
     RequestMetadata* request_metadata;
     {
-      auto fn = [&] {
-        mu_.AssertReaderHeld();
-        const auto it = code_token_to_request_metadatas_.find(code_token);
-        return it == code_token_to_request_metadatas_.end() ||
-               !it->second.empty();
-      };
       absl::MutexLock l(&mu_);
-      mu_.Await(absl::Condition(&fn));
       const auto it = code_token_to_request_metadatas_.find(code_token);
       if (it == code_token_to_request_metadatas_.end()) {
         return absl::InvalidArgumentError("Unrecognized code token.");
+      }
+      if (it->second.empty()) {
+        return absl::UnavailableError("No workers available.");
       }
       request_metadata = it->second.front();
       it->second.pop();

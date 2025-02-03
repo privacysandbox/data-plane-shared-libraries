@@ -82,7 +82,7 @@ enum class Log {
   kLogToFile = 1,
 };
 
-SampleResponse SendRequestAndGetResponse(
+absl::StatusOr<SampleResponse> SendRequestAndGetResponse(
     ByobSampleService<>& roma_service,
     ::privacy_sandbox::roma_byob::example::FunctionType func_type,
     std::string_view code_token) {
@@ -92,11 +92,17 @@ SampleResponse SendRequestAndGetResponse(
   absl::StatusOr<std::unique_ptr<SampleResponse>> response;
 
   absl::Notification notif;
-  CHECK_OK(roma_service.Sample(notif, std::move(bin_request), response,
-                               /*metadata=*/{}, code_token));
+  if (auto execution_token =
+          roma_service.Sample(notif, std::move(bin_request), response,
+                              /*metadata=*/{}, code_token);
+      !execution_token.ok()) {
+    return std::move(execution_token).status();
+  }
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(response);
-  return *std::move((*response).get());
+  if (!response.ok()) {
+    return std::move(response).status();
+  }
+  return std::move(**response);
 }
 
 std::string LoadCode(ByobSampleService<>& roma_service,
@@ -141,8 +147,7 @@ void VerifyResponse(SampleResponse bin_response,
           << "Expected " << kPrimeCount << " upto 100,000";
       break;
     default:
-      LOG(ERROR) << "Unexpected input";
-      abort();
+      LOG(FATAL) << "Unexpected input";
   }
 }
 
@@ -268,7 +273,8 @@ void BM_LoadBinary(benchmark::State& state) {
       LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename,
                /*enable_log_egress=*/false,
                /*num_workers=*/1));
-  VerifyResponse(bin_response, kFirstUdfOutput);
+  CHECK_OK(bin_response);
+  VerifyResponse(*bin_response, kFirstUdfOutput);
 
   std::string code_token;
   for (auto _ : state) {
@@ -277,7 +283,8 @@ void BM_LoadBinary(benchmark::State& state) {
                           /*num_workers=*/1);
   }
   bin_response = SendRequestAndGetResponse(roma_service, func_type, code_token);
-  VerifyResponse(bin_response, kNewUdfOutput);
+  CHECK_OK(bin_response);
+  VerifyResponse(*bin_response, kNewUdfOutput);
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
@@ -292,12 +299,15 @@ void BM_ProcessRequest(benchmark::State& state) {
                /*num_workers=*/state.range(2));
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
-  auto response =
-      SendRequestAndGetResponse(roma_service, func_type, code_token);
 
-  for (auto s : state) {
-    response = SendRequestAndGetResponse(roma_service, func_type, code_token);
+  int failure_count = 0;
+  for (auto _ : state) {
+    if (!SendRequestAndGetResponse(roma_service, func_type, code_token).ok()) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
@@ -325,16 +335,25 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
       bin_response = std::move(resp);
       notif.Notify();
     };
-    CHECK_OK(roma_service.Sample(callback, bin_request,
-                                 /*metadata=*/{}, code_token));
+    if (!roma_service
+             .Sample(callback, bin_request,
+                     /*metadata=*/{}, code_token)
+             .ok()) {
+      return false;
+    }
     CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
     CHECK_OK(bin_response);
+    return true;
   };
-  rpc(bin_request, code_token);
 
-  for (auto s : state) {
-    rpc(bin_request, code_token);
+  int failure_count = 0;
+  for (auto _ : state) {
+    if (!rpc(bin_request, code_token)) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
@@ -374,15 +393,23 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   } else if (lang == Language::kGoLang) {
     expected_response = kGoBinaryOutput;
   } else {
-    assert(0);
+    LOG(FATAL) << "lang (" << static_cast<int>(lang) << ") not recognized.";
   }
-  VerifyResponse(SendRequestAndGetResponse(roma_service, func_type, code_token),
-                 expected_response, func_type);
-
-  for (auto _ : state) {
-    auto response =
+  {
+    const auto response =
         SendRequestAndGetResponse(roma_service, func_type, code_token);
+    CHECK_OK(response);
+    VerifyResponse(*response, expected_response, func_type);
   }
+
+  int failure_count = 0;
+  for (auto _ : state) {
+    if (!SendRequestAndGetResponse(roma_service, func_type, code_token).ok()) {
+      ++failure_count;
+    }
+  }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.SetLabel(absl::StrJoin(
       {GetFunctionTypeStr(func_type), GetLanguageStr(lang)}, ", "));
 }
@@ -407,13 +434,19 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
   ByobSampleService<> roma_service = GetRomaService(mode);
 
   const auto rpc = [&roma_service](const auto& request,
-                                   std::string_view code_token) {
+                                   std::string_view code_token)
+      -> absl::StatusOr<std::unique_ptr<
+          ::privacy_sandbox::roma_byob::example::ReadPayloadResponse>> {
     absl::StatusOr<std::unique_ptr<
         ::privacy_sandbox::roma_byob::example::ReadPayloadResponse>>
         response;
     absl::Notification notif;
-    CHECK_OK(roma_service.ReadPayload(notif, request, response,
-                                      /*metadata=*/{}, code_token));
+    if (auto execution_token =
+            roma_service.ReadPayload(notif, request, response,
+                                     /*metadata=*/{}, code_token);
+        !execution_token.ok()) {
+      return std::move(execution_token).status();
+    }
     CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(5)));
     return response;
   };
@@ -437,9 +470,14 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
     return;
   }
 
+  int failure_count = 0;
   for (auto _ : state) {
-    (void)rpc(request, code_tok);
+    if (!rpc(request, code_tok).ok()) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.counters["elem_byte_size"] = elem_size;
   state.counters["elem_count"] = elem_count;
   state.counters["payload_size"] = payload_size;
@@ -455,13 +493,19 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
   ByobSampleService<> roma_service = GetRomaService(mode);
 
   const auto rpc = [&roma_service](const auto& request,
-                                   std::string_view code_token) {
+                                   std::string_view code_token)
+      -> absl::StatusOr<std::unique_ptr<
+          ::privacy_sandbox::roma_byob::example::GeneratePayloadResponse>> {
     absl::StatusOr<std::unique_ptr<
         ::privacy_sandbox::roma_byob::example::GeneratePayloadResponse>>
         response;
     absl::Notification notif;
-    CHECK_OK(roma_service.GeneratePayload(notif, request, response,
-                                          /*metadata=*/{}, code_token));
+    if (auto execution_token =
+            roma_service.GeneratePayload(notif, request, response,
+                                         /*metadata=*/{}, code_token);
+        !execution_token.ok()) {
+      return std::move(execution_token).status();
+    }
     CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(10)));
     return response;
   };
@@ -485,9 +529,14 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
     return;
   }
 
+  int failure_count = 0;
   for (auto _ : state) {
-    (void)rpc(request, code_tok);
+    if (!rpc(request, code_tok).ok()) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.counters["elem_byte_size"] = elem_size;
   state.counters["elem_count"] = elem_count;
   state.counters["payload_size"] = req_payload_size;
@@ -500,11 +549,16 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   const Mode mode = static_cast<Mode>(state.range(0));
   ByobSampleService<> roma_service = GetRomaService(mode);
   const auto rpc = [&roma_service](std::string_view code_token,
-                                   const auto& request) {
+                                   const auto& request)
+      -> absl::StatusOr<std::unique_ptr<RunPrimeSieveResponse>> {
     absl::StatusOr<std::unique_ptr<RunPrimeSieveResponse>> response;
     absl::Notification notif;
-    CHECK_OK(roma_service.RunPrimeSieve(notif, request, response,
-                                        /*metadata=*/{}, code_token));
+    if (auto execution_token =
+            roma_service.RunPrimeSieve(notif, request, response,
+                                       /*metadata=*/{}, code_token);
+        !execution_token.ok()) {
+      return std::move(execution_token).status();
+    }
     notif.WaitForNotification();
     return response;
   };
@@ -519,9 +573,14 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
     CHECK_OK(response);
     CHECK_GT((*response)->largest_prime(), 0);
   }
+  int failure_count = 0;
   for (auto _ : state) {
-    CHECK_OK(rpc(code_tok, request));
+    if (!rpc(code_tok, request).ok()) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.SetLabel(GetModeStr(mode));
 }
 
@@ -532,10 +591,15 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
                                    const auto& request) {
     absl::StatusOr<std::unique_ptr<SortListResponse>> response;
     absl::Notification notif;
-    CHECK_OK(roma_service.SortList(notif, request, response,
-                                   /*metadata=*/{}, code_token));
+    if (auto execution_token =
+            roma_service.SortList(notif, request, response,
+                                  /*metadata=*/{}, code_token);
+        !execution_token.ok()) {
+      return std::move(execution_token).status();
+    }
     notif.WaitForNotification();
-    return response;
+    CHECK_OK(response);
+    return absl::OkStatus();
   };
   const std::string filename = [](int n_items) {
     switch (n_items) {
@@ -554,9 +618,15 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
                /*enable_log_egress=*/false,
                /*num_workers=*/2);
   SortListRequest request;
+  // Add failure counter.
+  int failure_count = 0;
   for (auto _ : state) {
-    CHECK_OK(rpc(code_tok, request));
+    if (!rpc(code_tok, request).ok()) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
   state.SetLabel(GetModeStr(mode));
 }
 
@@ -590,10 +660,14 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
       }
       exec_notif.Notify();
     };
-    CHECK_OK(roma_service.Log(callback, request,
-                              /*metadata=*/{}, code_token));
+    if (auto execution_token = roma_service.Log(callback, request,
+                                                /*metadata=*/{}, code_token);
+        !execution_token.ok()) {
+      return std::move(execution_token).status();
+    }
     CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-    return bin_response;
+    CHECK_OK(bin_response);
+    return absl::OkStatus();
   };
 
   const std::string code_token = LoadCode(
@@ -602,9 +676,14 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
   ::sleep(/*seconds=*/5);
   LogRequest request;
   request.set_log_count(state.range(1));
+  int failure_count = 0;
   for (auto _ : state) {
-    CHECK_OK(rpc(code_token, request));
+    if (!rpc(code_token, request).ok()) {
+      ++failure_count;
+    }
   }
+  state.counters["failure_rate"] =
+      benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
 }
 
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});

@@ -56,17 +56,21 @@ void BM_Load(benchmark::State& state) {
     LoadImpl(*roma_service, *udf, /*num_workers=*/1);
   }
 }
-void EchoExecuteImpl(ByobEchoService<>& roma_service,
+bool EchoExecuteImpl(ByobEchoService<>& roma_service,
                      std::string_view code_token, EchoRequest request) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
-  const auto execution_token = roma_service.Echo(
-      notif, std::move(request), response, /*metadata=*/{}, code_token);
-  CHECK_OK(execution_token);
+  if (!roma_service
+           .Echo(notif, std::move(request), response,
+                 /*metadata=*/{}, code_token)
+           .ok()) {
+    return false;
+  }
   CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(notif_status);
   CHECK_OK(response);
+  return true;
 }
 void BM_Execute(benchmark::State& state) {
   absl::StatusOr<ByobEchoService<>> roma_service =
@@ -90,10 +94,14 @@ void BM_Execute(benchmark::State& state) {
         ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
             json_content);
     CHECK_OK(request);
-    EchoExecuteImpl(*roma_service, code_id, *request);
+    int failure_count = 0;
     for (auto _ : state) {
-      EchoExecuteImpl(*roma_service, code_id, *request);
+      if (!EchoExecuteImpl(*roma_service, code_id, *request)) {
+        ++failure_count;
+      }
     }
+    state.counters["failure_rate"] =
+        benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
     return;
   }
   LOG(FATAL) << "Unrecognized rpc '" << *rpc << "'";

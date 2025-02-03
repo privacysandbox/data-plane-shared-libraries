@@ -27,6 +27,7 @@
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
 #include "absl/log/check.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
@@ -165,8 +166,12 @@ int main(int argc, char** argv) {
   while (iteration_number++ < execute_iterations) {
     absl::Notification done;
     absl::StatusOr<std::unique_ptr<SortListResponse>> response;
-    CHECK_OK(sample_interface->SortList(done, request, response,
-                                        /*metadata=*/{}, code_token));
+    if (auto execution_token =
+            sample_interface->SortList(done, request, response,
+                                       /*metadata=*/{}, code_token);
+        !execution_token.ok()) {
+      LOG(ERROR) << "Execution failure: " << execution_token.status();
+    }
     done.WaitForNotification();
     ofs << iteration_number << "," << MemoryUsageInBytes() << "\n";
     CHECK_OK(response);

@@ -83,6 +83,7 @@ cc_test(
         "//src/roma/byob/sample_udf:pause_udf",
         "//src/roma/byob/sample_udf:sample_go_udf",
         "//src/roma/config:function_binding_object_v2",
+        "@com_google_absl//absl/time",
     ],
     tags = [
         "noasan",

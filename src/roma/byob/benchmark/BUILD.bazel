@@ -206,6 +206,7 @@ cc_binary(
         "//src/roma/byob/sample_udf:sample_byob_sdk_roma_cc_lib",
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
+        "@com_google_absl//absl/log",
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status",
         "@com_google_absl//absl/status:statusor",
