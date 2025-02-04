@@ -103,33 +103,22 @@ absl::StatusOr<std::string> GetContentsOfFile(std::filesystem::path filename) {
 std::string LoadCode(ByobSampleService<>& roma_service,
                      std::filesystem::path file_path,
                      bool enable_log_egress = false, int num_workers = 20) {
-  absl::Notification notif;
-  absl::Status notif_status;
   absl::StatusOr<std::string> code_id;
   if (!enable_log_egress) {
-    code_id =
-        roma_service.Register(file_path, notif, notif_status, num_workers);
+    code_id = roma_service.Register(file_path, num_workers);
   } else {
-    code_id = roma_service.RegisterForLogging(file_path, notif, notif_status,
-                                              num_workers);
+    code_id = roma_service.RegisterForLogging(file_path, num_workers);
   }
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 
 std::string LoadCodeFromCodeToken(ByobSampleService<>& roma_service,
                                   std::string no_log_code_token,
                                   int num_workers = 20) {
-  absl::Notification notif;
-  absl::Status notif_status;
-  absl::StatusOr<std::string> code_id =
-      roma_service.RegisterForLogging(no_log_code_token, notif, notif_status,
-                                      /*num_workers=*/num_workers);
+  absl::StatusOr<std::string> code_id = roma_service.RegisterForLogging(
+      no_log_code_token, /*num_workers=*/num_workers);
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 
@@ -263,15 +252,11 @@ TEST_P(RomaByobTest, LoadBinary) {
   ByobSampleService<> roma_service = GetRomaService(
       {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 
-  absl::Notification notif;
-  absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
-                            notif_status, /*num_workers=*/1);
+      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename,
+                            /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.status().ok()) << code_id.status();
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  EXPECT_TRUE(notif_status.ok());
 }
 
 TEST_P(RomaByobTest, ProcessRequestMultipleCppBinaries) {

@@ -102,19 +102,13 @@ SampleResponse SendRequestAndGetResponse(
 std::string LoadCode(ByobSampleService<>& roma_service,
                      std::filesystem::path file_path, bool enable_log_egress,
                      int num_workers) {
-  absl::Notification notif;
-  absl::Status notif_status;
   absl::StatusOr<std::string> code_id;
   if (!enable_log_egress) {
-    code_id =
-        roma_service.Register(file_path, notif, notif_status, num_workers);
+    code_id = roma_service.Register(file_path, num_workers);
   } else {
-    code_id = roma_service.RegisterForLogging(file_path, notif, notif_status,
-                                              num_workers);
+    code_id = roma_service.RegisterForLogging(file_path, num_workers);
   }
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 

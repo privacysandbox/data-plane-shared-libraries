@@ -42,13 +42,8 @@ using privacy_sandbox::server_common::byob::example::EchoResponse;
 
 std::string LoadImpl(ByobEchoService<>& roma_service, std::string_view udf,
                      int num_workers) {
-  absl::Notification notif;
-  absl::Status notif_status;
-  absl::StatusOr<std::string> code_id =
-      roma_service.Register(udf, notif, notif_status, num_workers);
+  absl::StatusOr<std::string> code_id = roma_service.Register(udf, num_workers);
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 void BM_Load(benchmark::State& state) {

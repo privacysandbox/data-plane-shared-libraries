@@ -134,26 +134,22 @@ int main(int argc, char** argv) {
     const int load_iterations = absl::GetFlag(FLAGS_load_iterations);
     CHECK_GT(load_iterations, 0);
     for (int i = 0; i < load_iterations; ++i) {
-      absl::Notification done;
-      absl::Status status;
       switch (sort_list_udf) {
         case SortListUdf::k10K:
-          code_token = sample_interface->Register("/udf/sort_list_10k_udf",
-                                                  done, status, num_workers);
+          code_token =
+              sample_interface->Register("/udf/sort_list_10k_udf", num_workers);
           break;
         case SortListUdf::k100K:
           code_token = sample_interface->Register("/udf/sort_list_100k_udf",
-                                                  done, status, num_workers);
+                                                  num_workers);
           break;
         case SortListUdf::k1M:
-          code_token = sample_interface->Register("/udf/sort_list_1m_udf", done,
-                                                  status, num_workers);
+          code_token =
+              sample_interface->Register("/udf/sort_list_1m_udf", num_workers);
           break;
         default:
           LOG(FATAL) << "Unexpected sort_list_udf input";
       }
-      CHECK_OK(status);
-      done.WaitForNotification();
       CHECK_OK(code_token);
     }
     return *std::move(code_token);

@@ -70,15 +70,7 @@ int main(int argc, char** argv) {
   // Create load and execute RPC handlers.
   auto load_fn = [&echo_service, num_workers](
                      std::string_view udf) -> absl::StatusOr<std::string> {
-    absl::Notification done;
-    absl::Status status;
-    absl::StatusOr<std::string> code_token =
-        echo_service->RegisterForLogging(udf, done, status, num_workers);
-    if (!status.ok()) {
-      return status;
-    }
-    done.WaitForNotification();
-    return code_token;
+    return echo_service->RegisterForLogging(udf, num_workers);
   };
   auto execute_fn =
       [&echo_service, &udf_log_stream](

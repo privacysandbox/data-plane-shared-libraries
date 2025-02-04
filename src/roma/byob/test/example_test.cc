@@ -43,13 +43,9 @@ const std::filesystem::path kCPlusPlusBinaryFilename = "example_cc_udf";
 std::string LoadCode(ByobEchoService<>& roma_service,
                      std::filesystem::path file_path,
                      int num_workers = std::thread::hardware_concurrency()) {
-  absl::Notification notif;
-  absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(file_path, notif, notif_status, num_workers);
+      roma_service.Register(file_path, num_workers);
   CHECK_OK(code_id);
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(notif_status);
   return *std::move(code_id);
 }
 
@@ -68,15 +64,11 @@ ByobEchoService<> GetRomaService(Mode mode) {
 TEST(RomaByobExampleTest, LoadCppBinaryInGvisorMode) {
   ByobEchoService<> roma_service = GetRomaService(Mode::kModeGvisorSandbox);
 
-  absl::Notification notif;
-  absl::Status notif_status;
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
-                            notif_status, /*num_workers=*/1);
+      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename,
+                            /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  EXPECT_TRUE(notif_status.ok());
 }
 
 TEST(RomaByobExampleTest, LoadCppBinaryInNonGvisorMode) {
@@ -85,29 +77,21 @@ TEST(RomaByobExampleTest, LoadCppBinaryInNonGvisorMode) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobEchoService<> roma_service = GetRomaService(mode);
-  absl::Notification notif;
-  absl::Status notif_status;
 
   absl::StatusOr<std::string> code_id =
-      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename, notif,
-                            notif_status, /*num_workers=*/1);
+      roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename,
+                            /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  EXPECT_TRUE(notif_status.ok());
 }
 
 TEST(RomaByobExampleTest, LoadGoBinaryInGvisorMode) {
   ByobEchoService<> roma_service = GetRomaService(Mode::kModeGvisorSandbox);
-  absl::Notification notif;
-  absl::Status notif_status;
 
   absl::StatusOr<std::string> code_id = roma_service.Register(
-      kUdfPath / kGoLangBinaryFilename, notif, notif_status, /*num_workers=*/1);
+      kUdfPath / kGoLangBinaryFilename, /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  EXPECT_TRUE(notif_status.ok());
 }
 
 TEST(RomaByobExampleTest, LoadGoBinaryInNonGvisorMode) {
@@ -116,15 +100,11 @@ TEST(RomaByobExampleTest, LoadGoBinaryInNonGvisorMode) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobEchoService<> roma_service = GetRomaService(mode);
-  absl::Notification notif;
-  absl::Status notif_status;
 
   absl::StatusOr<std::string> code_id = roma_service.Register(
-      kUdfPath / kGoLangBinaryFilename, notif, notif_status, /*num_workers=*/1);
+      kUdfPath / kGoLangBinaryFilename, /*num_workers=*/1);
 
   EXPECT_TRUE(code_id.ok());
-  EXPECT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  EXPECT_TRUE(notif_status.ok());
 }
 
 TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
