@@ -56,6 +56,8 @@ using ::privacy_sandbox::server_common::byob::DeleteBinaryResponse;
 using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
 
+constexpr absl::Duration kWorkerCreationTimeout = absl::Seconds(10);
+
 absl::StatusOr<std::string> Read(int fd, int size) {
   std::string buffer(size, '\0');
   size_t read_bytes = 0;
@@ -188,6 +190,21 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   for (int i = 0; i < num_workers; ++i) {
     std::thread(&Dispatcher::AcceptorImpl, this, code_token).detach();
   }
+  bool workers_have_been_created = false;
+  {
+    auto fn = [&] {
+      mu_.AssertReaderHeld();
+      const auto it = code_token_to_request_metadatas_.find(code_token);
+      return !it->second.empty();
+    };
+    absl::MutexLock l(&mu_);
+    workers_have_been_created =
+        mu_.AwaitWithTimeout(absl::Condition(&fn), kWorkerCreationTimeout);
+  }
+  if (!workers_have_been_created) {
+    Delete(code_token);
+    return absl::InternalError("Worker creation failure.");
+  }
   return code_token;
 }
 
@@ -222,6 +239,21 @@ absl::StatusOr<std::string> Dispatcher::LoadBinaryForLogging(
   }
   for (int i = 0; i < num_workers; ++i) {
     std::thread(&Dispatcher::AcceptorImpl, this, code_token).detach();
+  }
+  bool workers_have_been_created = false;
+  {
+    auto fn = [&] {
+      mu_.AssertReaderHeld();
+      const auto it = code_token_to_request_metadatas_.find(code_token);
+      return !it->second.empty();
+    };
+    absl::MutexLock l(&mu_);
+    workers_have_been_created =
+        mu_.AwaitWithTimeout(absl::Condition(&fn), kWorkerCreationTimeout);
+  }
+  if (!workers_have_been_created) {
+    Delete(code_token);
+    return absl::InternalError("Worker creation failure.");
   }
   return code_token;
 }
