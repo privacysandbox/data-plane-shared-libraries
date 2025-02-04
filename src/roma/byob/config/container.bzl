@@ -18,3 +18,5 @@ Defines constants used by BYOB Roma container
 roma_container_dir = "/roma_container"
 
 roma_container_root_dir = "rootfs"
+
+run_workers_dir = "/run_workers"

@@ -45,6 +45,7 @@
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
+#include "src/roma/byob/utility/utils.h"
 #include "src/roma/config/function_binding_object_v2.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
@@ -100,20 +101,16 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
   absl::Status Init(Config<TMetadata> config, Mode mode) {
-    char socket_dir_tmpl[21] = "/tmp/sock_dir_XXXXXX";
-    if (::mkdtemp(socket_dir_tmpl) == nullptr) {
-      return absl::ErrnoToStatus(errno, "mkdtemp(socket_dir)");
-    }
-    socket_dir_ = socket_dir_tmpl;
+    socket_dir_ = std::filesystem::path(RUN_WORKERS_PATH) / "socket_dir";
+    PS_RETURN_IF_ERROR(
+        ::privacy_sandbox::server_common::byob::CreateDirectories(socket_dir_));
     std::filesystem::permissions(socket_dir_,
                                  std::filesystem::perms::owner_all |
                                      std::filesystem::perms::group_all |
                                      std::filesystem::perms::others_all);
-    char log_dir_tmpl[20] = "/tmp/log_dir_XXXXXX";
-    if (::mkdtemp(log_dir_tmpl) == nullptr) {
-      return absl::ErrnoToStatus(errno, "mkdtemp(log_dir)");
-    }
-    log_dir_ = log_dir_tmpl;
+    log_dir_ = std::filesystem::path(RUN_WORKERS_PATH) / "log_dir";
+    PS_RETURN_IF_ERROR(
+        ::privacy_sandbox::server_common::byob::CreateDirectories(log_dir_));
     std::filesystem::permissions(log_dir_,
                                  std::filesystem::perms::owner_all |
                                      std::filesystem::perms::group_all |

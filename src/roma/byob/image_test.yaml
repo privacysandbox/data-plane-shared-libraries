@@ -34,6 +34,13 @@ fileExistenceTests:
     uid: {UID}
     gid: {GID}
 
+  - name: /run_workers
+    path: /run_workers
+    shouldExist: true
+    permissions: drwx------
+    uid: {UID}
+    gid: {GID}
+
   - name: /var/run/runsc dir
     path: /var/run/runsc
     shouldExist: true

@@ -17,7 +17,7 @@ load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
-load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
+load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir", "run_workers_dir")
 load("//third_party:container_deps.bzl", "DISTROLESS_USERS", "container_image")
 
 [
@@ -138,6 +138,19 @@ pkg_mkdirs(
     visibility = ["//visibility:public"],
 )
 
+# Contains directories which need to be mounted into run_workers' pivot rooted
+# file system.
+# Namely, socket directory for AF_UNIX socket, log directory for log files and
+# eventually a directory containing binaries.
+# Initially, these directories created in /tmp. However, for AWS Nitro Enclave
+# /tmp is mounted with MS_NODEV | MS_NOSUID | MS_NOEXEC. This was causing bugs.
+# Details: b/367480293#comment4
+pkg_mkdirs(
+    name = "run_workers_mounts",
+    attributes = pkg_attributes(mode = "0700"),
+    dirs = [run_workers_dir],
+)
+
 [
     pkg_tar(
         name = "gvisor_tar_{}".format(user.flavor),
@@ -145,6 +158,7 @@ pkg_mkdirs(
             ":gvisor_execs",
             ":nsjail_execs",
             ":nsjail_libs",
+            ":run_workers_mounts",
             ":var_run_runsc_dir",
         ],
         owner = "{}.{}".format(

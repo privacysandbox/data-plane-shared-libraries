@@ -12,12 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir")
+load("//src/roma/byob/config:container.bzl", "roma_container_dir", "roma_container_root_dir", "run_workers_dir")
 
 cc_library(
     name = "roma_service",
     srcs = ["roma_service.cc"],
     hdrs = ["roma_service.h"],
+    defines = [
+        'RUN_WORKERS_PATH=\\"{}\\"'.format(run_workers_dir),
+    ],
     local_defines = [
         'CONTAINER_PATH=\\"{}\\"'.format(roma_container_dir),
         'CONTAINER_ROOT_RELPATH=\\"{}\\"'.format(roma_container_root_dir),
