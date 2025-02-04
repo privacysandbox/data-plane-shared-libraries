@@ -38,7 +38,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
                          std::string_view control_socket_path,
                          std::string_view udf_socket_path,
                          std::string_view socket_dir, std::string_view log_dir,
-                         bool enable_seccomp_filter)
+                         bool enable_seccomp_filter,
+                         std::string_view binary_dir)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -51,6 +52,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         sources_and_targets = {
             {log_dir, "/log_dir"},
             {socket_dir, "/socket_dir"},
+            {binary_dir, "/binary_dir"},
             // Needs to be mounted for Cancel to work (kill by cmdline)
             {"/proc", "/proc"},
             {"/dev", "/dev"}};
@@ -67,6 +69,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         "--control_socket_name=/socket_dir/control.sock",
         "--udf_socket_name=/socket_dir/byob_rpc.sock",
         "--log_dir=/log_dir",
+        "--binary_dir=/binary_dir",
         seccomp_filter_flag.c_str(),
         nullptr,
     };
@@ -91,14 +94,12 @@ LocalHandle::~LocalHandle() {
   }
 }
 
-NsJailHandle::NsJailHandle(int pid, std::string_view mounts,
-                           std::string_view control_socket_path,
-                           std::string_view udf_socket_path,
-                           std::string_view socket_dir,
-                           std::string container_name, std::string_view log_dir,
-                           std::uint64_t memory_limit_soft,
-                           std::uint64_t memory_limit_hard,
-                           bool enable_seccomp_filter)
+NsJailHandle::NsJailHandle(
+    int pid, std::string_view mounts, std::string_view control_socket_path,
+    std::string_view udf_socket_path, std::string_view socket_dir,
+    std::string container_name, std::string_view log_dir,
+    std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
+    bool enable_seccomp_filter, std::string_view binary_dir)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -112,6 +113,8 @@ NsJailHandle::NsJailHandle(int pid, std::string_view mounts,
     const std::string log_dir_mount = absl::StrCat(log_dir, ":/log_dir");
     const std::string socket_dir_mount =
         absl::StrCat(socket_dir, ":/socket_dir");
+    const std::string binary_dir_mount =
+        absl::StrCat(binary_dir, ":/binary_dir");
     const char* argv[] = {
         "/usr/byob/nsjail/bin/nsjail",
         "--mode",
@@ -122,6 +125,8 @@ NsJailHandle::NsJailHandle(int pid, std::string_view mounts,
         log_dir_mount.c_str(),
         "--bindmount",
         socket_dir_mount.c_str(),
+        "--bindmount",
+        binary_dir_mount.c_str(),
         "--bindmount_ro",
         "/dev/null",
         "--disable_rlimits",
@@ -138,6 +143,7 @@ NsJailHandle::NsJailHandle(int pid, std::string_view mounts,
         "--control_socket_name=/socket_dir/control.sock",
         "--log_dir=/log_dir",
         "--udf_socket_name=/socket_dir/byob_rpc.sock",
+        "--binary_dir=/binary_dir",
         mounts_flag.c_str(),
         seccomp_filter_flag.c_str(),
         nullptr,
@@ -170,7 +176,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view log_dir,
                        std::uint64_t memory_limit_soft,
                        std::uint64_t memory_limit_hard, bool debug_mode,
-                       bool enable_seccomp_filter)
+                       bool enable_seccomp_filter, std::string_view binary_dir)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
@@ -196,6 +202,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         "--control_socket_name=/socket_dir/control.sock",
         "--udf_socket_name=/socket_dir/byob_rpc.sock",
         "--log_dir=/log_dir",
+        "--binary_dir=/binary_dir",
         absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter),
     };
     config["process"]["rlimits"] = {};
@@ -224,6 +231,12 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         {
             {"source", log_dir},
             {"destination", "/log_dir"},
+            {"type", "bind"},
+            {"options", {"rbind", "rprivate"}},
+        },
+        {
+            {"source", binary_dir},
+            {"destination", "/binary_dir"},
             {"type", "bind"},
             {"options", {"rbind", "rprivate"}},
         },

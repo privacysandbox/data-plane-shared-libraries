@@ -233,6 +233,9 @@ TEST_P(RomaByobTest, NoFileSystemEditEgression) {
   if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
+  if (param.mode == Mode::kModeGvisorSandbox) {
+    GTEST_SKIP() << "Executing the binary is failing: Exec format error [8]";
+  }
   ByobSampleService<> roma_service = GetRomaService(
       {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
 

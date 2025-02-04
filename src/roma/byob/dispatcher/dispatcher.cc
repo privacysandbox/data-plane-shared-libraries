@@ -20,10 +20,12 @@
 #include <sys/un.h>
 #include <unistd.h>
 
+#include <algorithm>
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <string_view>
+#include <system_error>
 #include <thread>
 #include <utility>
 
@@ -42,7 +44,9 @@
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/roma/byob/dispatcher/interface.h"
+#include "src/roma/byob/utility/utils.h"
 #include "src/util/execution_token.h"
+#include "src/util/status_macro/status_macros.h"
 #include "src/util/status_macro/status_util.h"
 
 namespace privacy_sandbox::server_common::byob {
@@ -57,6 +61,7 @@ using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
 
 constexpr absl::Duration kWorkerCreationTimeout = absl::Seconds(10);
+const std::filesystem::path kBinaryExe = "bin.exe";
 
 absl::StatusOr<std::string> Read(int fd, int size) {
   std::string buffer(size, '\0');
@@ -73,6 +78,81 @@ absl::StatusOr<std::string> Read(int fd, int size) {
   return buffer;
 }
 
+absl::StatusOr<std::filesystem::path> CopyBinaryForLoad(
+    const std::filesystem::path& binary_dir, std::string_view code_token,
+    const std::filesystem::path& user_provided_binary_path) {
+  PS_RETURN_IF_ERROR(::privacy_sandbox::server_common::byob::CreateDirectories(
+      binary_dir / code_token));
+  std::filesystem::path binary_relative_path = code_token / kBinaryExe;
+  std::filesystem::path binary_full_path = binary_dir / binary_relative_path;
+
+  std::error_code ec;
+  if (std::filesystem::copy(user_provided_binary_path, binary_full_path,
+                            std::filesystem::copy_options::none, ec);
+      ec) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to copy binary from ", user_provided_binary_path.native(),
+        " to ", binary_full_path.native(), ": ", ec.message()));
+  }
+  if (std::filesystem::permissions(binary_full_path.parent_path(),
+                                   std::filesystem::perms::owner_all |
+                                       std::filesystem::perms::owner_all |
+                                       std::filesystem::perms::group_read |
+                                       std::filesystem::perms::group_exec |
+                                       std::filesystem::perms::others_read |
+                                       std::filesystem::perms::others_exec,
+                                   ec);
+      ec) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to modify permissions for directory ",
+        binary_full_path.parent_path().native(), ": ", ec.message()));
+  }
+  if (std::filesystem::permissions(binary_full_path,
+                                   std::filesystem::perms::owner_all |
+                                       std::filesystem::perms::owner_all |
+                                       std::filesystem::perms::group_read |
+                                       std::filesystem::perms::group_exec |
+                                       std::filesystem::perms::others_read |
+                                       std::filesystem::perms::others_exec,
+                                   ec);
+      ec) {
+    return absl::InternalError(
+        absl::StrCat("Failed to modify permissions for binary ",
+                     binary_full_path.native(), ": ", ec.message()));
+  }
+  return binary_relative_path;
+}
+
+absl::StatusOr<std::filesystem::path> HardLinkBinaryForLoad(
+    const std::filesystem::path& binary_dir, std::string_view source_code_token,
+    std::string_view destination_code_token) {
+  std::filesystem::path hard_link_relative_path =
+      destination_code_token / kBinaryExe;
+  std::filesystem::path hard_link_full_path =
+      binary_dir / hard_link_relative_path;
+  PS_RETURN_IF_ERROR(::privacy_sandbox::server_common::byob::CreateDirectories(
+      hard_link_full_path.parent_path()));
+  const std::filesystem::path existing_binary_full_path =
+      binary_dir / source_code_token / kBinaryExe;
+
+  std::error_code ec;
+  if (!std::filesystem::exists(existing_binary_full_path)) {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "Failed to find existing binary ", existing_binary_full_path.native()));
+  }
+  if (!std::filesystem::is_regular_file(existing_binary_full_path)) {
+    return absl::InternalError(absl::StrCat(
+        "File ", existing_binary_full_path.native(), " not a regular file"));
+  }
+  if (std::filesystem::create_hard_link(existing_binary_full_path,
+                                        hard_link_full_path, ec);
+      ec) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to create hard link from ", existing_binary_full_path.native(),
+        " to ", hard_link_full_path.native(), ": ", ec.message()));
+  }
+  return hard_link_relative_path;
+}
 }  // namespace
 
 Dispatcher::~Dispatcher() {
@@ -94,7 +174,8 @@ Dispatcher::~Dispatcher() {
 
 absl::Status Dispatcher::Init(std::filesystem::path control_socket_name,
                               std::filesystem::path udf_socket_name,
-                              std::filesystem::path log_dir) {
+                              std::filesystem::path log_dir,
+                              std::filesystem::path binary_dir) {
   const int fd = ::socket(AF_UNIX, SOCK_STREAM, 0);
   if (fd == -1) {
     return absl::ErrnoToStatus(errno, "socket()");
@@ -122,6 +203,7 @@ absl::Status Dispatcher::Init(std::filesystem::path control_socket_name,
                                    std::filesystem::perms::group_write |
                                    std::filesystem::perms::others_write);
   log_dir_ = std::move(log_dir);
+  binary_dir_ = std::move(binary_dir);
   std::shared_ptr<grpc::Channel> channel =
       grpc::CreateChannel(absl::StrCat("unix:", control_socket_name.native()),
                           grpc::InsecureChannelCredentials());
@@ -141,7 +223,7 @@ absl::Status Dispatcher::Init(std::filesystem::path control_socket_name,
 }
 
 absl::StatusOr<std::string> Dispatcher::LoadBinary(
-    std::filesystem::path binary_path, const int num_workers,
+    std::filesystem::path user_provided_binary_path, const int num_workers,
     const bool enable_log_egress) {
   if (num_workers <= 0) {
     return absl::InvalidArgumentError(
@@ -150,23 +232,20 @@ absl::StatusOr<std::string> Dispatcher::LoadBinary(
   std::string code_token = ToString(Uuid::GenerateUuid());
   std::error_code ec;
   if (std::filesystem::file_status fstatus =
-          std::filesystem::status(binary_path, ec);
+          std::filesystem::status(user_provided_binary_path, ec);
       ec) {
-    return absl::PermissionDeniedError(absl::StrCat(
-        "error accessing file ", binary_path.string(), ": ", ec.message()));
+    return absl::PermissionDeniedError(
+        absl::StrCat("Error accessing file ",
+                     user_provided_binary_path.string(), ": ", ec.message()));
   } else if (fstatus.type() != std::filesystem::file_type::regular) {
-    return absl::InternalError(
-        absl::StrCat("unexpected file type for ", binary_path.string()));
+    return absl::InternalError(absl::StrCat(
+        "Unexpected file type for ", user_provided_binary_path.string()));
   }
   LoadBinaryRequest request;
-  if (std::ifstream ifs(std::move(binary_path), std::ios::binary);
-      ifs.is_open()) {
-    request.set_binary_content(std::string(std::istreambuf_iterator<char>(ifs),
-                                           std::istreambuf_iterator<char>()));
-  } else {
-    return absl::UnavailableError(
-        absl::StrCat("Cannot open ", binary_path.native()));
-  }
+  PS_ASSIGN_OR_RETURN(
+      std::filesystem::path binary_relative_path,
+      CopyBinaryForLoad(binary_dir_, code_token, user_provided_binary_path));
+  request.set_binary_relative_path(binary_relative_path);
   request.set_code_token(code_token);
   request.set_num_workers(num_workers);
   request.set_enable_log_egress(enable_log_egress);
@@ -215,10 +294,13 @@ absl::StatusOr<std::string> Dispatcher::LoadBinaryForLogging(
         absl::StrCat("`num_workers=", num_workers, "` must be positive"));
   }
   std::string code_token = ToString(Uuid::GenerateUuid());
+  PS_ASSIGN_OR_RETURN(
+      std::filesystem::path binary_relative_path,
+      HardLinkBinaryForLoad(binary_dir_, source_bin_code_token, code_token));
   LoadBinaryRequest request;
   request.set_code_token(code_token);
   request.set_num_workers(num_workers);
-  request.set_source_bin_code_token(source_bin_code_token);
+  request.set_binary_relative_path(binary_relative_path);
   request.set_enable_log_egress(true);
   {
     absl::MutexLock lock(&mu_);

@@ -23,14 +23,8 @@ service WorkerRunnerService {
 
 message LoadBinaryRequest {
   bytes code_token = 1;
-  // Content to load request can be provided one of two ways. Namely -
-  // 1. binary_content: Contents of the pre-complied, self-contained binary
-  // 2. source_bin_code_token: Code token of a existing binary in the sandbox.
-  // For instance, an existing binary might be reloaded in for logging.
-  oneof content_oneof {
-    bytes binary_content = 2;
-    bytes source_bin_code_token = 5;
-  }
+  // Path to binary relative to the binary directory mount.
+  bytes binary_relative_path = 2;
   int32 num_workers = 3;
   // Whether or not logs should be stored in a file. Set to false by proto3
   // default.

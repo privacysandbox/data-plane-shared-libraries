@@ -70,6 +70,8 @@ ABSL_FLAG(std::string, control_socket_name, "/sock_dir/xyzw.sock",
           "Socket for host to run_workers communication");
 ABSL_FLAG(std::string, udf_socket_name, "/sock_dir/abcd.sock",
           "Socket for host to UDF communication");
+ABSL_FLAG(std::string, binary_dir, "",
+          "Directory containing untrusted binary files.");
 ABSL_FLAG(std::vector<std::string>, mounts,
           std::vector<std::string>({"/lib", "/lib64"}),
           "Mounts containing dependencies needed by the binary");
@@ -551,12 +553,12 @@ class WorkerRunner final : public WorkerRunnerService::Service {
  public:
   WorkerRunner(std::string socket_name, std::vector<std::string> mounts,
                std::string log_dir_name, const int dev_null_fd,
-               const std::filesystem::path& prog_dir)
+               const std::filesystem::path& binary_dir)
       : socket_name_(std::move(socket_name)),
         mounts_(std::move(mounts)),
         log_dir_name_(std::move(log_dir_name)),
         dev_null_fd_(dev_null_fd),
-        prog_dir_(prog_dir) {}
+        binary_dir_(binary_dir) {}
 
   ~WorkerRunner() {
     LOG(INFO) << "Shutting down.";
@@ -614,31 +616,9 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   };
 
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
-    const std::filesystem::path binary_dir = prog_dir_ / request.code_token();
-    if (std::error_code ec;
-        !std::filesystem::create_directory(binary_dir, ec)) {
-      return absl::InternalError(absl::StrCat(
-          "Failed to create ", binary_dir.native(), ": ", ec.message()));
-    }
-    std::error_code ec;
-    if (std::filesystem::permissions(binary_dir,
-                                     std::filesystem::perms::owner_all, ec);
-        ec) {
-      return absl::InternalError(
-          absl::StrCat("Failed to modify permissions for ", binary_dir.native(),
-                       ": ", ec.message()));
-    }
-    std::filesystem::path binary_path = binary_dir / *kBinaryExe;
-    if (request.has_binary_content()) {
-      PS_RETURN_IF_ERROR(SaveNewBinary(binary_path, request.binary_content()));
-    } else if (request.has_source_bin_code_token()) {
-      PS_RETURN_IF_ERROR(CreateHardLinkForExistingBinary(
-          binary_path, request.source_bin_code_token()));
-    } else {
-      return absl::InternalError("Failed to load binary");
-    }
-    return CreateWorkerPool(std::move(binary_path), request.code_token(),
-                            request.num_workers(), request.enable_log_egress(),
+    return CreateWorkerPool(binary_dir_ / request.binary_relative_path(),
+                            request.code_token(), request.num_workers(),
+                            request.enable_log_egress(),
                             absl::GetFlag(FLAGS_enable_seccomp_filter));
   }
 
@@ -663,51 +643,12 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         }
       }
       code_token_to_reloader_metadata_.erase(it);
-      const std::filesystem::path binary_dir = prog_dir_ / request_code_token;
+      const std::filesystem::path binary_dir = binary_dir_ / request_code_token;
       if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
                               static_cast<std::uintmax_t>(-1)) {
         LOG(ERROR) << "Failed to remove " << binary_dir << ": " << ec;
       }
     }
-  }
-
-  absl::Status SaveNewBinary(const std::filesystem::path& binary_path,
-                             std::string_view binary_content) {
-    const int fd =
-        ::open(binary_path.c_str(), O_WRONLY | O_CREAT | O_CLOEXEC, 0500);
-    if (fd == -1) {
-      return absl::ErrnoToStatus(errno, "open()");
-    }
-    if (::write(fd, binary_content.data(), binary_content.size()) !=
-        binary_content.size()) {
-      return absl::ErrnoToStatus(errno, "write()");
-    }
-
-    // Flush the file to ensure the executable is closed for writing before
-    // the `exec` call.
-    if (::fsync(fd) == -1) {
-      return absl::ErrnoToStatus(errno, "fsync()");
-    }
-    if (::close(fd) == -1) {
-      return absl::ErrnoToStatus(errno, "close()");
-    }
-    return absl::OkStatus();
-  }
-
-  absl::Status CreateHardLinkForExistingBinary(
-      const std::filesystem::path& binary_path,
-      std::string_view source_bin_code_token) {
-    const std::filesystem::path existing_binary_path =
-        prog_dir_ / source_bin_code_token / *kBinaryExe;
-    if (!std::filesystem::exists(existing_binary_path)) {
-      return absl::FailedPreconditionError(absl::StrCat(
-          "Expected binary ", existing_binary_path.native(), " not found"));
-    } else if (!std::filesystem::is_regular_file(existing_binary_path)) {
-      return absl::InternalError(absl::StrCat(
-          "File ", existing_binary_path.native(), " not a regular file"));
-    }
-    std::filesystem::create_hard_link(existing_binary_path, binary_path);
-    return absl::OkStatus();
   }
 
   absl::Status CreateWorkerPool(const std::filesystem::path binary_path,
@@ -716,6 +657,16 @@ class WorkerRunner final : public WorkerRunnerService::Service {
                                 const bool enable_log_egress,
                                 const bool enable_seccomp_filter)
       ABSL_LOCKS_EXCLUDED(mu_) {
+    {
+      if (!std::filesystem::exists(binary_path)) {
+        return absl::NotFoundError(
+            absl::StrCat("Could not find binary at ", binary_path.native()));
+      }
+      if (!std::filesystem::is_regular_file(binary_path)) {
+        return absl::InvalidArgumentError(absl::StrCat(
+            "Binary file is not a regular file ", binary_path.native()));
+      }
+    }
     {
       absl::MutexLock lock(&mu_);
       code_token_to_reloader_metadata_[code_token].reserve(num_workers);
@@ -727,7 +678,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         .mounts = std::move(mounts),
         .socket_name = socket_name_,
         .code_token = std::string(code_token),
-        // Within the pivot root, binary_dir is a child of root, not prog_dir.
+        // Within the pivot root, binary_dir is a child of root, not binary_dir.
         .binary_path = binary_dir.filename() / binary_path.filename(),
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
@@ -757,7 +708,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   const std::vector<std::string> mounts_;
   const std::string log_dir_name_;
   const int dev_null_fd_;
-  const std::filesystem::path& prog_dir_;
+  const std::filesystem::path& binary_dir_;
   absl::Mutex mu_;
   // Maps the code token to the corresponding reloaders' pids and
   // pivot_root_dirs.
@@ -774,25 +725,11 @@ int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
   LOG(INFO) << "Starting up.";
-  const std::filesystem::path prog_dir = "/prog_dir";
-  if (std::error_code ec; !std::filesystem::create_directories(prog_dir, ec)) {
-    LOG(ERROR) << "Failed to create " << prog_dir << ": " << ec;
+  const std::filesystem::path binary_dir = absl::GetFlag(FLAGS_binary_dir);
+  if (!std::filesystem::exists(binary_dir)) {
+    LOG(ERROR) << "Failed to find directory " << binary_dir;
     return -1;
   }
-  std::error_code ec;
-  if (std::filesystem::permissions(prog_dir, std::filesystem::perms::owner_all,
-                                   ec);
-      ec) {
-    LOG(ERROR) << "Failed to modify permission for " << prog_dir << ": " << ec;
-    return -1;
-  }
-  absl::Cleanup prog_dir_cleanup = [&prog_dir] {
-    if (absl::Status status =
-            ::privacy_sandbox::server_common::byob::RemoveDirectories(prog_dir);
-        !status.ok()) {
-      LOG(ERROR) << status;
-    }
-  };
   const int dev_null_fd = ::open("/dev/null", O_WRONLY);
   if (dev_null_fd < 0) {
     PLOG(ERROR) << "open failed for /dev/null";
@@ -800,7 +737,7 @@ int main(int argc, char** argv) {
   }
   WorkerRunner runner(absl::GetFlag(FLAGS_udf_socket_name),
                       absl::GetFlag(FLAGS_mounts), absl::GetFlag(FLAGS_log_dir),
-                      dev_null_fd, prog_dir);
+                      dev_null_fd, binary_dir);
   grpc::EnableDefaultHealthCheckService(true);
   std::unique_ptr<grpc::Server> server =
       grpc::ServerBuilder()

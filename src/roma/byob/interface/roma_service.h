@@ -59,7 +59,8 @@ class LocalHandle final {
   LocalHandle(int pid, std::string_view mounts,
               std::string_view control_socket_path,
               std::string_view udf_socket_path, std::string_view sock_dir,
-              std::string_view log_dir, bool enable_seccomp_filter);
+              std::string_view log_dir, bool enable_seccomp_filter,
+              std::string_view binary_dir);
   ~LocalHandle();
 
  private:
@@ -73,7 +74,8 @@ class ByobHandle final {
              std::string_view udf_socket_path, std::string_view sock_dir,
              std::string container_name, std::string_view log_dir,
              std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
-             bool debug_mode, bool enable_seccomp_filter);
+             bool debug_mode, bool enable_seccomp_filter,
+             std::string_view binary_dir);
   ~ByobHandle();
 
  private:
@@ -88,7 +90,7 @@ class NsJailHandle final {
                std::string_view udf_socket_path, std::string_view socket_dir,
                std::string container_name, std::string_view log_dir,
                std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
-               bool enable_seccomp_filter);
+               bool enable_seccomp_filter, std::string_view binary_dir);
   ~NsJailHandle();
 
  private:
@@ -117,6 +119,11 @@ class RomaService final {
                                      std::filesystem::perms::others_all);
     std::filesystem::path control_socket_path = socket_dir_ / "control.sock";
     std::filesystem::path udf_socket_path = socket_dir_ / "byob_rpc.sock";
+    binary_dir_ = std::filesystem::path(RUN_WORKERS_PATH) / "binary_dir";
+    PS_RETURN_IF_ERROR(
+        ::privacy_sandbox::server_common::byob::CreateDirectories(binary_dir_));
+    std::filesystem::permissions(binary_dir_,
+                                 std::filesystem::perms::owner_all);
 
     const int pid = ::fork();
     if (pid == -1) {
@@ -132,13 +139,15 @@ class RomaService final {
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
             /*debug=*/mode == Mode::kModeGvisorSandboxDebug,
-            /*enable_seccomp_filter=*/config.enable_seccomp_filter);
+            /*enable_seccomp_filter=*/config.enable_seccomp_filter,
+            binary_dir_.c_str());
         break;
       case Mode::kModeMinimalSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
             pid, config.lib_mounts, control_socket_path.c_str(),
             udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str(),
-            /*enable_seccomp_filter=*/config.enable_seccomp_filter);
+            /*enable_seccomp_filter=*/config.enable_seccomp_filter,
+            binary_dir_.c_str());
         break;
       case Mode::kModeNsJailSandbox:
         handle_.emplace<internal::roma_service::NsJailHandle>(
@@ -146,14 +155,14 @@ class RomaService final {
             udf_socket_path.c_str(), socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
-            config.enable_seccomp_filter);
+            config.enable_seccomp_filter, binary_dir_.c_str());
         break;
       default:
         return absl::InternalError("Unsupported mode in switch");
     }
     dispatcher_.emplace();
     return dispatcher_->Init(std::move(control_socket_path),
-                             std::move(udf_socket_path), log_dir_);
+                             std::move(udf_socket_path), log_dir_, binary_dir_);
   }
 
   ~RomaService() {
@@ -167,6 +176,11 @@ class RomaService final {
     if (std::error_code ec; std::filesystem::remove_all(log_dir_, ec) ==
                             static_cast<std::uintmax_t>(-1)) {
       LOG(ERROR) << "Failed to remove dir " << log_dir_ << ": " << ec.message();
+    }
+    if (std::error_code ec; std::filesystem::remove_all(binary_dir_, ec) ==
+                            static_cast<std::uintmax_t>(-1)) {
+      LOG(ERROR) << "Failed to remove dir " << binary_dir_ << ": "
+                 << ec.message();
     }
   }
 
@@ -239,6 +253,7 @@ class RomaService final {
   int num_workers_;
   std::filesystem::path socket_dir_;
   std::filesystem::path log_dir_;
+  std::filesystem::path binary_dir_;
   std::variant<std::monostate, internal::roma_service::LocalHandle,
                internal::roma_service::ByobHandle,
                internal::roma_service::NsJailHandle>

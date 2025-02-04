@@ -47,6 +47,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -60,12 +61,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf/")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   for (int j = 0; j < 10; ++j) {
     absl::SleepFor(absl::Milliseconds(100));
@@ -96,6 +98,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -109,12 +112,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf/")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
   for (int j = 0; j < 10; ++j) {
@@ -147,6 +151,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -160,12 +165,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/sample_udf",
                             /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
   for (int j = 0; j < 10; ++j) {
@@ -197,6 +203,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -210,12 +217,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
                             /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   for (int j = 0; j < 10; ++j) {
     absl::SleepFor(absl::Milliseconds(100));
@@ -247,6 +255,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -260,12 +269,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/abort_late_udf",
                             /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   for (int j = 0; j < 10; ++j) {
     absl::SleepFor(absl::Seconds(1));
@@ -297,6 +307,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -310,12 +321,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/nonzero_return_udf",
                             /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   for (int j = 0; j < 10; ++j) {
     absl::SleepFor(absl::Milliseconds(100));
@@ -348,6 +360,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -361,14 +374,15 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   SampleRequest bin_request;
   {
     const absl::StatusOr<std::string> code_token =
         dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
                               /*n_workers=*/2);
-    ASSERT_TRUE(code_token.ok());
+    ASSERT_TRUE(code_token.ok()) << code_token.status();
     absl::Notification done;
     ASSERT_TRUE(
         dispatcher
@@ -411,6 +425,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -424,11 +439,13 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token =
       dispatcher.LoadBinary("src/roma/byob/sample_udf/pause_udf",
                             /*n_workers=*/2);
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   absl::Notification done;
   absl::StatusOr<ExecutionToken> execution_token =
@@ -452,6 +469,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -465,12 +483,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   for (int j = 0; j < 10; ++j) {
     absl::SleepFor(absl::Milliseconds(100));
@@ -501,6 +520,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -514,12 +534,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
   for (int j = 0; j < 10; ++j) {
@@ -552,6 +573,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
         "src/roma/byob/dispatcher/run_workers_without_sandbox",
         "--control_socket_name=xyzw.sock",
         "--udf_socket_name=abcd.sock",
+        "--binary_dir=src/roma/byob/sample_udf",
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]), nullptr);
@@ -565,12 +587,13 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"")
+                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*binary_dir=*/"src/roma/byob/sample_udf")
                   .ok());
   const absl::StatusOr<std::string> code_token = dispatcher.LoadBinary(
       "src/roma/byob/sample_udf/sample_go_udf_/sample_go_udf",
       /*num_workers=*/10);
-  ASSERT_TRUE(code_token.ok());
+  ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
   for (int j = 0; j < 10; ++j) {

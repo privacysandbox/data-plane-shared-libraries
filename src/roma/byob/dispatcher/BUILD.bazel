@@ -20,6 +20,7 @@ cc_library(
         ":interface",
         "//src/core/common/uuid",
         "//src/roma/byob/utility:file_reader",
+        "//src/roma/byob/utility:utils",
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface:function_binding_io_cc_proto",
         "//src/util:execution_token",

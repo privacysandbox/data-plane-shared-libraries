@@ -50,7 +50,8 @@ class Dispatcher {
 
   absl::Status Init(std::filesystem::path control_socket_name,
                     std::filesystem::path udf_socket_name,
-                    std::filesystem::path log_dir);
+                    std::filesystem::path log_dir,
+                    std::filesystem::path binary_dir);
 
   absl::StatusOr<std::string> LoadBinary(std::filesystem::path binary_path,
                                          int num_workers,
@@ -123,6 +124,7 @@ class Dispatcher {
 
   int listen_fd_;
   std::filesystem::path log_dir_;
+  std::filesystem::path binary_dir_;
   std::unique_ptr<WorkerRunnerService::Stub> stub_;
   absl::Mutex mu_;
   int acceptor_threads_in_flight_ ABSL_GUARDED_BY(mu_) = 0;
