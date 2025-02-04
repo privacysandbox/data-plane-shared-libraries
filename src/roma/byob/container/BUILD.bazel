@@ -265,7 +265,7 @@ if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
   rm -rf "$${{ROOT_DIR}}/lib"
 fi
 # TODO: b/330312036 - Avoid compressing this tar till rules_docker is deprecated.
-tar --create --owner={user}:{uid} --group={group}:{gid} --file=$@ --directory="$${{TMPDIR}}" "{roma_container_dir}/"
+tar --create --owner={user}:{uid} --group={group}:{gid} --sort=name --format=gnu --mtime="2000-01-01 10:00:00" --file=$@ --directory="$${{TMPDIR}}" "{roma_container_dir}/"
 rm -rf "$${{TMPDIR}}"
 """.format(
             flavor = user.flavor,
