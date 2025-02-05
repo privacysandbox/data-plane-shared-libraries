@@ -357,8 +357,8 @@ TEST(WasmTest, InitializingGlobalWasmModuleDoesNotBreakFunctionBindings) {
       absl::StrCat("new WebAssembly.Module(Uint8Array.from([", wasm_bin, "]))");
 
   std::string js_code = absl::Substitute(R"""(
-      //Uncommenting line below makes `Callback` undefined
-      // $0;
+      //Uncommenting line no longer makes `Callback` undefined
+      $0;
       function Handler() {
         return Callback();
       }
