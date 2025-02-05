@@ -99,6 +99,7 @@ cc_library(
         ":async_context",
         ":errors",
         ":service_interface",
+        ":streaming_context",
         ":type_def",
         "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/container:btree",

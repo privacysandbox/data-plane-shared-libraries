@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-#include "no_op_initializer.h"
+#ifndef CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_NOOP_NOOP_INITIALIZER_H_
+#define CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_NOOP_NOOP_INITIALIZER_H_
 
-#include <memory>
-
+#include "src/cpio/client_providers/interface/cloud_initializer_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
-using google::scp::core::ExecutionResult;
-using google::scp::core::SuccessExecutionResult;
-
 namespace google::scp::cpio::client_providers {
-void NoOpInitializer::InitCloud() noexcept {}
+/*! @copydoc CloudInitializerInterface
+ */
+class NoopInitializer : public CloudInitializerInterface {
+ public:
+  void InitCloud() noexcept override;
 
-void NoOpInitializer::ShutdownCloud() noexcept {}
-
-std::unique_ptr<CloudInitializerInterface> CloudInitializerFactory::Create() {
-  return std::make_unique<NoOpInitializer>();
-}
+  void ShutdownCloud() noexcept override;
+};
 }  // namespace google::scp::cpio::client_providers
+
+#endif  // CPIO_CLIENT_PROVIDERS_CLOUD_INITIALIZER_NOOP_NOOP_INITIALIZER_H_

@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,11 +17,12 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 package(default_visibility = ["//src:scp_internal_pkg"])
 
 cc_library(
-    name = "no_op_initializer",
-    srcs = ["no_op_initializer.cc"],
-    hdrs = ["no_op_initializer.h"],
+    name = "noop_blob_storage_client_provider",
+    srcs = ["noop_blob_storage_client_provider.cc"],
     deps = [
+        "//src/core/interface",
+        "//src/core/utils:core_utils",
         "//src/cpio/client_providers/interface:cpio_client_providers_interface",
-        "//src/public/core/interface:execution_result",
+        "@com_google_absl//absl/base:nullability",
     ],
 )
