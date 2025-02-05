@@ -602,7 +602,17 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
   v8::TryCatch try_catch(v8_isolate);
 
   // Create a context scope, which has essential side-effects for compilation
-  v8::Local<v8::Context> v8_context = v8::Context::New(v8_isolate);
+  v8::Local<v8::Context> v8_context;
+  if (current_compilation_context->cache_type == CacheType::kUnboundScript) {
+    // If cached JS contained global WebAssembly, the context associated with
+    // the isolate created in CreateCompilationContext() will not include the
+    // bound callbacks. Recreate the context and rebind the callbacks to ensure
+    // they can still be called with global WASM.
+    PS_RETURN_IF_ERROR(CreateV8Context(v8_isolate, v8_context));
+  } else {
+    v8_context = v8::Context::New(v8_isolate);
+  }
+
   v8::Context::Scope context_scope(v8_context);
 
   // Binding UnboundScript to current context when the compilation context is
