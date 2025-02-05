@@ -23,10 +23,13 @@ cc_library(
             "//:aws_platform": [
                 "//src/cpio/client_providers/cloud_initializer/aws:aws_initializer",
             ],
+            "//:azure_platform": [
+                "//src/cpio/client_providers/cloud_initializer/noop:noop_initializer",
+            ],
             "//:gcp_platform": [
-                "//src/cpio/client_providers/cloud_initializer/gcp:no_op_initializer",
+                "//src/cpio/client_providers/cloud_initializer/noop:noop_initializer",
             ],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS or GCP or Azure",
     ),
 )

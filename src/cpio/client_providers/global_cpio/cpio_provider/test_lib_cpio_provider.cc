@@ -30,8 +30,11 @@
 #elif defined(GCP_TEST)
 #include "src/cpio/client_providers/instance_client_provider/gcp/test_gcp_instance_client_provider.h"
 #include "src/cpio/client_providers/role_credentials_provider/gcp/gcp_role_credentials_provider.h"
+#elif defined(AZURE_TEST)
+#include "src/cpio/client_providers/instance_client_provider/noop/test_noop_instance_client_provider.h"
+#include "src/cpio/client_providers/interface/role_credentials_provider_interface.h"
 #else
-#error "Must provide AWS_TEST or GCP_TEST"
+#error "Must provide AWS_TEST or GCP_TEST or AZURE_TEST"
 #endif
 
 using google::scp::core::AsyncExecutorInterface;
@@ -60,6 +63,11 @@ TestLibCpioProvider::TestLibCpioProvider(TestCpioOptions test_options)
   instance_client_provider_ = std::make_unique<TestGcpInstanceClientProvider>(
       std::move(test_instance_client_options));
   role_credentials_provider_ = std::make_unique<GcpRoleCredentialsProvider>();
+#elif defined(AZURE_TEST)
+  instance_client_provider_ = std::make_unique<TestNoopInstanceClientProvider>(
+      std::move(test_instance_client_options));
+  role_credentials_provider_ =
+      RoleCredentialsProviderFactory::Create({}, {}, {}, {}).value_or(nullptr);
 #endif
 }
 }  // namespace google::scp::cpio::client_providers

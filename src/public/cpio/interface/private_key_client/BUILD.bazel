@@ -35,11 +35,17 @@ cc_library(
         "//src/core/interface:async_context",
         "//src/core/utils:core_utils",
         "//src/cpio/client_providers/global_cpio",
-        "//src/cpio/client_providers/private_key_client_provider",
         "//src/public/cpio/adapters/common:adapter_utils",
         "//src/public/cpio/interface:type_def",
         "//src/public/cpio/proto/private_key_service/v1:private_key_service_cc_proto",
         "//src/util/status_macro:status_macros",
         "@com_google_absl//absl/status",
-    ],
+    ] + select({
+        "//:azure_platform": [
+            "//src/cpio/client_providers/private_key_client_provider/parc:parc_private_key_client_provider",
+        ],
+        "//conditions:default": [
+            "//src/cpio/client_providers/private_key_client_provider",
+        ],
+    }),
 )

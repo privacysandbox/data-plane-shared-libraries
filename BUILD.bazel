@@ -51,6 +51,7 @@ string_flag(
     values = [
         "aws",
         "gcp",
+        "azure",
         "local",
     ],
     visibility = ["//src:__subpackages__"],
@@ -68,6 +69,14 @@ config_setting(
     name = "gcp_platform",
     flag_values = {
         ":platform": "gcp",
+    },
+    visibility = ["//visibility:public"],
+)
+
+config_setting(
+    name = "azure_platform",
+    flag_values = {
+        ":platform": "azure",
     },
     visibility = ["//visibility:public"],
 )

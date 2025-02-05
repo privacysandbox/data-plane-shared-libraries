@@ -43,12 +43,13 @@ cc_library(
     name = "test_lib_cpio_provider",
     srcs = ["test_lib_cpio_provider.cc"],
     hdrs = ["test_lib_cpio_provider.h"],
-    copts = select(
+    local_defines = select(
         {
-            "//:aws_platform": ["-DAWS_TEST=1"],
-            "//:gcp_platform": ["-DGCP_TEST=1"],
+            "//:aws_platform": ["AWS_TEST=1"],
+            "//:azure_platform": ["AZURE_TEST=1"],
+            "//:gcp_platform": ["GCP_TEST=1"],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS or GCP or Azure",
     ),
     deps = [
         ":cpio_provider",
@@ -59,11 +60,15 @@ cc_library(
                 "//src/cpio/client_providers/instance_client_provider/aws:test_aws_instance_client_provider",
                 "//src/cpio/client_providers/role_credentials_provider/aws:test_aws_role_credentials_provider",
             ],
+            "//:azure_platform": [
+                "//src/cpio/client_providers/instance_client_provider/noop:test_noop_instance_client_provider",
+                "//src/cpio/client_providers/role_credentials_provider/noop:noop_role_credentials_provider",
+            ],
             "//:gcp_platform": [
                 "//src/cpio/client_providers/instance_client_provider/gcp:test_gcp_instance_client_provider",
                 "//src/cpio/client_providers/role_credentials_provider/gcp:gcp_role_credentials_provider",
             ],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS or GCP or Azure",
     ),
 )
