@@ -51,6 +51,7 @@ def rpc_diff_test(
         jq_pre_filter = "",
         jq_post_filter = "",
         jq_post_slurp = False,
+        test_size = "medium",
         tags = [],
         plaintext = False,
         client_type = "",
@@ -137,6 +138,7 @@ def rpc_diff_test(
         srcs = [runner],
         args = args,
         data = data,
+        size = test_size,
         tags = tags,
         **kwargs
     )
@@ -148,6 +150,7 @@ def rpc_diff_test_suite(
         test_files_glob_spec,
         protoset = "",
         custom_rpc_invoker_tarball = "",
+        test_size = "medium",
         test_tags = [],
         plaintext = False,
         **kwargs):
@@ -186,6 +189,7 @@ def rpc_diff_test_suite(
             protoset = protoset,
             request = ":{}".format(testcase_files["request"]),
             rpc = rpc,
+            test_size = test_size,
             tags = test_tags,
             custom_rpc_invoker_tarball = custom_rpc_invoker_tarball,
             plaintext = plaintext,
@@ -205,6 +209,7 @@ def rpc_perf_test(
         protoset,
         jq_pre_filter = "",
         plaintext = False,
+        test_size = "medium",
         tags = [],
         **kwargs):
     """Generate a ghz report for a grpc request.
@@ -269,6 +274,7 @@ def rpc_perf_test(
         srcs = [runner],
         args = args,
         data = data,
+        size = test_size,
         tags = tags,
         **kwargs
     )
@@ -279,6 +285,7 @@ def rpc_perf_test_suite(
         rpc,
         test_files_glob_spec,
         protoset,
+        test_size = "medium",
         test_tags = [],
         plaintext = False,
         **kwargs):
@@ -310,6 +317,7 @@ def rpc_perf_test_suite(
             protoset = protoset,
             request = ":{}".format(testcase_files["request"]),
             rpc = rpc,
+            test_size = test_size,
             tags = test_tags,
             plaintext = plaintext,
             **extra_kwargs
@@ -335,6 +343,7 @@ def wrk2_perf_test(
         lua_script = None,
         jq_pre_filter = "",
         plaintext = False,
+        test_size = "medium",
         tags = [],
         **kwargs):
     """Generate a ghz report for a grpc request.
@@ -425,6 +434,7 @@ def wrk2_perf_test(
         srcs = [runner],
         args = args,
         data = data,
+        size = test_size,
         tags = tags,
         **kwargs
     )
@@ -442,6 +452,7 @@ def wrk2_perf_test_suite(
         timeout = None,
         lua_script = None,
         plaintext = False,
+        test_size = "medium",
         test_tags = [],
         **kwargs):
     """Generates a test suite for test cases within the specified directory tree.
@@ -487,6 +498,7 @@ def wrk2_perf_test_suite(
             timeout = timeout,
             lua_script = lua_script,
             plaintext = plaintext,
+            test_size = test_size,
             tags = test_tags,
             **extra_kwargs
         )

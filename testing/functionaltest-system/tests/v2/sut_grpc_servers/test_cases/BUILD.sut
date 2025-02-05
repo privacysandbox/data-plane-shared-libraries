@@ -64,6 +64,7 @@ exposed_endpoints = greeter_envoy_endpoints + server_endpoints
             endpoint.test_files_glob_spec_prefix,
             rpc,
         ),
+        test_size = "small",
         test_tags = [
             "external",
             "manual",

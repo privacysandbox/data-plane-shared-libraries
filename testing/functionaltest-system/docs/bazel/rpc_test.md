@@ -32,7 +32,8 @@ functional_test_files_for(<a href="#functional_test_files_for-glob_spec">glob_sp
 
 <pre>
 rpc_diff_test(<a href="#rpc_diff_test-name">name</a>, <a href="#rpc_diff_test-request">request</a>, <a href="#rpc_diff_test-golden_reply">golden_reply</a>, <a href="#rpc_diff_test-endpoint">endpoint</a>, <a href="#rpc_diff_test-rpc">rpc</a>, <a href="#rpc_diff_test-protoset">protoset</a>, <a href="#rpc_diff_test-custom_rpc_invoker_tarball">custom_rpc_invoker_tarball</a>,
-              <a href="#rpc_diff_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_diff_test-jq_post_filter">jq_post_filter</a>, <a href="#rpc_diff_test-jq_post_slurp">jq_post_slurp</a>, <a href="#rpc_diff_test-tags">tags</a>, <a href="#rpc_diff_test-plaintext">plaintext</a>, <a href="#rpc_diff_test-client_type">client_type</a>, <a href="#rpc_diff_test-kwargs">kwargs</a>)
+              <a href="#rpc_diff_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_diff_test-jq_post_filter">jq_post_filter</a>, <a href="#rpc_diff_test-jq_post_slurp">jq_post_slurp</a>, <a href="#rpc_diff_test-test_size">test_size</a>, <a href="#rpc_diff_test-tags">tags</a>, <a href="#rpc_diff_test-plaintext">plaintext</a>, <a href="#rpc_diff_test-client_type">client_type</a>,
+              <a href="#rpc_diff_test-kwargs">kwargs</a>)
 </pre>
 
 Generates a diff test for a grpc request/reply.
@@ -52,6 +53,7 @@ Generates a diff test for a grpc request/reply.
 | <a id="rpc_diff_test-jq_pre_filter"></a>jq_pre_filter |  jq filter program as string to apply to the rpc request   |  <code>""</code> |
 | <a id="rpc_diff_test-jq_post_filter"></a>jq_post_filter |  jq filter program as string to apply to the rpc response   |  <code>""</code> |
 | <a id="rpc_diff_test-jq_post_slurp"></a>jq_post_slurp |  boolean to indicate use of jq --slurp for the rpc response   |  <code>False</code> |
+| <a id="rpc_diff_test-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
 | <a id="rpc_diff_test-tags"></a>tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="rpc_diff_test-plaintext"></a>plaintext |  boolean to indicate plaintext request   |  <code>False</code> |
 | <a id="rpc_diff_test-client_type"></a>client_type |  client type to use for the rpc request   |  <code>""</code> |
@@ -64,7 +66,7 @@ Generates a diff test for a grpc request/reply.
 
 <pre>
 rpc_diff_test_suite(<a href="#rpc_diff_test_suite-name">name</a>, <a href="#rpc_diff_test_suite-endpoint">endpoint</a>, <a href="#rpc_diff_test_suite-rpc">rpc</a>, <a href="#rpc_diff_test_suite-test_files_glob_spec">test_files_glob_spec</a>, <a href="#rpc_diff_test_suite-protoset">protoset</a>, <a href="#rpc_diff_test_suite-custom_rpc_invoker_tarball">custom_rpc_invoker_tarball</a>,
-                    <a href="#rpc_diff_test_suite-test_tags">test_tags</a>, <a href="#rpc_diff_test_suite-plaintext">plaintext</a>, <a href="#rpc_diff_test_suite-kwargs">kwargs</a>)
+                    <a href="#rpc_diff_test_suite-test_size">test_size</a>, <a href="#rpc_diff_test_suite-test_tags">test_tags</a>, <a href="#rpc_diff_test_suite-plaintext">plaintext</a>, <a href="#rpc_diff_test_suite-kwargs">kwargs</a>)
 </pre>
 
 Generate a test suite for test cases within the specified directory tree.
@@ -80,6 +82,7 @@ Generate a test suite for test cases within the specified directory tree.
 | <a id="rpc_diff_test_suite-test_files_glob_spec"></a>test_files_glob_spec |  glob spec for test files, passed to function functional_test_files_for()   |  none |
 | <a id="rpc_diff_test_suite-protoset"></a>protoset |  protobuf descriptor set label or file   |  <code>""</code> |
 | <a id="rpc_diff_test_suite-custom_rpc_invoker_tarball"></a>custom_rpc_invoker_tarball |  label for an image tarball used to invoke rpc requests   |  <code>""</code> |
+| <a id="rpc_diff_test_suite-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
 | <a id="rpc_diff_test_suite-test_tags"></a>test_tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="rpc_diff_test_suite-plaintext"></a>plaintext |  boolean to indicate plaintext requests   |  <code>False</code> |
 | <a id="rpc_diff_test_suite-kwargs"></a>kwargs |  additional args   |  none |
@@ -90,7 +93,8 @@ Generate a test suite for test cases within the specified directory tree.
 ## rpc_perf_test
 
 <pre>
-rpc_perf_test(<a href="#rpc_perf_test-name">name</a>, <a href="#rpc_perf_test-request">request</a>, <a href="#rpc_perf_test-endpoint">endpoint</a>, <a href="#rpc_perf_test-rpc">rpc</a>, <a href="#rpc_perf_test-protoset">protoset</a>, <a href="#rpc_perf_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_perf_test-plaintext">plaintext</a>, <a href="#rpc_perf_test-tags">tags</a>, <a href="#rpc_perf_test-kwargs">kwargs</a>)
+rpc_perf_test(<a href="#rpc_perf_test-name">name</a>, <a href="#rpc_perf_test-request">request</a>, <a href="#rpc_perf_test-endpoint">endpoint</a>, <a href="#rpc_perf_test-rpc">rpc</a>, <a href="#rpc_perf_test-protoset">protoset</a>, <a href="#rpc_perf_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_perf_test-plaintext">plaintext</a>, <a href="#rpc_perf_test-test_size">test_size</a>, <a href="#rpc_perf_test-tags">tags</a>,
+              <a href="#rpc_perf_test-kwargs">kwargs</a>)
 </pre>
 
 Generate a ghz report for a grpc request.
@@ -107,6 +111,7 @@ Generate a ghz report for a grpc request.
 | <a id="rpc_perf_test-protoset"></a>protoset |  protobuf descriptor set label or file   |  none |
 | <a id="rpc_perf_test-jq_pre_filter"></a>jq_pre_filter |  jq filter program as string to apply to the rpc request   |  <code>""</code> |
 | <a id="rpc_perf_test-plaintext"></a>plaintext |  boolean to indicate plaintext request   |  <code>False</code> |
+| <a id="rpc_perf_test-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
 | <a id="rpc_perf_test-tags"></a>tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="rpc_perf_test-kwargs"></a>kwargs |  additional test args   |  none |
 
@@ -116,8 +121,8 @@ Generate a ghz report for a grpc request.
 ## rpc_perf_test_suite
 
 <pre>
-rpc_perf_test_suite(<a href="#rpc_perf_test_suite-name">name</a>, <a href="#rpc_perf_test_suite-endpoint">endpoint</a>, <a href="#rpc_perf_test_suite-rpc">rpc</a>, <a href="#rpc_perf_test_suite-test_files_glob_spec">test_files_glob_spec</a>, <a href="#rpc_perf_test_suite-protoset">protoset</a>, <a href="#rpc_perf_test_suite-test_tags">test_tags</a>, <a href="#rpc_perf_test_suite-plaintext">plaintext</a>,
-                    <a href="#rpc_perf_test_suite-kwargs">kwargs</a>)
+rpc_perf_test_suite(<a href="#rpc_perf_test_suite-name">name</a>, <a href="#rpc_perf_test_suite-endpoint">endpoint</a>, <a href="#rpc_perf_test_suite-rpc">rpc</a>, <a href="#rpc_perf_test_suite-test_files_glob_spec">test_files_glob_spec</a>, <a href="#rpc_perf_test_suite-protoset">protoset</a>, <a href="#rpc_perf_test_suite-test_size">test_size</a>, <a href="#rpc_perf_test_suite-test_tags">test_tags</a>,
+                    <a href="#rpc_perf_test_suite-plaintext">plaintext</a>, <a href="#rpc_perf_test_suite-kwargs">kwargs</a>)
 </pre>
 
 Generates a test suite for test cases within the specified directory tree.
@@ -132,6 +137,7 @@ Generates a test suite for test cases within the specified directory tree.
 | <a id="rpc_perf_test_suite-rpc"></a>rpc |  <p align="center"> - </p>   |  none |
 | <a id="rpc_perf_test_suite-test_files_glob_spec"></a>test_files_glob_spec |  glob spec for test files, passed to function functional_test_files_for()   |  none |
 | <a id="rpc_perf_test_suite-protoset"></a>protoset |  protobuf descriptor set label or file   |  none |
+| <a id="rpc_perf_test_suite-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
 | <a id="rpc_perf_test_suite-test_tags"></a>test_tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="rpc_perf_test_suite-plaintext"></a>plaintext |  boolean to indicate plaintext requests   |  <code>False</code> |
 | <a id="rpc_perf_test_suite-kwargs"></a>kwargs |  additional args   |  none |
@@ -143,7 +149,7 @@ Generates a test suite for test cases within the specified directory tree.
 
 <pre>
 wrk2_perf_test(<a href="#wrk2_perf_test-name">name</a>, <a href="#wrk2_perf_test-endpoint">endpoint</a>, <a href="#wrk2_perf_test-rpc">rpc</a>, <a href="#wrk2_perf_test-request_rate">request_rate</a>, <a href="#wrk2_perf_test-request">request</a>, <a href="#wrk2_perf_test-connections">connections</a>, <a href="#wrk2_perf_test-duration">duration</a>, <a href="#wrk2_perf_test-threads">threads</a>, <a href="#wrk2_perf_test-latency">latency</a>,
-               <a href="#wrk2_perf_test-timeout">timeout</a>, <a href="#wrk2_perf_test-lua_script">lua_script</a>, <a href="#wrk2_perf_test-jq_pre_filter">jq_pre_filter</a>, <a href="#wrk2_perf_test-plaintext">plaintext</a>, <a href="#wrk2_perf_test-tags">tags</a>, <a href="#wrk2_perf_test-kwargs">kwargs</a>)
+               <a href="#wrk2_perf_test-timeout">timeout</a>, <a href="#wrk2_perf_test-lua_script">lua_script</a>, <a href="#wrk2_perf_test-jq_pre_filter">jq_pre_filter</a>, <a href="#wrk2_perf_test-plaintext">plaintext</a>, <a href="#wrk2_perf_test-test_size">test_size</a>, <a href="#wrk2_perf_test-tags">tags</a>, <a href="#wrk2_perf_test-kwargs">kwargs</a>)
 </pre>
 
 Generate a ghz report for a grpc request.
@@ -166,6 +172,7 @@ Generate a ghz report for a grpc request.
 | <a id="wrk2_perf_test-lua_script"></a>lua_script |  label of lua script   |  <code>None</code> |
 | <a id="wrk2_perf_test-jq_pre_filter"></a>jq_pre_filter |  jq filter program as string to apply to the rpc request   |  <code>""</code> |
 | <a id="wrk2_perf_test-plaintext"></a>plaintext |  boolean to indicate plaintext request   |  <code>False</code> |
+| <a id="wrk2_perf_test-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
 | <a id="wrk2_perf_test-tags"></a>tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="wrk2_perf_test-kwargs"></a>kwargs |  additional test args   |  none |
 
@@ -176,7 +183,7 @@ Generate a ghz report for a grpc request.
 
 <pre>
 wrk2_perf_test_suite(<a href="#wrk2_perf_test_suite-name">name</a>, <a href="#wrk2_perf_test_suite-endpoint">endpoint</a>, <a href="#wrk2_perf_test_suite-rpc">rpc</a>, <a href="#wrk2_perf_test_suite-test_files_glob_spec">test_files_glob_spec</a>, <a href="#wrk2_perf_test_suite-request_rate">request_rate</a>, <a href="#wrk2_perf_test_suite-connections">connections</a>, <a href="#wrk2_perf_test_suite-duration">duration</a>,
-                     <a href="#wrk2_perf_test_suite-threads">threads</a>, <a href="#wrk2_perf_test_suite-latency">latency</a>, <a href="#wrk2_perf_test_suite-timeout">timeout</a>, <a href="#wrk2_perf_test_suite-lua_script">lua_script</a>, <a href="#wrk2_perf_test_suite-plaintext">plaintext</a>, <a href="#wrk2_perf_test_suite-test_tags">test_tags</a>, <a href="#wrk2_perf_test_suite-kwargs">kwargs</a>)
+                     <a href="#wrk2_perf_test_suite-threads">threads</a>, <a href="#wrk2_perf_test_suite-latency">latency</a>, <a href="#wrk2_perf_test_suite-timeout">timeout</a>, <a href="#wrk2_perf_test_suite-lua_script">lua_script</a>, <a href="#wrk2_perf_test_suite-plaintext">plaintext</a>, <a href="#wrk2_perf_test_suite-test_size">test_size</a>, <a href="#wrk2_perf_test_suite-test_tags">test_tags</a>, <a href="#wrk2_perf_test_suite-kwargs">kwargs</a>)
 </pre>
 
 Generates a test suite for test cases within the specified directory tree.
@@ -198,6 +205,7 @@ Generates a test suite for test cases within the specified directory tree.
 | <a id="wrk2_perf_test_suite-timeout"></a>timeout |  request timeout (e.g. 2s, 2m, 2h)   |  <code>None</code> |
 | <a id="wrk2_perf_test_suite-lua_script"></a>lua_script |  label of lua script   |  <code>None</code> |
 | <a id="wrk2_perf_test_suite-plaintext"></a>plaintext |  boolean to indicate plaintext requests   |  <code>False</code> |
+| <a id="wrk2_perf_test_suite-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
 | <a id="wrk2_perf_test_suite-test_tags"></a>test_tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="wrk2_perf_test_suite-kwargs"></a>kwargs |  additional args   |  none |
 

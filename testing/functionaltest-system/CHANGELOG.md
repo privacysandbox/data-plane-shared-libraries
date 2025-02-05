@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.21.0 (2025-02-05)
+
+
+### Features
+
+* add test_size to test macros
+
 ## 0.20.0 (2025-01-29)
 
 
