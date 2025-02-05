@@ -263,7 +263,6 @@ absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
 // flags ensure that the calling process does not modify/delete the content
 // before the worker calls exec.
 struct WorkerImplArg {
-  const std::filesystem::path& pivot_root_dir;
   absl::Span<const std::pair<std::filesystem::path, std::filesystem::path>>
       sources_and_targets_read_and_write;
   std::string_view execution_token;
@@ -463,7 +462,6 @@ int ReloaderImpl(void* arg) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
     WorkerImplArg worker_impl_arg{
-        .pivot_root_dir = reloader_impl_arg.pivot_root_dir,
         .sources_and_targets_read_and_write =
             sources_and_targets_read_and_write,
         .execution_token = execution_token,
