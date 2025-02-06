@@ -41,6 +41,8 @@ CreatePeriodicExportingMetricReader(
         reader_options,
     absl::optional<std::string> collector_endpoint) {
   opentelemetry::exporter::otlp::OtlpGrpcMetricExporterOptions exporter_options;
+  exporter_options.aggregation_temporality =
+      opentelemetry::sdk::metrics::AggregationTemporality::kDelta;
   if (collector_endpoint.has_value()) {
     exporter_options.endpoint = *collector_endpoint;
   }
