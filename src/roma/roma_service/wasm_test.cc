@@ -27,6 +27,8 @@
 #include "absl/log/log.h"
 #include "absl/log/scoped_mock_log.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_join.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"
@@ -327,6 +329,84 @@ TEST(WasmTest, CanExecuteJsWithWasmCode) {
   }
 
   EXPECT_THAT(result, StrEq("3"));
+
+  ASSERT_TRUE(roma_service.Stop().ok());
+}
+
+void CallbackFunction(FunctionBindingPayload<>& wrapper) {
+  wrapper.io_proto.set_output_string("Hello World from C++");
+}
+
+TEST(WasmTest, InitializingGlobalWasmModuleDoesNotBreakFunctionBindings) {
+  Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      std::make_unique<FunctionBindingObjectV2<>>(FunctionBindingObjectV2<>{
+          .function_name = "Callback",
+          .function = CallbackFunction,
+      }));
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  std::string wasm_bin = absl::StrJoin(kWasmBin, ",");
+  std::string wasm_module =
+      absl::StrCat("new WebAssembly.Module(Uint8Array.from([", wasm_bin, "]))");
+
+  std::string js_code = absl::Substitute(R"""(
+      //Uncommenting line below makes `Callback` undefined
+      // $0;
+      function Handler() {
+        return Callback();
+      }
+        )""",
+                                         wasm_module);
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = js_code,
+    });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response_status = resp.status();
+                               if (resp.ok()) {
+                                 result = std::move(resp->resp);
+                               }
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  EXPECT_THAT(result, StrEq(R"("Hello World from C++")"));
 
   ASSERT_TRUE(roma_service.Stop().ok());
 }
