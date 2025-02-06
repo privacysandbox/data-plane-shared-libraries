@@ -41,6 +41,9 @@ repos:
   - id: check-yaml
     args:
     - --allow-multiple-documents
+    exclude: (?x)^(
+      testing/.*helm.*
+      )\.yaml$
   - id: check-json
     exclude: (?x)^(
       testing/.*\.reply
