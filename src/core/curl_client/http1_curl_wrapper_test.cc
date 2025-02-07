@@ -40,13 +40,12 @@ namespace {
 // place null characters at the end, except when c_str is called. However, I
 // confirmed printing behaves nicely.
 constexpr Byte kRequestBody[] = {'a', 'b', '\0', 'c'};
-constexpr Byte kResponseBody[] = {'\0', 'd', 'e', 'f'};
 
 class Http1CurlWrapperTest
     : public ::testing::TestWithParam<std::tuple<status, ExecutionResult>> {
  protected:
   Http1CurlWrapperTest()
-      : response_body_(kResponseBody, sizeof(kResponseBody)),
+      : response_body_(std::string(100000, '*')),
         post_request_body_(kRequestBody, sizeof(kRequestBody)),
         subject_([]() {
           auto wrapper_or = Http1CurlWrapper::MakeWrapper();
