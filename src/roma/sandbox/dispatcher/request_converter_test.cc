@@ -41,6 +41,28 @@ inline constexpr char kTestJs[] = "function noOp{}";
 using ::google::scp::core::test::EqualsProto;
 using ::worker_api::WorkerParamsProto;
 
+TEST(RequestConverted, ConvertsInvocationRequestToProto_EmptyInput) {
+  InvocationRequest<std::string> invocation_request = {
+      .id = kTestId,
+      .version_string = kTestVersion,
+      .handler_name = kTestHandlerName,
+      .tags = {{kTestTag, kTestVal},
+               {std::string(google::scp::roma::kWasmCodeArrayName), kTestVal}},
+      .input = {}};
+  WorkerParamsProto worker_params_proto =
+      privacy_sandbox::server_common::ParseTextOrDie<WorkerParamsProto>(R"pb(
+        metadata { key: "CodeVersion" value: "test-version" }
+        metadata { key: "HandlerName" value: "test-handler" }
+        metadata { key: "RequestAction" value: "Execute" }
+        metadata { key: "roma.request.id" value: "test-id" }
+        metadata { key: "roma.request.wasm_array_name" value: "test-val" }
+        metadata { key: "test-tag" value: "test-val" }
+        input_strings {}
+      )pb");
+  EXPECT_THAT(RequestToProto(std::move(invocation_request)),
+              EqualsProto(worker_params_proto));
+}
+
 TEST(RequestConverted, ConvertsInvocationRequestToProto) {
   InvocationRequest<std::string> invocation_request = {
       .id = kTestId,
@@ -58,6 +80,55 @@ TEST(RequestConverted, ConvertsInvocationRequestToProto) {
         metadata { key: "roma.request.wasm_array_name" value: "test-val" }
         metadata { key: "test-tag" value: "test-val" }
         input_strings { inputs: "test-input" }
+      )pb");
+  EXPECT_THAT(RequestToProto(std::move(invocation_request)),
+              EqualsProto(worker_params_proto));
+}
+
+TEST(RequestConverted, ConvertsInvocationRequestToProto_EmptyInputAsByteStr) {
+  InvocationRequest<std::string> invocation_request = {
+      .id = kTestId,
+      .version_string = kTestVersion,
+      .handler_name = kTestHandlerName,
+      .tags = {{kTestTag, kTestVal},
+               {std::string(google::scp::roma::kWasmCodeArrayName), kTestVal}},
+      .input = {},
+      .treat_input_as_byte_str = true,
+  };
+  WorkerParamsProto worker_params_proto =
+      privacy_sandbox::server_common::ParseTextOrDie<WorkerParamsProto>(R"pb(
+        metadata { key: "CodeVersion" value: "test-version" }
+        metadata { key: "HandlerName" value: "test-handler" }
+        metadata { key: "InputType" value: "InputTypeBytes" }
+        metadata { key: "RequestAction" value: "Execute" }
+        metadata { key: "roma.request.id" value: "test-id" }
+        metadata { key: "roma.request.wasm_array_name" value: "test-val" }
+        metadata { key: "test-tag" value: "test-val" }
+      )pb");
+  EXPECT_THAT(RequestToProto(std::move(invocation_request)),
+              EqualsProto(worker_params_proto));
+}
+
+TEST(RequestConverted, ConvertsInvocationRequestToProto_InputAsByteStr) {
+  InvocationRequest<std::string> invocation_request = {
+      .id = kTestId,
+      .version_string = kTestVersion,
+      .handler_name = kTestHandlerName,
+      .tags = {{kTestTag, kTestVal},
+               {std::string(google::scp::roma::kWasmCodeArrayName), kTestVal}},
+      .input = {kTestInput},
+      .treat_input_as_byte_str = true,
+  };
+  WorkerParamsProto worker_params_proto =
+      privacy_sandbox::server_common::ParseTextOrDie<WorkerParamsProto>(R"pb(
+        metadata { key: "CodeVersion" value: "test-version" }
+        metadata { key: "HandlerName" value: "test-handler" }
+        metadata { key: "InputType" value: "InputTypeBytes" }
+        metadata { key: "RequestAction" value: "Execute" }
+        metadata { key: "roma.request.id" value: "test-id" }
+        metadata { key: "roma.request.wasm_array_name" value: "test-val" }
+        metadata { key: "test-tag" value: "test-val" }
+        input_bytes: "test-input"
       )pb");
   EXPECT_THAT(RequestToProto(std::move(invocation_request)),
               EqualsProto(worker_params_proto));

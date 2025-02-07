@@ -62,6 +62,9 @@ template <typename InputType, typename TMetadata>
   if (request.treat_input_as_byte_str) {
     metadata[google::scp::roma::sandbox::constants::kInputType] =
         google::scp::roma::sandbox::constants::kInputTypeBytes;
+    if (request.input.size() != 1) {
+      return params;
+    }
     if constexpr (std::is_same_v<InputType, std::shared_ptr<std::string>>) {
       params.set_input_bytes(*request.input.at(0));
     } else if constexpr (std::is_same_v<InputType, std::string_view>) {

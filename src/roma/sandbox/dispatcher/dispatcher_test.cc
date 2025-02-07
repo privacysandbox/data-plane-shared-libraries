@@ -420,6 +420,45 @@ TEST(DispatcherTest, CanRunCodeWithTreatInputAsByteStr) {
   done_executing.WaitForNotification();
 }
 
+TEST(DispatcherTest, RaisesErrorWithEmptyInputWithTreatInputAsByteStr) {
+  std::vector<worker_api::WorkerSandboxApi> workers =
+      Workers(/*num_workers=*/1);
+  absl::Cleanup cleanup = [&] {
+    for (worker_api::WorkerSandboxApi& worker : workers) {
+      CHECK_OK(worker.Stop());
+    }
+  };
+  Dispatcher dispatcher(absl::MakeSpan(workers), /*max_pending_reqs=*/1);
+
+  CodeObject load_request{
+      .id = "some_id",
+      .version_string = "v1",
+      .js =
+          "function test(input, input2) { return input + input2 + \" Some "
+          "string\"; }",
+  };
+  absl::Notification done_loading;
+  CHECK_OK(dispatcher.Load(std::move(load_request),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             CHECK_OK(resp);
+                             done_loading.Notify();
+                           }));
+  done_loading.WaitForNotification();
+
+  // Empty input with treat_input_as_byte_str as true.
+  InvocationStrViewRequest<> execute_request{
+      .id = "some_id",
+      .version_string = "v1",
+      .handler_name = "test",
+      .input = {},
+      .treat_input_as_byte_str = true,
+  };
+  EXPECT_FALSE(dispatcher
+                   .Invoke(std::move(execute_request),
+                           [](absl::StatusOr<ResponseObject> resp) {})
+                   .ok());
+}
+
 TEST(DispatcherTest, RaisesErrorWithMoreThanOneInputWithTreatInputAsByteStr) {
   std::vector<worker_api::WorkerSandboxApi> workers =
       Workers(/*num_workers=*/1);
