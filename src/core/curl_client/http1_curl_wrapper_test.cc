@@ -45,23 +45,23 @@ class Http1CurlWrapperTest
     : public ::testing::TestWithParam<std::tuple<status, ExecutionResult>> {
  protected:
   Http1CurlWrapperTest()
-      : response_body_(std::string(100000, '*')),
+      : response_body_(std::string(100'000, '*')),
         post_request_body_(kRequestBody, sizeof(kRequestBody)),
         subject_([]() {
-          auto wrapper_or = Http1CurlWrapper::MakeWrapper();
-          assert(wrapper_or.Successful());
-          return std::move(*wrapper_or);
+          ExecutionResultOr<std::shared_ptr<Http1CurlWrapper>> wrapper =
+              Http1CurlWrapper::MakeWrapper();
+          CHECK(wrapper.Successful()) << "Failed to create Http1CurlWrapper";
+          return std::move(*wrapper);
         }()) {}
 
   status GetResponseStatusToReturn() { return std::get<0>(GetParam()); }
 
   ExecutionResult GetExpectedResult() { return std::get<1>(GetParam()); }
 
-  const std::string response_body_;
-  const std::string post_request_body_;
-
+ protected:
+  std::string response_body_;
+  std::string post_request_body_;
   std::shared_ptr<Http1CurlWrapper> subject_;
-
   TestHttp1Server server_;
 };
 
@@ -72,11 +72,31 @@ TEST_F(Http1CurlWrapperTest, GetWorks) {
 
   server_.SetResponseBody(BytesBuffer(post_request_body_));
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_THAT(response_or->body.ToString(), StrEq(post_request_body_));
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_THAT(response->body.ToString(), StrEq(post_request_body_));
 
+  EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
+}
+
+TEST_F(Http1CurlWrapperTest, GetWorksBigResponse) {
+  std::string reponse_body;
+  // Set to 1,000,001 explicitly since that's the value of MAX_RTP_BUFFERSIZE
+  // http://shortn/_nvYv40ncLg
+  for (int i = 0; i < 1'000'001; ++i) {
+    reponse_body += static_cast<char>(i % 255);
+  }
+
+  HttpRequest request;
+  request.method = HttpMethod::GET;
+  request.path = std::make_shared<Uri>(server_.GetPath());
+  server_.SetResponseBody(BytesBuffer(reponse_body));
+
+  auto response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_EQ(response->body.ToString(), reponse_body);
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
 }
 
@@ -92,14 +112,13 @@ TEST_F(Http1CurlWrapperTest, GetWorksWithHeaders) {
   server_.SetResponseHeaders(
       HttpHeaders({{"resp1", "resp_val1"}, {"resp2", "resp_val2"}}));
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
-  EXPECT_THAT(
-      *response_or->headers,
-      IsSupersetOf({Pair("resp1", "resp_val1"), Pair("resp2", "resp_val2")}));
+  EXPECT_THAT(*response->headers, IsSupersetOf({Pair("resp1", "resp_val1"),
+                                                Pair("resp2", "resp_val2")}));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
 
@@ -115,10 +134,10 @@ TEST_F(Http1CurlWrapperTest, PostWorks) {
 
   server_.SetResponseBody(BytesBuffer(response_body_));
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
   EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
@@ -132,10 +151,10 @@ TEST_F(Http1CurlWrapperTest, PutWorks) {
 
   server_.SetResponseBody(BytesBuffer(response_body_));
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::put);
   EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
@@ -154,14 +173,13 @@ TEST_F(Http1CurlWrapperTest, PostWorksWithHeaders) {
   server_.SetResponseHeaders(
       HttpHeaders({{"resp1", "resp_val1"}, {"resp2", "resp_val2"}}));
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-  EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
-  EXPECT_THAT(
-      *response_or->headers,
-      IsSupersetOf({Pair("resp1", "resp_val1"), Pair("resp2", "resp_val2")}));
+  EXPECT_THAT(*response->headers, IsSupersetOf({Pair("resp1", "resp_val1"),
+                                                Pair("resp2", "resp_val2")}));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
   EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
@@ -176,9 +194,9 @@ TEST_F(Http1CurlWrapperTest, SingleQueryIsEscaped) {
   request.path = std::make_shared<Uri>(server_.GetPath());
   request.query = std::make_shared<std::string>("foo=!@#$");
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
   // '=' should not be escaped.
@@ -191,9 +209,9 @@ TEST_F(Http1CurlWrapperTest, MultiQueryIsEscaped) {
   request.path = std::make_shared<Uri>(server_.GetPath());
   request.query = std::make_shared<std::string>("foo=!@#$&bar=%^()");
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, IsSuccessful());
-  EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
   // '=' should not be escaped.
@@ -210,10 +228,11 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
 
     server_.SetResponseBody(BytesBuffer(response_body_));
 
-    auto response_or = subject_->PerformRequest(request);
-    ASSERT_THAT(response_or, IsSuccessful());
-    EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-    EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+    ExecutionResultOr<HttpResponse> response =
+        subject_->PerformRequest(request);
+    ASSERT_THAT(response, IsSuccessful());
+    EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+    EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
     EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
     EXPECT_THAT(server_.RequestBody(), IsEmpty());
@@ -227,10 +246,11 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
 
     server_.SetResponseBody(BytesBuffer(response_body_));
 
-    auto response_or = subject_->PerformRequest(request);
-    ASSERT_THAT(response_or, IsSuccessful());
-    EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-    EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+    ExecutionResultOr<HttpResponse> response =
+        subject_->PerformRequest(request);
+    ASSERT_THAT(response, IsSuccessful());
+    EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+    EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
     EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
     EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
@@ -243,10 +263,11 @@ TEST_F(Http1CurlWrapperTest, GetPostGetWorks) {
 
     server_.SetResponseBody(BytesBuffer(response_body_));
 
-    auto response_or = subject_->PerformRequest(request);
-    ASSERT_THAT(response_or, IsSuccessful());
-    EXPECT_EQ(response_or->code, errors::HttpStatusCode::OK);
-    EXPECT_THAT(response_or->body.ToString(), StrEq(response_body_));
+    ExecutionResultOr<HttpResponse> response =
+        subject_->PerformRequest(request);
+    ASSERT_THAT(response, IsSuccessful());
+    EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+    EXPECT_THAT(response->body.ToString(), StrEq(response_body_));
 
     EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
     EXPECT_THAT(server_.RequestBody(), IsEmpty());
@@ -260,8 +281,8 @@ TEST_P(Http1CurlWrapperTest, PropagatesHttpError) {
 
   server_.SetResponseStatus(GetResponseStatusToReturn());
 
-  auto response_or = subject_->PerformRequest(request);
-  ASSERT_THAT(response_or, ResultIs(GetExpectedResult()));
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, ResultIs(GetExpectedResult()));
 
   EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::get);
 }
