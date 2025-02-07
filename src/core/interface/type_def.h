@@ -62,21 +62,6 @@ struct BytesBuffer {
     length = bytes->size();
   }
 
-  /**
-   * @brief Construct a new Bytes Buffer object with only a certain prefix of
-   * the buffer to be used
-   *
-   * @param bytes_buffer
-   * @param prefix_length_to_use
-   */
-  explicit BytesBuffer(const std::shared_ptr<BytesBuffer>& bytes_buffer,
-                       size_t prefix_length_to_use) {
-    bytes = bytes_buffer->bytes;
-    length = prefix_length_to_use;
-    capacity = bytes_buffer->capacity;
-    assert(prefix_length_to_use <= capacity);
-  }
-
   inline std::string ToString() const {
     return std::string(bytes->data(), length);
   }
