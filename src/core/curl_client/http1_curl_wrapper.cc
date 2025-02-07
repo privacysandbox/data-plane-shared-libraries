@@ -109,14 +109,30 @@ ExecutionResult GetExecutionResultFromCurlError(const std::string& err_buffer) {
  */
 size_t ResponsePayloadHandler(char* contents, size_t byte_size,
                               size_t num_bytes, void* output) {
-  BytesBuffer* output_buffer = static_cast<BytesBuffer*>(output);
-  size_t contents_length = byte_size * num_bytes;
-  output_buffer->bytes = std::make_shared<std::vector<Byte>>(contents_length);
-  for (size_t i = 0; i < contents_length; i++) {
-    output_buffer->bytes->at(i) = contents[i];
+  if (output == nullptr) {
+    SCP_ERROR(
+        kHttp1CurlWrapper, kZeroUuid,
+        FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR),
+        "BytesBuffer should not be nullptr.");
+    return CURL_WRITEFUNC_ERROR;
   }
-  output_buffer->length = contents_length;
-  output_buffer->capacity = contents_length;
+  BytesBuffer* output_buffer = static_cast<BytesBuffer*>(output);
+  if (!output_buffer->bytes) {
+    SCP_ERROR(
+        kHttp1CurlWrapper, kZeroUuid,
+        FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR),
+        "buffer should not be nullptr.");
+    return CURL_WRITEFUNC_ERROR;
+  }
+  const size_t contents_length = byte_size * num_bytes;
+  if (contents_length == 0) {
+    return 0;
+  }
+  const size_t offset = output_buffer->bytes->size();
+  output_buffer->bytes->resize(offset + contents_length);
+  std::memcpy(output_buffer->bytes->data() + offset, contents, contents_length);
+  output_buffer->length = output_buffer->bytes->size();
+  output_buffer->capacity = output_buffer->bytes->capacity();
   return contents_length;
 }
 
