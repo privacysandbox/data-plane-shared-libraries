@@ -162,16 +162,13 @@ ExecutionResult GcpInstanceClientUtils::GetInstanceResourceNameDetails(
 std::string GcpInstanceClientUtils::CreateRMListTagsUrl(
     std::string_view resource_name) noexcept {
   std::vector<std::string> splits = absl::StrSplit(resource_name, "/");
-  auto i = 0;
-  while (i < splits.size()) {
-    const auto& part = splits.at(i);
+  for (size_t i = 0; i < splits.size() - 1; ++i) {
+    const std::string& part = splits.at(i);
     if (part == kZonesTag || part == kLocationsTag || part == kRegionsTag) {
-      const auto& location = splits.at(i + 1);
-
+      const std::string& location = splits.at(i + 1);
       return absl::Substitute(kResourceManagerUriFormat,
                               absl::StrCat(location, "-"));
     }
-    i++;
   }
   return absl::Substitute(kResourceManagerUriFormat, "");
 }

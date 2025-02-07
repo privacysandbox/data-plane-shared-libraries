@@ -185,6 +185,7 @@ INSTANTIATE_TEST_SUITE_P(
             R"("//compute.googleapis.com/projects/PROJECT_ID/regions/REGION/subnetworks/"
                 "SUBNETWORK")",
             "REGION-"),
+        std::make_tuple(R"(BAD_INPUT/regions)", ""),
         std::make_tuple(
             R"("//iam.googleapis.com/projects/PROJECT_ID/serviceAccounts/"
                 "SERVICE_ACCOUNT_EMAIL")",
