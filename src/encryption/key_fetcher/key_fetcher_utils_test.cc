@@ -25,6 +25,21 @@ using ::testing::StrEq;
 namespace privacy_sandbox::server_common {
 namespace {
 
+TEST(KeyFetcherUtilsTest, EmptyStr) {
+  std::string result = ToOhttpKeyId("");
+  EXPECT_THAT(result, StrEq(""));
+}
+
+TEST(KeyFetcherUtilsTest, Short1Str) {
+  std::string result = ToOhttpKeyId("1");
+  EXPECT_THAT(result, StrEq(""));
+}
+
+TEST(KeyFetcherUtilsTest, Short2Str) {
+  std::string result = ToOhttpKeyId("12");
+  EXPECT_THAT(result, StrEq("18"));
+}
+
 TEST(KeyFetcherUtilsTest, ToOhttpKeyIdSuccess) {
   std::string result = ToOhttpKeyId("3480000000000000");
   EXPECT_THAT(result, StrEq("52"));
