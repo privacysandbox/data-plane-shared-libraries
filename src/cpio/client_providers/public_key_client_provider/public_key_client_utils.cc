@@ -34,7 +34,7 @@
 #include "error_codes.h"
 
 using google::cmrt::sdk::public_key_service::v1::PublicKey;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpHeaders;
@@ -90,9 +90,13 @@ ExecutionResult PublicKeyClientUtils::ParseExpiredTimeFromHeaders(
 }
 
 ExecutionResult PublicKeyClientUtils::ParsePublicKeysFromBody(
-    const BytesBuffer& body, std::vector<PublicKey>& public_keys) noexcept {
-  auto json_response =
-      nlohmann::json::parse(body.bytes->begin(), body.bytes->end());
+    const std::shared_ptr<std::string>& body,
+    std::vector<PublicKey>& public_keys) noexcept {
+  if (body == nullptr) {
+    return FailureExecutionResult(
+        SC_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEYS_FETCH_FAILED);
+  }
+  auto json_response = nlohmann::json::parse(*body);
   auto json_keys = json_response.find(kPublicKeysLabel);
   if (json_keys == json_response.end()) {
     return FailureExecutionResult(

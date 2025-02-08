@@ -103,8 +103,12 @@ void AwsAuthTokenProvider::OnGetSessionTokenCallback(
   }
 
   get_token_context.response = std::make_shared<GetSessionTokenResponse>();
-  get_token_context.response->session_token = std::make_shared<std::string>(
-      http_client_context.response->body.ToString());
+  std::string body;
+  if (http_client_context.response->body != nullptr) {
+    body = std::string(*http_client_context.response->body);
+  }
+  get_token_context.response->session_token =
+      std::make_shared<std::string>(body);
   get_token_context.response->token_lifetime_in_seconds =
       std::chrono::seconds(kTokenTtlInSecondHeaderValue);
   get_token_context.Finish(SuccessExecutionResult());

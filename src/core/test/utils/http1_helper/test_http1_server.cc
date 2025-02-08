@@ -16,8 +16,10 @@
 #include "test_http1_server.h"
 
 #include <cstdlib>
+#include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "src/core/test/utils/http1_helper/errors.h"
 #include "src/public/core/interface/execution_result.h"
@@ -66,7 +68,8 @@ ExecutionResultOr<::in_port_t> GetUnusedPortNumber() {
   return server_addr.sin_port;
 }
 
-TestHttp1Server::TestHttp1Server() {
+TestHttp1Server::TestHttp1Server()
+    : response_body_(std::make_shared<std::string>()) {
   thread_ = std::thread([this]() {
     boost::asio::io_context ioc(/*concurrency_hint=*/1);
     tcp::endpoint ep(tcp::v4(), /*port=*/0);
@@ -121,7 +124,9 @@ void TestHttp1Server::ReadFromSocketAndWriteResponse(tcp::socket& socket) {
   for (const auto& [key, val] : response_headers_) {
     response.set(key, val);
   }
-  beast::ostream(response.body()) << response_body_.ToString();
+  if (response_body_ != nullptr) {
+    beast::ostream(response.body()) << *response_body_;
+  }
   response.content_length(response.body().size());
 
   http::write(socket, response, ec);
@@ -152,7 +157,8 @@ void TestHttp1Server::SetResponseStatus(http::status status) {
   response_status_ = status;
 }
 
-void TestHttp1Server::SetResponseBody(const BytesBuffer& body) {
+void TestHttp1Server::SetResponseBody(
+    const std::shared_ptr<std::string>& body) {
   response_body_ = body;
 }
 

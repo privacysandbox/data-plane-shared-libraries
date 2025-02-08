@@ -18,6 +18,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <openssl/md5.h>
 
@@ -26,18 +27,19 @@
 
 #include "error_codes.h"
 
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 
 namespace google::scp::core::utils {
-ExecutionResultOr<std::string> CalculateMd5Hash(const BytesBuffer& buffer) {
-  if (buffer.length == 0) {
+ExecutionResultOr<std::string> CalculateMd5Hash(
+    const std::shared_ptr<std::string>& buffer) {
+  if (!buffer || buffer->empty()) {
     return FailureExecutionResult(errors::SC_CORE_UTILS_INVALID_INPUT);
   }
 
   unsigned char digest_length[MD5_DIGEST_LENGTH];
   MD5_CTX md5_context;
   MD5_Init(&md5_context);
-  MD5_Update(&md5_context, buffer.bytes->data(), buffer.length);
+  MD5_Update(&md5_context, buffer->c_str(), buffer->size());
 
   MD5_Final(digest_length, &md5_context);
   return std::string(reinterpret_cast<char*>(digest_length), MD5_DIGEST_LENGTH);
@@ -58,7 +60,7 @@ ExecutionResultOr<std::string> CalculateMd5Hash(std::string_view buffer) {
   return std::string(reinterpret_cast<char*>(digest_length), MD5_DIGEST_LENGTH);
 }
 
-ExecutionResult CalculateMd5Hash(const BytesBuffer& buffer,
+ExecutionResult CalculateMd5Hash(const std::shared_ptr<std::string>& buffer,
                                  std::string& checksum) {
   ASSIGN_OR_RETURN(checksum, CalculateMd5Hash(buffer));
   return SuccessExecutionResult();

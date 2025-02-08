@@ -33,6 +33,7 @@
 #include "src/core/async_executor/mock/mock_async_executor.h"
 #include "src/core/blob_storage_provider/common/error_codes.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
+#include "src/core/interface/type_def.h"
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/public/core/interface/execution_result.h"
@@ -89,6 +90,7 @@ using testing::NotNull;
 using testing::Pointee;
 using testing::Pointwise;
 using testing::Return;
+using testing::StrEq;
 
 constexpr std::string_view kBucketName = "bucket";
 constexpr std::string_view kBlobName1 = "blob_1";
@@ -148,15 +150,15 @@ class GcpCloudStorageClientTest : public testing::Test {
 
 // Builds an ObjectReadSource that contains the bytes (copied) from input.
 StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromBuffer(
-    const BytesBuffer& input) {
+    const std::shared_ptr<std::string>& input) {
   // We want the following methods to be called in order, so make an InSequence.
   InSequence seq;
   auto mock_source = std::make_unique<MockObjectReadSource>();
   EXPECT_CALL(*mock_source, IsOpen).WillRepeatedly(Return(true));
   // Copy up to n bytes from input into buf.
   EXPECT_CALL(*mock_source, Read).WillOnce([&input](void* buf, std::size_t n) {
-    auto length = std::min(input.length, n);
-    std::memcpy(buf, input.bytes->data(), length);
+    auto length = std::min(input->size(), n);
+    std::memcpy(buf, input->c_str(), length);
     ReadSourceResult result{length, HttpResponse{200, {}, {}}};
 
     result.hashes.md5 = *CalculateMd5Hash(input);
@@ -196,42 +198,14 @@ MATCHER_P2(ReadObjectRequestEqual, bucket_name, blob_name, "") {
   return equal;
 }
 
-MATCHER_P(BytesBufferEqual, expected_buffer, "") {
-  bool equal = true;
-  if (expected_buffer.bytes) {
-    if (!arg.bytes) {
-      *result_listener << "Actual does not have bytes when we expect it to.";
-      equal = false;
-    } else {
-      std::string expected_str(expected_buffer.bytes->data(),
-                               expected_buffer.length);
-      std::string actual_str(arg.bytes->data(), arg.length);
-      equal = ExplainMatchResult(Eq(expected_str), actual_str, result_listener);
-    }
-  } else if (!ExplainMatchResult(IsNull(), arg.bytes, result_listener)) {
-    equal = false;
-  }
-
-  if (!ExplainMatchResult(Eq(expected_buffer.length), arg.length,
-                          result_listener)) {
-    equal = false;
-  }
-  return equal;
-}
-
 TEST_F(GcpCloudStorageClientTest, GetBlob) {
   get_blob_context_.request->bucket_name =
       std::make_shared<std::string>(kBucketName);
   get_blob_context_.request->blob_name =
       std::make_shared<std::string>(kBlobName1);
 
-  // We add additional capacity to the BytesBuffer to ensure that
-  // BytesBuffer::capacity should not be used but BytesBuffer::length should.
-  constexpr int extra_length = 10;
   std::string bytes_str = "response_string";
-  BytesBuffer expected_buffer(bytes_str.length() + extra_length);
-  expected_buffer.bytes->assign(bytes_str.begin(), bytes_str.end());
-  expected_buffer.length = bytes_str.length();
+  auto expected_buffer = std::make_shared<std::string>(bytes_str);
 
   EXPECT_CALL(*mock_client_,
               ReadObject(ReadObjectRequestEqual(kBucketName, kBlobName1)))
@@ -240,8 +214,8 @@ TEST_F(GcpCloudStorageClientTest, GetBlob) {
   get_blob_context_.callback = [this, &expected_buffer](auto& context) {
     ASSERT_SUCCESS(context.result);
 
-    EXPECT_THAT(context.response,
-                Pointee(FieldsAre(Pointee(BytesBufferEqual(expected_buffer)))));
+    EXPECT_THAT(context.response->buffer, NotNull());
+    EXPECT_THAT(*context.response->buffer, StrEq(*expected_buffer));
 
     absl::MutexLock lock(&finish_called_mu_);
     finish_called_ = true;
@@ -697,15 +671,9 @@ TEST_F(GcpCloudStorageClientTest, PutBlob) {
   put_blob_context_.request->blob_name =
       std::make_shared<std::string>(kBlobName1);
 
-  // We add additional capacity to the BytesBuffer to ensure that
-  // BytesBuffer::capacity should not be used but BytesBuffer::length should.
   constexpr int extra_length = 10;
   std::string bytes_str = "put_string";
-  put_blob_context_.request->buffer = std::make_shared<BytesBuffer>(bytes_str);
-  put_blob_context_.request->buffer->bytes->resize(bytes_str.length() +
-                                                   extra_length);
-  put_blob_context_.request->buffer->capacity =
-      bytes_str.length() + extra_length;
+  put_blob_context_.request->buffer = std::make_shared<std::string>(bytes_str);
 
   // Use Google Cloud's MD5 method.
   std::string expected_md5_hash =
@@ -739,11 +707,7 @@ TEST_F(GcpCloudStorageClientTest, PutBlobPropagatesFailure) {
       std::make_shared<std::string>(kBlobName1);
 
   std::string bytes_str = "put_string";
-  put_blob_context_.request->buffer =
-      std::make_shared<BytesBuffer>(bytes_str.length());
-  put_blob_context_.request->buffer->bytes->assign(bytes_str.begin(),
-                                                   bytes_str.end());
-  put_blob_context_.request->buffer->length = bytes_str.length();
+  put_blob_context_.request->buffer = std::make_shared<std::string>(bytes_str);
 
   // Use Google Cloud's MD5 method.
   std::string expected_md5_hash =

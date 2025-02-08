@@ -93,10 +93,13 @@ ExecutionResultOr<std::string> PrivateKeyFetchingClientUtils::ExtractKeyId(
 }
 
 ExecutionResult PrivateKeyFetchingClientUtils::ParsePrivateKey(
-    const core::BytesBuffer& body,
+    const std::shared_ptr<std::string>& body,
     PrivateKeyFetchingResponse& response) noexcept {
-  auto json_response =
-      nlohmann::json::parse(body.bytes->begin(), body.bytes->end());
+  if (body == nullptr) {
+    return FailureExecutionResult(
+        SC_PRIVATE_KEY_FETCHER_PROVIDER_KEY_DATA_NOT_FOUND);
+  }
+  auto json_response = nlohmann::json::parse(*body);
   auto json_keys = json_response.find(kEncryptionKeysLabel);
   if (json_keys == json_response.end()) {
     // For fetching encryption key by ID, will return only one key.

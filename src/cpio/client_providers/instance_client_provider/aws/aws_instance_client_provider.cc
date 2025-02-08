@@ -275,9 +275,7 @@ void AwsInstanceClientProvider::OnGetInstanceResourceNameCallback(
 
   json json_response;
   try {
-    json_response =
-        json::parse(http_client_context.response->body.bytes->begin(),
-                    http_client_context.response->body.bytes->end());
+    json_response = json::parse(*http_client_context.response->body);
   } catch (...) {
     SCP_ERROR_CONTEXT(
         kAwsInstanceClientProvider, get_resource_name_context,

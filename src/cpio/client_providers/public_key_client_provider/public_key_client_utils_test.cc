@@ -32,7 +32,7 @@
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
 using google::cmrt::sdk::public_key_service::v1::PublicKey;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpHeaders;
@@ -156,8 +156,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodySuccess) {
           {"id": "1234", "key": "abcdefg"},
           {"id": "5678", "key": "hijklmn"}
       ]})";
-  BytesBuffer bytes(bytes_str.length());
-  bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
+  auto bytes = std::make_shared<std::string>(bytes_str);
   std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
@@ -177,8 +176,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKeys) {
           {"id": "1234", "key": "abcdefg"},
           {"id": "5678", "key": "hijklmn"}
       ]})";
-  BytesBuffer bytes(bytes_str.length());
-  bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
+  auto bytes = std::make_shared<std::string>(bytes_str);
   std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
@@ -195,8 +193,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoId) {
           {"id_error": "1234", "key": "abcdefg"},
           {"id": "5678", "key": "hijklmn"}
       ]})";
-  BytesBuffer bytes(bytes_str.length());
-  bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
+  auto bytes = std::make_shared<std::string>(bytes_str);
   std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);
@@ -213,8 +210,7 @@ TEST(PublicKeyClientUtilsTest, ParsePublicKeysFromBodyNoKey) {
           {"id": "1234", "key_error": "abcdefg"},
           {"id": "5678", "key": "hijklmn"}
       ]})";
-  BytesBuffer bytes(bytes_str.length());
-  bytes.bytes->assign(bytes_str.begin(), bytes_str.end());
+  auto bytes = std::make_shared<std::string>(bytes_str);
   std::vector<PublicKey> public_keys;
   auto result =
       PublicKeyClientUtils::ParsePublicKeysFromBody(bytes, public_keys);

@@ -302,9 +302,8 @@ void HttpConnection::SendHttpRequest(
 
   // TODO: handle large data, avoid copy
   std::string body;
-  if (http_context.request->body.length > 0) {
-    body = {http_context.request->body.bytes->begin(),
-            http_context.request->body.bytes->end()};
+  if (http_context.request->body != nullptr) {
+    body = std::string(*http_context.request->body);
   }
 
   // Erase the header if it is already present.
@@ -396,6 +395,7 @@ void HttpConnection::OnResponseCallback(
     AsyncContext<HttpRequest, HttpResponse>& http_context,
     const response& http_response) noexcept {
   http_context.response->headers = std::make_shared<HttpHeaders>();
+  http_context.response->body = std::make_shared<std::string>();
   http_context.response->code =
       static_cast<errors::HttpStatusCode>(http_response.status_code());
 
@@ -418,9 +418,7 @@ void HttpConnection::OnResponseCallback(
   }
 
   if (http_response.content_length() >= 0) {
-    http_context.response->body.bytes = std::make_shared<std::vector<Byte>>();
-    http_context.response->body.bytes->reserve(http_response.content_length());
-    http_context.response->body.capacity = http_response.content_length();
+    http_context.response->body->reserve(http_response.content_length());
   }
 
   http_response.on_data(absl::bind_front(
@@ -432,14 +430,9 @@ void HttpConnection::OnResponseBodyCallback(
     size_t chunk_length) noexcept {
   auto is_last_chunk = chunk_length == 0UL;
   if (!is_last_chunk) {
-    auto& body = http_context.response->body;
-    auto& body_buffer = *http_context.response->body.bytes;
-    if (body_buffer.capacity() < body_buffer.size() + chunk_length) {
-      body_buffer.reserve(body_buffer.size() + chunk_length);
-      body.capacity = body_buffer.size() + chunk_length;
-    }
-    std::copy(data, data + chunk_length, std::back_inserter(body_buffer));
-    http_context.response->body.length += chunk_length;
+    http_context.response->body->insert(
+        http_context.response->body->end(), reinterpret_cast<const char*>(data),
+        reinterpret_cast<const char*>(data) + chunk_length);
   }
 }
 

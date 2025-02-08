@@ -20,11 +20,13 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/core/interface/type_def.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
@@ -33,7 +35,7 @@ using google::cmrt::sdk::public_key_service::v1::ListPublicKeysRequest;
 using google::cmrt::sdk::public_key_service::v1::ListPublicKeysResponse;
 using google::protobuf::Any;
 using google::scp::core::AsyncContext;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpHeaders;
@@ -86,10 +88,7 @@ class PublicKeyClientProviderTestII : public ::testing::Test {
         {"id": "5678", "key": "hijklmn"}
     ]})";
 
-    BytesBuffer bytes(bytes_str.length());
-
-    response.body.bytes->assign(bytes_str.begin(), bytes_str.end());
-    response.body.length = bytes_str.length();
+    response.body = std::make_shared<std::string>(bytes_str);
     return response;
   }
 

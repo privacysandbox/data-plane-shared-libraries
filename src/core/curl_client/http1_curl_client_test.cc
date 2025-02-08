@@ -18,7 +18,9 @@
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
 
+#include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/log/check.h"
 #include "absl/synchronization/notification.h"
@@ -26,6 +28,7 @@
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/curl_client/error_codes.h"
 #include "src/core/curl_client/http1_curl_wrapper.h"
+#include "src/core/interface/type_def.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
@@ -91,25 +94,23 @@ class Http1CurlClientTest : public ::testing::Test {
 
 // We only compare the body but we can add more checks if we want.
 MATCHER_P(RequestEquals, expected, "") {
-  return ExplainMatchResult(arg.body.ToString(), expected.body.ToString(),
-                            result_listener);
+  return ExplainMatchResult(*arg.body, *expected.body, result_listener);
 }
 
 // We only compare the body but we can add more checks if we want.
 MATCHER_P(ResponseEquals, expected, "") {
-  return ExplainMatchResult(arg.body.ToString(), expected.body.ToString(),
-                            result_listener);
+  return ExplainMatchResult(*arg.body, *expected.body, result_listener);
 }
 
 TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
   AsyncContext<HttpRequest, HttpResponse> http_context;
   http_context.request = std::make_shared<HttpRequest>();
-  http_context.request->body = BytesBuffer("buf");
+  http_context.request->body = std::make_shared<std::string>("buf");
 
   HttpRequest expected_request;
-  expected_request.body = BytesBuffer("buf");
+  expected_request.body = std::make_shared<std::string>("buf");
   HttpResponse response;
-  response.body = BytesBuffer("resp");
+  response.body = std::make_shared<std::string>("resp");
   EXPECT_CALL(*wrapper_, PerformRequest(RequestEquals(expected_request)))
       .WillOnce(Return(response));
 
@@ -128,12 +129,12 @@ TEST_F(Http1CurlClientTest, IssuesPerformRequestOnWrapper) {
 TEST_F(Http1CurlClientTest, RetriesWork) {
   AsyncContext<HttpRequest, HttpResponse> http_context;
   http_context.request = std::make_shared<HttpRequest>();
-  http_context.request->body = BytesBuffer("buf");
+  http_context.request->body = std::make_shared<std::string>("buf");
 
   HttpRequest expected_request;
-  expected_request.body = BytesBuffer("buf");
+  expected_request.body = std::make_shared<std::string>("buf");
   HttpResponse response;
-  response.body = BytesBuffer("resp");
+  response.body = std::make_shared<std::string>("resp");
 
   // Fail 3 times, then succeed.
   {
@@ -161,12 +162,12 @@ TEST_F(Http1CurlClientTest, RetriesWork) {
 TEST_F(Http1CurlClientTest, FailureEnds) {
   AsyncContext<HttpRequest, HttpResponse> http_context;
   http_context.request = std::make_shared<HttpRequest>();
-  http_context.request->body = BytesBuffer("buf");
+  http_context.request->body = std::make_shared<std::string>("buf");
 
   HttpRequest expected_request;
-  expected_request.body = BytesBuffer("buf");
+  expected_request.body = std::make_shared<std::string>("buf");
   HttpResponse response;
-  response.body = BytesBuffer("resp");
+  response.body = std::make_shared<std::string>("resp");
 
   EXPECT_CALL(*wrapper_, PerformRequest)
       .Times(AtLeast(2))  // codespell:ignore AtLeast

@@ -162,15 +162,11 @@ void AwsS3Client::OnGetObjectCallback(
   auto content_length = result->GetContentLength();
 
   get_blob_context.response = std::make_shared<GetBlobResponse>();
-  get_blob_context.response->buffer = std::make_shared<BytesBuffer>();
-  get_blob_context.response->buffer->bytes =
-      std::make_shared<std::vector<Byte>>(content_length);
-  get_blob_context.response->buffer->length = content_length;
-  get_blob_context.response->buffer->capacity = content_length;
+  get_blob_context.response->buffer =
+      std::make_shared<std::string>(content_length, '\0');
   auto execution_result = SuccessExecutionResult();
 
-  if (!body.read(get_blob_context.response->buffer->bytes->data(),
-                 content_length)) {
+  if (!body.read(get_blob_context.response->buffer->data(), content_length)) {
     execution_result = FailureExecutionResult(
         errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB);
   }
@@ -273,7 +269,8 @@ ExecutionResult AwsS3Client::PutBlob(
       !put_blob_context.request->blob_name ||
       put_blob_context.request->bucket_name->empty() ||
       put_blob_context.request->blob_name->empty() ||
-      put_blob_context.request->buffer == nullptr) {
+      put_blob_context.request->buffer == nullptr ||
+      put_blob_context.request->buffer->empty()) {
     return FailureExecutionResult(
         errors::SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
   }
@@ -287,8 +284,8 @@ ExecutionResult AwsS3Client::PutBlob(
 
   ASSIGN_OR_LOG_AND_RETURN_CONTEXT(
       std::string md5_checksum,
-      utils::CalculateMd5Hash(*put_blob_context.request->buffer),
-      kAwsS3Provider, put_blob_context, "MD5 Hash generation failed");
+      utils::CalculateMd5Hash(put_blob_context.request->buffer), kAwsS3Provider,
+      put_blob_context, "MD5 Hash generation failed");
 
   std::string base64_md5_checksum;
   auto execution_result = Base64Encode(md5_checksum, base64_md5_checksum);
@@ -301,8 +298,8 @@ ExecutionResult AwsS3Client::PutBlob(
   auto input_data = Aws::MakeShared<Aws::StringStream>(
       "PutObjectInputStream", std::stringstream::in | std::stringstream::out |
                                   std::stringstream::binary);
-  input_data->write(put_blob_context.request->buffer->bytes->data(),
-                    put_blob_context.request->buffer->length);
+  input_data->write(put_blob_context.request->buffer->data(),
+                    put_blob_context.request->buffer->size());
 
   put_object_request.SetBody(input_data);
   put_object_request.SetContentMD5(base64_md5_checksum.c_str());

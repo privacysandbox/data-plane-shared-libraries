@@ -17,7 +17,9 @@
 #ifndef CORE_UTILS_HASHING_H_
 #define CORE_UTILS_HASHING_H_
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "src/core/interface/type_def.h"
 #include "src/public/core/interface/execution_result.h"
@@ -30,13 +32,14 @@ namespace google::scp::core::utils {
  * @param buffer The buffer to calculate the hash.
  * @return ExecutionResultOr<string> The checksum value.
  */
-ExecutionResultOr<std::string> CalculateMd5Hash(const BytesBuffer& buffer);
+ExecutionResultOr<std::string> CalculateMd5Hash(
+    const std::shared_ptr<std::string>& buffer);
 
 // Same as above but accepts a string.
 ExecutionResultOr<std::string> CalculateMd5Hash(std::string_view buffer);
 
 // DEPRECATED, please use the above options.
-ExecutionResult CalculateMd5Hash(const BytesBuffer& buffer,
+ExecutionResult CalculateMd5Hash(const std::shared_ptr<std::string>& buffer,
                                  std::string& checksum);
 
 // DEPRECATED, please use the above options.

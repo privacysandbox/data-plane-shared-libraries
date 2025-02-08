@@ -49,7 +49,7 @@ struct GetBlobRequest : BlobRequest {};
 /// Represents the get blob response object.
 struct GetBlobResponse {
   /// Buffer to keep blob data.
-  std::shared_ptr<BytesBuffer> buffer;
+  std::shared_ptr<std::string> buffer;
 };
 
 /// Represents the list blobs request object.
@@ -79,7 +79,7 @@ struct ListBlobsResponse {
 /// Represents the put blob request object.
 struct PutBlobRequest : BlobRequest {
   /// Buffer to be written to the blob.
-  std::shared_ptr<BytesBuffer> buffer;
+  std::shared_ptr<std::string> buffer;
 };
 
 /// Represents the put blob response object.

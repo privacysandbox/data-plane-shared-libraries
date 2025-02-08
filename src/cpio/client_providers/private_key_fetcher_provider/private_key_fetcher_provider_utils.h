@@ -24,6 +24,7 @@
 #include <nlohmann/json.hpp>
 
 #include "src/core/interface/http_types.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/interface/private_key_fetcher_provider_interface.h"
 #include "src/public/core/interface/execution_result.h"
 
@@ -42,14 +43,14 @@ class PrivateKeyFetchingClientUtils {
       std::string_view resource_name) noexcept;
 
   /**
-   * @brief Parse PrivateKey from BytesBuffer.
+   * @brief Parse PrivateKey from std::string.
    *
-   * @param[in] body BytesBuffer body from http response.
+   * @param[in] body std::string body from http response.
    * @param[out] response PrivateKeyFetchingResponse response object.
    * @return core::ExecutionResult
    */
   static core::ExecutionResult ParsePrivateKey(
-      const core::BytesBuffer& body,
+      const std::shared_ptr<std::string>& body,
       PrivateKeyFetchingResponse& response) noexcept;
 
   /**

@@ -24,8 +24,7 @@
 
 #include "absl/container/btree_map.h"
 #include "src/core/interface/errors.h"
-
-#include "type_def.h"
+#include "src/core/interface/type_def.h"
 
 namespace google::scp::core {
 /// Http Methods enumerator.
@@ -62,7 +61,7 @@ struct HttpRequest {
   /// Represents the collection of all the request headers.
   std::shared_ptr<HttpHeaders> headers;
   /// Represents the body of the request.
-  BytesBuffer body;
+  std::shared_ptr<std::string> body;
   /// Represents the context of authentication and/or authorization.
   AuthContext auth_context;
 };
@@ -74,7 +73,7 @@ struct HttpResponse {
   /// Represents the collection of all the response headers.
   std::shared_ptr<HttpHeaders> headers;
   /// Represents the body of the response.
-  BytesBuffer body;
+  std::shared_ptr<std::string> body;
   /// Represents the http status code.
   errors::HttpStatusCode code = errors::HttpStatusCode::UNKNOWN;
 };

@@ -187,16 +187,11 @@ void GcpCloudStorageClient::GetBlobAsync(
   }
 
   size_t content_length = *blob_stream.size();
-
-  auto byte_buffer = std::make_shared<BytesBuffer>();
-  byte_buffer->bytes = std::make_shared<std::vector<Byte>>(content_length);
-  byte_buffer->length = content_length;
-  byte_buffer->capacity = content_length;
   get_blob_context.response = std::make_shared<GetBlobResponse>();
-  get_blob_context.response->buffer = std::move(byte_buffer);
+  get_blob_context.response->buffer =
+      std::make_shared<std::string>(content_length, '\0');
+  blob_stream.read(get_blob_context.response->buffer->data(), content_length);
 
-  blob_stream.read(get_blob_context.response->buffer->bytes->data(),
-                   content_length);
   ExecutionResult result = SuccessExecutionResult();
   if (blob_stream.bad()) {
     result =
@@ -306,7 +301,7 @@ ExecutionResult GcpCloudStorageClient::PutBlob(
   const auto& request = *put_blob_context.request;
   if (!request.bucket_name || !request.blob_name ||
       request.bucket_name->empty() || request.blob_name->empty() ||
-      request.buffer == nullptr) {
+      request.buffer == nullptr || request.buffer->empty()) {
     return FailureExecutionResult(
         errors::SC_BLOB_STORAGE_PROVIDER_INVALID_ARGS);
   }
@@ -322,13 +317,22 @@ ExecutionResult GcpCloudStorageClient::PutBlob(
 
 void GcpCloudStorageClient::PutBlobAsync(
     AsyncContext<PutBlobRequest, PutBlobResponse> put_blob_context) noexcept {
+  if (put_blob_context.request->buffer == nullptr) {
+    SCP_DEBUG_CONTEXT(kGcpCloudStorageProvider, put_blob_context,
+                      "GcpCloudStorageProvider put blob request failed. "
+                      "Request buffer is null.");
+    auto execution_result = core::FailureExecutionResult(
+        errors::SC_BLOB_STORAGE_PROVIDER_UNRETRIABLE_ERROR);
+    FinishContext(execution_result, put_blob_context, async_executor_,
+                  async_execution_priority_);
+    return;
+  }
   Client cloud_storage_client(*cloud_storage_client_shared_);
 
-  auto upload_obj = put_blob_context.request->buffer->ToString();
-  std::string md5_hash = ComputeMD5Hash(upload_obj);
+  std::string md5_hash = ComputeMD5Hash(*put_blob_context.request->buffer);
   auto object_metadata = cloud_storage_client.InsertObject(
       *put_blob_context.request->bucket_name,
-      *put_blob_context.request->blob_name, std::move(upload_obj),
+      *put_blob_context.request->blob_name, *put_blob_context.request->buffer,
       MD5HashValue(md5_hash));
   if (!object_metadata) {
     SCP_DEBUG_CONTEXT(

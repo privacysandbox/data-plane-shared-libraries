@@ -20,19 +20,21 @@
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include <nlohmann/json.hpp>
 
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/curl_client/mock/mock_curl_client.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/auth_token_provider/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::AsyncContext;
 using google::scp::core::AsyncExecutorInterface;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpClientInterface;
@@ -128,7 +130,8 @@ TEST_F(GcpAuthTokenProviderTest,
                     Pair(kMetadataFlavorHeader, kMetadataFlavorHeaderValue))));
 
     http_context.response = std::make_shared<HttpResponse>();
-    http_context.response->body = BytesBuffer(kHttpResponseMock);
+    http_context.response->body =
+        std::make_shared<std::string>(kHttpResponseMock);
     http_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   });
@@ -172,7 +175,8 @@ TEST_P(GcpAuthTokenProviderTest, GetSessionTokenFailsIfBadJson) {
   EXPECT_CALL(http_client_, PerformRequest)
       .WillOnce([this](auto& http_context) {
         http_context.response = std::make_shared<HttpResponse>();
-        http_context.response->body = BytesBuffer(GetResponseBody());
+        auto body = GetResponseBody();
+        http_context.response->body = std::make_shared<std::string>(body);
         http_context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -221,7 +225,8 @@ TEST_F(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceSuccessfully) {
                     Pair(kMetadataFlavorHeader, kMetadataFlavorHeaderValue))));
 
     http_context.response = std::make_shared<HttpResponse>();
-    http_context.response->body = BytesBuffer(kBase64EncodedResponse);
+    http_context.response->body =
+        std::make_shared<std::string>(kBase64EncodedResponse);
     http_context.Finish(SuccessExecutionResult());
     return SuccessExecutionResult();
   });
@@ -267,7 +272,8 @@ TEST_P(GcpAuthTokenProviderTest, FetchTokenForTargetAudienceFailsIfBadJson) {
   EXPECT_CALL(http_client_, PerformRequest)
       .WillOnce([this](auto& http_context) {
         http_context.response = std::make_shared<HttpResponse>();
-        http_context.response->body = BytesBuffer(GetResponseBody());
+        auto body = GetResponseBody();
+        http_context.response->body = std::make_shared<std::string>(body);
         http_context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });

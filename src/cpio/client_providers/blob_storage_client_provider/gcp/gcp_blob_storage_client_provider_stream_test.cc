@@ -30,6 +30,7 @@
 #include "google/cloud/storage/testing/mock_client.h"
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/interface/type_def.h"
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
@@ -68,7 +69,7 @@ using google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamRequest;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobStreamResponse;
 using google::protobuf::util::TimeUtil;
 using google::scp::core::AsyncExecutor;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ConsumerStreamingContext;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::ProducerStreamingContext;
@@ -239,11 +240,9 @@ StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
   // Copy up to n bytes from input into buf.
   EXPECT_CALL(*mock_source, Read)
       .WillOnce([bytes_str = bytes_str](void* buf, std::size_t n) {
-        BytesBuffer buffer(bytes_str.length());
-        buffer.bytes->assign(bytes_str.begin(), bytes_str.end());
-        buffer.length = bytes_str.length();
-        auto length = std::min(buffer.length, n);
-        std::memcpy(buf, buffer.bytes->data(), length);
+        auto buffer = std::make_shared<std::string>(bytes_str);
+        auto length = std::min(buffer->size(), n);
+        std::memcpy(buf, buffer->c_str(), length);
         ReadSourceResult result{length, HttpResponse{200, {}, {}}};
 
         result.hashes.md5 = *CalculateMd5Hash(buffer);

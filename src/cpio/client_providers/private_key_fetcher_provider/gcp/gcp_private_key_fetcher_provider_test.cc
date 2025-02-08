@@ -23,11 +23,13 @@
 #include <optional>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/error_codes.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/gcp/error_codes.h"
@@ -39,7 +41,6 @@ namespace {
 
 using google::scp::core::AsyncContext;
 using google::scp::core::Byte;
-using google::scp::core::BytesBuffer;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpMethod;
@@ -103,7 +104,7 @@ class GcpPrivateKeyFetcherProviderTest : public ::testing::Test {
 
   void MockResponse(std::string_view str) {
     http_client_.response_mock = HttpResponse();
-    http_client_.response_mock.body = BytesBuffer(str);
+    http_client_.response_mock.body = std::make_shared<std::string>(str);
   }
 
   MockHttpClient http_client_;

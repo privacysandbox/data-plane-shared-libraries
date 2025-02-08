@@ -242,7 +242,7 @@ GcpInstanceClientProvider::MakeHttpRequestsForInstanceResourceName(
   auto http_request = std::make_shared<HttpRequest>();
   http_request->method = HttpMethod::GET;
   http_request->path = uri;
-  http_request->body.length = 0;
+  http_request->body = std::make_shared<std::string>();
   http_request->headers = std::make_shared<core::HttpHeaders>();
   http_request->headers->insert({std::string(kMetadataFlavorHeaderKey),
                                  std::string(kMetadataFlavorHeaderValue)});
@@ -288,7 +288,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
   }
 
   auto result = http_client_context.result;
-  if (!result.Successful()) {
+  if (!result.Successful() || http_client_context.response->body == nullptr) {
     // If got_failure is false, then the other thread hasn't failed - we should
     // be the ones to log and finish the context.
     if (absl::MutexLock lock(&instance_resource_name_tracker->got_failure_mu);
@@ -303,15 +303,15 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
     return;
   }
 
+  auto response_body = std::string(*http_client_context.response->body);
+
   switch (type) {
     case ResourceType::kProjectId: {
-      instance_resource_name_tracker->project_id =
-          http_client_context.response->body.ToString();
+      instance_resource_name_tracker->project_id = std::move(response_body);
       break;
     }
     case ResourceType::kInstanceId: {
-      instance_resource_name_tracker->instance_id =
-          http_client_context.response->body.ToString();
+      instance_resource_name_tracker->instance_id = std::move(response_body);
       break;
     }
     case ResourceType::kZone: {
@@ -320,8 +320,7 @@ void GcpInstanceClientProvider::OnGetInstanceResourceName(
       // different from project ID. In some cases, the project number doesn't
       // work. (e.g, in the spanner, using project number will have permission
       // issue)
-      std::vector<std::string> splits =
-          absl::StrSplit(http_client_context.response->body.ToString(), "/");
+      std::vector<std::string> splits = absl::StrSplit(response_body, "/");
       instance_resource_name_tracker->instance_zone = std::move(splits.back());
       break;
     }
@@ -451,9 +450,7 @@ void GcpInstanceClientProvider::OnGetTagsByResourceNameCallback(
 
   json json_response;
   try {
-    json_response =
-        json::parse(http_client_context.response->body.bytes->begin(),
-                    http_client_context.response->body.bytes->end());
+    json_response = json::parse(*http_client_context.response->body);
   } catch (...) {
     SCP_ERROR_CONTEXT(
         kGcpInstanceClientProvider, get_tags_context, malformed_failure,
@@ -695,9 +692,7 @@ void GcpInstanceClientProvider::OnGetInstanceDetailsCallback(
 
   json json_response;
   try {
-    json_response =
-        json::parse(http_client_context.response->body.bytes->begin(),
-                    http_client_context.response->body.bytes->end());
+    json_response = json::parse(*http_client_context.response->body);
   } catch (...) {
     auto result = FailureExecutionResult(
         SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);
@@ -831,9 +826,7 @@ void GcpInstanceClientProvider::OnListInstanceDetailsCallback(
 
   json json_response;
   try {
-    json_response =
-        json::parse(http_client_context.response->body.bytes->begin(),
-                    http_client_context.response->body.bytes->end());
+    json_response = json::parse(*http_client_context.response->body);
   } catch (...) {
     auto result = FailureExecutionResult(
         SC_GCP_INSTANCE_CLIENT_INSTANCE_DETAILS_RESPONSE_MALFORMED);

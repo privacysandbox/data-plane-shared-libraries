@@ -32,6 +32,7 @@
 #include "src/core/blob_storage_provider/common/error_codes.h"
 #include "src/core/blob_storage_provider/mock/aws/mock_aws_s3_client.h"
 #include "src/core/blob_storage_provider/mock/aws/mock_s3_client.h"
+#include "src/core/interface/type_def.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
 using Aws::InitAPI;
@@ -162,13 +163,10 @@ TEST_F(AwsS3Tests, OnGetObjectCallback) {
     get_blob_context.callback =
         [](AsyncContext<GetBlobRequest, GetBlobResponse>& get_blob_context) {
           ASSERT_SUCCESS(get_blob_context.result);
-          EXPECT_EQ(get_blob_context.response->buffer->length, 12);
-          EXPECT_EQ(get_blob_context.response->buffer->capacity, 12);
-          EXPECT_EQ(get_blob_context.response->buffer->bytes->size(), 12);
-          EXPECT_THAT(
-              std::string(get_blob_context.response->buffer->bytes->begin(),
-                          get_blob_context.response->buffer->bytes->end()),
-              StrEq("Hello world!"));
+          EXPECT_THAT(get_blob_context.response->buffer, testing::NotNull());
+          EXPECT_EQ(get_blob_context.response->buffer->size(), 12);
+          EXPECT_THAT(*get_blob_context.response->buffer,
+                      StrEq("Hello world!"));
         };
 
     get_object_result.ReplaceBody(input_data);
@@ -266,13 +264,8 @@ TEST_F(AwsS3Tests, PutBlob) {
       std::make_shared<std::string>("blob_name");
   put_blob_context.request->bucket_name =
       std::make_shared<std::string>("bucket_name");
-  put_blob_context.request->buffer = std::make_shared<BytesBuffer>();
-
-  std::vector<Byte> bytes = {'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'};
-  put_blob_context.request->buffer->bytes =
-      std::make_shared<std::vector<Byte>>(bytes);
-  put_blob_context.request->buffer->length = 10;
-  put_blob_context.request->buffer->capacity = 10;
+  put_blob_context.request->buffer =
+      std::make_shared<std::string>("1234567890");
 
   EXPECT_SUCCESS(aws_s3_client.PutBlob(put_blob_context));
 }

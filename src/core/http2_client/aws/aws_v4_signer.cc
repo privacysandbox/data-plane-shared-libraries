@@ -294,9 +294,8 @@ ExecutionResult AwsV4Signer::CreateCanonicalRequest(
   signed_headers.seekp(-1, std::ios_base::end);  // remove the last semi-colon
   signed_headers << '\n';
   canonical_request_builder << signed_headers.str();
-  if (http_request.body.length > 0) {
-    std::string body(http_request.body.bytes->data(),
-                     http_request.body.bytes->size());
+  if (http_request.body != nullptr && !http_request.body->empty()) {
+    std::string body(http_request.body->begin(), http_request.body->end());
     canonical_request_builder << Sha256(body);
   } else {
     canonical_request_builder << kEmptyStringSha256;

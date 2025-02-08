@@ -97,14 +97,14 @@ ExecutionResult GetExecutionResultFromCurlError(const std::string& err_buffer) {
 
 /**
  * @brief Interprets contents as a char* of length byte_size * num_bytes and
- * writes them into output which should be a BytesBuffer*
+ * writes them into output which should be a std::string*
  *
  * https://curl.se/libcurl/c/CURLOPT_WRITEFUNCTION.html
  *
  * @param contents The contents to write to the output
  * @param byte_size The size of each member (char in this case; always 1)
  * @param num_bytes How many members (chars) are in contents
- * @param output A BytesBuffer* to write contents into
+ * @param output A std::string* to write contents into
  * @return size_t The amount of data written
  */
 size_t ResponsePayloadHandler(char* contents, size_t byte_size,
@@ -113,26 +113,13 @@ size_t ResponsePayloadHandler(char* contents, size_t byte_size,
     SCP_ERROR(
         kHttp1CurlWrapper, kZeroUuid,
         FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR),
-        "BytesBuffer should not be nullptr.");
-    return CURL_WRITEFUNC_ERROR;
-  }
-  BytesBuffer* output_buffer = static_cast<BytesBuffer*>(output);
-  if (!output_buffer->bytes) {
-    SCP_ERROR(
-        kHttp1CurlWrapper, kZeroUuid,
-        FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR),
         "buffer should not be nullptr.");
     return CURL_WRITEFUNC_ERROR;
   }
-  const size_t contents_length = byte_size * num_bytes;
-  if (contents_length == 0) {
-    return 0;
-  }
-  const size_t offset = output_buffer->bytes->size();
-  output_buffer->bytes->resize(offset + contents_length);
-  std::memcpy(output_buffer->bytes->data() + offset, contents, contents_length);
-  output_buffer->length = output_buffer->bytes->size();
-  output_buffer->capacity = output_buffer->bytes->capacity();
+  std::string* output_buffer = static_cast<std::string*>(output);
+  size_t contents_length = byte_size * num_bytes;
+  output_buffer->insert(output_buffer->end(), contents,
+                        contents + contents_length);
   return contents_length;
 }
 
@@ -152,6 +139,14 @@ size_t ResponsePayloadHandler(char* contents, size_t byte_size,
  */
 size_t ResponseHeaderHandler(char* contents, size_t byte_size, size_t num_bytes,
                              void* output) {
+  if (output == nullptr) {
+    SCP_ERROR(
+        kHttp1CurlWrapper, kZeroUuid,
+        FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR),
+        "header should not be nullptr.");
+    return CURLHE_BAD_ARGUMENT;
+  }
+
   HttpHeaders* header_map = static_cast<HttpHeaders*>(output);
   size_t contents_size = byte_size * num_bytes;
   if (contents_size <= 2) {
@@ -204,20 +199,27 @@ size_t ResponseHeaderHandler(char* contents, size_t byte_size, size_t num_bytes,
  * @param contents The output array to copy userdata into.
  * @param byte_size The size of each member (char in this case; always 1)
  * @param num_bytes How many members (chars) are in contents
- * @param userdata BytesBuffer* of the data to copy into contents
+ * @param userdata std::string* of the data to copy into contents
  * @return size_t The amount of characters processed.
  */
 size_t RequestReadHandler(char* contents, size_t byte_size, size_t num_bytes,
                           void* userdata) {
-  BytesBuffer* input_buffer = static_cast<BytesBuffer*>(userdata);
+  if (userdata == nullptr) {
+    SCP_ERROR(
+        kHttp1CurlWrapper, kZeroUuid,
+        FailureExecutionResult(errors::SC_CURL_CLIENT_REQUEST_SERVER_ERROR),
+        "buffer should not be nullptr.");
+    return CURLE_READ_ERROR;
+  }
+  std::string* input_buffer = static_cast<std::string*>(userdata);
 
   int64_t bytes_to_read = byte_size * num_bytes;
-  if (bytes_to_read > input_buffer->length) {
-    bytes_to_read = input_buffer->length;
+  if (bytes_to_read > input_buffer->size()) {
+    bytes_to_read = input_buffer->size();
   }
 
   if (bytes_to_read) {
-    memcpy(contents, input_buffer->bytes->data(), bytes_to_read);
+    memcpy(contents, input_buffer->c_str(), bytes_to_read);
   }
   return bytes_to_read;
 }
@@ -263,23 +265,23 @@ void Http1CurlWrapper::SetUpResponseHeaderHandler(
                    returned_header_destination);
 }
 
-void Http1CurlWrapper::SetUpPostData(const BytesBuffer& body) {
-  if (body.length == 0) {
+void Http1CurlWrapper::SetUpPostData(const std::shared_ptr<std::string>& body) {
+  if (body->size() == 0) {
     return;
   }
-  curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDS, body.bytes->data());
+  curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDS, body->c_str());
   // This method of upload supports up to 2GB upload data.
   // See https://curl.se/libcurl/c/CURLOPT_POSTFIELDSIZE_LARGE.html for larger
   // uploads.
-  curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDSIZE, body.length);
+  curl_easy_setopt(curl_.get(), CURLOPT_POSTFIELDSIZE, body->size());
 }
 
-void Http1CurlWrapper::SetUpPutData(const BytesBuffer& body) {
+void Http1CurlWrapper::SetUpPutData(const std::shared_ptr<std::string>& body) {
   curl_easy_setopt(curl_.get(), CURLOPT_READFUNCTION, RequestReadHandler);
 
-  curl_easy_setopt(curl_.get(), CURLOPT_READDATA, &body);
+  curl_easy_setopt(curl_.get(), CURLOPT_READDATA, body.get());
 
-  curl_easy_setopt(curl_.get(), CURLOPT_INFILESIZE_LARGE, body.length);
+  curl_easy_setopt(curl_.get(), CURLOPT_INFILESIZE_LARGE, body->size());
 }
 
 // Performs the request. Logs any error that occurs and returns the status
@@ -320,11 +322,12 @@ ExecutionResultOr<HttpResponse> Http1CurlWrapper::PerformRequest(
 
   HttpResponse response;
   response.headers = std::make_shared<HttpHeaders>();
+  response.body = std::make_shared<std::string>();
   SetUpResponseHeaderHandler(response.headers.get());
 
   // Add the handler indicating what to do with the returned HTTP response.
   curl_easy_setopt(curl_.get(), CURLOPT_WRITEFUNCTION, ResponsePayloadHandler);
-  curl_easy_setopt(curl_.get(), CURLOPT_WRITEDATA, &response.body);
+  curl_easy_setopt(curl_.get(), CURLOPT_WRITEDATA, response.body.get());
   curl_easy_setopt(curl_.get(), CURLOPT_TIMEOUT, absl::ToInt64Seconds(timeout));
   curl_easy_setopt(curl_.get(), CURLOPT_FAILONERROR, kTrueAsLong);
   // Create a buffer to place any error messages in.

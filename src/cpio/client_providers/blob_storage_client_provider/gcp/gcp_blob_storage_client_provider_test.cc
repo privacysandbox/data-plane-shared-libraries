@@ -33,6 +33,7 @@
 #include "google/cloud/storage/testing/mock_client.h"
 #include "src/core/async_executor/async_executor.h"
 #include "src/core/async_executor/mock/mock_async_executor.h"
+#include "src/core/interface/type_def.h"
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/cpio/client_providers/blob_storage_client_provider/common/error_codes.h"
@@ -71,7 +72,7 @@ using google::cmrt::sdk::blob_storage_service::v1::ListBlobsMetadataResponse;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobRequest;
 using google::cmrt::sdk::blob_storage_service::v1::PutBlobResponse;
 using google::scp::core::AsyncContext;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::async_executor::mock::MockAsyncExecutor;
 using google::scp::core::errors::SC_BLOB_STORAGE_PROVIDER_BLOB_PATH_NOT_FOUND;
@@ -212,11 +213,9 @@ StatusOr<std::unique_ptr<ObjectReadSource>> BuildReadResponseFromString(
   // Copy up to n bytes from input into buf.
   EXPECT_CALL(*mock_source, Read)
       .WillOnce([bytes_str = bytes_str](void* buf, std::size_t n) {
-        BytesBuffer buffer(bytes_str.length());
-        buffer.bytes->assign(bytes_str.begin(), bytes_str.end());
-        buffer.length = bytes_str.length();
-        auto length = std::min(buffer.length, n);
-        std::memcpy(buf, buffer.bytes->data(), length);
+        auto buffer = std::make_shared<std::string>(bytes_str);
+        auto length = std::min(buffer->size(), n);
+        std::memcpy(buf, buffer->c_str(), length);
         ReadSourceResult result{length, HttpResponse{200, {}, {}}};
 
         result.hashes.md5 = *CalculateMd5Hash(buffer);
@@ -275,7 +274,7 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlob) {
     expected_blob.mutable_metadata()->set_blob_name(kBlobName1);
     expected_blob.set_data(bytes_str);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
     EXPECT_THAT(context.response->blob(), BlobEquals(expected_blob));
 
     absl::MutexLock lock(&finish_called_mu_);
@@ -330,7 +329,7 @@ TEST_P(GcpBlobStorageClientProviderTest, GetBlobWithByteRange) {
     expected_blob.mutable_metadata()->set_blob_name(kBlobName1);
     expected_blob.set_data(expected_str);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
     EXPECT_THAT(context.response->blob(), BlobEquals(expected_blob));
 
     absl::MutexLock lock(&finish_called_mu_);
@@ -441,7 +440,7 @@ TEST_F(GcpBlobStorageClientProviderTest, GetBlobEmpty) {
     expected_blob.mutable_metadata()->set_bucket_name(kBucketName);
     expected_blob.mutable_metadata()->set_blob_name(kBlobNameEmpty);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
     EXPECT_THAT(context.response->blob(), BlobEquals(expected_blob));
 
     absl::MutexLock lock(&finish_called_mu_);
@@ -511,7 +510,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsNoPrefix) {
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
 
     BlobMetadata expected_metadata1, expected_metadata2;
     expected_metadata1.set_bucket_name(kBucketName);
@@ -592,7 +591,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithPrefix) {
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
 
     BlobMetadata expected_metadata1, expected_metadata2;
     expected_metadata1.set_bucket_name(kBucketName);
@@ -669,7 +668,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarker) {
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
 
     BlobMetadata expected_metadata;
     expected_metadata.set_bucket_name(kBucketName);
@@ -715,7 +714,7 @@ TEST_F(GcpBlobStorageClientProviderTest, ListBlobsWithMarkerSkipsFirstObject) {
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
 
     BlobMetadata expected_metadata;
     expected_metadata.set_bucket_name(kBucketName);
@@ -772,7 +771,7 @@ TEST_F(GcpBlobStorageClientProviderTest,
   list_blobs_context_.callback = [this](auto& context) {
     ASSERT_SUCCESS(context.result);
 
-    ASSERT_THAT(context.response, NotNull());
+    ASSERT_THAT(context.response, testing::NotNull());
 
     // We expect to only see blobs 1-100, not [101, 105].
     std::vector<BlobMetadata> expected_blobs;

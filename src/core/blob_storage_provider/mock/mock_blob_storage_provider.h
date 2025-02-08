@@ -30,6 +30,7 @@
 #include "absl/strings/strip.h"
 #include "src/core/blob_storage_provider/common/error_codes.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
+#include "src/core/interface/type_def.h"
 
 namespace google::scp::core::blob_storage_provider::mock {
 
@@ -61,22 +62,14 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
 
     auto content_length = std::size_t(end_offset - input_stream.tellg());
     get_blob_context.response = std::make_shared<GetBlobResponse>();
-    get_blob_context.response->buffer = std::make_shared<BytesBuffer>();
-    get_blob_context.response->buffer->length = content_length;
-    get_blob_context.response->buffer->capacity = content_length;
-
-    if (content_length != 0) {
-      get_blob_context.response->buffer->bytes =
-          std::make_shared<std::vector<Byte>>(content_length);
-
-      if (!input_stream.read(
-              reinterpret_cast<char*>(
-                  get_blob_context.response->buffer->bytes->data()),
-              content_length)) {
-        get_blob_context.Finish(FailureExecutionResult(
-            errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB));
-        return SuccessExecutionResult();
-      }
+    get_blob_context.response->buffer =
+        std::make_shared<std::string>(content_length, '\0');
+    if (content_length != 0 &&
+        !input_stream.read(get_blob_context.response->buffer->data(),
+                           content_length)) {
+      get_blob_context.Finish(FailureExecutionResult(
+          errors::SC_BLOB_STORAGE_PROVIDER_ERROR_GETTING_BLOB));
+      return SuccessExecutionResult();
     }
 
     get_blob_context.Finish(SuccessExecutionResult());
@@ -158,9 +151,8 @@ class MockBlobStorageClient : public BlobStorageClientInterface {
     std::filesystem::create_directories(storage_path.parent_path());
 
     std::ofstream output_stream(full_path, std::ofstream::trunc);
-    output_stream.write(reinterpret_cast<char*>(
-                            put_blob_context.request->buffer->bytes->data()),
-                        put_blob_context.request->buffer->length);
+    output_stream.write(put_blob_context.request->buffer->c_str(),
+                        put_blob_context.request->buffer->size());
     output_stream.close();
 
     put_blob_context.Finish(SuccessExecutionResult());

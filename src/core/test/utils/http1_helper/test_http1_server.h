@@ -19,7 +19,9 @@
 
 #include <netinet/in.h>
 
+#include <memory>
 #include <string>
+#include <vector>
 
 #include <boost/asio.hpp>
 #include <boost/beast/core.hpp>
@@ -62,7 +64,7 @@ class TestHttp1Server {
   void SetResponseStatus(boost::beast::http::status status);
 
   // Sets the HTTP response body to return to clients - default is empty.
-  void SetResponseBody(const BytesBuffer& body);
+  void SetResponseBody(const std::shared_ptr<std::string>& body);
 
   // Sets the headers to return in the HTTP response.
   void SetResponseHeaders(
@@ -81,7 +83,7 @@ class TestHttp1Server {
   boost::beast::http::status response_status_ = boost::beast::http::status::ok;
 
   // The body to send in the HttpResponse.
-  BytesBuffer response_body_;
+  std::shared_ptr<std::string> response_body_;
   // A map of header names to values to send in the HttpResponse.
   absl::btree_multimap<std::string, std::string> response_headers_;
 

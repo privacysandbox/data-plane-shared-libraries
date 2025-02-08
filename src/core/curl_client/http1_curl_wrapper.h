@@ -19,12 +19,14 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <curl/curl.h>
 
 #include "absl/time/time.h"
 #include "src/core/interface/http_client_interface.h"
 #include "src/core/interface/http_types.h"
+#include "src/core/interface/type_def.h"
 #include "src/public/core/interface/execution_result.h"
 
 namespace google::scp::core {
@@ -65,10 +67,10 @@ class Http1CurlWrapper {
   void SetUpResponseHeaderHandler(HttpHeaders* returned_header_destination);
 
   // Sets up the mechanism for uploading the body of a POST request.
-  void SetUpPostData(const BytesBuffer& body);
+  void SetUpPostData(const std::shared_ptr<std::string>& body);
 
   // Sets up the mechanism for uploading the body of a PUT request.
-  void SetUpPutData(const BytesBuffer& body);
+  void SetUpPutData(const std::shared_ptr<std::string>& body);
 
   std::unique_ptr<CURL, CurlHandleDeleter> curl_;
 };

@@ -17,10 +17,13 @@
 #ifndef CPIO_CLIENT_PROVIDERS_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEY_CLIENT_UTILS_H_
 #define CPIO_CLIENT_PROVIDERS_PUBLIC_KEY_CLIENT_PROVIDER_PUBLIC_KEY_CLIENT_UTILS_H_
 
+#include <memory>
+#include <string>
 #include <vector>
 
 #include "google/protobuf/any.pb.h"
 #include "src/core/interface/http_types.h"
+#include "src/core/interface/type_def.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/cpio/proto/public_key_service/v1/public_key_service.pb.h"
 
@@ -48,7 +51,7 @@ class PublicKeyClientUtils {
    * @return core::ExecutionResult
    */
   static core::ExecutionResult ParsePublicKeysFromBody(
-      const core::BytesBuffer& body,
+      const std::shared_ptr<std::string>& body,
       std::vector<cmrt::sdk::public_key_service::v1::PublicKey>&
           public_keys) noexcept;
 };

@@ -28,6 +28,7 @@
 #include "absl/synchronization/notification.h"
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/error_codes.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/mock/mock_private_key_fetcher_provider_with_overrides.h"
 #include "src/public/core/interface/execution_result.h"
@@ -35,7 +36,6 @@
 
 using google::scp::core::AsyncContext;
 using google::scp::core::Byte;
-using google::scp::core::BytesBuffer;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpRequest;
@@ -92,13 +92,8 @@ class PrivateKeyFetcherProviderTest : public ::testing::Test {
   }
 
   void MockResponse(std::string_view str) {
-    BytesBuffer bytes_buffer(sizeof(str));
-    bytes_buffer.bytes =
-        std::make_shared<std::vector<Byte>>(str.begin(), str.end());
-    bytes_buffer.capacity = sizeof(str);
-
     http_client_.response_mock = HttpResponse();
-    http_client_.response_mock.body = std::move(bytes_buffer);
+    http_client_.response_mock.body = std::make_shared<std::string>(str);
   }
 
   MockHttpClient http_client_;

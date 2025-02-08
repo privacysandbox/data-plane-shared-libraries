@@ -25,15 +25,13 @@
 #include "src/public/core/test_execution_result_matchers.h"
 
 using google::scp::core::Byte;
-using google::scp::core::BytesBuffer;
 using google::scp::core::test::IsSuccessfulAndHolds;
 using google::scp::core::test::ResultIs;
 using ::testing::StrEq;
 
 namespace google::scp::core::utils::test {
 TEST(HashingTest, InvalidMD5Hash) {
-  BytesBuffer empty(0);
-  empty.length = 0;
+  std::shared_ptr<std::string> empty;
 
   EXPECT_THAT(
       CalculateMd5Hash(empty),
@@ -41,11 +39,7 @@ TEST(HashingTest, InvalidMD5Hash) {
 }
 
 TEST(HashingTest, ValidMD5Hash) {
-  BytesBuffer bytes_buffer;
-  std::string value("this_is_a_test_string");
-  bytes_buffer.bytes =
-      std::make_shared<std::vector<Byte>>(value.begin(), value.end());
-  bytes_buffer.length = value.length();
+  auto bytes_buffer = std::make_shared<std::string>("this_is_a_test_string");
 
   EXPECT_THAT(CalculateMd5Hash(bytes_buffer),
               IsSuccessfulAndHolds(
@@ -53,11 +47,7 @@ TEST(HashingTest, ValidMD5Hash) {
 }
 
 TEST(HashingTest, ValidMD5HashOLD) {
-  BytesBuffer bytes_buffer;
-  std::string value("this_is_a_test_string");
-  bytes_buffer.bytes =
-      std::make_shared<std::vector<Byte>>(value.begin(), value.end());
-  bytes_buffer.length = value.length();
+  auto bytes_buffer = std::make_shared<std::string>("this_is_a_test_string");
 
   std::string md5_hash;
   ASSERT_SUCCESS(CalculateMd5Hash(bytes_buffer, md5_hash));

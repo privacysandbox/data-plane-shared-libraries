@@ -20,12 +20,14 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <vector>
 
 #include <aws/core/Aws.h>
 
 #include "absl/synchronization/notification.h"
 #include "src/core/http2_client/mock/mock_http_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/aws/error_codes.h"
 #include "src/cpio/client_providers/private_key_fetcher_provider/error_codes.h"
 #include "src/cpio/client_providers/role_credentials_provider/mock/mock_role_credentials_provider.h"
@@ -41,7 +43,6 @@ using Aws::ShutdownAPI;
 using google::scp::core::AsyncContext;
 using google::scp::core::AwsV4Signer;
 using google::scp::core::Byte;
-using google::scp::core::BytesBuffer;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpRequest;
@@ -99,7 +100,7 @@ class AwsPrivateKeyFetcherProviderTest : public ::testing::Test {
 
   void MockResponse(std::string_view str) {
     http_client_.response_mock = HttpResponse();
-    http_client_.response_mock.body = BytesBuffer(str);
+    http_client_.response_mock.body = std::make_shared<std::string>(str);
   }
 
   MockHttpClient http_client_;

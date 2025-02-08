@@ -25,6 +25,7 @@
 #include "src/core/http2_client/error_codes.h"
 #include "src/core/http2_client/http2_client.h"
 #include "src/core/interface/async_context.h"
+#include "src/core/interface/type_def.h"
 #include "src/public/core/interface/execution_result.h"
 #include "src/public/core/test_execution_result_matchers.h"
 
@@ -205,9 +206,7 @@ TEST(AwsV4SignerTest, WithBody) {
       {"Host", "cmhhru8hu0.execute-api.us-west-1.amazonaws.com"});
 
   std::string body_str{R"({"foo": "bar"})"};
-  request.body.bytes =
-      std::make_shared<std::vector<Byte>>(body_str.begin(), body_str.end());
-  request.body.length = request.body.bytes->size();
+  request.body = std::make_shared<std::string>(body_str);
 
   AwsV4Signer signer("OHMYGODALLCAPS4", "abcdefg1234567/pTxz/FoobarBigSmall",
                      "", "execute-api", "us-west-1");

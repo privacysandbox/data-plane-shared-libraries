@@ -30,6 +30,7 @@
 #include "src/core/config_provider/mock/mock_config_provider.h"
 #include "src/core/interface/blob_storage_provider_interface.h"
 #include "src/core/interface/configuration_keys.h"
+#include "src/core/interface/type_def.h"
 #include "src/core/utils/base64.h"
 #include "src/core/utils/hashing.h"
 #include "src/public/core/test_execution_result_matchers.h"
@@ -69,6 +70,7 @@ using testing::IsNull;
 using testing::NotNull;
 using testing::Pointee;
 using testing::Pointwise;
+using testing::StrEq;
 
 constexpr std::string_view kProject = "admcloud-coordinator1";
 constexpr std::string_view kBucketName = "test-bucket";
@@ -159,27 +161,6 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
 
 Client* GcpCloudStorageClientAsyncTests::client_;
 
-MATCHER_P(BytesBufferEqual, expected_buffer, "") {
-  bool equal = true;
-  if (expected_buffer.bytes) {
-    equal =
-        ExplainMatchResult(Pointee(ElementsAreArray(*expected_buffer.bytes)),
-                           arg.bytes, result_listener);
-  } else if (!ExplainMatchResult(IsNull(), arg.bytes, result_listener)) {
-    equal = false;
-  }
-
-  if (!ExplainMatchResult(Eq(expected_buffer.length), arg.length,
-                          result_listener)) {
-    equal = false;
-  }
-  if (!ExplainMatchResult(Eq(expected_buffer.capacity), arg.capacity,
-                          result_listener)) {
-    equal = false;
-  }
-  return equal;
-}
-
 TEST_F(GcpCloudStorageClientAsyncTests, SimpleGetTest) {
   absl::Notification finished;
   AsyncContext<GetBlobRequest, GetBlobResponse> get_blob_context;
@@ -190,13 +171,9 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimpleGetTest) {
   get_blob_context.callback = [&finished](auto& context) {
     const auto& response = context.response;
     EXPECT_THAT(response, NotNull());
+    EXPECT_THAT(response->buffer, NotNull());
 
-    std::string expected_str(kDefaultBlobValue);
-    BytesBuffer expected_buffer(expected_str.length());
-    expected_buffer.bytes->assign(expected_str.begin(), expected_str.end());
-    expected_buffer.length = expected_str.length();
-
-    EXPECT_THAT(response->buffer, Pointee(BytesBufferEqual(expected_buffer)));
+    EXPECT_THAT(*response->buffer, StrEq(kDefaultBlobValue));
     finished.Notify();
   };
 
@@ -333,7 +310,7 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
       PutBlobRequest{{std::make_shared<std::string>(kBucketName),
                       std::make_shared<std::string>(kDefaultBlobName)}});
   put_blob_context.request->buffer =
-      std::make_shared<BytesBuffer>(new_blob_val);
+      std::make_shared<std::string>(new_blob_val);
 
   put_blob_context.callback = [&finished, &new_blob_val](auto& context) {
     ASSERT_TRUE(context.result.Successful());
@@ -342,10 +319,11 @@ TEST_F(GcpCloudStorageClientAsyncTests, SimplePutTest) {
         std::string{kBucketName}, std::string{kDefaultBlobName});
     ASSERT_TRUE(object_read_stream && !object_read_stream.bad());
 
-    BytesBuffer buffer(new_blob_val.size());
-    buffer.length = buffer.capacity;
-    object_read_stream.read(buffer.bytes->data(), *object_read_stream.size());
-    EXPECT_THAT(buffer, BytesBufferEqual(*context.request->buffer));
+    std::string buffer(new_blob_val.size(), '\0');
+    object_read_stream.read(buffer.data(), *object_read_stream.size());
+
+    EXPECT_THAT(context.request->buffer, NotNull());
+    EXPECT_THAT(buffer, StrEq(*context.request->buffer));
     finished.Notify();
   };
 

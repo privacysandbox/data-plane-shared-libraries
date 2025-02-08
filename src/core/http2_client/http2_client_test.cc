@@ -239,9 +239,8 @@ TEST_F(HttpClientTestII, Success) {
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         ASSERT_SUCCESS(context.result);
-        const auto& bytes = *context.response->body.bytes;
-        EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
-                    StrEq("hello, world\n"));
+        EXPECT_THAT(context.response->body, testing::NotNull());
+        EXPECT_THAT(*context.response->body, StrEq("hello, world\n"));
         done.set_value();
       });
 
@@ -328,9 +327,8 @@ TEST_F(HttpClientTestII, SequentialReuse) {
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
           ASSERT_SUCCESS(context.result);
-          const auto& bytes = *context.response->body.bytes;
-          EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
-                      StrEq("hello, world\n"));
+          EXPECT_THAT(context.response->body, testing::NotNull());
+          EXPECT_THAT(*context.response->body, StrEq("hello, world\n"));
           done.set_value();
         });
     ASSERT_SUCCESS(http_client->PerformRequest(context));
@@ -352,9 +350,8 @@ TEST_F(HttpClientTestII, ConcurrentReuse) {
         std::move(request),
         [&, i](AsyncContext<HttpRequest, HttpResponse>& context) {
           ASSERT_SUCCESS(context.result);
-          const auto& bytes = *context.response->body.bytes;
-          EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
-                      StrEq("hello, world\n"));
+          EXPECT_THAT(context.response->body, testing::NotNull());
+          EXPECT_THAT(*context.response->body, StrEq("hello, world\n"));
           done[i].set_value();
         });
     ASSERT_SUCCESS(http_client->PerformRequest(context));
@@ -377,11 +374,12 @@ TEST_F(HttpClientTestII, LargeData) {
       std::move(request),
       [&](AsyncContext<HttpRequest, HttpResponse>& context) {
         ASSERT_SUCCESS(context.result);
-        EXPECT_EQ(context.response->body.length,
+        EXPECT_EQ(context.response->body->size(),
                   1048576 + SHA256_DIGEST_LENGTH);
         uint8_t hash[SHA256_DIGEST_LENGTH];
-        const auto* data = reinterpret_cast<const uint8_t*>(
-            context.response->body.bytes->data());
+        EXPECT_THAT(context.response->body, testing::NotNull());
+        std::string body = std::string(*context.response->body);
+        const auto* data = reinterpret_cast<const uint8_t*>(body.c_str());
         SHA256(data, to_generate, hash);
         auto ret = memcmp(hash, data + to_generate, SHA256_DIGEST_LENGTH);
         EXPECT_EQ(ret, 0);
@@ -405,9 +403,8 @@ TEST_F(HttpClientTestII, ClientFinishesContextWhenServerIsStopped) {
         std::move(request),
         [&](AsyncContext<HttpRequest, HttpResponse>& context) {
           EXPECT_THAT(context.result, IsSuccessful());
-          const auto& bytes = *context.response->body.bytes;
-          EXPECT_THAT(std::string(bytes.begin(), bytes.end()),
-                      "hello, world\n");
+          EXPECT_THAT(context.response->body, testing::NotNull());
+          EXPECT_THAT(*context.response->body, StrEq("hello, world\n"));
           done.set_value();
         });
 

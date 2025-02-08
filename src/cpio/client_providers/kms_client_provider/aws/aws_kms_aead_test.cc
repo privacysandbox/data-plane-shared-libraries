@@ -22,7 +22,6 @@
 
 #include <aws/core/Aws.h>
 
-#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/kms_client_provider/mock/aws/mock_kms_client.h"
 
 using Aws::InitAPI;
@@ -37,8 +36,6 @@ using Aws::KMS::Model::EncryptRequest;
 using Aws::KMS::Model::EncryptResult;
 using crypto::tink::Aead;
 using crypto::tink::util::StatusOr;
-using google::scp::core::Byte;
-using google::scp::core::BytesBuffer;
 using google::scp::cpio::client_providers::mock::MockKMSClient;
 using ::testing::StrEq;
 

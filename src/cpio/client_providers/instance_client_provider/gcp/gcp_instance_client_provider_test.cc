@@ -20,12 +20,14 @@
 #include <gtest/gtest.h>
 
 #include <utility>
+#include <vector>
 
 #include "absl/strings/str_cat.h"
 #include "absl/strings/substitute.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/synchronization/notification.h"
 #include "src/core/curl_client/mock/mock_curl_client.h"
+#include "src/core/interface/type_def.h"
 #include "src/cpio/client_providers/auth_token_provider/mock/mock_auth_token_provider.h"
 #include "src/cpio/client_providers/instance_client_provider/gcp/error_codes.h"
 #include "src/public/core/interface/execution_result.h"
@@ -43,7 +45,7 @@ using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameRequest;
 using google::cmrt::sdk::instance_service::v1::GetTagsByResourceNameResponse;
 using google::cmrt::sdk::instance_service::v1::InstanceDetails;
 using google::scp::core::AsyncContext;
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpMethod;
@@ -150,13 +152,14 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceNameSync) {
 
         context.response = std::make_shared<HttpResponse>();
         if (*request.path == kURIForProjectId) {
-          context.response->body = BytesBuffer(project_id_result);
+          context.response->body =
+              std::make_shared<std::string>(project_id_result);
         }
         if (*request.path == kURIForInstanceZone) {
-          context.response->body = BytesBuffer(zone_result);
+          context.response->body = std::make_shared<std::string>(zone_result);
         }
         if (*request.path == kURIForInstanceId) {
-          context.response->body = BytesBuffer(id_result);
+          context.response->body = std::make_shared<std::string>(id_result);
         }
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
@@ -213,13 +216,14 @@ TEST_F(GcpInstanceClientProviderTest, GetCurrentInstanceResourceName) {
 
         context.response = std::make_shared<HttpResponse>();
         if (*request.path == kURIForProjectId) {
-          context.response->body = BytesBuffer(project_id_result);
+          context.response->body =
+              std::make_shared<std::string>(project_id_result);
         }
         if (*request.path == kURIForInstanceZone) {
-          context.response->body = BytesBuffer(zone_result);
+          context.response->body = std::make_shared<std::string>(zone_result);
         }
         if (*request.path == kURIForInstanceId) {
-          context.response->body = BytesBuffer(id_result);
+          context.response->body = std::make_shared<std::string>(id_result);
         }
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
@@ -266,7 +270,7 @@ TEST_F(GcpInstanceClientProviderTest,
           context.result = FailureExecutionResult(SC_UNKNOWN);
         }
         if (*request.path == kURIForInstanceId) {
-          context.response->body = BytesBuffer(id_result);
+          context.response->body = std::make_shared<std::string>(id_result);
           context.result = SuccessExecutionResult();
         }
         context.Finish();
@@ -400,7 +404,8 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSyncSuccess) {
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(details_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(details_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -488,7 +493,8 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsAccessConfigLoop) {
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(details_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(details_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -596,7 +602,8 @@ TEST_F(GcpInstanceClientProviderTest, GetInstanceDetailsSuccess) {
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(details_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(details_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -684,7 +691,8 @@ TEST_F(GcpInstanceClientProviderTest,
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(details_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(details_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -843,7 +851,8 @@ TEST_F(GcpInstanceClientProviderTest,
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(details_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(details_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -915,7 +924,8 @@ TEST_F(GcpInstanceClientProviderTest, GetTagsByResourceNameSuccess) {
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(tags_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(tags_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -1042,7 +1052,8 @@ TEST_F(GcpInstanceClientProviderTest,
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(tags_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(tags_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });
@@ -1089,7 +1100,8 @@ TEST_F(GcpInstanceClientProviderTest,
                         kAuthorizationHeaderKey,
                         absl::StrCat(kBearerTokenPrefix, kSessionTokenMock)))));
         context.response = std::make_shared<HttpResponse>();
-        context.response->body = BytesBuffer(tags_response_mock);
+        context.response->body =
+            std::make_shared<std::string>(tags_response_mock);
         context.Finish(SuccessExecutionResult());
         return SuccessExecutionResult();
       });

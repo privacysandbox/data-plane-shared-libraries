@@ -166,9 +166,7 @@ void GcpAuthTokenProvider::OnGetSessionTokenCallback(
 
   json json_response;
   try {
-    json_response =
-        json::parse(http_client_context.response->body.bytes->begin(),
-                    http_client_context.response->body.bytes->end());
+    json_response = json::parse(*http_client_context.response->body);
   } catch (...) {
     auto result = RetryExecutionResult(
         SC_GCP_INSTANCE_AUTHORIZER_PROVIDER_BAD_SESSION_TOKEN);
@@ -239,11 +237,12 @@ void GcpAuthTokenProvider::OnGetSessionTokenForTargetAudienceCallback(
     AsyncContext<GetSessionTokenForTargetAudienceRequest,
                  GetSessionTokenResponse>& get_token_context,
     AsyncContext<HttpRequest, HttpResponse>& http_context) noexcept {
-  if (!http_context.result.Successful()) {
+  if (!http_context.result.Successful() ||
+      http_context.response->body == nullptr) {
     get_token_context.Finish(http_context.result);
     return;
   }
-  const auto& response_body = http_context.response->body.ToString();
+  const auto& response_body = std::string(*http_context.response->body);
   std::vector<std::string> token_parts = absl::StrSplit(response_body, '.');
   if (token_parts.size() != kExpectedTokenPartsSize) {
     auto result = RetryExecutionResult(

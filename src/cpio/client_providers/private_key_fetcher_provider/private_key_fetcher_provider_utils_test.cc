@@ -30,7 +30,7 @@
 namespace google::scp::cpio::client_providers::test {
 namespace {
 
-using google::scp::core::BytesBuffer;
+using google::scp::core::Byte;
 using google::scp::core::ExecutionResult;
 using google::scp::core::FailureExecutionResult;
 using google::scp::core::HttpMethod;
@@ -91,7 +91,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParsePrivateKeySuccess) {
 
   PrivateKeyFetchingResponse response;
   ASSERT_SUCCESS(PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response));
+      std::make_shared<std::string>(bytes_str), response));
   EXPECT_EQ(response.encryption_keys.size(), 1);
   const auto& encryption_key = *response.encryption_keys.begin();
   EXPECT_THAT(*encryption_key->key_id, StrEq("123456"));
@@ -137,7 +137,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyData) {
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
+      std::make_shared<std::string>(bytes_str), response);
 
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
@@ -169,7 +169,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyDataNoKeyUri) {
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
+      std::make_shared<std::string>(bytes_str), response);
 
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
@@ -201,7 +201,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithInvalidKeyType) {
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
+      std::make_shared<std::string>(bytes_str), response);
 
   auto failure_result = FailureExecutionResult(
       SC_PRIVATE_KEY_FETCHER_PROVIDER_INVALID_ENCRYPTION_KEY_TYPE);
@@ -232,7 +232,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithNameNotFound) {
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
+      std::make_shared<std::string>(bytes_str), response);
 
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
@@ -263,7 +263,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithExpirationTimeNotFound) {
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
+      std::make_shared<std::string>(bytes_str), response);
 
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
@@ -294,7 +294,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, FailedWithCreationTimeNotFound) {
 
   PrivateKeyFetchingResponse response;
   auto result = PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response);
+      std::make_shared<std::string>(bytes_str), response);
 
   EXPECT_THAT(result,
               ResultIs(FailureExecutionResult(
@@ -359,7 +359,7 @@ TEST(PrivateKeyFetchingClientUtilsTest, ParseMultiplePrivateKeysSuccess) {
 
   PrivateKeyFetchingResponse response;
   ASSERT_SUCCESS(PrivateKeyFetchingClientUtils::ParsePrivateKey(
-      BytesBuffer(bytes_str), response));
+      std::make_shared<std::string>(bytes_str), response));
   EXPECT_EQ(response.encryption_keys.size(), 2);
   EXPECT_THAT(*response.encryption_keys[0]->key_id, StrEq("111111"));
   EXPECT_THAT(*response.encryption_keys[1]->key_id, StrEq("222222"));
