@@ -382,7 +382,7 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
 
   std::string code_token =
       LoadCode(roma_service, GetFilePathFromLanguage(lang),
-               /*enable_log_egress=*/false, /*num_workers=*/2);
+               /*enable_log_egress=*/false, /*num_workers=*/10);
 
   FunctionType func_type = static_cast<FunctionType>(state.range(1));
   std::string expected_response;
@@ -461,7 +461,7 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
 
   std::string code_tok =
       LoadCode(roma_service, kUdfPath / kPayloadUdfFilename,
-               /*enable_log_egress=*/false, /*num_workers=*/2);
+               /*enable_log_egress=*/false, /*num_workers=*/10);
 
   const int64_t payload_size = elem_size * elem_count;
   if (const auto response = rpc(request, code_tok); response.ok()) {
@@ -517,7 +517,7 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
 
   std::string code_tok =
       LoadCode(roma_service, kUdfPath / kPayloadWriteUdfFilename,
-               /*enable_log_egress=*/false, /*num_workers=*/2);
+               /*enable_log_egress=*/false, /*num_workers=*/10);
 
   int64_t response_payload_size = 0;
   if (const auto response = rpc(request, code_tok); response.ok()) {
@@ -567,7 +567,7 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   const std::string code_tok = LoadCode(
       roma_service, std::filesystem::path(kUdfPath) / "prime_sieve_udf",
       /*enable_log_egress=*/false,
-      /*num_workers=*/2);
+      /*num_workers=*/10);
   {
     const auto response = rpc(code_tok, request);
     CHECK_OK(response);
@@ -616,7 +616,7 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
   const std::string code_tok =
       LoadCode(roma_service, std::filesystem::path(kUdfPath) / filename,
                /*enable_log_egress=*/false,
-               /*num_workers=*/2);
+               /*num_workers=*/10);
   SortListRequest request;
   // Add failure counter.
   int failure_count = 0;
