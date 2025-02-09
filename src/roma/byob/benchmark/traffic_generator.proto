@@ -49,6 +49,15 @@ message BurstGeneratorStatistics {
   float failure_pct = 6;
 }
 
+message Rlimit {
+int32 soft = 1;
+int32 hard = 2;
+}
+
+message SystemInfo {
+  Rlimit rlimit_sigpending = 1;
+}
+
 message Report {
   string run_id = 1;
   Params params = 2;
@@ -56,4 +65,5 @@ message Report {
   DurationStatistics burst_latencies = 4;
   DurationStatistics invocation_latencies = 5;
   DurationStatistics output_latencies = 6;
+  SystemInfo info = 7;
 }

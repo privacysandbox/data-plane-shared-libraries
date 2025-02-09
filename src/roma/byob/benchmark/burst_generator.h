@@ -31,7 +31,6 @@
 #include "src/util/duration.h"
 
 namespace privacy_sandbox::server_common::byob {
-using privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report;
 
 class BurstGenerator final {
  public:
@@ -55,7 +54,9 @@ class BurstGenerator final {
     std::vector<absl::StatusOr<std::string>> invocation_outputs;
 
     std::string ToString() const;
-    Report ToReport() const;
+    void ToReport(
+        ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report&
+            report) const;
   };
 
   BurstGenerator(std::string id, int64_t num_bursts, int64_t burst_size,

@@ -37,6 +37,7 @@
 #include "src/communication/json_utils.h"
 #include "src/roma/byob/benchmark/burst_generator.h"
 #include "src/roma/byob/benchmark/roma_byob_rpc_factory.h"
+#include "src/roma/byob/benchmark/traffic_generator.pb.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/interface/roma_service.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
@@ -129,14 +130,15 @@ int main(int argc, char** argv) {
   CHECK(mode == "byob" || mode == "v8")
       << "Invalid mode. Must be 'byob' or 'v8'";
 
-  const auto get_sigpending = []() {
+  const auto get_sigpending = []() -> struct rlimit {
     struct rlimit limit;
     PCHECK(::getrlimit(RLIMIT_SIGPENDING, &limit) != -1)
         << "getrlimit SIGPENDING";
     LOG(INFO) << "getrlimit SIGPENDING soft: " << limit.rlim_cur
               << ", hard: " << limit.rlim_max;
+    return limit;
   };
-  get_sigpending();
+  (void)get_sigpending();
 
   if (absl::GetFlag(FLAGS_sigpending).has_value()) {
     const int new_sigpending_limit = absl::GetFlag(FLAGS_sigpending).value();
@@ -146,8 +148,13 @@ int main(int argc, char** argv) {
     };
     PCHECK(::setrlimit(RLIMIT_SIGPENDING, &new_sigpending) != -1)
         << "setrlimit SIGPENDING";
-    get_sigpending();
   }
+  ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report report;
+  const struct rlimit sigpending = get_sigpending();
+  report.mutable_info()->mutable_rlimit_sigpending()->set_soft(
+      sigpending.rlim_cur);
+  report.mutable_info()->mutable_rlimit_sigpending()->set_hard(
+      sigpending.rlim_max);
 
   CleanupFunc stop_func;
   ExecutionFunc rpc_func;
@@ -212,7 +219,7 @@ int main(int argc, char** argv) {
 
   if (!output_file.empty()) {
     if (std::ofstream outfile(output_file, std::ios::app); outfile.is_open()) {
-      auto report = stats.ToReport();
+      stats.ToReport(report);
       report.set_run_id(absl::GetFlag(FLAGS_run_id));
       report.mutable_params()->set_burst_size(burst_size);
       report.mutable_params()->set_query_count(num_queries);

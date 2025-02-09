@@ -125,7 +125,9 @@ std::string BurstGenerator::Stats::ToString() const {
   return stats_str;
 }
 
-Report BurstGenerator::Stats::ToReport() const {
+void BurstGenerator::Stats::ToReport(
+    ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report&
+        report) const {
   using ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::
       DurationStatistics;
   using ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Params;
@@ -135,8 +137,6 @@ Report BurstGenerator::Stats::ToReport() const {
       get_status_percentiles(invocation_latencies);
   std::vector<absl::Duration> output_latencies =
       LatencyFormatter::Parse(invocation_outputs);
-
-  Report report;
 
   const float late_burst_pct =
       static_cast<float>(
@@ -190,7 +190,6 @@ Report BurstGenerator::Stats::ToReport() const {
     *output_stats->mutable_p99() = DurationToProto(output_ptiles.p99);
     *output_stats->mutable_max() = DurationToProto(output_ptiles.max);
   }
-  return report;
 }
 
 BurstGenerator::Stats BurstGenerator::Run() {
