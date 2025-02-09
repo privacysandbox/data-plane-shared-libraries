@@ -58,7 +58,8 @@ Percentiles<T> get_percentiles(std::vector<T> values) {
 }
 
 template <typename T>
-Percentiles<T> get_status_percentiles(std::vector<absl::StatusOr<T>> values) {
+std::pair<Percentiles<T>, int> get_status_percentiles(
+    std::vector<absl::StatusOr<T>> values) {
   std::vector<T> inv_durations;
   inv_durations.reserve(values.size());
   int failure_count = 0;
@@ -69,10 +70,7 @@ Percentiles<T> get_status_percentiles(std::vector<absl::StatusOr<T>> values) {
       failure_count++;
     }
   }
-  if (failure_count > 0) {
-    LOG(ERROR) << "failure count: " << failure_count;
-  }
-  return get_percentiles(inv_durations);
+  return std::make_pair(get_percentiles(inv_durations), failure_count);
 }
 
 google::protobuf::Duration DurationToProto(absl::Duration duration) {
@@ -86,18 +84,23 @@ namespace privacy_sandbox::server_common::byob {
 
 std::string BurstGenerator::Stats::ToString() const {
   Percentiles<absl::Duration> burst_ptiles = get_percentiles(burst_latencies);
-  Percentiles<absl::Duration> invocation_ptiles =
+  const auto [invocation_ptiles, failure_count] =
       get_status_percentiles(invocation_latencies);
   std::vector<absl::Duration> output_latencies =
       LatencyFormatter::Parse(invocation_outputs);
 
-  const double late_burst_pct =
-      static_cast<double>(
+  const float late_burst_pct =
+      static_cast<float>(
           std::lround(static_cast<double>(late_count) / total_bursts * 1000)) /
+      10;
+  const float failure_pct =
+      static_cast<float>(std::lround(static_cast<double>(failure_count) /
+                                     total_invocation_count * 1000)) /
       10;
   auto stats_str = absl::StrCat(
       "total runtime: ", total_elapsed,
       "\n invocation count: ", total_invocation_count,
+      "\n failures: ", failure_count, " (", failure_pct, "%)",
       "\n late bursts: ", late_count, " (", late_burst_pct, "%)",
       "\nburst latencies", "\n  count: ", burst_ptiles.count,
       "\n  min: ", burst_ptiles.min, "\n  p50: ", burst_ptiles.p50,
@@ -128,16 +131,20 @@ Report BurstGenerator::Stats::ToReport() const {
   using ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Params;
 
   Percentiles<absl::Duration> burst_ptiles = get_percentiles(burst_latencies);
-  Percentiles<absl::Duration> invocation_ptiles =
+  const auto [invocation_ptiles, failure_count] =
       get_status_percentiles(invocation_latencies);
   std::vector<absl::Duration> output_latencies =
       LatencyFormatter::Parse(invocation_outputs);
 
   Report report;
 
-  const double late_burst_pct =
-      static_cast<double>(
+  const float late_burst_pct =
+      static_cast<float>(
           std::lround(static_cast<double>(late_count) / total_bursts * 1000)) /
+      10;
+  const float failure_pct =
+      static_cast<float>(std::lround(static_cast<double>(failure_count) /
+                                     total_invocation_count * 1000)) /
       10;
 
   auto* stats = report.mutable_statistics();
@@ -145,6 +152,8 @@ Report BurstGenerator::Stats::ToReport() const {
   stats->set_total_invocation_count(total_invocation_count);
   stats->set_late_count(late_count);
   stats->set_late_burst_pct(late_burst_pct);
+  stats->set_failure_count(failure_count);
+  stats->set_failure_pct(failure_pct);
 
   // Set burst latencies
   auto* burst_stats = report.mutable_burst_latencies();

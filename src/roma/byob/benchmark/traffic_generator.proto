@@ -44,7 +44,9 @@ message BurstGeneratorStatistics {
   google.protobuf.Duration total_elapsed_time = 1;
   int64 total_invocation_count = 2;
   int64 late_count = 3;
-  double late_burst_pct = 4;
+  float late_burst_pct = 4;
+  int64 failure_count = 5;
+  float failure_pct = 6;
 }
 
 message Report {
