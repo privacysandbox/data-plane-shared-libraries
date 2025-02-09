@@ -15,6 +15,7 @@
 #include <filesystem>
 #include <fstream>
 #include <memory>
+#include <optional>
 #include <string>
 #include <utility>
 #include <vector>
@@ -77,6 +78,8 @@ ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
 ABSL_FLAG(bool, verbose, false, "Enable verbose logging");
 ABSL_FLAG(bool, batching, false,
           "Enable batching of BURST_SIZE queries for V8 mode");
+ABSL_FLAG(std::optional<int>, sigpending, std::nullopt,
+          "Set the pending signals rlimit");
 
 namespace {
 
@@ -125,6 +128,26 @@ int main(int argc, char** argv) {
   const std::string mode = absl::GetFlag(FLAGS_mode);
   CHECK(mode == "byob" || mode == "v8")
       << "Invalid mode. Must be 'byob' or 'v8'";
+
+  const auto get_sigpending = []() {
+    struct rlimit limit;
+    PCHECK(::getrlimit(RLIMIT_SIGPENDING, &limit) != -1)
+        << "getrlimit SIGPENDING";
+    LOG(INFO) << "getrlimit SIGPENDING soft: " << limit.rlim_cur
+              << ", hard: " << limit.rlim_max;
+  };
+  get_sigpending();
+
+  if (absl::GetFlag(FLAGS_sigpending).has_value()) {
+    const int new_sigpending_limit = absl::GetFlag(FLAGS_sigpending).value();
+    struct rlimit new_sigpending = {
+        .rlim_cur = rlim_t(new_sigpending_limit),
+        .rlim_max = rlim_t(new_sigpending_limit),
+    };
+    PCHECK(::setrlimit(RLIMIT_SIGPENDING, &new_sigpending) != -1)
+        << "setrlimit SIGPENDING";
+    get_sigpending();
+  }
 
   CleanupFunc stop_func;
   ExecutionFunc rpc_func;
