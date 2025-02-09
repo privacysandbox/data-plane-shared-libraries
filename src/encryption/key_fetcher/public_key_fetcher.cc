@@ -86,11 +86,10 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                 ExecutionResult execution_result,
                 ListPublicKeysResponse response) {
               PS_VLOG(3, log_context_) << "List public keys call finished.";
-
               if (execution_result.Successful()) {
                 const size_t num_public_keys = response.public_keys().size();
-                {
-                  absl::MutexLock lock(&mutex_);
+                // TODO(b/395703311): Clear expired public keys from cache.
+                if (!response.public_keys().empty()) {
                   std::vector<PublicKey> platform_public_keys;
                   platform_public_keys.reserve(num_public_keys);
                   for (const auto& key : response.public_keys()) {
@@ -99,13 +98,24 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                     copy.set_public_key(key.public_key());
                     platform_public_keys.push_back(std::move(copy));
                   }
-                  public_keys_[platform] = std::move(platform_public_keys);
+
+                  {
+                    absl::MutexLock lock(&mutex_);
+                    public_keys_[platform] = std::move(platform_public_keys);
+                  }
                 }
 
                 KeyFetchResultCounter::SetNumPublicKeysParsed(platform,
                                                               num_public_keys);
-                KeyFetchResultCounter::SetNumPublicKeysCached(platform,
-                                                              num_public_keys);
+
+                {
+                  absl::MutexLock lock(&mutex_);
+                  KeyFetchResultCounter::SetNumPublicKeysCached(
+                      platform, public_keys_.contains(platform)
+                                    ? public_keys_[platform].size()
+                                    : 0);
+                }
+
                 PS_VLOG(3, log_context_) << absl::Substitute(
                     kKeyFetchSuccessMessage,
                     absl::StrJoin(GetKeyIds(platform), ", "),
@@ -143,13 +153,20 @@ absl::StatusOr<PublicKey> PublicKeyFetcher::GetKey(
     CloudPlatform cloud_platform) noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
   absl::MutexLock lock(&mutex_);
   if (public_keys_.empty()) {
-    return absl::FailedPreconditionError("No public keys to return.");
+    return absl::FailedPreconditionError(
+        "No public keys cached for any cloud platforms");
   }
 
-  int index =
-      absl::Uniform(absl::IntervalClosedOpen, bitgen_, 0,
-                    static_cast<int>(public_keys_[cloud_platform].size()));
-  return public_keys_[cloud_platform].at(index);
+  auto it = public_keys_.find(cloud_platform);
+  if (it == public_keys_.end() || it->second.empty()) {
+    return absl::FailedPreconditionError(
+        absl::StrCat("No public keys to return for cloud platform ",
+                     CloudPlatformEnumToString(cloud_platform)));
+  }
+
+  int index = absl::Uniform(absl::IntervalClosedOpen, bitgen_, 0,
+                            static_cast<int>(it->second.size()));
+  return it->second.at(index);
 }
 
 std::vector<PublicPrivateKeyPairId> PublicKeyFetcher::GetKeyIds(

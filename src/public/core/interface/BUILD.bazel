@@ -39,4 +39,7 @@ cc_library(
 cc_library(
     name = "cloud_platform",
     hdrs = ["cloud_platform.h"],
+    deps = [
+        "@com_google_absl//absl/strings",
+    ],
 )
