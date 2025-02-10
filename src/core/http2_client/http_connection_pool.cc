@@ -107,21 +107,20 @@ ExecutionResult HttpConnectionPool::GetConnection(
     return FailureExecutionResult(errors::SC_HTTP2_CLIENT_INVALID_URI);
   }
 
-  auto http_connection_entry = std::make_shared<HttpConnectionPoolEntry>();
-  auto pair = std::make_pair(host + ":" + service, http_connection_entry);
-  if (connections_.Insert(pair, http_connection_entry).Successful()) {
-    http_connection_entry->http_connections.reserve(max_connections_per_host_);
+  auto http_conn_entry = std::make_shared<HttpConnectionPoolEntry>();
+  auto pair = std::make_pair(host + ":" + service, http_conn_entry);
+  if (connections_.Insert(pair, http_conn_entry).Successful()) {
+    http_conn_entry->http_connections.reserve(max_connections_per_host_);
     for (size_t i = 0; i < max_connections_per_host_; ++i) {
-      http_connection_entry->http_connections.push_back(CreateHttpConnection(
+      http_conn_entry->http_connections.push_back(CreateHttpConnection(
           host, service, is_https, http2_read_timeout_in_sec_));
-      auto* http_connection =
-          http_connection_entry->http_connections.back().get();
+      auto* http_connection = http_conn_entry->http_connections.back().get();
       auto execution_result = http_connection->Init();
 
       if (!execution_result.Successful()) {
         // Stop the connections already created before.
-        http_connection_entry->http_connections.pop_back();
-        for (auto& http_connection : http_connection_entry->http_connections) {
+        http_conn_entry->http_connections.pop_back();
+        for (auto& http_connection : http_conn_entry->http_connections) {
           http_connection->Stop();
         }
         connections_.Erase(pair.first);
@@ -131,8 +130,8 @@ ExecutionResult HttpConnectionPool::GetConnection(
       execution_result = http_connection->Run();
       if (!execution_result.Successful()) {
         // Stop the connections already created before.
-        http_connection_entry->http_connections.pop_back();
-        for (auto& http_connection : http_connection_entry->http_connections) {
+        http_conn_entry->http_connections.pop_back();
+        for (auto& http_connection : http_conn_entry->http_connections) {
           http_connection->Stop();
         }
         connections_.Erase(pair.first);
@@ -142,17 +141,18 @@ ExecutionResult HttpConnectionPool::GetConnection(
                "Successfully initialized a connection %p for %s",
                http_connection, pair.first.c_str());
     }
-    http_connection_entry->is_initialized = true;
+    http_conn_entry->is_initialized = true;
   }
 
-  if (!http_connection_entry->is_initialized.load()) {
+  if (!http_conn_entry->is_initialized.load()) {
     return RetryExecutionResult(
         errors::SC_HTTP2_CLIENT_NO_CONNECTION_ESTABLISHED);
   }
 
-  auto value = http_connection_entry->order_counter.fetch_add(1);
-  auto connections_index = value % max_connections_per_host_;
-  connection = http_connection_entry->http_connections.at(connections_index);
+  auto value = http_conn_entry->order_counter.fetch_add(1);
+  const size_t connections_index =
+      value % http_conn_entry->http_connections.size();
+  connection = http_conn_entry->http_connections.at(connections_index);
 
   if (connection->IsDropped()) {
     RecycleConnection(connection);
@@ -161,9 +161,8 @@ ExecutionResult HttpConnectionPool::GetConnection(
     // waste.
     if (!connection->IsReady()) {
       size_t cur_index = connections_index;
-      for (int i = 0; i < http_connection_entry->http_connections.size(); i++) {
-        auto http_connection =
-            http_connection_entry->http_connections[cur_index];
+      for (int i = 0; i < http_conn_entry->http_connections.size(); i++) {
+        auto http_connection = http_conn_entry->http_connections[cur_index];
         if (http_connection->IsReady()) {
           connection = http_connection;
           break;
