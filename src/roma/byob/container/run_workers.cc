@@ -329,7 +329,7 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
         errno,
         absl::StrCat("Failed to umount ", worker_impl_arg.socket_dir_name));
   }
-  // Read/Write mounted directories must not be expsed to the udf.
+  // Read/Write mounted directories must not be exposed to the udf.
   for (const auto& [_, target] :
        worker_impl_arg.sources_and_targets_read_and_write) {
     if (::umount2(target.c_str(), MNT_DETACH) == -1) {
