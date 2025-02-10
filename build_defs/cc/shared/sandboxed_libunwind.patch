@@ -1,18 +1,18 @@
 diff --git a/sandboxed_api/bazel/external/libunwind.BUILD b/sandboxed_api/bazel/external/libunwind.BUILD
-index d6bbe80..b14eb41 100644
+index d6bbe80..b0d37ff 100644
 --- a/sandboxed_api/bazel/external/libunwind.BUILD
 +++ b/sandboxed_api/bazel/external/libunwind.BUILD
 @@ -12,6 +12,8 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
-
+ 
 +load("@bazel_skylib//rules:common_settings.bzl", "string_flag")
 +
  LIBUNWIND_COPTS = [
      "-DHAVE_CONFIG_H",
      "-D_GNU_SOURCE",
 @@ -22,7 +24,25 @@ LIBUNWIND_COPTS = [
-
+ 
  filegroup(
      name = "internal_headers",
 -    srcs = [
@@ -61,9 +61,9 @@ index d6bbe80..b14eb41 100644
 -        "src/x86_64/unwind_i.h",
      ],
  )
-
-@@ -67,7 +80,31 @@ cc_library(
-
+ 
+@@ -67,7 +80,34 @@ cc_library(
+ 
  filegroup(
      name = "sources_common",
 -    srcs = [
@@ -72,11 +72,13 @@ index d6bbe80..b14eb41 100644
 +            "src/x86_64/Gcreate_addr_space.c",
 +            "src/x86_64/Gglobal.c",
 +            "src/x86_64/Ginit.c",
++            "src/x86_64/Ginit_local.c",
 +            "src/x86_64/Gos-linux.c",
 +            "src/x86_64/Gregs.c",
 +            "src/x86_64/Gresume.c",
 +            "src/x86_64/Gstash_frame.c",
 +            "src/x86_64/Gstep.c",
++            "src/x86_64/getcontext.S",
 +            "src/x86_64/is_fpreg.c",
 +            "src/x86_64/setcontext.S",
 +        ],
@@ -84,6 +86,7 @@ index d6bbe80..b14eb41 100644
 +            "src/aarch64/Gcreate_addr_space.c",
 +            "src/aarch64/Gglobal.c",
 +            "src/aarch64/Ginit.c",
++            "src/aarch64/Ginit_local.c",
 +            "src/aarch64/Gis_signal_frame.c",
 +            "src/aarch64/Gregs.c",
 +            "src/aarch64/Gresume.c",
@@ -95,7 +98,7 @@ index d6bbe80..b14eb41 100644
          "src/dwarf/Gexpr.c",
          "src/dwarf/Gfde.c",
          "src/dwarf/Gfind_proc_info-lsb.c",
-@@ -86,23 +123,16 @@ filegroup(
+@@ -86,23 +126,16 @@ filegroup(
          "src/mi/init.c",
          "src/mi/mempool.c",
          "src/os-linux.c",
@@ -112,7 +115,7 @@ index d6bbe80..b14eb41 100644
          ":internal_headers",
      ],
  )
-
+ 
  filegroup(
      name = "sources_ptrace",
 -    srcs = ["src/x86_64/Ginit_remote.c"],
@@ -121,5 +124,5 @@ index d6bbe80..b14eb41 100644
 +        "@platforms//cpu:arm64": ["src/aarch64/Ginit_remote.c"],
 +    }),
  )
-
+ 
  cc_library(
