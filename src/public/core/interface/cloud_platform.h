@@ -35,7 +35,7 @@ enum class CloudPlatform {
   kAws,
 };
 
-inline std::string_view CloudPlatformEnumToString(
+constexpr inline std::string_view CloudPlatformEnumToString(
     CloudPlatform cloud_platform) {
   switch (cloud_platform) {
     case CloudPlatform::kLocal:
