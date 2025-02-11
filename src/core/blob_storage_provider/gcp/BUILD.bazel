@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//visibility:public"])
-
 cc_library(
     name = "blob_storage_provider_gcp",
     srcs = [
@@ -25,6 +23,7 @@ cc_library(
         "gcp_cloud_storage.h",
         "gcp_cloud_storage_utils.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         "//src/core/async_executor/aws:aws_async_executor",
         "//src/core/blob_storage_provider/common:blob_storage_provider_common",
