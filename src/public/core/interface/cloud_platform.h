@@ -17,7 +17,7 @@
 #ifndef PUBLIC_CORE_INTERFACE_CLOUD_PLATFORM_H_
 #define PUBLIC_CORE_INTERFACE_CLOUD_PLATFORM_H_
 
-#include "absl/strings/string_view.h"
+#include <string_view>
 
 namespace privacy_sandbox::server_common {
 
@@ -35,7 +35,8 @@ enum class CloudPlatform {
   kAws,
 };
 
-absl::string_view CloudPlatformEnumToString(CloudPlatform cloud_platform) {
+inline std::string_view CloudPlatformEnumToString(
+    CloudPlatform cloud_platform) {
   switch (cloud_platform) {
     case CloudPlatform::kLocal:
       return kLocal;
