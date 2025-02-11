@@ -551,6 +551,14 @@ TEST(AsyncExecutorTests, TestPickUrgentToUrgentTaskExecutorWithAffinity) {
   done.WaitForNotification();
 }
 
+TEST(AsyncExecutorTests, TestGetExecutorWithInvalidThreadId) {
+  AsyncExecutor executor(10, 1);
+  const auto [normal_executor, urgent_executor] =
+      executor.GetExecutorForTesting(std::this_thread::get_id());
+  EXPECT_EQ(normal_executor, nullptr);
+  EXPECT_EQ(urgent_executor, nullptr);
+}
+
 TEST(AsyncExecutorTests, TestPickUrgentToNonUrgentTaskExecutorWithAffinity) {
   // Picks the non-urgent thread with the same affinity when executing
   // subsequent work.

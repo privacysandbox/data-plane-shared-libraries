@@ -255,7 +255,22 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
           const auto& endpoint = context.request->key_vending_endpoint
                                      ->private_key_vending_service_endpoint;
           const auto& key_id = *context.request->key_id;
-          if (mock_results.at(key_id).at(endpoint).Successful()) {
+
+          const auto it = mock_results.find(key_id);
+          if (it == mock_results.end()) {
+            context.Finish(FailureExecutionResult(
+                SC_PRIVATE_KEY_CLIENT_PROVIDER_KEY_DATA_NOT_FOUND));
+            return context.result;
+          }
+
+          const auto& endpoint_it = it->second.find(endpoint);
+          if (endpoint_it == it->second.end()) {
+            context.Finish(FailureExecutionResult(
+                SC_PRIVATE_KEY_CLIENT_PROVIDER_KEY_DATA_NOT_FOUND));
+            return context.result;
+          }
+
+          if (endpoint_it->second.Successful()) {
             if (const auto it = mock_responses.find(key_id);
                 it != mock_responses.end()) {
               if (const auto response = it->second.find(endpoint);
@@ -265,7 +280,7 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
               }
             }
           }
-          context.Finish(mock_results.at(key_id).at(endpoint));
+          context.Finish(endpoint_it->second);
           return SuccessExecutionResult();
         });
   }
@@ -281,14 +296,21 @@ class PrivateKeyClientProviderTest : public ::testing::Test {
                                          PrivateKeyFetchingResponse>& context) {
           const auto& endpoint = context.request->key_vending_endpoint
                                      ->private_key_vending_service_endpoint;
-          if (mock_results.at(endpoint).Successful()) {
+          const auto it = mock_results.find(endpoint);
+          if (it == mock_results.end()) {
+            context.Finish(FailureExecutionResult(
+                SC_PRIVATE_KEY_CLIENT_PROVIDER_KEY_DATA_NOT_FOUND));
+            return context.result;
+          }
+
+          if (it->second.Successful()) {
             if (const auto it = mock_responses.find(endpoint);
                 it != mock_responses.end()) {
               context.response =
                   std::make_shared<PrivateKeyFetchingResponse>(it->second);
             }
           }
-          context.Finish(mock_results.at(endpoint));
+          context.Finish(it->second);
           return context.result;
         });
   }

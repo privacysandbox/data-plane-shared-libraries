@@ -43,8 +43,8 @@ AsyncExecutor::AsyncExecutor(size_t thread_count, size_t queue_cap,
     normal_task_executor_pool_.push_back(
         std::make_unique<SingleThreadAsyncExecutor>(queue_cap_,
                                                     cpu_affinity_number));
-    auto* urgent_executor = urgent_task_executor_pool_.at(i).get();
-    auto* normal_executor = normal_task_executor_pool_.at(i).get();
+    auto* urgent_executor = urgent_task_executor_pool_.back().get();
+    auto* normal_executor = normal_task_executor_pool_.back().get();
     auto normal_thread_id = normal_executor->GetThreadId();
     auto urgent_thread_id = urgent_executor->GetThreadId();
 
@@ -141,7 +141,11 @@ ExecutionResultOr<TaskExecutorType*> AsyncExecutor::PickTaskExecutor(
 
 std::pair<SingleThreadAsyncExecutor*, SingleThreadPriorityAsyncExecutor*>
 AsyncExecutor::GetExecutorForTesting(const std::thread::id& id) const {
-  return thread_id_to_executor_map_.at(id);
+  if (auto it = thread_id_to_executor_map_.find(id);
+      it != thread_id_to_executor_map_.end()) {
+    return it->second;
+  }
+  return {nullptr, nullptr};
 }
 
 ExecutionResult AsyncExecutor::Schedule(AsyncOperation work,

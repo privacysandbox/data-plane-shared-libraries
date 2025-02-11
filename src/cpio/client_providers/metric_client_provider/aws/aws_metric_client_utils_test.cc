@@ -112,11 +112,10 @@ TEST_F(AwsMetricClientUtilsTest, ParseRequestToDatumSuccess) {
   EXPECT_EQ(datum_list.size(), 10);
   double value = 0.0;
   (void)absl::SimpleAtod(std::string_view(kValue), &value);
-  for (auto i = 0; i < 10; i++) {
-    EXPECT_THAT(datum_list.at(i).GetMetricName(), StrEq(kName));
-    EXPECT_EQ(datum_list.at(i).GetValue(), value);
-    EXPECT_EQ(datum_list.at(i).GetUnit(),
-              Aws::CloudWatch::Model::StandardUnit::Count);
+  for (const auto& datum : datum_list) {
+    EXPECT_THAT(datum.GetMetricName(), StrEq(kName));
+    EXPECT_EQ(datum.GetValue(), value);
+    EXPECT_EQ(datum.GetUnit(), Aws::CloudWatch::Model::StandardUnit::Count);
   }
 }
 
