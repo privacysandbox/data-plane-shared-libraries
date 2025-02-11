@@ -75,6 +75,8 @@ absl::Status Dispatcher::Load(
     absl::MutexLock lock(&mu_);
     per_worker_requests_.front().push(Request{
         .param = param,
+        .stopwatch =
+            std::make_unique<privacy_sandbox::server_common::Stopwatch>(),
         .callback =
             [callback = std::move(callback)](auto response) mutable {
               std::move(callback)(std::move(response));
@@ -89,6 +91,8 @@ absl::Status Dispatcher::Load(
     for (auto& queue : per_worker_requests_) {
       queue.push(Request{
           .param = param,
+          .stopwatch =
+              std::make_unique<privacy_sandbox::server_common::Stopwatch>(),
           .callback =
               [=](auto response) {
                 const int count = [=] {
@@ -138,6 +142,10 @@ void Dispatcher::ConsumerImpl(int i) {
         requests_.pop();
       }
     }
+    absl::Duration queuing_duration = absl::ZeroDuration();
+    if (request.stopwatch) {
+      queuing_duration = request.stopwatch->GetElapsedTime();
+    }
     privacy_sandbox::server_common::Stopwatch stopwatch;
     if (auto [error, retry_status] = workers_[i].RunCode(request.param);
         !error.ok()) {
@@ -165,10 +173,13 @@ void Dispatcher::ConsumerImpl(int i) {
     } else {
       absl::Duration run_code_duration = stopwatch.GetElapsedTime();
       ResponseObject response;
-      response.metrics.reserve(1 + request.param.metrics_size());
+      response.metrics.reserve(2 + request.param.metrics_size());
       response.metrics[roma::sandbox::constants::
                            kExecutionMetricSandboxedJsEngineCallDuration] =
           std::move(run_code_duration);
+      response
+          .metrics[roma::sandbox::constants::kExecutionMetricQueueingDuration] =
+          std::move(queuing_duration);
       absl::Status status = [&] {
         for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
           PS_ASSIGN_OR_RETURN(

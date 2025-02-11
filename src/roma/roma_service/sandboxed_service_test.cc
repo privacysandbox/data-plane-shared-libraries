@@ -1676,6 +1676,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
     ASSERT_TRUE(response_status.ok());
 
+    EXPECT_GT(metrics["roma.metric.queueing_duration"], absl::Duration());
     EXPECT_GT(metrics["roma.metric.sandboxed_code_run_duration"],
               absl::Duration());
     EXPECT_GT(metrics["roma.metric.code_run_duration"], absl::Duration());
@@ -1686,6 +1687,101 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
   }
 
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
+
+  ASSERT_TRUE(roma_service.Stop().ok());
+}
+
+TEST(SandboxedServiceTest, QueueingDurationReturnedAsMetric) {
+  Config config;
+  config.number_of_workers = 1;
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  absl::Notification load_finished;
+  absl::Notification execute_finished1;
+  absl::Notification execute_finished2;
+  absl::Status response_status1;
+  absl::Status response_status2;
+  std::string result;
+  size_t sleep_duration_ms = 50;
+  absl::Duration queueing_duration;
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+    function Handler(duration_ms) {
+      const start = performance.now();
+      // Hang to ensure worker is fully occupied for duration_ms.
+      while (performance.now() - start < duration_ms) {}
+      return "Hello world";
+    }
+  )JS_CODE",
+    });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  {
+    InvocationStrRequest<> execution_obj{
+        .id = "foo",
+        .version_string = "v1",
+        .handler_name = "Handler",
+        .input = {absl::StrCat("\"", sleep_duration_ms, "\"")},
+    };
+
+    ASSERT_TRUE(
+        roma_service
+            .Execute(std::make_unique<InvocationStrRequest<>>(execution_obj),
+                     [&](absl::StatusOr<ResponseObject> resp) {
+                       response_status1 = resp.status();
+                       execute_finished1.Notify();
+                     })
+            .ok());
+
+    ASSERT_TRUE(
+        roma_service
+            .Execute(std::make_unique<InvocationStrRequest<>>(execution_obj),
+                     [&](absl::StatusOr<ResponseObject> resp) {
+                       response_status2 = resp.status();
+                       if (resp.ok()) {
+                         result = std::move(resp->resp);
+                       }
+
+                       auto it =
+                           resp->metrics.find("roma.metric.queueing_duration");
+                       std::cout << it->first << ":" << it->second << std::endl;
+                       ASSERT_TRUE(it != resp->metrics.end());
+                       queueing_duration = it->second;
+
+                       execute_finished2.Notify();
+                     })
+            .ok());
+  }
+  ASSERT_TRUE(
+      execute_finished1.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(
+      execute_finished2.WaitForNotificationWithTimeout(absl::Seconds(10)));
+  ASSERT_TRUE(response_status1.ok());
+  ASSERT_TRUE(response_status2.ok());
+
+  // With only one worker, the first execution should occupy the worker for
+  // sleep_duration_ms, meaning the second request will sit in the queue until
+  // the first execution finishes, so the queueing duration should be about
+  // sleep_duration_ms.
+  EXPECT_GT(queueing_duration, absl::Milliseconds(sleep_duration_ms));
+  EXPECT_THAT(result, StrEq(R"("Hello world")"));
 
   ASSERT_TRUE(roma_service.Stop().ok());
 }

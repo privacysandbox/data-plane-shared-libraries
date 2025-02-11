@@ -61,6 +61,11 @@ inline constexpr std::string_view
 inline constexpr std::string_view kExecutionMetricJsEngineCallDuration =
     "roma.metric.code_run_duration";
 
+// Label for the time the request spent in the queue before being processed. In
+// absl::Duration or nanoseconds.
+inline constexpr std::string_view kExecutionMetricQueueingDuration =
+    "roma.metric.queueing_duration";
+
 // Label for time taken to parse the input in JS engine. In absl::Duration or
 // nanoseconds.
 inline constexpr std::string_view kInputParsingMetricJsEngineDuration =

@@ -17,6 +17,7 @@
 #ifndef ROMA_SANDBOX_DISPATCHER_DISPATCHER_H_
 #define ROMA_SANDBOX_DISPATCHER_DISPATCHER_H_
 
+#include <memory>
 #include <queue>
 #include <string>
 #include <thread>
@@ -32,6 +33,7 @@
 #include "src/roma/interface/roma.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_params.pb.h"
 #include "src/roma/sandbox/worker_api/sapi/worker_sandbox_api.h"
+#include "src/util/duration.h"
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 
@@ -79,6 +81,8 @@ class Dispatcher final {
     }
     requests_.push(Request{
         .param = std::move(param),
+        .stopwatch =
+            std::make_unique<privacy_sandbox::server_common::Stopwatch>(),
         .callback = std::move(callback),
     });
     return absl::OkStatus();
@@ -89,6 +93,7 @@ class Dispatcher final {
  private:
   struct Request {
     ::worker_api::WorkerParamsProto param;
+    std::unique_ptr<privacy_sandbox::server_common::Stopwatch> stopwatch;
     absl::AnyInvocable<void(absl::StatusOr<ResponseObject>) &&> callback;
   };
 
