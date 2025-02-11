@@ -108,7 +108,10 @@ TEST(PublicKeyFetcherTest, SuccessfulRefresh) {
   EXPECT_TRUE(result_status.ok());
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
-  key_pair_ids.push_back(ToOhttpKeyId(response.public_keys().at(0).key_id()));
+  absl::StatusOr<std::string> ohttp_key_id =
+      ToOhttpKeyId(response.public_keys().at(0).key_id());
+  ASSERT_TRUE(ohttp_key_id.ok());
+  key_pair_ids.push_back(*std::move(ohttp_key_id));
   EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::kGcp), key_pair_ids);
 }
 
@@ -178,7 +181,10 @@ TEST(PublicKeyFetcherTest, SyncReturnsIfExecutionFailsMultiPlatform) {
   EXPECT_TRUE(result_status.ok());
 
   std::vector<PublicPrivateKeyPairId> key_pair_ids;
-  key_pair_ids.push_back(ToOhttpKeyId(response.public_keys().at(0).key_id()));
+  absl::StatusOr<std::string> ohttp_key_id =
+      ToOhttpKeyId(response.public_keys().at(0).key_id());
+  ASSERT_TRUE(ohttp_key_id.ok());
+  key_pair_ids.push_back(*std::move(ohttp_key_id));
   EXPECT_EQ(fetcher.GetKeyIds(CloudPlatform::kAws), key_pair_ids);
 }
 

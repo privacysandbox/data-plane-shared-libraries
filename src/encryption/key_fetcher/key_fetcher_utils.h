@@ -19,6 +19,7 @@
 
 #include <string>
 
+#include "absl/status/statusor.h"
 #include "absl/strings/string_view.h"
 
 namespace privacy_sandbox::server_common {
@@ -26,7 +27,7 @@ namespace privacy_sandbox::server_common {
 // Convert KMS key IDs (hex string) to OHTTP key ID format by reading the first
 // two characters of the string (because two hex characters' value range from 0
 // to 256).
-std::string ToOhttpKeyId(std::string_view key_id);
+absl::StatusOr<std::string> ToOhttpKeyId(std::string_view key_id);
 
 }  // namespace privacy_sandbox::server_common
 

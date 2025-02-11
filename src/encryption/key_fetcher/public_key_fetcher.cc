@@ -87,16 +87,26 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                 ListPublicKeysResponse response) {
               PS_VLOG(3, log_context_) << "List public keys call finished.";
               if (execution_result.Successful()) {
-                const size_t num_public_keys = response.public_keys().size();
+                int num_public_keys_parsed = 0;
                 // TODO(b/395703311): Clear expired public keys from cache.
                 if (!response.public_keys().empty()) {
                   std::vector<PublicKey> platform_public_keys;
-                  platform_public_keys.reserve(num_public_keys);
+                  platform_public_keys.reserve(response.public_keys().size());
                   for (const auto& key : response.public_keys()) {
                     PublicKey copy;
-                    copy.set_key_id(ToOhttpKeyId(key.key_id()));
+                    absl::StatusOr<std::string> ohttp_key_id =
+                        ToOhttpKeyId(key.key_id());
+                    if (!ohttp_key_id.ok()) {
+                      PS_LOG(ERROR, log_context_)
+                          << "Error during public key fetch: "
+                          << ohttp_key_id.status();
+                      continue;
+                    }
+
+                    copy.set_key_id(*std::move(ohttp_key_id));
                     copy.set_public_key(key.public_key());
                     platform_public_keys.push_back(std::move(copy));
+                    num_public_keys_parsed++;
                   }
 
                   {
@@ -105,8 +115,8 @@ absl::Status PublicKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
                   }
                 }
 
-                KeyFetchResultCounter::SetNumPublicKeysParsed(platform,
-                                                              num_public_keys);
+                KeyFetchResultCounter::SetNumPublicKeysParsed(
+                    platform, num_public_keys_parsed);
 
                 {
                   absl::MutexLock lock(&mutex_);

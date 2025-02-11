@@ -26,28 +26,31 @@ namespace privacy_sandbox::server_common {
 namespace {
 
 TEST(KeyFetcherUtilsTest, EmptyStr) {
-  std::string result = ToOhttpKeyId("");
-  EXPECT_THAT(result, StrEq(""));
+  absl::StatusOr<std::string> result = ToOhttpKeyId("");
+  ASSERT_FALSE(result.ok());
 }
 
 TEST(KeyFetcherUtilsTest, Short1Str) {
-  std::string result = ToOhttpKeyId("1");
-  EXPECT_THAT(result, StrEq(""));
+  absl::StatusOr<std::string> result = ToOhttpKeyId("1");
+  ASSERT_FALSE(result.ok());
 }
 
 TEST(KeyFetcherUtilsTest, Short2Str) {
-  std::string result = ToOhttpKeyId("12");
-  EXPECT_THAT(result, StrEq("18"));
+  absl::StatusOr<std::string> result = ToOhttpKeyId("12");
+  ASSERT_TRUE(result.ok());
+  EXPECT_THAT(*result, StrEq("18"));
 }
 
 TEST(KeyFetcherUtilsTest, ToOhttpKeyIdSuccess) {
-  std::string result = ToOhttpKeyId("3480000000000000");
-  EXPECT_THAT(result, StrEq("52"));
+  absl::StatusOr<std::string> result = ToOhttpKeyId("3480000000000000");
+  ASSERT_TRUE(result.ok());
+  EXPECT_THAT(*result, StrEq("52"));
 }
 
 TEST(KeyFetcherUtilsTest, MaxOhttpKeyIdValue) {
-  std::string result = ToOhttpKeyId("FF0000000");
-  EXPECT_THAT(result, StrEq("255"));
+  absl::StatusOr<std::string> result = ToOhttpKeyId("FF0000000");
+  ASSERT_TRUE(result.ok());
+  EXPECT_THAT(*result, StrEq("255"));
 }
 
 }  // namespace

@@ -91,6 +91,7 @@ cc_library(
     srcs = ["key_fetcher_utils.cc"],
     hdrs = ["key_fetcher_utils.h"],
     deps = [
+        "@com_google_absl//absl/status:statusor",
         "@com_google_absl//absl/strings",
     ],
 )

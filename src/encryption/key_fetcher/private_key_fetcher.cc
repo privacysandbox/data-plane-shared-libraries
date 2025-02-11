@@ -135,18 +135,26 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
               << private_key.key_id();
           continue;
         }
-        const PublicPrivateKeyPairId ohttp_key_id =
+
+        absl::StatusOr<std::string> ohttp_key_id =
             ToOhttpKeyId(private_key.key_id());
+        if (!ohttp_key_id.ok()) {
+          PS_LOG(ERROR, log_context_)
+              << "Error during private key fetch: " << ohttp_key_id.status();
+          continue;
+        }
+
         PrivateKey key = {
-            ohttp_key_id,
+            *ohttp_key_id,
             hpke_priv_key.private_key(),
             ProtoToAbslDuration(private_key.creation_time()),
         };
-        private_keys_map_.insert_or_assign(ohttp_key_id, std::move(key));
-        ++num_priv_keys_added;
         PS_VLOG(2, log_context_) << absl::StrCat(
             "Caching private key: (KMS id: ", private_key.key_id(),
-            ", OHTTP ID: ", ohttp_key_id, " )");
+            ", OHTTP ID: ", *ohttp_key_id, " )");
+        private_keys_map_.insert_or_assign(*std::move(ohttp_key_id),
+                                           std::move(key));
+        ++num_priv_keys_added;
       }
       KeyFetchResultCounter::SetNumPrivateKeysParsed(num_priv_keys_added);
     } else {
