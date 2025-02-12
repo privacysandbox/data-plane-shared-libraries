@@ -78,6 +78,19 @@ google::protobuf::Duration DurationToProto(absl::Duration duration) {
       absl::ToInt64Nanoseconds(duration));
 }
 
+template <typename Ptile>
+void CopyStats(const Ptile ptile,
+               ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::
+                   DurationStatistics& stats) {
+  stats.set_count(ptile.count);
+  *stats.mutable_min() = DurationToProto(ptile.min);
+  *stats.mutable_p50() = DurationToProto(ptile.p50);
+  *stats.mutable_p90() = DurationToProto(ptile.p90);
+  *stats.mutable_p95() = DurationToProto(ptile.p95);
+  *stats.mutable_p99() = DurationToProto(ptile.p99);
+  *stats.mutable_max() = DurationToProto(ptile.max);
+}
+
 }  // namespace
 
 namespace privacy_sandbox::server_common::byob {
@@ -156,24 +169,10 @@ void BurstGenerator::Stats::ToReport(
   stats->set_failure_pct(failure_pct);
 
   // Set burst latencies
-  auto* burst_stats = report.mutable_burst_latencies();
-  burst_stats->set_count(burst_ptiles.count);
-  *burst_stats->mutable_min() = DurationToProto(burst_ptiles.min);
-  *burst_stats->mutable_p50() = DurationToProto(burst_ptiles.p50);
-  *burst_stats->mutable_p90() = DurationToProto(burst_ptiles.p90);
-  *burst_stats->mutable_p95() = DurationToProto(burst_ptiles.p95);
-  *burst_stats->mutable_p99() = DurationToProto(burst_ptiles.p99);
-  *burst_stats->mutable_max() = DurationToProto(burst_ptiles.max);
+  CopyStats(burst_ptiles, *report.mutable_burst_latencies());
 
   // Set invocation latencies
-  auto* inv_stats = report.mutable_invocation_latencies();
-  inv_stats->set_count(invocation_ptiles.count);
-  *inv_stats->mutable_min() = DurationToProto(invocation_ptiles.min);
-  *inv_stats->mutable_p50() = DurationToProto(invocation_ptiles.p50);
-  *inv_stats->mutable_p90() = DurationToProto(invocation_ptiles.p90);
-  *inv_stats->mutable_p95() = DurationToProto(invocation_ptiles.p95);
-  *inv_stats->mutable_p99() = DurationToProto(invocation_ptiles.p99);
-  *inv_stats->mutable_max() = DurationToProto(invocation_ptiles.max);
+  CopyStats(invocation_ptiles, *report.mutable_invocation_latencies());
 
   // Each invocation should have a corresponding output, except in the case of
   // batch_execute, where each invocation would be associated with a batch of
@@ -181,14 +180,7 @@ void BurstGenerator::Stats::ToReport(
   if (output_latencies.size() >= invocation_outputs.size()) {
     Percentiles<absl::Duration> output_ptiles =
         get_percentiles(output_latencies);
-    auto* output_stats = report.mutable_output_latencies();
-    output_stats->set_count(output_ptiles.count);
-    *output_stats->mutable_min() = DurationToProto(output_ptiles.min);
-    *output_stats->mutable_p50() = DurationToProto(output_ptiles.p50);
-    *output_stats->mutable_p90() = DurationToProto(output_ptiles.p90);
-    *output_stats->mutable_p95() = DurationToProto(output_ptiles.p95);
-    *output_stats->mutable_p99() = DurationToProto(output_ptiles.p99);
-    *output_stats->mutable_max() = DurationToProto(output_ptiles.max);
+    CopyStats(output_ptiles, *report.mutable_output_latencies());
   }
 }
 
