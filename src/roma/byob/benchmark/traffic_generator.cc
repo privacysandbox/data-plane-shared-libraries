@@ -12,11 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <sys/utsname.h>
+
 #include <filesystem>
 #include <fstream>
 #include <memory>
 #include <optional>
 #include <string>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -92,6 +95,24 @@ using ExecutionFunc = absl::AnyInvocable<void(
     absl::StatusOr<std::string>*, absl::Notification*)>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
+std::string GetKernelVersion() {
+  struct utsname uname_data;
+  PCHECK(::uname(&uname_data) != -1) << "uname failed";
+  return uname_data.release;
+}
+
+void PopulateSystemInfo(
+    ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::SystemInfo&
+        info) {
+  struct rlimit sigpending;
+  PCHECK(::getrlimit(RLIMIT_SIGPENDING, &sigpending) != -1)
+      << "getrlimit SIGPENDING";
+  info.mutable_rlimit_sigpending()->set_soft(sigpending.rlim_cur);
+  info.mutable_rlimit_sigpending()->set_hard(sigpending.rlim_max);
+  info.set_hardware_thread_count(std::thread::hardware_concurrency());
+  info.set_linux_kernel(GetKernelVersion());
+}
+
 }  // namespace
 
 int main(int argc, char** argv) {
@@ -130,16 +151,6 @@ int main(int argc, char** argv) {
   CHECK(mode == "byob" || mode == "v8")
       << "Invalid mode. Must be 'byob' or 'v8'";
 
-  const auto get_sigpending = []() -> struct rlimit {
-    struct rlimit limit;
-    PCHECK(::getrlimit(RLIMIT_SIGPENDING, &limit) != -1)
-        << "getrlimit SIGPENDING";
-    LOG(INFO) << "getrlimit SIGPENDING soft: " << limit.rlim_cur
-              << ", hard: " << limit.rlim_max;
-    return limit;
-  };
-  (void)get_sigpending();
-
   if (absl::GetFlag(FLAGS_sigpending).has_value()) {
     const int new_sigpending_limit = absl::GetFlag(FLAGS_sigpending).value();
     struct rlimit new_sigpending = {
@@ -150,11 +161,7 @@ int main(int argc, char** argv) {
         << "setrlimit SIGPENDING";
   }
   ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report report;
-  const struct rlimit sigpending = get_sigpending();
-  report.mutable_info()->mutable_rlimit_sigpending()->set_soft(
-      sigpending.rlim_cur);
-  report.mutable_info()->mutable_rlimit_sigpending()->set_hard(
-      sigpending.rlim_max);
+  PopulateSystemInfo(*report.mutable_info());
 
   CleanupFunc stop_func;
   ExecutionFunc rpc_func;
@@ -217,27 +224,26 @@ int main(int argc, char** argv) {
             << "\n  burst cadence: " << burst_cadence
             << "\n  num bursts: " << num_queries << std::endl;
 
+  stats.ToReport(report);
+  report.set_run_id(absl::GetFlag(FLAGS_run_id));
+  report.mutable_params()->set_burst_size(burst_size);
+  report.mutable_params()->set_query_count(num_queries);
+  report.mutable_params()->set_queries_per_second(queries_per_second);
+  report.mutable_params()->set_num_workers(num_workers);
+  const google::protobuf::util::JsonPrintOptions json_opts = {
+      .add_whitespace = false,
+      .always_print_primitive_fields = true,
+  };
+  auto report_json =
+      privacy_sandbox::server_common::ProtoToJson(report, json_opts);
+  CHECK(report_json.ok()) << "Failed to convert report to JSON: "
+                          << report_json.status();
+  if (absl::GetFlag(FLAGS_verbose)) {
+    LOG(INFO) << "JSON_L" << report_json.value() << "JSON_L";
+  }
   if (!output_file.empty()) {
     if (std::ofstream outfile(output_file, std::ios::app); outfile.is_open()) {
-      stats.ToReport(report);
-      report.set_run_id(absl::GetFlag(FLAGS_run_id));
-      report.mutable_params()->set_burst_size(burst_size);
-      report.mutable_params()->set_query_count(num_queries);
-      report.mutable_params()->set_queries_per_second(queries_per_second);
-      report.mutable_params()->set_num_workers(num_workers);
-
-      google::protobuf::util::JsonPrintOptions options = {
-          .add_whitespace = false,
-          .always_print_primitive_fields = true,
-      };
-      auto report_json =
-          privacy_sandbox::server_common::ProtoToJson(report, options);
-      CHECK(report_json.ok())
-          << "Failed to convert report to JSON: " << report_json.status();
       outfile << report_json.value() << std::endl;
-      if (absl::GetFlag(FLAGS_verbose)) {
-        LOG(INFO) << "JSON_L" << report_json.value() << "JSON_L";
-      }
     } else {
       LOG(ERROR) << "Failed to open output file: " << output_file;
     }

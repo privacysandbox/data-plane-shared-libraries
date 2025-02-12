@@ -55,7 +55,10 @@ int32 hard = 2;
 }
 
 message SystemInfo {
-  Rlimit rlimit_sigpending = 1;
+  int32 hardware_thread_count = 1;
+  int32 memory = 2;
+  string linux_kernel = 3;
+  Rlimit rlimit_sigpending = 4;
 }
 
 message Report {
