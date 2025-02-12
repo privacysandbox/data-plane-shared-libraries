@@ -34,56 +34,6 @@ using Token = std::string;
 /// The default aggregate interval in milliseconds for AggregatedMetric.
 inline constexpr TimeDuration kDefaultAggregatedMetricIntervalMs = 1000;
 
-/// Structure that acts as a wrapper around a vector of bytes.
-/// This structure allows callers to keep track of the current used buffer via
-/// 'length' and the total allocated capacity via 'capacity'.
-/// This structure allows callers to consume partial prefix bytes as specified
-/// by the 'length' field. If 'length' and 'capacity' are the same, this is the
-/// default case and the full buffer will be used.
-struct BytesBuffer {
-  BytesBuffer() : BytesBuffer(0) {}
-
-  /**
-   * @brief Construct a new Bytes Buffer object that is empty of size.
-   *
-   * @param size
-   */
-  explicit BytesBuffer(size_t size)
-      : bytes(std::make_shared<std::vector<Byte>>(size)), capacity(size) {}
-
-  /**
-   * @brief Construct a new Bytes Buffer object from a string
-   *
-   * @param buffer_string
-   */
-  explicit BytesBuffer(std::string_view buffer_string)
-      : BytesBuffer(buffer_string.size()) {
-    bytes->assign(buffer_string.begin(), buffer_string.end());
-    length = bytes->size();
-  }
-
-  inline std::string ToString() const {
-    return std::string(bytes->data(), length);
-  }
-
-  void Reset() {
-    bytes = nullptr;
-    length = 0;
-    capacity = 0;
-  }
-
-  inline size_t Size() const { return length; }
-
-  /**
-   * @brief 'length' is the length of the bytes buffer to consume. Note that,
-   * the actual buffer may represent a larger size as specified by 'capacity'.
-   * 'length' <= 'capacity'.
-   */
-  std::shared_ptr<std::vector<Byte>> bytes;
-  size_t length = 0;
-  size_t capacity = 0;
-};
-
 using PublicPrivateKeyPairId = std::string;
 
 /// Struct that stores version metadata.
