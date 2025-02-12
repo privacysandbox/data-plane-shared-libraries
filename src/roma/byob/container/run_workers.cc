@@ -93,14 +93,13 @@ using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 
 const absl::NoDestructor<std::filesystem::path> kBinaryExe("bin.exe");
 
-constexpr std::array<int, 121> kSyscallAllowlist = {
+constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(arch_prctl),
     SCMP_SYS(brk),
     // Only needed by cap_udf test to verify no capabilities are available to
     // the binary.
     SCMP_SYS(capget),
     SCMP_SYS(clone),
-    SCMP_SYS(clone3),
     SCMP_SYS(close),
     SCMP_SYS(connect),
     SCMP_SYS(dup2),
@@ -242,6 +241,12 @@ absl::StatusOr<scmp_filter_ctx> GetSeccompFilter() {
       return absl::ErrnoToStatus(
           errno, absl::StrCat("Failed to seccomp_rule_add ", syscall));
     }
+  }
+  // Unimplemented error for clone3 is the recommended filtering.
+  if (seccomp_rule_add(ctx, SCMP_ACT_ERRNO(ENOSYS), SCMP_SYS(clone3),
+                       /*arg_cnt=*/0) < 0) {
+    seccomp_release(ctx);
+    return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add clone3.");
   }
   return ctx;
 }
