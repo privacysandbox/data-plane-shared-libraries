@@ -524,6 +524,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
             "@com_google_absl//absl/functional:any_invocable",
             "@com_google_absl//absl/status",
             "@com_google_absl//absl/strings",
+            "@com_google_absl//absl/time",
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )

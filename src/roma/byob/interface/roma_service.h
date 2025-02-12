@@ -41,6 +41,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
 #include "src/core/common/uuid/uuid.h"
 #include "src/roma/byob/config/config.h"
@@ -216,20 +217,21 @@ class RomaService final {
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request,
-      TMetadata /*metadata*/,
+      TMetadata /*metadata*/, absl::Duration connection_timeout,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view>) &&>
           callback) {
-    return dispatcher_->ProcessRequest(code_token, request,
+    return dispatcher_->ProcessRequest(code_token, request, connection_timeout,
                                        std::move(callback));
   }
 
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
+      absl::Duration connection_timeout,
       absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
     return ProcessRequest<Response>(
-        code_token, request, std::move(metadata),
+        code_token, request, std::move(metadata), connection_timeout,
         [callback = std::move(callback)](
             absl::StatusOr<Response> response,
             absl::StatusOr<std::string_view> /*logs*/) mutable {
@@ -240,10 +242,10 @@ class RomaService final {
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
-      absl::Notification& notif,
+      absl::Duration connection_timeout, absl::Notification& notif,
       absl::StatusOr<std::unique_ptr<Response>>& output) {
     return ProcessRequest<Response>(
-        code_token, request, std::move(metadata),
+        code_token, request, std::move(metadata), connection_timeout,
         [&notif, &output](absl::StatusOr<Response> response,
                           absl::StatusOr<std::string_view> /*logs*/) {
           if (response.ok()) {

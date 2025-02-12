@@ -77,7 +77,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -129,7 +129,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -182,7 +182,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -233,7 +233,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -285,7 +285,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -337,7 +337,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -387,7 +387,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request,
+                *code_token, bin_request, absl::ZeroDuration(),
                 [&done](auto /*response*/, auto /*logs*/) { done.Notify(); })
             .ok());
     EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
@@ -404,7 +404,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request,
+                *code_token, bin_request, absl::ZeroDuration(),
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/) {
                   bin_response = std::move(response);
@@ -450,7 +450,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
   absl::Notification done;
   absl::StatusOr<ExecutionToken> execution_token =
       dispatcher.ProcessRequest<SampleResponse>(
-          *code_token, bin_request,
+          *code_token, bin_request, absl::ZeroDuration(),
           [&done](auto /*response*/,
                   absl::StatusOr<std::string_view> /*logs*/) {
             done.Notify();
@@ -499,7 +499,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -551,7 +551,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);
@@ -604,7 +604,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
       ASSERT_TRUE(
           dispatcher
               .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request,
+                  *code_token, bin_request, absl::ZeroDuration(),
                   [&bin_response, &done](
                       auto response, absl::StatusOr<std::string_view> logs) {
                     bin_response = std::move(response);

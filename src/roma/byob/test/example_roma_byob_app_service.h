@@ -25,6 +25,7 @@
 #include "absl/functional/any_invocable.h"
 #include "absl/status/status.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/example/example.pb.h"
 #include "src/roma/byob/interface/roma_service.h"
@@ -133,10 +134,11 @@ class ByobEchoService final {
       absl::StatusOr<std::unique_ptr<
           ::privacy_sandbox::server_common::byob::example::EchoResponse>>&
           response,
-      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
-    return roma_service_->ProcessRequest(code_token, std::move(request),
-                                         std::move(metadata), notification,
-                                         response);
+      TMetadata metadata = TMetadata(), std::string_view code_token = "",
+      absl::Duration connection_timeout = absl::ZeroDuration()) {
+    return roma_service_->ProcessRequest(
+        code_token, std::move(request), std::move(metadata), connection_timeout,
+        notification, response);
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
@@ -145,10 +147,11 @@ class ByobEchoService final {
                ::privacy_sandbox::server_common::byob::example::EchoResponse>)>
           callback,
       ::privacy_sandbox::server_common::byob::example::EchoRequest request,
-      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
+      TMetadata metadata = TMetadata(), std::string_view code_token = "",
+      absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
-        code_token, std::move(request), std::move(metadata),
+        code_token, std::move(request), std::move(metadata), connection_timeout,
         std::move(callback));
   }
 
@@ -158,10 +161,11 @@ class ByobEchoService final {
                               absl::StatusOr<std::string_view> logs)>
           callback_with_logs_param,
       ::privacy_sandbox::server_common::byob::example::EchoRequest request,
-      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
+      TMetadata metadata = TMetadata(), std::string_view code_token = "",
+      absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
-        code_token, std::move(request), std::move(metadata),
+        code_token, std::move(request), std::move(metadata), connection_timeout,
         std::move(callback_with_logs_param));
   }
 

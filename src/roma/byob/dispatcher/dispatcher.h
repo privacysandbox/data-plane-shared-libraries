@@ -37,6 +37,7 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/synchronization/notification.h"
+#include "absl/time/time.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/utility/file_reader.h"
@@ -69,12 +70,22 @@ class Dispatcher {
   template <typename Response, typename Request>
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request,
+      absl::Duration connection_timeout,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
                               absl::StatusOr<std::string_view> logs) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
     RequestMetadata* request_metadata;
     {
+      auto fn = [&] {
+        mu_.AssertReaderHeld();
+        const auto it = code_token_to_request_metadatas_.find(code_token);
+        return it == code_token_to_request_metadatas_.end() ||
+               !it->second.empty();
+      };
       absl::MutexLock l(&mu_);
+      if (!mu_.AwaitWithTimeout(absl::Condition(&fn), connection_timeout)) {
+        return absl::DeadlineExceededError("No workers available.");
+      }
       const auto it = code_token_to_request_metadatas_.find(code_token);
       if (it == code_token_to_request_metadatas_.end()) {
         return absl::InvalidArgumentError("Unrecognized code token.");

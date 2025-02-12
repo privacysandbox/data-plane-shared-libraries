@@ -42,6 +42,7 @@
 #include "src/util/execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 #include "{{$file.Name | trimSuffix (ext $file.Name)}}_udf_interface.pb.h"
+#include "absl/time/time.h"
 
 {{range $svc := .Services}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -148,18 +149,22 @@ class {{$svcName}} final {
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::Notification& notification, const {{$reqType}}& request,
       absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
-      TMetadata metadata = TMetadata(), std::string_view code_token = "") {
+      TMetadata metadata = TMetadata(), std::string_view code_token = "",
+      absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->ProcessRequest(
-      code_token, request, std::move(metadata), notification, response);
+      code_token, request, std::move(metadata), connection_timeout,
+      notification, response);
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") {
+      std::string_view code_token = "",
+      absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->template ProcessRequest<{{$respType}}>(
-      code_token, request, std::move(metadata), std::move(callback));
+      code_token, request, std::move(metadata), connection_timeout,
+      std::move(callback));
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
@@ -167,9 +172,11 @@ class {{$svcName}} final {
       absl::StatusOr<std::string_view> logs)> callback_with_logs_param,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
-      std::string_view code_token = "") {
+      std::string_view code_token = "",
+      absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->template ProcessRequest<{{$respType}}>(
-      code_token, request, std::move(metadata), std::move(callback_with_logs_param));
+      code_token, request, std::move(metadata), connection_timeout,
+      std::move(callback_with_logs_param));
   }
 {{end}}
 

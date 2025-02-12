@@ -75,7 +75,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->ProcessRequest<SampleResponse>(
                 std::string_view(*code_token), request,
-                google::scp::roma::DefaultMetadata(),
+                google::scp::roma::DefaultMetadata(), absl::ZeroDuration(),
                 [stopwatch = std::move(stopwatch), duration, counter,
                  burst_stopwatch, burst_duration,
                  &completions](absl::StatusOr<SampleResponse> response) {

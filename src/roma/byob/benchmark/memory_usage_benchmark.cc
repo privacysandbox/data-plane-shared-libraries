@@ -166,9 +166,9 @@ int main(int argc, char** argv) {
   while (iteration_number++ < execute_iterations) {
     absl::Notification done;
     absl::StatusOr<std::unique_ptr<SortListResponse>> response;
-    if (auto execution_token =
-            sample_interface->SortList(done, request, response,
-                                       /*metadata=*/{}, code_token);
+    if (auto execution_token = sample_interface->SortList(
+            done, request, response,
+            /*metadata=*/{}, code_token, absl::InfiniteDuration());
         !execution_token.ok()) {
       LOG(ERROR) << "Execution failure: " << execution_token.status();
     }
