@@ -163,9 +163,6 @@ int main(int argc, char** argv) {
   ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report report;
   PopulateSystemInfo(*report.mutable_info());
 
-  CleanupFunc stop_func;
-  ExecutionFunc rpc_func;
-
   const std::int64_t expected_completions = num_queries * burst_size;
   std::atomic<std::int64_t> completions = 0;
 
@@ -185,15 +182,12 @@ int main(int argc, char** argv) {
     LOG(FATAL) << s;
   }
 
-  if (mode == "byob") {
-    std::tie(rpc_func, stop_func) =
-        CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
-                          completions, enable_seccomp_filter);
-  } else {  // v8 mode
-    std::tie(rpc_func, stop_func) =
-        CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
-                        completions, burst_size, batching);
-  }
+  auto [rpc_func, stop_func] =
+      (mode == "byob")
+          ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
+                              completions, enable_seccomp_filter)
+          : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
+                            completions, burst_size, batching);
 
   // If batching is enabled, use 1 instead of burst_size. Instead of calling
   // rpc_func with a single execution burst_size times, rpc_func is called 1
