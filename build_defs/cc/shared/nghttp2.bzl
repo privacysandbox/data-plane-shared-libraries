@@ -41,16 +41,6 @@ def pre_nghttp2():
 def nghttp2():
     maybe(
         http_archive,
-        name = "madler_zlib",
-        build_file = Label("//build_defs/cc/shared/build_targets:madler_zlib.BUILD"),
-        sha256 = "d233fca7cf68db4c16dc5287af61f3cd01ab62495224c66639ca3da537701e42",
-        strip_prefix = "zlib-1.2.13",
-        urls = [
-            "https://github.com/madler/zlib/releases/download/v1.2.13/zlib1213.zip",
-        ],
-    )
-    maybe(
-        http_archive,
         name = "libxml2",
         build_file = Label("//build_defs/cc/shared/build_targets:libxml2.BUILD"),
         patches = [Label("//build_defs/cc/shared/build_targets:libxml2.patch")],
