@@ -165,13 +165,49 @@ Step 2: Run the following from a command line:
       --binary_path="/udf/sample_udf"
 """
 
+traffic_generator_args = [
+    (
+        "{}qps-{}w-bs{}-nq{}-{}".format(qps, workers, burst_size, num_queries, sandbox),
+        [
+            "--num_workers={}".format(workers),
+            "--queries_per_second={}".format(qps),
+            "--burst_size={}".format(burst_size),
+            "--num_queries={}".format(num_queries),
+            "--sandbox={}".format(sandbox),
+            "--syscall_filter={}".format(syscall_filter),
+            "--lib_mounts=/lib64",
+            "--binary_path=/udf/sample_udf",
+            "--verbose",
+        ],
+    )
+    for workers in [84]
+    for qps in [
+        250,
+        500,
+    ]
+    for burst_size in [14]
+    for num_queries in [2000]
+    for sandbox, syscall_filter in [("minimal", "true")]
+]
+
 [
     roma_byob_image(
-        name = "traffic_generator_{}_image".format(user.flavor),
+        name = "traffic_generator_{}_{}_image".format(
+            name,
+            user.flavor,
+        ),
+        cmd = args,
         container_structure_test_configs = [":traffic_generator_{}_image_test.yaml".format(user.flavor)],
         debug = True,
         entrypoint = ["/server/bin/traffic_generator"],
-        repo_tags = ["privacysandbox/roma-byob/traffic_generator:v1-{}".format(user.flavor)],
+        labels = {
+            "tee.launch_policy.log_redirect": "always",
+            "tee.launch_policy.privileged": "true",
+        },
+        repo_tags = ["privacysandbox/roma-byob/traffic-generator:v1-{}-{}".format(
+            name,
+            user.flavor,
+        )],
         tags = [
             "noasan",
             "notsan",
@@ -183,6 +219,7 @@ Step 2: Run the following from a command line:
         ],
         user = user,
     )
+    for name, args in traffic_generator_args
     for user in DISTROLESS_USERS
 ]
 
@@ -368,7 +405,10 @@ pkg_files(
             "BENCHMARK_OUT": "/tmp/benchmark_out.json",
             "BENCHMARK_OUT_FORMAT": "json",
         },
-        labels = {"tee.launch_policy.log_redirect": "always"},
+        labels = {
+            "tee.launch_policy.log_redirect": "always",
+            "tee.launch_policy.privileged": "true",
+        },
         repo_tags = [
             "privacysandbox/roma-byob/microbenchmarks:v1-{flavor}{dbg}".format(
                 dbg = debug_str.replace("_", "-"),
@@ -393,23 +433,31 @@ docker load -i dist/roma_byob/benchmark_root_image.tar
 docker run -it --privileged privacysandbox/roma-byob/microbenchmarks:v1-root
 """
 
+cp_cmds = ["mkdir -p {dir}"] + [
+    "cp $(execpath :benchmark_{{user}}{debug}_image.tar) {{dir}}/benchmark_{{user}}{debug}_image.tar".format(debug = debug_str)
+    for debug_str in ("_debug", "")
+] + [
+    "cp $(execpath :traffic_generator_{name}_{{user}}_image.tar) {{dir}}/traffic_generator_{name}_{{user}}_image.tar".format(name = name)
+    for name, _ in traffic_generator_args
+]
+
 genrule(
     name = "copy_to_dist",
-    srcs = [
-        ":benchmark_nonroot_image.tar",
-        ":benchmark_root_image.tar",
-        ":benchmark_nonroot_debug_image.tar",
-        ":benchmark_root_debug_image.tar",
-    ],
+    srcs = [":benchmark_{}{}_image.tar".format(
+               u.flavor,
+               d,
+           ) for u in DISTROLESS_USERS for d in ("", "_debug")] +
+           [":traffic_generator_{}_{}_image.tar".format(
+               name,
+               u.flavor,
+           ) for name, _ in traffic_generator_args for u in DISTROLESS_USERS],
     outs = ["copy_to_dist.bin"],
-    cmd_bash = """cat <<EOF >'$@'
-mkdir -p {dir}
-cp $(execpath :benchmark_nonroot_image.tar) {dir}/benchmark_nonroot_image.tar
-cp $(execpath :benchmark_root_image.tar) {dir}/benchmark_root_image.tar
-cp $(execpath :benchmark_nonroot_debug_image.tar) {dir}/benchmark_nonroot_debug_image.tar
-cp $(execpath :benchmark_root_debug_image.tar) {dir}/benchmark_root_debug_image.tar
+    cmd_bash = "cat <<EOF >'$@'\n" + "\n".join(["\n".join(cp_cmds).format(
+        dir = "dist/roma_byob",
+        user = u.flavor,
+    ) for u in DISTROLESS_USERS]) + """
 builders/tools/normalize-dist
-EOF""".format(dir = "dist/roma_byob"),
+EOF""",
     executable = True,
     local = True,
     message = "copying aws artifacts to dist directory",
