@@ -54,6 +54,7 @@ USAGE
     --without-embedded-docker  Disable docker client within container
     --docker-network <value>   Specify docker network type or name, value passed to docker run --network. Default: ${DOCKER_NETWORK}
     --seccomp-unconfined       Run docker container without a seccomp profile
+    --privileged               Run in a privileged docker container
     --verbose                  Enable verbose output
 
   Profiler flags:
@@ -81,6 +82,7 @@ declare -i WITH_DOCKER_SOCK=1
 declare -i WITH_CMD_PROFILER=0
 DOCKER_NETWORK="${DOCKER_NETWORK:-bridge}"
 declare -i DOCKER_SECCOMP_UNCONFINED=0
+declare -i DOCKER_PRIVILEGED=0
 declare -i ONE_TIME_CONTAINER=0
 declare -i KEEP_CONTAINER_RUNNING=0
 declare LONG_RUNNING_CONTAINER_TIMEOUT=8h
@@ -131,6 +133,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --seccomp-unconfined)
       DOCKER_SECCOMP_UNCONFINED=1
+      shift
+      ;;
+    --privileged)
+      DOCKER_PRIVILEGED=1
       shift
       ;;
     --verbose)
@@ -209,6 +215,10 @@ declare -a DOCKER_RUN_ARGS=(
 
 if [[ ${DOCKER_SECCOMP_UNCONFINED} -eq 1 ]]; then
   DOCKER_RUN_ARGS+=("--security-opt=seccomp=unconfined")
+fi
+
+if [[ ${DOCKER_PRIVILEGED} -eq 1 ]]; then
+  DOCKER_RUN_ARGS+=("--privileged")
 fi
 
 if [[ ${WITH_CMD_PROFILER} -eq 1 ]]; then

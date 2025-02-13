@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.79.0 (2025-02-09)
+
+
+### Dependencies
+
+* **deps:** Upgrade Amazon Linux to AL2023.6
+
+## 0.78.0 (2025-01-31)
+
+
+### Features
+
+* Run bazel in privileged container
+
+## 0.77.0 (2025-01-13)
+
+
+### Features
+
+* Add environment variables specified by the environment variable BUILDER_CUSTOM_ENV_VARS in builder.sh
+
 ## 0.76.0 (2024-12-16)
 
 
