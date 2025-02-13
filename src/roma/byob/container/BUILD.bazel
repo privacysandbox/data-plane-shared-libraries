@@ -249,6 +249,11 @@ alias(
             ":byob_runtime_base.tar",
             ":byob_runtime_tar_{}.tar".format(user.flavor),
             ":container_config_{}.tar".format(user.user),
+            ":nsjail",
+            ":libprotobuf.so.17",
+            ":libnl-route-3.so.200",
+            ":libnl-3.so.200",
+            ":libz.so.1",
         ],
         outs = ["byob_runtime_container_with_dir_{}.tar".format(user.flavor)],
         cmd_bash = """
@@ -271,6 +276,10 @@ fi
 cp --dereference \
   "$${{ROOT_DIR}}/usr/lib/$${{MACHINE}}-linux-gnu"/libstdc++.so.6 \
   "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/{{libc.so.6,libgcc_s.so.1,libm.so.6,libpthread.so.0}} \
+  $(execpath :libprotobuf.so.17) \
+  $(execpath :libnl-route-3.so.200) \
+  $(execpath :libnl-3.so.200) \
+  $(execpath :libz.so.1) \
   "$${{TARGET_DIR}}"
 rm -rf "$${{ROOT_DIR}}/usr/lib"
 if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
@@ -278,6 +287,7 @@ if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
   mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/ld-2.31.so "$${{ROOT_DIR}}/lib64/ld-linux-$${{MACHINE/_/-}}.so.2"
   rm -rf "$${{ROOT_DIR}}/lib"
 fi
+cp --dereference $(execpath :nsjail) "$${{ROOT_DIR}}/usr/bin/"
 # TODO: b/330312036 - Avoid compressing this tar till rules_docker is deprecated.
 tar --create --owner={user}:{uid} --group={group}:{gid} --sort=name --format=gnu --mtime="2000-01-01 10:00:00" --file=$@ --directory="$${{TMPDIR}}" "{roma_container_dir}/"
 rm -rf "$${{TMPDIR}}"

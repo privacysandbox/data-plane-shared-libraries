@@ -103,30 +103,33 @@ NsJailHandle::NsJailHandle(
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
+    PCHECK(::unshare(CLONE_NEWNS) == 0);
     // Set the process group id to the process id.
     PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
     const std::string root_dir =
         std::filesystem::path(CONTAINER_PATH) / CONTAINER_ROOT_RELPATH;
+    std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
+        sources_and_targets = {
+            {log_dir, "/log_dir"},
+            {socket_dir, "/socket_dir"},
+            // Needs to be mounted for Cancel to work (kill by cmdline)
+            {"/proc", "/proc"},
+            {"/dev", "/dev"},
+            {binary_dir, "/binary_dir"},
+        };
+    CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
+        root_dir, /*sources_and_targets_read_only=*/{},
+        /*cleanup_pivot_root_dir=*/false, sources_and_targets,
+        /*remount_root_as_read_only=*/false));
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
     const std::string seccomp_filter_flag =
         absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter);
-    const std::string log_dir_mount = absl::StrCat(log_dir, ":/log_dir");
-    const std::string socket_dir_mount =
-        absl::StrCat(socket_dir, ":/socket_dir");
-    const std::string binary_dir_mount =
-        absl::StrCat(binary_dir, ":/binary_dir");
     const char* argv[] = {
-        "/usr/byob/nsjail/bin/nsjail",
+        "/usr/bin/nsjail",
         "--mode",
         "o",  // MODE_STANDALONE_ONCE
         "--chroot",
-        root_dir.data(),
-        "--bindmount",
-        log_dir_mount.c_str(),
-        "--bindmount",
-        socket_dir_mount.c_str(),
-        "--bindmount",
-        binary_dir_mount.c_str(),
+        "/",
         "--bindmount_ro",
         "/dev/null",
         "--disable_rlimits",
@@ -149,7 +152,7 @@ NsJailHandle::NsJailHandle(
         nullptr,
     };
     const char* envp[] = {
-        "LD_LIBRARY_PATH=/usr/byob/nsjail/lib",
+        kLdLibraryPath.data(),
         nullptr,
     };
     ::execve(argv[0], const_cast<char* const*>(&argv[0]),
