@@ -285,6 +285,8 @@ pkg_files(
         entrypoint = ["/server/bin/memory_usage_benchmark"],
         repo_tags = ["privacysandbox/roma-byob/memory_usage_benchmark:v1-{}".format(user.flavor)],
         tags = [
+            # Disabled due to flakiness
+            "manual",
             "noasan",
             "notsan",
             "noubsan",
