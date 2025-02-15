@@ -1,0 +1,113 @@
+# Portions Copyright (c) Microsoft Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+package(default_visibility = ["//src:scp_internal_pkg"])
+
+cc_library(
+    name = "tee_azure_kms_client_provider",
+    deps = [
+        ":azure_kms_client_provider",
+        ":tee_get_attestation_report",
+    ],
+)
+
+cc_library(
+    name = "nontee_azure_kms_client_provider",
+    deps = [
+        ":azure_kms_client_provider",
+        ":nontee_get_attestation_report",
+    ],
+)
+
+cc_library(
+    name = "tee_get_attestation_report",
+    srcs = [
+        ":tee_get_attestation_report.cc",
+    ],
+    deps = [
+        ":azure_kms_client_provider",
+    ],
+)
+
+cc_library(
+    name = "nontee_get_attestation_report",
+    srcs = [
+        ":nontee_get_attestation_report.cc",
+    ],
+    deps = [
+        ":azure_kms_client_provider",
+    ],
+)
+
+cc_library(
+    name = "azure_kms_client_provider",
+    srcs = [
+        ":azure_kms_client_provider.cc",
+    ],
+    hdrs = [
+        ":azure_kms_client_provider.h",
+        ":error_codes.h",
+    ],
+    deps = [
+        ":azure_kms_client_provider_utils",
+        "//src/azure:attestation",
+        "//src/core/interface",
+        "//src/core/interface:async_context",
+        "//src/core/utils:core_utils",
+        "//src/cpio/client_providers/global_cpio",
+        "//src/cpio/client_providers/interface:cpio_client_providers_interface",
+        "//src/public/cpio/interface:cpio_errors",
+        "//src/public/cpio/interface/kms_client:type_def",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/strings",
+        "@tink_cc",
+    ],
+)
+
+cc_library(
+    name = "azure_kms_client_provider_utils",
+    srcs = [
+        ":azure_kms_client_provider_utils.cc",
+    ],
+    hdrs = [
+        ":azure_kms_client_provider_utils.h",
+    ],
+    deps = [
+        "@boringssl//:crypto",
+        "@boringssl//:ssl",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status:statusor",
+    ],
+)
+
+cc_test(
+    name = "azure_kms_client_provider_test",
+    size = "small",
+    srcs =
+        [
+            "azure_kms_client_provider_test.cc",
+            "azure_kms_client_provider_utils_test.cc",
+        ],
+    deps = [
+        "//src/core/curl_client/mock:mock_curl_client",
+        "//src/core/interface",
+        "//src/core/test/utils",
+        "//src/cpio/client_providers/auth_token_provider/mock:auth_token_provider_mock",
+        "//src/cpio/client_providers/kms_client_provider/azure:nontee_azure_kms_client_provider",
+        "//src/public/core:test_execution_result_matchers",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
