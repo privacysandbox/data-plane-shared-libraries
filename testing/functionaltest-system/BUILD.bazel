@@ -87,12 +87,18 @@ pkg_files(
     },
 )
 
-pkg_files(
-    name = "bazel_binaries",
-    srcs = ["//bazel:testrunner_binaries"],
-    attributes = pkg_attributes(mode = "0755"),
-    prefix = "{}/bazel".format(functest_path),
-)
+[
+    pkg_files(
+        name = name,
+        srcs = ["//{}:testrunner_binaries".format(path)],
+        attributes = pkg_attributes(mode = "0755"),
+        prefix = "{}/bazel".format(functest_path),
+    )
+    for name, path in (
+        ("bazel_binaries_nodocker", "bazel/nodocker"),
+        ("bazel_binaries", "bazel"),
+    )
+]
 
 pkg_files(
     name = "bazel_files",
@@ -101,16 +107,22 @@ pkg_files(
     prefix = "{}/bazel".format(functest_path),
 )
 
-pkg_filegroup(
-    name = "functionaltest-embed",
-    srcs = [
-        ":bazel_binaries",
-        ":bazel_files",
-        ":root_files",
-        ":sut_files",
-    ],
-    visibility = ["//sut:__subpackages__"],
-)
+[
+    pkg_filegroup(
+        name = name,
+        srcs = [
+            label,
+            ":bazel_files",
+            ":root_files",
+            ":sut_files",
+        ],
+        visibility = ["//sut:__subpackages__"],
+    )
+    for name, label in (
+        ("functionaltest-embed-nodocker", ":bazel_binaries_nodocker"),
+        ("functionaltest-embed", ":bazel_binaries"),
+    )
+]
 
 exports_files([
     "buf.yaml",

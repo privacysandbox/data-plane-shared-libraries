@@ -11,6 +11,10 @@ load("//:deps.bzl", "go_dependencies", repo_dependencies = "dependencies")
 
 repo_dependencies()
 
+load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
+
+protobuf_deps()
+
 # gazelle:repository_macro deps.bzl%go_dependencies
 go_dependencies()
 

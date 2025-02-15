@@ -1,5 +1,5 @@
 load("@container_structure_test//:defs.bzl", "container_structure_test")
-load("@rules_oci//oci:defs.bzl", "oci_image", "oci_tarball")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 
@@ -64,22 +64,28 @@ oci_image(
 
 server_image_uri = "grpc_examples_docker_image:latest"
 
-oci_tarball(
-    name = "tarball",
+oci_load(
+    name = "grpc_examples_image",
     image = ":grpc_examples",
     repo_tags = [server_image_uri],
+)
+
+filegroup(
+    name = "grpc_examples_tarball",
+    srcs = [":grpc_examples_image"],
+    output_group = "tarball",
 )
 
 genrule(
     name = "copy_to_dist",
     srcs = [
-        ":tarball",
+        ":grpc_examples_tarball",
         ":grpc_cli",
     ],
     outs = ["copy_to_dist.bin"],
     cmd_bash = """cat <<EOF >'$@'
 mkdir -p dist/test_servers dist/debian
-cp $(execpath :tarball) dist/test_servers/grpc_examples.tar
+cp $(execpath :grpc_examples_tarball) dist/test_servers/grpc_examples.tar
 printf "{}" >dist/test_servers/grpc_examples_uri.txt
 cp $(execpath :grpc_cli) dist/debian
 chmod 755 dist/debian/grpc_cli
@@ -92,11 +98,11 @@ EOF""".format(server_image_uri),
 genrule(
     name = "docker_load_image",
     srcs = [
-        ":tarball",
+        ":grpc_examples_tarball",
     ],
     outs = ["docker_load_image.bin"],
     cmd_bash = """cat << EOF > '$@'
-docker load -i $(execpath :tarball) &>/dev/null
+docker load -i $(execpath :grpc_examples_tarball) &>/dev/null
 EOF""",
     executable = True,
     local = True,

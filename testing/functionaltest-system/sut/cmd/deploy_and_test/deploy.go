@@ -150,6 +150,11 @@ func shellCommandToCmd(shellCommand *sutV1Pb.ShellCommand) (cmd *exec.Cmd, err e
 		return
 	}
 	cmd = exec.Command(shellCommand.Command[0], shellCommand.Command[1:]...)
+	if len(shellCommand.Env) > 0 {
+		for k, v := range shellCommand.Env {
+			cmd.Env = append(cmd.Env, k+"="+v)
+		}
+	}
 	return
 }
 
@@ -256,9 +261,12 @@ func deploy() (err error) {
 	}
 
 	sutWorkFS := os.DirFS(sutWorkdir)
-	if err = DockerLoad(sutWorkFS, "test-tools.tar"); err != nil {
-		err = fmt.Errorf("docker load test-tools image -- %w", err)
-		return
+	const test_tools_fname = "test-tools.tar"
+	if _, _err := fs.Stat(sutWorkFS, test_tools_fname); _err == nil {
+		if err = DockerLoad(sutWorkFS, test_tools_fname); err != nil {
+			err = fmt.Errorf("docker load test-tools image [%s] -- %w", test_tools_fname, err)
+			return
+		}
 	}
 
 	if len(sutDir) > 0 {

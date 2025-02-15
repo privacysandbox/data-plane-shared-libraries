@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.22.0 (2025-02-14)
+
+
+### Features
+
+* Add nodocker versions of rpc_diff_test runners
+
+
+### Bug Fixes
+
+* Check test-tools.tar exists before calling DockerLoad()
+* Support shell command env vars
+* Validate file path in DockerLoad()
+
+
+### Dependencies
+
+* **deps:** Upgrade rules_oci to 2.2.1
+* **deps:** Use protobuf transitive deps
+
 ## 0.21.0 (2025-02-05)
 
 

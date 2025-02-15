@@ -67,31 +67,11 @@ def repositories():
 
     maybe(
         http_archive,
-        name = "com_google_absl",
-        # commit e83ef27 2024-11-06
-        sha256 = "950869f55ffcfc316abd2213137de058664234ce6466514c8c80f7b5b30695ab",
-        strip_prefix = "abseil-cpp-e83ef279682c46a0f8009a8f0727241693e96233",
-        urls = ["https://github.com/abseil/abseil-cpp/archive/e83ef279682c46a0f8009a8f0727241693e96233.zip"],
-    )
-
-    maybe(
-        http_archive,
         name = "rules_pkg",
-        sha256 = "8f9ee2dc10c1ae514ee599a8b42ed99fa262b757058f65ad3c384289ff70c4b8",
+        sha256 = "6f8918310cf4f5ec4ca0446f4716bc2bb44e5e9fedfb6adcac4850cb4ad12283",
+        strip_prefix = "rules_pkg-1.0.1",
         urls = [
-            "https://mirror.bazel.build/github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
-            "https://github.com/bazelbuild/rules_pkg/releases/download/0.9.1/rules_pkg-0.9.1.tar.gz",
-        ],
-    )
-
-    http_archive(
-        name = "zlib",
-        build_file = Label("//:third_party/zlib.BUILD"),
-        sha256 = "d14c38e313afc35a9a8760dadf26042f51ea0f5d154b0630a31da0540107fb98",
-        strip_prefix = "zlib-1.2.13",
-        urls = [
-            "https://github.com/madler/zlib/releases/download/v1.2.13/zlib-1.2.13.tar.xz",
-            "https://zlib.net/zlib-1.2.13.tar.xz",
+            "https://github.com/bazelbuild/rules_pkg/archive/refs/tags/1.0.1.zip",
         ],
     )
 
@@ -99,9 +79,9 @@ def repositories():
     maybe(
         http_archive,
         name = "rules_buf",
-        sha256 = "523a4e06f0746661e092d083757263a249fedca535bd6dd819a8c50de074731a",
-        strip_prefix = "rules_buf-0.1.1",
-        urls = ["https://github.com/bufbuild/rules_buf/archive/refs/tags/v0.1.1.zip"],
+        sha256 = "1ebeb843f09a62bd04de9b408c43a0759775c9cf9c063a7b386d70cee7f70c8b",
+        strip_prefix = "rules_buf-0.3.0",
+        urls = ["https://github.com/bufbuild/rules_buf/archive/refs/tags/v0.3.0.zip"],
     )
 
     maybe(

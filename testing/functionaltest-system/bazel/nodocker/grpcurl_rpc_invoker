@@ -1,0 +1,78 @@
+#!/bin/bash
+
+set -o errexit
+
+declare -i PLAINTEXT=0
+
+# Hack to get it to find grpcurl binary
+declare -r MY_HOME=/usr/local/google/home/pbenavides
+export PATH="$MY_HOME/go/bin:$PATH"
+
+function usage() {
+  local -r -i exitval=$1
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 <options>
+    --endpoint-hostport <host:port> host:port string
+    --docker-network <name>         docker network
+    --protoset <filename>           protobuf spec image file
+    --rpc <rpc name>                rpc name
+    --request <filename>            request.json filename
+    --plaintext                     send plaintext request
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --endpoint-hostport)
+      ENDPOINT_HOSTPORT="$2"
+      shift 2
+      ;;
+    --docker-network)
+      shift 2
+      ;;
+    --rpc)
+      RPC="$2"
+      shift 2
+      ;;
+    --protoset)
+      PROTOSET_FILENAME="$2"
+      shift 2
+      ;;
+    --request)
+      REQUEST_FILENAME="$2"
+      shift 2
+      ;;
+    --plaintext)
+      PLAINTEXT=1
+      shift
+      ;;
+    --help | -h) usage 0 ;;
+    *) shift 2 ;;
+  esac
+done
+
+: "${RPC?"Error: --rpc must be specified"}"
+: "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset not specified"}"
+
+declare -a GRPCURL_ARGS=()
+if [[ ${PLAINTEXT} -eq 1 ]]; then
+  GRPCURL_ARGS+=("-plaintext")
+fi
+
+GRPCURL_ERROR_TMPFILE="$(mktemp)"
+readonly GRPCURL_ERROR_TMPFILE
+
+set -o xtrace
+if ! grpcurl "${GRPCURL_ARGS[*]}" \
+  -d @ \
+  -protoset "${PROTOSET_FILENAME}" \
+  "${ENDPOINT_HOSTPORT}" \
+  "${RPC}" <"${REQUEST_FILENAME}" \
+  2> "${GRPCURL_ERROR_TMPFILE}"; then
+  cat "${GRPCURL_ERROR_TMPFILE}"
+fi

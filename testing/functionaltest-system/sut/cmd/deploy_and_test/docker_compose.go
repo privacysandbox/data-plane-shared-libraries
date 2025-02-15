@@ -200,6 +200,9 @@ func dockerLoad(cli *dockerClient.Client, img io.Reader) error {
 }
 
 func DockerLoad(srcFS fs.FS, imageFile string) (err error) {
+	if !fs.ValidPath(imageFile) {
+		return fmt.Errorf("invalid filename: %v", imageFile)
+	}
 	const quiet = false
 	cli, cliErr := dockerClient.NewClientWithOpts(
 		dockerClient.WithAPIVersionNegotiation(),

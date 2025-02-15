@@ -1,0 +1,211 @@
+#!/bin/bash
+
+set -o errexit
+
+declare -i JQ_POST_SLURP=0
+declare -i PLAINTEXT=0
+
+function usage() {
+  local -r -i exitval=$1
+  cat &>/dev/stderr <<USAGE
+usage:
+  $0 <options>
+    --rpc-invoker <filename>        image tarball or binary used to invoke rpc request
+    --endpoint-hostport <host:port> host:port string
+    --protoset <filename>           protobuf spec image file
+    --rpc <rpc name>                rpc name
+    --request <filename>            request.json filename
+    --jq-pre-filter <filename>      jq program to transform the request
+    --jq-post-filter <filename>     jq program to transform the reply
+    --jq-post-slurp                 run jq postprocessor in stream slurp mode
+    --reply <filename>              golden reply against which to diff the output
+    --plaintext                     send plaintext request
+    --http-path <string>            path used with endpoint hostport
+    --client-type <string>          client-type used to encrypt the request
+environment variables:
+    JQ                              path to jq executable
+    GRPCURL                         path to grpcurl executable
+USAGE
+  # shellcheck disable=SC2086
+  exit ${exitval}
+}
+
+function check_app() {
+  declare -n _app=$1
+  if [[ -z ${_app} ]]; then
+    printf "%s env var is not set\n" "${_app}" &>/dev/stderr
+    exit 1
+  elif ! command -v "${_app}" >/dev/null; then
+    printf "%s command [%s] not found or not executable\n" "$1" "${_app}" &>/dev/stderr
+    exit 1
+  fi
+}
+
+check_app JQ
+check_app GRPCURL
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --rpc-invoker)
+      RPC_INVOKER="$2"
+      shift 2 || usage
+      ;;
+    --rpc-invoker-type)
+      printf "Skipping arg --rpc-invoker-type\n"
+      shift 2 || usage
+      ;;
+    --endpoint-hostport)
+      ENDPOINT_HOSTPORT="$2"
+      shift 2 || usage
+      ;;
+    --docker-network)
+      printf "Skipping arg --docker-network\n"
+      shift 2 || usage
+      ;;
+    --rpc)
+      RPC="$2"
+      shift 2 || usage
+      ;;
+    --protoset)
+      PROTOSET_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --request)
+      REQUEST_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --reply)
+      GOLDEN_REPLY="$2"
+      shift 2 || usage
+      ;;
+    --jq-pre-filter)
+      JQ_PRE_PROGRAM_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --jq-post-filter)
+      JQ_POST_PROGRAM_FILENAME="$2"
+      shift 2 || usage
+      ;;
+    --jq-post-slurp)
+      JQ_POST_SLURP=1
+      shift
+      ;;
+    --plaintext)
+      PLAINTEXT=1
+      shift
+      ;;
+    --http-path)
+      HTTP_PATH="$2"
+      shift 2
+      ;;
+    --client-type)
+      CLIENT_TYPE="$2"
+      shift 2
+      ;;
+    --help | -h) usage 0 ;;
+    *) usage 1 ;;
+  esac
+done
+
+: "${RPC?"Error: --rpc must be specified"}"
+: "${REQUEST_FILENAME?"Error: --request must be specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset must be specified"}"
+: "${GOLDEN_REPLY?"Error: --reply must be specified"}"
+: "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
+: "${RPC_INVOKER?"Error: --rpc-invoker not specified"}"
+
+TMP_DIR="$(mktemp --directory)"
+readonly TMP_DIR
+chmod 755 "${TMP_DIR}"
+
+readonly TMP_FILTERED_REQUEST="${TMP_DIR}/filtered_request"
+readonly TMP_RAW_REPLY="${TMP_DIR}/raw_reply"
+readonly TMP_FILTERED_REPLY="${TMP_DIR}/filtered_reply"
+readonly TMP_JQ_PRE_PROGRAM_FILENAME="${TMP_DIR}/pre_program.jq"
+readonly TMP_JQ_POST_PROGRAM_FILENAME="${TMP_DIR}/post_program.jq"
+readonly TMP_PROTOSET_FILENAME="${TMP_DIR}/protoset.pb"
+
+cp "${PROTOSET_FILENAME}" "${TMP_PROTOSET_FILENAME}"
+
+if [[ -s ${JQ_PRE_PROGRAM_FILENAME} ]]; then
+  cp "${JQ_PRE_PROGRAM_FILENAME}" "${TMP_JQ_PRE_PROGRAM_FILENAME}"
+else
+  printf '.\n' >"${TMP_JQ_PRE_PROGRAM_FILENAME}"
+fi
+if [[ -s ${JQ_POST_PROGRAM_FILENAME} ]]; then
+  cp "${JQ_POST_PROGRAM_FILENAME}" "${TMP_JQ_POST_PROGRAM_FILENAME}"
+else
+  printf '.\n' >"${TMP_JQ_POST_PROGRAM_FILENAME}"
+fi
+
+trap cleanup EXIT
+function cleanup() {
+  local -r -i STATUS=$?
+  if [[ ${STATUS} -eq 0 ]]; then
+    rm -rf "${TMP_DIR}"
+  fi
+  exit ${STATUS}
+}
+
+
+declare -a RPC_INVOKER_ARGS=(
+  --endpoint-hostport
+  "${ENDPOINT_HOSTPORT}"
+  --rpc
+  "${RPC}"
+)
+
+set -o xtrace
+
+if [[ ${PLAINTEXT} -eq 1 ]]; then
+  RPC_INVOKER_ARGS+=(--plaintext)
+fi
+
+if [[ -n ${HTTP_PATH} ]]; then
+  RPC_INVOKER_ARGS+=(
+    --http-path
+    "${HTTP_PATH}"
+  )
+fi
+
+if [[ -n ${CLIENT_TYPE} ]]; then
+  RPC_INVOKER_ARGS+=(
+    --client-type
+    "${CLIENT_TYPE}"
+  )
+fi
+
+declare -a JQ_POST_ARGS=()
+if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
+  JQ_POST_ARGS+=(--slurp)
+fi
+
+# Run pre-filter on request
+"${JQ}" --exit-status \
+  --from-file "${TMP_JQ_PRE_PROGRAM_FILENAME}" \
+  <"${REQUEST_FILENAME}" \
+  >"${TMP_FILTERED_REQUEST}"
+
+# Send request
+"${RPC_INVOKER}" \
+  --protoset "${TMP_PROTOSET_FILENAME}" \
+  --request "${TMP_FILTERED_REQUEST}" \
+  "${RPC_INVOKER_ARGS[@]}" \
+  >"${TMP_RAW_REPLY}"
+
+# Check if TMP_RAW_REPLY is valid json. If not, diff the raw reply without jq.
+if "${JQ}" "${JQ_POST_ARGS[@]}" <"${TMP_RAW_REPLY}"; then
+  "${JQ}" --from-file "${TMP_JQ_POST_PROGRAM_FILENAME}" \
+    "${JQ_POST_ARGS[@]}" \
+    <"${TMP_RAW_REPLY}" \
+    >"${TMP_FILTERED_REPLY}"
+else
+  ln -s "${TMP_RAW_REPLY}" "${TMP_FILTERED_REPLY}"
+fi
+
+cp "${REQUEST_FILENAME}" "${TEST_UNDECLARED_OUTPUTS_DIR}/raw_request.json"
+cp "${TMP_FILTERED_REQUEST}" "${TEST_UNDECLARED_OUTPUTS_DIR}/filtered_request.json"
+cp "${TMP_RAW_REPLY}" "${TEST_UNDECLARED_OUTPUTS_DIR}/raw_reply.json"
+cp "${TMP_FILTERED_REPLY}" "${TEST_UNDECLARED_OUTPUTS_DIR}/filtered_reply.json"
+
+diff "${TMP_FILTERED_REPLY}" "${GOLDEN_REPLY}"
