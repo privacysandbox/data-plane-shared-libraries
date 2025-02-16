@@ -16,8 +16,6 @@ load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
-package(default_visibility = ["//visibility:private"])
-
 cc_library(
     name = "roma_service",
     hdrs = ["roma_service.h"],
@@ -172,6 +170,8 @@ cc_test(
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server:test_request_handlers",
+        "//src/roma/native_function_grpc_server/proto:multi_service_roma_host_api",
+        "//src/roma/native_function_grpc_server/proto:test_service_roma_app_api",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/util:duration",
         "@com_google_absl//absl/strings",
@@ -197,6 +197,8 @@ cc_test(
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
         "//src/roma/native_function_grpc_server:test_request_handlers",
+        "//src/roma/native_function_grpc_server/proto:multi_service_roma_host_api",
+        "//src/roma/native_function_grpc_server/proto:test_service_roma_app_api",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_host_api",
         "//src/util:duration",
         "@com_google_absl//absl/log:scoped_mock_log",
@@ -294,7 +296,7 @@ cc_proto_library(
 
 cc_library(
     name = "romav8_app_service",
-    srcs = ["romav8_app_service.h"],
+    hdrs = ["romav8_app_service.h"],
     visibility = ["//visibility:public"],
     deps = [
         ":roma_service",

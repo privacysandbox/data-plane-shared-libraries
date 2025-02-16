@@ -299,14 +299,13 @@ def roma_host_api_cc_library(*, name, roma_host_api, **kwargs):
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
     cc_test(
-        name = name + "_rpc_cc_test",
+        name = name + "_hostapi_rpc_cc_test",
         size = "small",
         srcs = [":{}_cc_test_srcs".format(name)],
         deps = kwargs.get("deps", []) + [
             ":{}".format(name),
             "@com_google_absl//absl/log:scoped_mock_log",
             "@com_google_absl//absl/strings",
-            "@com_google_absl//absl/synchronization",
             "@com_google_googletest//:gtest_main",
             Label("//src/roma/roma_service"),
         ],
@@ -373,12 +372,12 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
     )
 
     # duplicate $name.pb.h as $name_udf_interface.pb.h for alignment with Roma BYOB
-    copy_file(
-        name = name + "_udf_interface_pb_h",
-        src = ":{}_pb_h".format(name),
-        out = "{}_udf_interface.pb.h".format(roma_app_api.proto_basename),
-        visibility = ["//visibility:public"],
-    )
+    # copy_file(
+    #     name = name + "_udf_interface_pb_h",
+    #     src = ":{}_pb_h".format(name),
+    #     out = "{}_udf_interface.pb.h".format(roma_app_api.proto_basename),
+    #     visibility = ["//visibility:public"],
+    # )
     _filter_files_suffix(
         name = name + "_docs",
         targets = [name_proto],
@@ -401,26 +400,30 @@ def roma_v8_app_api_cc_library(*, name, roma_app_api, js_library, **kwargs):
         hdrs = [
             ":{}_cc_service_hdrs".format(name),
             ":{}_cc_hdrs".format(name),
-            ":{}_udf_interface_pb_h".format(name),
+            # ":{}_udf_interface_pb_h".format(name),
+            ":{}_pb_h".format(name),
         ],
         includes = ["."],
         deps = kwargs.get("deps", []) + roma_app_api.cc_protos + [
+            Label("//src/roma/config:function_binding_object_v2"),
             Label("//src/roma/roma_service:romav8_app_service"),
+            Label("//src/util:execution_token"),
+            Label("//src/util/status_macro:status_macros"),
             "@com_google_absl//absl/functional:any_invocable",
             "@com_google_absl//absl/status",
+            "@com_google_absl//absl/status:statusor",
             "@com_google_absl//absl/strings",
+            "@com_google_absl//absl/synchronization",
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
     cc_test(
-        name = name + "_rpc_cc_test",
+        name = name + "_appapi_rpc_cc_test",
         size = "small",
         srcs = [":{}_cc_test_srcs".format(name)],
-        deps = kwargs.get("deps", []) + [
+        deps = [
             ":{}".format(name),
-            "@com_google_absl//absl/log:scoped_mock_log",
-            "@com_google_absl//absl/strings",
-            "@com_google_absl//absl/synchronization",
+            "@com_google_absl//absl/time",
             "@com_google_googletest//:gtest_main",
         ],
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}

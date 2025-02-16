@@ -14,8 +14,6 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 
-package(default_visibility = ["//src:scp_internal_pkg"])
-
 cc_library(
     name = "operation_dispatcher",
     hdrs = [
@@ -23,11 +21,14 @@ cc_library(
         "operation_dispatcher.h",
         "retry_strategy.h",
     ],
+    visibility = ["//src:scp_internal_pkg"],
     deps = [
-        "//src/core/interface",
+        "//src/core/common/time_provider",
+        "//src/core/interface:async_executor_interface",
+        "//src/core/interface:errors",
+        "//src/core/interface:streaming_context",
         "//src/core/interface:type_def",
         "//src/public/core/interface:execution_result",
-        "@oneTBB//:tbb",
     ],
 )
 
@@ -38,8 +39,8 @@ cc_test(
     deps = [
         ":operation_dispatcher",
         "//src/core/async_executor/mock:core_async_executor_mock",
-        "//src/core/interface:type_def",
-        "//src/core/test/utils",
+        "//src/core/interface:async_context",
+        "//src/core/interface:streaming_context",
         "//src/public/core:test_execution_result_matchers",
         "//src/public/core/interface:execution_result",
         "@com_google_absl//absl/synchronization",
@@ -54,7 +55,6 @@ cc_test(
     deps = [
         ":operation_dispatcher",
         "//src/core/interface:type_def",
-        "//src/core/test/utils",
         "@com_google_googletest//:gtest_main",
     ],
 )

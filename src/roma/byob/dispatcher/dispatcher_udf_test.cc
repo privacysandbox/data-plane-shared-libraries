@@ -61,7 +61,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   Dispatcher dispatcher;
   ASSERT_TRUE(dispatcher
                   .Init(/*control_socket_name=*/"xyzw.sock",
-                        /*udf_socket_name=*/"abcd.sock", /*logdir=*/"",
+                        /*udf_socket_name=*/"abcd.sock", /*log_dir=*/"",
                         /*binary_dir=*/"src/roma/byob/sample_udf/")
                   .ok());
   const absl::StatusOr<std::string> code_token =

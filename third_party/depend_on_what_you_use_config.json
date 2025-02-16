@@ -10,16 +10,11 @@
     "type_traits"
   ],
   "ignore_include_patterns": [
+    "apis/privacysandbox/apis/roma/app_api/v1/options.pb.h",
     "google/cloud/kms/v1/service.grpc.pb.h",
     "google/cloud/common_options.h",
     "google/cloud/credentials.h",
-    "google/protobuf/map.h",
-    "google/protobuf/message_lite.h",
-    "google/protobuf/repeated_field.h",
-    "google/protobuf/text_format.h",
-    "google/protobuf/util/delimited_message_util.h",
-    "google/protobuf/util/json_util.h",
-    "google/protobuf/util/time_util.h",
+    "google/protobuf/.*",
     "src/roma/roma_service/romav8_proto_utils.h",
     "src/roma/sandbox/worker_api/sapi/worker_params.pb.h",
     "src/roma/sandbox/worker_api/sapi/worker_init_params.pb.h"
