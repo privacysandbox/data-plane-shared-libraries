@@ -65,7 +65,7 @@ declare -r -a ARGLIST=("$@")
 partition_array ARGLIST BAZEL_ARGS APP_ARGS
 
 # run bazel without sandboxing
-BAZEL_ARGS+=("--spawn_strategy=local")
+BAZEL_ARGS+=("--spawn_strategy=processwrapper-sandbox")
 
 # shellcheck disable=SC2086
 "${CBUILD}" ${EXTRA_CBUILD_ARGS} --seccomp-unconfined --privileged --image "${IMAGE}" --cmd "
