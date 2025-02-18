@@ -40,6 +40,8 @@ namespace {
 using ::privacy_sandbox::roma_byob::example::ByobSampleService;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_READ_SYS_V_MESSAGE_QUEUE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE;
 using ::privacy_sandbox::roma_byob::example::FunctionType;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
@@ -127,11 +129,12 @@ ByobSampleService<> GetRomaService(
   absl::StatusOr<ByobSampleService<>> sample_interface =
       ByobSampleService<>::Create(std::move(config), mode);
   CHECK_OK(sample_interface);
-  return std::move(*sample_interface);
+  return *std::move(sample_interface);
 }
 
 std::pair<SampleResponse, std::string> GetResponseAndLogs(
-    ByobSampleService<>& roma_service, std::string_view code_token) {
+    ByobSampleService<>& roma_service, std::string_view code_token,
+    FunctionType func_type = FUNCTION_HELLO_WORLD) {
   absl::Notification exec_notif;
   absl::StatusOr<SampleResponse> bin_response;
   std::string logs_acquired;
@@ -146,11 +149,12 @@ std::pair<SampleResponse, std::string> GetResponseAndLogs(
   };
 
   SampleRequest bin_request;
+  bin_request.set_function(func_type);
   CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
                                /*metadata=*/{}, code_token));
   CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
-  CHECK_OK(bin_response);
-  return {*bin_response, logs_acquired};
+  CHECK_OK(bin_response) << logs_acquired;
+  return {*std::move(bin_response), logs_acquired};
 }
 
 std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
@@ -171,7 +175,7 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
                                /*metadata=*/{}, code_token));
   CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
   CHECK_OK(bin_response);
-  return {*bin_response, log_status};
+  return {*std::move(bin_response), log_status};
 }
 
 struct RomaByobTestParam {
@@ -194,6 +198,32 @@ TEST_P(RomaByobTest, NoSocketFile) {
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
               ::testing::StrEq("Success."));
+}
+
+TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabled) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  if (param.enable_seccomp_filter) {
+    GTEST_SKIP() << "System V Message Queue system calls are disabled when "
+                    "syscall filtering is enabled";
+  }
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / "message_queue_udf",
+               /*enable_log_egress=*/true, /*num_workers=*/4);
+
+  absl::SleepFor(absl::Milliseconds(25));
+
+  auto response_and_logs = GetResponseAndLogs(
+      roma_service, code_token, FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE);
+  response_and_logs = GetResponseAndLogs(roma_service, code_token,
+                                         FUNCTION_READ_SYS_V_MESSAGE_QUEUE);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq("Could not find a message in the queue"));
 }
 
 TEST_P(RomaByobTest, NoFileSystemCreateEgression) {

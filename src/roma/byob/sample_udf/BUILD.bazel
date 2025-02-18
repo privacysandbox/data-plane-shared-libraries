@@ -356,6 +356,21 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "message_queue_udf",
+    srcs = ["message_queue_udf.cc"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":sample_byob_sdk_cc_proto",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/status:statusor",
+        "@com_google_absl//absl/strings",
+        "@com_google_protobuf//:protobuf",
+    ],
+)
+
 java_library(
     name = "sample_java_udf",
     srcs = ["SampleUdf.java"],
@@ -399,6 +414,7 @@ filegroup(
         ":filesystem_edit_udf",
         ":log_benchmark_udf",
         ":log_udf",
+        ":message_queue_udf",
         ":new_udf",
         ":pause_udf",
         ":payload_read_udf",

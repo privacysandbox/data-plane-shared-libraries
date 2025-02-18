@@ -301,7 +301,7 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
                 test_name = test_name,
             ),
         ],
-        container_structure_test_shard_count = 2,
+        container_structure_test_shard_count = 1,
         container_structure_test_size = "large",
         debug = False,
         entrypoint = entrypoint,

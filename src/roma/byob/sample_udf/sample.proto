@@ -75,6 +75,12 @@ enum FunctionType {
   FUNCTION_PRIME_SIEVE = 2 [
     (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {description: 'The sieve-based prime generator function.'}
   ];
+  FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE = 5 [
+    (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {description: 'Writes message to the message queue.'}
+  ];
+  FUNCTION_READ_SYS_V_MESSAGE_QUEUE = 6 [
+    (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {description: 'Reads message from the message queue.'}
+  ];
   // TODO(b/379124185): Add back host callback functions and functionality.
   reserved 3, 4;
 }
