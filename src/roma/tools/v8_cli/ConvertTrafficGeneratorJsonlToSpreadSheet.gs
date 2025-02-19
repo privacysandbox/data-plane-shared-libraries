@@ -60,6 +60,8 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     { header: 'Num Workers', path: 'params.numWorkers' },
     { header: 'Total Elapsed Time (s)', path: 'statistics.totalElapsedTime', transform: (val) => val.replace('s', '') },
     { header: 'Total Invocation Count', path: 'statistics.totalInvocationCount' },
+    { header: 'Failure Count', path: 'statistics.failureCount' },
+    { header: 'Failure Pct', path: 'statistics.failurePct' },
     { header: 'Late Count', path: 'statistics.lateCount' },
     { header: 'Late Burst Pct', path: 'statistics.lateBurstPct' },
     { header: 'Burst Latencies min (ms)', path: 'burstLatencies.min', transform: (val) => secondsToMilliseconds(val) },
