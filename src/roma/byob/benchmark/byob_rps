@@ -49,6 +49,9 @@ declare FIND_MAX_QPS="${DEFAULT_FIND_MAX_QPS}"
 declare -r DEFAULT_LATE_THRESHOLD=15.0
 declare LATE_THRESHOLD="${DEFAULT_LATE_THRESHOLD}"
 
+declare -r DEFAULT_DURATION=0
+declare DURATION="${DEFAULT_DURATION}"
+
 function usage() {
   local exitval=${1-1}
   cat &>/dev/stderr << USAGE
@@ -66,6 +69,7 @@ usage:
     --output-file <string>    path to output JSON. Default: print to stdout.
     --find-max-qps <bool>     find maximum QPS that maintains performance under threshold. Default: ${DEFAULT_FIND_MAX_QPS}
     --late-threshold <double>  maximum acceptable percentage of late bursts. Default: ${DEFAULT_LATE_THRESHOLD}
+    --duration <duration>      run traffic generator for a specified duration. Default: ${DEFAULT_DURATION}
 
   V8 Mode settings:
     --udf-path <string>      path to JavaScript UDF file. Default: ${DEFAULT_UDF_PATH}
@@ -108,6 +112,7 @@ while [[ $# -gt 0 ]]; do
     --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
     --output-file) OUTPUT_FILE="$2"; shift 2 || usage 1 ;;
     --config-file) CONFIG_FILE="$2"; shift 2 || usage 1 ;;
+    --duration) DURATION="$2"; shift 2 || usage 1 ;;
     -h | --help) usage 0 ;;
     *)
       printf "unrecognized arg: %s\n" "$1"
@@ -153,6 +158,10 @@ function run_test() {
 
   if [[ ${FIND_MAX_QPS} == true ]]; then
     CMD_ARGS+=("--verbose")
+  fi
+
+  if [[ ${DURATION} -ne 0 ]]; then
+    CMD_ARGS+=("--duration=${DURATION}")
   fi
 
   if [[ ${MODE} == v8 ]]; then

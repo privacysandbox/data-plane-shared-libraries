@@ -82,6 +82,9 @@ ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
 ABSL_FLAG(bool, verbose, false, "Enable verbose logging");
 ABSL_FLAG(std::optional<int>, sigpending, std::nullopt,
           "Set the pending signals rlimit");
+ABSL_FLAG(absl::Duration, duration, absl::ZeroDuration(),
+          "Run traffic generator for a specified duration. If set, overrides "
+          "num_queries.");
 
 namespace {
 
@@ -124,6 +127,7 @@ int main(int argc, char** argv) {
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
   const std::string output_file = absl::GetFlag(FLAGS_output_file);
+  const absl::Duration duration = absl::GetFlag(FLAGS_duration);
 
   int num_queries = absl::GetFlag(FLAGS_num_queries);
   const int total_invocations = absl::GetFlag(FLAGS_total_invocations);
@@ -189,12 +193,17 @@ int main(int argc, char** argv) {
   using ::privacy_sandbox::server_common::byob::BurstGenerator;
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
-                           std::move(rpc_func));
+                           std::move(rpc_func), duration);
 
-  LOG(INFO) << "starting burst generator run."
-            << "\n  burst size: " << burst_size
-            << "\n  burst cadence: " << burst_cadence
-            << "\n  num bursts: " << num_queries << std::endl;
+  std::string burst_gen_str = absl::StrCat(
+      "\n  burst size: ", burst_size, "\n  burst cadence: ", burst_cadence);
+  if (duration > absl::ZeroDuration()) {
+    burst_gen_str = absl::StrCat(burst_gen_str, "\n  duration: ", duration);
+  } else {
+    burst_gen_str =
+        absl::StrCat(burst_gen_str, "\n  num bursts: ", num_queries);
+  }
+  LOG(INFO) << "starting burst generator run." << burst_gen_str << std::endl;
 
   const BurstGenerator::Stats stats = burst_gen.Run();
 
@@ -206,9 +215,7 @@ int main(int argc, char** argv) {
   // RomaService must be cleaned up before stats are reported, to ensure the
   // service's work is completed
   stop_func();
-  LOG(INFO) << "\n  burst size: " << burst_size
-            << "\n  burst cadence: " << burst_cadence
-            << "\n  num bursts: " << num_queries << std::endl;
+  LOG(INFO) << burst_gen_str << std::endl;
 
   stats.ToReport(report);
   report.set_run_id(absl::GetFlag(FLAGS_run_id));

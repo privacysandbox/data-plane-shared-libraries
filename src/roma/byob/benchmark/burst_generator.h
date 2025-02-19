@@ -65,12 +65,14 @@ class BurstGenerator final {
                      privacy_sandbox::server_common::Stopwatch,
                      absl::StatusOr<absl::Duration>*,
                      absl::StatusOr<std::string>*, absl::Notification*) const>
-                     func)
+                     func,
+                 absl::Duration run_duration = absl::InfiniteDuration())
       : id_(std::move(id)),
         num_bursts_(num_bursts),
         burst_size_(burst_size),
         cadence_(std::move(cadence)),
-        func_(std::move(func)) {
+        func_(std::move(func)),
+        run_duration_(run_duration) {
     notifications_.reserve(num_bursts * burst_size);
   }
   ~BurstGenerator() = default;
@@ -97,6 +99,7 @@ class BurstGenerator final {
                           absl::StatusOr<std::string>*, absl::Notification*)
                          const>
       func_;
+  absl::Duration run_duration_;
   std::vector<std::unique_ptr<absl::Notification>> notifications_;
 };
 

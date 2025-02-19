@@ -30,7 +30,6 @@
 #include "src/util/duration.h"
 
 namespace {
-
 template <typename T>
 struct Percentiles {
   size_t count;
@@ -196,12 +195,17 @@ void BurstGenerator::Stats::ToReport(
 }
 
 BurstGenerator::Stats BurstGenerator::Run() {
+  // Add a buffer to the end time to account for the last bursts
+  absl::Time end_time = absl::Now() + run_duration_ + cadence_;
+
   Stats stats(burst_size_, num_bursts_);
   privacy_sandbox::server_common::Stopwatch stopwatch;
   absl::Time expected_start = absl::Now();
   auto latencies_it = stats.invocation_latencies.begin();
   auto outputs_it = stats.invocation_outputs.begin();
-  for (int i = 0; i < num_bursts_; i++) {
+
+  int i;
+  for (i = 0; i < num_bursts_ && absl::Now() < end_time; i++) {
     std::string id = absl::StrCat("b", i);
     absl::Duration wait_time = expected_start - absl::Now();
     if (wait_time < absl::ZeroDuration()) {
@@ -218,6 +222,14 @@ BurstGenerator::Stats BurstGenerator::Run() {
     outputs_it += burst_size_;
     expected_start += cadence_;
   }
+
+  if (i < num_bursts_) {
+    stats.total_bursts = i;
+    stats.invocation_latencies.resize(i * burst_size_);
+    stats.invocation_outputs.resize(i * burst_size_);
+    num_bursts_ = i;
+  }
+
   stats.total_elapsed = stopwatch.GetElapsedTime();
   return stats;
 }
