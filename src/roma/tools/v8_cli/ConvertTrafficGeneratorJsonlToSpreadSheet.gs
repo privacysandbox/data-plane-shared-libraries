@@ -34,18 +34,19 @@ var SHEET_NAME = 'Sheet8';
  *
  * Example JSONL content:
  * Contents of a jsonl file, foobar.jsonl:
- * {"runId":"","params":{"burstSize":"1","queriesPerSecond":220,"queryCount":500,"sandboxEnabled":false,"numWorkers":100},"statistics":{"totalElapsedTime":"2.269842556s","totalInvocationCount":"500","lateCount":"0","lateBurstPct":0},"burstLatencies":{"count":"500","min":"0.000987850s","p50":"0.001392840s","p90":"0.001615240s","p95":"0.001684730s","p99":"0.001868450s","max":"0.003158330s"},"invocationLatencies":{"count":"500","min":"0.000977020s","p50":"0.001350550s","p90":"0.001573800s","p95":"0.001643490s","p99":"0.001828080s","max":"0.003066520s"}}
- * {"runId":"","params":{"burstSize":"2","queriesPerSecond":230,"queryCount":500,"sandboxEnabled":false,"numWorkers":100},"statistics":{"totalElapsedTime":"2.170732601s","totalInvocationCount":"500","lateCount":"0","lateBurstPct":0},"burstLatencies":{"count":"500","min":"0.001017490s","p50":"0.001354270s","p90":"0.001567520s","p95":"0.001619590s","p99":"0.001766210s","max":"0.003402050s"},"invocationLatencies":{"count":"500","min":"0.000983400s","p50":"0.001314651s","p90":"0.001523470s","p95":"0.001581490s","p99":"0.001711401s","max":"0.003345240s"}}
- * {"runId":"","params":{"burstSize":"3","queriesPerSecond":240,"queryCount":500,"sandboxEnabled":false,"numWorkers":100},"statistics":{"totalElapsedTime":"2.080588877s","totalInvocationCount":"500","lateCount":"1","lateBurstPct":0.2},"burstLatencies":{"count":"500","min":"0.000977889s","p50":"0.001279720s","p90":"0.001498090s","p95":"0.001566740s","p99":"0.001755370s","max":"0.005394200s"},"invocationLatencies":{"count":"500","min":"0.000950211s","p50":"0.001245270s","p90":"0.001454911s","p95":"0.001523520s","p99":"0.001715940s","max":"0.005004560s"}}
+ * {"info":{"platform":"GCP CS","image":"privacysandbox/roma-byob/traffic-generator:v1-250qps-84w-bs14-nq2000-minimal-root","instance":"gcp-6zqe-4f709b4d25","hardwareThreadCount":64,"memory":0,"linuxKernel":"6.1.112+"},"runId":"","params":{"burstSize":"1","queriesPerSecond":220,"queryCount":500,"sandboxEnabled":false,"numWorkers":100},"statistics":{"totalElapsedTime":"2.269842556s","totalInvocationCount":"500","lateCount":"0","lateBurstPct":0},"burstLatencies":{"count":"500","min":"0.000987850s","p50":"0.001392840s","p90":"0.001615240s","p95":"0.001684730s","p99":"0.001868450s","max":"0.003158330s"},"invocationLatencies":{"count":"500","min":"0.000977020s","p50":"0.001350550s","p90":"0.001573800s","p95":"0.001643490s","p99":"0.001828080s","max":"0.003066520s"}}
+ * {"info":{"platform":"GCP CS","image":"privacysandbox/roma-byob/traffic-generator:v1-250qps-84w-bs14-nq2000-minimal-root","instance":"gcp-6zqe-4f709b4d25","hardwareThreadCount":64,"memory":0,"linuxKernel":"6.1.112+"},"runId":"","params":{"burstSize":"2","queriesPerSecond":230,"queryCount":500,"sandboxEnabled":false,"numWorkers":100},"statistics":{"totalElapsedTime":"2.170732601s","totalInvocationCount":"500","lateCount":"0","lateBurstPct":0},"burstLatencies":{"count":"500","min":"0.001017490s","p50":"0.001354270s","p90":"0.001567520s","p95":"0.001619590s","p99":"0.001766210s","max":"0.003402050s"},"invocationLatencies":{"count":"500","min":"0.000983400s","p50":"0.001314651s","p90":"0.001523470s","p95":"0.001581490s","p99":"0.001711401s","max":"0.003345240s"}}
+ * {"info":{"platform":"GCP CS","image":"privacysandbox/roma-byob/traffic-generator:v1-250qps-84w-bs14-nq2000-minimal-root","instance":"gcp-6zqe-4f709b4d25","hardwareThreadCount":64,"memory":0,"linuxKernel":"6.1.112+"},"runId":"","params":{"burstSize":"3","queriesPerSecond":240,"queryCount":500,"sandboxEnabled":false,"numWorkers":100},"statistics":{"totalElapsedTime":"2.080588877s","totalInvocationCount":"500","lateCount":"1","lateBurstPct":0.2},"burstLatencies":{"count":"500","min":"0.000977889s","p50":"0.001279720s","p90":"0.001498090s","p95":"0.001566740s","p99":"0.001755370s","max":"0.005394200s"},"invocationLatencies":{"count":"500","min":"0.000950211s","p50":"0.001245270s","p90":"0.001454911s","p95":"0.001523520s","p99":"0.001715940s","max":"0.005004560s"}}
  */
 function ConvertTrafficGeneratorJsonlToSpreadSheet() {
   var file = DriveApp.getFileById(JSON_GOOGLE_DRIVE_ID);
   var fileContent = file.getBlob().getDataAsString();
 
   // Split the content by newlines and parse each line as JSON
-  var jsonData = fileContent.split('\n')
-    .filter(line => line.trim() !== '') // Remove empty lines
-    .map(line => JSON.parse(line));
+  var jsonData = fileContent
+    .split('\n')
+    .filter((line) => line.trim() !== '') // Remove empty lines
+    .map((line) => JSON.parse(line));
 
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   // Replace with Sheet Name to be updated
@@ -54,6 +55,11 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
   // 3. Define the desired column headers and their corresponding JSON paths
   let columnMapping = [
     { header: 'Run ID', path: 'runId' },
+    { header: 'Platform', path: 'info.platform' },
+    { header: 'Image', path: 'info.image' },
+    { header: 'Instance', path: 'info.instance' },
+    { header: 'CPUs', path: 'info.hardwareThreadCount' },
+    { header: 'Linux kernel', path: 'info.linuxKernel' },
     { header: 'Burst Size', path: 'params.burstSize' },
     { header: 'QPS', path: 'params.queriesPerSecond' },
     { header: 'Num Bursts', path: 'params.queryCount' },
@@ -70,29 +76,77 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     { header: 'Burst Latencies p95 (ms)', path: 'burstLatencies.p95', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Latencies p99 (ms)', path: 'burstLatencies.p99', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Latencies max (ms)', path: 'burstLatencies.max', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Invocation Latencies min (ms)', path: 'invocationLatencies.min', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Invocation Latencies p50 (ms)', path: 'invocationLatencies.p50', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Invocation Latencies p90 (ms)', path: 'invocationLatencies.p90', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Invocation Latencies p95 (ms)', path: 'invocationLatencies.p95', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Invocation Latencies p99 (ms)', path: 'invocationLatencies.p99', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Invocation Latencies max (ms)', path: 'invocationLatencies.max', transform: (val) => secondsToMilliseconds(val) },
+    {
+      header: 'Invocation Latencies min (ms)',
+      path: 'invocationLatencies.min',
+      transform: (val) => secondsToMilliseconds(val),
+    },
+    {
+      header: 'Invocation Latencies p50 (ms)',
+      path: 'invocationLatencies.p50',
+      transform: (val) => secondsToMilliseconds(val),
+    },
+    {
+      header: 'Invocation Latencies p90 (ms)',
+      path: 'invocationLatencies.p90',
+      transform: (val) => secondsToMilliseconds(val),
+    },
+    {
+      header: 'Invocation Latencies p95 (ms)',
+      path: 'invocationLatencies.p95',
+      transform: (val) => secondsToMilliseconds(val),
+    },
+    {
+      header: 'Invocation Latencies p99 (ms)',
+      path: 'invocationLatencies.p99',
+      transform: (val) => secondsToMilliseconds(val),
+    },
+    {
+      header: 'Invocation Latencies max (ms)',
+      path: 'invocationLatencies.max',
+      transform: (val) => secondsToMilliseconds(val),
+    },
   ];
 
   if (jsonData[0].outputLatencies?.min) {
-    columnMapping.push({ header: 'Output Latencies min (ms)', path: 'outputLatencies.min', transform: (val) => secondsToMilliseconds(val) });
-    columnMapping.push({ header: 'Output Latencies p50 (ms)', path: 'outputLatencies.p50', transform: (val) => secondsToMilliseconds(val) });
-    columnMapping.push({ header: 'Output Latencies p90 (ms)', path: 'outputLatencies.p90', transform: (val) => secondsToMilliseconds(val) });
-    columnMapping.push({ header: 'Output Latencies p95 (ms)', path: 'outputLatencies.p95', transform: (val) => secondsToMilliseconds(val) });
-    columnMapping.push({ header: 'Output Latencies p99 (ms)', path: 'outputLatencies.p99', transform: (val) => secondsToMilliseconds(val) });
-    columnMapping.push({ header: 'Output Latencies max (ms)', path: 'outputLatencies.max', transform: (val) => secondsToMilliseconds(val) });
+    columnMapping.push({
+      header: 'Output Latencies min (ms)',
+      path: 'outputLatencies.min',
+      transform: (val) => secondsToMilliseconds(val),
+    });
+    columnMapping.push({
+      header: 'Output Latencies p50 (ms)',
+      path: 'outputLatencies.p50',
+      transform: (val) => secondsToMilliseconds(val),
+    });
+    columnMapping.push({
+      header: 'Output Latencies p90 (ms)',
+      path: 'outputLatencies.p90',
+      transform: (val) => secondsToMilliseconds(val),
+    });
+    columnMapping.push({
+      header: 'Output Latencies p95 (ms)',
+      path: 'outputLatencies.p95',
+      transform: (val) => secondsToMilliseconds(val),
+    });
+    columnMapping.push({
+      header: 'Output Latencies p99 (ms)',
+      path: 'outputLatencies.p99',
+      transform: (val) => secondsToMilliseconds(val),
+    });
+    columnMapping.push({
+      header: 'Output Latencies max (ms)',
+      path: 'outputLatencies.max',
+      transform: (val) => secondsToMilliseconds(val),
+    });
   }
 
   // 4. Prepare the data
   var data = [];
-  data.push(columnMapping.map(col => col.header)); // Add headers
+  data.push(columnMapping.map((col) => col.header)); // Add headers
 
-  jsonData.forEach(function(record) {
-    var row = columnMapping.map(col => {
+  jsonData.forEach(function (record) {
+    var row = columnMapping.map((col) => {
       // Apply transformation function if exists
       return col.transform ? col.transform(getNestedValue(record, col.path)) : getNestedValue(record, col.path);
     });
@@ -115,6 +169,5 @@ function secondsToMilliseconds(secondsString) {
 
 // Helper function to get nested object values using dot notation path
 function getNestedValue(obj, path) {
-  return path.split('.').reduce((current, key) =>
-    current && current[key] !== undefined ? current[key] : '', obj);
+  return path.split('.').reduce((current, key) => (current && current[key] !== undefined ? current[key] : ''), obj);
 }
