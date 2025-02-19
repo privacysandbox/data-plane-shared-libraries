@@ -105,6 +105,7 @@ class Dispatcher final {
   absl::Span<worker_api::WorkerSandboxApi> workers_;
   std::vector<std::thread> consumers_;
   absl::Mutex mu_;
+  std::atomic<int> num_active_workers_ = 0;
 
   // Consumers break out of while-loop when true.
   bool kill_consumers_ ABSL_GUARDED_BY(mu_) = false;

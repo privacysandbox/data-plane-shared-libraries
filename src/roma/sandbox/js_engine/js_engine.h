@@ -46,7 +46,7 @@ struct ExecutionResponse {
   std::string profiler_output;
 
   /// the metrics for handler function execution.
-  absl::flat_hash_map<std::string, absl::Duration> metrics;
+  absl::flat_hash_map<std::string, double> metrics;
 };
 
 /**

@@ -142,6 +142,7 @@ void Dispatcher::ConsumerImpl(int i) {
         requests_.pop();
       }
     }
+    num_active_workers_++;
     absl::Duration queuing_duration = absl::ZeroDuration();
     if (request.stopwatch) {
       queuing_duration = request.stopwatch->GetElapsedTime();
@@ -174,18 +175,23 @@ void Dispatcher::ConsumerImpl(int i) {
       absl::Duration run_code_duration = stopwatch.GetElapsedTime();
       ResponseObject response;
       response.metrics.reserve(2 + request.param.metrics_size());
-      response.metrics[roma::sandbox::constants::
-                           kExecutionMetricSandboxedJsEngineCallDuration] =
-          std::move(run_code_duration);
-      response
-          .metrics[roma::sandbox::constants::kExecutionMetricQueueingDuration] =
-          std::move(queuing_duration);
+      response.metrics[roma::sandbox::constants::kExecutionMetricDurationMs] =
+          absl::ToDoubleMilliseconds(run_code_duration);
+      response.metrics[roma::sandbox::constants::kExecutionMetricWaitTimeMs] =
+          absl::ToDoubleMilliseconds(queuing_duration);
+      {
+        absl::MutexLock lock(&mu_);
+        response.metrics
+            [roma::sandbox::constants::kExecutionMetricPendingRequestsCount] =
+            requests_.size();
+      }
+      response.metrics
+          [roma::sandbox::constants::kExecutionMetricActiveWorkerRatio] =
+          static_cast<double>(num_active_workers_) / workers_.size();
+
       absl::Status status = [&] {
-        for (auto& [key, proto_duration] : *request.param.mutable_metrics()) {
-          PS_ASSIGN_OR_RETURN(
-              response.metrics[std::move(key)],
-              privacy_sandbox::server_common::DecodeGoogleApiProto(
-                  proto_duration));
+        for (auto& [key, duration] : *request.param.mutable_metrics()) {
+          response.metrics[std::move(key)] = duration;
         }
         return absl::OkStatus();
       }();
@@ -200,6 +206,7 @@ void Dispatcher::ConsumerImpl(int i) {
         std::move(request).callback(std::move(response));
       }
     }
+    num_active_workers_--;
   }
 }
 

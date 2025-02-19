@@ -55,9 +55,10 @@ using google::scp::roma::TypeConverter;
 using google::scp::roma::logging::LogOptions;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::proto::RpcWrapper;
-using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
 using google::scp::roma::sandbox::constants::
-    kInputParsingMetricJsEngineDuration;
+    kHandlerCallMetricJsEngineDurationMs;
+using google::scp::roma::sandbox::constants::
+    kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupV8FlagsKey;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::constants::kMaxNumberOfWasm32BitMemPages;
@@ -661,8 +662,8 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
     for (size_t i = 0; i < argc; ++i) {
       argv[i] = argv_array->Get(v8_context, i).ToLocalChecked();
     }
-    execution_response.metrics[kInputParsingMetricJsEngineDuration] =
-        stopwatch.GetElapsedTime();
+    execution_response.metrics[kInputParsingMetricJsEngineDurationMs] =
+        absl::ToDoubleMilliseconds(stopwatch.GetElapsedTime());
     stopwatch.Reset();
     v8::Local<v8::Value> result;
     if (!handler_func->Call(v8_context, v8_context->Global(), argc, argv)
@@ -681,8 +682,8 @@ absl::StatusOr<ExecutionResponse> V8JsEngine::ExecuteJs(
                                  status.message(), std::move(log_options));
       }
     }
-    execution_response.metrics[kHandlerCallMetricJsEngineDuration] =
-        stopwatch.GetElapsedTime();
+    execution_response.metrics[kHandlerCallMetricJsEngineDurationMs] =
+        absl::ToDoubleMilliseconds(stopwatch.GetElapsedTime());
     // Treat as JSON escaped string if there is no input_type in the metadata or
     // the metadata of input type is not for a byte string.
     if (!(uses_input_type && uses_input_type_bytes)) {

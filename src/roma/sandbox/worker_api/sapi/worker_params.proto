@@ -15,11 +15,9 @@
 syntax = "proto3";
 package worker_api;
 
-import "google/protobuf/duration.proto";
-
 // Next field number: 11
 message WorkerParamsProto {
-  reserved 2, 6;
+  reserved 2, 6, 7;
 
   message InputStrings {
     repeated string inputs = 1;
@@ -37,12 +35,13 @@ message WorkerParamsProto {
 
   // Output
   optional string response = 5;
-  // Map of events to the duration they take to execute.
-  map<string, google.protobuf.Duration> metrics = 7;
 
   // Error details in case the program errored out.
   optional bytes error_message = 10;
 
   // The output from V8's Heap and Sample-based CPU profiler
   optional bytes profiler_output = 11;
+
+  // Map of events to the duration (in milliseconds) they take to execute.
+  map<string, double> metrics = 12;
 }

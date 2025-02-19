@@ -44,7 +44,7 @@
 using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::kBadFd;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDuration;
+    kExecutionMetricJsEngineCallDurationMs;
 using google::scp::roma::sandbox::worker::Worker;
 using google::scp::roma::sandbox::worker_api::ClearInputFields;
 using google::scp::roma::sandbox::worker_api::CreateWorker;
@@ -155,13 +155,8 @@ SapiStatusCode RunCode(worker_api::WorkerParamsProto* params) {
 
   privacy_sandbox::server_common::Stopwatch stopwatch;
   auto response_or = worker_->RunCode(code, input, metadata, wasm);
-  auto js_duration = privacy_sandbox::server_common::EncodeGoogleApiProto(
-      stopwatch.GetElapsedTime());
-  if (!js_duration.ok()) {
-    return SapiStatusCode::kInvalidDuration;
-  }
-  (*params->mutable_metrics())[kExecutionMetricJsEngineCallDuration] =
-      std::move(js_duration).value();
+  (*params->mutable_metrics())[kExecutionMetricJsEngineCallDurationMs] =
+      absl::ToDoubleMilliseconds(stopwatch.GetElapsedTime());
 
   if (!response_or.ok()) {
     params->set_error_message(std::string(response_or.status().message()));
@@ -169,12 +164,7 @@ SapiStatusCode RunCode(worker_api::WorkerParamsProto* params) {
   }
 
   for (const auto& pair : response_or.value().metrics) {
-    auto duration =
-        privacy_sandbox::server_common::EncodeGoogleApiProto(pair.second);
-    if (!duration.ok()) {
-      return SapiStatusCode::kInvalidDuration;
-    }
-    (*params->mutable_metrics())[pair.first] = std::move(duration).value();
+    (*params->mutable_metrics())[pair.first] = pair.second;
   }
 
   params->set_response(std::move(response_or.value().response));

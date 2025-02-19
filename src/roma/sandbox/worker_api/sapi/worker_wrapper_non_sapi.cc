@@ -41,7 +41,7 @@
 
 using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDuration;
+    kExecutionMetricJsEngineCallDurationMs;
 using google::scp::roma::sandbox::worker::Worker;
 
 namespace google::scp::roma::sandbox::worker_api {
@@ -126,14 +126,8 @@ std::pair<absl::Status, RetryStatus> WorkerWrapper::InternalRunCode(
       absl::MakeConstSpan(wasm_bin, params.wasm().length());
   privacy_sandbox::server_common::Stopwatch stopwatch;
   auto response_or = worker_->RunCode(code, input, metadata, wasm);
-  auto js_duration = privacy_sandbox::server_common::EncodeGoogleApiProto(
-      stopwatch.GetElapsedTime());
-  if (!js_duration.ok()) {
-    return WrapResultWithNoRetry(
-        absl::InvalidArgumentError("Failed to convert a duration"));
-  }
-  (*params.mutable_metrics())[kExecutionMetricJsEngineCallDuration] =
-      std::move(js_duration).value();
+  (*params.mutable_metrics())[kExecutionMetricJsEngineCallDurationMs] =
+      absl::ToDoubleMilliseconds(stopwatch.GetElapsedTime());
   if (!response_or.ok()) {
     params.set_error_message(std::string(response_or.status().message()));
     privacy_sandbox::server_common::StatusBuilder builder(
@@ -143,13 +137,7 @@ std::pair<absl::Status, RetryStatus> WorkerWrapper::InternalRunCode(
   }
 
   for (const auto& pair : response_or.value().metrics) {
-    auto duration =
-        privacy_sandbox::server_common::EncodeGoogleApiProto(pair.second);
-    if (!duration.ok()) {
-      return WrapResultWithNoRetry(
-          absl::InvalidArgumentError("Failed to convert a duration"));
-    }
-    (*params.mutable_metrics())[pair.first] = std::move(duration).value();
+    (*params.mutable_metrics())[pair.first] = pair.second;
   }
 
   params.set_response(std::move(response_or.value().response));

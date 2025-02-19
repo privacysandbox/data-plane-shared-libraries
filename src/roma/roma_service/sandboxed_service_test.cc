@@ -45,6 +45,17 @@
 #include "src/util/duration.h"
 
 using google::scp::roma::FunctionBindingPayload;
+using google::scp::roma::sandbox::constants::kExecutionMetricActiveWorkerRatio;
+using google::scp::roma::sandbox::constants::kExecutionMetricDurationMs;
+using google::scp::roma::sandbox::constants::
+    kExecutionMetricJsEngineCallDurationMs;
+using google::scp::roma::sandbox::constants::
+    kExecutionMetricPendingRequestsCount;
+using google::scp::roma::sandbox::constants::kExecutionMetricWaitTimeMs;
+using google::scp::roma::sandbox::constants::
+    kHandlerCallMetricJsEngineDurationMs;
+using google::scp::roma::sandbox::constants::
+    kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::roma_service::kMinWorkerVirtualMemoryMB;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
@@ -1333,7 +1344,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
         });
 
     absl::Status response_status;
-    absl::flat_hash_map<std::string, absl::Duration> metrics;
+    absl::flat_hash_map<std::string, double> metrics;
     ASSERT_TRUE(roma_service
                     .Execute(std::move(execution_obj),
                              [&](absl::StatusOr<ResponseObject> resp) {
@@ -1357,14 +1368,13 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
     ASSERT_TRUE(response_status.ok());
 
-    EXPECT_GT(metrics["roma.metric.queueing_duration"], absl::Duration());
-    EXPECT_GT(metrics["roma.metric.sandboxed_code_run_duration"],
-              absl::Duration());
-    EXPECT_GT(metrics["roma.metric.code_run_duration"], absl::Duration());
-    EXPECT_GT(metrics["roma.metric.json_input_parsing_duration"],
-              absl::Duration());
-    EXPECT_GT(metrics["roma.metric.js_engine_handler_call_duration"],
-              absl::Duration());
+    EXPECT_GT(metrics[kExecutionMetricWaitTimeMs], 0);
+    EXPECT_GT(metrics[kExecutionMetricDurationMs], 0);
+    EXPECT_EQ(metrics[kExecutionMetricPendingRequestsCount], 0);
+    EXPECT_GT(metrics[kExecutionMetricActiveWorkerRatio], 0);
+    EXPECT_GT(metrics[kExecutionMetricJsEngineCallDurationMs], 0);
+    EXPECT_GT(metrics[kInputParsingMetricJsEngineDurationMs], 0);
+    EXPECT_GT(metrics[kHandlerCallMetricJsEngineDurationMs], 0);
   }
 
   EXPECT_THAT(result, StrEq(R"("Hello world! \"Foobar\"")"));
@@ -1433,21 +1443,22 @@ TEST(SandboxedServiceTest, QueueingDurationReturnedAsMetric) {
 
     ASSERT_TRUE(
         roma_service
-            .Execute(std::make_unique<InvocationStrRequest<>>(execution_obj),
-                     [&](absl::StatusOr<ResponseObject> resp) {
-                       response_status2 = resp.status();
-                       if (resp.ok()) {
-                         result = std::move(resp->resp);
-                       }
+            .Execute(
+                std::make_unique<InvocationStrRequest<>>(execution_obj),
+                [&](absl::StatusOr<ResponseObject> resp) {
+                  response_status2 = resp.status();
+                  if (resp.ok()) {
+                    result = std::move(resp->resp);
+                  }
 
-                       auto it =
-                           resp->metrics.find("roma.metric.queueing_duration");
-                       std::cout << it->first << ":" << it->second << std::endl;
-                       ASSERT_TRUE(it != resp->metrics.end());
-                       queueing_duration = it->second;
+                  auto it = resp->metrics.find(
+                      roma::sandbox::constants::kExecutionMetricWaitTimeMs);
+                  std::cout << it->first << ":" << it->second << std::endl;
+                  ASSERT_TRUE(it != resp->metrics.end());
+                  queueing_duration = absl::Milliseconds(it->second);
 
-                       execute_finished2.Notify();
-                     })
+                  execute_finished2.Notify();
+                })
             .ok());
   }
   ASSERT_TRUE(

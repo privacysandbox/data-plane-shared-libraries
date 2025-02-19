@@ -46,13 +46,13 @@ using google::scp::roma::InvocationSharedRequest;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::benchmark::BenchmarkMetrics;
 using google::scp::roma::benchmark::InputsType;
+using google::scp::roma::sandbox::constants::kExecutionMetricDurationMs;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDuration;
+    kExecutionMetricJsEngineCallDurationMs;
 using google::scp::roma::sandbox::constants::
-    kExecutionMetricSandboxedJsEngineCallDuration;
-using google::scp::roma::sandbox::constants::kHandlerCallMetricJsEngineDuration;
+    kHandlerCallMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::constants::
-    kInputParsingMetricJsEngineDuration;
+    kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
 namespace {
@@ -137,25 +137,25 @@ InvocationSharedRequest<> CreateExecutionObj(InputsType type,
 
 void GetMetricFromResponse(const ResponseObject& resp,
                            BenchmarkMetrics& metrics) {
+  if (const auto& it = resp.metrics.find(kExecutionMetricDurationMs);
+      it != resp.metrics.end()) {
+    metrics.sandbox_elapsed = absl::Milliseconds(it->second);
+  }
+
   if (const auto& it =
-          resp.metrics.find(kExecutionMetricSandboxedJsEngineCallDuration);
+          resp.metrics.find(kExecutionMetricJsEngineCallDurationMs);
       it != resp.metrics.end()) {
-    metrics.sandbox_elapsed = it->second;
+    metrics.v8_elapsed = absl::Milliseconds(it->second);
   }
 
-  if (const auto& it = resp.metrics.find(kExecutionMetricJsEngineCallDuration);
+  if (const auto& it = resp.metrics.find(kInputParsingMetricJsEngineDurationMs);
       it != resp.metrics.end()) {
-    metrics.v8_elapsed = it->second;
+    metrics.input_parsing_elapsed = absl::Milliseconds(it->second);
   }
 
-  if (const auto& it = resp.metrics.find(kInputParsingMetricJsEngineDuration);
+  if (const auto& it = resp.metrics.find(kHandlerCallMetricJsEngineDurationMs);
       it != resp.metrics.end()) {
-    metrics.input_parsing_elapsed = it->second;
-  }
-
-  if (const auto& it = resp.metrics.find(kHandlerCallMetricJsEngineDuration);
-      it != resp.metrics.end()) {
-    metrics.handler_calling_elapse = it->second;
+    metrics.handler_calling_elapse = absl::Milliseconds(it->second);
   }
 }
 }  // namespace
