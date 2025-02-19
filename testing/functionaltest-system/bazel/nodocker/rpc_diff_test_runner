@@ -23,8 +23,7 @@ usage:
     --http-path <string>            path used with endpoint hostport
     --client-type <string>          client-type used to encrypt the request
 environment variables:
-    JQ                              path to jq executable
-    GRPCURL                         path to grpcurl executable
+    JQ                              path to jq executable (required)
 USAGE
   # shellcheck disable=SC2086
   exit ${exitval}
@@ -33,7 +32,7 @@ USAGE
 function check_app() {
   declare -n _app=$1
   if [[ -z ${_app} ]]; then
-    printf "%s env var is not set\n" "${_app}" &>/dev/stderr
+    printf "env var [%s] is not set\n" "$1" &>/dev/stderr
     exit 1
   elif ! command -v "${_app}" >/dev/null; then
     printf "%s command [%s] not found or not executable\n" "$1" "${_app}" &>/dev/stderr
@@ -42,7 +41,6 @@ function check_app() {
 }
 
 check_app JQ
-check_app GRPCURL
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -51,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       shift 2 || usage
       ;;
     --rpc-invoker-type)
-      printf "Skipping arg --rpc-invoker-type\n"
+      printf "Ignoring arg --rpc-invoker-type\n"
       shift 2 || usage
       ;;
     --endpoint-hostport)
@@ -59,7 +57,7 @@ while [[ $# -gt 0 ]]; do
       shift 2 || usage
       ;;
     --docker-network)
-      printf "Skipping arg --docker-network\n"
+      printf "Ignoring arg --docker-network\n"
       shift 2 || usage
       ;;
     --rpc)
@@ -138,7 +136,6 @@ else
   printf '.\n' >"${TMP_JQ_POST_PROGRAM_FILENAME}"
 fi
 
-trap cleanup EXIT
 function cleanup() {
   local -r -i STATUS=$?
   if [[ ${STATUS} -eq 0 ]]; then
@@ -146,7 +143,7 @@ function cleanup() {
   fi
   exit ${STATUS}
 }
-
+trap cleanup EXIT
 
 declare -a RPC_INVOKER_ARGS=(
   --endpoint-hostport

@@ -2,27 +2,8 @@ load(
     "@google_privacysandbox_functionaltest_system//bazel:rpc_test.bzl",
     "rpc_diff_test_suite",
     "rpc_perf_test_suite",
-    "wrk2_perf_test",
-    "wrk2_perf_test_suite",
 )
-load("@google_privacysandbox_functionaltest_system//bazel:ssl_cert.bzl", "generate_ssl_certificate")
 load("@google_privacysandbox_functionaltest_system//sut:endpoint.bzl", "endpoint")
-
-generate_ssl_certificate("test_cert", "test_domain")
-
-greeter_envoy_endpoints = [
-    endpoint(
-        docker_network = "functest-local",
-        endpoint_type = endpoint_type,
-        host = "greeter-envoy",
-        port = 50060,
-        rpcs = [
-            ("greeter-sayhello-envoy", "helloworld.Greeter.SayHello", "//:tests/helloworld_descriptor_set.pb"),
-        ],
-        test_files_glob_spec_prefix = "GREETER_ENDPOINT",
-    )
-    for endpoint_type in ("http", "grpc")
-]
 
 server_endpoints = [
     endpoint(
@@ -48,8 +29,6 @@ server_endpoints = [
     ),
 ]
 
-exposed_endpoints = greeter_envoy_endpoints + server_endpoints
-
 [
     rpc_diff_test_suite(
         name = "{}-{}-diff".format(
@@ -70,7 +49,7 @@ exposed_endpoints = greeter_envoy_endpoints + server_endpoints
             "manual",
         ],
     )
-    for endpoint in exposed_endpoints
+    for endpoint in server_endpoints
     for test_suite_name, rpc, protoset in endpoint.rpcs
 ]
 
@@ -94,78 +73,15 @@ exposed_endpoints = greeter_envoy_endpoints + server_endpoints
             "manual",
         ],
     )
-    for endpoint in exposed_endpoints
+    for endpoint in server_endpoints
     for test_suite_name, rpc, protoset in endpoint.rpcs
     if endpoint.endpoint_type == "grpc"
-]
-
-[
-    wrk2_perf_test_suite(
-        name = "{}-{}-wrk2-perf".format(
-            test_suite_name,
-            endpoint.endpoint_type,
-        ),
-        duration = "30s",
-        endpoint = endpoint,
-        plaintext = True,
-        request_rate = "100",
-        rpc = rpc,
-        target_compatible_with = [
-            "@platforms//cpu:x86_64",
-        ],
-        test_files_glob_spec = "{}/{}/*".format(
-            endpoint.test_files_glob_spec_prefix,
-            rpc,
-        ),
-        test_tags = [
-            "exclusive",
-            "external",
-            "manual",
-        ],
-    )
-    for endpoint in exposed_endpoints
-    for test_suite_name, rpc, protoset in endpoint.rpcs
-    if endpoint.endpoint_type == "http"
-]
-
-[
-    wrk2_perf_test(
-        name = "{}-{}-wrk2-perf-custom-lua".format(
-            test_suite_name,
-            endpoint.endpoint_type,
-        ),
-        duration = "30s",
-        endpoint = endpoint,
-        lua_script = "{}/{}/wrk2_test.lua".format(
-            endpoint.test_files_glob_spec_prefix,
-            rpc,
-        ),
-        plaintext = True,
-        request_rate = "100",
-        rpc = rpc,
-        tags = [
-            "exclusive",
-            "external",
-            "manual",
-        ],
-        target_compatible_with = [
-            "@platforms//cpu:x86_64",
-        ],
-    )
-    for endpoint in exposed_endpoints
-    for test_suite_name, rpc, protoset in endpoint.rpcs
-    if endpoint.endpoint_type == "http"
 ]
 
 test_types = {
     "grpc": [
         "diff",
         "perf",
-    ],
-    "http": [
-        "diff",
-        "wrk2-perf",
-        "wrk2-perf-custom-lua",
     ],
 }
 
@@ -180,7 +96,7 @@ test_suite(
             endpoint.endpoint_type,
             test_type,
         )
-        for endpoint in exposed_endpoints
+        for endpoint in server_endpoints
         for test_suite_name, rpc, protoset in endpoint.rpcs
         for test_type in test_types[endpoint.endpoint_type]
     ],

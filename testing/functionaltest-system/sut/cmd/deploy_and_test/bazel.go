@@ -91,11 +91,14 @@ func configureBazelisk() error {
 	// Configure bazelisk's home path to be within the sut work dir, to ensure
 	// hermeticity of the each execution.
 	bazelHomeDir := path.Join(sutWorkdir, ".bazelhome")
-	bazeliskHomeDir := path.Join(bazelHomeDir, "bazelisk")
-	if err := os.MkdirAll(bazeliskHomeDir, 0755); err != nil {
-		return err
+	bazeliskHomeDir := os.Getenv("BAZELISK_HOME")
+	if len(bazeliskHomeDir) == 0 {
+		bazeliskHomeDir = path.Join(bazelHomeDir, "bazelisk")
+		os.Setenv("BAZELISK_HOME", bazeliskHomeDir)
 	}
-	os.Setenv("BAZELISK_HOME", bazeliskHomeDir)
+	if err := os.MkdirAll(bazeliskHomeDir, 0755); err != nil {
+		return fmt.Errorf("create bazelisk home dir: %w", err)
+	}
 	// per https://github.com/bazelbuild/bazel/issues/16937, bazel does not
 	// respect XDG_CACHE_HOME prior to 7.2.0rc1, as fixed in github PR:
 	// https://github.com/bazelbuild/bazel/pull/21817. In the meantime,
@@ -123,8 +126,6 @@ func runBazelTest(bazelTestCmd *sutV1Pb.BazelTest, label string) (exitCode int, 
 	bazelArgs := []string{
 		"--output_base",
 		outputBase,
-		// "--output_user_base",
-		// path.Join(sutWorkdir, ".cache/bazel"),
 		"test",
 	}
 	testTargets := stringValFilter(bazelTestCmd.TestTargets, stringValPredicate)

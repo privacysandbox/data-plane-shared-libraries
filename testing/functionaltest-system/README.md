@@ -36,3 +36,12 @@ tools.
 ## Examples
 
 Usage of this repo is demonstrated in a workspace in the `examples/grpc_greeter` directory.
+
+## Building the Functionaltest CLI docker image
+
+The `functionaltest-cli` docker image can be built using the following command executed in the
+current directory:
+
+```sh
+docker buildx build --tag="privacysandbox/functionaltest/functionaltest-cli:$(cat version.txt)" .
+```

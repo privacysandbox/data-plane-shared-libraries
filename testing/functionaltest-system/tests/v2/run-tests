@@ -21,6 +21,8 @@
 set -o pipefail
 set -o errexit
 
+declare -a DOCKER_COMPOSE_ARGS
+
 trap _cleanup EXIT
 function _cleanup() {
   declare -r -i status=$?
@@ -32,9 +34,6 @@ function _cleanup() {
   fi
   if [[ ${#DOCKER_COMPOSE_ARGS} -gt 0 ]]; then
     docker compose "${DOCKER_COMPOSE_ARGS[@]}" down || true
-  fi
-  if [[ -d ${DATA_DIR} ]]; then
-    rm -rf "${DATA_DIR}"
   fi
 
   # This stacktrace code is largely taken from:
@@ -97,6 +96,10 @@ function ensure_docker_compose() {
   fi
 }
 
+function build_functionaltest_cli() {
+  docker buildx build --progress=plain --tag="${FUNCTIONALTEST_CLI}" "${WORKSPACE}"
+}
+
 ensure_docker_compose
 
 TESTS_DIR="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")"
@@ -104,26 +107,43 @@ readonly TESTS_DIR
 readonly WORKSPACE="${TESTS_DIR}"/../..
 readonly TOOLS_DIR="${WORKSPACE}"/builders/tools
 
+FUNCTIONALTEST_VERSION="$(<"${WORKSPACE}"/version.txt)"
+readonly FUNCTIONALTEST_VERSION
+declare -r FUNCTIONALTEST_CLI="privacysandbox/functionaltest/functionaltest-cli:${FUNCTIONALTEST_VERSION}"
+
+build_functionaltest_cli
+
 # build test servers
-pushd "${WORKSPACE}"/tests/servers >/dev/null
+cd "${WORKSPACE}"/tests/servers
 "${TOOLS_DIR}"/bazel-debian run //:copy_to_dist
-popd >/dev/null
 
 # build functionaltest cli
+cd "${WORKSPACE}"
 "${TOOLS_DIR}"/bazel-debian run //sut:copy_to_dist
 
 "${TOOLS_DIR}"/bazel-debian run //tests/v2/sut_grpc_servers:copy_to_dist
 
-declare -r FUNCTIONALTEST_CLI="${WORKSPACE}"/dist/functionaltest
-declare -a -r CLI_FLAGS=(
-  "--sut-zip"
-  "${WORKSPACE}"/dist/tests/v2/sut_grpc_servers.zip
-  "--docker-image"
-  "${WORKSPACE}"/tests/servers/dist/test_servers/grpc_examples.tar
+docker load -i "${WORKSPACE}"/tests/servers/dist/test_servers/grpc_examples.tar
+
+DOCKER_COMPOSE_ARGS+=(
+  --file="${WORKSPACE}"/tests/v2/sut_grpc_servers/docker-compose.yaml
+  --env-file="${WORKSPACE}"/tests/v2/sut_grpc_servers/docker-compose.env
 )
 
-"${FUNCTIONALTEST_CLI}" \
+docker compose "${DOCKER_COMPOSE_ARGS[@]}" up --detach
+
+OUTPUT_DIR="${WORKSPACE}/dist/test-outputs/v2"
+mkdir -p "${OUTPUT_DIR}"
+
+docker run \
+  --network=functest-local \
+  --user "$(id -u):$(id -g)" \
+  --env=USER \
+  --volume="${WORKSPACE}"/dist/tests/v2/sut_grpc_servers.zip:/sut.zip \
+  --volume="${OUTPUT_DIR}":/out \
+  "${FUNCTIONALTEST_CLI}" \
   dockersut \
   deploy-and-test \
   --verbose \
-  "${CLI_FLAGS[@]}"
+  --sut-zip=/sut.zip \
+  --output-dir=/out

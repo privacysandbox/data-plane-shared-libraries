@@ -14,7 +14,7 @@
 
 # deploy-and-test command in the functionaltest CLI tool
 
-load("@aspect_bazel_lib//lib:glob_match.bzl", "glob_match")
+load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@io_bazel_rules_go//go:def.bzl", "go_library", "go_test")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
@@ -36,76 +36,136 @@ genrule(
     stamp = True,
 )
 
+tools_env_vars = [
+    "GHZ",
+    "GRPCURL",
+    "JQ",
+]
+
+bazelrc_common = """
+common --noenable_bzlmod
+test --test_verbose_timeout_warnings
+""" + "\n".join(["build --test_env={}".format(v) for v in tools_env_vars])
+
 genrule(
     name = "bazelrc",
     srcs = [":test-tools-docker-uri.txt"],
     outs = [".bazelrc"],
     cmd_bash = """cat <<EOF >'$@'
-test --test_env=TEST_TOOLS_IMAGE=$$(<$(location :test-tools-docker-uri.txt))
+{common}
 test --test_verbose_timeout_warnings
-EOF""",
+test --test_env=TEST_TOOLS_IMAGE=$$(<$(location :test-tools-docker-uri.txt))
+EOF""".format(common = bazelrc_common),
+)
+
+genrule(
+    name = "bazelrc-nodocker",
+    outs = [".bazelrc-nodocker"],
+    cmd_bash = """cat <<EOF >'$@'
+{common}
+EOF""".format(common = bazelrc_common),
 )
 
 embed_files = glob(["embed/*"])
 
 pkg_files(
     name = "embed",
-    srcs = embed_files,
+    srcs = embed_files + [
+        ":.bazelrc",
+        ":test-tools.tar",
+    ],
     attributes = pkg_attributes(mode = "0644"),
     renames = {
-        # rename BUILD.sut files to BUILD.bazel, stripping the `embed/` directory
-        f: f.removeprefix("embed/").replace(".sut", ".bazel")
-        for f in embed_files
-        if glob_match("embed/*.sut", f)
+        "embed/BUILD.sut": "BUILD.bazel",
     },
 )
 
-pkg_zip(
-    name = "embedFS",
-    srcs = [
-        ":.bazelrc",
-        ":embed",
-        ":test-tools.tar",
-        "//:functionaltest-embed",
+pkg_files(
+    name = "embed-nodocker",
+    srcs = embed_files + [
+        ":.bazelrc-nodocker",
     ],
-    out = "embedFS.zip",
+    attributes = pkg_attributes(mode = "0644"),
+    renames = {
+        ".bazelrc-nodocker": ".bazelrc",
+        "embed/BUILD.sut": "BUILD.bazel",
+    },
 )
 
-go_library(
-    name = "go_default_library",
-    srcs = [
-        "bazel.go",
-        "deploy.go",
-        "docker_compose.go",
-        "unzip.go",
-    ],
-    embedsrcs = [":embedFS.zip"],
-    importpath = "github.com/privacysandbox/functionaltest-system/sut/cmd/deploy_and_test",
-    visibility = ["//visibility:public"],
-    deps = [
-        "//sut/v1:pb",
-        "@com_github_bazelbuild_bazelisk//core:go_default_library",
-        "@com_github_bazelbuild_bazelisk//repositories:go_default_library",
-        "@com_github_bgentry_go_netrc//netrc",
-        "@com_github_moby_moby//api/types/container:go_default_library",
-        "@com_github_moby_moby//api/types/image:go_default_library",
-        "@com_github_moby_moby//client:go_default_library",
-        "@com_github_moby_moby//pkg/jsonmessage:go_default_library",
-        "@com_github_spf13_cobra//:cobra",
-        "@org_golang_google_protobuf//encoding/prototext",
-        "@org_golang_google_protobuf//proto:go_default_library",
-    ],
+[
+    pkg_zip(
+        name = "embedFS{}".format(suffix),
+        srcs = [
+            ":embed{}".format(suffix),
+            "//:functionaltest-embed{}".format(suffix),
+        ],
+        out = "embedFS{}.zip".format(suffix),
+    )
+    for suffix in ("", "-nodocker")
+]
+
+sut_embed_go = """
+package deploy_and_test
+import "embed"
+const sutEmbedZip = "{filename}"
+//go:embed {filename}
+var sutEmbedFS embed.FS
+"""
+
+write_file(
+    name = "sut_embed",
+    out = "sut_embed.go",
+    content = [sut_embed_go.format(filename = "embedFS.zip")],
 )
 
-go_test(
-    name = "lib_test",
-    size = "small",
-    srcs = [
-        "bazel_test.go",
-        "deploy_test.go",
-        "unzip_test.go",
-    ],
-    embed = [
-        ":go_default_library",
-    ],
+write_file(
+    name = "sut_embed-nodocker",
+    out = "sut_embed-nodocker.go",
+    content = [sut_embed_go.format(filename = "embedFS-nodocker.zip")],
 )
+
+[
+    go_library(
+        name = "lib{}".format(suffix),
+        srcs = [
+            "bazel.go",
+            "deploy.go",
+            "docker_compose.go",
+            ":sut_embed{}.go".format(suffix),
+            "unzip.go",
+        ],
+        embedsrcs = [":embedFS{}".format(suffix)],
+        importpath = "github.com/privacysandbox/functionaltest-system/sut/cmd/deploy_and_test",
+        visibility = ["//visibility:public"],
+        deps = [
+            "//sut/v1:pb",
+            "@com_github_bazelbuild_bazelisk//core:go_default_library",
+            "@com_github_bazelbuild_bazelisk//repositories:go_default_library",
+            "@com_github_bgentry_go_netrc//netrc",
+            "@com_github_moby_moby//api/types/container:go_default_library",
+            "@com_github_moby_moby//api/types/image:go_default_library",
+            "@com_github_moby_moby//client:go_default_library",
+            "@com_github_moby_moby//pkg/jsonmessage:go_default_library",
+            "@com_github_spf13_cobra//:cobra",
+            "@org_golang_google_protobuf//encoding/prototext",
+            "@org_golang_google_protobuf//proto:go_default_library",
+        ],
+    )
+    for suffix in ("", "-nodocker")
+]
+
+[
+    go_test(
+        name = "lib{}_test".format(suffix),
+        size = "small",
+        srcs = [
+            "bazel_test.go",
+            "deploy_test.go",
+            "unzip_test.go",
+        ],
+        embed = [
+            ":lib{}".format(suffix),
+        ],
+    )
+    for suffix in ("", "-nodocker")
+]

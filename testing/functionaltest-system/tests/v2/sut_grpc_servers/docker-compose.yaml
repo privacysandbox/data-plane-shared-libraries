@@ -16,36 +16,18 @@ services:
   greeter:
     image: grpc_examples_docker_image:latest
     entrypoint:
-    - /server/bin/greeter_server
+      - /server/bin/greeter_server
     hostname: greeter
     networks:
-    - functest-net
-  greeter-envoy:
-    image: envoyproxy/envoy:distroless-v1.26-latest
-    command:
-    - -c
-    - /etc/envoy.yaml
-    depends_on:
-      greeter:
-        condition: service_started
-    hostname: greeter-envoy
-    networks:
-    - functest-net
-    volumes:
-    - type: bind
-      source: envoy_greeter.yaml
-      target: /etc/envoy.yaml
-    - type: bind
-      source: tests/helloworld_descriptor_set.pb
-      target: /etc/service.pb
+      - functest-net
   routeguide:
     image: grpc_examples_docker_image:latest
     entrypoint:
-    - server/bin/route_guide_server
-    - --db_path=/server/data/route_guide_db.json
+      - server/bin/route_guide_server
+      - --db_path=/server/data/route_guide_db.json
     hostname: routeguide
     networks:
-    - functest-net
+      - functest-net
 networks:
   functest-net:
     name: functest-local

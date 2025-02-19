@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 
 exports_files(
     glob(["*.bzl"]),
@@ -61,5 +62,12 @@ filegroup(
 filegroup(
     name = "testrunner_binaries",
     srcs = glob(include = _BINARIES_GLOB_SPEC),
+)
+
+pkg_files(
+    name = "bazel_binaries",
+    srcs = [":testrunner_binaries"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/functionaltest-system/bazel",
     visibility = ["//:__pkg__"],
 )

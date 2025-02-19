@@ -12,8 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+
 filegroup(
     name = "testrunner_binaries",
-    srcs = glob(["*"]),
+    srcs = glob(
+        ["*"],
+        exclude = ["BUILD.*"],
+    ),
+)
+
+pkg_files(
+    name = "bazel_binaries",
+    srcs = [":testrunner_binaries"],
+    attributes = pkg_attributes(mode = "0755"),
+    prefix = "/functionaltest-system/bazel",
     visibility = ["//:__pkg__"],
 )

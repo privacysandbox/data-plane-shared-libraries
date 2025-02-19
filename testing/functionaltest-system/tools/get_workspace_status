@@ -28,8 +28,8 @@ if ! command -v git >/dev/null; then
   exit 0
 fi
 
-if [[ -f /.dockerenv ]] && [[ -d /src/workspace ]]; then
-  TOPLEVEL_DIR=/src/workspace
+if [[ -f /.dockerenv ]] && [[ -d /workspace ]]; then
+  TOPLEVEL_DIR=/workspace
 else
   TOPLEVEL_DIR="$(git rev-parse --show-toplevel)"
 fi

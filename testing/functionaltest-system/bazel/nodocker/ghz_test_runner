@@ -2,19 +2,20 @@
 
 set -o errexit
 
+declare -i PLAINTEXT=0
+
 function usage() {
   local -r -i exitval=$1
   cat &>/dev/stderr <<USAGE
 usage:
   $0 <options>
     --endpoint-hostport <host:port> host:port string
-    --docker-network <name>         docker network
     --protoset <filename>           protobuf spec image file
     --rpc <rpc name>                rpc name
     --request <filename>            request.json filename
     --plaintext                     send plaintext request
 environment variables:
-    GRPCURL                         path to grpcurl executable (required)
+    GHZ                             path to ghz executable (required)
 USAGE
   # shellcheck disable=SC2086
   exit ${exitval}
@@ -31,10 +32,7 @@ function check_app() {
   fi
 }
 
-check_app JQ
-check_app GRPCURL
-
-declare -i PLAINTEXT=0
+check_app GHZ
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -43,7 +41,8 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --docker-network)
-      shift 2
+      printf "Ignoring arg --docker-network\n"
+      shift 2 || usage
       ;;
     --rpc)
       RPC="$2"
@@ -62,31 +61,30 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help | -h) usage 0 ;;
-    *) shift 2 ;;
+    *) usage 1 ;;
   esac
 done
 
 : "${RPC?"Error: --rpc must be specified"}"
+: "${PROTOSET_FILENAME?"Error: --protoset must be specified"}"
 : "${REQUEST_FILENAME?"Error: --request must be specified"}"
 : "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
-: "${PROTOSET_FILENAME?"Error: --protoset not specified"}"
 
-declare -a GRPCURL_ARGS=(
-  -d @
-  -protoset "${PROTOSET_FILENAME}"
+declare -r REPORT_FILE=ghz_report.json
+declare -r REPORT_FORMAT=pretty
+
+declare -a GHZ_ARGS=(
+  "--concurrency=10"
+  "--total=5000"
+  "--call=${RPC}"
+  "--format=${REPORT_FORMAT}"
 )
 if [[ ${PLAINTEXT} -eq 1 ]]; then
-  GRPCURL_ARGS+=("-plaintext")
+  GHZ_ARGS+=("--insecure")
 fi
-GRPCURL_ARGS+=(
-  "${ENDPOINT_HOSTPORT}"
-  "${RPC}"
-)
 
-GRPCURL_ERROR_TMPFILE="$(mktemp)"
-readonly GRPCURL_ERROR_TMPFILE
-
-set -o xtrace
-if ! "${GRPCURL}" "${GRPCURL_ARGS[@]}" <"${REQUEST_FILENAME}" 2>"${GRPCURL_ERROR_TMPFILE}"; then
-  cat "${GRPCURL_ERROR_TMPFILE}"
-fi
+"${GHZ}" "${GHZ_ARGS[@]}" \
+  --data-file="${REQUEST_FILENAME}" \
+  --protoset="${PROTOSET_FILENAME}" \
+  "${ENDPOINT_HOSTPORT}" \
+  >"${TEST_UNDECLARED_OUTPUTS_DIR}/${REPORT_FILE}"

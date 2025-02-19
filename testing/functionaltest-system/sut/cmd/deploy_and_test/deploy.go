@@ -16,8 +16,6 @@ package deploy_and_test
 
 import (
 	"bytes"
-	"embed"
-	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -39,13 +37,11 @@ var (
 	sutWorkdir      string
 	sutZipFile      string
 	sutDockerImages []string
-	sutDir          string
 	sutName         string
-	verbose         bool = false
+	outputDir       string
+	verbose         bool
+	initBazel       bool
 )
-
-//go:embed embedFS.zip
-var sutEmbedFS embed.FS
 
 var DockerDeploySutCmd = &cobra.Command{
 	Use:   "deploy-and-test",
@@ -230,17 +226,17 @@ func readTestRunner(runnerConfigFile string) (tr *sutV1Pb.TestRunner, err error)
 }
 
 func extractEmbeddedFS() (err error) {
-	zipBytes, e := fs.ReadFile(sutEmbedFS, "embedFS.zip")
+	zipBytes, e := fs.ReadFile(sutEmbedFS, sutEmbedZip)
 	if e != nil {
 		err = e
 		return
 	}
 	if verbose {
-		fmt.Println("embedFS.zip size:", len(zipBytes))
+		fmt.Println(sutEmbedZip, "size:", len(zipBytes))
 	}
 	embedReader := bytes.NewReader(zipBytes)
 	if err = unzipToDir(embedReader, int64(len(zipBytes)), "", sutWorkdir); err != nil {
-		err = fmt.Errorf("unzipping embedFS.zip -- %w", err)
+		err = fmt.Errorf("unzipping %s -- %w", sutEmbedZip, err)
 	}
 	return
 }
@@ -248,7 +244,7 @@ func extractEmbeddedFS() (err error) {
 func deploy() (err error) {
 	// sutWorkdir is a temp dir into which embedded sut files and
 	// workdir/zip content are copied
-	if sutWorkdir, err = os.MkdirTemp("", "sut"); err != nil {
+	if sutWorkdir, err = os.MkdirTemp(outputDir, "sut"); err != nil {
 		return
 	}
 	//defer os.RemoveAll(sutWorkdir)
@@ -269,14 +265,7 @@ func deploy() (err error) {
 		}
 	}
 
-	if len(sutDir) > 0 {
-		if _, err = os.Stat(sutDir); errors.Is(err, os.ErrNotExist) {
-			return
-		}
-		if err = copyToDir(os.DirFS(sutDir), sutWorkdir); err != nil {
-			return
-		}
-	} else if len(sutZipFile) > 0 {
+	if len(sutZipFile) > 0 {
 		zipFile, e := os.Open(sutZipFile)
 		if e != nil {
 			err = e
@@ -331,13 +320,27 @@ func deploy() (err error) {
 	if err = configureBazelisk(); err != nil {
 		return
 	}
+	os.Chdir(sutWorkdir)
+	if sutWorkdir, err = os.Getwd(); err != nil {
+		return
+	}
+	if exitCode, e := runBazelArgs([]string{"version"}); e != nil {
+		return e
+	} else if exitCode != 0 {
+		return fmt.Errorf("bazel non-zero exit code: %d", exitCode)
+	}
+	if initBazel {
+		_, err = runBazelArgs([]string{"info"})
+		return
+	}
+
 	runnerConfigFile := filepath.Join(sutWorkdir, testRunnerFilename)
-	tr, e := readTestRunner(runnerConfigFile)
+	testRunner, e := readTestRunner(runnerConfigFile)
 	if e != nil {
 		err = e
 		return
 	}
-	sutName = tr.Name
+	sutName = testRunner.Name
 	if verbose {
 		fmt.Println("sut:", sutName)
 	}
@@ -346,7 +349,6 @@ func deploy() (err error) {
 	if sutWorkdir, err = os.Getwd(); err != nil {
 		return
 	}
-	totalStageCount := len(tr.Stages)
 	exitCode, e := runBazelArgs([]string{"version"})
 	if e != nil {
 		err = e
@@ -356,8 +358,8 @@ func deploy() (err error) {
 		err = fmt.Errorf("bazel non-zero exit code: %d", exitCode)
 		return
 	}
-	if len(tr.Deploy.Compose.YamlFilename) > 0 {
-		dc, dcErr := newDockerCompose(tr.Deploy.Compose)
+	if len(testRunner.GetDeploy().GetCompose().GetYamlFilename()) > 0 {
+		dc, dcErr := newDockerCompose(testRunner.GetDeploy().GetCompose())
 		if dcErr != nil {
 			err = dcErr
 			return
@@ -367,7 +369,8 @@ func deploy() (err error) {
 		}
 		defer dc.Down()
 	}
-	for i, stage := range tr.Stages {
+	totalStageCount := len(testRunner.Stages)
+	for i, stage := range testRunner.Stages {
 		fmt.Printf("\nstage %d/%d", i+1, totalStageCount)
 		if err = runStage(stage); err != nil {
 			return
@@ -378,10 +381,10 @@ func deploy() (err error) {
 
 func init() {
 	DockerDeploySutCmd.Flags().BoolVar(&verbose, "verbose", false, "verbose output")
+	DockerDeploySutCmd.Flags().BoolVar(&initBazel, "init-bazel", false, "Initialize bazel then exit")
+	DockerDeploySutCmd.Flags().StringVar(&outputDir, "output-dir", os.TempDir(), "directory for SUT outputs including log files")
 	DockerDeploySutCmd.Flags().StringVar(&sutZipFile, "sut-zip", "", "zip archive containing the data and configs for the SUT")
 	DockerDeploySutCmd.Flags().StringArrayVar(&sutDockerImages, "docker-image", []string{}, "docker image archive for use in the SUT, copied to the docker_images/ SUT dir")
-	DockerDeploySutCmd.Flags().StringVar(&sutDir, "sut-dir", "", "directory containing the data and configs for the SUT")
-	DockerDeploySutCmd.Flags().MarkDeprecated("sut-dir", "prefer use of sut-zip")
-	DockerDeploySutCmd.MarkFlagsOneRequired("sut-zip", "sut-dir")
-	DockerDeploySutCmd.MarkFlagsMutuallyExclusive("sut-zip", "sut-dir")
+	DockerDeploySutCmd.MarkFlagsOneRequired("init-bazel", "sut-zip")
+	DockerDeploySutCmd.MarkFlagsMutuallyExclusive("sut-zip", "init-bazel")
 }

@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.24.0 (2025-02-19)
+
+
+### Features
+
+* Add output-dir flag
+* Remove deprecated sut-dir flag
+
+## 0.23.0 (2025-02-19)
+
+
+### Features
+
+* Add --init-bazel flag to download bazel
+* Add Dockerfile-based build for functionaltest CLI
+* Initialize bazel in functionaltest-cli docker image
+
+
+### Bug Fixes
+
+* Allow for TestRunner.Deploy to be unset
+
 ## 0.22.0 (2025-02-14)
 
 
