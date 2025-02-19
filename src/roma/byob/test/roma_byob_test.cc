@@ -624,7 +624,7 @@ TEST_P(RomaByobTest, VerifySyscallFilter) {
       LoadCode(roma_service, kUdfPath / kCPlusPlusSyscallFilterBinaryFilename);
 
   EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              ::testing::StrEq("Blocked dup."));
+              ::testing::StrEq("Blocked all System V IPC syscalls correctly."));
 }
 
 std::string GetModeStr(Mode mode) {
