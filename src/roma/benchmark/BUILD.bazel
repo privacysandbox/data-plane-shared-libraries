@@ -142,6 +142,17 @@ cc_binary(
 )
 
 cc_binary(
+    name = "duration_benchmark",
+    srcs = ["duration_benchmark.cc"],
+    deps = [
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
     name = "host_api_grpc_benchmark",
     srcs = ["host_api_grpc_benchmark.cc"],
     deps = [
