@@ -26,7 +26,6 @@ load("@io_bazel_rules_go//go:def.bzl", "go_library")
         ],
         embedsrcs = [
             ":embed/version-functionaltest.txt",
-            ":embed/version-buildsystem.txt",
             ":embed/.bazelversion",
         ],
         importpath = "github.com/privacysandbox/functionaltest-system/sut/cmd",

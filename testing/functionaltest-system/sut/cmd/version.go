@@ -25,9 +25,6 @@ import (
 //go:embed embed/version-functionaltest.txt
 var versionFunctionalTest string
 
-//go:embed embed/version-buildsystem.txt
-var versionBuildSystem string
-
 //go:embed embed/.bazelversion
 var versionBazel string
 
@@ -42,6 +39,5 @@ var versionCmd = &cobra.Command{
 
 func printVersion() {
 	fmt.Printf("functionaltest-system: %s\n", strings.TrimSpace(versionFunctionalTest))
-	fmt.Printf("build-system: %s\n", strings.TrimSpace(versionBuildSystem))
 	fmt.Printf("bazel: %s\n", strings.TrimSpace(versionBazel))
 }

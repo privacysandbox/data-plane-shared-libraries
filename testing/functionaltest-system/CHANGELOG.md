@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.25.0 (2025-02-20)
+
+
+### Features
+
+* remove build system version from functionaltest
+
 ## 0.24.0 (2025-02-19)
 
 
