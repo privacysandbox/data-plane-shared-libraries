@@ -84,7 +84,7 @@ ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
 ABSL_FLAG(bool, verbose, false, "Enable verbose logging");
 ABSL_FLAG(std::optional<int>, sigpending, std::nullopt,
           "Set the pending signals rlimit");
-ABSL_FLAG(absl::Duration, duration, absl::ZeroDuration(),
+ABSL_FLAG(absl::Duration, duration, absl::InfiniteDuration(),
           "Run traffic generator for a specified duration. If set, overrides "
           "num_queries.");
 
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
   std::string burst_gen_str = absl::StrCat(
       "\n  burst size: ", burst_size, "\n  burst cadence: ", burst_cadence);
-  if (duration > absl::ZeroDuration()) {
+  if (duration < absl::InfiniteDuration()) {
     burst_gen_str = absl::StrCat(burst_gen_str, "\n  duration: ", duration);
   } else {
     burst_gen_str =
