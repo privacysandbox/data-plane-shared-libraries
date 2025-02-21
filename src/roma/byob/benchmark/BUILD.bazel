@@ -170,7 +170,7 @@ traffic_generator_args = [
         "{}qps-{}w-bs{}-nq{}-{}-noipc".format(qps, workers, burst_size, num_queries, sandbox),
         [
             "--num_workers={}".format(workers),
-            "--queries_per_second={}".format(qps),
+            "--queries_per_second={}".format(qps) if qps != "max" else "--find_max_qps",
             "--burst_size={}".format(burst_size),
             "--num_queries={}".format(num_queries),
             "--sandbox={}".format(sandbox),
@@ -183,10 +183,14 @@ traffic_generator_args = [
     )
     for workers in [84]
     for qps in [
-        250,
-        500,
+        "250",
+        "500",
+        "max",
     ]
-    for burst_size in [14]
+    for burst_size in [
+        6,
+        14,
+    ]
     for num_queries in [2000]
     for sandbox, syscall_filter in [("minimal", "true")]
 ]
