@@ -33,6 +33,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_split.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
 #include "absl/time/time.h"
@@ -87,11 +88,21 @@ ABSL_FLAG(std::optional<int>, sigpending, std::nullopt,
 ABSL_FLAG(absl::Duration, duration, absl::InfiniteDuration(),
           "Run traffic generator for a specified duration. If set, overrides "
           "num_queries.");
+ABSL_FLAG(bool, find_max_qps, false,
+          "Find maximum QPS that maintains performance under threshold");
+ABSL_FLAG(std::string, qps_search_bounds, "1:10000",
+          "Colon-separated lower and upper bounds for QPS search");
+ABSL_FLAG(double, late_threshold, 15.0,
+          "Maximum acceptable percentage of late bursts (default 15%)");
 
 namespace {
 
 using ::google::scp::roma::tools::v8_cli::CreateV8RpcFunc;
 using ::privacy_sandbox::server_common::PeriodicClosure;
+using ::privacy_sandbox::server_common::byob::BurstGenerator;
+using ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report;
+
+constexpr int kMaxQpsSearchStep = 50;
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
@@ -116,29 +127,13 @@ void PopulateSystemInfo(
   info.set_linux_kernel(GetKernelVersion());
 }
 
-}  // namespace
-
-int main(int argc, char** argv) {
-  absl::ParseCommandLine(argc, argv);
-  absl::InitializeLog();
-  absl::SetStderrThreshold(absl::LogSeverity::kInfo);
+BurstGenerator::Stats RunBurstGenerator(
+    int queries_per_second, std::atomic<std::int64_t>& completions) {
+  const int num_queries = absl::GetFlag(FLAGS_num_queries);
   const int num_workers = absl::GetFlag(FLAGS_num_workers);
-  CHECK_GT(num_workers, 0);
   const int burst_size = absl::GetFlag(FLAGS_burst_size);
-  CHECK_GT(burst_size, 0);
-  const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
-  CHECK_GT(queries_per_second, 0);
-  const std::string output_file = absl::GetFlag(FLAGS_output_file);
+  const std::string mode = absl::GetFlag(FLAGS_mode);
   const absl::Duration duration = absl::GetFlag(FLAGS_duration);
-
-  int num_queries = absl::GetFlag(FLAGS_num_queries);
-  const int total_invocations = absl::GetFlag(FLAGS_total_invocations);
-  CHECK_GE(total_invocations, 0);
-  if (total_invocations > 0) {
-    num_queries = total_invocations / burst_size;
-  } else {
-    CHECK_GT(num_queries, 0);
-  }
 
   const std::string lib_mounts = absl::GetFlag(FLAGS_lib_mounts);
   const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
@@ -151,41 +146,7 @@ int main(int argc, char** argv) {
   const std::string handler_name = absl::GetFlag(FLAGS_handler_name);
   const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
 
-  const std::string mode = absl::GetFlag(FLAGS_mode);
-  CHECK(mode == "byob" || mode == "v8")
-      << "Invalid mode. Must be 'byob' or 'v8'";
-
-  if (absl::GetFlag(FLAGS_sigpending).has_value()) {
-    const int new_sigpending_limit = absl::GetFlag(FLAGS_sigpending).value();
-    struct rlimit new_sigpending = {
-        .rlim_cur = rlim_t(new_sigpending_limit),
-        .rlim_max = rlim_t(new_sigpending_limit),
-    };
-    PCHECK(::setrlimit(RLIMIT_SIGPENDING, &new_sigpending) != -1)
-        << "setrlimit SIGPENDING";
-  }
-  ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report report;
-  PopulateSystemInfo(*report.mutable_info());
-
-  const std::int64_t expected_completions = num_queries * burst_size;
-  std::atomic<std::int64_t> completions = 0;
-
-  std::unique_ptr<PeriodicClosure> periodic = PeriodicClosure::Create();
-  if (absl::Status s = periodic->StartDelayed(
-          absl::Seconds(1),
-          [&completions, expected_completions]() {
-            static int64_t previous = 0;
-            const int64_t curr_val = completions;
-            if (previous != expected_completions) {
-              LOG(INFO) << "completions: " << curr_val
-                        << ", increment: " << curr_val - previous;
-            }
-            previous = curr_val;
-          });
-      !s.ok()) {
-    LOG(FATAL) << s;
-  }
-
+  const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   auto [rpc_func, stop_func] =
       (mode == "byob")
           ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
@@ -194,8 +155,6 @@ int main(int argc, char** argv) {
           : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
                             completions);
 
-  using ::privacy_sandbox::server_common::byob::BurstGenerator;
-  const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                            std::move(rpc_func), duration);
 
@@ -220,6 +179,116 @@ int main(int argc, char** argv) {
   // service's work is completed
   stop_func();
   LOG(INFO) << burst_gen_str << std::endl;
+
+  return stats;
+}
+
+std::pair<int, BurstGenerator::Stats> FindMaxQps(
+    double threshold_percent, std::atomic<std::int64_t>& completions) {
+  const std::string qps_search_bounds = absl::GetFlag(FLAGS_qps_search_bounds);
+  std::vector<std::string> qps_bounds = absl::StrSplit(qps_search_bounds, ':');
+  CHECK_EQ(qps_bounds.size(), 2) << "QPS search bounds must be in the format "
+                                    "lower:upper";
+  int low_qps;
+  CHECK(absl::SimpleAtoi(qps_bounds[0], &low_qps));
+  int high_qps;
+  CHECK(absl::SimpleAtoi(qps_bounds[1], &high_qps));
+  int best_qps = low_qps;
+
+  BurstGenerator::Stats best_stats;
+  // Binary search QPS Bounds
+  while (high_qps - low_qps > kMaxQpsSearchStep) {
+    int mid_qps = (high_qps + low_qps) / 2;
+
+    BurstGenerator::Stats stats = RunBurstGenerator(mid_qps, completions);
+    const float late_burst_pct =
+        static_cast<float>(std::lround(static_cast<double>(stats.late_count) /
+                                       stats.total_bursts * 1000)) /
+        10;
+
+    if (late_burst_pct <= threshold_percent) {
+      best_qps = mid_qps;
+      best_stats = std::move(stats);
+      low_qps = mid_qps + 1;
+    } else {
+      high_qps = mid_qps - 1;
+    }
+
+    LOG(INFO) << "Tested QPS: " << mid_qps
+              << ", Late percentage: " << late_burst_pct
+              << "%, Best so far: " << best_qps;
+  }
+  LOG(INFO) << "Best QPS Found: " << best_qps;
+  return std::make_pair(best_qps, best_stats);
+}
+
+}  // namespace
+
+int main(int argc, char** argv) {
+  LOG(INFO) << "Starting traffic generator...";
+  absl::ParseCommandLine(argc, argv);
+  absl::InitializeLog();
+  absl::SetStderrThreshold(absl::LogSeverity::kInfo);
+  const int num_workers = absl::GetFlag(FLAGS_num_workers);
+  CHECK_GT(num_workers, 0);
+  const int burst_size = absl::GetFlag(FLAGS_burst_size);
+  CHECK_GT(burst_size, 0);
+  int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
+  CHECK_GT(queries_per_second, 0);
+  const std::string output_file = absl::GetFlag(FLAGS_output_file);
+  const int total_invocations = absl::GetFlag(FLAGS_total_invocations);
+  CHECK_GE(total_invocations, 0);
+  if (total_invocations > 0) {
+    absl::SetFlag(&FLAGS_num_queries, total_invocations / burst_size);
+  }
+  const int num_queries = absl::GetFlag(FLAGS_num_queries);
+  CHECK_GT(num_queries, 0);
+
+  const std::string mode = absl::GetFlag(FLAGS_mode);
+  CHECK(mode == "byob" || mode == "v8")
+      << "Invalid mode. Must be 'byob' or 'v8'";
+
+  if (absl::GetFlag(FLAGS_sigpending).has_value()) {
+    const int new_sigpending_limit = absl::GetFlag(FLAGS_sigpending).value();
+    struct rlimit new_sigpending = {
+        .rlim_cur = rlim_t(new_sigpending_limit),
+        .rlim_max = rlim_t(new_sigpending_limit),
+    };
+    PCHECK(::setrlimit(RLIMIT_SIGPENDING, &new_sigpending) != -1)
+        << "setrlimit SIGPENDING";
+  }
+  Report report;
+  PopulateSystemInfo(*report.mutable_info());
+
+  const std::int64_t expected_completions = num_queries * burst_size;
+  std::atomic<std::int64_t> completions = 0;
+
+  std::unique_ptr<PeriodicClosure> periodic = PeriodicClosure::Create();
+  if (absl::Status s = periodic->StartDelayed(
+          absl::Seconds(1),
+          [&completions, expected_completions]() {
+            static int64_t previous = 0;
+            const int64_t curr_val = completions;
+            if (previous != expected_completions) {
+              LOG(INFO) << "completions: " << curr_val
+                        << ", increment: " << curr_val - previous;
+            }
+            previous = curr_val;
+          });
+      !s.ok()) {
+    LOG(FATAL) << s;
+  }
+
+  BurstGenerator::Stats stats;
+  if (absl::GetFlag(FLAGS_find_max_qps)) {
+    const double threshold = absl::GetFlag(FLAGS_late_threshold);
+    LOG(INFO) << "Finding maximum QPS with late burst threshold of "
+              << threshold << "%";
+
+    std::tie(queries_per_second, stats) = FindMaxQps(threshold, completions);
+  } else {
+    stats = RunBurstGenerator(queries_per_second, completions);
+  }
 
   stats.ToReport(report);
   report.set_run_id(absl::GetFlag(FLAGS_run_id));

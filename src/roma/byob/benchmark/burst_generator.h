@@ -45,6 +45,8 @@ class BurstGenerator final {
       invocation_outputs.resize(burst_size * num_bursts);
     }
 
+    Stats() : Stats(0, 0) {}
+
     absl::Duration total_elapsed;
     int64_t total_invocation_count;
     int total_bursts;

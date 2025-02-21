@@ -122,7 +122,7 @@ while [[ $# -gt 0 ]]; do
 done
 
 
-IMAGE=privacy-sandbox/roma-byob/traffic_generator:v1-root
+IMAGE=privacysandbox/roma-byob/traffic_generator:v1-root
 TRAFFIC_GENERATOR_PATH="src/roma/byob/benchmark:traffic_generator"
 
 if [[ ${MODE} == byob ]]; then
@@ -157,7 +157,13 @@ function run_test() {
   )
 
   if [[ ${FIND_MAX_QPS} == true ]]; then
-    CMD_ARGS+=("--verbose")
+    CMD_ARGS+=("--find_max_qps")
+    IFS=':' read -r low_qps step high_qps <<< "${QPS}"
+    if [[ -z ${high_qps} ]]; then
+      high_qps=${step}
+    fi
+    CMD_ARGS+=("--qps_search_bounds=${low_qps}:${high_qps}")
+    CMD_ARGS+=("--late_threshold=${LATE_THRESHOLD}")
   fi
 
   if [[ ${DURATION} -ne 0 ]]; then
@@ -209,15 +215,6 @@ function check_range() {
 }
 
 check_range QPS
-
-if [[ ${FIND_MAX_QPS} == true ]]; then
-  if [[ -z ${OUTPUT_FILE} ]]; then
-    BASE_FILENAME="$(mktemp --dry-run XXXX)"
-    OUTPUT_FILE="${BASE_FILENAME}_max_qps.jsonl"
-    echo "Creating output file for Max QPS Search: ${OUTPUT_FILE}"
-  fi
-fi
-
 check_range NUM_WORKERS
 check_range BURST_SIZE
 
@@ -252,46 +249,6 @@ if [[ -n ${CONFIG_FILE} ]]; then
       done
     done
   done < <(jq -c '.[]' "${CONFIG_FILE}")
-elif [[ ${FIND_MAX_QPS} == true ]]; then
-  for burst_size in "${BURST_SIZE_LIST[@]}"; do
-    for num_workers in "${NUM_WORKERS_LIST[@]}"; do
-      echo "Finding maximum QPS that maintains performance under threshold: ${LATE_THRESHOLD}%"
-
-      IFS=':' read -r low_qps step high_qps <<< "${QPS}"
-      if [[ -z ${high_qps} ]]; then
-        high_qps=${step}
-      fi
-      best_qps=${low_qps}
-
-      while [[ ${low_qps} -le ${high_qps} ]]; do
-        mid_qps=$(( (high_qps + low_qps) / 2 ))
-
-        echo "Testing QPS: ${mid_qps}"
-
-        BASE_RUN_ID="$(mktemp --dry-run XXXX)"
-        output=$(run_test ${burst_size} ${mid_qps} ${num_workers} "${BASE_RUN_ID}")
-        output=$(echo "${output}" | \
-            grep -o 'JSON_L.*JSON_L' | \
-            sed 's/JSON_L//g')
-
-        late_burst_pct=$(echo "${output}" | jq -r '.statistics.lateBurstPct')
-        if [ "$(echo "${late_burst_pct} <= ${LATE_THRESHOLD}" | bc -l)" -eq 1 ]; then
-          best_qps=${mid_qps}
-          low_qps=$((mid_qps + 1))
-        else
-          high_qps=$((mid_qps - 1))
-        fi
-
-        echo "QPS ${mid_qps} gave ${late_burst_pct}% late bursts. Best so far: ${best_qps}"
-      done
-      if [[ -n ${OUTPUT_FILE} ]]; then
-        touch "${OUTPUT_FILE}"
-        result_json="{\"burstSize\":${burst_size},\"numWorkers\":${num_workers},\"maxQps\":${best_qps}}"
-        echo "${result_json}" >> "${OUTPUT_FILE}"
-      fi
-      echo "Maximum sustainable QPS found: ${best_qps}"
-    done
-  done
 else
   for qps in "${QPS_LIST[@]}"; do
     for num_workers in "${NUM_WORKERS_LIST[@]}"; do

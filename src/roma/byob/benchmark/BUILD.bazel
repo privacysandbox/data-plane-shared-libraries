@@ -224,6 +224,27 @@ traffic_generator_args = [
     for user in DISTROLESS_USERS
 ]
 
+[
+    roma_byob_image(
+        name = "traffic_generator_{}_image".format(user.flavor),
+        container_structure_test_configs = [":traffic_generator_{}_image_test.yaml".format(user.flavor)],
+        debug = True,
+        entrypoint = ["/server/bin/traffic_generator"],
+        repo_tags = ["privacysandbox/roma-byob/traffic_generator:v1-{}".format(user.flavor)],
+        tags = [
+            "noasan",
+            "notsan",
+            "noubsan",
+        ],
+        tars = [
+            ":traffic_generator_tar_{}".format(user.flavor),
+            "//src/roma/byob/sample_udf:udf_{}_tar".format(user.flavor),
+        ],
+        user = user,
+    )
+    for user in DISTROLESS_USERS
+]
+
 cc_binary(
     name = "memory_usage_benchmark",
     srcs = ["memory_usage_benchmark.cc"],
