@@ -200,7 +200,7 @@ TEST_P(RomaByobTest, NoSocketFile) {
               ::testing::StrEq("Success."));
 }
 
-TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabled) {
+TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceEnabled) {
   RomaByobTestParam param = GetParam();
   if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
@@ -220,10 +220,43 @@ TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabled) {
 
   auto response_and_logs = GetResponseAndLogs(
       roma_service, code_token, FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE);
+  EXPECT_THAT(response_and_logs.first.greeting(),
+              ::testing::StrEq("Hello from System V message queue IPC."));
   response_and_logs = GetResponseAndLogs(roma_service, code_token,
                                          FUNCTION_READ_SYS_V_MESSAGE_QUEUE);
   EXPECT_THAT(response_and_logs.first.greeting(),
               ::testing::StrEq("Could not find a message in the queue"));
+}
+
+TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceDisabled) {
+  RomaByobTestParam param = GetParam();
+  if (!HasClonePermissionsByobWorker(param.mode)) {
+    GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
+  }
+  if (!param.enable_seccomp_filter) {
+    GTEST_SKIP() << "Other scenario covered in "
+                    "SystemVMessageQueueEgressDisabledIpcNamespaceEnabled";
+  }
+  ByobSampleService<> roma_service = GetRomaService(
+      {.enable_seccomp_filter = true, .disable_ipc_namespace = true},
+      param.mode);
+
+  std::string code_token =
+      LoadCode(roma_service, kUdfPath / "message_queue_udf",
+               /*enable_log_egress=*/true, /*num_workers=*/4);
+
+  absl::SleepFor(absl::Seconds(1));
+
+  auto response_and_logs = GetResponseAndLogs(
+      roma_service, code_token, FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE);
+  EXPECT_THAT(
+      response_and_logs.first.greeting(),
+      ::testing::StrEq("Failed to send message: Operation not permitted"));
+  response_and_logs = GetResponseAndLogs(roma_service, code_token,
+                                         FUNCTION_READ_SYS_V_MESSAGE_QUEUE);
+  EXPECT_THAT(
+      response_and_logs.first.greeting(),
+      ::testing::StrEq("Failed to receive message: Operation not permitted"));
 }
 
 TEST_P(RomaByobTest, NoFileSystemCreateEgression) {

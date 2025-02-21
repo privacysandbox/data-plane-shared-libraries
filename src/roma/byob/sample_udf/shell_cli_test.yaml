@@ -45,10 +45,12 @@ commandTests:
           Flags from bazel-out/.*/bin/src/roma/byob/sample_udf/sample_shell.cc:
             --commands_file \(Text file containing shell commands to execute\.\);
               default: ;
+            --disable_ipc_namespace \(Whether IPC namespace should be disabled\.\);
+              default: false;
             --num_workers \(Number of workers\.\); default: 1;
             --sandbox \(Run BYOB with mode: gvisor, gvisor-debug, minimal\.\);
               default: minimal;
-            --syscall_filter \(Whether to enable syscall filtering\.\); default: false;
+            --syscall_filter \(Whether to enable syscall filtering\.\); default: true;
             --udf_log_file \(Directory for storing UDF logs\.\); default: ;
 
   - name: shell-cli sandbox flag

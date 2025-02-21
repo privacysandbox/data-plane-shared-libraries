@@ -66,7 +66,9 @@ ABSL_FLAG(int, total_invocations, 0,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeMinimalSandbox,
           "Run BYOB with mode: gvisor, gvisor-debug, minimal.");
-ABSL_FLAG(bool, syscall_filter, false, "Whether to enable syscall filtering.");
+ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(bool, disable_ipc_namespace, false,
+          "Whether to disable syscall filtering.");
 ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
           "Mount paths to include in the pivot_root environment. Example "
           "/dir1,/dir2");
@@ -143,6 +145,7 @@ int main(int argc, char** argv) {
   const privacy_sandbox::server_common::byob::Mode sandbox =
       absl::GetFlag(FLAGS_sandbox);
   const bool enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter);
+  const bool disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace);
 
   const std::string udf_path = absl::GetFlag(FLAGS_udf_path);
   const std::string handler_name = absl::GetFlag(FLAGS_handler_name);
@@ -186,7 +189,8 @@ int main(int argc, char** argv) {
   auto [rpc_func, stop_func] =
       (mode == "byob")
           ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
-                              completions, enable_seccomp_filter)
+                              completions, enable_seccomp_filter,
+                              disable_ipc_namespace)
           : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
                             completions);
 

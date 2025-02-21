@@ -39,7 +39,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
                          std::string_view udf_socket_path,
                          std::string_view socket_dir, std::string_view log_dir,
                          bool enable_seccomp_filter,
-                         std::string_view binary_dir)
+                         std::string_view binary_dir,
+                         bool disable_ipc_namespace)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -63,6 +64,8 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
     const std::string seccomp_filter_flag =
         absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter);
+    const std::string ipc_namespace_flag =
+        absl::StrCat("--disable_ipc_namespace=", disable_ipc_namespace);
     const char* argv[] = {
         "/server/bin/run_workers",
         mounts_flag.c_str(),
@@ -71,6 +74,7 @@ LocalHandle::LocalHandle(int pid, std::string_view mounts,
         "--log_dir=/log_dir",
         "--binary_dir=/binary_dir",
         seccomp_filter_flag.c_str(),
+        ipc_namespace_flag.c_str(),
         nullptr,
     };
     const char* envp[] = {
@@ -99,7 +103,8 @@ NsJailHandle::NsJailHandle(
     std::string_view udf_socket_path, std::string_view socket_dir,
     std::string container_name, std::string_view log_dir,
     std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
-    bool enable_seccomp_filter, std::string_view binary_dir)
+    bool enable_seccomp_filter, std::string_view binary_dir,
+    bool disable_ipc_namespace)
     : pid_(pid) {
   // The following block does not run in the parent process.
   if (pid_ == 0) {
@@ -124,6 +129,8 @@ NsJailHandle::NsJailHandle(
     const std::string mounts_flag = absl::StrCat("--mounts=", mounts);
     const std::string seccomp_filter_flag =
         absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter);
+    const std::string ipc_namespace_flag =
+        absl::StrCat("--disable_ipc_namespace=", disable_ipc_namespace);
     const char* argv[] = {
         "/usr/bin/nsjail",
         "--mode",
@@ -149,6 +156,7 @@ NsJailHandle::NsJailHandle(
         "--binary_dir=/binary_dir",
         mounts_flag.c_str(),
         seccomp_filter_flag.c_str(),
+        ipc_namespace_flag.c_str(),
         nullptr,
     };
     const char* envp[] = {
@@ -179,7 +187,8 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
                        std::string_view log_dir,
                        std::uint64_t memory_limit_soft,
                        std::uint64_t memory_limit_hard, bool debug_mode,
-                       bool enable_seccomp_filter, std::string_view binary_dir)
+                       bool enable_seccomp_filter, std::string_view binary_dir,
+                       bool disable_ipc_namespace)
     : pid_(pid),
       container_name_(container_name.empty() ? "default_roma_container_name"
                                              : std::move(container_name)) {
@@ -207,6 +216,7 @@ ByobHandle::ByobHandle(int pid, std::string_view mounts,
         "--log_dir=/log_dir",
         "--binary_dir=/binary_dir",
         absl::StrCat("--enable_seccomp_filter=", enable_seccomp_filter),
+        absl::StrCat("--disable_ipc_namespace=", disable_ipc_namespace),
     };
     config["process"]["rlimits"] = {};
     // If a memory limit has been configured, apply it.

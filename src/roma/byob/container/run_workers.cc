@@ -77,7 +77,11 @@ ABSL_FLAG(std::vector<std::string>, mounts,
           "Mounts containing dependencies needed by the binary");
 ABSL_FLAG(std::string, log_dir, "/log_dir", "Directory used for storing logs");
 ABSL_FLAG(bool, enable_seccomp_filter, false,
-          "Decides whether seccomp filtering should be applied.");
+          "Specifies whether seccomp filtering should be applied.");
+ABSL_FLAG(bool, disable_ipc_namespace, false,
+          "Specifies whether IPC namespace should be created for every worker. "
+          "If IPC namespacing is disabled, syscall filters has to be enabled "
+          "via enable_seccomp_filter");
 
 namespace {
 using ::google::protobuf::io::FileInputStream;
@@ -401,6 +405,7 @@ struct ReloaderImplArg {
   int dev_null_fd;
   bool enable_log_egress;
   bool enable_seccomp_filter;
+  bool disable_ipc_namespace;
   std::string log_dir_name;
 };
 
@@ -485,11 +490,13 @@ int ReloaderImpl(void* arg) {
     // bytes (of 2^10 bytes) where unneeded.
     // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
     alignas(16) char stack[1 << 20];
-    const int pid =
-        ::clone(WorkerImpl, stack + sizeof(stack),
-                CLONE_VM | CLONE_VFORK | CLONE_NEWIPC | CLONE_NEWPID | SIGCHLD |
-                    CLONE_NEWUTS | CLONE_NEWNS,
-                &worker_impl_arg);
+    int clone_flags = CLONE_VM | CLONE_VFORK | CLONE_NEWPID | SIGCHLD |
+                      CLONE_NEWUTS | CLONE_NEWNS;
+    if (!reloader_impl_arg.disable_ipc_namespace) {
+      clone_flags |= CLONE_NEWIPC;
+    }
+    const int pid = ::clone(WorkerImpl, stack + sizeof(stack), clone_flags,
+                            &worker_impl_arg);
     if (pid == -1) {
       PLOG(ERROR) << "clone()";
       break;
@@ -622,7 +629,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     return CreateWorkerPool(binary_dir_ / request.binary_relative_path(),
                             request.code_token(), request.num_workers(),
                             request.enable_log_egress(),
-                            absl::GetFlag(FLAGS_enable_seccomp_filter));
+                            absl::GetFlag(FLAGS_enable_seccomp_filter),
+                            absl::GetFlag(FLAGS_disable_ipc_namespace));
   }
 
   void Delete(std::string_view request_code_token) ABSL_LOCKS_EXCLUDED(mu_) {
@@ -658,7 +666,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
                                 std::string_view code_token,
                                 const int num_workers,
                                 const bool enable_log_egress,
-                                const bool enable_seccomp_filter)
+                                const bool enable_seccomp_filter,
+                                const bool disable_ipc_namespace)
       ABSL_LOCKS_EXCLUDED(mu_) {
     {
       if (!std::filesystem::exists(binary_path)) {
@@ -686,6 +695,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
         .enable_seccomp_filter = enable_seccomp_filter,
+        .disable_ipc_namespace = disable_ipc_namespace,
         .log_dir_name = log_dir_name_,
     };
     for (int i = 0; i < num_workers; ++i) {
@@ -736,6 +746,12 @@ int main(int argc, char** argv) {
   const int dev_null_fd = ::open("/dev/null", O_WRONLY);
   if (dev_null_fd < 0) {
     PLOG(ERROR) << "open failed for /dev/null";
+    return -1;
+  }
+  if (absl::GetFlag(FLAGS_disable_ipc_namespace) &&
+      !absl::GetFlag(FLAGS_enable_seccomp_filter)) {
+    LOG(ERROR)
+        << "Either syscall filtering OR IPC namespacing needs to be enabled";
     return -1;
   }
   WorkerRunner runner(absl::GetFlag(FLAGS_udf_socket_name),

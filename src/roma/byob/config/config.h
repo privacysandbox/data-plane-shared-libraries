@@ -113,7 +113,13 @@ struct Config {
   std::string roma_container_name;
   // Mounts /x -> /x and /y/z -> /z.
   std::string lib_mounts = LIB_MOUNTS;
-  bool enable_seccomp_filter = false;
+  bool enable_seccomp_filter = true;
+  // IPC namespace can only be disabled if syscall filtering is on. This is a
+  // temporary measure in place because of a bug with Linux Kernel. See
+  // b/398051960 NOTE: This option can only be enabled if seccomp syscall
+  // filtering is enabled via enable_seccomp_filter. This option will be removed
+  // eventually.
+  bool disable_ipc_namespace = false;
 };
 }  // namespace privacy_sandbox::server_common::byob
 

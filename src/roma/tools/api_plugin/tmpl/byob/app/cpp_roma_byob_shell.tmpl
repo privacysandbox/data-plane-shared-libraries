@@ -57,7 +57,8 @@ ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeMinimalSandbox,
           "Run BYOB with mode: gvisor, gvisor-debug, minimal.");
-ABSL_FLAG(bool, syscall_filter, false, "Whether to enable syscall filtering.");
+ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(bool, disable_ipc_namespace, false, "Whether IPC namespace should be disabled.");
 
 
 {{$svc := index $file.Services 0}}
@@ -80,7 +81,10 @@ int main(int argc, char** argv) {
 
   // Initialize BYOB.
   absl::StatusOr<{{$svcName}}<>> service = {{$svcName}}<>::Create(
-      /*config=*/{.enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter)},
+      /*config=*/{
+        .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+        .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
+      },
       absl::GetFlag(FLAGS_sandbox));
   CHECK_OK(service);
 
