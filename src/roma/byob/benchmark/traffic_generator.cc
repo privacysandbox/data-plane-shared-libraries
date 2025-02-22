@@ -127,6 +127,25 @@ void PopulateSystemInfo(
   info.set_linux_kernel(GetKernelVersion());
 }
 
+std::string StatsToJson(const BurstGenerator::Stats& stats,
+                        int queries_per_second, Report& report) {
+  stats.ToReport(report);
+  report.set_run_id(absl::GetFlag(FLAGS_run_id));
+  report.mutable_params()->set_burst_size(absl::GetFlag(FLAGS_burst_size));
+  report.mutable_params()->set_query_count(absl::GetFlag(FLAGS_num_queries));
+  report.mutable_params()->set_queries_per_second(queries_per_second);
+  report.mutable_params()->set_num_workers(absl::GetFlag(FLAGS_num_workers));
+  const google::protobuf::util::JsonPrintOptions json_opts = {
+      .add_whitespace = false,
+      .always_print_primitive_fields = true,
+  };
+  auto report_json =
+      privacy_sandbox::server_common::ProtoToJson(report, json_opts);
+  CHECK(report_json.ok()) << "Failed to convert report to JSON: "
+                          << report_json.status();
+  return report_json.value();
+}
+
 BurstGenerator::Stats RunBurstGenerator(
     int queries_per_second, std::atomic<std::int64_t>& completions) {
   const int num_queries = absl::GetFlag(FLAGS_num_queries);
@@ -205,6 +224,11 @@ std::pair<int, BurstGenerator::Stats> FindMaxQps(
         static_cast<float>(std::lround(static_cast<double>(stats.late_count) /
                                        stats.total_bursts * 1000)) /
         10;
+    Report report;
+    std::string report_json = StatsToJson(stats, mid_qps, report);
+    if (absl::GetFlag(FLAGS_verbose)) {
+      LOG(INFO) << "QPS_SEARCH" << report_json << "QPS_SEARCH";
+    }
 
     if (late_burst_pct <= threshold_percent) {
       best_qps = mid_qps;
@@ -290,26 +314,13 @@ int main(int argc, char** argv) {
     stats = RunBurstGenerator(queries_per_second, completions);
   }
 
-  stats.ToReport(report);
-  report.set_run_id(absl::GetFlag(FLAGS_run_id));
-  report.mutable_params()->set_burst_size(burst_size);
-  report.mutable_params()->set_query_count(num_queries);
-  report.mutable_params()->set_queries_per_second(queries_per_second);
-  report.mutable_params()->set_num_workers(num_workers);
-  const google::protobuf::util::JsonPrintOptions json_opts = {
-      .add_whitespace = false,
-      .always_print_primitive_fields = true,
-  };
-  auto report_json =
-      privacy_sandbox::server_common::ProtoToJson(report, json_opts);
-  CHECK(report_json.ok()) << "Failed to convert report to JSON: "
-                          << report_json.status();
+  std::string report_json = StatsToJson(stats, queries_per_second, report);
   if (absl::GetFlag(FLAGS_verbose)) {
-    LOG(INFO) << "JSON_L" << report_json.value() << "JSON_L";
+    LOG(INFO) << "JSON_L" << report_json << "JSON_L";
   }
   if (!output_file.empty()) {
     if (std::ofstream outfile(output_file, std::ios::app); outfile.is_open()) {
-      outfile << report_json.value() << std::endl;
+      outfile << report_json << std::endl;
     } else {
       LOG(ERROR) << "Failed to open output file: " << output_file;
     }
