@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.26.0 (2025-02-24)
+
+
+### Features
+
+* Add --debug flag for deploy-and-test
+* Call bazel clean unless in debug mode
+
+
+### Bug Fixes
+
+* Reduce size of functionaltest-cli stage
+* Retain bazel test outputs.zip
+
 ## 0.25.0 (2025-02-20)
 
 

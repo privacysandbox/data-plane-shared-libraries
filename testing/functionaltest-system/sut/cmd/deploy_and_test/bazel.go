@@ -29,6 +29,8 @@ import (
 	sutV1Pb "github.com/privacysandbox/functionaltest-system/sut/v1/pb"
 )
 
+var bazelHomeDir string
+
 type BazelTestError struct {
 	err string
 }
@@ -90,7 +92,7 @@ func stringValPredicate(s string) bool {
 func configureBazelisk() error {
 	// Configure bazelisk's home path to be within the sut work dir, to ensure
 	// hermeticity of the each execution.
-	bazelHomeDir := path.Join(sutWorkdir, ".bazelhome")
+	bazelHomeDir = path.Join(sutWorkdir, ".bazelhome")
 	bazeliskHomeDir := os.Getenv("BAZELISK_HOME")
 	if len(bazeliskHomeDir) == 0 {
 		bazeliskHomeDir = path.Join(bazelHomeDir, "bazelisk")
@@ -138,6 +140,15 @@ func runBazelTest(bazelTestCmd *sutV1Pb.BazelTest, label string) (exitCode int, 
 	if err != nil {
 		return
 	}
+	if !debug {
+		cleanupArgs := []string{
+			"--output_base",
+			outputBase,
+			"clean",
+			"--expunge",
+		}
+		defer runBazelArgs(cleanupArgs)
+	}
 	err = captureBazelLogs("bazel-testlogs", path.Join(sutWorkdir, label+"-logs.zip"))
 	return
 }
@@ -166,7 +177,7 @@ func findBazelLogFiles(logRoot string) (paths []string, err error) {
 			return err
 		}
 		f := d.Name()
-		if f == "test.log" || f == "test.xml" {
+		if f == "test.log" || f == "test.xml" || f == "outputs.zip" {
 			paths = append(paths, path)
 		}
 		return nil

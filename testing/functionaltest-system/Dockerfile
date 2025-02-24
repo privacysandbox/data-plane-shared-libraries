@@ -19,9 +19,23 @@
 FROM golang:1.23.4-bookworm AS golang-base
 
 #
+# stage: bazelisk
+#
+FROM golang-base AS bazelisk
+ARG TARGETARCH
+ARG BAZELISK_VERSION=1.25.0
+ENV \
+  GOPATH=/opt/go \
+  BAZELISK_HOME=/usr/local/share/.bazelisk
+# install bazelisk
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go install github.com/bazelbuild/bazelisk@v${BAZELISK_VERSION} \
+  && ln -s ${GOPATH}/bin/bazelisk /usr/local/bin/bazel
+
+#
 # stage: build-tools
 #
-FROM golang-base AS clang
+FROM bazelisk AS clang
 ARG CLANG_VER=18
 ADD https://apt.llvm.org/llvm.sh /tmp/llvm.sh
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
@@ -44,20 +58,9 @@ ENV \
   TZ=Etc/UTC
 
 #
-# stage: bazelisk
-#
-FROM clang AS bazelisk
-ARG TARGETARCH
-ARG BAZELISK_VERSION=1.25.0
-ENV GOPATH=/opt/go
-# install bazelisk
-RUN go install github.com/bazelbuild/bazelisk@v${BAZELISK_VERSION} \
-  && ln -s ${GOPATH}/bin/bazelisk /usr/local/bin/bazel
-
-#
 # stage: bazel
 #
-FROM bazelisk AS bazel
+FROM clang AS bazel
 COPY .bazelversion tools/generate_system_bazelrc /tmp/
 ENV BAZEL_ROOT=/bazel_root
 # install specified bazel version
@@ -112,22 +115,25 @@ COPY --from=bazel-workspace /workspace/dist/ /
 # stage: ghz
 #
 FROM golang-base AS ghz
-RUN go install github.com/bojand/ghz/cmd/ghz@v0.120.0
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go install github.com/bojand/ghz/cmd/ghz@v0.120.0
 
 #
 # stage: grpcurl
 #
 FROM golang-base AS grpcurl
-RUN go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.2
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.2
 
 #
 # stage: runtime-base
 #
-FROM clang AS runtime-base
+FROM bazelisk AS runtime-base
 ARG VERSION="0.0.0"
 LABEL org.opencontainers.image.version="${VERSION}"
 LABEL org.opencontainers.image.authors="Google Privacy Sandbox"
 LABEL org.opencontainers.image.source="https://github.com/privacysandbox/data-plane-shared-libraries"
+WORKDIR /
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   --mount=target=/var/cache/apt,type=cache,sharing=locked \
   rm -f /etc/apt/apt.conf.d/docker-clean \
@@ -146,7 +152,6 @@ COPY --from=ghz /go/bin/ghz /usr/local/bin/
 COPY --from=grpcurl /go/bin/grpcurl /usr/local/bin/
 COPY --from=ghcr.io/jqlang/jq:1.7.1 /jq /usr/local/bin
 ENV \
-  BAZELISK_HOME=/usr/local/share/.bazelisk \
   GHZ=/usr/local/bin/ghz \
   GRPCURL=/usr/local/bin/grpcurl \
   JQ=/usr/local/bin/jq

@@ -39,6 +39,7 @@ var (
 	sutDockerImages []string
 	sutName         string
 	outputDir       string
+	debug           bool
 	verbose         bool
 	initBazel       bool
 )
@@ -241,13 +242,21 @@ func extractEmbeddedFS() (err error) {
 	return
 }
 
+func cleanup() {
+	if !debug {
+		if len(bazelHomeDir) > 0 {
+			defer os.RemoveAll(path.Join(bazelHomeDir))
+		}
+	}
+}
+
 func deploy() (err error) {
 	// sutWorkdir is a temp dir into which embedded sut files and
 	// workdir/zip content are copied
 	if sutWorkdir, err = os.MkdirTemp(outputDir, "sut"); err != nil {
 		return
 	}
-	//defer os.RemoveAll(sutWorkdir)
+	defer cleanup()
 	if verbose {
 		fmt.Println("sut workdir:", sutWorkdir)
 	}
@@ -381,6 +390,7 @@ func deploy() (err error) {
 
 func init() {
 	DockerDeploySutCmd.Flags().BoolVar(&verbose, "verbose", false, "verbose output")
+	DockerDeploySutCmd.Flags().BoolVar(&debug, "debug", false, "debug mode")
 	DockerDeploySutCmd.Flags().BoolVar(&initBazel, "init-bazel", false, "Initialize bazel then exit")
 	DockerDeploySutCmd.Flags().StringVar(&outputDir, "output-dir", os.TempDir(), "directory for SUT outputs including log files")
 	DockerDeploySutCmd.Flags().StringVar(&sutZipFile, "sut-zip", "", "zip archive containing the data and configs for the SUT")
