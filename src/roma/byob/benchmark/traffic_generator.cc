@@ -225,9 +225,10 @@ std::pair<int, BurstGenerator::Stats> FindMaxQps(
                                        stats.total_bursts * 1000)) /
         10;
     Report report;
+    report.mutable_params()->set_late_burst_threshold(threshold_percent);
     std::string report_json = StatsToJson(stats, mid_qps, report);
     if (absl::GetFlag(FLAGS_verbose)) {
-      LOG(INFO) << "QPS_SEARCH" << report_json << "QPS_SEARCH";
+      LOG(INFO) << "JSON_L" << report_json << "JSON_L";
     }
 
     if (late_burst_pct <= threshold_percent) {
@@ -309,6 +310,7 @@ int main(int argc, char** argv) {
     LOG(INFO) << "Finding maximum QPS with late burst threshold of "
               << threshold << "%";
 
+    report.mutable_params()->set_late_burst_threshold(threshold);
     std::tie(queries_per_second, stats) = FindMaxQps(threshold, completions);
   } else {
     stats = RunBurstGenerator(queries_per_second, completions);

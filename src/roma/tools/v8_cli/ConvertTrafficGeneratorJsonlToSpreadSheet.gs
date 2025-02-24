@@ -72,12 +72,7 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     { header: 'Failure Pct', path: 'statistics.failurePct' },
     { header: 'Late Count', path: 'statistics.lateCount' },
     { header: 'Late Burst Pct', path: 'statistics.lateBurstPct' },
-    { header: 'Burst Latencies min (ms)', path: 'burstLatencies.min', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Burst Latencies p50 (ms)', path: 'burstLatencies.p50', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Burst Latencies p90 (ms)', path: 'burstLatencies.p90', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Burst Latencies p95 (ms)', path: 'burstLatencies.p95', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Burst Latencies p99 (ms)', path: 'burstLatencies.p99', transform: (val) => secondsToMilliseconds(val) },
-    { header: 'Burst Latencies max (ms)', path: 'burstLatencies.max', transform: (val) => secondsToMilliseconds(val) },
+    { header: 'Late Burst Threshold', path: 'params.lateBurstThreshold' },
     {
       header: 'Invocation Latencies min (ms)',
       path: 'invocationLatencies.min',

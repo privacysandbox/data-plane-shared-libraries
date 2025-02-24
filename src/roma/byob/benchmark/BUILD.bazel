@@ -13,6 +13,7 @@
 # limitations under the License.
 
 load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
+load("@bazel_skylib//lib:sets.bzl", "sets")
 load(
     "@com_google_googleapis_imports//:imports.bzl",
     "cc_proto_library",
@@ -165,12 +166,35 @@ Step 2: Run the following from a command line:
       --binary_path="/udf/sample_udf"
 """
 
+worker_cpu_ratios = [
+    0.75,
+    1,
+    1.25,
+    1.75,
+    2.5,
+]
+
+cpus = [
+    32,
+    64,
+    96,
+    128,
+    30,
+    60,
+    90,
+]
+
+# remove duplicates
+workers_counts = sets.to_list(sets.make([int(cpu * worker_ratio) for cpu in cpus for worker_ratio in worker_cpu_ratios]))
+
 traffic_generator_args = [
     (
-        "{}qps-{}w-bs{}-nq{}-{}-noipc".format(qps, workers, burst_size, num_queries, sandbox),
+        "{}qps-{}w-bs{}-nq{}-{}-lt{}-noipc".format(qps, workers, burst_size, num_queries, sandbox, late_threshold),
         [
             "--num_workers={}".format(workers),
-            "--queries_per_second={}".format(qps) if qps != "max" else "--find_max_qps",
+            "--find_max_qps",
+            "--qps_search_bounds=1:10000",
+            "--late_threshold={}".format(late_threshold),
             "--burst_size={}".format(burst_size),
             "--num_queries={}".format(num_queries),
             "--sandbox={}".format(sandbox),
@@ -181,11 +205,13 @@ traffic_generator_args = [
             "--verbose",
         ],
     )
-    for workers in [84]
+    for workers in [84] + workers_counts
     for qps in [
-        "250",
-        "500",
         "max",
+    ]
+    for late_threshold in [
+        0,
+        15,
     ]
     for burst_size in [
         6,
@@ -202,7 +228,6 @@ traffic_generator_args = [
             user.flavor,
         ),
         cmd = args,
-        container_structure_test_configs = [":traffic_generator_{}_image_test.yaml".format(user.flavor)],
         debug = True,
         entrypoint = ["/server/bin/traffic_generator"],
         labels = {
@@ -214,6 +239,7 @@ traffic_generator_args = [
             user.flavor,
         )],
         tags = [
+            "manual",
             "noasan",
             "notsan",
             "noubsan",
