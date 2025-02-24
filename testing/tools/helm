@@ -1,0 +1,10 @@
+#!/bin/sh
+
+docker run \
+  --rm \
+  --volume="${PWD}":/apps \
+  --workdir=/apps \
+  --user="$(id -u):$(id -g)" \
+  --env=USER \
+  alpine/helm:3.17.0 \
+  "$@"

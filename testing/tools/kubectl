@@ -1,0 +1,19 @@
+#!/bin/bash
+
+declare -a args=(
+  --rm
+  --interactive
+  --network=host
+  --volume="${HOME}"/.kube/config:/.kube/config
+  --user="$(id -u):$(id -g)"
+  --env=USER
+)
+
+if [[ -d ${WORKSPACE} ]]; then
+  args+=(--volume="${WORKSPACE}":"${WORKSPACE}")
+fi
+
+docker run \
+  "${args[@]}" \
+  bitnami/kubectl:1.32.2 \
+  "$@"

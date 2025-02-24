@@ -1,0 +1,9 @@
+FROM golang:1.24.0-bullseye AS kind
+
+RUN go install sigs.k8s.io/kind@v0.26.0
+
+#
+# export the kind binary
+#
+FROM scratch AS kind-binary
+COPY --from=kind /go/bin/kind /
