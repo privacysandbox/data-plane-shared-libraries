@@ -20,7 +20,7 @@
 
 #include "absl/functional/any_invocable.h"
 #include "absl/status/statusor.h"
-#include "absl/synchronization/notification.h"
+#include "absl/synchronization/blocking_counter.h"
 #include "absl/time/time.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"

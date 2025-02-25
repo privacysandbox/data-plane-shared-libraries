@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef SRC_ROMA_BYOB_TEST_CONCURRENCY__BURST_GENERATOR_H
-#define SRC_ROMA_BYOB_TEST_CONCURRENCY__BURST_GENERATOR_H
+#ifndef SRC_ROMA_TRAFFIC_GENERATOR_BURST_GENERATOR_H
+#define SRC_ROMA_TRAFFIC_GENERATOR_BURST_GENERATOR_H
 
 #include <memory>
 #include <string>
@@ -28,10 +28,10 @@
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/time/time.h"
-#include "src/roma/byob/benchmark/traffic_generator.pb.h"
+#include "src/roma/traffic_generator/traffic_generator.pb.h"
 #include "src/util/duration.h"
 
-namespace privacy_sandbox::server_common::byob {
+namespace google::scp::roma::traffic_generator {
 
 class BurstGenerator final {
  public:
@@ -59,9 +59,8 @@ class BurstGenerator final {
     std::vector<absl::StatusOr<std::string>> invocation_outputs;
 
     std::string ToString() const;
-    void ToReport(
-        ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report&
-            report) const;
+    void ToReport(::privacysandbox::apis::roma::traffic_generator::v1::Report&
+                      report) const;
   };
 
   BurstGenerator(
@@ -103,6 +102,6 @@ class BurstGenerator final {
   absl::Duration run_duration_;
 };
 
-}  // namespace privacy_sandbox::server_common::byob
+}  // namespace google::scp::roma::traffic_generator
 
-#endif  // SRC_ROMA_BYOB_TEST_CONCURRENCY__BURST_GENERATOR_H
+#endif  // SRC_ROMA_TRAFFIC_GENERATOR_BURST_GENERATOR_H

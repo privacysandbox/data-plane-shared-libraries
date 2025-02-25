@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "src/roma/byob/benchmark/burst_generator.h"
+#include "src/roma/traffic_generator/burst_generator.h"
 
 #include <algorithm>
 #include <cmath>
@@ -26,7 +26,7 @@
 #include "absl/strings/str_split.h"
 #include "absl/time/time.h"
 #include "google/protobuf/util/time_util.h"
-#include "src/roma/byob/benchmark/traffic_generator.pb.h"
+#include "src/roma/traffic_generator/traffic_generator.pb.h"
 #include "src/util/duration.h"
 
 namespace {
@@ -93,9 +93,10 @@ std::vector<absl::Duration> ParseOutputLatencies(
 }
 
 template <typename Ptile>
-void CopyStats(const Ptile ptile,
-               ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::
-                   DurationStatistics& stats) {
+void CopyStats(
+    const Ptile ptile,
+    ::privacysandbox::apis::roma::traffic_generator::v1::DurationStatistics&
+        stats) {
   stats.set_count(ptile.count);
   *stats.mutable_min() = DurationToProto(ptile.min);
   *stats.mutable_p50() = DurationToProto(ptile.p50);
@@ -107,7 +108,7 @@ void CopyStats(const Ptile ptile,
 
 }  // namespace
 
-namespace privacy_sandbox::server_common::byob {
+namespace google::scp::roma::traffic_generator {
 
 std::string BurstGenerator::Stats::ToString() const {
   Percentiles<absl::Duration> burst_creation_ptiles =
@@ -164,11 +165,9 @@ std::string BurstGenerator::Stats::ToString() const {
 }
 
 void BurstGenerator::Stats::ToReport(
-    ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Report&
-        report) const {
-  using ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::
-      DurationStatistics;
-  using ::privacysandbox::apis::roma::benchmark::traffic_generator::v1::Params;
+    ::privacysandbox::apis::roma::traffic_generator::v1::Report& report) const {
+  using ::privacysandbox::apis::roma::traffic_generator::v1::DurationStatistics;
+  using ::privacysandbox::apis::roma::traffic_generator::v1::Params;
 
   Percentiles<absl::Duration> burst_creation_ptiles =
       get_percentiles(burst_creation_latencies);
@@ -285,4 +284,4 @@ absl::Duration BurstGenerator::Generate(
   return stopwatch.GetElapsedTime();
 }
 
-}  // namespace privacy_sandbox::server_common::byob
+}  // namespace google::scp::roma::traffic_generator

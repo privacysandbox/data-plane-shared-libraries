@@ -162,6 +162,16 @@ cc_binary(
     ],
 )
 
+cc_binary(
+    name = "traffic_generator",
+    srcs = ["traffic_generator.cc"],
+    deps = [
+        "//src/roma/traffic_generator",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
+)
+
 cc_library(
     name = "roma_v8_rpc_factory",
     hdrs = ["roma_v8_rpc_factory.h"],

@@ -18,7 +18,7 @@
 
 syntax = "proto3";
 
-package privacysandbox.apis.roma.benchmark.traffic_generator.v1;
+package privacysandbox.apis.roma.traffic_generator.v1;
 
 import "google/protobuf/duration.proto";
 

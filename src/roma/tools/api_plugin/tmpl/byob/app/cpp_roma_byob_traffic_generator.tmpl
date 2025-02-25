@@ -41,7 +41,7 @@
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/text_format.h"
 #include "src/communication/json_utils.h"
-#include "src/roma/byob/benchmark/burst_generator.h"
+#include "src/roma/traffic_generator/burst_generator.h"
 #include "src/roma/byob/config/config.h"
 #include "src/util/periodic_closure.h"
 
@@ -147,7 +147,7 @@ void RunTrafficGenerator() {
   }
   const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
   CHECK_GT(queries_per_second, 0);
-  using ::privacy_sandbox::server_common::byob::BurstGenerator;
+  using ::google::scp::roma::traffic_generator::BurstGenerator;
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   absl::StatusOr<{{$svcName}}<>> roma_service =
       {{$svcName}}<>::Create(/*config=*/{}, absl::GetFlag(FLAGS_sandbox_mode));

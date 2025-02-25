@@ -12,8 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#ifndef SRC_ROMA_BYOB_BENCHMARK_TRAFFIC_GENERATOR_H_
-#define SRC_ROMA_BYOB_BENCHMARK_TRAFFIC_GENERATOR_H_
+#ifndef SRC_ROMA_TRAFFIC_GENERATOR_TRAFFIC_GENERATOR_H_
+#define SRC_ROMA_TRAFFIC_GENERATOR_TRAFFIC_GENERATOR_H_
 
 #include <optional>
 #include <string>
@@ -47,13 +47,13 @@ ABSL_DECLARE_FLAG(bool, find_max_qps);
 ABSL_DECLARE_FLAG(std::string, qps_search_bounds);
 ABSL_DECLARE_FLAG(double, late_threshold);
 
-namespace privacy_sandbox::server_common::byob {
+namespace google::scp::roma::traffic_generator {
 
 class TrafficGenerator {
  public:
   static absl::Status Run();
 };
 
-}  // namespace privacy_sandbox::server_common::byob
+}  // namespace google::scp::roma::traffic_generator
 
-#endif  // SRC_ROMA_BYOB_BENCHMARK_TRAFFIC_GENERATOR_H_
+#endif  // SRC_ROMA_TRAFFIC_GENERATOR_TRAFFIC_GENERATOR_H_

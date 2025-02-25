@@ -12,14 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/roma/traffic_generator/traffic_generator.h"
+
 #include "absl/flags/flag.h"
 #include "absl/flags/parse.h"
-#include "src/roma/byob/benchmark/traffic_generator.h"
 
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
   absl::SetFlag(&FLAGS_mode, "v8");
 
-  using privacy_sandbox::server_common::byob::TrafficGenerator;
+  using google::scp::roma::traffic_generator::TrafficGenerator;
   return TrafficGenerator::Run().ok() ? 0 : 1;
 }

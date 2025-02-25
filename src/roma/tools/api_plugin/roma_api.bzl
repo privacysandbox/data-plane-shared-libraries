@@ -629,7 +629,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
             udf_cc_proto_lib,
             ":{}".format(name),
             Label("//src/communication:json_utils"),
-            Label("//src/roma/byob/benchmark:burst_generator"),
+            Label("//src/roma/traffic_generator:burst_generator"),
             Label("//src/util:periodic_closure"),
             "@com_google_absl//absl/flags:flag",
             "@com_google_absl//absl/flags:parse",
