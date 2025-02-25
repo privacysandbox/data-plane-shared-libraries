@@ -92,8 +92,29 @@ cc_library(
 )
 
 cc_binary(
+    name = "byob_traffic_generator",
+    srcs = ["byob_traffic_generator.cc"],
+    deps = [
+        ":traffic_generator",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
+)
+
+cc_binary(
+    name = "v8_traffic_generator",
+    srcs = ["v8_traffic_generator.cc"],
+    deps = [
+        ":traffic_generator",
+        "@com_google_absl//absl/flags:flag",
+        "@com_google_absl//absl/flags:parse",
+    ],
+)
+
+cc_library(
     name = "traffic_generator",
     srcs = ["traffic_generator.cc"],
+    hdrs = ["traffic_generator.h"],
     deps = [
         ":burst_generator",
         ":roma_byob_rpc_factory",
@@ -121,7 +142,7 @@ cc_binary(
 
 pkg_files(
     name = "traffic_generator_execs",
-    srcs = [":traffic_generator"],
+    srcs = [":byob_traffic_generator"],
     attributes = pkg_attributes(mode = "0500"),
     prefix = "/server/bin",
 )
@@ -229,7 +250,7 @@ traffic_generator_args = [
         ),
         cmd = args,
         debug = True,
-        entrypoint = ["/server/bin/traffic_generator"],
+        entrypoint = ["/server/bin/byob_traffic_generator"],
         labels = {
             "tee.launch_policy.log_redirect": "always",
             "tee.launch_policy.privileged": "true",
@@ -259,7 +280,7 @@ traffic_generator_args = [
         name = "traffic_generator_{}_image".format(user.flavor),
         container_structure_test_configs = [":traffic_generator_{}_image_test.yaml".format(user.flavor)],
         debug = True,
-        entrypoint = ["/server/bin/traffic_generator"],
+        entrypoint = ["/server/bin/byob_traffic_generator"],
         repo_tags = ["privacysandbox/roma-byob/traffic_generator:v1-{}".format(user.flavor)],
         tags = [
             "noasan",

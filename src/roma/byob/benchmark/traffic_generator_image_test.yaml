@@ -21,11 +21,11 @@ containerRunOptions:
 
 metadataTest:
   entrypoint:
-    - /server/bin/traffic_generator
+    - /server/bin/byob_traffic_generator
 
 fileExistenceTests:
   - name: entrypoint
-    path: /server/bin/traffic_generator
+    path: /server/bin/byob_traffic_generator
     permissions: -r-x------
     isExecutableBy: owner
     uid: {UID}
@@ -33,7 +33,7 @@ fileExistenceTests:
 
 commandTests:
   - name: events stats 10k
-    command: /server/bin/traffic_generator
+    command: /server/bin/byob_traffic_generator
     args:
       - --num_workers=2
       - --num_queries=1

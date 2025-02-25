@@ -12,6 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include "src/roma/byob/benchmark/traffic_generator.h"
+
 #include <sys/utsname.h>
 
 #include <filesystem>
@@ -245,9 +247,10 @@ std::pair<int, BurstGenerator::Stats> FindMaxQps(
 
 }  // namespace
 
-int main(int argc, char** argv) {
+namespace privacy_sandbox::server_common::byob {
+
+absl::Status TrafficGenerator::Run() {
   LOG(INFO) << "Starting traffic generator...";
-  absl::ParseCommandLine(argc, argv);
   absl::InitializeLog();
   absl::SetStderrThreshold(absl::LogSeverity::kInfo);
   const int num_workers = absl::GetFlag(FLAGS_num_workers);
@@ -328,5 +331,8 @@ int main(int argc, char** argv) {
     LOG(INFO) << stats.ToString();
   }
 
-  return stats.late_count == 0 ? 0 : 1;
+  return stats.late_count == 0 ? absl::OkStatus()
+                               : absl::InternalError("Non-zero late bursts");
 }
+
+}  // namespace privacy_sandbox::server_common::byob
