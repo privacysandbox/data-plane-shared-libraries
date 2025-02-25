@@ -51,6 +51,11 @@ func main() {
 	}
 	file := os.NewFile(uintptr(fd), "socket")
 	defer file.Close()
+	byteToWrite := []byte{65}
+	_, err = file.Write(byteToWrite)
+	if err != nil {
+		log.Fatal("Error writing byte:", err)
+	}
 	// Any initialization work can be done before this point.
 	// The following line will result in a blocking read being performed by the
 	// binary i.e. waiting for input before execution.

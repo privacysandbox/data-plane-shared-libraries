@@ -381,9 +381,9 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
       break;
     }
 
-    // Read code token and execution token, 36 bytes each.
-    // First is code token, second is execution token.
-    absl::StatusOr<std::string> data = Read(fd, kNumTokenBytes * 2);
+    // Read the code token (36 bytes), followed by the execution token (36
+    // bytes) and then the UDF init token (one byte).
+    absl::StatusOr<std::string> data = Read(fd, kNumTokenBytes * 2 + 1);
     if (!data.ok()) {
       LOG(ERROR) << "Read failure: " << data.status();
       ::close(fd);
@@ -391,7 +391,7 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
     }
     RequestMetadata request_metadata{
         .fd = fd,
-        .token = data->substr(kNumTokenBytes),
+        .token = data->substr(kNumTokenBytes, kNumTokenBytes),
         .handler =
             +[](int fd, std::filesystem::path /*log_file_name*/) {
               // The default handler is called when this thread is unblocked by

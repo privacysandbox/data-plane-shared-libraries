@@ -38,6 +38,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
+  if (::write(fd, "a", /*count=*/1) != 1) {
+    std::cerr << "Failed to write" << std::endl;
+    return -1;
+  }
   ReadPayloadRequest req = ReadRequestFromFd(fd);
   ReadPayloadResponse response;
   int64_t payload_size = 0;

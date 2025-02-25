@@ -41,9 +41,9 @@ class SampleUdf {
     return parser.parseDelimitedFrom(stream);
   }
 
-  private void writeResponseToFile(FileDescriptor fileDescriptor, SampleResponse response) throws IOException {
-    FileOutputStream output = new FileOutputStream(fileDescriptor);
-    response.writeDelimitedTo(output);
+  private void writeResponseToFile(FileOutputStream outputStream, SampleResponse response)
+      throws IOException {
+    response.writeDelimitedTo(outputStream);
   }
 
   void primeSieve(SampleResponse.Builder builder) {
@@ -70,7 +70,7 @@ class SampleUdf {
     }
   }
 
-  public void handleRequest(FileDescriptor fileDescriptor) {
+  public void handleRequest(FileDescriptor fileDescriptor, FileOutputStream outputStream) {
     SampleRequest binRequest = null;
     try {
         binRequest= readRequestFromFile(fileDescriptor);
@@ -98,7 +98,7 @@ class SampleUdf {
             System.exit(1);
       }
       try {
-        writeResponseToFile(fileDescriptor, binResponse);
+        writeResponseToFile(outputStream, binResponse);
       } catch (IOException ex) {
         System.err.println("Failed to write response");
         System.exit(1);
@@ -124,8 +124,15 @@ class SampleUdf {
       ex.printStackTrace();
       System.exit(1);
     }
+    FileOutputStream outputStream = new FileOutputStream(fileDescriptor);
+    try {
+      outputStream.write(100);
+    } catch (IOException ex) {
+      ex.printStackTrace();
+      System.exit(1);
+    }
     SampleUdf sampleUdf = new SampleUdf();
-    sampleUdf.handleRequest(fileDescriptor);
+    sampleUdf.handleRequest(fileDescriptor, outputStream);
   }
 
   }

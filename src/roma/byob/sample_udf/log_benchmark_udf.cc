@@ -40,6 +40,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
+  if (::write(fd, "a", /*count=*/1) != 1) {
+    std::cerr << "Failed to write" << std::endl;
+    return -1;
+  }
   int log_count = ReadRequestFromFd(fd);
   while (log_count--) {
     std::cerr << "I am benchmark stderr log.\n";

@@ -84,6 +84,11 @@ func main() {
 	}
 	file := os.NewFile(uintptr(fd), "socket")
 	defer file.Close()
+	byteToWrite := []byte{65}
+	_, err = file.Write(byteToWrite)
+	if err != nil {
+		log.Fatal("Error writing byte:", err)
+	}
 	binRequest := readRequestFromFd(bufio.NewReader(file))
 
 	binResponse := pb.SampleResponse{}

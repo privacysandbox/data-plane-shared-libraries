@@ -38,6 +38,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
+  if (::write(fd, "a", /*count=*/1) != 1) {
+    std::cerr << "Failed to write" << std::endl;
+    return -1;
+  }
   // Any initialization work can be done before this point.
   // The following line will result in a blocking read being performed by the
   // binary i.e. waiting for input before execution.

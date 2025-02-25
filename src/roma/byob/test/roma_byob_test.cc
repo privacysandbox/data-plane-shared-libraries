@@ -216,7 +216,7 @@ TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceEnabled) {
       LoadCode(roma_service, kUdfPath / "message_queue_udf",
                /*enable_log_egress=*/true, /*num_workers=*/4);
 
-  absl::SleepFor(absl::Milliseconds(25));
+  absl::SleepFor(absl::Seconds(1));
 
   auto response_and_logs = GetResponseAndLogs(
       roma_service, code_token, FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE);

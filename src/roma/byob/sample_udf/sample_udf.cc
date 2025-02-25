@@ -73,6 +73,10 @@ int main(int argc, char* argv[]) {
     return -1;
   }
   int fd = std::stoi(argv[1]);
+  if (::write(fd, "a", /*count=*/1) != 1) {
+    std::cerr << "Failed to write" << std::endl;
+    return -1;
+  }
   SampleRequest bin_request = ReadRequestFromFd(fd);
   SampleResponse bin_response;
   switch (bin_request.function()) {

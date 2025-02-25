@@ -61,6 +61,10 @@ Largely, a UDF's execution can be divided into following stages -
     During this stage, the UDF can initialize any variables, structures it may need. Note that this
     stage is optional.
 
+1. Indicating Readiness
+
+    Once the UDF is ready to execute it should write a (arbitrary) byte on the file descriptor.
+
 1. Blocking read
 
     As the name suggests, during this stage the UDF is expected to wait for input to be written to
@@ -104,12 +108,19 @@ void WriteResponseToFd(int fd, EchoResponse resp) {
 
 int main(int argc, char* argv[]) {
   if (argc != 2) {
-    std::cerr << "Expecting exactly one argument";
+    std::cerr << "Expecting exactly one argument" << std::endl;
     return -1;
   }
   int fd = std::stoi(argv[1]);
 
   // Any initialization work can be done before this point.
+  // This call indicates readiness. Exactly one byte must be written. Any
+  // arbitrary byte can be written.
+  if (::write(fd, "a", /*count=*/1) != 1) {
+    std::cerr << "Failed to write" << std::endl;
+    return -1;
+  }
+
   // The following line will result in a blocking read being performed by the
   // binary i.e. waiting for input before execution.
   // The EchoRequest proto is defined by the Trusted Server team. The UDF reads
