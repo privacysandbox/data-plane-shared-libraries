@@ -188,10 +188,6 @@ BurstGenerator::Stats RunBurstGenerator(
   LOG(INFO) << "starting burst generator run." << burst_gen_str << std::endl;
 
   const BurstGenerator::Stats stats = burst_gen.Run();
-
-  // Wait for all RPCs to complete before stopping the service
-  LOG(INFO) << "Waiting for all RPCs to complete...";
-  burst_gen.WaitForCompletion();
   LOG(INFO) << "All RPCs completed.";
 
   // RomaService must be cleaned up before stats are reported, to ensure the

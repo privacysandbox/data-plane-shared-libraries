@@ -83,7 +83,10 @@ void {{$rpc.Name}}ExecuteImpl(
     std::atomic_int& completions,
     privacy_sandbox::server_common::Stopwatch stopwatch,
     absl::StatusOr<absl::Duration>& duration,
-    const {{$reqType}}& request) {
+    const {{$reqType}}& request,
+    absl::BlockingCounter& counter,
+    privacy_sandbox::server_common::Stopwatch& burst_stopwatch,
+    absl::Duration& burst_duration) {
   const auto execution_token = roma_service.{{$rpc.Name}}(
       [&, stopwatch = std::move(stopwatch)] (auto response) {
         if (response.ok()) {
@@ -92,11 +95,17 @@ void {{$rpc.Name}}ExecuteImpl(
           duration = std::move(response).status();
         }
         completions++;
+        if (counter.DecrementCount()) {
+          burst_duration = burst_stopwatch.GetElapsedTime();
+        }
       },
       request, /*metadata=*/{}, code_token);
   if (!execution_token.ok()) {
     duration = std::move(execution_token).status();
     completions++;
+    if (counter.DecrementCount()) {
+      burst_duration = burst_stopwatch.GetElapsedTime();
+    }
   }
 }
 {{end}}
@@ -157,9 +166,9 @@ void RunTrafficGenerator() {
       CHECK(google::protobuf::TextFormat::ParseFromString(request_content,
                                                           &request.emplace()));
     }
-    auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, absl::Notification* done) {
+    auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, auto counter, auto* burst_stopwatch, auto* burst_duration) {
       {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, completions, std::move(stopwatch),
-                               *duration, *request);
+                               *duration, *request, *counter, *burst_stopwatch, *burst_duration);
     };
     BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                             std::move(rpc_func));

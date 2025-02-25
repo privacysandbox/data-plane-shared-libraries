@@ -66,8 +66,9 @@ message Report {
   string run_id = 1;
   Params params = 2;
   BurstGeneratorStatistics statistics = 3;
-  DurationStatistics burst_latencies = 4;
-  DurationStatistics invocation_latencies = 5;
-  DurationStatistics output_latencies = 6;
-  SystemInfo info = 7;
+  DurationStatistics burst_creation_latencies = 4;
+  DurationStatistics burst_processing_latencies = 5;
+  DurationStatistics invocation_latencies = 6;
+  DurationStatistics output_latencies = 7;
+  SystemInfo info = 8;
 }

@@ -38,7 +38,8 @@ using ::privacy_sandbox::roma_byob::example::SampleResponse;
 
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::StatusOr<std::string>*, absl::Notification*) const>;
+    absl::StatusOr<std::string>*, absl::BlockingCounter*,
+    privacy_sandbox::server_common::Stopwatch*, absl::Duration*) const>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace privacy_sandbox::server_common::byob {
@@ -67,12 +68,15 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
        &completions, request = std::move(request)](
           privacy_sandbox::server_common::Stopwatch stopwatch,
           absl::StatusOr<absl::Duration>* duration,
-          absl::StatusOr<std::string>* output, absl::Notification* done) {
+          absl::StatusOr<std::string>* output, absl::BlockingCounter* counter,
+          privacy_sandbox::server_common::Stopwatch* burst_stopwatch,
+          absl::Duration* burst_duration) {
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->ProcessRequest<SampleResponse>(
                 std::string_view(*code_token), request,
                 google::scp::roma::DefaultMetadata(),
-                [stopwatch = std::move(stopwatch), duration, done,
+                [stopwatch = std::move(stopwatch), duration, counter,
+                 burst_stopwatch, burst_duration,
                  &completions](absl::StatusOr<SampleResponse> response) {
                   if (response.ok()) {
                     *duration = stopwatch.GetElapsedTime();
@@ -80,12 +84,16 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
                     *duration = std::move(response.status());
                   }
                   completions++;
-                  done->Notify();
+                  if (counter->DecrementCount()) {
+                    *burst_duration = burst_stopwatch->GetElapsedTime();
+                  }
                 });
         if (!exec_token.ok()) {
           *duration = exec_token.status();
           completions++;
-          done->Notify();
+          if (counter->DecrementCount()) {
+            *burst_duration = burst_stopwatch->GetElapsedTime();
+          }
         }
       };
 
