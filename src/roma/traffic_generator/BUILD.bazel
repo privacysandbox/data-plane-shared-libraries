@@ -56,7 +56,7 @@ cc_library(
     name = "burst_generator",
     srcs = ["burst_generator.cc"],
     hdrs = ["burst_generator.h"],
-    visibility = ["//src/roma/byob:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         ":traffic_generator_cc_proto",
         "//src/util:duration",
