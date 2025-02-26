@@ -153,7 +153,8 @@ class WorkerSapiSandbox : public WorkerWrapperSandbox {
                               .AllowSyscall(__NR_rseq)
                               //------------------------
                               .AllowDynamicStartup()
-                              .AddDirectory("/proc")
+                              // TODO: b/296560366 - Enable namespaces in Roma.
+                              .DisableNamespaces()
                               .CollectStacktracesOnViolation(false)
                               .CollectStacktracesOnSignal(false)
                               .CollectStacktracesOnTimeout(false)
