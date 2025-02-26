@@ -100,7 +100,7 @@ class MetricRouter {
   friend class MetricRouterTest;
 
   void AddHistogramView(std::string_view instrument_name,
-                        const internal::Histogram& histogram);
+                        absl::Span<const double> histogram_boundaries);
 
   template <typename T>
   auto* GetHistogramInstrument(const DefinitionName& definition, T value,
@@ -141,17 +141,23 @@ auto* MetricRouter::GetHistogramInstrument(
     using U = api::Histogram<uint64_t>;
     return GetInstrument<U>(
         definition.name_, [&definition, this, &histogram]() {
-          AddHistogramView(definition.name_, histogram);
+          AddHistogramView(metric_config_->GetName(definition).data(),
+                           metric_config_->GetHistogramBoundaries(
+                               histogram, definition.name_));
           return std::unique_ptr<U>(meter_->CreateUInt64Histogram(
-              definition.name_.data(), definition.description_.data()));
+              metric_config_->GetName(definition).data(),
+              metric_config_->GetDescription(definition).data()));
         });
   } else if constexpr (std::is_same_v<double, T>) {
     using U = api::Histogram<double>;
     return GetInstrument<U>(
         definition.name_, [&definition, this, &histogram]() {
-          AddHistogramView(definition.name_, histogram);
+          AddHistogramView(metric_config_->GetName(definition).data(),
+                           metric_config_->GetHistogramBoundaries(
+                               histogram, definition.name_));
           return std::unique_ptr<U>(meter_->CreateDoubleHistogram(
-              definition.name_.data(), definition.description_.data()));
+              metric_config_->GetName(definition).data(),
+              metric_config_->GetDescription(definition).data()));
         });
   } else {
     static_assert(dependent_false_v<T>);

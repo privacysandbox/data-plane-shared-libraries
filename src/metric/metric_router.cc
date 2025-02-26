@@ -42,12 +42,12 @@ MetricRouter::MetricRouter(
   meter_ = provider_->GetMeter(service.data(), version.data()).get();
 }
 
-void MetricRouter::AddHistogramView(std::string_view instrument_name,
-                                    const internal::Histogram& histogram) {
+void MetricRouter::AddHistogramView(
+    std::string_view instrument_name,
+    absl::Span<const double> histogram_boundaries) {
   auto aggregation_config = std::make_shared<sdk::HistogramAggregationConfig>();
-  aggregation_config->boundaries_ =
-      std::vector<double>(histogram.histogram_boundaries_.begin(),
-                          histogram.histogram_boundaries_.end());
+  aggregation_config->boundaries_ = std::vector<double>(
+      histogram_boundaries.begin(), histogram_boundaries.end());
   auto* sdk_meter = static_cast<sdk::Meter*>(meter_);
   static_cast<sdk::MeterProvider*>(provider_.get())
       ->AddView(
@@ -62,5 +62,4 @@ void MetricRouter::AddHistogramView(std::string_view instrument_name,
           std::make_unique<sdk::View>("", "", sdk::AggregationType::kHistogram,
                                       aggregation_config));
 }
-
 }  // namespace privacy_sandbox::server_common::metrics
