@@ -142,6 +142,24 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   apt-transport-https ca-certificates file zip
 
 #
+# stage: promql-cli-sources
+#
+FROM alpine:latest AS promql-cli-sources
+ADD https://github.com/nalbury/promql-cli/archive/refs/tags/v0.3.0.tar.gz /tmp/src.tar.gz
+RUN tar --extract --directory=/tmp --file=/tmp/src.tar.gz \
+    && mv /tmp/promql-cli-0.3.0 /tmp/promql-cli
+
+#
+# stage: promql-cli-build
+#
+FROM golang-base AS promql-cli-build
+ARG TARGETARCH
+COPY --from=promql-cli-sources /tmp/promql-cli /promql-cli
+WORKDIR /promql-cli
+RUN go mod download
+RUN OS=linux ARCH=${TARGETARCH} INSTALL_PATH=/promql-cli/build/bin/ make install
+
+#
 # stage: functionaltest CLI
 #
 FROM runtime-base AS functest-cli
@@ -151,9 +169,11 @@ COPY --from=dist-artifacts /functionaltest-nodocker /usr/local/bin/functionaltes
 COPY --from=ghz /go/bin/ghz /usr/local/bin/
 COPY --from=grpcurl /go/bin/grpcurl /usr/local/bin/
 COPY --from=ghcr.io/jqlang/jq:1.7.1 /jq /usr/local/bin
+COPY --from=promql-cli-build /promql-cli/build/bin/promql /usr/bin/promql
 ENV \
   GHZ=/usr/local/bin/ghz \
   GRPCURL=/usr/local/bin/grpcurl \
-  JQ=/usr/local/bin/jq
+  JQ=/usr/local/bin/jq \
+  PROMQL=/usr/bin/promql
 RUN /usr/local/bin/functionaltest dockersut deploy-and-test --init-bazel
 ENTRYPOINT ["/usr/local/bin/functionaltest"]

@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.27.0 (2025-02-26)
+
+
+### Features
+
+* Add promql to functionaltest-cli container image
+
 ## 0.26.0 (2025-02-24)
 
 
