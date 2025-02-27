@@ -155,7 +155,7 @@ void GetMetricFromResponse(const ResponseObject& resp,
 
   if (const auto& it = resp.metrics.find(kHandlerCallMetricJsEngineDurationMs);
       it != resp.metrics.end()) {
-    metrics.handler_calling_elapse = absl::Milliseconds(it->second);
+    metrics.handler_calling_elapsed = absl::Milliseconds(it->second);
   }
 }
 }  // namespace
@@ -211,14 +211,14 @@ BenchmarkMetrics BenchmarkMetrics::GetMeanMetrics(
     mean_metric.sandbox_elapsed += metrics[i].sandbox_elapsed;
     mean_metric.v8_elapsed += metrics[i].v8_elapsed;
     mean_metric.input_parsing_elapsed += metrics[i].input_parsing_elapsed;
-    mean_metric.handler_calling_elapse += metrics[i].handler_calling_elapse;
+    mean_metric.handler_calling_elapsed += metrics[i].handler_calling_elapsed;
   }
 
   mean_metric.total_execute_time /= num_metrics;
   mean_metric.sandbox_elapsed /= num_metrics;
   mean_metric.v8_elapsed /= num_metrics;
   mean_metric.input_parsing_elapsed /= num_metrics;
-  mean_metric.handler_calling_elapse /= num_metrics;
+  mean_metric.handler_calling_elapsed /= num_metrics;
 
   return mean_metric;
 }
@@ -325,7 +325,7 @@ void RomaBenchmark::ConsoleTestMetrics() {
             << absl::ToInt64Nanoseconds(average_metric.input_parsing_elapsed)
             << " ns" << std::endl;
   std::cout << "\tHandler function calling elapsed: "
-            << absl::ToInt64Nanoseconds(average_metric.handler_calling_elapse)
+            << absl::ToInt64Nanoseconds(average_metric.handler_calling_elapsed)
             << " ns\n"
             << std::endl;
 
@@ -394,7 +394,7 @@ void RomaBenchmark::ConsoleTestMetrics() {
 
       std::cout << "\t" << p << "th percentile: "
                 << absl::ToInt64Nanoseconds(
-                       latency_metrics_.at(index).handler_calling_elapse)
+                       latency_metrics_.at(index).handler_calling_elapsed)
                 << " ns" << std::endl;
     }
   }

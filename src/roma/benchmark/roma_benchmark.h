@@ -91,7 +91,7 @@ struct BenchmarkMetrics {
 
   /// @brief The latency for the JS engine to call the handler function from
   /// the request.
-  absl::Duration handler_calling_elapse;
+  absl::Duration handler_calling_elapsed;
 
   static bool CompareByTotalExec(const BenchmarkMetrics& a,
                                  const BenchmarkMetrics& b) {
@@ -115,7 +115,7 @@ struct BenchmarkMetrics {
 
   static bool CompareByHandlerCallingElapsed(const BenchmarkMetrics& a,
                                              const BenchmarkMetrics& b) {
-    return a.handler_calling_elapse < b.handler_calling_elapse;
+    return a.handler_calling_elapsed < b.handler_calling_elapsed;
   }
 
   static BenchmarkMetrics GetMeanMetrics(
