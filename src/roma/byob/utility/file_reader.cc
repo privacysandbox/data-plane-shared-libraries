@@ -31,13 +31,6 @@
 
 namespace privacy_sandbox::server_common::byob {
 absl::StatusOr<FileReader> FileReader::Create(std::filesystem::path file_path) {
-  if (!std::filesystem::exists(file_path)) {
-    return absl::NotFoundError(
-        absl::StrCat(file_path.c_str(), " does not exist."));
-  } else if (!std::filesystem::is_regular_file(file_path)) {
-    return absl::InvalidArgumentError(
-        absl::StrCat(file_path.c_str(), "  is not a regular file."));
-  }
   std::error_code error;
   uintmax_t file_size = std::filesystem::file_size(file_path, error);
   if (error) {

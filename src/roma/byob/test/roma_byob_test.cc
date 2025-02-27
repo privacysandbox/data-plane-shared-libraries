@@ -446,7 +446,7 @@ TEST_P(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
       GetResponseAndLogStatus(roma_service, code_token);
   EXPECT_THAT(response_and_log_status.first.greeting(),
               ::testing::StrEq(kLogUdfOutput));
-  EXPECT_EQ(response_and_log_status.second.code(), absl::StatusCode::kNotFound);
+  EXPECT_FALSE(response_and_log_status.second.ok());
 }
 
 TEST_P(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
@@ -577,7 +577,7 @@ TEST_P(RomaByobTest, VerifyRegisterWithAndWithoutLogs) {
   CHECK_OK(bin_response);
 
   EXPECT_THAT(bin_response->greeting(), ::testing::StrEq(kLogUdfOutput));
-  EXPECT_EQ(log_status.code(), absl::StatusCode::kNotFound);
+  EXPECT_FALSE(log_status.ok());
 }
 
 TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
