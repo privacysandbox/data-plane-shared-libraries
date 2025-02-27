@@ -14,14 +14,21 @@
 # limitations under the License.
 
 
+set -o xtrace
+
 declare -a args=(
   --rm
   --interactive
   --network=host
-  --volume="${HOME}"/.kube/config:/.kube/config
   --user="$(id -u):$(id -g)"
   --env=USER
 )
+
+if [[ -d ${KUBE_HOME} ]]; then
+  args+=(--volume="${KUBE_HOME}":/.kube)
+else
+  args+=(--volume="${HOME}"/.kube:/.kube)
+fi
 
 if [[ -d ${WORKSPACE} ]]; then
   args+=(--volume="${WORKSPACE}":"${WORKSPACE}")
