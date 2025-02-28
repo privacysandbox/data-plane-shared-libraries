@@ -14,6 +14,10 @@
 
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library", "closure_js_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_image")
+load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 package(default_visibility = ["//visibility:public"])
 
@@ -60,6 +64,26 @@ filegroup(
     srcs = glob(["test_udfs/**"]),
     visibility = ["//visibility:public"],
 )
+
+pkg_files(
+    name = "udf_execs",
+    srcs = [":test_udfs"],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/udf",
+)
+
+[
+    pkg_tar(
+        name = "udf_{}_tar".format(user.flavor),
+        srcs = [":udf_execs"],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+        visibility = ["//visibility:public"],
+    )
+    for user in DISTROLESS_USERS
+]
 
 closure_js_library(
     name = "test_doubles_library",
@@ -170,6 +194,95 @@ cc_binary(
         "@com_google_absl//absl/flags:flag",
         "@com_google_absl//absl/flags:parse",
     ],
+)
+
+pkg_files(
+    name = "traffic_generator_execs",
+    srcs = [":traffic_generator"],
+    attributes = pkg_attributes(mode = "0500"),
+    prefix = "/server/bin",
+)
+
+[
+    pkg_tar(
+        name = "traffic_generator_tar_{}".format(user.flavor),
+        srcs = [
+            ":traffic_generator_execs",
+        ],
+        owner = "{}.{}".format(
+            user.uid,
+            user.gid,
+        ),
+    )
+    for user in DISTROLESS_USERS
+]
+
+"""
+Usage:
+  builders/tools/bazel-debian build //src/roma/tools/v8_cli:traffic_generator_root_image.tar
+  docker load -i bazel-bin/src/roma/tools/v8_cli/traffic_generator_root_image_tar/tarball.tar
+  docker run --privileged --volume="${PWD}"/dist:/tmp/runsc-log --cpus=64 --memory=512gb \
+  privacysandbox/roma-byob/traffic-generator:v1-root \
+    --num_workers=84 --queries_per_second=10 --burst_size=14 \
+    --num_queries=1000 --udf_path="/udf/sample_udf" --handler_name="Handler"
+"""
+
+[
+    roma_image(
+        name = "traffic_generator_{}_image".format(user.flavor),
+        debug = True,
+        entrypoint = ["/server/bin/traffic_generator"],
+        labels = {
+            "tee.launch_policy.log_redirect": "always",
+            "tee.launch_policy.privileged": "true",
+        },
+        repo_tags = ["privacysandbox/roma-byob/traffic-generator:v1-{}".format(user.flavor)],
+        tags = [
+            "noasan",
+            "notsan",
+            "noubsan",
+        ],
+        tars = [
+            ":traffic_generator_tar_{}".format(user.flavor),
+            ":udf_{}_tar".format(user.flavor),
+        ],
+        user = user,
+        visibility = ["//visibility:public"],
+    )
+    for user in DISTROLESS_USERS
+]
+
+"""
+Sample usage:
+
+builders/tools/bazel-debian run //src/roma/tools/v8_cli:copy_to_dist
+docker load -i dist/roma_v8/traffic_generator_root_image.tar
+docker run -it --privileged privacysandbox/roma-byob/traffic-generator:v1-root
+"""
+
+cp_cmds = ["mkdir -p {dir}"] + [
+    "cp $(execpath :traffic_generator_{0}_image.tar) {{dir}}/traffic_generator_{0}_image.tar".format(
+        u.flavor,
+    )
+    for u in DISTROLESS_USERS
+]
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [":traffic_generator_{}_image.tar".format(
+        u.flavor,
+    ) for u in DISTROLESS_USERS],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = "cat <<EOF >'$@'\n" + "\n".join(["\n".join(cp_cmds).format(
+        dir = "dist/roma_v8",
+        user = u.flavor,
+    ) for u in DISTROLESS_USERS]) + """
+builders/tools/normalize-dist
+EOF""",
+    executable = True,
+    local = True,
+    message = "copying aws artifacts to dist directory",
+    visibility = ["//visibility:public"],
 )
 
 cc_library(
