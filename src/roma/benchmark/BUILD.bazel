@@ -149,6 +149,7 @@ cc_binary(
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/time",
         "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
     ],
 )
 

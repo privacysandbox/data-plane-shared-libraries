@@ -29,10 +29,20 @@
 #include "absl/log/check.h"
 #include "absl/strings/numbers.h"
 #include "absl/time/time.h"
+#include "nlohmann/json.hpp"
 
+namespace {
+std::string MakeLabel(std::string name) {
+  nlohmann::ordered_json json;
+  json["perfgate_label"] = name;
+  return json.dump();
+}
+
+}  // namespace
 namespace google::scp::roma::benchmark {
 
 void BM_DirectDurationConstruction(::benchmark::State& state) {
+  state.SetLabel(MakeLabel(state.name()));
   const int64_t milliseconds = 5000;
   for (auto _ : state) {
     ::benchmark::DoNotOptimize(absl::Milliseconds(milliseconds));
@@ -40,6 +50,7 @@ void BM_DirectDurationConstruction(::benchmark::State& state) {
 }
 
 void BM_StringToIntToDuration(::benchmark::State& state) {
+  state.SetLabel(MakeLabel(state.name()));
   const std::string milliseconds_str = "5000";
   for (auto _ : state) {
     int64_t ms;
@@ -49,6 +60,7 @@ void BM_StringToIntToDuration(::benchmark::State& state) {
 }
 
 void BM_ParseDuration(::benchmark::State& state) {
+  state.SetLabel(MakeLabel(state.name()));
   const std::string duration_str = "5000ms";
   for (auto _ : state) {
     absl::Duration duration;
