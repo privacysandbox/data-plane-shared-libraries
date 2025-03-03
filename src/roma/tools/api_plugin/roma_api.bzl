@@ -967,12 +967,11 @@ first positional argument to the UDF is the fd for communication.
 
 For details about how to use the passed flag(s), see
 [communication interface](Communication%20Interface.md) doc and
-[example UDFs](https://github.com/privacysandbox/data-plane-shared-libraries/tree/e5d685e2d07b4535b650e4f44f8473e187408fc6/src/roma/byob/example).
+[example UDFs](https://github.com/privacysandbox/data-plane-shared-libraries/tree/0da0225338a4dd5711484be94678d603c044e0a0/src/roma/byob/example).
 
-## gVisor
+## System call filtering
 
-gVisor supports a large subset of Linux syscalls; some syscalls may have a partial implementation.
-Refer to gVisor's [list of supported syscalls](syscalls.md).
+If system call filtering is enabled, the UDF will only be allowed to make a subset of system calls. Full list can be found [here](https://github.com/privacysandbox/data-plane-shared-libraries/blob/0da0225338a4dd5711484be94678d603c044e0a0/src/roma/byob/container/run_workers.cc#L100).
 """
     write_file(
         name = name + "_file",

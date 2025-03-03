@@ -26,8 +26,8 @@ Namely,
 -   `dist/roma_byob/benchmark_root_debug_image.tar`
 
 Based on the choice of configuration, you can compare the numbers between gVisor and non-gVisor
-mode. In non-gVisor mode, the gVisor layer is not used. The clone-pivot_root-exec construct is
-utilized in both the gVisor and non-gVisor modes.
+mode. In non-gVisor mode, the gVisor layer is not used. The clone-isolate-filesystem-exec construct
+is utilized in both the gVisor and non-gVisor modes.
 
 The remainder of this doc focuses on non-debug images. Debug images are largely the same image with
 the addition of a shell. See
