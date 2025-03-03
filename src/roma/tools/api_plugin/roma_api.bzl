@@ -18,9 +18,11 @@ load("@aspect_bazel_lib//lib:write_source_files.bzl", "write_source_file")
 load("@bazel_skylib//rules:copy_file.bzl", "copy_file")
 load("@bazel_skylib//rules:write_file.bzl", "write_file")
 load("@com_google_googleapis_imports//:imports.bzl", "cc_proto_library")
+load("@container_structure_test//:defs.bzl", "container_structure_test")
 load("@io_bazel_rules_closure//closure:defs.bzl", "closure_js_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_test")
+load("@rules_oci//oci:defs.bzl", "oci_image", "oci_load")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
@@ -35,9 +37,8 @@ load(
     "host_api_cc_protoc",
     "host_api_js_protoc",
     "roma_js_proto_library",
-    _roma_byob_image = "roma_byob_image",
-    _roma_image = "roma_image",
 )
+load("//third_party:container_deps.bzl", "get_user")
 
 _closure_js_attrs = {
     "convention": "None",
@@ -691,7 +692,7 @@ def romav8_image(*, name, cc_binary, repo_tags):
             ":{}_v8_execs".format(name),
         ],
     )
-    _roma_image(
+    roma_image(
         name = name,
         repo_tags = repo_tags,
         tars = [":{}_v8_tar".format(name)],
@@ -1171,4 +1172,95 @@ def roma_byob_sdk(
         **{k: v for (k, v) in kwargs.items() if k in _cc_attrs}
     )
 
-roma_byob_image = _roma_byob_image
+def roma_image(
+        *,
+        name,
+        repo_tags = [],
+        debug = False,
+        user = get_user("root"),
+        container_structure_test_configs = [],
+        container_structure_test_size = "medium",
+        container_structure_test_shard_count = 1,
+        **kwargs):
+    """Generates an OCI container image
+
+    Args:
+      name: Each image has a corresponding OCI tarball {name}.tar
+      repo_tags: Tags for the resulting image.
+      debug: Specifies whether a debug base image is used.
+      user: Struct representing a {uid,gid}
+      container_structure_test_configs: Labels of config files for container_structure_test.
+          Refer to docs at https://github.com/GoogleContainerTools/container-structure-test
+      **kwargs: keyword args passed through to oci_image.
+
+      Note : base arg cannot be overridden and will be ignored.
+    """
+    debug_str = "debug" if debug else "nondebug"
+    oci_image(
+        name = name,
+        base = select({
+            "@platforms//cpu:aarch64": "@runtime-debian-{dbg}-{nonroot}-arm64".format(dbg = debug_str, nonroot = user.flavor),
+            "@platforms//cpu:x86_64": "@runtime-debian-{dbg}-{nonroot}-amd64".format(dbg = debug_str, nonroot = user.flavor),
+        }),
+        **{k: v for (k, v) in kwargs.items() if k not in ["base"]}
+    )
+    oci_load(
+        name = "{}_tar".format(name),
+        image = name,
+        repo_tags = repo_tags,
+    )
+    native.filegroup(
+        name = "{}.tar".format(name),
+        srcs = [":{}_tar".format(name)],
+        output_group = "tarball",
+    )
+    if container_structure_test_configs:
+        container_structure_test(
+            name = "{}_test".format(name),
+            configs = container_structure_test_configs,
+            image = ":{}".format(name),
+            shard_count = container_structure_test_shard_count,
+            size = container_structure_test_size,
+            tags = kwargs.get("tags", ["noasan", "nomsan", "notsan", "noubsan"]),
+        )
+
+def roma_byob_image(
+        *,
+        name,
+        repo_tags = [],
+        debug = False,
+        user = get_user("root"),
+        container_structure_test_configs = [],
+        container_structure_test_size = "medium",
+        container_structure_test_shard_count = 1,
+        **kwargs):
+    """Generates a BYOB OCI container image
+
+    Args:
+      name: Each image has a corresponding OCI tarball {name}.tar
+      repo_tags: Tags for the resulting image.
+      debug: Specifies whether a debug base image is used.
+      user: Struct representing a {uid,gid}
+      container_structure_test_configs: Labels of config files for container_structure_test.
+          Refer to docs at https://github.com/GoogleContainerTools/container-structure-test
+      **kwargs: keyword args passed through to oci_image.
+
+      Note : base arg cannot be overridden and will be ignored.
+    """
+    byob_tars = [
+        Label("//src/roma/byob/container:gvisor_tar_{}".format(user.flavor)),
+        Label("//src/roma/byob/container:byob_runtime_container_with_dir_{}.tar".format(user.flavor)),
+    ]
+    roma_image(
+        name = name,
+        debug = debug,
+        user = user,
+        repo_tags = repo_tags,
+        tars = kwargs.get("tars", []) + byob_tars,
+        container_structure_test_configs = container_structure_test_configs + [
+            Label("//src/roma/byob:image_{}_test.yaml".format(user.flavor)),
+        ],
+        container_structure_test_size = container_structure_test_size,
+        container_structure_test_shard_count = container_structure_test_shard_count,
+        **{k: v for (k, v) in kwargs.items() if k not in ["tars"]}
+    )
