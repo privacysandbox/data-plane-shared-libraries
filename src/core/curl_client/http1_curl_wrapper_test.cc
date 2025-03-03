@@ -149,6 +149,23 @@ TEST_F(Http1CurlWrapperTest, PostWorks) {
   EXPECT_THAT(server_.RequestBody(), StrEq(post_request_body_));
 }
 
+TEST_F(Http1CurlWrapperTest, PostWorksWithEmptyBody) {
+  HttpRequest request;
+  request.method = HttpMethod::POST;
+  request.path = std::make_shared<Uri>(server_.GetPath());
+
+  server_.SetResponseBody(std::make_shared<std::string>(response_body_));
+
+  ExecutionResultOr<HttpResponse> response = subject_->PerformRequest(request);
+  ASSERT_THAT(response, IsSuccessful());
+  EXPECT_EQ(response->code, errors::HttpStatusCode::OK);
+  EXPECT_THAT(response->body, testing::NotNull());
+  EXPECT_THAT(*response->body, StrEq(response_body_));
+
+  EXPECT_EQ(server_.Request().method(), boost::beast::http::verb::post);
+  EXPECT_THAT(server_.RequestBody(), StrEq(""));
+}
+
 TEST_F(Http1CurlWrapperTest, PutWorks) {
   HttpRequest request;
   request.method = HttpMethod::PUT;

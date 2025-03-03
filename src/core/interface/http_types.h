@@ -61,7 +61,7 @@ struct HttpRequest {
   /// Represents the collection of all the request headers.
   std::shared_ptr<HttpHeaders> headers;
   /// Represents the body of the request.
-  std::shared_ptr<std::string> body;
+  std::shared_ptr<std::string> body = std::make_shared<std::string>();
   /// Represents the context of authentication and/or authorization.
   AuthContext auth_context;
 };
@@ -73,7 +73,7 @@ struct HttpResponse {
   /// Represents the collection of all the response headers.
   std::shared_ptr<HttpHeaders> headers;
   /// Represents the body of the response.
-  std::shared_ptr<std::string> body;
+  std::shared_ptr<std::string> body = std::make_shared<std::string>();
   /// Represents the http status code.
   errors::HttpStatusCode code = errors::HttpStatusCode::UNKNOWN;
 };
