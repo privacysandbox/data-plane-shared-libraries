@@ -33,17 +33,17 @@
 #include "src/roma/byob/test/example_roma_byob_app_service.h"
 #include "src/roma/byob/tools/shell_evaluator.h"
 
-ABSL_FLAG(int, num_workers, 1, "the number of workers");
+ABSL_FLAG(int, num_workers, 1, "Number of workers.");
 ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
-          "a text file with a list of CLI commands to execute");
+          "Text file with a list of CLI commands to execute.");
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
-          privacy_sandbox::server_common::byob::Mode::kModeMinimalSandbox,
-          "Run BYOB with mode: gvisor, gvisor-debug, minimal.");
+          privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
+          privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
 ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
-ABSL_FLAG(bool, disable_ipc_namespace, false,
+ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
-          "path with directory to a file in which UDF logs will be stored");
+          "Path with directory to a file in which UDF logs will be stored.");
 
 using privacy_sandbox::server_common::byob::Mode;
 using privacy_sandbox::server_common::byob::ShellEvaluator;

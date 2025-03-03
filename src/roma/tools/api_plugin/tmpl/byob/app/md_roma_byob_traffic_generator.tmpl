@@ -16,13 +16,15 @@ docker run \
 
 ## Flags
 
-| Flag                   | Description                                                 |
-| ---------------------- | ----------------------------------------------------------- |
-| `--udf`                | the UDF executable to be benchmarked                        |
-| `--rpc`                | the name of the rpc method to invoke                        |
-| `--request`            | the file for the UDF request, in json or text proto format  |
-| `--sandbox_mode`       | BYOB sandboxing mode                                        |
-| `--num_workers`        | number of workers                                           |
-| `--num_queries`        | number of queries to be sent                                |
-| `--burst_size`         | number of times to execute for a single query               |
-| `--queries_per_second` | number of queries to be sent in a second                    |
+| Flag                      | Description                                                                     |
+| --------------------------| --------------------------------------------------------------------------------|
+| `--burst_size`            | Number of times execute must be called for a single query.                      |
+| `--disable_ipc_namespace` | Whether IPC namespace should be disabled.                                       |
+| `--queries_per_second`    | Number of queries to be sent per second.                                        |
+| `--num_queries`           | Number of queries to be sent.                                                   |
+| `--num_workers`           | Number of workers.                                                              |
+| `--request`               | File for the UDF request, in json or text proto format.                         |
+| `--rpc`                   | Name of the RPC method to invoke.                                               |
+| `--sandbox_mode`          | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. |
+| `--syscall_filter`        | Whether to enable syscall filtering.                                            |
+| `--udf`                   | UDF executable to be benchmarked.                                               |

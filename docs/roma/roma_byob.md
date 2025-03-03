@@ -22,7 +22,7 @@ execution of arbitrary binaries written in any language.
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [benchmark](/src/roma/byob/benchmark/)   | Contains [microbenchmarking target](https://github.com/google/benchmark) for a variety of UDFs. See [doc](/docs/roma/byob/Benchmarking.md) for details. |
 | [config](/src/roma/byob/config/)         | Contains configuration options which can be used by integrators when initializing Roma BYOB.                                                            |
-| [container](/src/roma/byob/container/)   | Contains code that runs inside gVisor's sandbox container.                                                                                              |
+| [container](/src/roma/byob/container/)   | Contains code that runs insides sandbox container.                                                                                              |
 | [dispatcher](/src/roma/byob/dispatcher/) | Containers the business logic for handling requests.                                                                                                    |
 | [example](/src/roma/byob/example/)       | Examples to help UDF developers.                                                                                                                        |
 | [interface](/src/roma/byob/interface/)   | Interface for calling into Roma BYOB.                                                                                                                   |

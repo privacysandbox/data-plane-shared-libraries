@@ -52,9 +52,14 @@ commandTests:
         ^benchmark-cli: Runs benchmarks for EchoService.
 
           Flags from example_benchmark.cc:
-            --udf \(the UDF executable to be benchmarked\)
-            --request \(the file for the UDF request, in proto format\)
-            --rpc \(the name of the rpc method to invoke\)
+            --disable_ipc_namespace \(Whether IPC namespace should be disabled\.\);
+              default: true;
+            --request \(File for the UDF request, in json format\.\); default: ;
+            --rpc \(Name of the RPC method to invoke\.\); default: ;
+            --sandbox \(Sandbox mode for BYOB\. Supported values: gvisor, gvisor-debug,
+              minimal, nsjail\.\); default: nsjail;
+            --syscall_filter \(Whether to enable syscall filtering\.\); default: true;
+            --udf \(UDF executable to be benchmarked\.\); default: ;
 
           Flags from the Google Microbenchmarking Library:
             --benchmark_list_tests=\{true\|false\}
@@ -82,6 +87,8 @@ commandTests:
       - Echo
       - --request
       - /tools/echo_request.json
+      - --sandbox
+      - gvisor
     exitCode: 0
     expectedOutput:
       - .*BM_Load.*

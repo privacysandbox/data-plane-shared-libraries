@@ -32,6 +32,9 @@
 
 namespace privacy_sandbox::server_common::byob {
 
+inline constexpr std::string_view kByobSandboxModeHelpText =
+    "Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, "
+    "nsjail.";
 inline constexpr std::string_view kLdLibraryPath =
     "LD_LIBRARY_PATH=" LIB_MOUNTS;
 
@@ -87,7 +90,7 @@ inline bool AbslParseFlag(absl::string_view text, Mode* mode,
     *mode = Mode::kModeNsJailSandbox;
     return true;
   }
-  *error = "Supported values: gvisor, gvisor-debug, minimal, nsjail.";
+  *error = kByobSandboxModeHelpText;
   return false;
 }
 

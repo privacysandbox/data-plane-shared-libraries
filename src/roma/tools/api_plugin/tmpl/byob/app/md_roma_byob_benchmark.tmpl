@@ -1,4 +1,4 @@
-# Roma V8 UDF Benchmarking
+# Roma BYOB UDF Benchmarking
 
 ## Overview
 
@@ -25,8 +25,11 @@ docker run \
 
 ## Flags
 
-| Flag        | Description                                   |
-| ----------- | --------------------------------------------- |
-| `--udf`     | the UDF executable to be benchmarked          |
-| `--request` | the file for the UDF request, in json format |
-| `--rpc`     | the name of the rpc method to invoke          |
+| Flag                     | Description                                                                     |
+| -------------------------| --------------------------------------------------------------------------------|
+| `--disable_ipc_namespace | Whether IPC namespace should be disabled.                                       |
+| `--request`              | File for the UDF request, in json format.                                       |
+| `--rpc`                  | Name of the RPC method to invoke.                                               |
+| `--sandbox`              | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. |
+| `--syscall_filter`       | Whether to enable syscall filtering.                                            |
+| `--udf`                  | UDF executable to be benchmarked.                                               |

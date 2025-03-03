@@ -29,11 +29,17 @@
 #include "src/roma/byob/test/example_roma_byob_app_service.h"
 
 ABSL_FLAG(std::optional<std::string>, udf, std::nullopt,
-          "the UDF executable to be benchmarked");
+          "UDF executable to be benchmarked.");
 ABSL_FLAG(std::optional<std::string>, rpc, std::nullopt,
-          "the name of the rpc method to invoke");
+          "Name of the RPC method to invoke.");
 ABSL_FLAG(std::optional<std::string>, request, std::nullopt,
-          "the file for the UDF request, in json format");
+          "File for the UDF request, in json format.");
+ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
+          privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
+          privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
+ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(bool, disable_ipc_namespace, true,
+          "Whether IPC namespace should be disabled.");
 
 namespace {
 using privacy_sandbox::server_common::byob::example::ByobEchoService;
@@ -47,8 +53,13 @@ std::string LoadImpl(ByobEchoService<>& roma_service, std::string_view udf,
   return *std::move(code_id);
 }
 void BM_Load(benchmark::State& state) {
-  absl::StatusOr<ByobEchoService<>> roma_service =
-      ByobEchoService<>::Create(/*config=*/{});
+  absl::StatusOr<ByobEchoService<>> roma_service = ByobEchoService<>::Create(
+      /*config=*/
+      {
+          .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+          .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
+      },
+      absl::GetFlag(FLAGS_sandbox));
   CHECK_OK(roma_service);
   const std::optional<std::string> udf = absl::GetFlag(FLAGS_udf);
   CHECK(udf.has_value()) << "missing --udf flag";
@@ -73,8 +84,13 @@ bool EchoExecuteImpl(ByobEchoService<>& roma_service,
   return true;
 }
 void BM_Execute(benchmark::State& state) {
-  absl::StatusOr<ByobEchoService<>> roma_service =
-      ByobEchoService<>::Create(/*config=*/{});
+  absl::StatusOr<ByobEchoService<>> roma_service = ByobEchoService<>::Create(
+      /*config=*/
+      {
+          .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+          .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
+      },
+      absl::GetFlag(FLAGS_sandbox));
   CHECK_OK(roma_service);
   const std::optional<std::string> udf = absl::GetFlag(FLAGS_udf);
   CHECK(udf.has_value()) << "missing --udf flag";
@@ -117,9 +133,14 @@ int main(int argc, char** argv) {
         std::cout << R"(benchmark-cli: Runs benchmarks for EchoService.
 
   Flags from example_benchmark.cc:
-    --udf (the UDF executable to be benchmarked)
-    --request (the file for the UDF request, in proto format)
-    --rpc (the name of the rpc method to invoke)
+    --disable_ipc_namespace (Whether IPC namespace should be disabled.);
+      default: true;
+    --request (File for the UDF request, in json format.); default: ;
+    --rpc (Name of the RPC method to invoke.); default: ;
+    --sandbox (Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug,
+      minimal, nsjail.); default: nsjail;
+    --syscall_filter (Whether to enable syscall filtering.); default: true;
+    --udf (UDF executable to be benchmarked.); default: ;
 
   Flags from the Google Microbenchmarking Library:
     --benchmark_list_tests={true|false}

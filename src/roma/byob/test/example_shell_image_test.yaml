@@ -164,16 +164,16 @@ commandTests:
         ^example_shell: Opens an EchoService shell\.
 
           Flags from src/roma/byob/test/example_shell\.cc:
-            --commands_file \(a text file with a list of CLI commands to execute\);
+            --commands_file \(Text file with a list of CLI commands to execute\.\);
               default: ;
             --disable_ipc_namespace \(Whether IPC namespace should be disabled\.\);
-              default: false;
-            --num_workers \(the number of workers\); default: 1;
-            --sandbox \(Run BYOB with mode: gvisor, gvisor-debug, minimal\.\);
-              default: minimal;
+              default: true;
+            --num_workers \(Number of workers\.\); default: 1;
+            --sandbox \(Sandbox mode for BYOB\. Supported values: gvisor, gvisor-debug,
+              minimal, nsjail\.\); default: nsjail;
             --syscall_filter \(Whether to enable syscall filtering\.\); default: true;
-            --udf_log_file \(path with directory to a file in which UDF logs will be\
-              stored\); default: ;
+            --udf_log_file \(Path with directory to a file in which UDF logs will be\
+              stored\.\); default: ;
 
   - name: example shell test
     command: /tools/example_shell

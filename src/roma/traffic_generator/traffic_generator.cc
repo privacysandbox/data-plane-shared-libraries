@@ -67,10 +67,10 @@ ABSL_FLAG(int, total_invocations, 0,
           "Number of invocations to be sent. If non-zero, overrides "
           "num_queries, and num_queries = total_invocations / burst_size.");
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
-          privacy_sandbox::server_common::byob::Mode::kModeMinimalSandbox,
-          "Run BYOB with mode: gvisor, gvisor-debug, minimal.");
+          privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
+          privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
 ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
-ABSL_FLAG(bool, disable_ipc_namespace, false,
+ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether to disable syscall filtering.");
 ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
           "Mount paths to include in the pivot_root environment. Example "

@@ -76,9 +76,9 @@ ABSL_FLAG(std::vector<std::string>, mounts,
           std::vector<std::string>({"/lib", "/lib64"}),
           "Mounts containing dependencies needed by the binary");
 ABSL_FLAG(std::string, log_dir, "/log_dir", "Directory used for storing logs");
-ABSL_FLAG(bool, enable_seccomp_filter, false,
+ABSL_FLAG(bool, enable_seccomp_filter, true,
           "Specifies whether seccomp filtering should be applied.");
-ABSL_FLAG(bool, disable_ipc_namespace, false,
+ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Specifies whether IPC namespace should be created for every worker. "
           "If IPC namespacing is disabled, syscall filters has to be enabled "
           "via enable_seccomp_filter");
