@@ -97,7 +97,8 @@ function ensure_docker_compose() {
 }
 
 function build_functionaltest_cli() {
-  docker buildx build --progress=plain --tag="${FUNCTIONALTEST_CLI}" "${WORKSPACE}"
+  # shellcheck disable=SC2086
+  docker buildx build ${EXTRA_DOCKER_BUILDX_ARGS} --progress=plain --tag="${FUNCTIONALTEST_CLI}" "${WORKSPACE}"
 }
 
 ensure_docker_compose

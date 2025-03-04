@@ -76,7 +76,9 @@ RUN cd /tmp \
 #
 FROM bazel AS bazel-workspace
 ARG BAZEL_STARTUP_ARGS
-ARG BAZEL_EXTRA_ARGS
+ARG BAZEL_DIRECT_ARGS
+ARG GOOGLE_APPLICATION_CREDENTIALS
+
 ENV \
   BAZEL_CXXOPTS=-stdlib=libc++ \
   BAZEL_LINKOPTS=-lc++:-lm \
@@ -86,22 +88,22 @@ WORKDIR /workspace
 
 RUN --mount=type=cache,target=/root/.cache/bazel \
   --mount=type=cache,target=/bazel_root/functest-system \
-  --mount=type=secret,id=gcloud,target=/etc/gcloud/application_default_credentials.json \
+  --mount=type=secret,id=gcloud_creds \
   bazel \
   ${BAZEL_STARTUP_ARGS} \
   test \
   --config=run_all_tests \
-  ${BAZEL_EXTRA_ARGS} \
+  ${BAZEL_DIRECT_ARGS} \
   -- \
   //sut/cmd/deploy_and_test:lib-nodocker_test
 
 RUN --mount=type=cache,target=/root/.cache/bazel \
   --mount=type=cache,target=/bazel_root/functest-system \
-  --mount=type=secret,id=gcloud,target=/etc/gcloud/application_default_credentials.json \
+  --mount=type=secret,id=gcloud_creds \
   bazel \
   ${BAZEL_STARTUP_ARGS} \
   run \
-  ${BAZEL_EXTRA_ARGS} \
+  ${BAZEL_DIRECT_ARGS} \
   -- \
   //sut:copy_to_dist_nodocker
 
