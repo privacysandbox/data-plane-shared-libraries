@@ -1,4 +1,5 @@
 # Copyright 2022 Google LLC
+# Copyright (C) Microsoft Corporation. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,10 +24,13 @@ cc_library(
             "//:aws_platform": [
                 "//src/cpio/client_providers/auth_token_provider/aws:aws_auth_token_provider",
             ],
+            "//:azure_platform": [
+                "//src/cpio/client_providers/auth_token_provider/azure:azure_auth_token_provider",
+            ],
             "//:gcp_platform": [
                 "//src/cpio/client_providers/auth_token_provider/gcp:gcp_auth_token_provider",
             ],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS, Azure or GCP",
     ),
 )
