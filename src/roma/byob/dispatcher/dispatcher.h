@@ -91,7 +91,9 @@ class Dispatcher {
         return absl::InvalidArgumentError("Unrecognized code token.");
       }
       if (it->second.empty()) {
-        return absl::UnavailableError("No workers available.");
+        // The deadline should have been exceeded if the code_token is
+        // recognized but no workers are available.
+        return absl::InternalError("No workers available.");
       }
       request_metadata = it->second.front();
       it->second.pop();
