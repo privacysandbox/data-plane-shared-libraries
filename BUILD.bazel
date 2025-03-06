@@ -24,7 +24,7 @@ package(
 
 license(
     name = "license",
-    copyright_notice = "Copyright 2024 Google LLC",
+    copyright_notice = "Copyright 2025 Google LLC",
     license_kinds = [
         "@rules_license//licenses/spdx:Apache-2.0",
     ],
