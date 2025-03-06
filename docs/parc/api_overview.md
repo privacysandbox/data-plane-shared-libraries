@@ -1,22 +1,4 @@
-# Overview
-
-**Note:** _This is a draft API proposal, and not necessarily the final version. It has not been
-decided if and when this API will be integrated with the TEE servers._
-
-Parc is an API definition intended to allow trusted servers running in Trusted Execution
-Environments
-[TEEs](https://github.com/privacysandbox/protected-auction-services-docs/blob/main/public_cloud_tees.md)
-to receive data from untrusted data sources. In a cloud environment, a server implementing the Parc
-API (a "Parc server") would sit between trusted servers running in TEEs and cloud services to
-provide arbitrary data needed by the trusted servers.
-
-The Parc service interface abstracts away the specific cloud implemented services which provides
-blobs, parameters, or other data so that trusted servers need only interact with the Parc server to
-retrieve data only available at runtime. This has the added benefit of minimizing the threat surface
-for the trusted servers by minimizing the infrastructure-specific code package into the trusted
-executable.
-
-# Parc API
+# Parc API Overview
 
 The Parc API definitions can be found in
 [`apis/privacysandbox/apis/parc/`](/apis/privacysandbox/apis/parc/). The API is encapsulated in a
