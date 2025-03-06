@@ -49,6 +49,7 @@
 #include "src/roma/tools/v8_cli/roma_v8_rpc_factory.h"
 #include "src/roma/traffic_generator/burst_generator.h"
 #include "src/roma/traffic_generator/traffic_generator.pb.h"
+#include "src/util/duration.h"
 #include "src/util/execution_token.h"
 #include "src/util/periodic_closure.h"
 #include "src/util/status_macro/status_macros.h"
