@@ -42,11 +42,6 @@
 using google::scp::roma::JsEngineResourceConstraints;
 using google::scp::roma::sandbox::constants::
     kExecutionMetricJsEngineCallDuration;
-using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupV8FlagsKey;
-using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::
-    V8IsolateFunctionBinding;
-using google::scp::roma::sandbox::js_engine::v8_js_engine::V8JsEngine;
 using google::scp::roma::sandbox::worker::Worker;
 
 namespace google::scp::roma::sandbox::worker_api {
