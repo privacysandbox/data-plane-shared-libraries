@@ -212,7 +212,7 @@ int RunMain(v8::Isolate* isolate, const v8::Global<v8::Context>& context,
         if (!v8::String::NewFromUtf8(isolate, argv[++i]).ToLocal(&source)) {
           return 1;
         }
-        success = ExecuteString(isolate, source, file_name, false, true);
+        success = ExecuteString(isolate, source, file_name, true, true);
       }
       // It is important not to pump the message loop when there are v8::Local
       // handles on the stack, as this may trigger a stackless GC.
@@ -232,7 +232,7 @@ int RunMain(v8::Isolate* isolate, const v8::Global<v8::Context>& context,
           fprintf(stderr, "Error reading '%s'\n", str);
           continue;
         }
-        success = ExecuteString(isolate, source, file_name, false, true);
+        success = ExecuteString(isolate, source, file_name, true, true);
       }
       // It is important not to pump the message loop when there are v8::Local
       // handles on the stack, as this may trigger a stackless GC.

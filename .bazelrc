@@ -29,6 +29,8 @@ build:cpp --per_file_copt=src/roma/byob/.*@-fconstexpr-steps=1271242
 build:cpp --per_file_copt=external/(json_c|nitrokmscli_).*\.c@-Wno-implicit-function-declaration
 build:cpp --config=cpp_nowarn
 
+build:cpp --per_file_copt=external/v8/.*@-DV8_ENABLE_TURBOFAN
+
 build:cpp_nowarn --copt=-Werror
 build:cpp_nowarn --per_file_copt=external/.*@-Wno-error
 build:cpp_nowarn --per_file_copt=src/.*_test\.cc@-Wno-unused-variable

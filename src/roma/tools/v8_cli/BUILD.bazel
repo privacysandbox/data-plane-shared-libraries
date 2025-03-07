@@ -44,6 +44,9 @@ cc_library(
 cc_binary(
     name = "v8_shell",
     srcs = ["v8_shell.cc"],
+    data = [
+        ":test_udfs",
+    ],
     deps = [
         "@v8//:v8_icu",
     ],
