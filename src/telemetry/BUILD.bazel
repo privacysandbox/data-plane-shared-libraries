@@ -186,10 +186,23 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "init_azure",
+    srcs = ["init_azure.cc"],
+    hdrs = ["init.h"],
+    deps = [
+        "@com_google_absl//absl/types:optional",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_log_record_exporter",
+        "@io_opentelemetry_cpp//exporters/otlp:otlp_grpc_metric_exporter",
+    ],
+)
+
 alias(
     name = "init",
     actual = select({
         "//:aws_instance": ":init_aws",
+        "//:azure_instance": ":init_azure",
         "//:gcp_instance": ":init_gcp",
         ":local_otel_ostream": ":init_local_ostream",
         ":local_otel_otlp": ":init_local_otlp",
