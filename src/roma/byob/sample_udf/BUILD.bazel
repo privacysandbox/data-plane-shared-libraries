@@ -132,7 +132,7 @@ go_proto_library(
     name = "sample_go_proto",
     importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/binary/example",
     proto = ":sample_byob_sdk_proto",
-    deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_go"],
+    deps = ["//src/roma/tools/api_plugin:options_go"],
 )
 
 go_binary(

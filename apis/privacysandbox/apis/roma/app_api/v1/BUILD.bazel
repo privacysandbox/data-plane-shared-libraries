@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@io_bazel_rules_go//proto:def.bzl", "go_proto_library")
 load("@rules_buf//buf:defs.bzl", "buf_lint_test")
 load("@rules_proto//proto:defs.bzl", "proto_descriptor_set", "proto_library")
 
@@ -38,10 +37,4 @@ proto_descriptor_set(
     deps = [
         ":options_proto",
     ],
-)
-
-go_proto_library(
-    name = "options_go",
-    importpath = "github.com/privacysandbox/data-plane-shared/apis/roma/v1",
-    proto = ":options_proto",
 )
