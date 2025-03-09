@@ -42,7 +42,7 @@ proto_descriptor_set(
 buf_lint_test(
     name = "parc_service_proto_lint",
     size = "small",
-    config = "//apis:buf.yaml",
+    config = "//:buf.yaml",
     targets = [":parc_service_proto"],
 )
 
@@ -61,7 +61,7 @@ proto_descriptor_set(
 buf_lint_test(
     name = "parameter_proto_lint",
     size = "small",
-    config = "//apis:buf.yaml",
+    config = "//:buf.yaml",
     targets = [":parameter_proto"],
 )
 
@@ -80,7 +80,7 @@ proto_descriptor_set(
 buf_lint_test(
     name = "blob_proto_lint",
     size = "small",
-    config = "//apis:buf.yaml",
+    config = "//:buf.yaml",
     targets = [":blob_proto"],
 )
 

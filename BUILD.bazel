@@ -202,3 +202,9 @@ filegroup(
     name = "clang_tidy_config",
     srcs = [".clang-tidy"],
 )
+
+alias(
+    name = "buf.yaml",
+    actual = "//apis:buf.yaml",
+    visibility = ["//visibility:public"],
+)
