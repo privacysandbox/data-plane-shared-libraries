@@ -1,7 +1,7 @@
 load(
     "@google_privacysandbox_functionaltest_system//bazel:rpc_test.bzl",
+    "ghz_test_suite",
     "rpc_diff_test_suite",
-    "rpc_perf_test_suite",
 )
 load("@google_privacysandbox_functionaltest_system//sut:endpoint.bzl", "endpoint")
 
@@ -54,7 +54,7 @@ server_endpoints = [
 ]
 
 [
-    rpc_perf_test_suite(
+    ghz_test_suite(
         name = "{}-{}-perf".format(
             test_suite_name,
             endpoint.endpoint_type,

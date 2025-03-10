@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.28.0 (2025-03-10)
+
+
+### Features
+
+* Add --config-file flag to ghz_test_runner
+* Add ghz_test_suite and ghz_test
+
+
+### Bug Fixes
+
+* ghz_test_runner should only set concurrency/total if no config file specified
+
 ## 0.27.1 (2025-03-03)
 
 

@@ -329,6 +329,136 @@ def rpc_perf_test_suite(
         tags = test_tags,
     )
 
+def ghz_test(
+        name,
+        request,
+        endpoint,
+        rpc,
+        protoset,
+        jq_pre_filter = "",
+        plaintext = False,
+        test_size = "medium",
+        tags = [],
+        config_file = None,
+        **kwargs):
+    """Generate a ghz report for a grpc request.
+
+    Args:
+      name: test suite name
+      request: label of request file
+      endpoint: struct for endpoint defining the protocol, host, port etc
+      rpc: gRPC qualified rpc name
+      protoset: protobuf descriptor set label or file
+      jq_pre_filter: jq filter program as string to apply to the rpc request
+      plaintext: boolean to indicate plaintext request
+      tags: tag list for the tests
+      config_file: ghz config file
+      **kwargs: additional test args
+    """
+    runner = Label("//bazel:ghz_test_runner")
+    if endpoint.endpoint_type != "grpc":
+        fail("[ghz_test] unsupported endpoint type:", endpoint.endpoint_type)
+
+    args = [
+        "--endpoint-hostport",
+        "{}:{}".format(endpoint.host, endpoint.port),
+        "--rpc",
+        rpc,
+        "--protoset",
+        "$(rootpath {})".format(protoset),
+    ]
+    data = [protoset]
+
+    if endpoint.docker_network:
+        args.extend(["--docker-network", endpoint.docker_network])
+    if plaintext:
+        args.extend(["--plaintext"])
+    if config_file:
+        data.append(config_file)
+        args.extend(["--config-file", "$(rootpath {})".format(config_file)])
+    if endpoint.http_path and endpoint.endpoint_type == "http":
+        args.extend([
+            "--http-path",
+            endpoint.http_path,
+        ])
+
+    if jq_pre_filter:
+        filtered_request = "{}-filtered_request.json".format(name)
+        jq(
+            name = "{}-filtered_request".format(name),
+            srcs = [request],
+            filter_file = jq_pre_filter,
+            out = filtered_request,
+        )
+        args.extend(["--request", "$(rootpath :{})".format(filtered_request)])
+        data.append(":{}".format(filtered_request))
+    else:
+        args.extend(["--request", "$(execpath {})".format(request)])
+        data.append(request)
+
+    native.sh_test(
+        name = name,
+        srcs = [runner],
+        args = args,
+        data = data,
+        size = test_size,
+        tags = tags,
+        **kwargs
+    )
+
+def ghz_test_suite(
+        name,
+        endpoint,
+        rpc,
+        test_files_glob_spec,
+        protoset,
+        test_size = "medium",
+        test_tags = [],
+        plaintext = False,
+        config_file = None,
+        **kwargs):
+    """Generates a test suite for test cases within the specified directory tree.
+
+    Args:
+      name: test suite name
+      test_files_glob_spec: glob spec for test files, passed to function functional_test_files_for()
+      protoset: protobuf descriptor set label or file
+      test_tags: tag list for the tests
+      plaintext: boolean to indicate plaintext requests
+      config_file: ghz config file
+      **kwargs: additional args
+    """
+    test_files = functional_test_files_for(glob_spec = test_files_glob_spec)
+    if not test_files:
+        print("no test files found for glob spec: ", test_files_glob_spec)
+        return
+
+    test_labels = []
+    for test_name, testcase_files in test_files.items():
+        qual_test_name = "{}-{}".format(name, test_name)
+        test_labels.append(":{}".format(qual_test_name))
+        extra_kwargs = dict(kwargs)
+        if testcase_files["pre-filter"]:
+            extra_kwargs["jq_pre_filter"] = ":{}".format(testcase_files["pre-filter"])
+        ghz_test(
+            name = qual_test_name,
+            endpoint = endpoint,
+            protoset = protoset,
+            request = ":{}".format(testcase_files["request"]),
+            rpc = rpc,
+            test_size = test_size,
+            tags = test_tags,
+            plaintext = plaintext,
+            config_file = config_file,
+            **extra_kwargs
+        )
+
+    native.test_suite(
+        name = name,
+        tests = test_labels,
+        tags = test_tags,
+    )
+
 def wrk2_perf_test(
         name,
         endpoint,

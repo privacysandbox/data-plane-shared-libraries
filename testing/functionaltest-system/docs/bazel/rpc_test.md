@@ -26,6 +26,63 @@ functional_test_files_for(<a href="#functional_test_files_for-glob_spec">glob_sp
 | <a id="functional_test_files_for-post_filter_slurp_suffix"></a>post_filter_slurp_suffix |  <p align="center"> - </p>   |  <code>".filter.slurp.jq"</code> |
 
 
+<a id="ghz_test"></a>
+
+## ghz_test
+
+<pre>
+ghz_test(<a href="#ghz_test-name">name</a>, <a href="#ghz_test-request">request</a>, <a href="#ghz_test-endpoint">endpoint</a>, <a href="#ghz_test-rpc">rpc</a>, <a href="#ghz_test-protoset">protoset</a>, <a href="#ghz_test-jq_pre_filter">jq_pre_filter</a>, <a href="#ghz_test-plaintext">plaintext</a>, <a href="#ghz_test-test_size">test_size</a>, <a href="#ghz_test-tags">tags</a>,
+         <a href="#ghz_test-config_file">config_file</a>, <a href="#ghz_test-kwargs">kwargs</a>)
+</pre>
+
+Generate a ghz report for a grpc request.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="ghz_test-name"></a>name |  test suite name   |  none |
+| <a id="ghz_test-request"></a>request |  label of request file   |  none |
+| <a id="ghz_test-endpoint"></a>endpoint |  struct for endpoint defining the protocol, host, port etc   |  none |
+| <a id="ghz_test-rpc"></a>rpc |  gRPC qualified rpc name   |  none |
+| <a id="ghz_test-protoset"></a>protoset |  protobuf descriptor set label or file   |  none |
+| <a id="ghz_test-jq_pre_filter"></a>jq_pre_filter |  jq filter program as string to apply to the rpc request   |  <code>""</code> |
+| <a id="ghz_test-plaintext"></a>plaintext |  boolean to indicate plaintext request   |  <code>False</code> |
+| <a id="ghz_test-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
+| <a id="ghz_test-tags"></a>tags |  tag list for the tests   |  <code>[]</code> |
+| <a id="ghz_test-config_file"></a>config_file |  ghz config file   |  <code>None</code> |
+| <a id="ghz_test-kwargs"></a>kwargs |  additional test args   |  none |
+
+
+<a id="ghz_test_suite"></a>
+
+## ghz_test_suite
+
+<pre>
+ghz_test_suite(<a href="#ghz_test_suite-name">name</a>, <a href="#ghz_test_suite-endpoint">endpoint</a>, <a href="#ghz_test_suite-rpc">rpc</a>, <a href="#ghz_test_suite-test_files_glob_spec">test_files_glob_spec</a>, <a href="#ghz_test_suite-protoset">protoset</a>, <a href="#ghz_test_suite-test_size">test_size</a>, <a href="#ghz_test_suite-test_tags">test_tags</a>, <a href="#ghz_test_suite-plaintext">plaintext</a>,
+               <a href="#ghz_test_suite-config_file">config_file</a>, <a href="#ghz_test_suite-kwargs">kwargs</a>)
+</pre>
+
+Generates a test suite for test cases within the specified directory tree.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="ghz_test_suite-name"></a>name |  test suite name   |  none |
+| <a id="ghz_test_suite-endpoint"></a>endpoint |  <p align="center"> - </p>   |  none |
+| <a id="ghz_test_suite-rpc"></a>rpc |  <p align="center"> - </p>   |  none |
+| <a id="ghz_test_suite-test_files_glob_spec"></a>test_files_glob_spec |  glob spec for test files, passed to function functional_test_files_for()   |  none |
+| <a id="ghz_test_suite-protoset"></a>protoset |  protobuf descriptor set label or file   |  none |
+| <a id="ghz_test_suite-test_size"></a>test_size |  <p align="center"> - </p>   |  <code>"medium"</code> |
+| <a id="ghz_test_suite-test_tags"></a>test_tags |  tag list for the tests   |  <code>[]</code> |
+| <a id="ghz_test_suite-plaintext"></a>plaintext |  boolean to indicate plaintext requests   |  <code>False</code> |
+| <a id="ghz_test_suite-config_file"></a>config_file |  ghz config file   |  <code>None</code> |
+| <a id="ghz_test_suite-kwargs"></a>kwargs |  additional args   |  none |
+
+
 <a id="rpc_diff_test"></a>
 
 ## rpc_diff_test

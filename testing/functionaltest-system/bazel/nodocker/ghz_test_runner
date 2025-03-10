@@ -1,4 +1,17 @@
 #!/bin/bash
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 set -o errexit
 
@@ -14,6 +27,7 @@ usage:
     --rpc <rpc name>                rpc name
     --request <filename>            request.json filename
     --plaintext                     send plaintext request
+    --config-file                   ghz config json file
 environment variables:
     GHZ                             path to ghz executable (required)
 USAGE
@@ -38,27 +52,31 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --endpoint-hostport)
       ENDPOINT_HOSTPORT="$2"
-      shift 2
+      shift 2 || usage 1
       ;;
     --docker-network)
       printf "Ignoring arg --docker-network\n"
-      shift 2 || usage
+      shift 2 || usage 1
       ;;
     --rpc)
       RPC="$2"
-      shift 2
+      shift 2 || usage 1
       ;;
     --protoset)
       PROTOSET_FILENAME="$2"
-      shift 2
+      shift 2 || usage 1
       ;;
     --request)
       REQUEST_FILENAME="$2"
-      shift 2
+      shift 2 || usage 1
       ;;
     --plaintext)
       PLAINTEXT=1
       shift
+      ;;
+    --config-file)
+      CONFIG_FILE="$2"
+      shift 2 || usage 1
       ;;
     --help | -h) usage 0 ;;
     *) usage 1 ;;
@@ -74,17 +92,24 @@ declare -r REPORT_FILE=ghz_report.json
 declare -r REPORT_FORMAT=pretty
 
 declare -a GHZ_ARGS=(
-  "--concurrency=10"
-  "--total=5000"
   "--call=${RPC}"
   "--format=${REPORT_FORMAT}"
+  "--data-file=${REQUEST_FILENAME}"
+  "--protoset=${PROTOSET_FILENAME}"
 )
 if [[ ${PLAINTEXT} -eq 1 ]]; then
   GHZ_ARGS+=("--insecure")
 fi
+if [[ -f ${CONFIG_FILE} ]]; then
+  GHZ_ARGS+=("--config=${CONFIG_FILE}")
+else
+  GHZ_ARGS+=(
+    "--concurrency=10"
+    "--total=5000"
+  )
+fi
 
-"${GHZ}" "${GHZ_ARGS[@]}" \
-  --data-file="${REQUEST_FILENAME}" \
-  --protoset="${PROTOSET_FILENAME}" \
+"${GHZ}" \
+  "${GHZ_ARGS[@]}" \
   "${ENDPOINT_HOSTPORT}" \
   >"${TEST_UNDECLARED_OUTPUTS_DIR}/${REPORT_FILE}"
