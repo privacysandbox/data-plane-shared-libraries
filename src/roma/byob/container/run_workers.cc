@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/capability.h>
+#include <sys/mman.h>
 #include <sys/mount.h>
 #include <sys/prctl.h>
 #include <sys/socket.h>
@@ -251,6 +252,18 @@ absl::StatusOr<scmp_filter_ctx> GetSeccompFilter() {
                        /*arg_cnt=*/0) < 0) {
     seccomp_release(ctx);
     return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add clone3.");
+  }
+  if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(mmap), 1,
+                       SCMP_A2(SCMP_CMP_MASKED_EQ, PROT_WRITE | PROT_EXEC,
+                               PROT_WRITE | PROT_EXEC)) < 0) {
+    seccomp_release(ctx);
+    return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add mmap.");
+  }
+  if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(mprotect), 1,
+                       SCMP_A2(SCMP_CMP_MASKED_EQ, PROT_WRITE | PROT_EXEC,
+                               PROT_WRITE | PROT_EXEC)) < 0) {
+    seccomp_release(ctx);
+    return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add mprotect.");
   }
   return ctx;
 }
