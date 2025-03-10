@@ -761,6 +761,7 @@ def roma_v8_sdk(
             Label("//docs/roma:v8/sdk/docs/tools/shell_cli.md"),
             Label("//docs/roma:v8/sdk/docs/tools/udf_benchmark_cli.md"),
             Label("//docs/roma:v8/sdk/docs/tools/logging.md"),
+            Label("//docs/roma:traffic_generator.md"),
         ],
         prefix = "docs/tools",
     )
@@ -785,16 +786,23 @@ def roma_v8_sdk(
         cc_binary = Label("//src/roma/tools/v8_cli:roma_benchmark"),
         repo_tags = ["privacy_sandbox/roma-v8/benchmark:{}".format(image_tag)],
     )
+    romav8_image(
+        name = name + "_roma_traffic_generator",
+        cc_binary = Label("//src/roma/tools/v8_cli:traffic_generator"),
+        repo_tags = ["privacy_sandbox/roma-v8/traffic-generator:{}".format(image_tag)],
+    )
 
     pkg_files(
         name = name + "_tools_artifacts",
         srcs = [
             ":{}_roma_shell.tar".format(name),
             ":{}_roma_benchmark.tar".format(name),
+            ":{}_roma_traffic_generator.tar".format(name),
         ],
         renames = {
             ":{}_roma_shell.tar".format(name): "roma-v8-shell.tar",
             ":{}_roma_benchmark.tar".format(name): "roma-v8-benchmark.tar",
+            ":{}_roma_traffic_generator.tar".format(name): "roma-v8-traffic-generator.tar",
         },
         prefix = "tools",
     )
@@ -1124,6 +1132,13 @@ def roma_byob_sdk(
             declare_doc(
                 doc = ":{}_roma_cc_lib_tools_traffic_generator_docs".format(name),
                 target_filename = "traffic-generator-cli.md",
+                target_subdir = "tools",
+            ),
+        )
+        docs.append(
+            declare_doc(
+                doc = Label("//docs/roma:traffic_generator.md"),
+                target_filename = "traffic-generator.md",
                 target_subdir = "tools",
             ),
         )
