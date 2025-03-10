@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package privacysandbox.apis.parc.v0;
 
+option go_package = "github.com/privacysandbox/data-plane-shared/apis/parc/v0";
+
 // Request to get a blob's contents from storage.
 message GetBlobRequest {
   // Metadata of the blob to get.

@@ -16,6 +16,8 @@ syntax = "proto3";
 
 package privacysandbox.apis.parc.v0;
 
+option go_package = "github.com/privacysandbox/data-plane-shared/apis/parc/v0";
+
 // Request to get a parameter.
 message GetParameterRequest {
   // The given name of the parameter to be retrieved.

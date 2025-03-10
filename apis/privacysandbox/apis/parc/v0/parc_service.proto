@@ -21,6 +21,7 @@ import "apis/privacysandbox/apis/parc/v0/parameter.proto";
 
 // For faster allocations of sub-messages.
 option cc_enable_arenas = true;
+option go_package = "github.com/privacysandbox/data-plane-shared/apis/parc/v0";
 
 // Provides Parc Server service definitions.
 service ParcService {
