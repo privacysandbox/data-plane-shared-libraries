@@ -674,15 +674,13 @@ class WorkerRunner final : public WorkerRunnerService::Service {
                                 const bool enable_seccomp_filter,
                                 const bool disable_ipc_namespace)
       ABSL_LOCKS_EXCLUDED(mu_) {
-    {
-      if (!std::filesystem::exists(binary_path)) {
-        return absl::NotFoundError(
-            absl::StrCat("Could not find binary at ", binary_path.native()));
-      }
-      if (!std::filesystem::is_regular_file(binary_path)) {
-        return absl::InvalidArgumentError(absl::StrCat(
-            "Binary file is not a regular file ", binary_path.native()));
-      }
+    if (!std::filesystem::exists(binary_path)) {
+      return absl::NotFoundError(
+          absl::StrCat("Could not find binary at ", binary_path.native()));
+    }
+    if (!std::filesystem::is_regular_file(binary_path)) {
+      return absl::InvalidArgumentError(absl::StrCat(
+          "Binary file is not a regular file ", binary_path.native()));
     }
     {
       absl::MutexLock lock(&mu_);
