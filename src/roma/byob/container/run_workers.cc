@@ -584,24 +584,26 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     LOG(INFO) << "Shutting down.";
 
     // Kill extant workers before exit.
-    for (const auto& [_, pids] : code_token_to_reloader_metadata_) {
-      for (const auto& [pid, pivot_root_dir] : pids) {
-        if (::killpg(pid, SIGKILL) == -1) {
+    for (const auto& [_, reloader_metadatas] :
+         code_token_to_reloader_metadatas_) {
+      for (const auto& reloader_metadata : reloader_metadatas) {
+        if (::killpg(reloader_metadata.pid, SIGKILL) == -1) {
           // If the group has already terminated, degrade error to a log.
           if (errno == ESRCH) {
-            PLOG(INFO) << "killpg(" << pid << ", SIGKILL)";
+            PLOG(INFO) << "killpg(" << reloader_metadata.pid << ", SIGKILL)";
           } else {
-            PLOG(ERROR) << "killpg(" << pid << ", SIGKILL)";
+            PLOG(ERROR) << "killpg(" << reloader_metadata.pid << ", SIGKILL)";
           }
         }
-        while (::waitpid(-pid, /*wstatus=*/nullptr, /*options=*/0) > 0) {
+        while (::waitpid(-reloader_metadata.pid, /*wstatus=*/nullptr,
+                         /*options=*/0) > 0) {
         }
         if (absl::Status status =
                 ::privacy_sandbox::server_common::byob::RemoveDirectories(
-                    pivot_root_dir);
+                    reloader_metadata.pivot_root_dir);
             !status.ok()) {
           LOG(ERROR) << "Failed to delete pivot_root directory "
-                     << pivot_root_dir << ": " << status;
+                     << reloader_metadata.pivot_root_dir << ": " << status;
         }
       }
     }
@@ -630,6 +632,11 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   }
 
  private:
+  struct ReloaderMetadata {
+    int pid;
+    std::filesystem::path pivot_root_dir;
+  };
+
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
     return CreateWorkerPool(binary_dir_ / request.binary_relative_path(),
                             request.code_token(), request.num_workers(),
@@ -641,24 +648,25 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   void Delete(std::string_view request_code_token) ABSL_LOCKS_EXCLUDED(mu_) {
     absl::MutexLock lock(&mu_);
     if (const auto it =
-            code_token_to_reloader_metadata_.find(request_code_token);
-        it != code_token_to_reloader_metadata_.end()) {
+            code_token_to_reloader_metadatas_.find(request_code_token);
+        it != code_token_to_reloader_metadatas_.end()) {
       // Kill all workers and delete binary.
-      for (const auto& [pid, pivot_root_dir] : it->second) {
-        if (::killpg(pid, SIGKILL) == -1) {
-          PLOG(INFO) << "killpg(" << pid << ", SIGKILL)";
+      for (const auto& reloader_metadata : it->second) {
+        if (::killpg(reloader_metadata.pid, SIGKILL) == -1) {
+          PLOG(INFO) << "killpg(" << reloader_metadata.pid << ", SIGKILL)";
         }
-        while (::waitpid(-pid, /*wstatus=*/nullptr, /*options=*/0) > 0) {
+        while (::waitpid(-reloader_metadata.pid, /*wstatus=*/nullptr,
+                         /*options=*/0) > 0) {
         }
         if (absl::Status status =
                 ::privacy_sandbox::server_common::byob::RemoveDirectories(
-                    pivot_root_dir);
+                    reloader_metadata.pivot_root_dir);
             !status.ok()) {
           LOG(ERROR) << "Failed to delete pivot_root directory "
-                     << pivot_root_dir << ": " << status;
+                     << reloader_metadata.pivot_root_dir << ": " << status;
         }
       }
-      code_token_to_reloader_metadata_.erase(it);
+      code_token_to_reloader_metadatas_.erase(it);
       const std::filesystem::path binary_dir = binary_dir_ / request_code_token;
       if (std::error_code ec; std::filesystem::remove_all(binary_dir, ec) ==
                               static_cast<std::uintmax_t>(-1)) {
@@ -684,7 +692,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     }
     {
       absl::MutexLock lock(&mu_);
-      code_token_to_reloader_metadata_[code_token].reserve(num_workers);
+      code_token_to_reloader_metadatas_[code_token].reserve(num_workers);
     }
     std::vector<std::string> mounts = mounts_;
     const std::filesystem::path binary_dir = binary_path.parent_path();
@@ -714,7 +722,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         return absl::ErrnoToStatus(errno, "clone()");
       }
       absl::MutexLock lock(&mu_);
-      code_token_to_reloader_metadata_[code_token].push_back(
+      code_token_to_reloader_metadatas_[code_token].push_back(
           {pid, std::move(pivot_root_dir)});
     }
     return absl::OkStatus();
@@ -728,9 +736,8 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   absl::Mutex mu_;
   // Maps the code token to the corresponding reloaders' pids and
   // pivot_root_dirs.
-  absl::flat_hash_map<std::string,
-                      std::vector<std::pair<int, std::filesystem::path>>>
-      code_token_to_reloader_metadata_ ABSL_GUARDED_BY(mu_);
+  absl::flat_hash_map<std::string, std::vector<ReloaderMetadata>>
+      code_token_to_reloader_metadatas_ ABSL_GUARDED_BY(mu_);
 };
 
 ABSL_CONST_INIT absl::Mutex signal_mu{absl::kConstInit};
