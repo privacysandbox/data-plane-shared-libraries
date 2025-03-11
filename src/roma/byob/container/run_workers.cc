@@ -481,6 +481,11 @@ int ReloaderImpl(void* arg) {
     CHECK_OK(scmp_filter);
     PCHECK(seccomp_load(*scmp_filter) == 0);
   }
+  int clone_flags = CLONE_VM | CLONE_VFORK | CLONE_NEWPID | SIGCHLD |
+                    CLONE_NEWUTS | CLONE_NEWNS;
+  if (!reloader_impl_arg.disable_ipc_namespace) {
+    clone_flags |= CLONE_NEWIPC;
+  }
   while (true) {
     // Start a new worker.
     const std::string execution_token = GenerateUuid();
@@ -503,11 +508,6 @@ int ReloaderImpl(void* arg) {
     // bytes (of 2^10 bytes) where unneeded.
     // https://community.arm.com/arm-community-blogs/b/architectures-and-processors-blog/posts/using-the-stack-in-aarch32-and-aarch64
     alignas(16) char stack[1 << 20];
-    int clone_flags = CLONE_VM | CLONE_VFORK | CLONE_NEWPID | SIGCHLD |
-                      CLONE_NEWUTS | CLONE_NEWNS;
-    if (!reloader_impl_arg.disable_ipc_namespace) {
-      clone_flags |= CLONE_NEWIPC;
-    }
     const int pid = ::clone(WorkerImpl, stack + sizeof(stack), clone_flags,
                             &worker_impl_arg);
     if (pid == -1) {
