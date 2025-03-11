@@ -46,7 +46,6 @@
 #include <uuid/uuid.h>
 
 #include "absl/base/attributes.h"
-#include "absl/base/no_destructor.h"
 #include "absl/base/thread_annotations.h"
 #include "absl/cleanup/cleanup.h"
 #include "absl/container/flat_hash_map.h"
@@ -95,8 +94,6 @@ using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
 using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
-
-const absl::NoDestructor<std::filesystem::path> kBinaryExe("bin.exe");
 
 constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(arch_prctl),
