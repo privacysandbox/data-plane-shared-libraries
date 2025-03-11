@@ -630,11 +630,6 @@ class WorkerRunner final : public WorkerRunnerService::Service {
   }
 
  private:
-  struct PidAndExecutionToken {
-    int pid;
-    std::string execution_token;
-  };
-
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
     return CreateWorkerPool(binary_dir_ / request.binary_relative_path(),
                             request.code_token(), request.num_workers(),
