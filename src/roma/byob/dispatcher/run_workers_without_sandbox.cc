@@ -254,7 +254,6 @@ class WorkerRunner final : public WorkerRunnerService::Service {
 
  private:
   absl::Status Load(const LoadBinaryRequest& request) ABSL_LOCKS_EXCLUDED(mu_) {
-    LOG(ERROR) << "binary_dir_: " << binary_dir_;
     return CreateWorkerPool(binary_dir_ / request.binary_relative_path(),
                             request.code_token(), request.num_workers());
   }
