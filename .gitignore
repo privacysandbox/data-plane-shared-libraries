@@ -1,5 +1,5 @@
 # Bazel symlinks
-/bazel-*
+bazel-*
 /dist/
 
 # IDEs
