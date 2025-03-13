@@ -69,24 +69,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      EXPECT_FALSE(bin_response.ok());
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    EXPECT_FALSE(bin_response.ok());
   }
 }
 
@@ -121,25 +118,22 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      ASSERT_TRUE(bin_response.ok());
-      EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world!"));
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world!"));
   }
 }
 
@@ -174,24 +168,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      EXPECT_TRUE(bin_response.ok());
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 
@@ -225,25 +216,22 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      ASSERT_TRUE(bin_response.ok());
-      EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
 }
 
@@ -277,25 +265,22 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Seconds(1));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      ASSERT_TRUE(bin_response.ok());
-      EXPECT_THAT(bin_response->greeting(), StrEq("I am a crashing UDF!"));
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I am a crashing UDF!"));
   }
 }
 
@@ -329,26 +314,22 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
                             /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      ASSERT_TRUE(bin_response.ok());
-      EXPECT_THAT(bin_response->greeting(),
-                  StrEq("I return a non-zero status!"));
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("I return a non-zero status!"));
   }
 }
 
@@ -387,7 +368,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::ZeroDuration(),
+                *code_token, bin_request, absl::InfiniteDuration(),
                 [&done](auto /*response*/, auto /*logs*/) { done.Notify(); })
             .ok());
     EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
@@ -404,7 +385,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::ZeroDuration(),
+                *code_token, bin_request, absl::InfiniteDuration(),
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/) {
                   bin_response = std::move(response);
@@ -450,7 +431,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
   absl::Notification done;
   absl::StatusOr<ExecutionToken> execution_token =
       dispatcher.ProcessRequest<SampleResponse>(
-          *code_token, bin_request, absl::ZeroDuration(),
+          *code_token, bin_request, absl::InfiniteDuration(),
           [&done](auto /*response*/,
                   absl::StatusOr<std::string_view> /*logs*/) {
             done.Notify();
@@ -491,24 +472,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
       /*num_workers=*/10);
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      EXPECT_FALSE(bin_response.ok());
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    EXPECT_FALSE(bin_response.ok());
   }
 }
 
@@ -543,25 +521,22 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_HELLO_WORLD);
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      ASSERT_TRUE(bin_response.ok());
-      EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world from Go!"));
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    ASSERT_TRUE(bin_response.ok());
+    EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world from Go!"));
   }
 }
 
@@ -596,24 +571,21 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
   ASSERT_TRUE(code_token.ok()) << code_token.status();
   SampleRequest bin_request;
   bin_request.set_function(FUNCTION_PRIME_SIEVE);
-  for (int j = 0; j < 10; ++j) {
-    absl::SleepFor(absl::Milliseconds(100));
-    for (int i = 0; i < 10; ++i) {
-      absl::StatusOr<SampleResponse> bin_response;
-      absl::Notification done;
-      ASSERT_TRUE(
-          dispatcher
-              .ProcessRequest<SampleResponse>(
-                  *code_token, bin_request, absl::ZeroDuration(),
-                  [&bin_response, &done](
-                      auto response, absl::StatusOr<std::string_view> logs) {
-                    bin_response = std::move(response);
-                    done.Notify();
-                  })
-              .ok());
-      done.WaitForNotification();
-      EXPECT_TRUE(bin_response.ok());
-    }
+  for (int i = 0; i < 100; ++i) {
+    absl::StatusOr<SampleResponse> bin_response;
+    absl::Notification done;
+    ASSERT_TRUE(
+        dispatcher
+            .ProcessRequest<SampleResponse>(
+                *code_token, bin_request, absl::InfiniteDuration(),
+                [&bin_response, &done](auto response,
+                                       absl::StatusOr<std::string_view> logs) {
+                  bin_response = std::move(response);
+                  done.Notify();
+                })
+            .ok());
+    done.WaitForNotification();
+    EXPECT_TRUE(bin_response.ok());
   }
 }
 }  // namespace
