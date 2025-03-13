@@ -14,15 +14,17 @@
 # limitations under the License.
 
 
-declare -r AZ=/usr/bin/az
 declare -r IMAGE_TAG="mcr.microsoft.com/azure-cli:azurelinux3.0"
 declare -a DOCKER_FLAGS=(
   --rm
-  --entrypoint="${AZ}"
+  --entrypoint=/usr/bin/az
 )
 
 if [[ -v DOCKER_NETWORK ]]; then
   DOCKER_FLAGS+=("--network=${DOCKER_NETWORK}")
+fi
+if [[ -v AZURE_STORAGE_CONNECTION_STRING ]]; then
+  DOCKER_FLAGS+=("--env=AZURE_STORAGE_CONNECTION_STRING")
 fi
 if [[ -d ${AZURE_HOME} ]]; then
   DOCKER_FLAGS+=("--volume=${AZURE_HOME}:/root/.azure")
