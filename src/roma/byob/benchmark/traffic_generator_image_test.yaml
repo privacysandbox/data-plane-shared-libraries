@@ -40,4 +40,3 @@ commandTests:
       - --burst_size=2
       - --queries_per_second=1
       - --sandbox=gvisor
-    exitCode: 0
