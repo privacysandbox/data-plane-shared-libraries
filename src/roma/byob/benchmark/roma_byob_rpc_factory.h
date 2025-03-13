@@ -33,6 +33,8 @@
 using AppService = ::privacy_sandbox::server_common::byob::RomaService<>;
 using Config = ::privacy_sandbox::server_common::byob::Config<>;
 using Mode = ::privacy_sandbox::server_common::byob::Mode;
+using SyscallFiltering =
+    ::privacy_sandbox::server_common::byob::SyscallFiltering;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
@@ -48,12 +50,12 @@ namespace privacy_sandbox::server_common::byob {
 std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
     int num_workers, std::string_view lib_mounts, std::string_view binary_path,
     Mode mode, std::atomic<std::int64_t>& completions,
-    bool enable_seccomp_filter, bool disable_ipc_namespace,
+    SyscallFiltering syscall_filtering, bool disable_ipc_namespace,
     absl::Duration connection_timeout) {
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
   CHECK_OK(roma_service->Init(
       /*config=*/{.lib_mounts = std::string(lib_mounts),
-                  .enable_seccomp_filter = enable_seccomp_filter,
+                  .syscall_filtering = syscall_filtering,
                   .disable_ipc_namespace = disable_ipc_namespace},
       mode));
 

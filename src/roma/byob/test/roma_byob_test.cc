@@ -41,12 +41,17 @@ using ::privacy_sandbox::roma_byob::example::ByobSampleService;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_READ_SYS_V_MESSAGE_QUEUE;
+using ::privacy_sandbox::roma_byob::example::
+    FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING;
+using ::privacy_sandbox::roma_byob::example::
+    FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE;
 using ::privacy_sandbox::roma_byob::example::FunctionType;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::privacy_sandbox::server_common::byob::HasClonePermissionsByobWorker;
 using ::privacy_sandbox::server_common::byob::Mode;
+using ::privacy_sandbox::server_common::byob::SyscallFiltering;
 using ::testing::TestWithParam;
 
 const std::filesystem::path kUdfPath = "/udf";
@@ -62,7 +67,7 @@ const std::filesystem::path kCPlusPlusFileSystemDeleteFilename =
     "filesystem_delete_udf";
 const std::filesystem::path kCPlusPlusFileSystemEditFilename =
     "filesystem_edit_udf";
-const std::filesystem::path kCPlusPlusSyscallFilterBinaryFilename =
+const std::filesystem::path kCPlusPlusSyscallFilteringBinaryFilename =
     "syscall_filter_udf";
 const std::filesystem::path kCPlusPlusNewBinaryFilename = "new_udf";
 const std::filesystem::path kCPlusPlusLogBinaryFilename = "log_udf";
@@ -183,7 +188,7 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
 
 struct RomaByobTestParam {
   Mode mode;
-  bool enable_seccomp_filter;
+  SyscallFiltering syscall_filtering;
 };
 using RomaByobTest = TestWithParam<RomaByobTestParam>;
 
@@ -193,7 +198,7 @@ TEST_P(RomaByobTest, NoSocketFile) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusSocketFinderBinaryFilename,
@@ -208,12 +213,12 @@ TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceEnabled) {
   if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  if (param.enable_seccomp_filter) {
+  if (param.syscall_filtering != SyscallFiltering::kNoSyscallFiltering) {
     GTEST_SKIP() << "System V Message Queue system calls are disabled when "
                     "syscall filtering is enabled";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / "message_queue_udf",
@@ -234,13 +239,14 @@ TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceDisabled) {
   if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
-  if (!param.enable_seccomp_filter) {
+  if (param.syscall_filtering == SyscallFiltering::kNoSyscallFiltering) {
     GTEST_SKIP() << "Other scenario covered in "
                     "SystemVMessageQueueEgressDisabledIpcNamespaceEnabled";
   }
-  ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = true, .disable_ipc_namespace = true},
-      param.mode);
+  ByobSampleService<> roma_service =
+      GetRomaService({.syscall_filtering = param.syscall_filtering,
+                      .disable_ipc_namespace = true},
+                     param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / "message_queue_udf",
@@ -264,7 +270,7 @@ TEST_P(RomaByobTest, NoFileSystemCreateEgression) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemAddFilename,
@@ -280,7 +286,7 @@ TEST_P(RomaByobTest, NoFileSystemDeleteEgression) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemDeleteFilename,
@@ -299,7 +305,7 @@ TEST_P(RomaByobTest, NoFileSystemEditEgression) {
     GTEST_SKIP() << "Executing the binary is failing: Exec format error [8]";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusFileSystemEditFilename,
@@ -315,7 +321,7 @@ TEST_P(RomaByobTest, LoadBinary) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   absl::StatusOr<std::string> code_id =
       roma_service.Register(kUdfPath / kCPlusPlusBinaryFilename,
@@ -330,7 +336,7 @@ TEST_P(RomaByobTest, ProcessRequestMultipleCppBinaries) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string first_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
@@ -351,7 +357,7 @@ TEST_P(RomaByobTest, LoadBinaryUsingUdfBlob) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   auto content = GetContentsOfFile(kUdfPath / kCPlusPlusBinaryFilename);
   CHECK_OK(content);
@@ -371,7 +377,7 @@ TEST_P(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusBinaryFilename);
@@ -402,7 +408,7 @@ TEST_P(RomaByobTest, ProcessRequestGoLangBinary) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.lib_mounts = "", .enable_seccomp_filter = param.enable_seccomp_filter},
+      {.lib_mounts = "", .syscall_filtering = param.syscall_filtering},
       param.mode);
 
   std::string code_token =
@@ -421,10 +427,9 @@ TEST_P(RomaByobTest, ProcessRequestJavaBinary) {
   // TODO: b/377349908 - Enable Java benchmarks post-ARM64 fix
   GTEST_SKIP() << "Java tests disabled for ARM64";
 #endif
-  ByobSampleService<> roma_service =
-      GetRomaService({.lib_mounts = "/proc",
-                      .enable_seccomp_filter = param.enable_seccomp_filter},
-                     param.mode);
+  ByobSampleService<> roma_service = GetRomaService(
+      {.lib_mounts = "/proc", .syscall_filtering = param.syscall_filtering},
+      param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kJavaBinaryFilename);
@@ -439,7 +444,7 @@ TEST_P(RomaByobTest, VerifyNoStdOutStdErrEgressionByDefault) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
@@ -457,7 +462,7 @@ TEST_P(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   const std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
@@ -487,7 +492,7 @@ TEST_P(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   const std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
@@ -511,7 +516,7 @@ TEST_P(RomaByobTest, VerifyStdOutStdErrEgressionByChoice) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename,
@@ -530,7 +535,7 @@ TEST_P(RomaByobTest, VerifyCodeTokenBasedLoadWorks) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
@@ -550,7 +555,7 @@ TEST_P(RomaByobTest, VerifyRegisterWithAndWithoutLogs) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
@@ -593,7 +598,7 @@ TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
   std::string no_log_code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusLogBinaryFilename);
 
@@ -640,7 +645,7 @@ TEST_P(RomaByobTest, VerifyNoCapabilities) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
   std::string code_token =
       LoadCode(roma_service, kUdfPath / kCPlusPlusCapBinaryFilename);
@@ -649,22 +654,30 @@ TEST_P(RomaByobTest, VerifyNoCapabilities) {
               ::testing::StrEq("Empty capabilities set as expected."));
 }
 
-TEST_P(RomaByobTest, VerifySyscallFilter) {
+TEST_P(RomaByobTest, VerifySyscallFiltering) {
   RomaByobTestParam param = GetParam();
-  if (!param.enable_seccomp_filter) {
+  if (param.syscall_filtering == SyscallFiltering::kNoSyscallFiltering) {
     GTEST_SKIP() << "Seccomp filtering is disabled";
   }
   if (!HasClonePermissionsByobWorker(param.mode)) {
     GTEST_SKIP() << "HasClonePermissionsByobWorker check returned false";
   }
   ByobSampleService<> roma_service = GetRomaService(
-      {.enable_seccomp_filter = param.enable_seccomp_filter}, param.mode);
+      {.syscall_filtering = param.syscall_filtering}, param.mode);
 
-  std::string code_token =
-      LoadCode(roma_service, kUdfPath / kCPlusPlusSyscallFilterBinaryFilename);
+  std::string code_token = LoadCode(
+      roma_service, kUdfPath / kCPlusPlusSyscallFilteringBinaryFilename,
+      /*enable_log_egress=*/true);
 
-  EXPECT_THAT(SendRequestAndGetResponse(roma_service, code_token).greeting(),
-              ::testing::StrEq("Blocked all System V IPC syscalls correctly."));
+  EXPECT_THAT(SendRequestAndGetResponse(
+                  roma_service, code_token,
+                  param.syscall_filtering ==
+                          SyscallFiltering::kUntrustedCodeSyscallFiltering
+                      ? FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING
+                      : FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING)
+                  .greeting(),
+              ::testing::StrEq("Blocked all System V IPC syscalls and handled "
+                               "syscall filters correctly."));
 }
 
 std::string GetModeStr(Mode mode) {
@@ -682,11 +695,16 @@ std::string GetModeStr(Mode mode) {
   }
 }
 
-std::string GetFilterStr(bool enable_seccomp_filter) {
-  if (enable_seccomp_filter) {
-    return "SeccompFilterEnabled";
-  } else {
-    return "SeccompFilterDisabled";
+std::string GetFilterStr(SyscallFiltering syscall_filtering) {
+  switch (syscall_filtering) {
+    case SyscallFiltering::kNoSyscallFiltering:
+      return "NoSyscallFiltering";
+    case SyscallFiltering::kWorkerEngineSyscallFiltering:
+      return "WorkerEngineSyscallFiltering";
+    case SyscallFiltering::kUntrustedCodeSyscallFiltering:
+      return "UntrustedCodeSyscallFiltering";
+    default:
+      return "UnknownSyscallFiltering";
   }
 }
 
@@ -695,15 +713,27 @@ INSTANTIATE_TEST_SUITE_P(
     // Since we don't want to run tests for gVisor debug mode,
     // Mode::kModeGvisorSandboxDebug has not included in the list.
     testing::ValuesIn<RomaByobTestParam>(
-        {{.mode = Mode::kModeGvisorSandbox, .enable_seccomp_filter = false},
-         {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = false},
-         {.mode = Mode::kModeNsJailSandbox, .enable_seccomp_filter = false},
-         {.mode = Mode::kModeGvisorSandbox, .enable_seccomp_filter = true},
-         {.mode = Mode::kModeMinimalSandbox, .enable_seccomp_filter = true},
-         {.mode = Mode::kModeNsJailSandbox, .enable_seccomp_filter = true}}),
+        {{.mode = Mode::kModeGvisorSandbox,
+          .syscall_filtering = SyscallFiltering::kNoSyscallFiltering},
+         {.mode = Mode::kModeMinimalSandbox,
+          .syscall_filtering = SyscallFiltering::kNoSyscallFiltering},
+         {.mode = Mode::kModeNsJailSandbox,
+          .syscall_filtering = SyscallFiltering::kNoSyscallFiltering},
+         {.mode = Mode::kModeGvisorSandbox,
+          .syscall_filtering =
+              SyscallFiltering::kUntrustedCodeSyscallFiltering},
+         {.mode = Mode::kModeMinimalSandbox,
+          .syscall_filtering =
+              SyscallFiltering::kUntrustedCodeSyscallFiltering},
+         {.mode = Mode::kModeNsJailSandbox,
+          .syscall_filtering =
+              SyscallFiltering::kUntrustedCodeSyscallFiltering},
+         {.mode = Mode::kModeNsJailSandbox,
+          .syscall_filtering =
+              SyscallFiltering::kWorkerEngineSyscallFiltering}}),
     [](const testing::TestParamInfo<RomaByobTest::ParamType>& info) {
       return absl::StrCat(GetModeStr(info.param.mode),
-                          GetFilterStr(info.param.enable_seccomp_filter));
+                          GetFilterStr(info.param.syscall_filtering));
     });
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test

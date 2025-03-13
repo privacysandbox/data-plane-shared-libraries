@@ -148,4 +148,8 @@ enum FunctionType {
   FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE = 5;
   // Reads message from the message queue.
   FUNCTION_READ_SYS_V_MESSAGE_QUEUE = 6;
+  // Whether syscall filtering is enabled at reloader level only.
+  FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING = 7;
+  // Whether syscall filtering is enabled at both worker and reloader level.
+  FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING = 8;
 }

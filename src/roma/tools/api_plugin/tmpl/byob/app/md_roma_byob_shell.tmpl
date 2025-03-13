@@ -26,15 +26,15 @@ docker run \
 
 ## Flags
 
-| Flag                      | Description                                                                     | Default Value          |
-| ------------------------- | ------------------------------------------------------------------------------- | -----------------------|
-| `--commands_file`         | (Optional) Text file with a list of CLI commands to execute.                    | N/A                    |
-| `--connection_timeout`    | How long to wait for a worker to become available.                              | `absl::Minutes(1)` |
-| `--disable_ipc_namespace` | Whether IPC namespace should be disabled.                                       | `true`                 |
-| `--num_workers`           | Number of Roma workers.                                                         | `1`                    |
-| `--sandbox`               | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. | `true`                 |
-| `--syscall_filter`        | Whether to enable syscall filtering.                                            | `true`                 |
-| `--udf_log_file`          | Path with directory to a file in which UDF logs will be stored.                 | N/A                    |
+| Flag                      | Description                                                                         | Default Value      |
+| ------------------------- | ----------------------------------------------------------------------------------- | -------------------|
+| `--commands_file`         | (Optional) Text file with a list of CLI commands to execute.                        | N/A                |
+| `--connection_timeout`    | How long to wait for a worker to become available.                                  | `absl::Minutes(1)` |
+| `--disable_ipc_namespace` | Whether IPC namespace should be disabled.                                           | `true`             |
+| `--num_workers`           | Number of Roma workers.                                                             | `1`                |
+| `--sandbox`               | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail.     | `true`             |
+| `--syscall_filtering`     | Syscall filter level for BYOB. Supported values: no, worker-engine, untrusted.      | `untrusted`        |
+| `--udf_log_file`          | Path with directory to a file in which UDF logs will be stored.                     | N/A                |
 
 ## Commands
 

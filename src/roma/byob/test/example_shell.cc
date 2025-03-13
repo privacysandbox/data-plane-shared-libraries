@@ -39,7 +39,11 @@ ABSL_FLAG(std::optional<std::string>, commands_file, std::nullopt,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
           privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
-ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(
+    ::privacy_sandbox::server_common::byob::SyscallFiltering, syscall_filtering,
+    ::privacy_sandbox::server_common::byob::SyscallFiltering::
+        kUntrustedCodeSyscallFiltering,
+    ::privacy_sandbox::server_common::byob::kByobSyscallFilteringHelpText);
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
@@ -69,7 +73,7 @@ int main(int argc, char** argv) {
   absl::StatusOr<ByobEchoService<>> echo_service = ByobEchoService<>::Create(
       /*config=*/
       {
-          .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+          .syscall_filtering = absl::GetFlag(FLAGS_syscall_filtering),
           .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
       },
       absl::GetFlag(FLAGS_sandbox));

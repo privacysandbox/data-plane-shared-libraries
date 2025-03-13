@@ -37,7 +37,11 @@ ABSL_FLAG(std::optional<std::string>, request, std::nullopt,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
           privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
-ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(
+    ::privacy_sandbox::server_common::byob::SyscallFiltering, syscall_filtering,
+    ::privacy_sandbox::server_common::byob::SyscallFiltering::
+        kUntrustedCodeSyscallFiltering,
+    ::privacy_sandbox::server_common::byob::kByobSyscallFilteringHelpText);
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
 ABSL_FLAG(absl::Duration, connection_timeout, absl::Minutes(1),
@@ -58,7 +62,7 @@ void BM_Load(benchmark::State& state) {
   absl::StatusOr<ByobEchoService<>> roma_service = ByobEchoService<>::Create(
       /*config=*/
       {
-          .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+          .syscall_filtering = absl::GetFlag(FLAGS_syscall_filtering),
           .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
       },
       absl::GetFlag(FLAGS_sandbox));
@@ -85,7 +89,7 @@ void BM_Execute(benchmark::State& state) {
   absl::StatusOr<ByobEchoService<>> roma_service = ByobEchoService<>::Create(
       /*config=*/
       {
-          .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+          .syscall_filtering = absl::GetFlag(FLAGS_syscall_filtering),
           .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
       },
       absl::GetFlag(FLAGS_sandbox));
@@ -133,8 +137,8 @@ int main(int argc, char** argv) {
     --rpc (Name of the RPC method to invoke.); default: ;
     --sandbox (Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug,
       minimal, nsjail.); default: nsjail;
-    --syscall_filter (Whether to enable syscall filtering.); default: true;
-    --udf (UDF executable to be benchmarked.); default: ;
+    --syscall_filtering (Syscall filter level for BYOB. Supported values: no,
+      worker-engine, untrusted.); default: untrusted;
 
   Flags from the Google Microbenchmarking Library:
     --benchmark_list_tests={true|false}

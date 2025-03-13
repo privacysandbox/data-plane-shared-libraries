@@ -27,16 +27,21 @@
 using ::google::protobuf::io::FileInputStream;
 using ::google::protobuf::util::ParseDelimitedFromZeroCopyStream;
 using ::google::protobuf::util::SerializeDelimitedToFileDescriptor;
+using ::privacy_sandbox::roma_byob::example::
+    FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING;
+using ::privacy_sandbox::roma_byob::example::
+    FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 
 constexpr char kMessage[] = "Hello from System V message queue IPC.";
 constexpr int kMessageKey = 1234;
 
-void ReadRequestFromFd(int fd) {
+SampleRequest ReadRequestFromFd(int fd) {
   SampleRequest bin_request;
   FileInputStream input(fd);
   ParseDelimitedFromZeroCopyStream(&bin_request, &input, nullptr);
+  return bin_request;
 }
 
 void WriteResponseToFd(int fd, SampleResponse resp) {
@@ -53,11 +58,11 @@ int main(int argc, char* argv[]) {
     std::cerr << "Failed to write" << std::endl;
     return -1;
   }
-  ReadRequestFromFd(fd);
+  auto bin_request = ReadRequestFromFd(fd);
   SampleResponse bin_response;
   char received_message[1024];
   // Validates that all System V IPC Syscalls are blocked with a permission
-  // error by enable_seccomp_filter.
+  // error by syscall_filtering.
   if (::msgget(/*key=*/kMessageKey, /*msgflg=*/IPC_CREAT | 0666) != -1 ||
       errno != EPERM) {
     bin_response.set_greeting("Failed to block msgget with correct error.");
@@ -99,8 +104,25 @@ int main(int argc, char* argv[]) {
                       /*buf=*/nullptr) != -1 ||
              errno != EPERM) {
     bin_response.set_greeting("Failed to block shmctl with correct error.");
+  } else if (bin_request.function() ==
+                 FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING &&
+             dup2(/*oldfd=*/1, /*newfd=*/2) < 0) {
+    // In case of a reloader-level filter, dup2 is enabled and hence the call
+    // should have been successful.
+    bin_response.set_greeting(
+        "Failed to call dup2 for reloader-level syscall filter.");
+  } else if (bin_request.function() ==
+                 FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING &&
+             (dup2(/*oldfd=*/1, /*newfd=*/2) != -1 || errno != EPERM)) {
+    // In case of a worker-and-reloader-level filter, dup2 is disabled and hence
+    // the call should have failed with a permission error.
+    bin_response.set_greeting(
+        "Failed to block dup2 with correct error for worker and reloader-level "
+        "syscall filter.");
   } else {
-    bin_response.set_greeting("Blocked all System V IPC syscalls correctly.");
+    bin_response.set_greeting(
+        "Blocked all System V IPC syscalls and handled syscall filters "
+        "correctly.");
   }
   WriteResponseToFd(fd, std::move(bin_response));
   return 0;

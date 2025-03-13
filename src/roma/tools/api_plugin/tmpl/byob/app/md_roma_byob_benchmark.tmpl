@@ -32,5 +32,5 @@ docker run \
 | `--request`              | File for the UDF request, in json format.                                       |
 | `--rpc`                  | Name of the RPC method to invoke.                                               |
 | `--sandbox`              | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. |
-| `--syscall_filter`       | Whether to enable syscall filtering.                                            |
+| `--syscall_filtering`    | Syscall filter level for BYOB. Supported values: no, reloader, reloader-and-worker.          |
 | `--udf`                  | UDF executable to be benchmarked.                                               |

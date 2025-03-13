@@ -81,6 +81,15 @@ enum FunctionType {
   FUNCTION_READ_SYS_V_MESSAGE_QUEUE = 6 [
     (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {description: 'Reads message from the message queue.'}
   ];
+  FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING = 7 [
+    (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
+      description: 'Whether syscall filtering is enabled at reloader level only.'
+    }
+  ];
+  FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING = 8
+      [(privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
+        description: 'Whether syscall filtering is enabled at both worker and reloader level.'
+      }];
   // TODO(b/379124185): Add back host callback functions and functionality.
   reserved 3, 4;
 }

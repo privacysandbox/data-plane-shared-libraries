@@ -59,6 +59,7 @@
 #include "absl/synchronization/mutex.h"
 #include "absl/types/span.h"
 #include "google/protobuf/util/delimited_message_util.h"
+#include "src/roma/byob/config/config.h"
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.pb.h"
 #include "src/roma/byob/dispatcher/interface.h"
@@ -76,12 +77,15 @@ ABSL_FLAG(std::vector<std::string>, mounts,
           std::vector<std::string>({"/lib", "/lib64"}),
           "Mounts containing dependencies needed by the binary");
 ABSL_FLAG(std::string, log_dir, "/log_dir", "Directory used for storing logs");
-ABSL_FLAG(bool, enable_seccomp_filter, true,
-          "Specifies whether seccomp filtering should be applied.");
+ABSL_FLAG(
+    ::privacy_sandbox::server_common::byob::SyscallFiltering, syscall_filtering,
+    ::privacy_sandbox::server_common::byob::SyscallFiltering::
+        kUntrustedCodeSyscallFiltering,
+    ::privacy_sandbox::server_common::byob::kByobSyscallFilteringHelpText);
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Specifies whether IPC namespace should be created for every worker. "
           "If IPC namespacing is disabled, syscall filters has to be enabled "
-          "via enable_seccomp_filter");
+          "via syscall_filtering");
 
 namespace {
 using ::google::protobuf::io::FileInputStream;
@@ -93,9 +97,33 @@ using ::privacy_sandbox::server_common::byob::DeleteBinaryResponse;
 using ::privacy_sandbox::server_common::byob::kNumTokenBytes;
 using ::privacy_sandbox::server_common::byob::LoadBinaryRequest;
 using ::privacy_sandbox::server_common::byob::LoadBinaryResponse;
+using ::privacy_sandbox::server_common::byob::SyscallFiltering;
 using ::privacy_sandbox::server_common::byob::WorkerRunnerService;
 
-constexpr std::array<int, 120> kSyscallAllowlist = {
+/**
+ * List of syscalls permitted in addition to
+ * kUntrustedCodeSyscallAllowlist because they are needed by the trusted
+ * (reloader) code to create workers and sandbox workers executing untrusted
+ * code.
+ */
+constexpr std::array<int, 11> kTrustedCodeSyscallAllowlistAddOn = {
+    SCMP_SYS(connect),
+    SCMP_SYS(dup2),
+    SCMP_SYS(dup3),
+    SCMP_SYS(mount),
+    SCMP_SYS(restart_syscall),
+    SCMP_SYS(sched_yield),
+    SCMP_SYS(seccomp),
+    SCMP_SYS(wait4),
+    SCMP_SYS(waitpid),
+    SCMP_SYS(umount2),
+    SCMP_SYS(unshare),
+};
+
+/**
+ * List of syscalls permitted for use by untrusted code.
+ */
+constexpr std::array<int, 115> kUntrustedCodeSyscallAllowlist = {
     SCMP_SYS(arch_prctl),
     SCMP_SYS(brk),
     // Only needed by cap_udf test to verify no capabilities are available to
@@ -103,9 +131,6 @@ constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(capget),
     SCMP_SYS(clone),
     SCMP_SYS(close),
-    SCMP_SYS(connect),
-    SCMP_SYS(dup2),
-    SCMP_SYS(dup3),
     SCMP_SYS(epoll_create),
     SCMP_SYS(epoll_create1),
     SCMP_SYS(epoll_ctl),
@@ -165,7 +190,6 @@ constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(madvise),
     SCMP_SYS(mmap),
     SCMP_SYS(mmap2),
-    SCMP_SYS(mount),
     SCMP_SYS(mprotect),
     SCMP_SYS(mremap),
     SCMP_SYS(munmap),
@@ -190,7 +214,6 @@ constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(readlink),
     SCMP_SYS(readlinkat),
     SCMP_SYS(readv),
-    SCMP_SYS(restart_syscall),
     SCMP_SYS(rt_sigaction),
     SCMP_SYS(rt_sigpending),
     SCMP_SYS(rt_sigprocmask),
@@ -199,7 +222,6 @@ constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(rt_sigtimedwait),
     SCMP_SYS(rt_sigtimedwait_time64),
     SCMP_SYS(sched_getaffinity),
-    SCMP_SYS(sched_yield),
     SCMP_SYS(set_robust_list),
     SCMP_SYS(set_tid_address),
     SCMP_SYS(setsockopt),
@@ -207,11 +229,7 @@ constexpr std::array<int, 120> kSyscallAllowlist = {
     SCMP_SYS(socket),
     SCMP_SYS(stat),
     SCMP_SYS(stat64),
-    SCMP_SYS(wait4),
-    SCMP_SYS(waitpid),
-    SCMP_SYS(umount2),
     SCMP_SYS(uname),
-    SCMP_SYS(unshare),
     SCMP_SYS(unlink),
     SCMP_SYS(unlinkat),
     SCMP_SYS(write),
@@ -232,16 +250,29 @@ std::string GenerateUuid() {
 
 // Creates and returns a scmp_filter_ctx which allowlists specific syscalls and
 // causes an EPERM for syscalls not on the allowlist.
-absl::StatusOr<scmp_filter_ctx> GetSeccompFilter() {
+absl::StatusOr<scmp_filter_ctx> GetSeccompFilter(
+    bool allowlist_trusted_code_syscalls) {
   scmp_filter_ctx ctx;
   if ((ctx = seccomp_init(SCMP_ACT_ERRNO(EPERM))) == NULL) {
     return absl::ErrnoToStatus(errno, "Failed to seccomp_init");
   }
-  for (const auto& syscall : kSyscallAllowlist) {
+  for (const auto& syscall : kUntrustedCodeSyscallAllowlist) {
     if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscall, /*arg_cnt=*/0) < 0) {
       seccomp_release(ctx);
       return absl::ErrnoToStatus(
           errno, absl::StrCat("Failed to seccomp_rule_add ", syscall));
+    }
+  }
+  // If syscall filtering is being applied at the reloader-level, some more
+  // syscalls need to be allowlisted to make sure the sandboxing steps at the
+  // worker-level can be applied.
+  if (allowlist_trusted_code_syscalls) {
+    for (const auto& syscall : kTrustedCodeSyscallAllowlistAddOn) {
+      if (seccomp_rule_add(ctx, SCMP_ACT_ALLOW, syscall, /*arg_cnt=*/0) < 0) {
+        seccomp_release(ctx);
+        return absl::ErrnoToStatus(
+            errno, absl::StrCat("Failed to seccomp_rule_add ", syscall));
+      }
     }
   }
   // Unimplemented error for clone3 is the recommended filtering.
@@ -249,18 +280,6 @@ absl::StatusOr<scmp_filter_ctx> GetSeccompFilter() {
                        /*arg_cnt=*/0) < 0) {
     seccomp_release(ctx);
     return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add clone3.");
-  }
-  if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(mmap), 1,
-                       SCMP_A2(SCMP_CMP_MASKED_EQ, PROT_WRITE | PROT_EXEC,
-                               PROT_WRITE | PROT_EXEC)) < 0) {
-    seccomp_release(ctx);
-    return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add mmap.");
-  }
-  if (seccomp_rule_add(ctx, SCMP_ACT_KILL, SCMP_SYS(mprotect), 1,
-                       SCMP_A2(SCMP_CMP_MASKED_EQ, PROT_WRITE | PROT_EXEC,
-                               PROT_WRITE | PROT_EXEC)) < 0) {
-    seccomp_release(ctx);
-    return absl::ErrnoToStatus(errno, "Failed to seccomp_rule_add mprotect.");
   }
   return ctx;
 }
@@ -317,6 +336,7 @@ struct WorkerImplArg {
   bool enable_log_egress;
   std::string_view log_dir_name;
   std::string_view socket_dir_name;
+  const scmp_filter_ctx* scmp_filter;
 };
 
 absl::Status SetPrctlOptions(
@@ -390,6 +410,10 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
     PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO));
     PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO));
   }
+  if (worker_impl_arg.scmp_filter != nullptr &&
+      seccomp_load(*worker_impl_arg.scmp_filter) < 0) {
+    return absl::ErrnoToStatus(errno, absl::StrCat("Failed to seccomp_load"));
+  }
   return absl::OkStatus();
 }
 
@@ -442,7 +466,7 @@ struct ReloaderImplArg {
   std::filesystem::path pivot_root_dir;
   int dev_null_fd;
   bool enable_log_egress;
-  bool enable_seccomp_filter;
+  SyscallFiltering syscall_filtering;
   bool disable_ipc_namespace;
   std::string log_dir_name;
 };
@@ -509,11 +533,20 @@ int ReloaderImpl(void* arg) {
                             {PR_CAPBSET_DROP, CAP_SYS_RAWIO},
                             {PR_CAPBSET_DROP, CAP_MKNOD},
                             {PR_CAPBSET_DROP, CAP_NET_ADMIN}}));
-  absl::StatusOr<scmp_filter_ctx> scmp_filter;
-  if (reloader_impl_arg.enable_seccomp_filter) {
-    scmp_filter = GetSeccompFilter();
-    CHECK_OK(scmp_filter);
-    PCHECK(seccomp_load(*scmp_filter) == 0);
+  if (reloader_impl_arg.syscall_filtering !=
+      SyscallFiltering::kNoSyscallFiltering) {
+    absl::StatusOr<scmp_filter_ctx> trusted_code_scmp_filter =
+        GetSeccompFilter(/*allowlist_trusted_code_syscalls=*/true);
+    CHECK_OK(trusted_code_scmp_filter);
+    PCHECK(seccomp_load(*trusted_code_scmp_filter) >= 0);
+    seccomp_release(*trusted_code_scmp_filter);
+  }
+  absl::StatusOr<scmp_filter_ctx> untrusted_code_scmp_filter;
+  if (reloader_impl_arg.syscall_filtering ==
+      SyscallFiltering::kUntrustedCodeSyscallFiltering) {
+    untrusted_code_scmp_filter =
+        GetSeccompFilter(/*allowlist_trusted_code_syscalls=*/false);
+    CHECK_OK(untrusted_code_scmp_filter);
   }
   int clone_flags = CLONE_VM | CLONE_VFORK | CLONE_NEWPID | SIGCHLD |
                     CLONE_NEWUTS | CLONE_NEWNS;
@@ -534,6 +567,10 @@ int ReloaderImpl(void* arg) {
         .enable_log_egress = reloader_impl_arg.enable_log_egress,
         .log_dir_name = reloader_impl_arg.log_dir_name,
         .socket_dir_name = socket_dir.native(),
+        .scmp_filter = (reloader_impl_arg.syscall_filtering ==
+                        SyscallFiltering::kUntrustedCodeSyscallFiltering)
+                           ? &(*untrusted_code_scmp_filter)
+                           : nullptr,
     };
 
     // Explicitly 16-byte align the stack. Otherwise, `clone` on aarch64 may
@@ -565,8 +602,9 @@ int ReloaderImpl(void* arg) {
       LOG(INFO) << "Process pid=" << pid << " exit_code=" << exit_code;
     }
   }
-  if (reloader_impl_arg.enable_seccomp_filter) {
-    seccomp_release(*scmp_filter);
+  if (reloader_impl_arg.syscall_filtering ==
+      SyscallFiltering::kUntrustedCodeSyscallFiltering) {
+    seccomp_release(*untrusted_code_scmp_filter);
   }
   return 0;
 }
@@ -678,7 +716,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
     return CreateWorkerPool(binary_dir_ / request.binary_relative_path(),
                             request.code_token(), request.num_workers(),
                             request.enable_log_egress(),
-                            absl::GetFlag(FLAGS_enable_seccomp_filter),
+                            absl::GetFlag(FLAGS_syscall_filtering),
                             absl::GetFlag(FLAGS_disable_ipc_namespace));
   }
 
@@ -716,7 +754,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
                                 std::string_view code_token,
                                 const int num_workers,
                                 const bool enable_log_egress,
-                                const bool enable_seccomp_filter,
+                                const SyscallFiltering syscall_filtering,
                                 const bool disable_ipc_namespace)
       ABSL_LOCKS_EXCLUDED(mu_) {
     if (!std::filesystem::exists(binary_path)) {
@@ -742,7 +780,7 @@ class WorkerRunner final : public WorkerRunnerService::Service {
         .binary_path = binary_dir.filename() / binary_path.filename(),
         .dev_null_fd = dev_null_fd_,
         .enable_log_egress = enable_log_egress,
-        .enable_seccomp_filter = enable_seccomp_filter,
+        .syscall_filtering = syscall_filtering,
         .disable_ipc_namespace = disable_ipc_namespace,
         .log_dir_name = log_dir_name_,
     };
@@ -796,7 +834,8 @@ int main(int argc, char** argv) {
     return -1;
   }
   if (absl::GetFlag(FLAGS_disable_ipc_namespace) &&
-      !absl::GetFlag(FLAGS_enable_seccomp_filter)) {
+      absl::GetFlag(FLAGS_syscall_filtering) ==
+          SyscallFiltering::kNoSyscallFiltering) {
     LOG(ERROR)
         << "Either syscall filtering OR IPC namespacing needs to be enabled";
     return -1;

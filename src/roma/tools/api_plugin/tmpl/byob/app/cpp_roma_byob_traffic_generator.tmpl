@@ -59,7 +59,11 @@ ABSL_FLAG(int, burst_size, 14,
           "Number of times execute must be called for a single query.");
 ABSL_FLAG(int, queries_per_second, 42,
           "Number of queries to be sent per second.");
-ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(
+    ::privacy_sandbox::server_common::byob::SyscallFiltering, syscall_filtering,
+    ::privacy_sandbox::server_common::byob::SyscallFiltering::
+        kUntrustedCodeSyscallFiltering,
+    ::privacy_sandbox::server_common::byob::kByobSyscallFilteringHelpText);
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
 ABSL_FLAG(absl::Duration, connection_timeout, absl::ZeroDuration(),
@@ -161,7 +165,7 @@ void RunTrafficGenerator() {
       {{$svcName}}<>::Create(
         /*config=*/
         {
-          .enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter),
+          .syscall_filtering = absl::GetFlag(FLAGS_syscall_filtering),
           .disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace),
         },
         absl::GetFlag(FLAGS_sandbox)

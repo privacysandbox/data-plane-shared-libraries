@@ -31,7 +31,8 @@ ABSL_DECLARE_FLAG(int, burst_size);
 ABSL_DECLARE_FLAG(int, num_queries);
 ABSL_DECLARE_FLAG(int, total_invocations);
 ABSL_DECLARE_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox);
-ABSL_DECLARE_FLAG(bool, syscall_filter);
+ABSL_DECLARE_FLAG(privacy_sandbox::server_common::byob::SyscallFiltering,
+                  syscall_filtering);
 ABSL_DECLARE_FLAG(bool, disable_ipc_namespace);
 ABSL_DECLARE_FLAG(std::string, lib_mounts);
 ABSL_DECLARE_FLAG(std::string, binary_path);

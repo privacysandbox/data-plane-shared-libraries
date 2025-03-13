@@ -70,7 +70,11 @@ ABSL_FLAG(int, total_invocations, 0,
 ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
           privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
-ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
+ABSL_FLAG(
+    ::privacy_sandbox::server_common::byob::SyscallFiltering, syscall_filtering,
+    ::privacy_sandbox::server_common::byob::SyscallFiltering::
+        kUntrustedCodeSyscallFiltering,
+    ::privacy_sandbox::server_common::byob::kByobSyscallFilteringHelpText);
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether to disable syscall filtering.");
 ABSL_FLAG(std::string, lib_mounts, LIB_MOUNTS,
@@ -162,7 +166,7 @@ BurstGenerator::Stats RunBurstGenerator(
   const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
   const privacy_sandbox::server_common::byob::Mode sandbox =
       absl::GetFlag(FLAGS_sandbox);
-  const bool enable_seccomp_filter = absl::GetFlag(FLAGS_syscall_filter);
+  const auto syscall_filtering = absl::GetFlag(FLAGS_syscall_filtering);
   const bool disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace);
 
   const std::string udf_path = absl::GetFlag(FLAGS_udf_path);
@@ -173,7 +177,7 @@ BurstGenerator::Stats RunBurstGenerator(
   auto [rpc_func, stop_func] =
       (mode == "byob")
           ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
-                              completions, enable_seccomp_filter,
+                              completions, syscall_filtering,
                               disable_ipc_namespace,
                               absl::GetFlag(FLAGS_byob_connection_timeout))
           : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,

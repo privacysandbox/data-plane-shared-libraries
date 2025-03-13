@@ -35,30 +35,30 @@ enabling integrators to evaluate and optimize their Roma-based applications.
 
 ## Command-Line Flags
 
-| Flag                    | Type             | Default Value        | Description                                   |
-| ----------------------- | ---------------- | -------------------- | --------------------------------------------- |
-| `run_id`                | `string`         | Arbitrary identifier | Identifier included in reports                |
-| `num_workers`           | `int`            | 84                   | Number of pre-created workers                 |
-| `queries_per_second`    | `int`            | 42                   | Queries sent per second                       |
-| `burst_size`            | `int`            | 14                   | Requests per burst                            |
-| `num_queries`           | `int`            | 10,000               | Total queries to send                         |
-| `total_invocations`     | `int`            | 0                    | Overrides `num_queries` if non-zero           |
-| `sandbox`               | `Mode`           | `kModeNsJailSandbox` | Sandbox mode                                  |
-| `syscall_filter`        | `bool`           | true                 | Enable syscall filtering                      |
-| `disable_ipc_namespace` | `bool`           | true                 | Disable IPC namespace                         |
-| `lib_mounts`            | `string`         | `/dir1,/dir2`        | Mount paths for pivot_root                    |
-| `binary_path`           | `string`         | `/udf/sample_udf`    | Path to binary (BYOB mode)                    |
-| `mode`                  | `string`         | `byob`               | Execution mode (`byob` or `v8`)               |
-| `udf_path`              | `string`         |                      | Path to JavaScript UDF file (V8 mode only)    |
-| `handler_name`          | `string`         |                      | Handler function name (V8 mode only)          |
-| `input_args`            | `vector<string>` |                      | Arguments for handler function (V8 mode only) |
-| `output_file`           | `string`         |                      | Output file path (JSON format)                |
-| `verbose`               | `bool`           | false                | Enable verbose logging                        |
-| `sigpending`            | `optional<int>`  |                      | Pending signals rlimit                        |
-| `duration`              | `absl::Duration` | Infinite             | Duration to run generator                     |
-| `find_max_qps`          | `bool`           | false                | Find max QPS maintaining performance          |
-| `qps_search_bounds`     | `string`         | `1:10000`            | Lower and upper bounds for QPS search         |
-| `late_threshold`        | `double`         | 15.0                 | Max acceptable percentage of late bursts      |
+| Flag                    | Type               | Default Value        | Description                                   |
+| ----------------------- | ------------------ | -------------------- | --------------------------------------------- |
+| `run_id`                | `string`           | Arbitrary identifier | Identifier included in reports                |
+| `num_workers`           | `int`              | 84                   | Number of pre-created workers                 |
+| `queries_per_second`    | `int`              | 42                   | Queries sent per second                       |
+| `burst_size`            | `int`              | 14                   | Requests per burst                            |
+| `num_queries`           | `int`              | 10,000               | Total queries to send                         |
+| `total_invocations`     | `int`              | 0                    | Overrides `num_queries` if non-zero           |
+| `sandbox`               | `Mode`             | `nsjail`             | Sandbox mode (BYOB mode only)                 |
+| `syscall_filtering`     | `SyscallFiltering` | `untrusted`          | Syscall filtering level (BYOB mode only)      |
+| `disable_ipc_namespace` | `bool`             | true                 | Disable IPC namespace (BYOB mode only)        |
+| `lib_mounts`            | `string`           | `/dir1,/dir2`        | Mount paths for pivot_root                    |
+| `binary_path`           | `string`           | `/udf/sample_udf`    | Path to binary (BYOB mode)                    |
+| `mode`                  | `string`           | `byob`               | Execution mode (`byob` or `v8`)               |
+| `udf_path`              | `string`           |                      | Path to JavaScript UDF file (V8 mode only)    |
+| `handler_name`          | `string`           |                      | Handler function name (V8 mode only)          |
+| `input_args`            | `vector<string>`   |                      | Arguments for handler function (V8 mode only) |
+| `output_file`           | `string`           |                      | Output file path (JSON format)                |
+| `verbose`               | `bool`             | false                | Enable verbose logging                        |
+| `sigpending`            | `optional<int>`    |                      | Pending signals rlimit                        |
+| `duration`              | `absl::Duration`   | Infinite             | Duration to run generator                     |
+| `find_max_qps`          | `bool`             | false                | Find max QPS maintaining performance          |
+| `qps_search_bounds`     | `string`           | `1:10000`            | Lower and upper bounds for QPS search         |
+| `late_threshold`        | `double`           | 15.0                 | Max acceptable percentage of late bursts      |
 
 ---
 

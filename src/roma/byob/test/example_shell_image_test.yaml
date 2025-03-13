@@ -173,7 +173,8 @@ commandTests:
             --num_workers \(Number of workers\.\); default: 1;
             --sandbox \(Sandbox mode for BYOB\. Supported values: gvisor, gvisor-debug,
               minimal, nsjail\.\); default: nsjail;
-            --syscall_filter \(Whether to enable syscall filtering\.\); default: true;
+            --syscall_filtering \(Syscall filter level for BYOB\. Supported values: no,
+              worker-engine, untrusted\.\); default: untrusted;
             --udf_log_file \(Path with directory to a file in which UDF logs will be\
               stored\.\); default: ;
 

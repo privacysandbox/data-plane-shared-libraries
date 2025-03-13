@@ -60,7 +60,9 @@ class LocalHandle final {
   LocalHandle(int pid, std::string_view mounts,
               std::string_view control_socket_path,
               std::string_view udf_socket_path, std::string_view sock_dir,
-              std::string_view log_dir, bool enable_seccomp_filter,
+              std::string_view log_dir,
+              ::privacy_sandbox::server_common::byob::SyscallFiltering
+                  syscall_filtering,
               std::string_view binary_dir, bool disable_ipc_namespace);
   ~LocalHandle();
 
@@ -75,7 +77,9 @@ class ByobHandle final {
              std::string_view udf_socket_path, std::string_view sock_dir,
              std::string container_name, std::string_view log_dir,
              std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
-             bool debug_mode, bool enable_seccomp_filter,
+             bool debug_mode,
+             ::privacy_sandbox::server_common::byob::SyscallFiltering
+                 syscall_filtering,
              std::string_view binary_dir, bool disable_ipc_namespace);
   ~ByobHandle();
 
@@ -91,8 +95,9 @@ class NsJailHandle final {
                std::string_view udf_socket_path, std::string_view socket_dir,
                std::string container_name, std::string_view log_dir,
                std::uint64_t memory_limit_soft, std::uint64_t memory_limit_hard,
-               bool enable_seccomp_filter, std::string_view binary_dir,
-               bool disable_ipc_namespace);
+               ::privacy_sandbox::server_common::byob::SyscallFiltering
+                   syscall_filtering,
+               std::string_view binary_dir, bool disable_ipc_namespace);
   ~NsJailHandle();
 
  private:
@@ -105,7 +110,9 @@ template <typename TMetadata = google::scp::roma::DefaultMetadata>
 class RomaService final {
  public:
   absl::Status Init(Config<TMetadata> config, Mode mode) {
-    if (config.disable_ipc_namespace && !config.enable_seccomp_filter) {
+    if (config.disable_ipc_namespace &&
+        config.syscall_filtering == ::privacy_sandbox::server_common::byob::
+                                        SyscallFiltering::kNoSyscallFiltering) {
       return absl::InvalidArgumentError(
           "Either syscall filtering OR IPC namespacing needs to be enabled");
     }
@@ -145,15 +152,15 @@ class RomaService final {
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
             /*debug=*/mode == Mode::kModeGvisorSandboxDebug,
-            /*enable_seccomp_filter=*/config.enable_seccomp_filter,
-            binary_dir_.c_str(), config.disable_ipc_namespace);
+            /*syscall_filtering=*/config.syscall_filtering, binary_dir_.c_str(),
+            config.disable_ipc_namespace);
         break;
       case Mode::kModeMinimalSandbox:
         handle_.emplace<internal::roma_service::LocalHandle>(
             pid, config.lib_mounts, control_socket_path.c_str(),
             udf_socket_path.c_str(), socket_dir_.c_str(), log_dir_.c_str(),
-            /*enable_seccomp_filter=*/config.enable_seccomp_filter,
-            binary_dir_.c_str(), config.disable_ipc_namespace);
+            /*syscall_filtering=*/config.syscall_filtering, binary_dir_.c_str(),
+            config.disable_ipc_namespace);
         break;
       case Mode::kModeNsJailSandbox:
         handle_.emplace<internal::roma_service::NsJailHandle>(
@@ -161,7 +168,7 @@ class RomaService final {
             udf_socket_path.c_str(), socket_dir_.c_str(),
             std::move(config.roma_container_name), log_dir_.c_str(),
             config.memory_limit_soft, config.memory_limit_hard,
-            config.enable_seccomp_filter, binary_dir_.c_str(),
+            /*syscall_filtering=*/config.syscall_filtering, binary_dir_.c_str(),
             config.disable_ipc_namespace);
         break;
       default:

@@ -107,7 +107,7 @@ Usage:
   docker run --privileged --volume="${PWD}"/dist:/tmp/runsc-log --cpus=64 --memory=512gb \
   privacysandbox/roma-byob/traffic-generator:v1-root \
     --num_workers=84 --queries_per_second=10 --burst_size=14 \
-    --num_queries=1000 --sandbox=minimal --syscall_filter=true --lib_mounts="/lib64" \
+    --num_queries=1000 --sandbox=nsjail --syscall_filtering=untrusted --lib_mounts="/lib64" \
     --binary_path="/udf/sample_udf"
 """
 
