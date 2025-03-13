@@ -35,6 +35,9 @@ fi
 if [[ -d ${KUBE_HOME} ]]; then
   DOCKER_FLAGS+=("--volume=${KUBE_HOME}:/root/.kube")
 fi
+if [[ -d ${BLOB_UPLOAD_DIR} ]]; then
+  DOCKER_FLAGS+=("--volume=${BLOB_UPLOAD_DIR}:/blob_upload_dir")
+fi
 docker run \
   "${DOCKER_FLAGS[@]}" \
   "${IMAGE_TAG}" \
