@@ -320,8 +320,10 @@ void BM_ProcessRequestUsingCallback(benchmark::State& state) {
                                    std::string_view code_token) {
     absl::Notification notif;
     absl::StatusOr<SampleResponse> bin_response;
-    auto callback = [&notif,
-                     &bin_response](absl::StatusOr<SampleResponse> resp) {
+    auto callback = [&notif, &bin_response](
+                        absl::StatusOr<SampleResponse> resp,
+                        absl::StatusOr<std::string_view> /*logs*/,
+                        auto /*metrics*/) {
       bin_response = std::move(resp);
       notif.Notify();
     };
@@ -580,7 +582,8 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
     absl::StatusOr<LogResponse> bin_response;
     auto callback = [&exec_notif, &bin_response, &enable_log_egress](
                         absl::StatusOr<LogResponse> resp,
-                        absl::StatusOr<std::string_view> logs) {
+                        absl::StatusOr<std::string_view> logs,
+                        auto /*metrics*/) {
       bin_response = std::move(resp);
       if (enable_log_egress) {
         // TODO(b/380273785): Find out why this check fails sometimes.

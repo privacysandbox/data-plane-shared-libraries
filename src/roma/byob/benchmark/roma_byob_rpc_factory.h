@@ -79,7 +79,9 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
                 google::scp::roma::DefaultMetadata(), connection_timeout,
                 [stopwatch = std::move(stopwatch), duration, counter,
                  burst_stopwatch, burst_duration,
-                 &completions](absl::StatusOr<SampleResponse> response) {
+                 &completions](absl::StatusOr<SampleResponse> response,
+                               absl::StatusOr<std::string_view> /*logs*/,
+                               ProcessRequestMetrics /*metrics*/) {
                   if (response.ok()) {
                     *duration = stopwatch.GetElapsedTime();
                   } else {

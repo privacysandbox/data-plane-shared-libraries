@@ -96,7 +96,8 @@ int main(int argc, char** argv) {
       }
       auto callback = [&done, &json_response, &udf_log_stream](
                           absl::StatusOr<EchoResponse> response,
-                          absl::StatusOr<std::string_view> logs) {
+                          absl::StatusOr<std::string_view> logs,
+                          auto /*metrics*/) {
         if (!response.ok()) {
           json_response = std::move(response).status();
         } else {

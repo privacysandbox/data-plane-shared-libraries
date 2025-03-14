@@ -41,9 +41,20 @@
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
 #include "src/roma/byob/utility/file_reader.h"
+#include "src/util/duration.h"
 #include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
+
+struct ProcessRequestMetrics {
+  // Time spent waiting for a worker.
+  absl::Duration wait_time;
+  // Latency of `SerializeDelimitedToFileDescriptor` call that sends request.
+  absl::Duration send_time;
+  // Time from after `SerializeDelimitedToFileDescriptor` to
+  // `ParseDelimitedFromZeroCopyStream` call completion.
+  absl::Duration response_time;
+};
 
 class Dispatcher {
  public:
@@ -72,9 +83,12 @@ class Dispatcher {
       std::string_view code_token, const Request& request,
       absl::Duration connection_timeout,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
-                              absl::StatusOr<std::string_view> logs) &&>
+                              absl::StatusOr<std::string_view>,
+                              ProcessRequestMetrics) &&>
           callback) ABSL_LOCKS_EXCLUDED(mu_) {
     RequestMetadata* request_metadata;
+    privacy_sandbox::server_common::Stopwatch stopwatch;
+    ProcessRequestMetrics metrics;
     {
       auto fn = [&] {
         mu_.AssertReaderHeld();
@@ -98,28 +112,40 @@ class Dispatcher {
       request_metadata = it->second.front();
       it->second.pop();
     }
+    metrics.wait_time = stopwatch.GetElapsedTime();
+    stopwatch.Reset();
+    google::protobuf::util::SerializeDelimitedToFileDescriptor(
+        request, request_metadata->fd);
+    metrics.send_time = stopwatch.GetElapsedTime();
+    stopwatch.Reset();
     request_metadata->handler =
-        [callback = std::move(callback)](
+        [callback = std::move(callback), metrics, stopwatch](
             const int fd, std::filesystem::path log_file_name) mutable {
           Response response;
-          if (google::protobuf::io::FileInputStream input(fd);
-              !google::protobuf::util::ParseDelimitedFromZeroCopyStream(
-                  &response, &input, nullptr)) {
+          bool parse_success;
+          {
+            google::protobuf::io::FileInputStream input(fd);
+            parse_success =
+                google::protobuf::util::ParseDelimitedFromZeroCopyStream(
+                    &response, &input, nullptr);
+            metrics.response_time = stopwatch.GetElapsedTime();
+          }
+          if (!parse_success) {
             std::move(callback)(
                 absl::UnavailableError("No UDF response received."),
-                FileReader::GetContent(FileReader::Create(log_file_name)));
+                FileReader::GetContent(FileReader::Create(log_file_name)),
+                std::move(metrics));
           } else {
             std::move(callback)(
                 std::move(response),
-                FileReader::GetContent(FileReader::Create(log_file_name)));
+                FileReader::GetContent(FileReader::Create(log_file_name)),
+                std::move(metrics));
           }
           ::close(fd);
         };
     google::scp::roma::ExecutionToken execution_token{
         std::move(request_metadata->token)};
     request_metadata->ready.Notify();
-    google::protobuf::util::SerializeDelimitedToFileDescriptor(
-        request, request_metadata->fd);
     return execution_token;
   }
 

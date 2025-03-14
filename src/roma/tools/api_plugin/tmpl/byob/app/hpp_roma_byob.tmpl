@@ -157,7 +157,9 @@ class {{$svcName}} final {
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
-      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>)> callback,
+      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>,
+      absl::StatusOr<std::string_view>,
+      server_common::byob::ProcessRequestMetrics)> callback,
       const {{$reqType}}& request,
       TMetadata metadata = TMetadata(),
       std::string_view code_token = "",
@@ -165,18 +167,6 @@ class {{$svcName}} final {
     return roma_service_->template ProcessRequest<{{$respType}}>(
       code_token, request, std::move(metadata), connection_timeout,
       std::move(callback));
-  }
-
-  absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
-      absl::AnyInvocable<void(absl::StatusOr<{{$respType}}>,
-      absl::StatusOr<std::string_view> logs)> callback_with_logs_param,
-      const {{$reqType}}& request,
-      TMetadata metadata = TMetadata(),
-      std::string_view code_token = "",
-      absl::Duration connection_timeout = absl::ZeroDuration()) {
-    return roma_service_->template ProcessRequest<{{$respType}}>(
-      code_token, request, std::move(metadata), connection_timeout,
-      std::move(callback_with_logs_param));
   }
 {{end}}
 

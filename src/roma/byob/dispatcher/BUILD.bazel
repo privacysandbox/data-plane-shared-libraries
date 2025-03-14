@@ -23,6 +23,7 @@ cc_library(
         "//src/roma/byob/utility:utils",
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface:function_binding_io_cc_proto",
+        "//src/util:duration",
         "//src/util:execution_token",
         "//src/util/status_macro:status_util",
         "@com_google_absl//absl/container:flat_hash_map",

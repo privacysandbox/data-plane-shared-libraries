@@ -94,7 +94,7 @@ void {{$rpc.Name}}ExecuteImpl(
     privacy_sandbox::server_common::Stopwatch& burst_stopwatch,
     absl::Duration& burst_duration) {
   const auto execution_token = roma_service.{{$rpc.Name}}(
-      [&, stopwatch = std::move(stopwatch)] (auto response) {
+      [&, stopwatch = std::move(stopwatch)] (auto response, auto /*logs*/, auto /*metrics*/) {
         if (response.ok()) {
           duration = stopwatch.GetElapsedTime();
         } else {

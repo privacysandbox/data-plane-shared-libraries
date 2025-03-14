@@ -219,24 +219,11 @@ class RomaService final {
       std::string_view code_token, const Request& request,
       TMetadata /*metadata*/, absl::Duration connection_timeout,
       absl::AnyInvocable<void(absl::StatusOr<Response>,
-                              absl::StatusOr<std::string_view>) &&>
+                              absl::StatusOr<std::string_view>,
+                              ProcessRequestMetrics) &&>
           callback) {
     return dispatcher_->ProcessRequest(code_token, request, connection_timeout,
                                        std::move(callback));
-  }
-
-  template <typename Response, typename Request>
-  absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
-      std::string_view code_token, const Request& request, TMetadata metadata,
-      absl::Duration connection_timeout,
-      absl::AnyInvocable<void(absl::StatusOr<Response>) &&> callback) {
-    return ProcessRequest<Response>(
-        code_token, request, std::move(metadata), connection_timeout,
-        [callback = std::move(callback)](
-            absl::StatusOr<Response> response,
-            absl::StatusOr<std::string_view> /*logs*/) mutable {
-          std::move(callback)(std::move(response));
-        });
   }
 
   template <typename Response, typename Request>
@@ -247,7 +234,8 @@ class RomaService final {
     return ProcessRequest<Response>(
         code_token, request, std::move(metadata), connection_timeout,
         [&notif, &output](absl::StatusOr<Response> response,
-                          absl::StatusOr<std::string_view> /*logs*/) {
+                          absl::StatusOr<std::string_view> /*logs*/,
+                          ProcessRequestMetrics /*metrics*/) {
           if (response.ok()) {
             output = std::make_unique<Response>(*std::move(response));
           } else {

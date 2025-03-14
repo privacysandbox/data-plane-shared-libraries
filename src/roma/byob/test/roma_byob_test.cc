@@ -141,7 +141,8 @@ std::pair<SampleResponse, std::string> GetResponseAndLogs(
   std::string logs_acquired;
   auto callback = [&exec_notif, &bin_response, &logs_acquired](
                       absl::StatusOr<SampleResponse> resp,
-                      absl::StatusOr<std::string_view> logs) {
+                      absl::StatusOr<std::string_view> logs,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     CHECK_OK(logs);
     // Making a copy -- try not to IRL.
@@ -165,7 +166,8 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
   absl::Status log_status;
   auto callback = [&exec_notif, &bin_response, &log_status](
                       absl::StatusOr<SampleResponse> resp,
-                      absl::StatusOr<std::string_view> logs) {
+                      absl::StatusOr<std::string_view> logs,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     log_status = std::move(logs.status());
     exec_notif.Notify();
@@ -379,7 +381,10 @@ TEST_P(RomaByobTest, AsyncCallbackProcessRequestCppBinary) {
   bin_request.set_function(FUNCTION_HELLO_WORLD);
   absl::Notification notif;
   absl::StatusOr<SampleResponse> bin_response;
-  auto callback = [&notif, &bin_response](absl::StatusOr<SampleResponse> resp) {
+  auto callback = [&notif, &bin_response](
+                      absl::StatusOr<SampleResponse> resp,
+                      absl::StatusOr<std::string_view> /*logs*/,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     notif.Notify();
   };
@@ -459,7 +464,9 @@ TEST_P(RomaByobTest, AsyncCallbackExecuteThenDeleteCppBinary) {
   absl::Notification notif;
 
   CHECK_OK(roma_service.Sample(
-      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
+      [&notif](absl::StatusOr<SampleResponse> /*resp*/,
+               absl::StatusOr<std::string_view> /*logs*/,
+               ProcessRequestMetrics /*metrics*/) { notif.Notify(); },
       SampleRequest{},
       /*metadata=*/{}, code_token));
   EXPECT_FALSE(notif.WaitForNotificationWithTimeout(absl::Seconds(1)));
@@ -486,7 +493,9 @@ TEST_P(RomaByobTest, AsyncCallbackExecuteThenCancelCppBinary) {
       LoadCode(roma_service, kUdfPath / kCPlusPlusPauseBinaryFilename);
   absl::Notification notif;
   const auto execution_token = roma_service.Sample(
-      [&notif](absl::StatusOr<SampleResponse> /*resp*/) { notif.Notify(); },
+      [&notif](absl::StatusOr<SampleResponse> /*resp*/,
+               absl::StatusOr<std::string_view> /*logs*/,
+               ProcessRequestMetrics /*metrics*/) { notif.Notify(); },
       SampleRequest{},
       /*metadata=*/{}, code_token);
   CHECK_OK(execution_token);
@@ -559,7 +568,8 @@ TEST_P(RomaByobTest, VerifyRegisterWithAndWithoutLogs) {
   absl::Status log_status;
   auto callback = [&exec_notif, &bin_response, &log_status](
                       absl::StatusOr<SampleResponse> resp,
-                      absl::StatusOr<std::string_view> logs) {
+                      absl::StatusOr<std::string_view> logs,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     CHECK(!logs.ok());
     // Making a copy -- try not to IRL.
@@ -592,7 +602,8 @@ TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
   absl::Status log_status;
   auto callback = [&exec_notif, &bin_response, &log_status](
                       absl::StatusOr<SampleResponse> resp,
-                      absl::StatusOr<std::string_view> logs) {
+                      absl::StatusOr<std::string_view> logs,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     CHECK(!logs.ok());
     // Making a copy -- try not to IRL.

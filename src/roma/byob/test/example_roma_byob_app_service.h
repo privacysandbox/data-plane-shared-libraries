@@ -156,17 +156,18 @@ class ByobEchoService final {
   }
 
   absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
-      absl::AnyInvocable<void(absl::StatusOr<::privacy_sandbox::server_common::
-                                                 byob::example::EchoResponse>,
-                              absl::StatusOr<std::string_view> logs)>
-          callback_with_logs_param,
+      absl::AnyInvocable<void(
+          absl::StatusOr<
+              ::privacy_sandbox::server_common::byob::example::EchoResponse>,
+          absl::StatusOr<std::string_view>, ProcessRequestMetrics)>
+          callback,
       ::privacy_sandbox::server_common::byob::example::EchoRequest request,
       TMetadata metadata = TMetadata(), std::string_view code_token = "",
       absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->template ProcessRequest<
         ::privacy_sandbox::server_common::byob::example::EchoResponse>(
         code_token, std::move(request), std::move(metadata), connection_timeout,
-        std::move(callback_with_logs_param));
+        std::move(callback));
   }
 
  private:

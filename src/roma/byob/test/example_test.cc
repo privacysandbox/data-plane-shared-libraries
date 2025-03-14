@@ -136,7 +136,10 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
   bin_request.set_message(message);
   absl::Notification notif;
   absl::StatusOr<EchoResponse> bin_response;
-  auto callback = [&notif, &bin_response](absl::StatusOr<EchoResponse> resp) {
+  auto callback = [&notif, &bin_response](
+                      absl::StatusOr<EchoResponse> resp,
+                      absl::StatusOr<std::string_view> /*logs*/,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     notif.Notify();
   };
@@ -185,7 +188,10 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
   bin_request.set_message(message);
   absl::Notification notif;
   absl::StatusOr<EchoResponse> bin_response;
-  auto callback = [&notif, &bin_response](absl::StatusOr<EchoResponse> resp) {
+  auto callback = [&notif, &bin_response](
+                      absl::StatusOr<EchoResponse> resp,
+                      absl::StatusOr<std::string_view> /*logs*/,
+                      ProcessRequestMetrics /*metrics*/) {
     bin_response = std::move(resp);
     notif.Notify();
   };
