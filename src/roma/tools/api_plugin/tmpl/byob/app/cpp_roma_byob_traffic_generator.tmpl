@@ -92,11 +92,13 @@ void {{$rpc.Name}}ExecuteImpl(
     const {{$reqType}}& request,
     absl::BlockingCounter& counter,
     privacy_sandbox::server_common::Stopwatch& burst_stopwatch,
-    absl::Duration& burst_duration) {
+    absl::Duration& burst_duration,
+    absl::StatusOr<absl::Duration>& wait_duration) {
   const auto execution_token = roma_service.{{$rpc.Name}}(
-      [&, stopwatch = std::move(stopwatch)] (auto response, auto /*logs*/, auto /*metrics*/) {
+      [&, stopwatch = std::move(stopwatch)] (auto response, auto /*logs*/, auto metrics) {
         if (response.ok()) {
           duration = stopwatch.GetElapsedTime();
+          wait_duration = metrics.wait_time;
         } else {
           duration = std::move(response).status();
         }
@@ -180,9 +182,9 @@ void RunTrafficGenerator() {
                                                           &request.emplace()));
     }
     const absl::Duration connection_timeout = absl::GetFlag(FLAGS_connection_timeout);
-    auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, auto counter, auto* burst_stopwatch, auto* burst_duration) {
+    auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, auto counter, auto* burst_stopwatch, auto* burst_duration, auto wait_duration) {
       {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, connection_timeout, completions, std::move(stopwatch),
-                               *duration, *request, *counter, *burst_stopwatch, *burst_duration);
+                               *duration, *request, *counter, *burst_stopwatch, *burst_duration, *wait_duration);
     };
     BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                             std::move(rpc_func));

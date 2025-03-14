@@ -71,4 +71,6 @@ message Report {
   DurationStatistics invocation_latencies = 6;
   DurationStatistics output_latencies = 7;
   SystemInfo info = 8;
+  // Time requests spend awaiting execution.
+  DurationStatistics wait_latencies = 9;
 }

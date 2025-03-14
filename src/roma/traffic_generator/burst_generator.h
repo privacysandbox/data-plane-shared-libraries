@@ -43,6 +43,7 @@ class BurstGenerator final {
           late_count(0) {
       burst_creation_latencies.reserve(num_bursts);
       burst_processing_latencies.resize(num_bursts);
+      wait_latencies.resize(burst_size * num_bursts);
       invocation_latencies.resize(burst_size * num_bursts);
       invocation_outputs.resize(burst_size * num_bursts);
     }
@@ -55,6 +56,7 @@ class BurstGenerator final {
     int late_count;
     std::vector<absl::Duration> burst_creation_latencies;
     std::vector<absl::Duration> burst_processing_latencies;
+    std::vector<absl::StatusOr<absl::Duration>> wait_latencies;
     std::vector<absl::StatusOr<absl::Duration>> invocation_latencies;
     std::vector<absl::StatusOr<std::string>> invocation_outputs;
 
@@ -70,7 +72,7 @@ class BurstGenerator final {
           privacy_sandbox::server_common::Stopwatch,
           absl::StatusOr<absl::Duration>*, absl::StatusOr<std::string>*,
           absl::BlockingCounter*, privacy_sandbox::server_common::Stopwatch*,
-          absl::Duration*) const>
+          absl::Duration*, absl::StatusOr<absl::Duration>*) const>
           func,
       absl::Duration run_duration = absl::InfiniteDuration())
       : id_(std::move(id)),
@@ -86,18 +88,19 @@ class BurstGenerator final {
       std::string burst_id, absl::StatusOr<absl::Duration>* latencies_ptr,
       absl::StatusOr<std::string>* outputs_ptr, absl::BlockingCounter* counter,
       privacy_sandbox::server_common::Stopwatch* burst_stopwatch,
-      absl::Duration* burst_duration);
+      absl::Duration* burst_duration,
+      absl::StatusOr<absl::Duration>* wait_duration);
 
  private:
   std::string id_;
   int64_t num_bursts_;
   int64_t burst_size_;
   absl::Duration cadence_;
-  absl::AnyInvocable<void(privacy_sandbox::server_common::Stopwatch,
-                          absl::StatusOr<absl::Duration>*,
-                          absl::StatusOr<std::string>*, absl::BlockingCounter*,
-                          privacy_sandbox::server_common::Stopwatch*,
-                          absl::Duration*) const>
+  absl::AnyInvocable<void(
+      privacy_sandbox::server_common::Stopwatch,
+      absl::StatusOr<absl::Duration>*, absl::StatusOr<std::string>*,
+      absl::BlockingCounter*, privacy_sandbox::server_common::Stopwatch*,
+      absl::Duration*, absl::StatusOr<absl::Duration>*) const>
       func_;
   absl::Duration run_duration_;
 };

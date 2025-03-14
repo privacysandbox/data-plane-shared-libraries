@@ -40,7 +40,8 @@ using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
     absl::StatusOr<std::string>*, absl::BlockingCounter*,
-    privacy_sandbox::server_common::Stopwatch*, absl::Duration*) const>;
+    privacy_sandbox::server_common::Stopwatch*, absl::Duration*,
+    absl::StatusOr<absl::Duration>*) const>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace privacy_sandbox::server_common::byob {
@@ -72,18 +73,20 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
           absl::StatusOr<absl::Duration>* duration,
           absl::StatusOr<std::string>* output, absl::BlockingCounter* counter,
           privacy_sandbox::server_common::Stopwatch* burst_stopwatch,
-          absl::Duration* burst_duration) {
+          absl::Duration* burst_duration,
+          absl::StatusOr<absl::Duration>* wait_duration) {
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->ProcessRequest<SampleResponse>(
                 std::string_view(*code_token), request,
                 google::scp::roma::DefaultMetadata(), connection_timeout,
                 [stopwatch = std::move(stopwatch), duration, counter,
-                 burst_stopwatch, burst_duration,
-                 &completions](absl::StatusOr<SampleResponse> response,
-                               absl::StatusOr<std::string_view> /*logs*/,
-                               ProcessRequestMetrics /*metrics*/) {
+                 burst_stopwatch, burst_duration, &completions,
+                 wait_duration](absl::StatusOr<SampleResponse> response,
+                                absl::StatusOr<std::string_view> /*logs*/,
+                                ProcessRequestMetrics metrics) {
                   if (response.ok()) {
                     *duration = stopwatch.GetElapsedTime();
+                    *wait_duration = metrics.wait_time;
                   } else {
                     *duration = std::move(response.status());
                   }

@@ -31,7 +31,8 @@
 using ExecutionFunc = absl::AnyInvocable<void(
     privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
     absl::StatusOr<std::string>*, absl::BlockingCounter*,
-    privacy_sandbox::server_common::Stopwatch*, absl::Duration*) const>;
+    privacy_sandbox::server_common::Stopwatch*, absl::Duration*,
+    absl::StatusOr<absl::Duration>*) const>;
 using CleanupFunc = absl::AnyInvocable<void()>;
 
 namespace google::scp::roma::tools::v8_cli {
@@ -133,17 +134,21 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
           absl::StatusOr<absl::Duration>* duration,
           absl::StatusOr<std::string>* output, absl::BlockingCounter* counter,
           privacy_sandbox::server_common::Stopwatch* burst_stopwatch,
-          absl::Duration* burst_duration) {
+          absl::Duration* burst_duration,
+          absl::StatusOr<absl::Duration>* wait_duration) {
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->Execute(
                 std::make_unique<google::scp::roma::InvocationStrRequest<>>(
                     execution_object),
                 [duration, output, stopwatch = std::move(stopwatch), counter,
-                 burst_stopwatch, burst_duration, &completions](
+                 burst_stopwatch, burst_duration, &completions, wait_duration](
                     absl::StatusOr<google::scp::roma::ResponseObject> resp) {
                   if (resp.ok()) {
                     *duration = stopwatch.GetElapsedTime();
                     *output = resp->resp.substr(1, resp->resp.size() - 2);
+                    *wait_duration =
+                        resp->metrics[roma::sandbox::constants::
+                                          kExecutionMetricQueueingDuration];
                   } else {
                     *duration = std::move(resp.status());
                     *output = duration->status();
