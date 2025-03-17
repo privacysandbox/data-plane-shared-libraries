@@ -39,26 +39,20 @@ bzl_library(
     ],
 )
 
-[
-    go_library(
-        name = "sut_lib{}".format(lib_suffix),
-        srcs = ["main.go"],
-        importpath = "github.com/privacysandbox/functionaltest-system/sut",
-        deps = [
-            "//sut/cmd:lib{}".format(lib_suffix),
-        ],
-    )
-    for lib_suffix in ("", "-nodocker")
-]
+go_library(
+    name = "sut_lib",
+    srcs = ["main.go"],
+    importpath = "github.com/privacysandbox/functionaltest-system/sut",
+    deps = [
+        "//sut/cmd:lib",
+    ],
+)
 
-[
-    go_binary(
-        name = "functionaltest{}".format(lib_suffix),
-        embed = [":sut_lib{}".format(lib_suffix)],
-        visibility = ["//visibility:public"],
-    )
-    for lib_suffix in ("", "-nodocker")
-]
+go_binary(
+    name = "functionaltest",
+    embed = [":sut_lib"],
+    visibility = ["//visibility:public"],
+)
 
 filegroup(
     name = "testrunner_files",
@@ -76,19 +70,6 @@ genrule(
     cmd_bash = """cat << EOF > '$@'
 mkdir -p dist
 cp $(execpath :functionaltest) dist
-builders/tools/normalize-dist
-EOF""",
-    executable = True,
-    local = True,
-)
-
-genrule(
-    name = "copy_to_dist_nodocker",
-    srcs = [":functionaltest-nodocker"],
-    outs = ["copy_to_dist_nodocker.bin"],
-    cmd_bash = """cat << EOF > '$@'
-mkdir -p dist
-cp $(execpath :functionaltest-nodocker) dist
 EOF""",
     executable = True,
     local = True,

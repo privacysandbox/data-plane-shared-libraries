@@ -16,26 +16,23 @@
 
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 
-[
-    go_library(
-        name = "lib{}".format(lib_suffix),
-        srcs = [
-            "dockersut.go",
-            "root.go",
-            "version.go",
-        ],
-        embedsrcs = [
-            ":embed/version-functionaltest.txt",
-            ":embed/.bazelversion",
-        ],
-        importpath = "github.com/privacysandbox/functionaltest-system/sut/cmd",
-        visibility = ["//visibility:public"],
-        deps = [
-            "//sut/cmd/deploy_and_test:lib{}".format(lib_suffix),
-            "@com_github_spf13_cobra//:cobra",
-            "@org_golang_google_protobuf//encoding/prototext",
-            "@org_golang_google_protobuf//proto:go_default_library",
-        ],
-    )
-    for lib_suffix in ("", "-nodocker")
-]
+go_library(
+    name = "lib",
+    srcs = [
+        "dockersut.go",
+        "root.go",
+        "version.go",
+    ],
+    embedsrcs = [
+        ":embed/version-functionaltest.txt",
+        ":embed/.bazelversion",
+    ],
+    importpath = "github.com/privacysandbox/functionaltest-system/sut/cmd",
+    visibility = ["//visibility:public"],
+    deps = [
+        "//sut/cmd/deploy_and_test:lib",
+        "@com_github_spf13_cobra//:cobra",
+        "@org_golang_google_protobuf//encoding/prototext",
+        "@org_golang_google_protobuf//proto:go_default_library",
+    ],
+)

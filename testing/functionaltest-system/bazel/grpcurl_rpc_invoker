@@ -2,8 +2,6 @@
 
 set -o errexit
 
-declare -i PLAINTEXT=0
-
 function usage() {
   local -r -i exitval=$1
   cat &>/dev/stderr <<USAGE
@@ -16,11 +14,27 @@ usage:
     --request <filename>            request.json filename
     --plaintext                     send plaintext request
 environment variables:
-    TEST_TOOLS_IMAGE                docker image uri for test tools
+    GRPCURL                         path to grpcurl executable (required)
 USAGE
   # shellcheck disable=SC2086
   exit ${exitval}
 }
+
+function check_app() {
+  declare -n _app=$1
+  if [[ -z ${_app} ]]; then
+    printf "env var [%s] is not set\n" "$1" &>/dev/stderr
+    exit 1
+  elif ! command -v "${_app}" >/dev/null; then
+    printf "%s command [%s] not found or not executable\n" "$1" "${_app}" &>/dev/stderr
+    exit 1
+  fi
+}
+
+check_app JQ
+check_app GRPCURL
+
+declare -i PLAINTEXT=0
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -29,7 +43,6 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --docker-network)
-      DOCKER_NETWORK="$2"
       shift 2
       ;;
     --rpc)
@@ -57,42 +70,23 @@ done
 : "${REQUEST_FILENAME?"Error: --request must be specified"}"
 : "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
 : "${PROTOSET_FILENAME?"Error: --protoset not specified"}"
-: "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
 
-if [[ -z "${TEST_DATA_SOURCE}" ]]; then
-  TEST_DATA_SOURCE="$(docker volume create)"
-  export TEST_DATA_SOURCE
-  readonly TEST_DATA_SOURCE
-fi
-if [[ -z "${TEST_DATA_TARGET}" ]]; then
-  TEST_DATA_TARGET="/data"
-  export TEST_DATA_TARGET
-  readonly TEST_DATA_TARGET
-fi
-
-declare -a DOCKER_ARGS=(
-  "--rm"
-  "--interactive"
-  "--entrypoint=/bin/bash"
-  "--tmpfs=/work"
-  "--workdir=/work"
-  "--mount=type=volume,source=${TEST_DATA_SOURCE},target=${TEST_DATA_TARGET}"
+declare -a GRPCURL_ARGS=(
+  -d @
+  -protoset "${PROTOSET_FILENAME}"
 )
-if [[ -n ${DOCKER_NETWORK} ]]; then
-  DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
-fi
-
-declare -a GRPCURL_ARGS=()
 if [[ ${PLAINTEXT} -eq 1 ]]; then
   GRPCURL_ARGS+=("-plaintext")
 fi
+GRPCURL_ARGS+=(
+  "${ENDPOINT_HOSTPORT}"
+  "${RPC}"
+)
 
 GRPCURL_ERROR_TMPFILE="$(mktemp)"
 readonly GRPCURL_ERROR_TMPFILE
 
 set -o xtrace
-if ! docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "
-grpcurl ${GRPCURL_ARGS[*]} -d @ -protoset '${TEST_DATA_TARGET}/protoset.pb' ${ENDPOINT_HOSTPORT} ${RPC} <'${TEST_DATA_TARGET}/req.json'
-" 2> "${GRPCURL_ERROR_TMPFILE}"; then
+if ! "${GRPCURL}" "${GRPCURL_ARGS[@]}" <"${REQUEST_FILENAME}" 2>"${GRPCURL_ERROR_TMPFILE}"; then
   cat "${GRPCURL_ERROR_TMPFILE}"
 fi

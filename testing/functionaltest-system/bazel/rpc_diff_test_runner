@@ -11,9 +11,7 @@ function usage() {
 usage:
   $0 <options>
     --rpc-invoker <filename>        image tarball or binary used to invoke rpc request
-    --rpc-invoker-type <filename>   recognized values: binary, image
     --endpoint-hostport <host:port> host:port string
-    --docker-network <name>         docker network
     --protoset <filename>           protobuf spec image file
     --rpc <rpc name>                rpc name
     --request <filename>            request.json filename
@@ -25,11 +23,24 @@ usage:
     --http-path <string>            path used with endpoint hostport
     --client-type <string>          client-type used to encrypt the request
 environment variables:
-    TEST_TOOLS_IMAGE                docker image uri for test tools
+    JQ                              path to jq executable (required)
 USAGE
   # shellcheck disable=SC2086
   exit ${exitval}
 }
+
+function check_app() {
+  declare -n _app=$1
+  if [[ -z ${_app} ]]; then
+    printf "env var [%s] is not set\n" "$1" &>/dev/stderr
+    exit 1
+  elif ! command -v "${_app}" >/dev/null; then
+    printf "%s command [%s] not found or not executable\n" "$1" "${_app}" &>/dev/stderr
+    exit 1
+  fi
+}
+
+check_app JQ
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -38,7 +49,7 @@ while [[ $# -gt 0 ]]; do
       shift 2 || usage
       ;;
     --rpc-invoker-type)
-      RPC_INVOKER_TYPE="$2"
+      printf "Ignoring arg --rpc-invoker-type\n"
       shift 2 || usage
       ;;
     --endpoint-hostport)
@@ -46,7 +57,7 @@ while [[ $# -gt 0 ]]; do
       shift 2 || usage
       ;;
     --docker-network)
-      DOCKER_NETWORK="$2"
+      printf "Ignoring arg --docker-network\n"
       shift 2 || usage
       ;;
     --rpc)
@@ -100,8 +111,6 @@ done
 : "${GOLDEN_REPLY?"Error: --reply must be specified"}"
 : "${ENDPOINT_HOSTPORT?"Error: --endpoint-hostport not specified"}"
 : "${RPC_INVOKER?"Error: --rpc-invoker not specified"}"
-: "${RPC_INVOKER_TYPE?"Error: --rpc-invoker-type not specified"}"
-: "${TEST_TOOLS_IMAGE?"Error: Test tools image URI not specified in TEST_TOOLS_IMAGE env var"}"
 
 TMP_DIR="$(mktemp --directory)"
 readonly TMP_DIR
@@ -113,7 +122,9 @@ readonly TMP_FILTERED_REPLY="${TMP_DIR}/filtered_reply"
 readonly TMP_JQ_PRE_PROGRAM_FILENAME="${TMP_DIR}/pre_program.jq"
 readonly TMP_JQ_POST_PROGRAM_FILENAME="${TMP_DIR}/post_program.jq"
 readonly TMP_PROTOSET_FILENAME="${TMP_DIR}/protoset.pb"
+
 cp "${PROTOSET_FILENAME}" "${TMP_PROTOSET_FILENAME}"
+
 if [[ -s ${JQ_PRE_PROGRAM_FILENAME} ]]; then
   cp "${JQ_PRE_PROGRAM_FILENAME}" "${TMP_JQ_PRE_PROGRAM_FILENAME}"
 else
@@ -125,41 +136,14 @@ else
   printf '.\n' >"${TMP_JQ_POST_PROGRAM_FILENAME}"
 fi
 
-if [[ -z "${TEST_DATA_SOURCE}" ]]; then
-  TEST_DATA_SOURCE="$(docker volume create)"
-  export TEST_DATA_SOURCE
-  readonly TEST_DATA_SOURCE
-fi
-if [[ -z "${TEST_DATA_TARGET}" ]]; then
-  TEST_DATA_TARGET="/data"
-  export TEST_DATA_TARGET
-  readonly TEST_DATA_TARGET
-fi
-
-trap cleanup EXIT
 function cleanup() {
   local -r -i STATUS=$?
   if [[ ${STATUS} -eq 0 ]]; then
     rm -rf "${TMP_DIR}"
-    docker volume rm "${TEST_DATA_SOURCE}"
   fi
   exit ${STATUS}
 }
-
-declare -a DOCKER_ARGS=(
-  "--rm"
-  "--interactive"
-  "--entrypoint=/bin/bash"
-  "--mount=type=bind,source=/tmp,target=/tmp"
-  "--mount=type=volume,source=${TEST_DATA_SOURCE},target=${TEST_DATA_TARGET}"
-  "--tmpfs=/work"
-  "--workdir=/work"
-)
-
-declare -a RPC_INVOKER_DOCKER_ARGS=(
-  "--rm"
-  "--interactive"
-)
+trap cleanup EXIT
 
 declare -a RPC_INVOKER_ARGS=(
   --endpoint-hostport
@@ -167,15 +151,6 @@ declare -a RPC_INVOKER_ARGS=(
   --rpc
   "${RPC}"
 )
-
-if [[ -n ${DOCKER_NETWORK} ]]; then
-  DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
-  RPC_INVOKER_DOCKER_ARGS+=("--network=${DOCKER_NETWORK}")
-  RPC_INVOKER_ARGS+=(
-    --docker-network
-    "${DOCKER_NETWORK}"
-  )
-fi
 
 set -o xtrace
 
@@ -202,52 +177,23 @@ if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
   JQ_POST_ARGS+=(--slurp)
 fi
 
-function copy_file_to_container() {
-  local -r INPUT_FILE="$1"
-  local -r OUTPUT_FILE="$2"
-
-  docker run "${DOCKER_ARGS[@]}" \
-    "${TEST_TOOLS_IMAGE}" \
-    -c "cat /dev/stdin > '${OUTPUT_FILE}'" \
-    <"${INPUT_FILE}"
-}
-
-copy_file_to_container "${TMP_JQ_PRE_PROGRAM_FILENAME}" "${TEST_DATA_TARGET}/pre-filter.jq"
-docker run "${DOCKER_ARGS[@]}" \
-  "${TEST_TOOLS_IMAGE}" \
-  -c "jq --exit-status --from-file '${TEST_DATA_TARGET}/pre-filter.jq'" \
+# Run pre-filter on request
+"${JQ}" --exit-status \
+  --from-file "${TMP_JQ_PRE_PROGRAM_FILENAME}" \
   <"${REQUEST_FILENAME}" \
   >"${TMP_FILTERED_REQUEST}"
 
-copy_file_to_container "${TMP_PROTOSET_FILENAME}" "${TEST_DATA_TARGET}/protoset.pb"
-copy_file_to_container "${TMP_FILTERED_REQUEST}" "${TEST_DATA_TARGET}/req.json"
-if [[ ${RPC_INVOKER_TYPE} == binary ]]; then
-  "${RPC_INVOKER}" \
-    --protoset "${TMP_PROTOSET_FILENAME}" \
-    --request "${TMP_FILTERED_REQUEST}" \
-    "${RPC_INVOKER_ARGS[@]}" \
-    >"${TMP_RAW_REPLY}"
-else
-  RPC_INVOKER_IMAGE="$(docker load -i "${RPC_INVOKER}" | sed -nr "s/^Loaded image: (.*)$/\1/p")"
-  readonly RPC_INVOKER_IMAGE
-  RAW_FILTERED_REQUEST="$(<"${TMP_FILTERED_REQUEST}")"
-  readonly RAW_FILTERED_REQUEST
-  RAW_PROTOSET="$(<"${PROTOSET_FILENAME}")"
-  readonly RAW_PROTOSET
+# Send request
+"${RPC_INVOKER}" \
+  --protoset "${TMP_PROTOSET_FILENAME}" \
+  --request "${TMP_FILTERED_REQUEST}" \
+  "${RPC_INVOKER_ARGS[@]}" \
+  >"${TMP_RAW_REPLY}"
 
-  docker run "${RPC_INVOKER_DOCKER_ARGS[@]}" "${RPC_INVOKER_IMAGE}" \
-    --protoset "${RAW_PROTOSET}" \
-    --request "${RAW_FILTERED_REQUEST}" \
-    "${RPC_INVOKER_ARGS[@]}" \
-    >"${TMP_RAW_REPLY}"
-fi
-
-# Check if TMP_RAW_REPLY is a valid json. If not, diff the raw reply without jq.
-if docker run "${DOCKER_ARGS[@]}" "${TEST_TOOLS_IMAGE}" -c "jq ${JQ_POST_ARGS[*]}" <"${TMP_RAW_REPLY}"; then
-  copy_file_to_container "${TMP_JQ_POST_PROGRAM_FILENAME}" "${TEST_DATA_TARGET}/post-filter.jq"
-  docker run "${DOCKER_ARGS[@]}" \
-    "${TEST_TOOLS_IMAGE}" \
-    -c "jq --from-file '${TEST_DATA_TARGET}/post-filter.jq' ${JQ_POST_ARGS[*]}" \
+# Check if TMP_RAW_REPLY is valid json. If not, diff the raw reply without jq.
+if "${JQ}" "${JQ_POST_ARGS[@]}" <"${TMP_RAW_REPLY}"; then
+  "${JQ}" --from-file "${TMP_JQ_POST_PROGRAM_FILENAME}" \
+    "${JQ_POST_ARGS[@]}" \
     <"${TMP_RAW_REPLY}" \
     >"${TMP_FILTERED_REPLY}"
 else

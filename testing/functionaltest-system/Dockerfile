@@ -95,7 +95,7 @@ RUN --mount=type=cache,target=/root/.cache/bazel \
   --config=run_all_tests \
   ${BAZEL_DIRECT_ARGS} \
   -- \
-  //sut/cmd/deploy_and_test:lib-nodocker_test
+  //sut/cmd/deploy_and_test:lib_test
 
 RUN --mount=type=cache,target=/root/.cache/bazel \
   --mount=type=cache,target=/bazel_root/functest-system \
@@ -105,7 +105,7 @@ RUN --mount=type=cache,target=/root/.cache/bazel \
   run \
   ${BAZEL_DIRECT_ARGS} \
   -- \
-  //sut:copy_to_dist_nodocker
+  //sut:copy_to_dist
 
 #
 # stage: build artifacts
@@ -167,7 +167,7 @@ RUN OS=linux ARCH=${TARGETARCH} INSTALL_PATH=/promql-cli/build/bin/ make install
 FROM runtime-base AS functest-cli
 LABEL org.opencontainers.image.title="functionaltest CLI"
 LABEL org.opencontainers.image.description="functionaltest CLI tool for Privacy Sandbox"
-COPY --from=dist-artifacts /functionaltest-nodocker /usr/local/bin/functionaltest
+COPY --from=dist-artifacts /functionaltest /usr/local/bin/functionaltest
 COPY --from=ghz /go/bin/ghz /usr/local/bin/
 COPY --from=grpcurl /go/bin/grpcurl /usr/local/bin/
 COPY --from=ghcr.io/jqlang/jq:1.7.1 /jq /usr/local/bin

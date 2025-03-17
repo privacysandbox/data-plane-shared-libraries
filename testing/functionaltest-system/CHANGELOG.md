@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 1.0.1 (2025-03-17)
+
+
+### Bug Fixes
+
+* Replace ghz_test_runner with nodocker/ghz_test_runner
+
+## 1.0.0 (2025-03-16)
+
+
+### BREAKING CHANGES
+
+* Remove non-containerized version of CLI
+
 ## 0.28.0 (2025-03-10)
 
 
