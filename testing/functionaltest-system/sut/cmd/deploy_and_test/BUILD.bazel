@@ -35,35 +35,13 @@ genrule(
     stamp = True,
 )
 
-tools_env_vars = [
-    "GHZ",
-    "GRPCURL",
-    "JQ",
-]
-
-bazelrc_common = """
-common --noenable_bzlmod
-test --test_verbose_timeout_warnings
-""" + "\n".join(["build --test_env={}".format(v) for v in tools_env_vars])
-
-genrule(
-    name = "bazelrc",
-    outs = [".bazelrc"],
-    cmd_bash = """cat <<EOF >'$@'
-{common}
-EOF""".format(common = bazelrc_common),
-)
-
-embed_files = glob(["embed/*"])
-
 pkg_files(
     name = "embed",
-    srcs = embed_files + [
+    srcs = glob(["embed/*"]) + [
         ":.bazelrc",
     ],
     attributes = pkg_attributes(mode = "0644"),
     renames = {
-        ".bazelrc": ".bazelrc",
         "embed/BUILD.sut": "BUILD.bazel",
     },
 )

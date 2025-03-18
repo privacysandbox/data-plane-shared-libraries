@@ -1,0 +1,7 @@
+common --noenable_bzlmod
+test --test_verbose_timeout_warnings
+test --test_env=GHZ
+test --test_env=GRPCURL
+test --test_env=HOME
+test --test_env=JQ
+test --test_env=PROMQL
