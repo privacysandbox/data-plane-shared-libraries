@@ -102,6 +102,13 @@ There are two layers of data sharing :
     Like converting a `std::string` to a `V8::String`, this is essentially copying the data from one
     side to the other.
 
+## Source Code Size Limit
+
+The maximum size of the source code that can be loaded into Roma is ~500MB, as compilation of the
+source code into a `V8::Script` object using `V8::String` as an intermediary. `V8::String` objects
+have a maximum size of approximately 512MB as of
+[this commit](https://github.com/v8/v8/commit/ea56bf5513d0cbd2a35a9035c5c2996272b8b728).
+
 ## Source Code Cache and Compilation Persistence
 
 The sandboxee uses a least recently used (LRU) cache to store code objects and compilation contexts.
