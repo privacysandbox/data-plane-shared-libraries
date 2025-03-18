@@ -23,10 +23,13 @@ cc_library(
             "//:aws_platform": [
                 "//src/cpio/client_providers/role_credentials_provider/aws:aws_role_credentials_provider",
             ],
+            "//:azure_platform": [
+                "//src/cpio/client_providers/role_credentials_provider/azure:azure_role_credentials_provider",
+            ],
             "//:gcp_platform": [
                 "//src/cpio/client_providers/role_credentials_provider/gcp:gcp_role_credentials_provider",
             ],
         },
-        no_match_error = "Please build for AWS or GCP",
+        no_match_error = "Please build for AWS, Azure or GCP",
     ),
 )
