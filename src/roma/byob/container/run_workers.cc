@@ -797,4 +797,6 @@ int main(int argc, char** argv) {
     signal_mu.Await(absl::Condition(&signal_flag));
   }
   server->GetHealthCheckService()->SetServingStatus(false);
+  server->Shutdown();
+  return 0;
 }
