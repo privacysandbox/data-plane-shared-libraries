@@ -600,7 +600,6 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
   const std::string code_token = LoadCode(
       roma_service, std::filesystem::path(kUdfPath) / "log_benchmark_udf",
       enable_log_egress, /*num_workers=*/10);
-  ::sleep(/*seconds=*/5);
   LogRequest request;
   request.set_log_count(state.range(1));
   for (auto _ : state) {

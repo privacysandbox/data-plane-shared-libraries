@@ -72,6 +72,7 @@ constexpr std::string_view kNewUdfOutput = "I am a new UDF!";
 constexpr std::string_view kGoBinaryOutput = "Hello, world from Go!";
 constexpr std::string_view kJavaBinaryOutput = "Hello, world from Java!";
 constexpr std::string_view kLogUdfOutput = "I am a UDF that logs.";
+constexpr absl::Duration kTimeout = absl::Minutes(1);
 
 SampleResponse SendRequestAndGetResponse(
     ByobSampleService<>& roma_service, std::string_view code_token,
@@ -83,8 +84,8 @@ SampleResponse SendRequestAndGetResponse(
 
   absl::Notification notif;
   CHECK_OK(roma_service.Sample(notif, std::move(bin_request), response,
-                               /*metadata=*/{}, code_token));
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+                               /*metadata=*/{}, code_token, kTimeout));
+  CHECK(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(response);
   return *std::move((*response).get());
 }
@@ -151,8 +152,8 @@ std::pair<SampleResponse, std::string> GetResponseAndLogs(
   SampleRequest bin_request;
   bin_request.set_function(func_type);
   CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
-                               /*metadata=*/{}, code_token));
-  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+                               /*metadata=*/{}, code_token, kTimeout));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(bin_response) << logs_acquired;
   return {*std::move(bin_response), logs_acquired};
 }
@@ -172,8 +173,8 @@ std::pair<SampleResponse, absl::Status> GetResponseAndLogStatus(
 
   SampleRequest bin_request;
   CHECK_OK(roma_service.Sample(callback, std::move(bin_request),
-                               /*metadata=*/{}, code_token));
-  CHECK(exec_notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+                               /*metadata=*/{}, code_token, kTimeout));
+  CHECK(exec_notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(bin_response);
   return {*std::move(bin_response), log_status};
 }
@@ -216,8 +217,6 @@ TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceEnabled) {
       LoadCode(roma_service, kUdfPath / "message_queue_udf",
                /*enable_log_egress=*/true, /*num_workers=*/4);
 
-  absl::SleepFor(absl::Seconds(1));
-
   auto response_and_logs = GetResponseAndLogs(
       roma_service, code_token, FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE);
   EXPECT_THAT(response_and_logs.first.greeting(),
@@ -244,8 +243,6 @@ TEST_P(RomaByobTest, SystemVMessageQueueEgressDisabledIpcNamespaceDisabled) {
   std::string code_token =
       LoadCode(roma_service, kUdfPath / "message_queue_udf",
                /*enable_log_egress=*/true, /*num_workers=*/4);
-
-  absl::SleepFor(absl::Seconds(1));
 
   auto response_and_logs = GetResponseAndLogs(
       roma_service, code_token, FUNCTION_WRITE_SYS_V_MESSAGE_QUEUE);
@@ -611,7 +608,6 @@ TEST_P(RomaByobTest, VerifyHardLinkExecuteWorksAfterDeleteOriginal) {
 
   std::string log_code_token =
       LoadCodeFromCodeToken(roma_service, no_log_code_token);
-  absl::SleepFor(absl::Milliseconds(25));
 
   roma_service.Delete(no_log_code_token);
 
