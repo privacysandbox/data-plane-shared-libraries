@@ -45,6 +45,8 @@ commandTests:
           Flags from bazel-out/.*/bin/src/roma/byob/sample_udf/sample_shell.cc:
             --commands_file \(Text file containing shell commands to execute\.\);
               default: ;
+            --connection_timeout \(How long to wait for a worker to become available\.\);
+              default: 1m;
             --disable_ipc_namespace \(Whether IPC namespace should be disabled\.\);
               default: true;
             --num_workers \(Number of workers\.\); default: 1;

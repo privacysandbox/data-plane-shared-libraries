@@ -166,6 +166,8 @@ commandTests:
           Flags from src/roma/byob/test/example_shell\.cc:
             --commands_file \(Text file with a list of CLI commands to execute\.\);
               default: ;
+            --connection_timeout \(How long to wait for a worker to become available\.\);
+              default: 1m;
             --disable_ipc_namespace \(Whether IPC namespace should be disabled\.\);
               default: true;
             --num_workers \(Number of workers\.\); default: 1;

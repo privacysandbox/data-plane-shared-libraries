@@ -39,6 +39,7 @@ using ::testing::StrEq;
 const std::filesystem::path kUdfPath = "/udf";
 const std::filesystem::path kGoLangBinaryFilename = "example_go_udf";
 const std::filesystem::path kCPlusPlusBinaryFilename = "example_cc_udf";
+constexpr absl::Duration kTimeout = absl::Minutes(1);
 
 std::string LoadCode(ByobEchoService<>& roma_service,
                      std::filesystem::path file_path,
@@ -118,9 +119,9 @@ TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
   absl::Notification notif;
 
   CHECK_OK(roma_service.Echo(notif, std::move(request), response,
-                             /*metadata=*/{}, code_token));
+                             /*metadata=*/{}, code_token, kTimeout));
 
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(response);
   CHECK(*response != nullptr);
   EXPECT_THAT((*response)->message(), StrEq(message));
@@ -141,9 +142,9 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
   };
 
   CHECK_OK(roma_service.Echo(callback, std::move(bin_request),
-                             /*metadata=*/{}, code_token));
+                             /*metadata=*/{}, code_token, kTimeout));
 
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(bin_response);
   EXPECT_THAT(bin_response->message(), StrEq(message));
 }
@@ -163,9 +164,9 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
   absl::Notification notif;
 
   CHECK_OK(roma_service.Echo(notif, std::move(request), response,
-                             /*metadata=*/{}, code_token));
+                             /*metadata=*/{}, code_token, kTimeout));
 
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(response);
   CHECK(*response != nullptr);
   EXPECT_THAT((*response)->message(), StrEq(message));
@@ -190,9 +191,9 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
   };
 
   CHECK_OK(roma_service.Echo(callback, std::move(bin_request),
-                             /*metadata=*/{}, code_token));
+                             /*metadata=*/{}, code_token, kTimeout));
 
-  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  ASSERT_TRUE(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(bin_response);
   EXPECT_THAT(bin_response->message(), StrEq(message));
 }

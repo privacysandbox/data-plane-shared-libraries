@@ -40,6 +40,8 @@ ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
 ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
+ABSL_FLAG(absl::Duration, connection_timeout, absl::Minutes(1),
+          "How long to wait for a worker to become available.");
 
 namespace {
 using privacy_sandbox::server_common::byob::example::ByobEchoService;
@@ -67,21 +69,17 @@ void BM_Load(benchmark::State& state) {
     LoadImpl(*roma_service, *udf, /*num_workers=*/1);
   }
 }
-bool EchoExecuteImpl(ByobEchoService<>& roma_service,
-                     std::string_view code_token, EchoRequest request) {
+void EchoExecuteImpl(ByobEchoService<>& roma_service,
+                     std::string_view code_token, EchoRequest request,
+                     absl::Duration& connection_timeout) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::unique_ptr<EchoResponse>> response;
-  if (!roma_service
-           .Echo(notif, std::move(request), response,
-                 /*metadata=*/{}, code_token)
-           .ok()) {
-    return false;
-  }
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+  CHECK_OK(roma_service.Echo(notif, std::move(request), response,
+                             /*metadata=*/{}, code_token, connection_timeout));
+  CHECK(notif.WaitForNotificationWithTimeout(connection_timeout));
   CHECK_OK(notif_status);
   CHECK_OK(response);
-  return true;
 }
 void BM_Execute(benchmark::State& state) {
   absl::StatusOr<ByobEchoService<>> roma_service = ByobEchoService<>::Create(
@@ -110,14 +108,10 @@ void BM_Execute(benchmark::State& state) {
         ::privacy_sandbox::server_common::JsonToProto<EchoRequest>(
             json_content);
     CHECK_OK(request);
-    int failure_count = 0;
+    absl::Duration connection_timeout = absl::GetFlag(FLAGS_connection_timeout);
     for (auto _ : state) {
-      if (!EchoExecuteImpl(*roma_service, code_id, *request)) {
-        ++failure_count;
-      }
+      EchoExecuteImpl(*roma_service, code_id, *request, connection_timeout);
     }
-    state.counters["failure_rate"] =
-        benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
     return;
   }
   LOG(FATAL) << "Unrecognized rpc '" << *rpc << "'";

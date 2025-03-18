@@ -52,6 +52,8 @@ ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
 ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
+ABSL_FLAG(absl::Duration, connection_timeout, absl::Minutes(1),
+          "How long to wait for a worker to become available.");
 
 {{$svc := index $file.Services 0}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -85,23 +87,20 @@ void BM_Load(benchmark::State& state) {
   {{- $pkg := $svcopts.CppNamespace | replace "." "::" | printf "::%s" }}
   {{- $reqType := $rpc.RequestType | replace "." "::" | printf "%s::%s" $pkg }}
   {{- $respType := $rpc.ResponseType | replace "." "::" | printf "%s::%s" $pkg }}
-bool {{$rpc.Name}}ExecuteImpl(
+void {{$rpc.Name}}ExecuteImpl(
     {{$svcName}}<>& roma_service,
     std::string_view code_token,
-    const {{$reqType}}& request) {
+    const {{$reqType}}& request,
+    absl::Duration& connection_timeout) {
   absl::Notification notif;
   absl::Status notif_status;
   absl::StatusOr<std::unique_ptr<{{$respType}}>> response;
-  if (!roma_service
+  CHECK_OK(roma_service
               .{{$rpc.Name}}(notif, std::move(request), response,
-                             /*metadata=*/{}, code_token)
-              .ok()) {
-    return false;
-  }
-  CHECK(notif.WaitForNotificationWithTimeout(absl::Minutes(1)));
+                             /*metadata=*/{}, code_token, connection_timeout));
+  CHECK(notif.WaitForNotificationWithTimeout(connection_timeout));
   CHECK_OK(notif_status);
   CHECK_OK(response);
-  return true;
 }
 {{end}}
 void BM_Execute(benchmark::State& state) {
@@ -133,14 +132,10 @@ void BM_Execute(benchmark::State& state) {
         ::privacy_sandbox::server_common::JsonToProto<{{$reqType}}>(
                   json_content);
     CHECK_OK(request);
-    int failure_count = 0;
+    absl::Duration connection_timeout = absl::GetFlag(FLAGS_connection_timeout);
     for (auto _ : state) {
-      if (!{{$rpc.Name}}ExecuteImpl(*roma_service, code_id, *request)) {
-        ++failure_count;
-      }
+      {{$rpc.Name}}ExecuteImpl(*roma_service, code_id, *request, connection_timeout);
     }
-    state.counters["failure_rate"] =
-        benchmark::Counter(failure_count, benchmark::Counter::kAvgIterations);
     return;
   }
 {{end}}

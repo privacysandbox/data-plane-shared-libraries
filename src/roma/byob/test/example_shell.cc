@@ -44,6 +44,8 @@ ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
 ABSL_FLAG(std::optional<std::string>, udf_log_file, std::nullopt,
           "Path with directory to a file in which UDF logs will be stored.");
+ABSL_FLAG(absl::Duration, connection_timeout, absl::Minutes(1),
+          "How long to wait for a worker to become available.");
 
 using privacy_sandbox::server_common::byob::Mode;
 using privacy_sandbox::server_common::byob::ShellEvaluator;
@@ -108,7 +110,8 @@ int main(int argc, char** argv) {
         done.Notify();
       };
       const auto execution_token = echo_service->Echo(
-          callback, *std::move(request), /*metadata=*/{}, code_token);
+          callback, *std::move(request), /*metadata=*/{}, code_token,
+          absl::GetFlag(FLAGS_connection_timeout));
       if (!execution_token.ok()) {
         return execution_token.status();
       }

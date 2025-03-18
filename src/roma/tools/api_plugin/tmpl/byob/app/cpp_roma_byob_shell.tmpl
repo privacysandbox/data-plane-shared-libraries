@@ -59,7 +59,8 @@ ABSL_FLAG(privacy_sandbox::server_common::byob::Mode, sandbox,
           privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
 ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
 ABSL_FLAG(bool, disable_ipc_namespace, true, "Whether IPC namespace should be disabled.");
-
+ABSL_FLAG(absl::Duration, connection_timeout, absl::Minutes(1),
+          "How long to wait for a worker to become available.");
 
 {{$svc := index $file.Services 0}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -125,7 +126,8 @@ int main(int argc, char** argv) {
         done.Notify();
       };
       const auto execution_token = service->{{$rpc.Name}}(
-          callback, *std::move(request), /*metadata=*/{}, code_token);
+          callback, *std::move(request), /*metadata=*/{}, code_token,
+          absl::GetFlag(FLAGS_connection_timeout));
       if (!execution_token.ok()) {
         return execution_token.status();
       }
