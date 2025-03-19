@@ -363,10 +363,6 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
       {PR_CAPBSET_DROP, CAP_SETPCAP},
       {PR_SET_PDEATHSIG, SIGHUP},
   }));
-  if (worker_impl_arg.enable_log_egress) {
-    PS_RETURN_IF_ERROR(Dup2(log_fd, STDOUT_FILENO));
-    PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
-  }
   // socket_dir is mounted read-only but must not be exposed to the udf.
   if (::umount2(worker_impl_arg.socket_dir_name.data(), MNT_DETACH) == -1) {
     return absl::ErrnoToStatus(
@@ -386,6 +382,13 @@ absl::Status SetupSandbox(const WorkerImplArg& worker_impl_arg) {
       "/", "/", nullptr, MS_REMOUNT | MS_BIND | MS_RDONLY));
   if (::unshare(CLONE_NEWUSER) == -1) {
     return absl::ErrnoToStatus(errno, "unshare(CLONE_NEWUSER)");
+  }
+  if (worker_impl_arg.enable_log_egress) {
+    PS_RETURN_IF_ERROR(Dup2(log_fd, STDOUT_FILENO));
+    PS_RETURN_IF_ERROR(Dup2(log_fd, STDERR_FILENO));
+  } else {
+    PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDOUT_FILENO));
+    PS_RETURN_IF_ERROR(Dup2(worker_impl_arg.dev_null_fd, STDERR_FILENO));
   }
   return absl::OkStatus();
 }
@@ -475,8 +478,6 @@ int ReloaderImpl(void* arg) {
   for (const auto fd : *fds_to_close) {
     ::close(fd);
   }
-  CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDOUT_FILENO));
-  CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDERR_FILENO));
   const std::filesystem::path socket_dir =
       std::filesystem::path(reloader_impl_arg.socket_name).parent_path();
   std::vector<std::pair<std::filesystem::path, std::filesystem::path>>
