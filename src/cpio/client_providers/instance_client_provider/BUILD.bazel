@@ -24,7 +24,7 @@ cc_library(
                 "//src/cpio/client_providers/instance_client_provider/aws:aws_instance_client_provider",
             ],
             "//:azure_platform": [
-                "//src/cpio/client_providers/instance_client_provider/noop:noop_instance_client_provider",
+                "//src/cpio/client_providers/instance_client_provider/kubernetes:instance_client_provider",
             ],
             "//:gcp_platform": [
                 "//src/cpio/client_providers/instance_client_provider/gcp:gcp_instance_client_provider",
