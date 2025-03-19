@@ -47,7 +47,8 @@ namespace privacy_sandbox::server_common::byob {
 std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
     int num_workers, std::string_view lib_mounts, std::string_view binary_path,
     Mode mode, std::atomic<std::int64_t>& completions,
-    bool enable_seccomp_filter, bool disable_ipc_namespace) {
+    bool enable_seccomp_filter, bool disable_ipc_namespace,
+    absl::Duration connection_timeout) {
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
   CHECK_OK(roma_service->Init(
       /*config=*/{.lib_mounts = std::string(lib_mounts),

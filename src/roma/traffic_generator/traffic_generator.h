@@ -46,6 +46,7 @@ ABSL_DECLARE_FLAG(absl::Duration, duration);
 ABSL_DECLARE_FLAG(bool, find_max_qps);
 ABSL_DECLARE_FLAG(std::string, qps_search_bounds);
 ABSL_DECLARE_FLAG(double, late_threshold);
+ABSL_DECLARE_FLAG(absl::Duration, byob_connection_timeout);
 
 namespace google::scp::roma::traffic_generator {
 

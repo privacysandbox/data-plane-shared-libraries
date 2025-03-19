@@ -62,6 +62,8 @@ ABSL_FLAG(int, queries_per_second, 42,
 ABSL_FLAG(bool, syscall_filter, true, "Whether to enable syscall filtering.");
 ABSL_FLAG(bool, disable_ipc_namespace, true,
           "Whether IPC namespace should be disabled.");
+ABSL_FLAG(absl::Duration, connection_timeout, absl::ZeroDuration(),
+          "Max time to wait for a worker.");
 
 {{$svc := index $file.Services 0}}
 {{- $svcopts := index $svc.Options "privacysandbox.apis.roma.app_api.v1.roma_svc_annotation"}}
@@ -83,6 +85,7 @@ std::string LoadImpl({{$svcName}}<>& roma_service, std::string_view udf,
 void {{$rpc.Name}}ExecuteImpl(
     {{$svcName}}<>& roma_service,
     std::string_view code_token,
+    absl::Duration connection_timeout,
     std::atomic_int& completions,
     privacy_sandbox::server_common::Stopwatch stopwatch,
     absl::StatusOr<absl::Duration>& duration,
@@ -176,8 +179,9 @@ void RunTrafficGenerator() {
       CHECK(google::protobuf::TextFormat::ParseFromString(request_content,
                                                           &request.emplace()));
     }
+    const absl::Duration connection_timeout = absl::GetFlag(FLAGS_connection_timeout);
     auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, auto counter, auto* burst_stopwatch, auto* burst_duration) {
-      {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, completions, std::move(stopwatch),
+      {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, connection_timeout, completions, std::move(stopwatch),
                                *duration, *request, *counter, *burst_stopwatch, *burst_duration);
     };
     BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,

@@ -97,6 +97,9 @@ ABSL_FLAG(std::string, qps_search_bounds, "1:10000",
           "Colon-separated lower and upper bounds for QPS search");
 ABSL_FLAG(double, late_threshold, 15.0,
           "Maximum acceptable percentage of late bursts (default 15%)");
+ABSL_FLAG(
+    absl::Duration, byob_connection_timeout, absl::ZeroDuration(),
+    "Max time to wait for a worker in 'byob' mode. Ignored in 'v8' mode.");
 
 namespace {
 
@@ -172,7 +175,8 @@ BurstGenerator::Stats RunBurstGenerator(
       (mode == "byob")
           ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
                               completions, enable_seccomp_filter,
-                              disable_ipc_namespace)
+                              disable_ipc_namespace,
+                              absl::GetFlag(FLAGS_byob_connection_timeout))
           : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
                             completions);
 
