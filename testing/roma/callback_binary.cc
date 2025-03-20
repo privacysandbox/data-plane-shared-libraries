@@ -63,7 +63,10 @@ int main() {
         .version_string = "v1",
         .js = R"JS_CODE(
     function Handler(input) {
-      return callback(input);
+      return {
+        success: true,
+        data: callback(input),
+      }
     }
     )JS_CODE",
     });
