@@ -67,7 +67,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   request.set_function(FUNCTION_HELLO_WORLD);
   const auto rpc_func =
       [roma_service = roma_service.get(), code_token = std::move(code_token),
-       &completions, request = std::move(request)](
+       &completions, request = std::move(request), connection_timeout](
           privacy_sandbox::server_common::Stopwatch stopwatch,
           absl::StatusOr<absl::Duration>* duration,
           absl::StatusOr<std::string>* output, absl::BlockingCounter* counter,
@@ -76,7 +76,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
         absl::StatusOr<google::scp::roma::ExecutionToken> exec_token =
             roma_service->ProcessRequest<SampleResponse>(
                 std::string_view(*code_token), request,
-                google::scp::roma::DefaultMetadata(), absl::ZeroDuration(),
+                google::scp::roma::DefaultMetadata(), connection_timeout,
                 [stopwatch = std::move(stopwatch), duration, counter,
                  burst_stopwatch, burst_duration,
                  &completions](absl::StatusOr<SampleResponse> response) {

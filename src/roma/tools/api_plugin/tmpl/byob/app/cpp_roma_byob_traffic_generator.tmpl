@@ -105,7 +105,7 @@ void {{$rpc.Name}}ExecuteImpl(
           burst_duration = burst_stopwatch.GetElapsedTime();
         }
       },
-      request, /*metadata=*/{}, code_token);
+      request, /*metadata=*/{}, code_token, connection_timeout);
   if (!execution_token.ok()) {
     duration = std::move(execution_token).status();
     completions++;
