@@ -120,6 +120,39 @@ def inline_wasm_udf_js(
         glue_js: Javascript glue code
         tags: tags to propagate to rules
     """
+    base64_js = """function base64ToUint8Array(base64) {
+  const BASE64_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/';
+
+  // Remove non-base64 characters
+  const cleanInput = base64.replace(/[^A-Za-z0-9+/=]/g, '');
+
+  // Get padding length (number of '=' at the end)
+  const paddingLength = cleanInput.match(/=*$$/)[0].length;
+  const encodedLength = cleanInput.length;
+  const decodedLength = Math.floor((encodedLength * 3) / 4) - paddingLength;
+
+  const bytes = new Uint8Array(decodedLength);
+  const padding = 64;
+
+  let decoded = 0;
+
+  for (let i = 0; i < encodedLength; i += 4) {
+    // Get 4 characters from the input, then find their positions in the BASE64_CHARS string
+    const enc1 = BASE64_CHARS.indexOf(cleanInput.charAt(i));
+    const enc2 = BASE64_CHARS.indexOf(cleanInput.charAt(i + 1));
+    const enc3 = i + 2 < encodedLength ? BASE64_CHARS.indexOf(cleanInput.charAt(i + 2)) : padding;
+    const enc4 = i + 3 < encodedLength ? BASE64_CHARS.indexOf(cleanInput.charAt(i + 3)) : padding;
+
+    // Calculate byte values from index positions
+    const triplet = (enc1 << 18) | (enc2 << 12) | ((enc3 & 63) << 6) | (enc4 & 63);
+
+    if (decoded < decodedLength) bytes[decoded++] = (triplet >> 16) & 0xFF;
+    if (decoded < decodedLength) bytes[decoded++] = (triplet >> 8) & 0xFF;
+    if (decoded < decodedLength) bytes[decoded++] = triplet & 0xFF;
+  }
+
+  return bytes;
+}"""
     get_module_js = """async function getModule(){
             var Module = {
             instantiateWasm: function (imports, successCallback) {
@@ -137,17 +170,21 @@ def inline_wasm_udf_js(
         name = name,
         srcs = [wasm_binary, glue_js],
         outs = ["{}_generated.js".format(name)],
-        cmd_bash = """WASM_HEX=$$(
-hexdump -v -e '1/1 "0x%02x,"' $(location {wasm_binary})
-)
+        cmd_bash = """WASM_BASE64=$$(base64 -w0 $(location {wasm_binary}))
 cat << EOF > $@
-let wasm_array = new Uint8Array([$$WASM_HEX]);
+let wasm_base64 = "$$WASM_BASE64"
+
+{base64_js}
+
+let wasm_array = base64ToUint8Array(wasm_base64);
 $$(cat $(location {glue_js}))
 {module_js}
-EOF""".format(
+EOF
+""".format(
             wasm_binary = wasm_binary,
             glue_js = glue_js,
             module_js = get_module_js,
+            base64_js = base64_js,
         ),
         visibility = ["//visibility:public"],
         tags = tags,
