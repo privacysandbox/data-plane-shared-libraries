@@ -137,7 +137,6 @@ std::string StatsToJson(const BurstGenerator::Stats& stats,
   stats.ToReport(report);
   report.set_run_id(absl::GetFlag(FLAGS_run_id));
   report.mutable_params()->set_burst_size(absl::GetFlag(FLAGS_burst_size));
-  report.mutable_params()->set_query_count(absl::GetFlag(FLAGS_num_queries));
   report.mutable_params()->set_queries_per_second(queries_per_second);
   report.mutable_params()->set_num_workers(absl::GetFlag(FLAGS_num_workers));
   const google::protobuf::util::JsonPrintOptions json_opts = {

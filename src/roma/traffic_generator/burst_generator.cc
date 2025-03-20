@@ -195,6 +195,11 @@ void BurstGenerator::Stats::ToReport(
   stats->set_failure_count(failure_count);
   stats->set_failure_pct(failure_pct);
 
+  // Set query count to be the number of bursts actually executed. Will be
+  // FLAGS_num_queries unless all bursts weren't able to be created within a
+  // specified duration.
+  report.mutable_params()->set_query_count(burst_creation_latencies.size());
+
   // Set burst latencies
   CopyStats(burst_creation_ptiles, *report.mutable_burst_creation_latencies());
   CopyStats(burst_processing_ptiles,
@@ -252,14 +257,19 @@ BurstGenerator::Stats BurstGenerator::Run() {
     expected_start += cadence_;
   }
 
+  stats.total_elapsed = stopwatch.GetElapsedTime();
+
+  for (int j = i; j < num_bursts_; j++) {
+    while (!blocking_counters[j]->DecrementCount()) {
+    }
+  }
+
   if (i < num_bursts_) {
     stats.total_bursts = i;
     stats.invocation_latencies.resize(i * burst_size_);
     stats.invocation_outputs.resize(i * burst_size_);
     num_bursts_ = i;
   }
-
-  stats.total_elapsed = stopwatch.GetElapsedTime();
 
   // Wait for all RPCs to complete before stopping the service
   LOG(INFO) << "Waiting for all RPCs to complete...";
