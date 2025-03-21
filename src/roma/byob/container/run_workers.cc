@@ -265,6 +265,31 @@ absl::StatusOr<scmp_filter_ctx> GetSeccompFilter() {
   return ctx;
 }
 
+absl::StatusOr<std::vector<int>> GetOpenFdsToClose(pid_t pid, int dev_null_fd) {
+  std::vector<int> fds;
+  std::stringstream ss;
+  ss << "/proc/" << pid << "/fd";
+  std::string fd_dir = ss.str();
+
+  DIR* dir = opendir(fd_dir.c_str());
+  if (dir == nullptr) {
+    return absl::InternalError(absl::StrCat("Failed to open ", fd_dir));
+  }
+  dirent* entry;
+  int fd;
+  while ((entry = readdir(dir)) != nullptr) {
+    if (!absl::SimpleAtoi(entry->d_name, &fd)) {
+      continue;
+    }
+    if (fd == STDOUT_FILENO || fd == STDERR_FILENO || fd == dev_null_fd) {
+      continue;
+    }
+    fds.push_back(fd);
+  }
+  ::closedir(dir);
+  return fds;
+}
+
 absl::Status ConnectToPath(const int fd, std::string_view socket_name) {
   ::sockaddr_un sa = {
       .sun_family = AF_UNIX,
@@ -439,6 +464,17 @@ int ReloaderImpl(void* arg) {
   PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
   const ReloaderImplArg& reloader_impl_arg =
       *static_cast<ReloaderImplArg*>(arg);
+  const auto fds_to_close =
+      GetOpenFdsToClose(::getpid(), reloader_impl_arg.dev_null_fd);
+  CHECK_OK(fds_to_close);
+  // Since we don't set CLONE_FILES, the reloader process has inherited a
+  // copy of all file descriptors opened in the calling process at the time of
+  // the clone call (including the gRPC sockets). We should close any
+  // unnecessary file descriptors to ensure no extra sockets are passed to the
+  // untrusted worker process.
+  for (const auto fd : *fds_to_close) {
+    ::close(fd);
+  }
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDOUT_FILENO));
   CHECK_OK(Dup2(reloader_impl_arg.dev_null_fd, STDERR_FILENO));
   const std::filesystem::path socket_dir =
