@@ -119,10 +119,10 @@ message GetBlobMetadataResponse {
 // Describes a blob in blob storage.
 message BlobMetadata {
   // The name of the bucket the blob belongs to.
-  bytes bucket_name = 1;
+  string bucket_name = 1;
 
   // The name of the blob to interact with.
-  bytes blob_name = 2;
+  string blob_name = 2;
 
   // The size of the blobs data.
   optional uint64 blob_size = 3;
