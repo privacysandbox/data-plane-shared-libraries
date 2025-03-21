@@ -43,6 +43,18 @@ struct Percentiles {
 
 template <typename T>
 Percentiles<T> get_percentiles(std::vector<T> values) {
+  if (values.empty()) {
+    return Percentiles<T>{
+        .count = 0,
+        .min = T(),
+        .p50 = T(),
+        .p90 = T(),
+        .p95 = T(),
+        .p99 = T(),
+        .max = T(),
+    };
+  }
+
   std::sort(values.begin(), values.end());
   return Percentiles<T>{
       .count = values.size(),
@@ -122,13 +134,17 @@ std::string BurstGenerator::Stats::ToString() const {
       ParseOutputLatencies(invocation_outputs);
 
   const float late_burst_pct =
-      static_cast<float>(
-          std::lround(static_cast<double>(late_count) / total_bursts * 1000)) /
-      10;
+      late_count > 0
+          ? static_cast<float>(std::lround(static_cast<double>(late_count) /
+                                           total_bursts * 1000)) /
+                10
+          : 0;
   const float failure_pct =
-      static_cast<float>(std::lround(static_cast<double>(failure_count) /
-                                     total_invocation_count * 1000)) /
-      10;
+      failure_count > 0
+          ? static_cast<float>(std::lround(static_cast<double>(failure_count) /
+                                           total_invocation_count * 1000)) /
+                10
+          : 0;
   auto stats_str = absl::StrCat(
       "total runtime: ", total_elapsed,
       "\n invocation count: ", total_invocation_count,
