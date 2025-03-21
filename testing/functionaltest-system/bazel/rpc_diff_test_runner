@@ -22,6 +22,9 @@ usage:
     --plaintext                     send plaintext request
     --http-path <string>            path used with endpoint hostport
     --client-type <string>          client-type used to encrypt the request
+    --client-ip <ip address>        client IP address
+    --client-user-agent <string>    client User-Agent header
+    --client-accept-language <string> client Accept-Language header
 environment variables:
     JQ                              path to jq executable (required)
 USAGE
@@ -100,6 +103,18 @@ while [[ $# -gt 0 ]]; do
       CLIENT_TYPE="$2"
       shift 2
       ;;
+    --client-ip)
+      CLIENT_IP="$2"
+      shift 2 || usage
+      ;;
+    --client-user-agent)
+      CLIENT_USER_AGENT="$2"
+      shift 2 || usage
+      ;;
+    --client-accept-language)
+      CLIENT_ACCEPT_LANGUAGE="$2"
+      shift 2 || usage
+      ;;
     --help | -h) usage 0 ;;
     *) usage 1 ;;
   esac
@@ -169,6 +184,28 @@ if [[ -n ${CLIENT_TYPE} ]]; then
   RPC_INVOKER_ARGS+=(
     --client-type
     "${CLIENT_TYPE}"
+  )
+fi
+
+if [[ -n "${CLIENT_IP}" ]]; then
+  RPC_INVOKER_ARGS+=(
+    --client-ip
+    "${CLIENT_IP}"
+  )
+fi
+
+
+if [[ -n "${CLIENT_USER_AGENT}" ]]; then
+  RPC_INVOKER_ARGS+=(
+    --client-user-agent
+    "${CLIENT_USER_AGENT}"
+  )
+fi
+
+if [[ -n "${CLIENT_ACCEPT_LANGUAGE}" ]]; then
+  RPC_INVOKER_ARGS+=(
+    --client-accept-language
+    "${CLIENT_ACCEPT_LANGUAGE}"
   )
 fi
 

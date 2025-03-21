@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help | -h) usage 0 ;;
-    *) shift 2 ;;
+    *) usage 1 ;;
   esac
 done
 

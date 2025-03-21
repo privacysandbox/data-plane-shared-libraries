@@ -38,6 +38,7 @@ exports_files([
     "curl_rpc_invoker",
     "ghz_test_runner",
     "grpcurl_rpc_invoker",
+    "promql_metric_test_runner",
     "rpc_diff_test_runner",
     "verify_ca_bundle",
     "verify_ssl_cert",

@@ -55,6 +55,9 @@ def rpc_diff_test(
         tags = [],
         plaintext = False,
         client_type = "",
+        client_ip = "",
+        client_user_agent = "",
+        client_accept_language = "",
         **kwargs):
     """Generates a diff test for a grpc request/reply.
 
@@ -72,6 +75,9 @@ def rpc_diff_test(
       tags: tag list for the tests
       plaintext: boolean to indicate plaintext request
       client_type: client type to use for the rpc request
+      client_ip: client IP address to use for the rpc request
+      client_user_agent: client User-Agent header to use for the rpc request
+      client_accept_language: client Accept-Language header to use for the rpc request
       **kwargs: additional test args
     """
     runner = Label("//bazel:rpc_diff_test_runner")
@@ -125,6 +131,12 @@ def rpc_diff_test(
         args.extend(["--plaintext"])
     if client_type:
         args.extend(["--client-type", client_type])
+    if client_ip:
+        args.extend(["--client-ip", client_ip])
+    if client_user_agent:
+        args.extend(["--client-user-agent", client_user_agent])
+    if client_accept_language:
+        args.extend(["--client-accept-language", client_accept_language])
     if jq_pre_filter:
         args.extend(["--jq-pre-filter", "$(execpath {})".format(jq_pre_filter)])
         data.append(jq_pre_filter)
@@ -140,6 +152,32 @@ def rpc_diff_test(
         data = data,
         size = test_size,
         tags = tags,
+        **kwargs
+    )
+
+def promql_test(
+        name,
+        predicate,
+        endpoint,
+        **kwargs):
+    """Verifies a Prometheus query's boolean result through a shell test.
+
+    Args:
+        name: The name of the test target.
+        predicate: The PromQL query string, which should evaluate to a boolean.
+        endpoint: The Prometheus endpoint (protocol://host:port format).
+        **kwargs: Additional arguments to pass to the `sh_test` rule.
+    """
+    runner = Label("//bazel:promql_metric_test_runner")
+
+    native.sh_test(
+        name = name,
+        srcs = [runner],
+        env = {
+            "NAME": name,
+            "PROMQL_ENDPOINT": endpoint,
+            "PROMQL_PREDICATE": predicate,
+        },
         **kwargs
     )
 

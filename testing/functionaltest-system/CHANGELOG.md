@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 1.1.1 (2025-03-21)
+
+
+### Bug Fixes
+
+* Correct promql_metric_test_runner script name
+
+## 1.1.0 (2025-03-20)
+
+
+### Features
+
+* Add promql metric validate test macro
+
+
+### Bug Fixes
+
+* Treat unrecognized flags to invokers as errors
+
 ## 1.0.2 (2025-03-18)
 
 

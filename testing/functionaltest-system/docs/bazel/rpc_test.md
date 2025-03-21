@@ -83,6 +83,27 @@ Generates a test suite for test cases within the specified directory tree.
 | <a id="ghz_test_suite-kwargs"></a>kwargs |  additional args   |  none |
 
 
+<a id="promql_test"></a>
+
+## promql_test
+
+<pre>
+promql_test(<a href="#promql_test-name">name</a>, <a href="#promql_test-predicate">predicate</a>, <a href="#promql_test-endpoint">endpoint</a>, <a href="#promql_test-kwargs">kwargs</a>)
+</pre>
+
+Verifies a Prometheus query's boolean result through a shell test.
+
+**PARAMETERS**
+
+
+| Name  | Description | Default Value |
+| :------------- | :------------- | :------------- |
+| <a id="promql_test-name"></a>name |  The name of the test target.   |  none |
+| <a id="promql_test-predicate"></a>predicate |  The PromQL query string, which should evaluate to a boolean.   |  none |
+| <a id="promql_test-endpoint"></a>endpoint |  The Prometheus endpoint (protocol://host:port format).   |  none |
+| <a id="promql_test-kwargs"></a>kwargs |  Additional arguments to pass to the <code>sh_test</code> rule.   |  none |
+
+
 <a id="rpc_diff_test"></a>
 
 ## rpc_diff_test
@@ -90,7 +111,7 @@ Generates a test suite for test cases within the specified directory tree.
 <pre>
 rpc_diff_test(<a href="#rpc_diff_test-name">name</a>, <a href="#rpc_diff_test-request">request</a>, <a href="#rpc_diff_test-golden_reply">golden_reply</a>, <a href="#rpc_diff_test-endpoint">endpoint</a>, <a href="#rpc_diff_test-rpc">rpc</a>, <a href="#rpc_diff_test-protoset">protoset</a>, <a href="#rpc_diff_test-custom_rpc_invoker_tarball">custom_rpc_invoker_tarball</a>,
               <a href="#rpc_diff_test-jq_pre_filter">jq_pre_filter</a>, <a href="#rpc_diff_test-jq_post_filter">jq_post_filter</a>, <a href="#rpc_diff_test-jq_post_slurp">jq_post_slurp</a>, <a href="#rpc_diff_test-test_size">test_size</a>, <a href="#rpc_diff_test-tags">tags</a>, <a href="#rpc_diff_test-plaintext">plaintext</a>, <a href="#rpc_diff_test-client_type">client_type</a>,
-              <a href="#rpc_diff_test-kwargs">kwargs</a>)
+              <a href="#rpc_diff_test-client_ip">client_ip</a>, <a href="#rpc_diff_test-client_user_agent">client_user_agent</a>, <a href="#rpc_diff_test-client_accept_language">client_accept_language</a>, <a href="#rpc_diff_test-kwargs">kwargs</a>)
 </pre>
 
 Generates a diff test for a grpc request/reply.
@@ -114,6 +135,9 @@ Generates a diff test for a grpc request/reply.
 | <a id="rpc_diff_test-tags"></a>tags |  tag list for the tests   |  <code>[]</code> |
 | <a id="rpc_diff_test-plaintext"></a>plaintext |  boolean to indicate plaintext request   |  <code>False</code> |
 | <a id="rpc_diff_test-client_type"></a>client_type |  client type to use for the rpc request   |  <code>""</code> |
+| <a id="rpc_diff_test-client_ip"></a>client_ip |  client IP address to use for the rpc request   |  <code>""</code> |
+| <a id="rpc_diff_test-client_user_agent"></a>client_user_agent |  client User-Agent header to use for the rpc request   |  <code>""</code> |
+| <a id="rpc_diff_test-client_accept_language"></a>client_accept_language |  client Accept-Language header to use for the rpc request   |  <code>""</code> |
 | <a id="rpc_diff_test-kwargs"></a>kwargs |  additional test args   |  none |
 
 
