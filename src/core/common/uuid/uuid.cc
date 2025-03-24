@@ -34,11 +34,12 @@
 namespace google::scp::core::common {
 
 Uuid Uuid::GenerateUuid() noexcept {
+  timespec time_spec;
+  clock_gettime(CLOCK_MONOTONIC, &time_spec);
   absl::BitGen bitgen;
   return Uuid{
-      .high = static_cast<uint64_t>(absl::ToInt64Nanoseconds(
-          privacy_sandbox::server_common::CpuThreadTimeStopwatch()
-              .GetElapsedTime())),
+      .high = static_cast<uint64_t>(
+          absl::ToInt64Nanoseconds(absl::DurationFromTimespec(time_spec))),
       .low = absl::Uniform<uint64_t>(bitgen),
   };
 }
