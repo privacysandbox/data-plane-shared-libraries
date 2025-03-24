@@ -54,6 +54,8 @@ struct ProcessRequestMetrics {
   // Time from after `SerializeDelimitedToFileDescriptor` to
   // `ParseDelimitedFromZeroCopyStream` call completion.
   absl::Duration response_time;
+  // The number of unused workers for a given code token.
+  int unused_workers;
 };
 
 class Dispatcher {
@@ -111,6 +113,7 @@ class Dispatcher {
       }
       request_metadata = it->second.front();
       it->second.pop();
+      metrics.unused_workers = it->second.size();
     }
     metrics.wait_time = stopwatch.GetElapsedTime();
     stopwatch.Reset();
