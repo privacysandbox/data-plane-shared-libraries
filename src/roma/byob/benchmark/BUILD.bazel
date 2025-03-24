@@ -21,6 +21,15 @@ load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 package(default_visibility = ["//visibility:public"])
 
+cc_binary(
+    name = "clone_benchmark",
+    srcs = ["clone_benchmark.cc"],
+    deps = [
+        "@com_google_absl//absl/log",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
 cc_library(
     name = "roma_byob_rpc_factory",
     hdrs = ["roma_byob_rpc_factory.h"],
