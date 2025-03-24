@@ -87,6 +87,7 @@ def _byob_utils():
         http_archive,
         name = "libuuid",
         build_file = Label("//build_defs/cc/shared/build_targets:libuuid.BUILD"),
+        sha256 = "23c747cc4f48b9232eebfc78bf238ffdf9daea8b9dda456bf90617f58dd2248c",
         strip_prefix = "util-linux-2.39.3",
         urls = [
             "https://github.com/util-linux/util-linux/archive/refs/tags/v2.39.3.zip",
