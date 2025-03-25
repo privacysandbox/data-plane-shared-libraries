@@ -146,9 +146,9 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                   if (resp.ok()) {
                     *duration = stopwatch.GetElapsedTime();
                     *output = resp->resp.substr(1, resp->resp.size() - 2);
-                    *wait_duration =
+                    *wait_duration = absl::Milliseconds(
                         resp->metrics[roma::sandbox::constants::
-                                          kExecutionMetricQueueingDuration];
+                                          kExecutionMetricWaitTimeMs]);
                   } else {
                     *duration = std::move(resp.status());
                     *output = duration->status();
