@@ -108,6 +108,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/roma/sandbox/js_engine/v8_engine:arraybuffer_benchmark
     //src/roma/sandbox/worker_api/sapi:worker_wrapper_impl_benchmark
     //src/roma/byob/benchmark:clone_benchmark
+    //src/roma/byob/benchmark:setup_benchmark
     # TODO: Enable logging benchmark after reducing volume of log output.
     # //src/roma/benchmark:logging_benchmark
     # TODO: b/303250465 - Turn this back on once the segfault is fixed.

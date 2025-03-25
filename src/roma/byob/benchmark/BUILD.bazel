@@ -22,6 +22,16 @@ load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 package(default_visibility = ["//visibility:public"])
 
 cc_binary(
+    name = "setup_benchmark",
+    srcs = ["setup_benchmark.cc"],
+    deps = [
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@google_benchmark//:benchmark",
+    ],
+)
+
+cc_binary(
     name = "clone_benchmark",
     srcs = ["clone_benchmark.cc"],
     deps = [
