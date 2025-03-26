@@ -123,6 +123,8 @@ ByobSampleService<> GetRomaService(
 ByobSampleService<> GetRomaService(Mode mode) {
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
+      // TODO(b/406251650): Remove when issue fixed in kokoro.
+      .disable_ipc_namespace = true,
   };
   return GetRomaService(mode, std::move(config));
 }
@@ -357,6 +359,8 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   ::privacy_sandbox::server_common::byob::Config<> config = {
       .roma_container_name = "roma_server",
       .lib_mounts = std::move(mounts),
+      // TODO(b/406251650): Remove when issue fixed in kokoro.
+      .disable_ipc_namespace = true,
   };
   ByobSampleService<> roma_service =
       GetRomaService(Mode::kModeGvisorSandbox, std::move(config));
