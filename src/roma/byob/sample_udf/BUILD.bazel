@@ -266,6 +266,7 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":sample_byob_sdk_cc_proto",
+        "@com_google_absl//absl/log",
         "@com_google_protobuf//:protobuf",
     ],
 )

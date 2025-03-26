@@ -152,4 +152,8 @@ enum FunctionType {
   FUNCTION_RELOADER_LEVEL_SYSCALL_FILTERING = 7;
   // Whether syscall filtering is enabled at both worker and reloader level.
   FUNCTION_WORKER_AND_RELOADER_LEVEL_SYSCALL_FILTERING = 8;
+  // Clones a new process.
+  FUNCTION_CLONE = 9;
+  // Clones a new process with the new namespace flag.
+  FUNCTION_CLONE_WITH_NEW_NS_FLAG = 10;
 }

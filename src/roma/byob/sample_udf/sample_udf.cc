@@ -12,15 +12,22 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#include <sched.h>
+#include <sys/wait.h>
+#include <unistd.h>
+
 #include <cmath>
 #include <cstring>
 #include <iostream>
 #include <vector>
 
+#include "absl/log/log.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 
 using ::google::protobuf::io::FileInputStream;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CLONE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CLONE_WITH_NEW_NS_FLAG;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::SampleRequest;
@@ -55,6 +62,30 @@ void RunPrimeSieve(SampleResponse& bin_response) {
   }
 }
 
+void RunClone(SampleResponse& bin_response) {
+  alignas(16) char stack[1 << 20];
+  const int pid = ::clone(
+      +[](void* /*arg*/) -> int { _exit(EXIT_SUCCESS); }, stack + sizeof(stack),
+      SIGCHLD, /*arg=*/nullptr);
+  if (pid > 0) {
+    ::waitpid(pid, nullptr, 0);
+  } else {
+    PLOG(FATAL) << "clone()";
+  }
+}
+
+void RunCloneWithNewNsFlag(SampleResponse& bin_response) {
+  alignas(16) char stack[1 << 20];
+  const int pid = ::clone(
+      +[](void* /*arg*/) -> int { _exit(EXIT_SUCCESS); }, stack + sizeof(stack),
+      SIGCHLD | CLONE_NEWNS, /*arg=*/nullptr);
+  if (pid > 0) {
+    ::waitpid(pid, nullptr, 0);
+  } else {
+    PLOG(FATAL) << "clone()";
+  }
+}
+
 SampleRequest ReadRequestFromFd(int fd) {
   SampleRequest req;
   FileInputStream stream(fd);
@@ -85,6 +116,12 @@ int main(int argc, char* argv[]) {
       break;
     case FUNCTION_PRIME_SIEVE:
       RunPrimeSieve(bin_response);
+      break;
+    case FUNCTION_CLONE:
+      RunClone(bin_response);
+      break;
+    case FUNCTION_CLONE_WITH_NEW_NS_FLAG:
+      RunCloneWithNewNsFlag(bin_response);
       break;
     default:
       return -1;

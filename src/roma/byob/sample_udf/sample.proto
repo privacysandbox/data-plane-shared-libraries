@@ -90,6 +90,16 @@ enum FunctionType {
       [(privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
         description: 'Whether syscall filtering is enabled at both worker and reloader level.'
       }];
+  FUNCTION_CLONE = 9 [
+    (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
+      description: 'Clones a new process.'
+    }
+  ];
+  FUNCTION_CLONE_WITH_NEW_NS_FLAG = 10 [
+    (privacysandbox.apis.roma.app_api.v1.roma_enumval_annotation) = {
+      description: 'Clones a new process with the new namespace flag.'
+    }
+  ];
   // TODO(b/379124185): Add back host callback functions and functionality.
   reserved 3, 4;
 }

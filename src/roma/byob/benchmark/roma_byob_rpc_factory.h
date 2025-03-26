@@ -35,6 +35,8 @@ using Config = ::privacy_sandbox::server_common::byob::Config<>;
 using Mode = ::privacy_sandbox::server_common::byob::Mode;
 using SyscallFiltering =
     ::privacy_sandbox::server_common::byob::SyscallFiltering;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CLONE;
+using ::privacy_sandbox::roma_byob::example::FUNCTION_CLONE_WITH_NEW_NS_FLAG;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_HELLO_WORLD;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_PRIME_SIEVE;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
@@ -69,6 +71,10 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   ::privacy_sandbox::roma_byob::example::SampleRequest request;
   if (function_name == "PrimeSieve") {
     request.set_function(FUNCTION_PRIME_SIEVE);
+  } else if (function_name == "Clone") {
+    request.set_function(FUNCTION_CLONE);
+  } else if (function_name == "CloneWithNewNsFlag") {
+    request.set_function(FUNCTION_CLONE_WITH_NEW_NS_FLAG);
   } else {
     request.set_function(FUNCTION_HELLO_WORLD);
   }
