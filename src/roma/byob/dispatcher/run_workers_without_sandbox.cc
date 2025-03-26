@@ -26,7 +26,6 @@
 #include <filesystem>
 #include <string>
 #include <string_view>
-#include <thread>
 #include <utility>
 #include <vector>
 
