@@ -99,6 +99,9 @@ repos:
     types_or:
     - dockerfile
     entry: tools/hadolint
+    exclude: (?x)^(
+                 images/nitro-cli-linux6/Dockerfile
+             )$
 
 - repo: https://github.com/pre-commit/mirrors-prettier
   rev: v3.0.0

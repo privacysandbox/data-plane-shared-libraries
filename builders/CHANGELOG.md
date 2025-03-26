@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.82.0 (2025-03-27)
+
+
+### Features
+
+* Add tests for nitro-cli-linux6
+* Rename nitro-cli to nitro-cli-linux6
+
+## 0.81.0 (2025-03-26)
+
+
+### Features
+
+* Remove privileged docker container
+
+## 0.80.1 (2025-03-25)
+
+## 0.80.0 (2025-03-23)
+
+
+### Features
+
+* Remove spawn_strategy from bazel-debian
+
+## 0.79.3 (2025-03-19)
+
+
+### Bug Fixes
+
+* Add nitro-cli image using Linux 6.x kernel
+
+## 0.79.2 (2025-02-21)
+
 ## 0.79.1 (2025-02-18)
 
 
