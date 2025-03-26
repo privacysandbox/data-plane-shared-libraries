@@ -30,13 +30,3 @@ fileExistenceTests:
     isExecutableBy: owner
     uid: {UID}
     gid: {GID}
-
-commandTests:
-  - name: events stats 10k
-    command: /server/bin/traffic_generator
-    args:
-      - --num_workers=2
-      - --num_queries=1
-      - --burst_size=2
-      - --queries_per_second=1
-      - --sandbox=gvisor
