@@ -284,15 +284,13 @@ absl::StatusOr<scmp_filter_ctx> GetSeccompFilter(
   return ctx;
 }
 
-absl::StatusOr<std::vector<int>> GetOpenFdsToClose(pid_t pid, int dev_null_fd) {
+absl::StatusOr<std::vector<int>> GetOpenFdsToClose(int dev_null_fd) {
   std::vector<int> fds;
-  std::stringstream ss;
-  ss << "/proc/" << pid << "/fd";
-  std::string fd_dir = ss.str();
+  constexpr std::string_view kFdDir = "/proc/self/fd";
 
-  DIR* dir = opendir(fd_dir.c_str());
+  DIR* dir = opendir(kFdDir.data());
   if (dir == nullptr) {
-    return absl::InternalError(absl::StrCat("Failed to open ", fd_dir));
+    return absl::InternalError(absl::StrCat("Failed to open ", kFdDir));
   }
   dirent* entry;
   int fd;
@@ -491,8 +489,7 @@ int ReloaderImpl(void* arg) {
   PCHECK(::setpgid(/*pid=*/0, /*pgid=*/0) == 0);
   const ReloaderImplArg& reloader_impl_arg =
       *static_cast<ReloaderImplArg*>(arg);
-  const auto fds_to_close =
-      GetOpenFdsToClose(::getpid(), reloader_impl_arg.dev_null_fd);
+  const auto fds_to_close = GetOpenFdsToClose(reloader_impl_arg.dev_null_fd);
   CHECK_OK(fds_to_close);
   // Since we don't set CLONE_FILES, the reloader process has inherited a
   // copy of all file descriptors opened in the calling process at the time of

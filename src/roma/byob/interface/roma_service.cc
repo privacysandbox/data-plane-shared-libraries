@@ -14,6 +14,7 @@
 
 #include "roma_service.h"
 
+#include <sys/mount.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -48,6 +49,9 @@ int LocalImpl(void* arg) {
           // Needs to be mounted for Cancel to work (kill by cmdline)
           {"/proc", "/proc"},
           {"/dev", "/dev"}};
+
+  // Remount /proc to ensure it reflects namespace changes.
+  PCHECK(::mount("/proc", "/proc", "proc", /*mountflags=*/0, nullptr) == 0);
   CHECK_OK(::privacy_sandbox::server_common::byob::SetupPivotRoot(
       root_dir, /*sources_and_targets_read_only=*/{},
       /*cleanup_pivot_root_dir=*/false, sources_and_targets,
@@ -342,8 +346,11 @@ absl::StatusOr<std::unique_ptr<Handle>> Handle::CreateHandle(
                                             std::move(options.container_name));
     }
     case Mode::kModeMinimalSandbox: {
-      const int pid = ::clone(&LocalImpl, stack + sizeof(stack),
-                              CLONE_VM | CLONE_VFORK | CLONE_NEWNS, &options);
+      // CLONE_NEWPID is needed to ensure run_workers can properly reap the
+      // processes it creates.
+      const int pid = ::clone(
+          &LocalImpl, stack + sizeof(stack),
+          CLONE_VM | CLONE_VFORK | CLONE_NEWNS | CLONE_NEWPID, &options);
       if (pid == -1) {
         return absl::ErrnoToStatus(errno, "clone()");
       }
