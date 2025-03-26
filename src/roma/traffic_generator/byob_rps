@@ -25,8 +25,8 @@ declare -r DEFAULT_MODE="byob"
 declare MODE="${DEFAULT_MODE}"
 declare -r DEFAULT_UDF_PATH="src/roma/tools/v8_cli/test_udfs/simple_udf.js"
 declare UDF_PATH="${DEFAULT_UDF_PATH}"
-declare -r DEFAULT_HANDLER_NAME="Handler"
-declare HANDLER_NAME="${DEFAULT_HANDLER_NAME}"
+
+declare FUNCTION_NAME
 
 declare -r DEFAULT_INPUT_ARGS=""
 declare INPUT_ARGS="${DEFAULT_INPUT_ARGS}"
@@ -70,10 +70,10 @@ usage:
     --find-max-qps <bool>     find maximum QPS that maintains performance under threshold. Default: ${DEFAULT_FIND_MAX_QPS}
     --late-threshold <double>  maximum acceptable percentage of late bursts. Default: ${DEFAULT_LATE_THRESHOLD}
     --duration <duration>      run traffic generator for a specified duration. Default: ${DEFAULT_DURATION}
+    --function-name <string>  name of the function to call (V8 Handler Function / BYOB Sample UDF Function).
 
   V8 Mode settings:
     --udf-path <string>      path to JavaScript UDF file. Default: ${DEFAULT_UDF_PATH}
-    --handler-name <string>  name of the handler function to call. Default: ${DEFAULT_HANDLER_NAME}
     --input-args <string>    comma-separated arguments to pass to the handler function. Default: ${DEFAULT_INPUT_ARGS}
 
   Container settings:
@@ -103,12 +103,12 @@ while [[ $# -gt 0 ]]; do
     --mode) MODE="$2"; shift 2 || usage 1 ;;
     --find-max-qps) FIND_MAX_QPS="$2"; shift 2 || usage 1 ;;
     --late-threshold) LATE_THRESHOLD="$2"; shift 2 || usage 1 ;;
+    --function-name) FUNCTION_NAME="$2"; shift 2 || usage 1 ;;
 
     --cpus) CPUS=$2; shift 2 || usage 1 ;;
     --memory) MEMORY="$2"; shift 2 || usage 1 ;;
 
     --udf-path) UDF_PATH="$2"; shift 2 || usage 1 ;;
-    --handler-name) HANDLER_NAME="$2"; shift 2 || usage 1 ;;
     --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
     --output-file) OUTPUT_FILE="$2"; shift 2 || usage 1 ;;
     --config-file) CONFIG_FILE="$2"; shift 2 || usage 1 ;;
@@ -156,6 +156,10 @@ function run_test() {
     "--run_id=${run_id}"
   )
 
+  if [[ -n ${FUNCTION_NAME} ]]; then
+    CMD_ARGS+=("--function_name=${FUNCTION_NAME}")
+  fi
+
   if [[ ${FIND_MAX_QPS} == true ]]; then
     CMD_ARGS+=("--find_max_qps")
     IFS=':' read -r low_qps step high_qps <<< "${QPS}"
@@ -173,9 +177,6 @@ function run_test() {
   if [[ ${MODE} == v8 ]]; then
     if [[ -n ${UDF_PATH} ]]; then
       CMD_ARGS+=("--udf_path=${UDF_PATH}")
-    fi
-    if [[ -n ${HANDLER_NAME} ]]; then
-      CMD_ARGS+=("--handler_name=${HANDLER_NAME}")
     fi
     if [[ -n ${INPUT_ARGS} ]]; then
       CMD_ARGS+=("--input_args=${INPUT_ARGS}")

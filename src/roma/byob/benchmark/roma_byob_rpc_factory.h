@@ -51,7 +51,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
     int num_workers, std::string_view lib_mounts, std::string_view binary_path,
     Mode mode, std::atomic<std::int64_t>& completions,
     SyscallFiltering syscall_filtering, bool disable_ipc_namespace,
-    absl::Duration connection_timeout) {
+    absl::Duration connection_timeout, std::string_view function_name) {
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
   CHECK_OK(roma_service->Init(
       /*config=*/{.lib_mounts = std::string(lib_mounts),
@@ -67,7 +67,12 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   absl::SleepFor(absl::Seconds(5));
 
   ::privacy_sandbox::roma_byob::example::SampleRequest request;
-  request.set_function(FUNCTION_HELLO_WORLD);
+  if (function_name == "PrimeSieve") {
+    request.set_function(FUNCTION_PRIME_SIEVE);
+  } else {
+    request.set_function(FUNCTION_HELLO_WORLD);
+  }
+
   const auto rpc_func =
       [roma_service = roma_service.get(), code_token = std::move(code_token),
        &completions, request = std::move(request), connection_timeout](

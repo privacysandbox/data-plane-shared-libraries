@@ -84,8 +84,9 @@ ABSL_FLAG(std::string, binary_path, "/udf/sample_udf", "Path to binary");
 ABSL_FLAG(std::string, mode, "byob", "Traffic generator mode: 'byob' or 'v8'");
 ABSL_FLAG(std::string, udf_path, "",
           "Path to JavaScript UDF file (V8 mode only)");
-ABSL_FLAG(std::string, handler_name, "",
-          "Name of the handler function to call (V8 mode only)");
+ABSL_FLAG(std::string, function_name, "",
+          "Name of the function to call (V8 Handler Function / BYOB Sample UDF "
+          "Function)");
 ABSL_FLAG(std::vector<std::string>, input_args, {},
           "Arguments to pass to the handler function (V8 mode only)");
 ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
@@ -143,6 +144,8 @@ std::string StatsToJson(const BurstGenerator::Stats& stats,
   report.mutable_params()->set_burst_size(absl::GetFlag(FLAGS_burst_size));
   report.mutable_params()->set_queries_per_second(queries_per_second);
   report.mutable_params()->set_num_workers(absl::GetFlag(FLAGS_num_workers));
+  report.mutable_params()->set_function_name(
+      absl::GetFlag(FLAGS_function_name));
   const google::protobuf::util::JsonPrintOptions json_opts = {
       .add_whitespace = false,
       .always_print_primitive_fields = true,
@@ -170,17 +173,17 @@ BurstGenerator::Stats RunBurstGenerator(
   const bool disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace);
 
   const std::string udf_path = absl::GetFlag(FLAGS_udf_path);
-  const std::string handler_name = absl::GetFlag(FLAGS_handler_name);
+  const std::string function_name = absl::GetFlag(FLAGS_function_name);
   const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
 
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   auto [rpc_func, stop_func] =
       (mode == "byob")
-          ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
-                              completions, syscall_filtering,
-                              disable_ipc_namespace,
-                              absl::GetFlag(FLAGS_byob_connection_timeout))
-          : CreateV8RpcFunc(num_workers, udf_path, handler_name, input_args,
+          ? CreateByobRpcFunc(
+                num_workers, lib_mounts, binary_path, sandbox, completions,
+                syscall_filtering, disable_ipc_namespace,
+                absl::GetFlag(FLAGS_byob_connection_timeout), function_name)
+          : CreateV8RpcFunc(num_workers, udf_path, function_name, input_args,
                             completions);
 
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
@@ -278,6 +281,15 @@ absl::Status TrafficGenerator::Run() {
   const std::string mode = absl::GetFlag(FLAGS_mode);
   CHECK(mode == "byob" || mode == "v8")
       << "Invalid mode. Must be 'byob' or 'v8'";
+
+  const std::string function_name = absl::GetFlag(FLAGS_function_name);
+  if (function_name.empty()) {
+    if (mode == "byob") {
+      absl::SetFlag(&FLAGS_function_name, "HelloWorld");
+    } else {
+      absl::SetFlag(&FLAGS_function_name, "Handler");
+    }
+  }
 
   if (absl::GetFlag(FLAGS_sigpending).has_value()) {
     const int new_sigpending_limit = absl::GetFlag(FLAGS_sigpending).value();
