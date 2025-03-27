@@ -25,6 +25,7 @@
 #include <string>
 #include <string_view>
 
+#include "absl/log/initialize.h"
 #include "absl/strings/str_cat.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/byob/sample_udf/sample_callback.pb.h"
@@ -737,3 +738,9 @@ INSTANTIATE_TEST_SUITE_P(
     });
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::test
+
+int main(int argc, char* argv[]) {
+  absl::InitializeLog();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

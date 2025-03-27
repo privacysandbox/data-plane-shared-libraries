@@ -20,6 +20,7 @@
 #include <string>
 #include <string_view>
 
+#include "absl/log/initialize.h"
 #include "absl/synchronization/notification.h"
 #include "src/roma/byob/example/example.pb.h"
 #include "src/roma/byob/test/example_roma_byob_app_service.h"
@@ -206,3 +207,9 @@ TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {
 
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob::example::test
+
+int main(int argc, char* argv[]) {
+  absl::InitializeLog();
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}

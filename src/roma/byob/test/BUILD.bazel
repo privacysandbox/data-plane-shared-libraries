@@ -216,8 +216,9 @@ cc_binary(
         "//src/roma/byob/example:example_cc_proto",
         "//src/roma/byob/utility:utils",
         "//src/roma/config:function_binding_object_v2",
+        "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
 )
 
@@ -231,9 +232,10 @@ cc_binary(
         "//src/roma/byob/utility:udf_blob",
         "//src/roma/byob/utility:utils",
         "//src/roma/config:function_binding_object_v2",
+        "@com_google_absl//absl/log:initialize",
         "@com_google_absl//absl/strings",
         "@com_google_absl//absl/synchronization",
-        "@com_google_googletest//:gtest_main",
+        "@com_google_googletest//:gtest",
     ],
 )
 
