@@ -127,7 +127,6 @@ int NsjailImpl(void* arg) {
       "--syscall_filtering=", AbslUnparseFlag(options.syscall_filtering));
   const std::string ipc_namespace_flag =
       absl::StrCat("--disable_ipc_namespace=", options.disable_ipc_namespace);
-  const std::string log_dir_mount = absl::StrCat(options.log_dir, ":/log_dir");
   const char* argv[] = {
       "/usr/bin/nsjail",
       "--mode",
