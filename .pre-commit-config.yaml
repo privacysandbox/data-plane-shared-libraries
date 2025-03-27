@@ -43,7 +43,7 @@ repos:
     args:
     - --allow-multiple-documents
     exclude: (?x)^(
-      testing/.*helm.*
+      testing/.*/templates/.*
       )\.yaml$
   - id: check-json
     exclude: (?x)^(
