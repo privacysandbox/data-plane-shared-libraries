@@ -337,7 +337,7 @@ absl::StatusOr<std::unique_ptr<Handle>> Handle::CreateHandle(
       [[fallthrough]];
     case Mode::kModeGvisorSandboxDebug: {
       const int pid = ::clone(&GvisorImpl, stack + sizeof(stack),
-                              CLONE_VM | CLONE_VFORK, &options);
+                              /*flags=*/0, &options);
       if (pid == -1) {
         return absl::ErrnoToStatus(errno, "clone()");
       }
@@ -347,17 +347,16 @@ absl::StatusOr<std::unique_ptr<Handle>> Handle::CreateHandle(
     case Mode::kModeMinimalSandbox: {
       // CLONE_NEWPID is needed to ensure run_workers can properly reap the
       // processes it creates.
-      const int pid = ::clone(
-          &LocalImpl, stack + sizeof(stack),
-          CLONE_VM | CLONE_VFORK | CLONE_NEWNS | CLONE_NEWPID, &options);
+      const int pid = ::clone(&LocalImpl, stack + sizeof(stack),
+                              CLONE_NEWNS | CLONE_NEWPID, &options);
       if (pid == -1) {
         return absl::ErrnoToStatus(errno, "clone()");
       }
       return std::make_unique<LocalHandle>(pid);
     }
     case Mode::kModeNsJailSandbox: {
-      const int pid = ::clone(&NsjailImpl, stack + sizeof(stack),
-                              CLONE_VM | CLONE_VFORK | CLONE_NEWNS, &options);
+      const int pid =
+          ::clone(&NsjailImpl, stack + sizeof(stack), CLONE_NEWNS, &options);
       if (pid == -1) {
         return absl::ErrnoToStatus(errno, "clone()");
       }
