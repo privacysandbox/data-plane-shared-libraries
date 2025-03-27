@@ -30,6 +30,7 @@ message Params {
  int32 num_workers = 5;
  float late_burst_threshold = 7;
  string function_name = 8;
+ string input_args = 9;
 }
 
 message DurationStatistics {

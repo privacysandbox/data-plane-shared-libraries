@@ -111,6 +111,9 @@ message SampleRequest {
   FunctionType function = 1 [
     (privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {description: 'The function to be executed'}
   ];
+  int32 prime_count = 2 [
+    (privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {description: 'The count of prime numbers to generate.'}
+  ];
 }
 
 message SampleResponse {

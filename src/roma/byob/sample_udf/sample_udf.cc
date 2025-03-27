@@ -40,22 +40,25 @@ void RunHelloWorld(SampleResponse& bin_response) {
   bin_response.set_greeting("Hello, world!");
 }
 
-void RunPrimeSieve(SampleResponse& bin_response) {
+void RunPrimeSieve(SampleRequest& bin_request, SampleResponse& bin_response) {
+  int prime_count =
+      bin_request.prime_count() > 0 ? bin_request.prime_count() : kPrimeCount;
+
   // Create a boolean array of size n+1
-  std::vector<bool> primes(kPrimeCount + 1, true);
+  std::vector<bool> primes(prime_count + 1, true);
   // Set first two values to false
   primes[0] = false;
   primes[1] = false;
   // Loop through the elements
-  for (int i = 2; i <= sqrt(kPrimeCount); i++) {
+  for (int i = 2; i <= sqrt(prime_count); i++) {
     if (primes[i]) {
-      for (int j = i * i; j <= kPrimeCount; j += i) {
+      for (int j = i * i; j <= prime_count; j += i) {
         primes[j] = false;
       }
     }
   }
   // Loop through the array from 2 to n
-  for (int i = 2; i <= kPrimeCount; i++) {
+  for (int i = 2; i <= prime_count; i++) {
     if (primes[i]) {
       bin_response.add_prime_number(i);
     }
@@ -115,7 +118,7 @@ int main(int argc, char* argv[]) {
       RunHelloWorld(bin_response);
       break;
     case FUNCTION_PRIME_SIEVE:
-      RunPrimeSieve(bin_response);
+      RunPrimeSieve(bin_request, bin_response);
       break;
     case FUNCTION_CLONE:
       RunClone(bin_response);

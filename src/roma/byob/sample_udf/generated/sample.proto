@@ -40,6 +40,8 @@ package privacy_sandbox.roma_byob.example;
 message SampleRequest {
   // The function to be executed
   FunctionType function = 1;
+  // The count of prime numbers to generate.
+  int32 prime_count = 2;
 }
 
 // SampleResponse returns the function's output.

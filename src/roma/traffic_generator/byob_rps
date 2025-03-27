@@ -71,10 +71,10 @@ usage:
     --late-threshold <double>  maximum acceptable percentage of late bursts. Default: ${DEFAULT_LATE_THRESHOLD}
     --duration <duration>      run traffic generator for a specified duration. Default: ${DEFAULT_DURATION}
     --function-name <string>  name of the function to call (V8 Handler Function / BYOB Sample UDF Function).
+    --input-args <string>    comma-separated arguments to pass to the handler function. If running BYOB PrimeSieve, this is the number of primes to generate. Default: ${DEFAULT_INPUT_ARGS}
 
   V8 Mode settings:
     --udf-path <string>      path to JavaScript UDF file. Default: ${DEFAULT_UDF_PATH}
-    --input-args <string>    comma-separated arguments to pass to the handler function. Default: ${DEFAULT_INPUT_ARGS}
 
   Container settings:
     --cpus <int>               CPU count allocated to the container. Default: ${DEFAULT_CPUS}.
@@ -104,12 +104,13 @@ while [[ $# -gt 0 ]]; do
     --find-max-qps) FIND_MAX_QPS="$2"; shift 2 || usage 1 ;;
     --late-threshold) LATE_THRESHOLD="$2"; shift 2 || usage 1 ;;
     --function-name) FUNCTION_NAME="$2"; shift 2 || usage 1 ;;
+    --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
 
     --cpus) CPUS=$2; shift 2 || usage 1 ;;
     --memory) MEMORY="$2"; shift 2 || usage 1 ;;
 
     --udf-path) UDF_PATH="$2"; shift 2 || usage 1 ;;
-    --input-args) INPUT_ARGS="$2"; shift 2 || usage 1 ;;
+
     --output-file) OUTPUT_FILE="$2"; shift 2 || usage 1 ;;
     --config-file) CONFIG_FILE="$2"; shift 2 || usage 1 ;;
     --duration) DURATION="$2"; shift 2 || usage 1 ;;
@@ -160,6 +161,10 @@ function run_test() {
     CMD_ARGS+=("--function_name=${FUNCTION_NAME}")
   fi
 
+  if [[ -n ${INPUT_ARGS} ]]; then
+    CMD_ARGS+=("--input_args=${INPUT_ARGS}")
+  fi
+
   if [[ ${FIND_MAX_QPS} == true ]]; then
     CMD_ARGS+=("--find_max_qps")
     IFS=':' read -r low_qps step high_qps <<< "${QPS}"
@@ -177,9 +182,6 @@ function run_test() {
   if [[ ${MODE} == v8 ]]; then
     if [[ -n ${UDF_PATH} ]]; then
       CMD_ARGS+=("--udf_path=${UDF_PATH}")
-    fi
-    if [[ -n ${INPUT_ARGS} ]]; then
-      CMD_ARGS+=("--input_args=${INPUT_ARGS}")
     fi
   else
     CMD_ARGS+=("--sandbox=${SANDBOX}")

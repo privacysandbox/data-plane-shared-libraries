@@ -35,6 +35,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
+#include "absl/strings/str_join.h"
 #include "absl/strings/str_split.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/clock.h"
@@ -88,7 +89,8 @@ ABSL_FLAG(std::string, function_name, "",
           "Name of the function to call (V8 Handler Function / BYOB Sample UDF "
           "Function)");
 ABSL_FLAG(std::vector<std::string>, input_args, {},
-          "Arguments to pass to the handler function (V8 mode only)");
+          "Arguments to pass to the handler function. Number of primes if "
+          "running BYOB PrimeSieve");
 ABSL_FLAG(std::string, output_file, "", "Path to output file (JSON format)");
 ABSL_FLAG(bool, verbose, false, "Enable verbose logging");
 ABSL_FLAG(std::optional<int>, sigpending, std::nullopt,
@@ -146,6 +148,8 @@ std::string StatsToJson(const BurstGenerator::Stats& stats,
   report.mutable_params()->set_num_workers(absl::GetFlag(FLAGS_num_workers));
   report.mutable_params()->set_function_name(
       absl::GetFlag(FLAGS_function_name));
+  report.mutable_params()->set_input_args(
+      absl::StrJoin(absl::GetFlag(FLAGS_input_args), ","));
   const google::protobuf::util::JsonPrintOptions json_opts = {
       .add_whitespace = false,
       .always_print_primitive_fields = true,
@@ -176,13 +180,20 @@ BurstGenerator::Stats RunBurstGenerator(
   const std::string function_name = absl::GetFlag(FLAGS_function_name);
   const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
 
+  int prime_count = 0;
+  if (function_name == "PrimeSieve" && !input_args.empty() &&
+      absl::SimpleAtoi(input_args[0], &prime_count)) {
+    LOG(INFO) << "Running PrimeSieve with prime count: " << prime_count;
+  }
+
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
   auto [rpc_func, stop_func] =
       (mode == "byob")
-          ? CreateByobRpcFunc(
-                num_workers, lib_mounts, binary_path, sandbox, completions,
-                syscall_filtering, disable_ipc_namespace,
-                absl::GetFlag(FLAGS_byob_connection_timeout), function_name)
+          ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
+                              completions, syscall_filtering,
+                              disable_ipc_namespace,
+                              absl::GetFlag(FLAGS_byob_connection_timeout),
+                              function_name, prime_count)
           : CreateV8RpcFunc(num_workers, udf_path, function_name, input_args,
                             completions);
 

@@ -53,7 +53,8 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
     int num_workers, std::string_view lib_mounts, std::string_view binary_path,
     Mode mode, std::atomic<std::int64_t>& completions,
     SyscallFiltering syscall_filtering, bool disable_ipc_namespace,
-    absl::Duration connection_timeout, std::string_view function_name) {
+    absl::Duration connection_timeout, std::string_view function_name,
+    int prime_count) {
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
   CHECK_OK(roma_service->Init(
       /*config=*/{.lib_mounts = std::string(lib_mounts),
@@ -71,6 +72,9 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   ::privacy_sandbox::roma_byob::example::SampleRequest request;
   if (function_name == "PrimeSieve") {
     request.set_function(FUNCTION_PRIME_SIEVE);
+    if (prime_count > 0) {
+      request.set_prime_count(prime_count);
+    }
   } else if (function_name == "Clone") {
     request.set_function(FUNCTION_CLONE);
   } else if (function_name == "CloneWithNewNsFlag") {
