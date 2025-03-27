@@ -29,7 +29,7 @@ fileExistenceTests:
   - name: resolv_override conf
     path: /etc/resolv_override.conf
     shouldExist: true
-    permissions: "-r--r--r--"
+    permissions: '-r--r--r--'
 
   - name: server
     path: /server

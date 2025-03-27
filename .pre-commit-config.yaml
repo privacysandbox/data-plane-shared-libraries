@@ -127,10 +127,14 @@ repos:
     - markdown
     - javascript
     - json
-    exclude: (?x)^(
+    - yaml
+    exclude: (?x)(
+      \..*|
       .*-lock|
-      testing/.*\.reply
-      )\.json$
+      testing/.*\.reply|
+      testing/parc/azure/local-k8s-hermetic/helmchart/templates/configmaps
+      )\.(json|yaml)|
+      .*\.clang-tidy$
 
 - repo: https://github.com/DavidAnson/markdownlint-cli2
   rev: v0.7.1

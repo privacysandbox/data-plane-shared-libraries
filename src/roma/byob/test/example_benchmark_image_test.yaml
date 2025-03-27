@@ -45,7 +45,7 @@ commandTests:
   - name: example benchmark help
     command: /tools/example_benchmark
     args:
-    - --help
+      - --help
     exitCode: 0
     expectedOutput:
       - |-

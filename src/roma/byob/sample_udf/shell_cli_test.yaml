@@ -62,7 +62,8 @@ commandTests:
     args: ['--sandbox=unknown']
     exitCode: 1
     expectedError:
-      - "ERROR: Illegal value 'unknown' specified for flag 'sandbox'; Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal."
+      - "ERROR: Illegal value 'unknown' specified for flag 'sandbox'; Sandbox mode for BYOB. Supported values: gvisor,
+        gvisor-debug, minimal."
 
   - name: shell-cli help commands file
     command: /tools/shell-cli
