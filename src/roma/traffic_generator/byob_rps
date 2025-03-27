@@ -143,6 +143,7 @@ function run_test() {
   declare -r -i qps=$1; shift
   declare -r -i num_workers=$1; shift
   declare -r run_id=$1; shift
+  declare -r -i input_arg=$1; shift
   printf "running qps: %d with run_id: %s\n" ${qps} "${run_id}"
 
   declare -a CMD_ARGS=(
@@ -160,8 +161,9 @@ function run_test() {
     CMD_ARGS+=("--function_name=${FUNCTION_NAME}")
   fi
 
-  if [[ -n ${INPUT_ARGS} ]]; then
-    CMD_ARGS+=("--input_args=${INPUT_ARGS}")
+  # Avoid passing empty input arg
+  if [[ -n ${input_arg} && ${input_arg} != "_" ]]; then
+    CMD_ARGS+=("--input_args=${input_arg}")
   fi
 
   if [[ ${FIND_MAX_QPS} == true ]]; then
@@ -235,6 +237,16 @@ function parse_range_or_list() {
 parse_range_or_list QPS
 parse_range_or_list NUM_WORKERS
 parse_range_or_list BURST_SIZE
+if [[ ${MODE} == byob ]]; then
+  parse_range_or_list INPUT_ARGS
+fi
+
+if [[ -z ${INPUT_ARGS} ]]; then
+  INPUT_ARGS=("_") # Empty input arg to avoid looping over empty array
+elif [[ ${MODE} == v8 ]]; then
+  # shellcheck disable=SC2128
+  INPUT_ARGS=("${INPUT_ARGS}")
+fi
 
 set -o xtrace
 
@@ -248,12 +260,12 @@ if [[ -n ${CONFIG_FILE} ]]; then
   while IFS= read -r config; do
     qps=$(echo "${config}" | jq -r '.qps')
     burst_size=$(echo "${config}" | jq -r '.burst_size')
-
-    for num_workers in "${NUM_WORKERS_LIST[@]}"; do
+    input_arg=$(echo "${config}" | jq -r '.input_arg')
+    for num_workers in "${NUM_WORKERS[@]}"; do
       BASE_RUN_ID="$(mktemp --dry-run XXXX)"
       for ((run=1; run<=RUNS; run++)); do
-        echo "Running test with qps=${qps}, burst_size=${burst_size}, workers=${num_workers}, run=${run}"  # Debug line
-        run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}"
+        echo "Running test with qps=${qps}, burst_size=${burst_size}, workers=${num_workers}, input_arg=${input_arg}, run=${run}"  # Debug line
+        run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}" "${input_arg}"
         if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
           printf "%d failures. Exiting\n" ${FAILURE_COUNT}
           exit 1
@@ -265,13 +277,15 @@ else
   for qps in "${QPS[@]}"; do
     for num_workers in "${NUM_WORKERS[@]}"; do
       for burst_size in "${BURST_SIZE[@]}"; do
-        BASE_RUN_ID="$(mktemp --dry-run XXXX)"
-        for ((run=1; run<=RUNS; run++)); do
-          run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}"
-          if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
-            printf "%d failures. Exiting\n" ${FAILURE_COUNT}
-            exit 1
-          fi
+        for input_arg in "${INPUT_ARGS[@]}"; do
+          BASE_RUN_ID="$(mktemp --dry-run XXXX)"
+          for ((run=1; run<=RUNS; run++)); do
+            run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}" "${input_arg}"
+            if [[ ${FAILURE_COUNT} -ge ${MAX_FAILURES} ]]; then
+              printf "%d failures. Exiting\n" ${FAILURE_COUNT}
+              exit 1
+            fi
+          done
         done
       done
     done
