@@ -194,14 +194,14 @@ std::string GetFunctionTypeStr(FunctionType func_type) {
   }
 }
 
-static void LoadArguments(benchmark::internal::Benchmark* b) {
+void LoadArguments(benchmark::internal::Benchmark* b) {
   for (auto mode : kModes) {
     if (!HasClonePermissionsByobWorker(mode)) continue;
     b->Args({static_cast<int>(mode)});
   }
 }
 
-static void SampleBinaryArguments(benchmark::internal::Benchmark* b) {
+void SampleBinaryArguments(benchmark::internal::Benchmark* b) {
   constexpr FunctionType function_types[] = {
       FUNCTION_HELLO_WORLD,  // Generic "Hello, world!"
       FUNCTION_PRIME_SIEVE,  // Sieve of primes
@@ -217,7 +217,7 @@ static void SampleBinaryArguments(benchmark::internal::Benchmark* b) {
   }
 }
 
-static void ExecutePrimeSieveArguments(benchmark::internal::Benchmark* b) {
+void ExecutePrimeSieveArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t prime_counts[] = {100'000, 500'000, 1'000'000, 5'000'000,
                                       10'000'000};
   for (auto mode : kModes) {
@@ -228,7 +228,7 @@ static void ExecutePrimeSieveArguments(benchmark::internal::Benchmark* b) {
   }
 }
 
-static void ExecuteSortListArguments(benchmark::internal::Benchmark* b) {
+void ExecuteSortListArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t n_items_counts[] = {10'000, 100'000, 1'000'000};
   for (auto mode : kModes) {
     if (!HasClonePermissionsByobWorker(mode)) continue;
@@ -238,7 +238,7 @@ static void ExecuteSortListArguments(benchmark::internal::Benchmark* b) {
   }
 }
 
-static void PayloadArguments(benchmark::internal::Benchmark* b) {
+void PayloadArguments(benchmark::internal::Benchmark* b) {
   constexpr int64_t kMaxPayloadSize = 50'000'000;
   constexpr int64_t elem_counts[] = {1, 10, 100, 1'000};
   constexpr int64_t elem_sizes[] = {
@@ -256,7 +256,6 @@ static void PayloadArguments(benchmark::internal::Benchmark* b) {
     }
   }
 }
-}  // namespace
 
 void BM_LoadBinary(benchmark::State& state) {
   Mode mode = static_cast<Mode>(state.range(0));
@@ -387,19 +386,6 @@ void BM_ProcessRequestMultipleLanguages(benchmark::State& state) {
   }
   state.SetLabel(absl::StrJoin(
       {GetFunctionTypeStr(func_type), GetLanguageStr(lang)}, ", "));
-}
-
-std::string GetSize(int64_t val) {
-  int64_t divisor = 1;
-  std::string_view unit_qual = "";
-  if (val >= 1'000'000) {
-    divisor = 1'000'000;
-    unit_qual = "M";
-  } else if (val >= 1000) {
-    divisor = 1000;
-    unit_qual = "K";
-  }
-  return absl::StrCat(val / divisor, unit_qual, "B");
 }
 
 void BM_ProcessRequestRequestPayload(benchmark::State& state) {
@@ -609,6 +595,7 @@ void BM_ProcessRequestDevNullVsLogBinary(benchmark::State& state) {
     CHECK_OK(rpc(code_token, request));
   }
 }
+}  // namespace
 
 BENCHMARK(BM_LoadBinary)->Apply(LoadArguments)->ArgNames({"mode"});
 BENCHMARK(BM_ProcessRequestMultipleLanguages)
