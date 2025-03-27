@@ -82,11 +82,10 @@ usage:
 
   where <range> should be one of:
     * a single integer
-    * two or three integers, colon-delimited. The colons are replaced with whitespace, then passed
-      as arguments to the seq program. Therefore, the range value should be one of:
+    * two or three integers, colon/asterisk-delimited. The range value should be one of:
         * a string with two integers "a:b" where a <= b
         * a string with three integers "a:x:c" where a <= b, and x is the increment
-
+        * a string with two integers and a multiplier "a*x*b" where a <= b, and x is the multiplier
 USAGE
   # shellcheck disable=SC2086
   exit ${exitval}
@@ -210,24 +209,34 @@ function run_test() {
   echo "${output}"
 }
 
-function check_range() {
+function parse_range_or_list() {
   declare -n _val=$1
-  if [[ ${_val} -ge 0 ]] 2>/dev/null; then
-    _val="${_val}:${_val}"
+  # shellcheck disable=SC2128
+  if [[ ${_val} =~ ^[0-9]+:[0-9]+$ ]] || [[ ${_val} =~ ^[0-9]+:[0-9]+:[0-9]+$ ]]; then
+    # shellcheck disable=SC2086,SC2207
+    _val=($(seq ${_val//:/ }))
+  elif [[ ${_val} == *"*"* ]]; then
+    # shellcheck disable=SC2128
+    IFS='*' read -r start mult end <<< "${_val}"
+    declare -i start=${start:-1}
+    declare -i mult=${mult:-1}
+    declare -i end=${end:-1000}
+    declare -a tmp
+    for ((i = start; i <= end; i *= mult)); do
+      tmp+=("${i}")
+    done
+    _val=("${tmp[@]}")
+  else
+    # shellcheck disable=SC2128
+    IFS=',' read -r -a _val <<< "${_val}"
   fi
 }
 
-check_range QPS
-check_range NUM_WORKERS
-check_range BURST_SIZE
+parse_range_or_list QPS
+parse_range_or_list NUM_WORKERS
+parse_range_or_list BURST_SIZE
 
 set -o xtrace
-# shellcheck disable=SC2086,SC2207
-declare -a QPS_LIST=($(seq ${QPS//:/ }))
-# shellcheck disable=SC2086,SC2207
-declare -a NUM_WORKERS_LIST=($(seq ${NUM_WORKERS//:/ }))
-# shellcheck disable=SC2086,SC2207
-declare -a BURST_SIZE_LIST=($(seq ${BURST_SIZE//:/ }))
 
 declare -i qps num_workers burst_size
 declare BASE_RUN_ID
@@ -253,9 +262,9 @@ if [[ -n ${CONFIG_FILE} ]]; then
     done
   done < <(jq -c '.[]' "${CONFIG_FILE}")
 else
-  for qps in "${QPS_LIST[@]}"; do
-    for num_workers in "${NUM_WORKERS_LIST[@]}"; do
-      for burst_size in "${BURST_SIZE_LIST[@]}"; do
+  for qps in "${QPS[@]}"; do
+    for num_workers in "${NUM_WORKERS[@]}"; do
+      for burst_size in "${BURST_SIZE[@]}"; do
         BASE_RUN_ID="$(mktemp --dry-run XXXX)"
         for ((run=1; run<=RUNS; run++)); do
           run_test ${burst_size} ${qps} ${num_workers} "${BASE_RUN_ID}"-"${run}"
