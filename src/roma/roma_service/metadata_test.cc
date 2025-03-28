@@ -66,8 +66,7 @@ std::unique_ptr<FunctionBindingObjectV2<>> CreateLogFunctionBindingObject() {
                                                      "log_metadata");
 }
 
-TEST(SandboxedServiceTest,
-     DISABLED_MetadataStorageDoesNotBloatWithOrphanedRequests) {
+TEST(SandboxedServiceTest, MetadataStorageDoesNotBloatWithOrphanedRequests) {
   Config config;
   config.number_of_workers = 1;
   config.worker_queue_max_items = 1;

@@ -352,8 +352,12 @@ class RomaService {
 
     PS_RETURN_IF_ERROR(
         StoreMetadata(uuid_str, std::move(invocation_req->metadata)));
-    PS_RETURN_IF_ERROR(dispatcher_->Invoke(std::move(*invocation_req),
-                                           std::move(callback_wrapper)));
+    if (auto status = dispatcher_->Invoke(std::move(*invocation_req),
+                                          std::move(callback_wrapper));
+        !status.ok()) {
+      DeleteMetadata(uuid_str);
+      return status;
+    }
     return ExecutionToken{std::move(uuid_str)};
   }
 
