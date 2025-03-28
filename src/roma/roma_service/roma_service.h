@@ -117,6 +117,8 @@ class RomaService {
 
   absl::Status Stop() { return StopInternal(); }
 
+  int MetadataStorageSize() { return metadata_storage_.Size(); }
+
  private:
   absl::Status InitInternal() {
     size_t concurrency = config_.number_of_workers;

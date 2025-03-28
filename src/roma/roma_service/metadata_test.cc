@@ -66,6 +66,102 @@ std::unique_ptr<FunctionBindingObjectV2<>> CreateLogFunctionBindingObject() {
                                                      "log_metadata");
 }
 
+TEST(SandboxedServiceTest,
+     DISABLED_MetadataStorageDoesNotBloatWithOrphanedRequests) {
+  Config config;
+  config.number_of_workers = 1;
+  config.worker_queue_max_items = 1;
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  size_t n_requests = 100;
+  size_t n_successful_requests = 2;
+
+  absl::Notification load_finished;
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = R"JS_CODE(
+    function Handler(input) {
+      const startTime = Date.now();
+      // Sleep for 4 seconds to simulate long running request
+      while (Date.now() - startTime < 4000) {}
+    }
+  )JS_CODE",
+    });
+
+    absl::Status response_status;
+    ASSERT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response_status = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    ASSERT_TRUE(
+        load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(response_status.ok());
+  }
+
+  std::vector<absl::Status> statuses(n_successful_requests);
+  std::vector<absl::Notification> notifications(n_successful_requests);
+  for (int i = 0; i < n_successful_requests; i++) {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+            .metadata = {{absl::StrCat("key", i), absl::StrCat("val", i)}},
+        });
+
+    ASSERT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&, i](absl::StatusOr<ResponseObject> resp) {
+                               LOG(ERROR) << "Request " << i << " finished";
+                               statuses[i] = resp.status();
+                               notifications[i].Notify();
+                             })
+                    .ok());
+    // Sleep for 500ms to ensure first request is picked up by worker by the
+    // time the second request is queued
+    absl::SleepFor(absl::Milliseconds(500));
+  }
+
+  for (int i = n_successful_requests; i < n_requests; i++) {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+            .input = {R"("Foobar")"},
+            .metadata = {{absl::StrCat("key", i), absl::StrCat("val", i)}},
+        });
+
+    auto old_size = roma_service.MetadataStorageSize();
+    auto token = roma_service.Execute(
+        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {});
+
+    ASSERT_FALSE(token.ok())
+        << "Request " << i << " should have failed to be queued";
+
+    // Metadata storage should not have changed
+    ASSERT_EQ(roma_service.MetadataStorageSize(), old_size);
+  }
+
+  for (int i = 0; i < n_successful_requests; i++) {
+    ASSERT_TRUE(
+        notifications[i].WaitForNotificationWithTimeout(absl::Seconds(10)));
+    ASSERT_TRUE(statuses[i].ok());
+  }
+
+  // Metadata storage should be empty after all requests have been executed
+  EXPECT_EQ(roma_service.MetadataStorageSize(), 0);
+  ASSERT_TRUE(roma_service.Stop().ok());
+}
+
 TEST(MetadataTest, InvocationReqMetadataVisibleInNativeFunction) {
   Config config;
   config.number_of_workers = 2;

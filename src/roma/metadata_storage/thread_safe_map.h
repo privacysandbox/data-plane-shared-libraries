@@ -92,6 +92,11 @@ class ThreadSafeMap {
         absl::StrCat("Mutex with key: ", key, " could not be found"));
   }
 
+  int Size() ABSL_LOCKS_EXCLUDED(key_value_map_mutex_) {
+    absl::MutexLock lock(&key_value_map_mutex_);
+    return key_value_map_.size();
+  }
+
  private:
   absl::node_hash_map<std::string, V> key_value_map_
       ABSL_GUARDED_BY(key_value_map_mutex_);

@@ -40,6 +40,8 @@ class MetadataStorage {
 
   ThreadSafeMap<TMetadata>& GetMetadataMap() { return metadata_storage_; }
 
+  int Size() { return metadata_storage_.Size(); }
+
  private:
   ThreadSafeMap<TMetadata> metadata_storage_;
 };
