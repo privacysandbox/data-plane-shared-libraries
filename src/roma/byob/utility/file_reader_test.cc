@@ -24,19 +24,29 @@
 #include <fstream>
 
 #include "absl/log/check.h"
+#include "absl/status/statusor.h"
 #include "absl/strings/str_cat.h"
 namespace {
 
 using ::privacy_sandbox::server_common::byob::FileReader;
 
-std::filesystem::path CreateFile(std::string_view content) {
+absl::StatusOr<std::filesystem::path> CreateFile(std::string_view content) {
   std::filesystem::path filename(absl::StrCat(std::tmpnam(nullptr), ".txt"));
-  CHECK(!std::filesystem::exists(filename));
+  if (std::filesystem::exists(filename)) {
+    return absl::InternalError(absl::StrCat(
+        "Failed to generate new /tmp file name ", filename.c_str(), "."));
+  }
   std::ofstream file(filename.c_str());
-  CHECK(file.is_open());
+  if (!file.is_open()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to open ", filename.c_str()));
+  }
   file << content;
   file.close();
-  CHECK(std::filesystem::exists(filename));
+  if (!std::filesystem::exists(filename)) {
+    return absl::InternalError(absl::StrCat("Failed to validate existence of ",
+                                            filename.c_str(), "."));
+  }
   return filename;
 }
 
@@ -48,50 +58,55 @@ TEST(FileReaderTest, FileDoesNotExistGetFileContentsReturnsEmpty) {
 
 TEST(FileReaderTest, DirAsInputGetFileContentsReturnsEmpty) {
   std::filesystem::path dir = std::filesystem::path("/tmp");
-  CHECK(std::filesystem::is_directory(dir));
+  ASSERT_TRUE(std::filesystem::is_directory(dir));
   auto file_reader = FileReader::Create(dir);
 
   EXPECT_FALSE(file_reader.ok()) << file_reader.status();
 }
 
 TEST(FileReaderTest, EmptyFileGetFileContentsReturnsEmpty) {
-  std::filesystem::path file = CreateFile("");
+  auto file = CreateFile("");
+  ASSERT_TRUE(file.ok()) << file.status();
 
-  auto file_reader = FileReader::Create(file);
+  auto file_reader = FileReader::Create(*file);
 
-  EXPECT_TRUE(file_reader.ok()) << file_reader.status();
+  ASSERT_TRUE(file_reader.ok()) << file_reader.status();
   EXPECT_THAT(file_reader->GetFileContent(), ::testing::IsEmpty());
 }
 
 TEST(FileReaderTest, FileDeletedAfterConstructorCall) {
   std::string content;
-  std::filesystem::path file = CreateFile(content);
+  auto file = CreateFile(content);
+  ASSERT_TRUE(file.ok()) << file.status();
 
-  auto file_reader = FileReader::Create(file);
+  auto file_reader = FileReader::Create(*file);
 
-  EXPECT_FALSE(std::filesystem::exists(file));
+  EXPECT_FALSE(std::filesystem::exists(*file));
 }
 
 TEST(FileReaderTest, GetFileContentReturnsContent) {
   std::string content = "eieowieowioeiowieow";
-  std::filesystem::path file = CreateFile(content);
+  auto file = CreateFile(content);
+  ASSERT_TRUE(file.ok()) << file.status();
 
-  auto file_reader = FileReader::Create(file);
+  auto file_reader = FileReader::Create(*file);
 
-  EXPECT_TRUE(file_reader.ok()) << file_reader.status();
+  ASSERT_TRUE(file_reader.ok()) << file_reader.status();
   EXPECT_THAT(file_reader->GetFileContent(), ::testing::StrEq(content));
 }
 
 // TODO: ashruti - Modify this test to run as nonroot for everything to WAI.
 TEST(FileReaderTest, DISABLED_GetFileContentReturnsEmptyForNoFilePerms) {
   std::string content = "bananas";
-  std::filesystem::path file = CreateFile(content);
-  std::error_code ec;
-  std::filesystem::permissions(file, std::filesystem::perms::others_exec,
-                               std::filesystem::perm_options::replace, ec);
-  CHECK(!ec) << ec.message();
+  auto file = CreateFile(content);
+  ASSERT_TRUE(file.ok()) << file.status();
 
-  auto file_reader = FileReader::Create(file);
+  std::error_code ec;
+  std::filesystem::permissions(*file, std::filesystem::perms::others_exec,
+                               std::filesystem::perm_options::replace, ec);
+  ASSERT_TRUE(!ec) << ec.message();
+
+  auto file_reader = FileReader::Create(*file);
 
   EXPECT_FALSE(file_reader.ok()) << file_reader.status();
 }
@@ -100,11 +115,12 @@ TEST(FileReaderTest, GetFileContentReturnsContentForSpecialSymbols) {
   std::string content =
       "é, à, ö, ñ,  😀, 🌍, 🎉, 👋, etc.漢 (Chinese), こんにちは (Japanese), "
       "به متنی(Persian), etc. ©, ®, €, £, µ, ¥, etc.";
-  std::filesystem::path file = CreateFile(content);
+  auto file = CreateFile(content);
+  ASSERT_TRUE(file.ok()) << file.status();
 
-  auto file_reader = FileReader::Create(file);
+  auto file_reader = FileReader::Create(*file);
 
-  EXPECT_TRUE(file_reader.ok()) << file_reader.status();
+  ASSERT_TRUE(file_reader.ok()) << file_reader.status();
   EXPECT_THAT(file_reader->GetFileContent(), ::testing::StrEq(content));
 }
 }  // namespace

@@ -25,14 +25,18 @@
 
 #include "absl/log/check.h"
 #include "absl/status/statusor.h"
+#include "absl/strings/str_cat.h"
 
 using ::privacy_sandbox::server_common::byob::UdfBlob;
 using ::testing::StrEq;
 
 namespace {
-std::string GetFileContent(std::filesystem::path path) {
+absl::StatusOr<std::string> GetFileContent(std::filesystem::path path) {
   const std::ifstream input_stream(path.c_str(), std::ios_base::binary);
-  CHECK(!input_stream.fail()) << "Failed to open file";
+  if (input_stream.fail()) {
+    return absl::InternalError(
+        absl::StrCat("Failed to open file ", path.c_str()));
+  }
   std::stringstream buffer;
   buffer << input_stream.rdbuf();
   return buffer.str();
@@ -41,17 +45,21 @@ std::string GetFileContent(std::filesystem::path path) {
 TEST(UdfBlob, CreatesFileWithEmptyBlob) {
   std::string content = "";
   auto udf_blob = UdfBlob::Create(content);
-  CHECK_OK(udf_blob);
+  ASSERT_TRUE(udf_blob.ok());
 
-  EXPECT_THAT(GetFileContent((*udf_blob)()), StrEq(content));
+  auto content_from_file = GetFileContent((*udf_blob)());
+  ASSERT_TRUE(content_from_file.ok()) << content_from_file.status();
+  EXPECT_THAT(*content_from_file, StrEq(content));
 }
 
 TEST(UdfBlob, CreatesFileWithBlobContents) {
   std::string content = R"(|AzP`i)";
   auto udf_blob = UdfBlob::Create(content);
-  CHECK_OK(udf_blob);
+  ASSERT_TRUE(udf_blob.ok());
 
-  EXPECT_THAT(GetFileContent((*udf_blob)()), StrEq(content));
+  auto content_from_file = GetFileContent((*udf_blob)());
+  ASSERT_TRUE(content_from_file.ok()) << content_from_file.status();
+  EXPECT_THAT(*content_from_file, StrEq(content));
 }
 
 TEST(UdfBlob, FileIsDeletedByDestructor) {
@@ -59,10 +67,10 @@ TEST(UdfBlob, FileIsDeletedByDestructor) {
 
   {
     auto udf_blob = UdfBlob::Create("test blob");
-    CHECK_OK(udf_blob);
+    ASSERT_TRUE(udf_blob.ok());
     filepath = (*udf_blob)();
 
-    // When udf_blob is in scope, expect file exit.
+    // When udf_blob is in scope, the file must exist.
     EXPECT_TRUE(std::filesystem::exists(filepath));
   }
 
