@@ -148,7 +148,7 @@ class {{$svcName}} final {
    */
   absl::StatusOr<google::scp::roma::ExecutionToken> {{$rpc.Name}}(
       absl::Notification& notification, const {{$reqType}}& request,
-      absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
+      absl::StatusOr<{{$respType}}>& response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "",
       absl::Duration connection_timeout = absl::ZeroDuration()) {
     return roma_service_->ProcessRequest(

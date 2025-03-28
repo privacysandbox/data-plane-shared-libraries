@@ -165,7 +165,7 @@ int main(int argc, char** argv) {
   int iteration_number = 0;
   while (iteration_number++ < execute_iterations) {
     absl::Notification done;
-    absl::StatusOr<std::unique_ptr<SortListResponse>> response;
+    absl::StatusOr<SortListResponse> response;
     if (auto execution_token = sample_interface->SortList(
             done, request, response,
             /*metadata=*/{}, code_token, absl::InfiniteDuration());

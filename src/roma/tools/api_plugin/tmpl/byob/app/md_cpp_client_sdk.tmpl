@@ -115,7 +115,7 @@
    */
   absl::Status {{$rpc.Name}}(
       absl::Notification& notification, const {{$reqType}}& request,
-      absl::StatusOr<std::unique_ptr<{{$respType}}>>& response,
+      absl::StatusOr<{{$respType}}>& response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "");
 
   absl::Status {{$rpc.Name}}(

@@ -131,8 +131,8 @@ class ByobEchoService final {
   absl::StatusOr<google::scp::roma::ExecutionToken> Echo(
       absl::Notification& notification,
       ::privacy_sandbox::server_common::byob::example::EchoRequest request,
-      absl::StatusOr<std::unique_ptr<
-          ::privacy_sandbox::server_common::byob::example::EchoResponse>>&
+      absl::StatusOr<
+          ::privacy_sandbox::server_common::byob::example::EchoResponse>&
           response,
       TMetadata metadata = TMetadata(), std::string_view code_token = "",
       absl::Duration connection_timeout = absl::ZeroDuration()) {

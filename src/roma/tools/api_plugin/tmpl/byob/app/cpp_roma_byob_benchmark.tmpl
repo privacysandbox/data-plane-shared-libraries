@@ -98,7 +98,7 @@ void {{$rpc.Name}}ExecuteImpl(
     absl::Duration& connection_timeout) {
   absl::Notification notif;
   absl::Status notif_status;
-  absl::StatusOr<std::unique_ptr<{{$respType}}>> response;
+  absl::StatusOr<{{$respType}}> response;
   CHECK_OK(roma_service
               .{{$rpc.Name}}(notif, std::move(request), response,
                              /*metadata=*/{}, code_token, connection_timeout));

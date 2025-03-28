@@ -78,7 +78,7 @@ void EchoExecuteImpl(ByobEchoService<>& roma_service,
                      absl::Duration& connection_timeout) {
   absl::Notification notif;
   absl::Status notif_status;
-  absl::StatusOr<std::unique_ptr<EchoResponse>> response;
+  absl::StatusOr<EchoResponse> response;
   CHECK_OK(roma_service.Echo(notif, std::move(request), response,
                              /*metadata=*/{}, code_token, connection_timeout));
   CHECK(notif.WaitForNotificationWithTimeout(connection_timeout));

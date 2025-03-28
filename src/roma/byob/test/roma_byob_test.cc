@@ -20,7 +20,6 @@
 #include <filesystem>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <ostream>
 #include <string>
 #include <string_view>
@@ -87,7 +86,7 @@ absl::StatusOr<SampleResponse> SendRequestAndGetResponse(
   // Data we are sending to the server.
   SampleRequest bin_request;
   bin_request.set_function(func_type);
-  absl::StatusOr<std::unique_ptr<SampleResponse>> response;
+  absl::StatusOr<SampleResponse> response;
 
   absl::Notification notif;
   PS_ASSIGN_OR_RETURN(
@@ -98,7 +97,7 @@ absl::StatusOr<SampleResponse> SendRequestAndGetResponse(
     return absl::InternalError("Failed to execute request within timeout");
   }
   if (response.ok()) {
-    return std::move(**std::move(response));
+    return *std::move(response);
   } else {
     return std::move(response).status();
   }

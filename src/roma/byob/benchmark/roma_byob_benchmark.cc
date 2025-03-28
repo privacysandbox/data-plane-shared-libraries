@@ -15,7 +15,6 @@
 #include <algorithm>
 #include <fstream>
 #include <iostream>
-#include <memory>
 #include <string>
 #include <string_view>
 
@@ -90,14 +89,14 @@ SampleResponse SendRequestAndGetResponse(
   // Data we are sending to the server.
   SampleRequest bin_request;
   bin_request.set_function(func_type);
-  absl::StatusOr<std::unique_ptr<SampleResponse>> response;
+  absl::StatusOr<SampleResponse> response;
 
   absl::Notification notif;
   CHECK_OK(roma_service.Sample(notif, std::move(bin_request), response,
                                /*metadata=*/{}, code_token, kTimeout));
   CHECK(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(response);
-  return std::move(**response);
+  return *std::move(response);
 }
 
 std::string LoadCode(ByobSampleService<>& roma_service,
@@ -396,8 +395,7 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
 
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
-    absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::roma_byob::example::ReadPayloadResponse>>
+    absl::StatusOr<::privacy_sandbox::roma_byob::example::ReadPayloadResponse>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.ReadPayload(notif, request, response,
@@ -420,7 +418,7 @@ void BM_ProcessRequestRequestPayload(benchmark::State& state) {
 
   const int64_t payload_size = elem_size * elem_count;
   if (const auto response = rpc(request, code_tok); response.ok()) {
-    CHECK((*response)->payload_size() == payload_size);
+    CHECK(response->payload_size() == payload_size);
   } else {
     return;
   }
@@ -444,8 +442,8 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
 
   const auto rpc = [&roma_service](const auto& request,
                                    std::string_view code_token) {
-    absl::StatusOr<std::unique_ptr<
-        ::privacy_sandbox::roma_byob::example::GeneratePayloadResponse>>
+    absl::StatusOr<
+        ::privacy_sandbox::roma_byob::example::GeneratePayloadResponse>
         response;
     absl::Notification notif;
     CHECK_OK(roma_service.GeneratePayload(notif, request, response,
@@ -466,7 +464,7 @@ void BM_ProcessRequestResponsePayload(benchmark::State& state) {
 
   int64_t response_payload_size = 0;
   if (const auto response = rpc(request, code_tok); response.ok()) {
-    for (const auto& p : (*response)->payloads()) {
+    for (const auto& p : response->payloads()) {
       response_payload_size += p.size();
     }
     CHECK(req_payload_size == response_payload_size);
@@ -490,7 +488,7 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   ByobSampleService<> roma_service = GetRomaService(mode);
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
-    absl::StatusOr<std::unique_ptr<RunPrimeSieveResponse>> response;
+    absl::StatusOr<RunPrimeSieveResponse> response;
     absl::Notification notif;
     CHECK_OK(roma_service.RunPrimeSieve(notif, request, response,
                                         /*metadata=*/{}, code_token, kTimeout));
@@ -506,7 +504,7 @@ void BM_ProcessRequestPrimeSieve(benchmark::State& state) {
   {
     const auto response = rpc(code_tok, request);
     CHECK_OK(response);
-    CHECK_GT((*response)->largest_prime(), 0);
+    CHECK_GT(response->largest_prime(), 0);
   }
   for (auto _ : state) {
     CHECK_OK(rpc(code_tok, request));
@@ -519,7 +517,7 @@ void BM_ProcessRequestSortList(benchmark::State& state) {
   ByobSampleService<> roma_service = GetRomaService(mode);
   const auto rpc = [&roma_service](std::string_view code_token,
                                    const auto& request) {
-    absl::StatusOr<std::unique_ptr<SortListResponse>> response;
+    absl::StatusOr<SortListResponse> response;
     absl::Notification notif;
     CHECK_OK(roma_service.SortList(notif, request, response,
                                    /*metadata=*/{}, code_token, kTimeout));

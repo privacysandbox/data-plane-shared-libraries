@@ -16,7 +16,6 @@
 #include <gtest/gtest.h>
 
 #include <filesystem>
-#include <memory>
 #include <string>
 #include <string_view>
 
@@ -116,7 +115,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
       roma_service, kUdfPath / kCPlusPlusBinaryFilename, /*num_workers=*/2);
   EchoRequest request;
   request.set_message(message);
-  absl::StatusOr<std::unique_ptr<EchoResponse>> response;
+  absl::StatusOr<EchoResponse> response;
   absl::Notification notif;
 
   CHECK_OK(roma_service.Echo(notif, std::move(request), response,
@@ -124,8 +123,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {
 
   CHECK(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(response);
-  CHECK(*response != nullptr);
-  EXPECT_THAT((*response)->message(), StrEq(message));
+  EXPECT_THAT(response->message(), StrEq(message));
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackProcessRequestCppBinary) {
@@ -164,7 +162,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
       roma_service, kUdfPath / kGoLangBinaryFilename, /*num_workers=*/2);
   EchoRequest request;
   request.set_message(message);
-  absl::StatusOr<std::unique_ptr<EchoResponse>> response;
+  absl::StatusOr<EchoResponse> response;
   absl::Notification notif;
 
   CHECK_OK(roma_service.Echo(notif, std::move(request), response,
@@ -172,8 +170,7 @@ TEST(RomaByobExampleTest, NotifProcessRequestGoBinary) {
 
   CHECK(notif.WaitForNotificationWithTimeout(kTimeout));
   CHECK_OK(response);
-  CHECK(*response != nullptr);
-  EXPECT_THAT((*response)->message(), StrEq(message));
+  EXPECT_THAT(response->message(), StrEq(message));
 }
 
 TEST(RomaByobExampleTest, AsyncCallbackProcessRequestGoBinary) {

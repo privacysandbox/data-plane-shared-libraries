@@ -192,14 +192,14 @@ class RomaService final {
   absl::StatusOr<google::scp::roma::ExecutionToken> ProcessRequest(
       std::string_view code_token, const Request& request, TMetadata metadata,
       absl::Duration connection_timeout, absl::Notification& notif,
-      absl::StatusOr<std::unique_ptr<Response>>& output) {
+      absl::StatusOr<Response>& output) {
     return ProcessRequest<Response>(
         code_token, request, std::move(metadata), connection_timeout,
         [&notif, &output](absl::StatusOr<Response> response,
                           absl::StatusOr<std::string_view> /*logs*/,
                           ProcessRequestMetrics /*metrics*/) {
           if (response.ok()) {
-            output = std::make_unique<Response>(*std::move(response));
+            output = *std::move(response);
           } else {
             output = std::move(response).status();
           }
