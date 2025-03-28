@@ -48,41 +48,6 @@ inline constexpr std::string_view kWasmMemPagesV8PlatformFlag =
     "--wasm_max_mem_pages=";
 inline constexpr size_t kMaxNumberOfWasm32BitMemPages = 65536;
 
-// Metrics information constants
-
-// Label for time taken to run code in the sandbox, called from outside the
-// sandbox, meaning this includes serialization overhead. In milliseconds.
-inline constexpr std::string_view kExecutionMetricDurationMs =
-    "roma.execution.duration_ms";
-
-// Label for the number of pending requests in the dispatcher queue.
-inline constexpr std::string_view kExecutionMetricPendingRequestsCount =
-    "roma.execution.pending_requests_count";
-
-// Label for the ratio of workers actively processing requests.
-inline constexpr std::string_view kExecutionMetricActiveWorkerRatio =
-    "roma.execution.active_worker_ratio";
-
-// Label for the time the request spent in the queue before being processed. In
-// milliseconds.
-inline constexpr std::string_view kExecutionMetricWaitTimeMs =
-    "roma.execution.wait_time_ms";
-
-// Label for time taken to run code inside of the JS engine sandbox, meaning we
-// skip the overhead for serializing data. In absl::Duration or nanoseconds.
-inline constexpr std::string_view kExecutionMetricJsEngineCallDurationMs =
-    "roma.execution.code_run_duration_ms";
-
-// Label for time taken to parse the input in JS engine. In absl::Duration or
-// nanoseconds.
-inline constexpr std::string_view kInputParsingMetricJsEngineDurationMs =
-    "roma.execution.json_input_parsing_duration_ms";
-
-// Label for time taken to call handler function in JS engine. In
-// absl::Duration or nanoseconds.
-inline constexpr std::string_view kHandlerCallMetricJsEngineDurationMs =
-    "roma.execution.js_engine_handler_call_duration_ms";
-
 // Invalid file descriptor value.
 inline constexpr int kBadFd = -1;
 }  // namespace google::scp::roma::sandbox::constants

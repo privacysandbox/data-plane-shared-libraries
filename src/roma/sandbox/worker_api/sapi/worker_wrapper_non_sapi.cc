@@ -26,6 +26,7 @@
 #include "absl/strings/escaping.h"
 #include "absl/strings/str_join.h"
 #include "src/roma/config/config.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
@@ -40,8 +41,7 @@
 #include "worker_wrapper.h"
 
 using google::scp::roma::JsEngineResourceConstraints;
-using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDurationMs;
+using google::scp::roma::kExecutionMetricJsEngineCallDurationMs;
 using google::scp::roma::sandbox::worker::Worker;
 
 namespace google::scp::roma::sandbox::worker_api {

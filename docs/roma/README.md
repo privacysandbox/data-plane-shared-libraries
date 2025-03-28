@@ -51,6 +51,34 @@ class:
 To learn more about the structure of Roma requests and the API functions that are available, see the
 [roma interface](/src/roma/interface/roma.h) directory.
 
+## Metrics
+
+Roma provides a set of metrics that can be used to monitor the performance of the service. These
+metrics are collected by the Roma host process and can be accessed in the callback invoked after
+_Roma::Execute_ processes a request. Use the constants associated with each metric to access the
+values, available at [/src/roma/interface/metrics.h](/src/roma/interface/metrics.h), as shown in the
+example below.
+
+```cpp
+#include "src/roma/interface/metrics.h"
+...
+// Create an invocation request.
+auto execution_obj = make_unique<InvocationStrRequest<>>();
+execution_obj->id = "foo";
+execution_obj->version_string = "v1";
+execution_obj->handler_name = "Handler";
+execution_obj->input.push_back("\"Foobar\"");
+
+status = roma_service.Execute(move(execution_obj),
+    [&](absl::StatusOr<ResponseObject> resp) {
+      // define a callback function for response handling.
+      if (resp.ok()) {
+        double queue_time = resp->metrics[google::scp::roma::kExecutionMetricWaitTimeMs];
+        LOG(INFO) << "Queue time: " << queue_time;
+      }
+    });
+```
+
 ## Data flow
 
 ### Roma components

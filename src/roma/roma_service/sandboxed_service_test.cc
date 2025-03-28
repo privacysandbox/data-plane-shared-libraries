@@ -38,6 +38,7 @@
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"
 #include "src/roma/config/function_binding_object_v2.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/native_function_grpc_server/proto/test_host_service_native_request_handler.h"
 #include "src/roma/native_function_grpc_server/test_request_handlers.h"
@@ -45,17 +46,13 @@
 #include "src/util/duration.h"
 
 using google::scp::roma::FunctionBindingPayload;
-using google::scp::roma::sandbox::constants::kExecutionMetricActiveWorkerRatio;
-using google::scp::roma::sandbox::constants::kExecutionMetricDurationMs;
-using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDurationMs;
-using google::scp::roma::sandbox::constants::
-    kExecutionMetricPendingRequestsCount;
-using google::scp::roma::sandbox::constants::kExecutionMetricWaitTimeMs;
-using google::scp::roma::sandbox::constants::
-    kHandlerCallMetricJsEngineDurationMs;
-using google::scp::roma::sandbox::constants::
-    kInputParsingMetricJsEngineDurationMs;
+using google::scp::roma::kExecutionMetricActiveWorkerRatio;
+using google::scp::roma::kExecutionMetricDurationMs;
+using google::scp::roma::kExecutionMetricJsEngineCallDurationMs;
+using google::scp::roma::kExecutionMetricPendingRequestsCount;
+using google::scp::roma::kExecutionMetricWaitTimeMs;
+using google::scp::roma::kHandlerCallMetricJsEngineDurationMs;
+using google::scp::roma::kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::roma_service::kMinWorkerVirtualMemoryMB;
 using google::scp::roma::sandbox::roma_service::RomaService;
 using ::testing::_;
@@ -1443,22 +1440,20 @@ TEST(SandboxedServiceTest, QueueingDurationReturnedAsMetric) {
 
     ASSERT_TRUE(
         roma_service
-            .Execute(
-                std::make_unique<InvocationStrRequest<>>(execution_obj),
-                [&](absl::StatusOr<ResponseObject> resp) {
-                  response_status2 = resp.status();
-                  if (resp.ok()) {
-                    result = std::move(resp->resp);
-                  }
+            .Execute(std::make_unique<InvocationStrRequest<>>(execution_obj),
+                     [&](absl::StatusOr<ResponseObject> resp) {
+                       response_status2 = resp.status();
+                       if (resp.ok()) {
+                         result = std::move(resp->resp);
+                       }
 
-                  auto it = resp->metrics.find(
-                      roma::sandbox::constants::kExecutionMetricWaitTimeMs);
-                  std::cout << it->first << ":" << it->second << std::endl;
-                  ASSERT_TRUE(it != resp->metrics.end());
-                  queueing_duration = absl::Milliseconds(it->second);
+                       auto it = resp->metrics.find(kExecutionMetricWaitTimeMs);
+                       std::cout << it->first << ":" << it->second << std::endl;
+                       ASSERT_TRUE(it != resp->metrics.end());
+                       queueing_duration = absl::Milliseconds(it->second);
 
-                  execute_finished2.Notify();
-                })
+                       execute_finished2.Notify();
+                     })
             .ok());
   }
   ASSERT_TRUE(

@@ -34,6 +34,7 @@
 #include "absl/status/status.h"
 #include "absl/status/statusor.h"
 #include "absl/time/time.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -43,16 +44,13 @@
 using google::scp::roma::CodeObject;
 using google::scp::roma::Config;
 using google::scp::roma::InvocationSharedRequest;
+using google::scp::roma::kExecutionMetricDurationMs;
+using google::scp::roma::kExecutionMetricJsEngineCallDurationMs;
+using google::scp::roma::kHandlerCallMetricJsEngineDurationMs;
+using google::scp::roma::kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::ResponseObject;
 using google::scp::roma::benchmark::BenchmarkMetrics;
 using google::scp::roma::benchmark::InputsType;
-using google::scp::roma::sandbox::constants::kExecutionMetricDurationMs;
-using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDurationMs;
-using google::scp::roma::sandbox::constants::
-    kHandlerCallMetricJsEngineDurationMs;
-using google::scp::roma::sandbox::constants::
-    kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::roma_service::RomaService;
 
 namespace {

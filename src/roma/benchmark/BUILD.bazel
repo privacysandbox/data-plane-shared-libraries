@@ -86,6 +86,7 @@ cc_library(
     hdrs = ["roma_benchmark.h"],
     deps = [
         "//src/roma/interface",
+        "//src/roma/interface:metrics",
         "//src/roma/roma_service",
         "//src/roma/sandbox/constants",
         "//src/util:duration",

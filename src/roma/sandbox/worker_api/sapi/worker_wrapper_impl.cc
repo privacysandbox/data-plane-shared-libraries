@@ -30,6 +30,7 @@
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "src/roma/config/config.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/js_engine/v8_engine/v8_isolate_function_binding.h"
@@ -42,9 +43,8 @@
 #include "src/util/protoutil.h"
 
 using google::scp::roma::JsEngineResourceConstraints;
+using google::scp::roma::kExecutionMetricJsEngineCallDurationMs;
 using google::scp::roma::sandbox::constants::kBadFd;
-using google::scp::roma::sandbox::constants::
-    kExecutionMetricJsEngineCallDurationMs;
 using google::scp::roma::sandbox::worker::Worker;
 using google::scp::roma::sandbox::worker_api::ClearInputFields;
 using google::scp::roma::sandbox::worker_api::CreateWorker;

@@ -296,6 +296,7 @@ cc_library(
     ],
     deps = [
         "//src/roma/interface",
+        "//src/roma/interface:metrics",
         "//src/roma/roma_service",
         "//src/util:duration",
         "//src/util:execution_token",

@@ -27,6 +27,7 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/mutex.h"
 #include "absl/time/time.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -175,18 +176,16 @@ void Dispatcher::ConsumerImpl(int i) {
       absl::Duration run_code_duration = stopwatch.GetElapsedTime();
       ResponseObject response;
       response.metrics.reserve(2 + request.param.metrics_size());
-      response.metrics[roma::sandbox::constants::kExecutionMetricDurationMs] =
+      response.metrics[kExecutionMetricDurationMs] =
           absl::ToDoubleMilliseconds(run_code_duration);
-      response.metrics[roma::sandbox::constants::kExecutionMetricWaitTimeMs] =
+      response.metrics[kExecutionMetricWaitTimeMs] =
           absl::ToDoubleMilliseconds(queuing_duration);
       {
         absl::MutexLock lock(&mu_);
-        response.metrics
-            [roma::sandbox::constants::kExecutionMetricPendingRequestsCount] =
+        response.metrics[kExecutionMetricPendingRequestsCount] =
             requests_.size();
       }
-      response.metrics
-          [roma::sandbox::constants::kExecutionMetricActiveWorkerRatio] =
+      response.metrics[kExecutionMetricActiveWorkerRatio] =
           static_cast<double>(num_active_workers_) / workers_.size();
 
       absl::Status status = [&] {

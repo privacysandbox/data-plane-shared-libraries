@@ -22,6 +22,7 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/time/time.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/interface/roma.h"
 #include "src/roma/roma_service/roma_service.h"
 #include "src/util/duration.h"
@@ -147,8 +148,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
                     *duration = stopwatch.GetElapsedTime();
                     *output = resp->resp.substr(1, resp->resp.size() - 2);
                     *wait_duration = absl::Milliseconds(
-                        resp->metrics[roma::sandbox::constants::
-                                          kExecutionMetricWaitTimeMs]);
+                        resp->metrics[kExecutionMetricWaitTimeMs]);
                   } else {
                     *duration = std::move(resp.status());
                     *output = duration->status();

@@ -127,6 +127,7 @@ cc_library(
         ":v8_isolate_wrapper",
         "//src/logger:request_context_logger",
         "//src/roma/config",
+        "//src/roma/interface:metrics",
         "//src/roma/logging",
         "//src/roma/sandbox/js_engine",
         "//src/roma/sandbox/native_function_binding",

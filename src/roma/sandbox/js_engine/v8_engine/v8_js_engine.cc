@@ -38,6 +38,7 @@
 #include "src/logger/request_context_logger.h"
 #include "src/roma/config/type_converter.h"
 #include "src/roma/interface/function_binding_io.pb.h"
+#include "src/roma/interface/metrics.h"
 #include "src/roma/logging/logging.h"
 #include "src/roma/sandbox/constants/constants.h"
 #include "src/roma/sandbox/js_engine/v8_engine/profiler_isolate_wrapper.h"
@@ -50,15 +51,13 @@
 #include "snapshot_compilation_context.h"
 
 using google::scp::roma::kDefaultExecutionTimeout;
+using google::scp::roma::kHandlerCallMetricJsEngineDurationMs;
+using google::scp::roma::kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::kWasmCodeArrayName;
 using google::scp::roma::TypeConverter;
 using google::scp::roma::logging::LogOptions;
 using google::scp::roma::proto::FunctionBindingIoProto;
 using google::scp::roma::proto::RpcWrapper;
-using google::scp::roma::sandbox::constants::
-    kHandlerCallMetricJsEngineDurationMs;
-using google::scp::roma::sandbox::constants::
-    kInputParsingMetricJsEngineDurationMs;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupV8FlagsKey;
 using google::scp::roma::sandbox::constants::kJsEngineOneTimeSetupWasmPagesKey;
 using google::scp::roma::sandbox::constants::kMaxNumberOfWasm32BitMemPages;

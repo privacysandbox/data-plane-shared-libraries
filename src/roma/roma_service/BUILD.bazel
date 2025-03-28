@@ -196,6 +196,7 @@ cc_test(
         "//src/roma/config",
         "//src/roma/config:function_binding_object_v2",
         "//src/roma/interface",
+        "//src/roma/interface:metrics",
         "//src/roma/native_function_grpc_server:test_request_handlers",
         "//src/roma/native_function_grpc_server/proto:multi_service_roma_host_api",
         "//src/roma/native_function_grpc_server/proto:test_service_roma_app_api",

@@ -47,6 +47,11 @@ cc_library(
     ],
 )
 
+cc_library(
+    name = "metrics",
+    hdrs = ["metrics.h"],
+)
+
 buf_lint_test(
     name = "function_binding_io_proto_lint",
     size = "small",
