@@ -25,10 +25,11 @@ namespace google::scp::roma {
 inline constexpr std::string_view kExecutionMetricDurationMs =
     "roma.execution.duration_ms";
 
-// Label for the number of pending requests in the dispatcher queue at the time
-// the request finishes executing.
-inline constexpr std::string_view kExecutionMetricPendingRequestsCount =
-    "roma.execution.pending_requests_count";
+// Label for the ratio of pending requests in the dispatcher queue to the
+// maximum number of pending requests at the time the request finishes
+// executing.
+inline constexpr std::string_view kExecutionMetricQueueFullnessRatio =
+    "roma.execution.queue_fullness_ratio";
 
 // Label for the ratio of workers actively processing requests at the time the
 // request finishes executing.

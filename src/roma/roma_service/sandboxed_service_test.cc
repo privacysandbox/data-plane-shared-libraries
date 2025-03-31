@@ -49,7 +49,7 @@ using google::scp::roma::FunctionBindingPayload;
 using google::scp::roma::kExecutionMetricActiveWorkerRatio;
 using google::scp::roma::kExecutionMetricDurationMs;
 using google::scp::roma::kExecutionMetricJsEngineCallDurationMs;
-using google::scp::roma::kExecutionMetricPendingRequestsCount;
+using google::scp::roma::kExecutionMetricQueueFullnessRatio;
 using google::scp::roma::kExecutionMetricWaitTimeMs;
 using google::scp::roma::kHandlerCallMetricJsEngineDurationMs;
 using google::scp::roma::kInputParsingMetricJsEngineDurationMs;
@@ -1367,7 +1367,7 @@ TEST(SandboxedServiceTest, ShouldGetMetricsInResponse) {
 
     EXPECT_GT(metrics[kExecutionMetricWaitTimeMs], 0);
     EXPECT_GT(metrics[kExecutionMetricDurationMs], 0);
-    EXPECT_EQ(metrics[kExecutionMetricPendingRequestsCount], 0);
+    EXPECT_EQ(metrics[kExecutionMetricQueueFullnessRatio], 0);
     EXPECT_GT(metrics[kExecutionMetricActiveWorkerRatio], 0);
     EXPECT_GT(metrics[kExecutionMetricJsEngineCallDurationMs], 0);
     EXPECT_GT(metrics[kInputParsingMetricJsEngineDurationMs], 0);

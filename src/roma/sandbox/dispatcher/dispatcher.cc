@@ -182,8 +182,8 @@ void Dispatcher::ConsumerImpl(int i) {
           absl::ToDoubleMilliseconds(queuing_duration);
       {
         absl::MutexLock lock(&mu_);
-        response.metrics[kExecutionMetricPendingRequestsCount] =
-            requests_.size();
+        response.metrics[kExecutionMetricQueueFullnessRatio] =
+            requests_.size() / max_pending_requests_;
       }
       response.metrics[kExecutionMetricActiveWorkerRatio] =
           static_cast<double>(num_active_workers_) / workers_.size();
