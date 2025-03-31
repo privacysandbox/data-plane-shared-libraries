@@ -159,6 +159,8 @@ def promql_test(
         name,
         predicate,
         endpoint,
+        start,
+        step,
         **kwargs):
     """Verifies a Prometheus query's boolean result through a shell test.
 
@@ -166,18 +168,24 @@ def promql_test(
         name: The name of the test target.
         predicate: The PromQL query string, which should evaluate to a boolean.
         endpoint: The Prometheus endpoint (protocol://host:port format).
+        start: Start time for the query range
+        step: Time interval or resolution step for range queries
         **kwargs: Additional arguments to pass to the `sh_test` rule.
     """
     runner = Label("//bazel:promql_metric_test_runner")
 
+    env_vars = {
+        "NAME": name,
+        "PROMQL_ENDPOINT": endpoint,
+        "PROMQL_PREDICATE": predicate,
+        "PROMQL_START": start,
+        "PROMQL_STEP": step,
+    }
+
     native.sh_test(
         name = name,
         srcs = [runner],
-        env = {
-            "NAME": name,
-            "PROMQL_ENDPOINT": endpoint,
-            "PROMQL_PREDICATE": predicate,
-        },
+        env = env_vars,
         **kwargs
     )
 

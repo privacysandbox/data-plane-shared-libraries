@@ -88,7 +88,7 @@ Generates a test suite for test cases within the specified directory tree.
 ## promql_test
 
 <pre>
-promql_test(<a href="#promql_test-name">name</a>, <a href="#promql_test-predicate">predicate</a>, <a href="#promql_test-endpoint">endpoint</a>, <a href="#promql_test-kwargs">kwargs</a>)
+promql_test(<a href="#promql_test-name">name</a>, <a href="#promql_test-predicate">predicate</a>, <a href="#promql_test-endpoint">endpoint</a>, <a href="#promql_test-start">start</a>, <a href="#promql_test-step">step</a>, <a href="#promql_test-kwargs">kwargs</a>)
 </pre>
 
 Verifies a Prometheus query's boolean result through a shell test.
@@ -101,6 +101,8 @@ Verifies a Prometheus query's boolean result through a shell test.
 | <a id="promql_test-name"></a>name |  The name of the test target.   |  none |
 | <a id="promql_test-predicate"></a>predicate |  The PromQL query string, which should evaluate to a boolean.   |  none |
 | <a id="promql_test-endpoint"></a>endpoint |  The Prometheus endpoint (protocol://host:port format).   |  none |
+| <a id="promql_test-start"></a>start |  Start time for the query range   |  none |
+| <a id="promql_test-step"></a>step |  Time interval or resolution step for range queries   |  none |
 | <a id="promql_test-kwargs"></a>kwargs |  Additional arguments to pass to the <code>sh_test</code> rule.   |  none |
 
 

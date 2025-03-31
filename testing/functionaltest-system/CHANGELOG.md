@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 1.2.0 (2025-03-31)
+
+
+### Features
+
+* Add start and step as args to the promql_test macro
+
 ## 1.1.1 (2025-03-21)
 
 

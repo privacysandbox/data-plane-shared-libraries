@@ -39,6 +39,8 @@ check_env_exists NAME
 check_env_exists PROMQL_ENDPOINT
 check_env_exists PROMQL_PREDICATE
 check_env_exists TEST_UNDECLARED_OUTPUTS_DIR
+check_env_exists PROMQL_START
+check_env_exists PROMQL_STEP
 
 TMP_DIR="$(mktemp --directory)"
 readonly TMP_DIR
@@ -53,11 +55,9 @@ function cleanup() {
 }
 trap cleanup EXIT
 
-declare -r step_duration="5m"
-declare -r duration="10h"
 declare -a -r promql_args=(
-  --start="${duration}"
-  --step="${step_duration}"
+  --start="${PROMQL_START}"
+  --step="${PROMQL_STEP}"
   --host="${PROMQL_ENDPOINT}"
   --output=json
 )
