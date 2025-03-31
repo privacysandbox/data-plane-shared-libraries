@@ -174,6 +174,7 @@ cc_binary(
     name = "run_workers",
     srcs = ["run_workers.cc"],
     deps = [
+        "//src/roma/byob/config",
         "//src/roma/byob/dispatcher:dispatcher_cc_proto",
         "//src/roma/byob/dispatcher:dispatcher_grpc",
         "//src/roma/byob/dispatcher:interface",
@@ -181,6 +182,7 @@ cc_binary(
         "//src/util/status_macro:status_macros",
         "//src/util/status_macro:status_util",
         "@com_github_grpc_grpc//:grpc++",
+        "@com_google_absl//absl/base:core_headers",
         "@com_google_absl//absl/cleanup",
         "@com_google_absl//absl/container:flat_hash_map",
         "@com_google_absl//absl/container:flat_hash_set",
