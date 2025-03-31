@@ -157,3 +157,25 @@ cc_library(
     hdrs = ["execution_token.h"],
     visibility = ["//visibility:public"],
 )
+
+cc_library(
+    name = "scoped_execution_token",
+    hdrs = ["scoped_execution_token.h"],
+    visibility = ["//visibility:public"],
+    deps = [
+        ":execution_token",
+        "@com_google_absl//absl/functional:any_invocable",
+    ],
+)
+
+cc_test(
+    name = "scoped_execution_token_test",
+    size = "small",
+    srcs = ["scoped_execution_token_test.cc"],
+    deps = [
+        ":execution_token",
+        ":scoped_execution_token",
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

@@ -31,7 +31,9 @@ cc_library(
         "//src/roma/sandbox/native_function_binding:native_function_handler",
         "//src/roma/sandbox/native_function_binding:native_function_table",
         "//src/util:execution_token",
+        "//src/util:scoped_execution_token",
         "//src/util/status_macro:status_macros",
+        "@com_google_absl//absl/functional:any_invocable",
     ],
 )
 

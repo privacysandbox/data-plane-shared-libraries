@@ -36,6 +36,7 @@
 #include "src/roma/sandbox/native_function_binding/native_function_handler.h"
 #include "src/roma/sandbox/native_function_binding/native_function_table.h"
 #include "src/util/execution_token.h"
+#include "src/util/scoped_execution_token.h"
 #include "src/util/status_macro/status_macros.h"
 
 using google::scp::core::os::linux::SystemResourceInfoProviderLinux;
@@ -350,15 +351,15 @@ class RomaService {
           DeleteMetadata(uuid_str);
         };
 
-    PS_RETURN_IF_ERROR(
-        StoreMetadata(uuid_str, std::move(invocation_req->metadata)));
-    if (auto status = dispatcher_->Invoke(std::move(*invocation_req),
-                                          std::move(callback_wrapper));
-        !status.ok()) {
-      DeleteMetadata(uuid_str);
-      return status;
-    }
-    return ExecutionToken{std::move(uuid_str)};
+    ScopedExecutionToken scoped_token(
+        uuid_str,
+        [this](std::string_view token_value) { DeleteMetadata(token_value); });
+
+    PS_RETURN_IF_ERROR(StoreMetadata(std::move(uuid_str),
+                                     std::move(invocation_req->metadata)));
+    PS_RETURN_IF_ERROR(dispatcher_->Invoke(std::move(*invocation_req),
+                                           std::move(callback_wrapper)));
+    return scoped_token.Release();
   }
 
   // V8 fails to initialize if Roma workers aren't given at least
