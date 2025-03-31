@@ -52,6 +52,24 @@ message TelemetryConfig {
 
   repeated MetricConfig custom_udf_metric = 5;
 
+  message DimensionConfig {
+    string name = 1;
+
+    // options to set dimension value
+    enum Value {
+      VALUE_UNSPECIFIED = 0;
+      VALUE_DEFAULT = 1;  // Export the dimension
+      VALUE_OFF = 2;      // Do not export the dimension
+      VALUE_GENERATION_ID =
+          3;  // Only for generation_id dimension, using actual ID
+              // instead of "consent"/"not_consented" in DEFAULT.
+    }
+    Value value = 2;
+  }
+
+  // dimension_config can be set for a dimension to customize it
+  // If dimension_config is empty, server export default set of dimensions
+  repeated DimensionConfig dimension_config = 9;
 }
 
 message MetricConfig {
@@ -74,18 +92,18 @@ message MetricConfig {
   // overwrite the privacy_budget_weight_ in metric definition if being set
   optional double privacy_budget_weight = 6;
 
-  // overwrite the drop_noisy_values_probability_ in metric definition if being set
+  // overwrite the drop_noisy_values_probability_ in metric definition if being
+  // set
   optional double drop_noisy_values_probability = 7;
 
-  //overwrite metric description
+  // overwrite metric description
   optional string description = 8;
 
-  //overwrite partition_type in metric definition if being set.
-  //Only used by custom_udf_metric.
+  // overwrite partition_type in metric definition if being set.
+  // Only used by custom_udf_metric.
   optional string partition_type = 9;
 
-  //overwrite histogram_boundaries in metric definition if being set.
-  //Only used by custom_udf_metric.
+  // overwrite histogram_boundaries in metric definition if being set.
+  // Only used by custom_udf_metric.
   repeated double histogram_boundaries = 10;
-
 }

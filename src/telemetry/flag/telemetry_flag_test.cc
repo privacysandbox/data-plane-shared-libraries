@@ -27,11 +27,21 @@ namespace {
 using google::protobuf::util::MessageDifferencer;
 
 TEST(TelemetryFlag, Parse) {
-  std::string_view flag_str = R"pb(mode: PROD
-                                   metric { name: "m_0" }
-                                   metric { name: "m_1" }
-                                   metric_export_interval_ms: 100
-                                   dp_export_interval_ms: 200)pb";
+  std::string_view
+      flag_str =
+          R"pb(mode: PROD
+               metric { name: "m_0" }
+               metric { name: "m_1" }
+               metric_export_interval_ms: 100
+               dp_export_interval_ms: 200
+               dimension_config {
+                 name: "deployment.environment"
+                 value: VALUE_OFF
+               }
+               dimension_config {
+                 name: "generation_id"
+                 value: VALUE_GENERATION_ID
+               })pb";
   TelemetryFlag f_parsed;
   std::string err;
   EXPECT_TRUE(AbslParseFlag(flag_str, &f_parsed, &err));
@@ -39,6 +49,7 @@ TEST(TelemetryFlag, Parse) {
   EXPECT_EQ(f_parsed.server_config.metric_size(), 2);
   EXPECT_EQ(f_parsed.server_config.metric_export_interval_ms(), 100);
   EXPECT_EQ(f_parsed.server_config.dp_export_interval_ms(), 200);
+  EXPECT_EQ(f_parsed.server_config.dimension_config_size(), 2);
 }
 
 TEST(TelemetryFlag, ParseError) {
