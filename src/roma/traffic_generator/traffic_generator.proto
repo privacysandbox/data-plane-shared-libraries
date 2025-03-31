@@ -41,6 +41,7 @@ message DurationStatistics {
   google.protobuf.Duration p95 = 5;
   google.protobuf.Duration p99 = 6;
   google.protobuf.Duration max = 7;
+  google.protobuf.Duration mad_variance = 8;
 }
 
 message BurstGeneratorStatistics {

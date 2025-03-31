@@ -18,6 +18,7 @@
 #include <cmath>
 #include <memory>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -39,7 +40,27 @@ struct Percentiles {
   T p95;
   T p99;
   T max;
+  T mad_variance;
 };
+
+template <typename T>
+T get_mad_variance(std::vector<T> values) {
+  T median = values[std::floor(0.5 * values.size())];
+  std::vector<T> abs_deviations;
+  abs_deviations.reserve(values.size());
+  for (const auto& val : values) {
+    if constexpr (std::is_same_v<T, absl::Duration>) {
+      abs_deviations.push_back(absl::AbsDuration(val - median));
+    } else {
+      abs_deviations.push_back(std::abs(val - median));
+    }
+  }
+
+  std::sort(abs_deviations.begin(), abs_deviations.end());
+  T median_abs_deviation =
+      abs_deviations[std::floor(0.5 * abs_deviations.size())];
+  return median_abs_deviation;
+}
 
 template <typename T>
 Percentiles<T> get_percentiles(std::vector<T> values) {
@@ -52,6 +73,7 @@ Percentiles<T> get_percentiles(std::vector<T> values) {
         .p95 = T(),
         .p99 = T(),
         .max = T(),
+        .mad_variance = T(),
     };
   }
 
@@ -64,6 +86,7 @@ Percentiles<T> get_percentiles(std::vector<T> values) {
       .p95 = values[std::floor(0.95 * values.size())],
       .p99 = values[std::floor(0.99 * values.size())],
       .max = values[values.size() - 1],
+      .mad_variance = get_mad_variance(values),
   };
 }
 
@@ -116,6 +139,7 @@ void CopyStats(
   *stats.mutable_p95() = DurationToProto(ptile.p95);
   *stats.mutable_p99() = DurationToProto(ptile.p99);
   *stats.mutable_max() = DurationToProto(ptile.max);
+  *stats.mutable_mad_variance() = DurationToProto(ptile.mad_variance);
 }
 
 }  // namespace
@@ -156,22 +180,27 @@ std::string BurstGenerator::Stats::ToString() const {
       "\n  p90: ", burst_creation_ptiles.p90,
       "\n  p95: ", burst_creation_ptiles.p95,
       "\n  p99: ", burst_creation_ptiles.p99,
-      "\n  max: ", burst_creation_ptiles.max, "\nburst processing latencies",
+      "\n  max: ", burst_creation_ptiles.max,
+      "\n  variance (MAD): ", burst_creation_ptiles.mad_variance,
+      "\nburst processing latencies",
       "\n  count: ", burst_processing_ptiles.count,
       "\n  min: ", burst_processing_ptiles.min,
       "\n  p50: ", burst_processing_ptiles.p50,
       "\n  p90: ", burst_processing_ptiles.p90,
       "\n  p95: ", burst_processing_ptiles.p95,
       "\n  p99: ", burst_processing_ptiles.p99,
-      "\n  max: ", burst_processing_ptiles.max, "\ninvocation latencies",
-      "\n  count: ", invocation_ptiles.count,
+      "\n  max: ", burst_processing_ptiles.max,
+      "\n  variance (MAD): ", burst_processing_ptiles.mad_variance,
+      "\ninvocation latencies", "\n  count: ", invocation_ptiles.count,
       "\n  min: ", invocation_ptiles.min, "\n  p50: ", invocation_ptiles.p50,
       "\n  p90: ", invocation_ptiles.p90, "\n  p95: ", invocation_ptiles.p95,
       "\n  p99: ", invocation_ptiles.p99, "\n  max: ", invocation_ptiles.max,
+      "\n  variance (MAD): ", invocation_ptiles.mad_variance,
       "\nwait latencies\n  count: ", wait_ptiles.count,
       "\n  min: ", wait_ptiles.min, "\n  p50: ", wait_ptiles.p50,
       "\n  p90: ", wait_ptiles.p90, "\n  p95: ", wait_ptiles.p95,
-      "\n  p99: ", wait_ptiles.p99, "\n  max: ", wait_ptiles.max);
+      "\n  p99: ", wait_ptiles.p99, "\n  max: ", wait_ptiles.max,
+      "\n  variance (MAD): ", wait_ptiles.mad_variance);
   // Each invocation should have a corresponding output
   if (output_latencies.size() == invocation_outputs.size()) {
     Percentiles<absl::Duration> output_ptiles =
@@ -180,7 +209,8 @@ std::string BurstGenerator::Stats::ToString() const {
         stats_str, "\noutput latencies", "\n  count: ", output_ptiles.count,
         "\n  min: ", output_ptiles.min, "\n  p50: ", output_ptiles.p50,
         "\n  p90: ", output_ptiles.p90, "\n  p95: ", output_ptiles.p95,
-        "\n  p99: ", output_ptiles.p99, "\n  max: ", output_ptiles.max);
+        "\n  p99: ", output_ptiles.p99, "\n  max: ", output_ptiles.max,
+        "\n  variance (MAD): ", output_ptiles.mad_variance);
   }
   return stats_str;
 }

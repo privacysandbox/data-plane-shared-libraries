@@ -81,12 +81,14 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     { header: 'Burst Creation Latencies p95 (ms)', path: 'burstCreationLatencies.p95', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Creation Latencies p99 (ms)', path: 'burstCreationLatencies.p99', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Creation Latencies max (ms)', path: 'burstCreationLatencies.max', transform: (val) => secondsToMilliseconds(val) },
+    { header: 'Burst Creation Latencies variance (MAD) (ms)', path: 'burstCreationLatencies.madVariance', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Processing Latencies min (ms)', path: 'burstProcessingLatencies.min', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Processing Latencies p50 (ms)', path: 'burstProcessingLatencies.p50', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Processing Latencies p90 (ms)', path: 'burstProcessingLatencies.p90', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Processing Latencies p95 (ms)', path: 'burstProcessingLatencies.p95', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Processing Latencies p99 (ms)', path: 'burstProcessingLatencies.p99', transform: (val) => secondsToMilliseconds(val) },
     { header: 'Burst Processing Latencies max (ms)', path: 'burstProcessingLatencies.max', transform: (val) => secondsToMilliseconds(val) },
+    { header: 'Burst Processing Latencies variance (MAD) (ms)', path: 'burstProcessingLatencies.madVariance', transform: (val) => secondsToMilliseconds(val) },
     {
       header: 'Invocation Latencies min (ms)',
       path: 'invocationLatencies.min',
@@ -115,6 +117,10 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     {
       header: 'Invocation Latencies max (ms)',
       path: 'invocationLatencies.max',
+      transform: (val) => secondsToMilliseconds(val),
+    },
+    { header: 'Invocation Latencies variance (MAD) (ms)',
+      path: 'invocationLatencies.madVariance',
       transform: (val) => secondsToMilliseconds(val),
     },
   ];
@@ -148,6 +154,11 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     columnMapping.push({
       header: 'Output Latencies max (ms)',
       path: 'outputLatencies.max',
+      transform: (val) => secondsToMilliseconds(val),
+    });
+    columnMapping.push({
+      header: 'Output Latencies variance (MAD) (ms)',
+      path: 'outputLatencies.madVariance',
       transform: (val) => secondsToMilliseconds(val),
     });
   }
