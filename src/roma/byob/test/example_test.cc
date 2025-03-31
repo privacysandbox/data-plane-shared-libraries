@@ -50,7 +50,7 @@ TEST(RomaByobExampleTest, LoadCppBinaryInGvisorSandbox) {
       echo_interface->Register(kUdfPath / kCPlusPlusBinaryFilename,
                                /*num_workers=*/1);
 
-  EXPECT_TRUE(code_id.ok());
+  EXPECT_TRUE(code_id.ok()) << code_id.status();
 }
 
 TEST(RomaByobExampleTest, LoadCppBinaryInMinimalSandbox) {
@@ -65,7 +65,7 @@ TEST(RomaByobExampleTest, LoadCppBinaryInMinimalSandbox) {
       echo_interface->Register(kUdfPath / kCPlusPlusBinaryFilename,
                                /*num_workers=*/1);
 
-  EXPECT_TRUE(code_id.ok());
+  EXPECT_TRUE(code_id.ok()) << code_id.status();
 }
 
 TEST(RomaByobExampleTest, LoadGoBinaryInGvisorSandbox) {
@@ -76,7 +76,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInGvisorSandbox) {
   absl::StatusOr<std::string> code_id = echo_interface->Register(
       kUdfPath / kGoLangBinaryFilename, /*num_workers=*/1);
 
-  EXPECT_TRUE(code_id.ok());
+  EXPECT_TRUE(code_id.ok()) << code_id.status();
 }
 
 TEST(RomaByobExampleTest, LoadGoBinaryInMinimalSandbox) {
@@ -90,7 +90,7 @@ TEST(RomaByobExampleTest, LoadGoBinaryInMinimalSandbox) {
   absl::StatusOr<std::string> code_id = echo_interface->Register(
       kUdfPath / kGoLangBinaryFilename, /*num_workers=*/1);
 
-  EXPECT_TRUE(code_id.ok());
+  EXPECT_TRUE(code_id.ok()) << code_id.status();
 }
 
 TEST(RomaByobExampleTest, NotifProcessRequestCppBinary) {

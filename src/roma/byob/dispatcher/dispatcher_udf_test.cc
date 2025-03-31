@@ -134,7 +134,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
                 })
             .ok());
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
+    ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world!"));
   }
 }
@@ -185,7 +185,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
                 })
             .ok());
     done.WaitForNotification();
-    EXPECT_TRUE(bin_response.ok());
+    EXPECT_TRUE(bin_response.ok()) << bin_response.status();
   }
 }
 
@@ -234,7 +234,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
                 })
             .ok());
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
+    ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
 }
@@ -284,7 +284,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
                 })
             .ok());
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
+    ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a crashing UDF!"));
   }
 }
@@ -334,7 +334,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
                 })
             .ok());
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
+    ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I return a non-zero status!"));
   }
 }
@@ -385,7 +385,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     const absl::StatusOr<std::string> code_token =
         dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
                               /*n_workers=*/2);
-    ASSERT_TRUE(code_token.ok());
+    ASSERT_TRUE(code_token.ok()) << code_token.status();
     absl::Notification done;
     absl::StatusOr<SampleResponse> bin_response;
     ASSERT_TRUE(
@@ -400,7 +400,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
                 })
             .ok());
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
+    ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
 }
@@ -444,7 +444,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
             EXPECT_GT(metrics.response_time, absl::Seconds(1));
             done.Notify();
           });
-  ASSERT_TRUE(execution_token.ok());
+  ASSERT_TRUE(execution_token.ok()) << execution_token.status();
   EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(2)));
   dispatcher.Cancel(*std::move(execution_token));
   done.WaitForNotification();
@@ -545,7 +545,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
                 })
             .ok());
     done.WaitForNotification();
-    ASSERT_TRUE(bin_response.ok());
+    ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world from Go!"));
   }
 }
@@ -596,7 +596,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
                 })
             .ok());
     done.WaitForNotification();
-    EXPECT_TRUE(bin_response.ok());
+    EXPECT_TRUE(bin_response.ok()) << bin_response.status();
   }
 }
 }  // namespace
