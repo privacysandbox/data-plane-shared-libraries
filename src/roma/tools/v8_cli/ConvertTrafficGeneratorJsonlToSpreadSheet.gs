@@ -68,6 +68,7 @@ function ConvertTrafficGeneratorJsonlToSpreadSheet() {
     { header: 'QPS', path: 'params.queriesPerSecond' },
     { header: 'Num Bursts', path: 'params.queryCount' },
     { header: 'Num Workers', path: 'params.numWorkers' },
+    { header: 'CLONE_NEW_IPC?', path: 'params.ipcNamespaceEnabled' },
     { header: 'Total Elapsed Time (s)', path: 'statistics.totalElapsedTime', transform: (val) => val.replace('s', '') },
     { header: 'Total Invocation Count', path: 'statistics.totalInvocationCount' },
     { header: 'Failure Count', path: 'statistics.failureCount' },

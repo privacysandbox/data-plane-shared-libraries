@@ -150,6 +150,8 @@ std::string StatsToJson(const BurstGenerator::Stats& stats,
       absl::GetFlag(FLAGS_function_name));
   report.mutable_params()->set_input_args(
       absl::StrJoin(absl::GetFlag(FLAGS_input_args), ","));
+  report.mutable_params()->set_ipc_namespace_enabled(
+      !absl::GetFlag(FLAGS_disable_ipc_namespace));
   const google::protobuf::util::JsonPrintOptions json_opts = {
       .add_whitespace = false,
       .always_print_primitive_fields = true,

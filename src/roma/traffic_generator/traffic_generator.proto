@@ -31,6 +31,7 @@ message Params {
  float late_burst_threshold = 7;
  string function_name = 8;
  string input_args = 9;
+ bool ipc_namespace_enabled = 10;
 }
 
 message DurationStatistics {
