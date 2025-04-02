@@ -42,7 +42,7 @@ CreatePeriodicExportingMetricReader(
         options,
     absl::optional<std::string> collector_endpoint) {
   opentelemetry::exporter::otlp::OtlpGrpcMetricExporterOptions exporter_options;
-  if (collector_endpoint.has_value()) {
+  if (collector_endpoint.has_value() && !collector_endpoint->empty()) {
     exporter_options.endpoint = *collector_endpoint;
   }
   std::unique_ptr<opentelemetry::sdk::metrics::PushMetricExporter> exporter =
