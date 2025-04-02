@@ -23,6 +23,10 @@
 #include <utility>
 #include <vector>
 
+#include <nlohmann/json.hpp>
+
+#include "absl/strings/str_replace.h"
+#include "absl/strings/substitute.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/config/config.h"
@@ -593,6 +597,130 @@ TEST(FunctionBindingTest, CanRegisterNonGlobalBindingsAndExecuteCode) {
       result,
       StrEq(
           R"("func1: Foobar String from foo.bar.func1 func2: Foobar String from fo.obar.func2")"));
+
+  EXPECT_TRUE(roma_service.Stop().ok());
+}
+
+nlohmann::json ProtoValueToJson(const google::protobuf::Value& value) {
+  switch (value.kind_case()) {
+    case google::protobuf::Value::kNullValue:
+      return nullptr;
+    case google::protobuf::Value::kNumberValue:
+      return value.number_value();
+    case google::protobuf::Value::kStringValue:
+      return value.string_value();
+    case google::protobuf::Value::kBoolValue:
+      return value.bool_value();
+    case google::protobuf::Value::kStructValue: {
+      nlohmann::json obj = nlohmann::json::object();
+      for (const auto& [key, nested_value] : value.struct_value().fields()) {
+        obj[key] = ProtoValueToJson(nested_value);
+      }
+      return obj;
+    }
+    case google::protobuf::Value::kListValue: {
+      nlohmann::json arr = nlohmann::json::array();
+      for (const auto& item : value.list_value().values()) {
+        arr.push_back(ProtoValueToJson(item));
+      }
+      return arr;
+    }
+    default:
+      return nullptr;
+  }
+}
+
+void StructInFunction(FunctionBindingPayload<>& wrapper) {
+  google::protobuf::Struct proto_struct =
+      wrapper.io_proto.input_struct().data();
+  nlohmann::json result_json = nlohmann::json::object();
+  for (const auto& [key, value] : proto_struct.fields()) {
+    result_json[key] = ProtoValueToJson(value);
+  }
+  wrapper.io_proto.set_output_string(result_json.dump());
+}
+
+TEST(FunctionBindingTest,
+     CanRegisterBindingAndExecuteCodeThatCallsItWithInputStruct) {
+  RomaService<>::Config config;
+  config.number_of_workers = 2;
+  config.RegisterFunctionBinding(
+      CreateFunctionBindingObjectV2("set_some_struct", StructInFunction));
+
+  RomaService<> roma_service(std::move(config));
+  ASSERT_TRUE(roma_service.Init().ok());
+
+  std::string result;
+  absl::Notification load_finished;
+  absl::Notification execute_finished;
+
+  const std::string json_str = R"({
+    "string_key": "string_value",
+    "number_key": 42.5,
+    "bool_key": true,
+    "null_key": null,
+    "array_key": ["item1", 2, false],
+    "object_key": {
+      "nested_key": "nested_value"
+    }
+  })";
+  std::string js_code = absl::Substitute(R"""(
+      let struct = $0;
+      function Handler() {
+        return set_some_struct(struct);
+      }
+        )""",
+                                         json_str);
+
+  {
+    auto code_obj = std::make_unique<CodeObject>(CodeObject{
+        .id = "foo",
+        .version_string = "v1",
+        .js = js_code,
+    });
+
+    absl::Status response;
+    EXPECT_TRUE(roma_service
+                    .LoadCodeObj(std::move(code_obj),
+                                 [&](absl::StatusOr<ResponseObject> resp) {
+                                   response = resp.status();
+                                   load_finished.Notify();
+                                 })
+                    .ok());
+    EXPECT_TRUE(response.ok());
+  }
+  ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
+  {
+    auto execution_obj =
+        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+            .id = "foo",
+            .version_string = "v1",
+            .handler_name = "Handler",
+        });
+
+    absl::Status response;
+    EXPECT_TRUE(roma_service
+                    .Execute(std::move(execution_obj),
+                             [&](absl::StatusOr<ResponseObject> resp) {
+                               response = resp.status();
+                               result = std::move(resp->resp);
+                               execute_finished.Notify();
+                             })
+                    .ok());
+    EXPECT_TRUE(response.ok());
+  }
+  ASSERT_TRUE(
+      execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
+
+  // Because the json is dumped in the callback, result is triple-escaped.
+  // We need to unescape it before comparing with the original json.
+  std::string unescaped_result = absl::StrReplaceAll(result, {{"\\\"", "\""}});
+  unescaped_result = unescaped_result.substr(1, unescaped_result.size() - 2);
+
+  nlohmann::json expected_json = nlohmann::json::parse(json_str);
+  nlohmann::json result_json = nlohmann::json::parse(unescaped_result);
+  EXPECT_EQ(result_json, expected_json);
 
   EXPECT_TRUE(roma_service.Stop().ok());
 }

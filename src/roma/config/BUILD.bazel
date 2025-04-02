@@ -113,6 +113,7 @@ cc_test(
         "@com_google_absl//absl/log:check",
         "@com_google_absl//absl/status:statusor",
         "@com_google_googletest//:gtest_main",
+        "@nlohmann_json//:lib",
         "@v8//:v8_icu",
     ],
 )

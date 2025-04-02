@@ -22,9 +22,12 @@
 #include <stdint.h>
 
 #include <algorithm>
+#include <limits>
 #include <memory>
 #include <string>
 #include <vector>
+
+#include <nlohmann/json.hpp>
 
 #include "absl/container/flat_hash_map.h"
 #include "absl/log/check.h"
@@ -507,5 +510,297 @@ TEST_F(TypeConverterTest, V8Uint8ArrayToNativeUint8Pointer) {
   // The above should be enough, but also compare the buffers to be thorough
   EXPECT_EQ(memcmp(out_data.get(), v8_val->Buffer()->Data(), v8_val->Length()),
             0);
+}
+
+nlohmann::json ProtoValueToJson(const google::protobuf::Value& value) {
+  switch (value.kind_case()) {
+    case google::protobuf::Value::kNullValue:
+      return nullptr;
+    case google::protobuf::Value::kNumberValue:
+      return value.number_value();
+    case google::protobuf::Value::kStringValue:
+      return value.string_value();
+    case google::protobuf::Value::kBoolValue:
+      return value.bool_value();
+    case google::protobuf::Value::kStructValue: {
+      nlohmann::json obj = nlohmann::json::object();
+      for (const auto& [key, nested_value] : value.struct_value().fields()) {
+        obj[key] = ProtoValueToJson(nested_value);
+      }
+      return obj;
+    }
+    case google::protobuf::Value::kListValue: {
+      nlohmann::json arr = nlohmann::json::array();
+      for (const auto& item : value.list_value().values()) {
+        arr.push_back(ProtoValueToJson(item));
+      }
+      return arr;
+    }
+    default:
+      return nullptr;
+  }
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStruct) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+
+  const std::string json_str = R"({
+    "string_key": "string_value",
+    "number_key": 42.5,
+    "bool_key": true,
+    "null_key": null,
+    "array_key": ["item1", 2, false],
+    "object_key": {
+      "nested_key": "nested_value"
+    }
+  })";
+
+  v8::Local<v8::String> v8_json =
+      v8::String::NewFromUtf8(isolate_, json_str.c_str()).ToLocalChecked();
+  v8::Local<v8::Value> v8_obj_value;
+  bool parsed = v8::JSON::Parse(context, v8_json).ToLocal(&v8_obj_value);
+  ASSERT_TRUE(parsed) << "Failed to parse JSON";
+  ASSERT_TRUE(v8_obj_value->IsObject()) << "Parsed value is not an object";
+
+  v8::Local<v8::Object> v8_obj = v8_obj_value.As<v8::Object>();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_TRUE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_obj,
+                                                              &proto_struct));
+
+  nlohmann::json original_json = nlohmann::json::parse(json_str);
+
+  nlohmann::json result_json = nlohmann::json::object();
+  for (const auto& [key, value] : proto_struct.fields()) {
+    result_json[key] = ProtoValueToJson(value);
+  }
+
+  EXPECT_EQ(original_json, result_json) << "Original: " << original_json.dump(2)
+                                        << "\nResult: " << result_json.dump(2);
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStructInvalidInput) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+
+  std::string input = "not_an_object";
+  v8::Local<v8::Value> v8_val =
+      v8::String::NewFromUtf8(isolate_, input.c_str()).ToLocalChecked();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_FALSE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_val,
+                                                               &proto_struct));
+
+  EXPECT_EQ(proto_struct.fields_size(), 0)
+      << "Struct should be empty after failed conversion";
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStructEmptyObject) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+
+  const std::string json_str = "{}";
+
+  v8::Local<v8::String> v8_json =
+      v8::String::NewFromUtf8(isolate_, json_str.c_str()).ToLocalChecked();
+  v8::Local<v8::Value> v8_obj_value;
+  bool parsed = v8::JSON::Parse(context, v8_json).ToLocal(&v8_obj_value);
+  ASSERT_TRUE(parsed) << "Failed to parse JSON";
+  ASSERT_TRUE(v8_obj_value->IsObject()) << "Parsed value is not an object";
+
+  v8::Local<v8::Object> v8_obj = v8_obj_value.As<v8::Object>();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_TRUE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_obj,
+                                                              &proto_struct));
+
+  EXPECT_EQ(proto_struct.fields_size(), 0)
+      << "Empty object should result in empty fields";
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStructDeeplyNested) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+
+  const std::string json_str = R"({
+    "level1": {
+      "level2": {
+        "level3": {
+          "level4": {
+            "level5": "deep value"
+          }
+        }
+      }
+    }
+  })";
+
+  v8::Local<v8::String> v8_json =
+      v8::String::NewFromUtf8(isolate_, json_str.c_str()).ToLocalChecked();
+  v8::Local<v8::Value> v8_obj_value;
+  bool parsed = v8::JSON::Parse(context, v8_json).ToLocal(&v8_obj_value);
+  ASSERT_TRUE(parsed) << "Failed to parse JSON";
+  ASSERT_TRUE(v8_obj_value->IsObject()) << "Parsed value is not an object";
+
+  v8::Local<v8::Object> v8_obj = v8_obj_value.As<v8::Object>();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_TRUE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_obj,
+                                                              &proto_struct));
+
+  nlohmann::json original_json = nlohmann::json::parse(json_str);
+  nlohmann::json result_json = nlohmann::json::object();
+  for (const auto& [key, value] : proto_struct.fields()) {
+    result_json[key] = ProtoValueToJson(value);
+  }
+
+  EXPECT_EQ(original_json, result_json);
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStructComplexArrays) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+
+  const std::string json_str = R"({
+    "mixed_array": [1, "string", true, null, {"key": "value"}, [1, 2, 3]],
+    "empty_array": [],
+    "array_of_arrays": [[], [1, 2], ["a", "b"]]
+  })";
+
+  v8::Local<v8::String> v8_json =
+      v8::String::NewFromUtf8(isolate_, json_str.c_str()).ToLocalChecked();
+  v8::Local<v8::Value> v8_obj_value;
+  bool parsed = v8::JSON::Parse(context, v8_json).ToLocal(&v8_obj_value);
+  ASSERT_TRUE(parsed) << "Failed to parse JSON";
+  ASSERT_TRUE(v8_obj_value->IsObject()) << "Parsed value is not an object";
+
+  v8::Local<v8::Object> v8_obj = v8_obj_value.As<v8::Object>();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_TRUE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_obj,
+                                                              &proto_struct));
+
+  nlohmann::json original_json = nlohmann::json::parse(json_str);
+  nlohmann::json result_json = nlohmann::json::object();
+  for (const auto& [key, value] : proto_struct.fields()) {
+    result_json[key] = ProtoValueToJson(value);
+  }
+
+  EXPECT_EQ(original_json, result_json);
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStructSpecialValues) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+
+  v8::Local<v8::Object> v8_obj = v8::Object::New(isolate_);
+  v8_obj
+      ->Set(context,
+            v8::String::NewFromUtf8(isolate_, "pos_infinity").ToLocalChecked(),
+            v8::Number::New(isolate_, std::numeric_limits<double>::infinity()))
+      .Check();
+  v8_obj
+      ->Set(context,
+            v8::String::NewFromUtf8(isolate_, "neg_infinity").ToLocalChecked(),
+            v8::Number::New(isolate_, -std::numeric_limits<double>::infinity()))
+      .Check();
+  v8_obj
+      ->Set(context, v8::String::NewFromUtf8(isolate_, "nan").ToLocalChecked(),
+            v8::Number::New(isolate_, std::numeric_limits<double>::quiet_NaN()))
+      .Check();
+  v8_obj
+      ->Set(context,
+            v8::String::NewFromUtf8(isolate_, "max_number").ToLocalChecked(),
+            v8::Number::New(isolate_, std::numeric_limits<double>::max()))
+      .Check();
+  v8_obj
+      ->Set(context,
+            v8::String::NewFromUtf8(isolate_, "min_number").ToLocalChecked(),
+            v8::Number::New(isolate_, std::numeric_limits<double>::min()))
+      .Check();
+  v8_obj
+      ->Set(context,
+            v8::String::NewFromUtf8(isolate_, "empty_string").ToLocalChecked(),
+            v8::String::NewFromUtf8(isolate_, "").ToLocalChecked())
+      .Check();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_TRUE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_obj,
+                                                              &proto_struct));
+
+  EXPECT_EQ(proto_struct.fields_size(), 6) << "Should have 6 fields";
+  EXPECT_TRUE(proto_struct.fields().at("pos_infinity").has_number_value());
+  EXPECT_TRUE(
+      std::isinf(proto_struct.fields().at("pos_infinity").number_value()));
+  EXPECT_GT(proto_struct.fields().at("pos_infinity").number_value(), 0);
+
+  EXPECT_TRUE(proto_struct.fields().at("neg_infinity").has_number_value());
+  EXPECT_TRUE(
+      std::isinf(proto_struct.fields().at("neg_infinity").number_value()));
+  EXPECT_LT(proto_struct.fields().at("neg_infinity").number_value(), 0);
+
+  EXPECT_TRUE(proto_struct.fields().at("nan").has_number_value());
+  EXPECT_TRUE(std::isnan(proto_struct.fields().at("nan").number_value()));
+
+  EXPECT_TRUE(proto_struct.fields().at("max_number").has_number_value());
+  EXPECT_EQ(proto_struct.fields().at("max_number").number_value(),
+            std::numeric_limits<double>::max());
+
+  EXPECT_TRUE(proto_struct.fields().at("min_number").has_number_value());
+  EXPECT_EQ(proto_struct.fields().at("min_number").number_value(),
+            std::numeric_limits<double>::min());
+
+  EXPECT_TRUE(proto_struct.fields().at("empty_string").has_string_value());
+  EXPECT_EQ(proto_struct.fields().at("empty_string").string_value(), "");
+}
+
+TEST_F(TypeConverterTest, V8ObjectToProtobufStructLargeObject) {
+  v8::Isolate::Scope isolate_scope(isolate_);
+  v8::HandleScope handle_scope(isolate_);
+  v8::Local<v8::Context> context = v8::Context::New(isolate_);
+  v8::Context::Scope context_scope(context);
+  size_t num_fields = 100;
+  nlohmann::json large_json;
+  for (int i = 0; i < num_fields; i++) {
+    large_json["key" + std::to_string(i)] = "value" + std::to_string(i);
+  }
+
+  std::string json_str = large_json.dump();
+
+  v8::Local<v8::String> v8_json =
+      v8::String::NewFromUtf8(isolate_, json_str.c_str()).ToLocalChecked();
+  v8::Local<v8::Value> v8_obj_value;
+  bool parsed = v8::JSON::Parse(context, v8_json).ToLocal(&v8_obj_value);
+  ASSERT_TRUE(parsed) << "Failed to parse JSON";
+  ASSERT_TRUE(v8_obj_value->IsObject()) << "Parsed value is not an object";
+
+  v8::Local<v8::Object> v8_obj = v8_obj_value.As<v8::Object>();
+
+  google::protobuf::Struct proto_struct;
+  EXPECT_TRUE(TypeConverter<google::protobuf::Struct>::FromV8(isolate_, v8_obj,
+                                                              &proto_struct));
+
+  EXPECT_EQ(proto_struct.fields_size(), num_fields);
+
+  for (int i = 0; i < num_fields; i++) {
+    std::string key = "key" + std::to_string(i);
+    std::string expected_value = "value" + std::to_string(i);
+
+    ASSERT_TRUE(proto_struct.fields().contains(key));
+    EXPECT_TRUE(proto_struct.fields().at(key).has_string_value());
+    EXPECT_EQ(proto_struct.fields().at(key).string_value(), expected_value);
+  }
 }
 }  // namespace google::scp::roma::config::test

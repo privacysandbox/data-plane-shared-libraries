@@ -17,12 +17,14 @@
 #ifndef ROMA_CONFIG_TYPE_CONVERTER
 #define ROMA_CONFIG_TYPE_CONVERTER
 
+#include <functional>
 #include <string>
 #include <utility>
 #include <vector>
 
 #include <google/protobuf/map.h>
 #include <google/protobuf/repeated_field.h>
+#include <google/protobuf/struct.pb.h>
 
 #include "absl/base/nullability.h"
 #include "absl/container/flat_hash_map.h"
@@ -100,6 +102,133 @@ struct TypeConverter<std::vector<std::string>> {
         out->clear();
         return false;
       }
+    }
+
+    return true;
+  }
+};
+
+template <>
+struct TypeConverter<google::protobuf::Value> {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val,
+                     absl::Nonnull<google::protobuf::Value*> out) {
+    google::protobuf::Value proto_val;
+
+    if (val->IsNull() || val->IsUndefined()) {
+      proto_val.set_null_value(google::protobuf::NullValue::NULL_VALUE);
+    } else if (val->IsBoolean()) {
+      proto_val.set_bool_value(val->BooleanValue(isolate));
+    } else if (val->IsNumber()) {
+      double num;
+      if (!val->NumberValue(isolate->GetCurrentContext()).To(&num)) {
+        return false;
+      }
+      proto_val.set_number_value(num);
+    } else if (val->IsString()) {
+      std::string str_val;
+      if (!TypeConverter<std::string>::FromV8(isolate, val, &str_val)) {
+        return false;
+      }
+      proto_val.set_string_value(std::move(str_val));
+    } else if (val->IsArray()) {
+      auto arr = val.As<v8::Array>();
+      auto list_val = proto_val.mutable_list_value();
+
+      for (int i = 0; i < arr->Length(); i++) {
+        v8::Local<v8::Value> element;
+        if (!arr->Get(isolate->GetCurrentContext(), i).ToLocal(&element)) {
+          return false;
+        }
+        google::protobuf::Value element_val;
+        if (!FromV8(isolate, element, &element_val)) {
+          return false;
+        }
+        *list_val->add_values() = std::move(element_val);
+      }
+    } else if (val->IsObject()) {
+      auto obj = val.As<v8::Object>();
+      auto nested_struct = proto_val.mutable_struct_value();
+
+      v8::Local<v8::Array> nested_props;
+      if (!obj->GetOwnPropertyNames(isolate->GetCurrentContext())
+               .ToLocal(&nested_props)) {
+        return false;
+      }
+
+      for (int i = 0; i < nested_props->Length(); i++) {
+        v8::Local<v8::Value> prop_name;
+        if (!nested_props->Get(isolate->GetCurrentContext(), i)
+                 .ToLocal(&prop_name)) {
+          return false;
+        }
+
+        v8::Local<v8::Value> prop_value;
+        if (!obj->Get(isolate->GetCurrentContext(), prop_name)
+                 .ToLocal(&prop_value)) {
+          return false;
+        }
+
+        std::string key;
+        if (!TypeConverter<std::string>::FromV8(isolate, prop_name, &key)) {
+          continue;
+        }
+
+        google::protobuf::Value field_val;
+        if (!FromV8(isolate, prop_value, &field_val)) {
+          return false;
+        }
+        (*nested_struct->mutable_fields())[std::move(key)] =
+            std::move(field_val);
+      }
+    } else {
+      // Default to null for unsupported types
+      proto_val.set_null_value(google::protobuf::NullValue::NULL_VALUE);
+    }
+
+    *out = std::move(proto_val);
+    return true;
+  }
+};
+
+template <>
+struct TypeConverter<google::protobuf::Struct> {
+  static bool FromV8(absl::Nonnull<v8::Isolate*> isolate,
+                     v8::Local<v8::Value> val,
+                     absl::Nonnull<google::protobuf::Struct*> out) {
+    if (!val->IsObject()) {
+      return false;
+    }
+    auto v8_obj = val.As<v8::Object>();
+    auto context = isolate->GetCurrentContext();
+
+    v8::Local<v8::Array> property_names;
+    if (!v8_obj->GetOwnPropertyNames(context).ToLocal(&property_names)) {
+      return false;
+    }
+    for (int i = 0; i < property_names->Length(); i++) {
+      v8::Local<v8::Value> prop;
+      if (!property_names->Get(context, i).ToLocal(&prop)) {
+        return false;
+      }
+      std::string prop_str;
+      if (!TypeConverter<std::string>::FromV8(isolate, prop, &prop_str)) {
+        out->clear_fields();
+        return false;
+      }
+
+      v8::Local<v8::Value> field;
+      if (!v8_obj->Get(context, prop).ToLocal(&field)) {
+        return false;
+      }
+
+      google::protobuf::Value field_val;
+      if (!TypeConverter<google::protobuf::Value>::FromV8(isolate, field,
+                                                          &field_val)) {
+        out->clear_fields();
+        return false;
+      }
+      (*out->mutable_fields())[std::move(prop_str)] = std::move(field_val);
     }
 
     return true;

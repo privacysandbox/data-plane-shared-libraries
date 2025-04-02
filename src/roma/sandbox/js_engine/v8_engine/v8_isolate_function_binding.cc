@@ -108,6 +108,10 @@ bool V8TypesToProto(const v8::FunctionCallbackInfo<v8::Value>& info,
       return false;
     }
     *proto.mutable_input_bytes() = std::move(native_data);
+  } else if (google::protobuf::Struct struct_native;
+             TypeConverter<google::protobuf::Struct>::FromV8(
+                 isolate, function_parameter, &struct_native)) {
+    *proto.mutable_input_struct()->mutable_data() = std::move(struct_native);
   } else {
     // Unknown type
     return false;

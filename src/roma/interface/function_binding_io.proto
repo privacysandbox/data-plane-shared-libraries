@@ -35,6 +35,8 @@ syntax = "proto3";
 
 package google.scp.roma.proto;
 
+import "google/protobuf/struct.proto";
+
 option go_package = "github.com/privacysandbox/data-plane-shared/apis/roma/function_binding_io";
 
 message ListOfStringProto {
@@ -43,6 +45,10 @@ message ListOfStringProto {
 
 message MapOfStringProto {
   map<string, string> data = 1;
+}
+
+message StructProto {
+  google.protobuf.Struct data = 1;
 }
 
 message FunctionBindingIoProto {
@@ -58,6 +64,7 @@ message FunctionBindingIoProto {
     ListOfStringProto input_list_of_string = 4;
     MapOfStringProto input_map_of_string = 5;
     bytes input_bytes = 20;
+    StructProto input_struct = 10;
   }
 
   // The output that should be returned by the JS call. To be set by the c++
