@@ -85,7 +85,7 @@ TEST(ThreadSafeMapTest, ConcurrentAddAndGet) {
       for (int j = 0; j < iterations; ++j) {
         auto key = absl::StrCat("key_", i * iterations + j);
         auto reader = ScopedValueReader<int>::Create(map, key);
-        ASSERT_TRUE(reader.ok());
+        ASSERT_TRUE(reader.ok()) << reader.status();
         auto value = reader->Get();
         EXPECT_TRUE(value.ok());
         EXPECT_EQ(**value, i * iterations + j);

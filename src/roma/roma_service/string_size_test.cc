@@ -86,7 +86,7 @@ TEST_P(StringSizeTest, LoadCodeObj) {
                                })
                   .ok());
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(40)));
-  ASSERT_TRUE(response_status.ok());
+  ASSERT_TRUE(response_status.ok()) << response_status;
 
   auto execution_obj =
       std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{

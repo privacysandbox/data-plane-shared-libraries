@@ -45,7 +45,7 @@ absl::StatusOr<std::string> GetFileContent(std::filesystem::path path) {
 TEST(UdfBlob, CreatesFileWithEmptyBlob) {
   std::string content = "";
   auto udf_blob = UdfBlob::Create(content);
-  ASSERT_TRUE(udf_blob.ok());
+  ASSERT_TRUE(udf_blob.ok()) << udf_blob.status();
 
   auto content_from_file = GetFileContent((*udf_blob)());
   ASSERT_TRUE(content_from_file.ok()) << content_from_file.status();
@@ -55,7 +55,7 @@ TEST(UdfBlob, CreatesFileWithEmptyBlob) {
 TEST(UdfBlob, CreatesFileWithBlobContents) {
   std::string content = R"(|AzP`i)";
   auto udf_blob = UdfBlob::Create(content);
-  ASSERT_TRUE(udf_blob.ok());
+  ASSERT_TRUE(udf_blob.ok()) << udf_blob.status();
 
   auto content_from_file = GetFileContent((*udf_blob)());
   ASSERT_TRUE(content_from_file.ok()) << content_from_file.status();
@@ -67,7 +67,7 @@ TEST(UdfBlob, FileIsDeletedByDestructor) {
 
   {
     auto udf_blob = UdfBlob::Create("test blob");
-    ASSERT_TRUE(udf_blob.ok());
+    ASSERT_TRUE(udf_blob.ok()) << udf_blob.status();
     filepath = (*udf_blob)();
 
     // When udf_blob is in scope, the file must exist.

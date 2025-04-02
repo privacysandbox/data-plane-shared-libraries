@@ -82,7 +82,7 @@ TEST(WasmTest, CanExecuteWasmCode) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -106,7 +106,7 @@ TEST(WasmTest, CanExecuteWasmCode) {
                              })
                     .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   EXPECT_THAT(result, StrEq(R"("Foobar Hello World from WASM")"));
@@ -144,7 +144,7 @@ TEST(WasmTest, ReportsWasmStacktrace) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -229,7 +229,7 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -258,7 +258,7 @@ TEST(WasmTest, CanLogFromInlineWasmCode) {
                              })
                     .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   EXPECT_THAT(result, StrEq(R"("Hello from C++! Input: Foobar")"));
@@ -301,7 +301,7 @@ TEST(WasmTest, CanExecuteJsWithWasmCode) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -325,7 +325,7 @@ TEST(WasmTest, CanExecuteJsWithWasmCode) {
                              })
                     .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   EXPECT_THAT(result, StrEq("3"));
@@ -380,7 +380,7 @@ TEST(WasmTest, InitializingGlobalWasmModuleDoesNotBreakFunctionBindings) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -403,7 +403,7 @@ TEST(WasmTest, InitializingGlobalWasmModuleDoesNotBreakFunctionBindings) {
                              })
                     .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   EXPECT_THAT(result, StrEq(R"("Hello World from C++")"));
@@ -569,7 +569,7 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -593,7 +593,7 @@ TEST(WasmTest, CanExecuteJSWithWasmCodeWithStandaloneJS) {
                              })
                     .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   EXPECT_THAT(result, StrEq("3"));

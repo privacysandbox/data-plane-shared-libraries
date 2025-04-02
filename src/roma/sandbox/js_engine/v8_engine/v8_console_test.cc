@@ -76,7 +76,7 @@ TEST_F(V8ConsoleTest, DISABLED_ConsoleFunctionsInvokeRPC) {
         return "";
       })",
       "func", {}, {});
-  ASSERT_TRUE(result_or.ok());
+  ASSERT_TRUE(result_or.ok()) << result_or.status();
   js_engine.Stop();
 }
 

@@ -119,7 +119,7 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
   config.SetLoggingFunction(LoggingFunction);
   RomaService<> roma_service(std::move(config));
   auto status = roma_service.Init();
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok()) << status;
 
   absl::Notification load_finished;
   absl::Notification execute_failed;
@@ -158,7 +158,7 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
                     .ok());
     ASSERT_TRUE(
         load_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -183,7 +183,8 @@ TEST(LoggingTest, StackTracesLoggedWhenLoggingFunctionSet) {
     EXPECT_EQ(response_status.code(), absl::StatusCode::kInternal);
   }
 
-  ASSERT_TRUE(roma_service.Stop().ok());
+  auto stop_status = roma_service.Stop();
+  ASSERT_TRUE(stop_status.ok()) << stop_status;
   log.StopCapturingLogs();
 }
 }  // namespace google::scp::roma::test

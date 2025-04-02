@@ -82,7 +82,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsCode) {
   constexpr absl::Span<const uint8_t> empty_wasm;
   const auto response_or =
       worker.RunCode(std::string(js_code), input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
 
   EXPECT_THAT(response_or->response, StrEq(R"("Hello World!")"));
   worker.Stop();
@@ -103,7 +103,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
 
   constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
@@ -115,7 +115,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
@@ -128,7 +128,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
 
   // Execute v2
@@ -141,7 +141,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 2!")"));
   worker.Stop();
 }
@@ -173,7 +173,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
 
   constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
@@ -197,7 +197,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
@@ -212,7 +212,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
     };
 
     response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-    ASSERT_TRUE(response_or.ok());
+    ASSERT_TRUE(response_or.ok()) << response_or.status();
     EXPECT_THAT(response_or->response, StrEq("3"));
   }
 
@@ -228,7 +228,7 @@ TEST_F(V8EngineWorkerTest, CanRunMultipleVersionsOfCompilationContexts) {
     };
 
     response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-    ASSERT_TRUE(response_or.ok());
+    ASSERT_TRUE(response_or.ok()) << response_or.status();
     EXPECT_THAT(response_or->response, StrEq("12"));
   }
   worker.Stop();
@@ -248,7 +248,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
   constexpr absl::Span<const uint8_t> empty_wasm;
   auto response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
@@ -260,7 +260,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
@@ -273,7 +273,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
 
   // Execute v2
@@ -286,7 +286,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 2!")"));
 
   // Load v2 updated (overwrite the version of the code)
@@ -298,7 +298,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v2 should result in updated version
@@ -311,7 +311,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response,
               StrEq(R"("Hello Version 2 but Updated!")"));
 
@@ -325,7 +325,7 @@ TEST_F(V8EngineWorkerTest, ShouldBeAbleToOverwriteAVersionOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, empty_wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq(R"("Hello Version 1!")"));
   worker.Stop();
 }
@@ -353,7 +353,7 @@ TEST_F(V8EngineWorkerTest, CanRunJsWithWasmCode) {
   auto wasm = absl::MakeConstSpan(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
 
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq("3"));
   worker.Stop();
 }
@@ -380,7 +380,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
   auto wasm = absl::MakeConstSpan(kWasmBin);
   auto response_or = worker.RunCode(js_code, input, metadata, wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Load v2
@@ -410,7 +410,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
   };
 
   response_or = worker.RunCode(js_code, input, metadata, wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, IsEmpty());
 
   // Execute v1
@@ -425,7 +425,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
   input = {"1", "2"};
   response_or = worker.RunCode(js_code, input, metadata, wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq("3"));
 
   // Execute v2
@@ -439,7 +439,7 @@ TEST_F(V8EngineWorkerTest, JSWithWasmCanRunMultipleVersionsOfTheCode) {
 
   input = {"1"};
   response_or = worker.RunCode(js_code, input, metadata, wasm);
-  ASSERT_TRUE(response_or.ok());
+  ASSERT_TRUE(response_or.ok()) << response_or.status();
   EXPECT_THAT(response_or->response, StrEq("0"));
   worker.Stop();
 }

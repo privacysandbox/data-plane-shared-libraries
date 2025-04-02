@@ -185,7 +185,7 @@ TEST(WasmSapiTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
                                  })
                     .ok());
     ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response_status.ok());
+    ASSERT_TRUE(response_status.ok()) << response_status;
   }
 
   {
@@ -239,7 +239,7 @@ TEST(WasmSapiTest, ShouldBeAbleToExecuteJsWithWasmBinEvenAfterWorkerCrash) {
                              })
                     .ok());
     ASSERT_TRUE(execute_finished.WaitForNotificationWithTimeout(kTimeout));
-    ASSERT_TRUE(response.ok());
+    ASSERT_TRUE(response.ok()) << response;
     EXPECT_THAT(result, StrEq("3"));
   }
 
