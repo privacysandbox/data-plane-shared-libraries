@@ -41,8 +41,13 @@ CreatePeriodicExportingMetricReader(
     const opentelemetry::sdk::metrics::PeriodicExportingMetricReaderOptions&
         options,
     absl::optional<std::string> collector_endpoint) {
+  opentelemetry::exporter::otlp::OtlpGrpcMetricExporterOptions exporter_options;
+  if (collector_endpoint.has_value()) {
+    exporter_options.endpoint = *collector_endpoint;
+  }
   std::unique_ptr<opentelemetry::sdk::metrics::PushMetricExporter> exporter =
-      opentelemetry::exporter::otlp::OtlpGrpcMetricExporterFactory::Create();
+      opentelemetry::exporter::otlp::OtlpGrpcMetricExporterFactory::Create(
+          exporter_options);
   return std::make_unique<
       opentelemetry::sdk::metrics::PeriodicExportingMetricReader>(
       std::move(exporter), options);
