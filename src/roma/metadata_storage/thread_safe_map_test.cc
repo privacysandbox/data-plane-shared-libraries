@@ -49,6 +49,11 @@ TEST(ThreadSafeMapTest, DeleteExistingKey) {
   EXPECT_FALSE(map.Delete("key1").ok());
 }
 
+TEST(ThreadSafeMapTest, DeleteNonExistentKey) {
+  ThreadSafeMap<std::string> map;
+  EXPECT_FALSE(map.Delete("key1").ok());
+}
+
 TEST(ThreadSafeMapTest, GetValueNotFound) {
   ThreadSafeMap<std::string> map;
   EXPECT_FALSE(map.GetValue("key1").ok());
