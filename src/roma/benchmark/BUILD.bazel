@@ -143,6 +143,21 @@ cc_binary(
 )
 
 cc_binary(
+    name = "object_input_benchmark",
+    srcs = ["object_input_benchmark.cc"],
+    deps = [
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_binary(
     name = "duration_benchmark",
     srcs = ["duration_benchmark.cc"],
     deps = [

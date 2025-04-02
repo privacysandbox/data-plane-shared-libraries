@@ -99,6 +99,7 @@ if [[ ${#targets[@]} -eq 0 ]]; then
     //src/roma/benchmark:roma_v8_prime_sieve_benchmark
     //src/roma/benchmark:roma_v8_sort_list_benchmark
     //src/roma/benchmark:duration_benchmark
+    //src/roma/benchmark:object_input_benchmark
     //src/roma/benchmark/serde:serialize_benchmark
     //src/roma/benchmark/serde:deserialize_benchmark
     //src/roma/benchmark/compiler:execute_benchmark
