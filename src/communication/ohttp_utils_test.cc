@@ -28,16 +28,6 @@ using ::testing::StrEq;
 namespace privacy_sandbox::server_common {
 namespace {
 
-const quiche::ObliviousHttpHeaderKeyConfig GetOhttpKeyConfig(uint8_t key_id,
-                                                             uint16_t kem_id,
-                                                             uint16_t kdf_id,
-                                                             uint16_t aead_id) {
-  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
-      key_id, kem_id, kdf_id, aead_id);
-  EXPECT_TRUE(ohttp_key_config.ok());
-  return *std::move(ohttp_key_config);
-}
-
 std::string GetHpkePrivateKey() {
   const std::string hpke_key_hex =
       "b77431ecfa8f4cfc30d6e467aafa06944dffe28cb9dd1409e33a3045f5adc8a1";
@@ -51,12 +41,14 @@ std::string GetHpkePublicKey() {
 }
 
 TEST(OhttpUtilsTest, ParseEncapsulatedRequest_OldRequestFormat) {
-  const auto config =
-      GetOhttpKeyConfig(5, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
+  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      5, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      EVP_HPKE_AES_256_GCM);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
+
   const auto ohttp_request =
       quiche::ObliviousHttpRequest::CreateClientObliviousRequest(
-          "plaintext_payload", GetHpkePublicKey(), config);
+          "plaintext_payload", GetHpkePublicKey(), *ohttp_key_config);
 
   const std::string payload_bytes = ohttp_request->EncapsulateAndSerialize();
   auto result = ParseEncapsulatedRequest(payload_bytes);
@@ -67,12 +59,14 @@ TEST(OhttpUtilsTest, ParseEncapsulatedRequest_OldRequestFormat) {
 }
 
 TEST(OhttpUtilsTest, ParseEncapsulatedRequest_NewRequestFormat) {
-  const auto config =
-      GetOhttpKeyConfig(5, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
+  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      5, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      EVP_HPKE_AES_256_GCM);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
+
   const auto ohttp_request =
       quiche::ObliviousHttpRequest::CreateClientObliviousRequest(
-          "plaintext_payload", GetHpkePublicKey(), config);
+          "plaintext_payload", GetHpkePublicKey(), *ohttp_key_config);
   const std::string payload_bytes =
       '\0' + ohttp_request->EncapsulateAndSerialize();
 
@@ -88,11 +82,14 @@ TEST(OhttpUtilsTest, DecryptThrowsInvalidInputOnInvalidPrimitive) {
   // B&A does not support handling OHTTP requests using this AEAD ID, so the
   // request should be rejected.
   const uint16_t invalid_hpke_aead_id = EVP_HPKE_CHACHA20_POLY1305;
-  auto config = GetOhttpKeyConfig(5, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                                  EVP_HPKE_HKDF_SHA256, invalid_hpke_aead_id);
+  auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      5, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      invalid_hpke_aead_id);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
+
   auto ohttp_request =
       quiche::ObliviousHttpRequest::CreateClientObliviousRequest(
-          "plaintext_payload", GetHpkePublicKey(), config);
+          "plaintext_payload", GetHpkePublicKey(), *ohttp_key_config);
   const std::string payload_bytes = ohttp_request->EncapsulateAndSerialize();
 
   PrivateKey key;
@@ -110,12 +107,14 @@ TEST(OhttpUtilsTest, DecryptThrowsInvalidInputOnInvalidPrimitive) {
 TEST(OhttpUtilsTest, DecryptEncapsulatedRequestSuccess) {
   const uint8_t test_key_id = 5;
   const std::string plaintext_payload = "plaintext_payload";
-  const auto config =
-      GetOhttpKeyConfig(test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
+  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      EVP_HPKE_AES_256_GCM);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
+
   const auto ohttp_request =
       quiche::ObliviousHttpRequest::CreateClientObliviousRequest(
-          plaintext_payload, GetHpkePublicKey(), config);
+          plaintext_payload, GetHpkePublicKey(), *ohttp_key_config);
   const std::string payload_bytes = ohttp_request->EncapsulateAndSerialize();
 
   PrivateKey private_key;
@@ -132,12 +131,14 @@ TEST(OhttpUtilsTest, DecryptEncapsulatedRequestSuccess) {
 TEST(OhttpUtilsTest, DecryptEncapsulatedRequestSuccess_NewRequestFormat) {
   const uint8_t test_key_id = 5;
   const std::string plaintext_payload = "plaintext_payload";
-  const auto config =
-      GetOhttpKeyConfig(test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
+  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      EVP_HPKE_AES_256_GCM);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
+
   const auto ohttp_request =
       quiche::ObliviousHttpRequest::CreateClientObliviousRequest(
-          plaintext_payload, GetHpkePublicKey(), config,
+          plaintext_payload, GetHpkePublicKey(), *ohttp_key_config,
           kBiddingAuctionOhttpRequestLabel);
   const std::string payload_bytes = ohttp_request->EncapsulateAndSerialize();
 
@@ -162,16 +163,18 @@ TEST(OhttpUtilsTest, EncryptAndEncapsulateResponseSuccess) {
   const std::string response_payload = "response_payload";
 
   const uint8_t test_key_id = 5;
-  const auto config =
-      GetOhttpKeyConfig(test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
+  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      EVP_HPKE_AES_256_GCM);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
 
   PrivateKey private_key;
   private_key.key_id = std::to_string(test_key_id);
   private_key.private_key = GetHpkePrivateKey();
 
-  const auto http_client =
-      quiche::ObliviousHttpClient::Create(GetHpkePublicKey(), config);
+  const auto http_client = quiche::ObliviousHttpClient::Create(
+      GetHpkePublicKey(), *ohttp_key_config);
+
   auto request = http_client->CreateObliviousHttpRequest(plaintext_payload);
   auto oblivious_request_context = std::move(request.value()).ReleaseContext();
   const auto encapsulated_response = EncryptAndEncapsulateResponse(
@@ -192,16 +195,17 @@ TEST(OhttpUtilsTest, EncryptAndEncapsulateResponseSuccess_NewFormat) {
   const std::string response_payload = "response_payload";
 
   const uint8_t test_key_id = 5;
-  const auto config =
-      GetOhttpKeyConfig(test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256,
-                        EVP_HPKE_HKDF_SHA256, EVP_HPKE_AES_256_GCM);
+  const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
+      test_key_id, EVP_HPKE_DHKEM_X25519_HKDF_SHA256, EVP_HPKE_HKDF_SHA256,
+      EVP_HPKE_AES_256_GCM);
+  ASSERT_TRUE(ohttp_key_config.ok()) << ohttp_key_config.status();
 
   PrivateKey private_key;
   private_key.key_id = std::to_string(test_key_id);
   private_key.private_key = GetHpkePrivateKey();
 
-  const auto http_client =
-      quiche::ObliviousHttpClient::Create(GetHpkePublicKey(), config);
+  const auto http_client = quiche::ObliviousHttpClient::Create(
+      GetHpkePublicKey(), *ohttp_key_config);
   auto request = http_client->CreateObliviousHttpRequest(plaintext_payload);
   auto oblivious_request_context = std::move(request.value()).ReleaseContext();
   // Pass in B&A's custom request label to use the B&A's response label during
