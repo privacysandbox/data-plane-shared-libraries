@@ -35,7 +35,7 @@ const quiche::ObliviousHttpHeaderKeyConfig GetOhttpKeyConfig(uint8_t key_id,
   const auto ohttp_key_config = quiche::ObliviousHttpHeaderKeyConfig::Create(
       key_id, kem_id, kdf_id, aead_id);
   EXPECT_TRUE(ohttp_key_config.ok());
-  return std::move(ohttp_key_config.value());
+  return *std::move(ohttp_key_config);
 }
 
 std::string GetHpkePrivateKey() {

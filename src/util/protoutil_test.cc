@@ -182,10 +182,10 @@ TEST(ProtoUtilGoogleApi, DurationProtoMax) {
   const auto proto_max = MakeGoogleApiDurationProtoMax();
   const absl::Duration duration_max = MakeGoogleApiDurationMax();
   auto decoded = DecodeGoogleApiProto(proto_max);
-  EXPECT_TRUE(decoded.ok());
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
   EXPECT_EQ(*decoded, duration_max);
   auto encoded = EncodeGoogleApiProto(duration_max);
-  EXPECT_TRUE(encoded.ok());
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
   EXPECT_THAT(*encoded, EqualsProto(proto_max));
 }
 
@@ -200,10 +200,10 @@ TEST(ProtoUtilGoogleApi, DurationProtoMin) {
   const auto proto_min = MakeGoogleApiDurationProtoMin();
   const absl::Duration duration_min = MakeGoogleApiDurationMin();
   auto decoded = DecodeGoogleApiProto(proto_min);
-  EXPECT_TRUE(decoded.ok());
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
   EXPECT_EQ(*decoded, duration_min);
   auto encoded = EncodeGoogleApiProto(duration_min);
-  EXPECT_TRUE(encoded.ok());
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
   EXPECT_THAT(*encoded, EqualsProto(proto_min));
 }
 
@@ -325,12 +325,12 @@ TEST(ProtoUtilGoogleApi, DecodeTimeError) {
 TEST(ProtoUtilGoogleApi, TimestampProtoMax) {
   const auto proto_max = MakeGoogleApiTimestampProtoMax();
   const absl::Time time_max = MakeGoogleApiTimeMax();
-  auto decode = DecodeGoogleApiProto(proto_max);
-  EXPECT_TRUE(decode.ok());
-  EXPECT_EQ(*decode, time_max);
-  auto encode = EncodeGoogleApiProto(time_max);
-  EXPECT_TRUE(encode.ok());
-  EXPECT_THAT(*encode, EqualsProto(proto_max));
+  auto decoded = DecodeGoogleApiProto(proto_max);
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  EXPECT_EQ(*decoded, time_max);
+  auto encoded = EncodeGoogleApiProto(time_max);
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
+  EXPECT_THAT(*encoded, EqualsProto(proto_max));
 }
 
 TEST(ProtoUtilGoogleApi, TimeMaxIsOK) {
@@ -352,12 +352,12 @@ TEST(ProtoUtilGoogleApi, TimeMaxIsMax) {
 TEST(ProtoUtilGoogleApi, TimestampProtoMin) {
   const auto proto_min = MakeGoogleApiTimestampProtoMin();
   const absl::Time time_min = MakeGoogleApiTimeMin();
-  auto decode = DecodeGoogleApiProto(proto_min);
-  EXPECT_TRUE(decode.ok());
-  EXPECT_EQ(*decode, time_min);
-  auto encode = EncodeGoogleApiProto(time_min);
-  EXPECT_TRUE(encode.ok());
-  EXPECT_THAT(*encode, EqualsProto(proto_min));
+  auto decoded = DecodeGoogleApiProto(proto_min);
+  ASSERT_TRUE(decoded.ok()) << decoded.status();
+  EXPECT_EQ(*decoded, time_min);
+  auto encoded = EncodeGoogleApiProto(time_min);
+  ASSERT_TRUE(encoded.ok()) << encoded.status();
+  EXPECT_THAT(*encoded, EqualsProto(proto_min));
 }
 
 TEST(ProtoUtilGoogleApi, TimeMinIsOK) {

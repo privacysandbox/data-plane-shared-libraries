@@ -58,7 +58,7 @@ TEST(CompressionBlobReaderTest, Success) {
   EXPECT_FALSE(blob_reader.IsDoneReading());
 
   auto maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
-  EXPECT_TRUE(maybe_compression_group.ok());
+  ASSERT_TRUE(maybe_compression_group.ok()) << maybe_compression_group.status();
   EXPECT_THAT(*maybe_compression_group, StrEq("qwertyuiop"));
   EXPECT_TRUE(blob_reader.IsDoneReading());
 }
@@ -79,17 +79,17 @@ TEST(CompressionGroupConcatenatorTest, Success) {
   EXPECT_FALSE(blob_reader.IsDoneReading());
 
   auto maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
-  EXPECT_TRUE(maybe_compression_group.ok());
+  ASSERT_TRUE(maybe_compression_group.ok()) << maybe_compression_group.status();
   EXPECT_THAT(*maybe_compression_group, StrEq(kTestString));
   EXPECT_FALSE(blob_reader.IsDoneReading());
 
   maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
-  EXPECT_TRUE(maybe_compression_group.ok());
+  ASSERT_TRUE(maybe_compression_group.ok()) << maybe_compression_group.status();
   EXPECT_THAT(*maybe_compression_group, StrEq(kTestString2));
   EXPECT_FALSE(blob_reader.IsDoneReading());
 
   maybe_compression_group = blob_reader.ExtractOneCompressionGroup();
-  EXPECT_TRUE(maybe_compression_group.ok());
+  ASSERT_TRUE(maybe_compression_group.ok()) << maybe_compression_group.status();
   EXPECT_THAT(*maybe_compression_group, StrEq(large_message));
   EXPECT_TRUE(blob_reader.IsDoneReading());
 }

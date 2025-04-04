@@ -33,7 +33,7 @@ TEST(CompressionGroupConcatenatorTest, Success) {
   concatenator->AddCompressionGroup(std::string(kTestString));
   concatenator->AddCompressionGroup(std::string(kTestString2));
   absl::StatusOr<std::string> maybe_output = concatenator->Build();
-  EXPECT_TRUE(maybe_output.ok());
+  ASSERT_TRUE(maybe_output.ok()) << maybe_output.status();
 
   quiche::QuicheDataReader data_reader(*maybe_output);
 
@@ -54,7 +54,7 @@ TEST(CompressionBlobReaderTest, Success) {
   concatenator->AddCompressionGroup(std::string(kTestString));
   concatenator->AddCompressionGroup(std::string(kTestString2));
   absl::StatusOr<std::string> maybe_output = concatenator->Build();
-  EXPECT_TRUE(maybe_output.ok());
+  ASSERT_TRUE(maybe_output.ok()) << maybe_output.status();
 
   auto blob_reader = CompressedBlobReader::Create(
       CompressionGroupConcatenator::CompressionType::kUncompressed,
@@ -63,12 +63,12 @@ TEST(CompressionBlobReaderTest, Success) {
   EXPECT_FALSE(blob_reader->IsDoneReading());
 
   auto maybe_compression_group = blob_reader->ExtractOneCompressionGroup();
-  EXPECT_TRUE(maybe_compression_group.ok());
+  ASSERT_TRUE(maybe_compression_group.ok()) << maybe_compression_group.status();
   EXPECT_THAT(*maybe_compression_group, StrEq(kTestString));
   EXPECT_FALSE(blob_reader->IsDoneReading());
 
   maybe_compression_group = blob_reader->ExtractOneCompressionGroup();
-  EXPECT_TRUE(maybe_compression_group.ok());
+  ASSERT_TRUE(maybe_compression_group.ok()) << maybe_compression_group.status();
   EXPECT_THAT(*maybe_compression_group, StrEq(kTestString2));
   EXPECT_TRUE(blob_reader->IsDoneReading());
 }
