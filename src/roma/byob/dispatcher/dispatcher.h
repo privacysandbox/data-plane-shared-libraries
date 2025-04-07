@@ -40,24 +40,12 @@
 #include "absl/time/time.h"
 #include "google/protobuf/util/delimited_message_util.h"
 #include "src/roma/byob/dispatcher/dispatcher.grpc.pb.h"
+#include "src/roma/byob/interface/metrics.h"
 #include "src/roma/byob/utility/file_reader.h"
 #include "src/util/duration.h"
 #include "src/util/execution_token.h"
 
 namespace privacy_sandbox::server_common::byob {
-
-struct ProcessRequestMetrics {
-  // Time spent waiting for a worker.
-  absl::Duration wait_time;
-  // Latency of `SerializeDelimitedToFileDescriptor` call that sends request.
-  absl::Duration send_time;
-  // Time from after `SerializeDelimitedToFileDescriptor` to
-  // `ParseDelimitedFromZeroCopyStream` call completion.
-  absl::Duration response_time;
-  // The number of unused workers for a given code token.
-  int unused_workers;
-};
-
 class Dispatcher {
  public:
   ~Dispatcher();

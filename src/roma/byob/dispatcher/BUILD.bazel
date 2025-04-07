@@ -19,6 +19,7 @@ cc_library(
         ":dispatcher_grpc",
         ":interface",
         "//src/core/common/uuid",
+        "//src/roma/byob/interface:metrics",
         "//src/roma/byob/utility:file_reader",
         "//src/roma/byob/utility:utils",
         "//src/roma/config:function_binding_object_v2",
