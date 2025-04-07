@@ -106,7 +106,7 @@ class GcpCloudStorageClientAsyncTests : public testing::Test {
       auto bucket_metadata_or = client_->CreateBucket(
           std::string{kBucketName},
           BucketMetadata().set_lifecycle(ExpireImmediately()));
-      EXPECT_TRUE(bucket_metadata_or.ok());
+      EXPECT_TRUE(bucket_metadata_or.ok()) << bucket_metadata_or.status();
     }
 
     auto metadata_or = client_->InsertObject(std::string{kBucketName},

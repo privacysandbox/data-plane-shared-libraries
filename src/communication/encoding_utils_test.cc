@@ -53,7 +53,7 @@ TEST(EncodingUtilsTest, EncodeResponsePayloadFailure_PayloadTooLargeToEncode) {
   const absl::StatusOr<std::string> actual =
       EncodeResponsePayload(CompressionType::kBrotli, compressed_payload, 128);
 
-  ASSERT_TRUE(!actual.ok());
+  ASSERT_FALSE(actual.ok()) << actual.status();
   ASSERT_TRUE(absl::IsInternal(actual.status()));
 }
 
@@ -101,7 +101,7 @@ TEST(EncodingUtilsTest, DecodeRequestPayloadFailure_MalformedPayload) {
   const absl::StatusOr<DecodedRequest> decoded_payload(
       DecodeRequestPayload(absl::HexStringToBytes(encoded_payload)));
 
-  ASSERT_TRUE(!decoded_payload.ok());
+  ASSERT_FALSE(decoded_payload.ok()) << decoded_payload.status();
   ASSERT_TRUE(absl::IsInvalidArgument(decoded_payload.status()));
 }
 

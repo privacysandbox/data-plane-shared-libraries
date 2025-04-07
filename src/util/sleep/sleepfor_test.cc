@@ -60,7 +60,8 @@ TEST(SleepForTest, DoesSleepStop) {
     start = absl::Now();
     sleep_for.Duration(absl::Minutes(10));
   });
-  ASSERT_TRUE(sleep_for.Stop().ok());
+  auto status = sleep_for.Stop();
+  ASSERT_TRUE(status.ok()) << status;
   t.join();
   absl::Duration total = absl::Now() - start;
   // Make sure stop is fast enough

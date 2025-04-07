@@ -51,7 +51,8 @@ TEST(CompressionBlobReaderTest, Success) {
 
   concatenator.AddCompressionGroup(std::string(brotli_data, 14));
   auto maybe_compression_group_blob = concatenator.Build();
-  ASSERT_TRUE(maybe_compression_group_blob.ok());
+  ASSERT_TRUE(maybe_compression_group_blob.ok())
+      << maybe_compression_group_blob.status();
 
   BrotliCompressionBlobReader blob_reader(*maybe_compression_group_blob);
 

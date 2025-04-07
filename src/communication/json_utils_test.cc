@@ -30,13 +30,13 @@ using ::testing::StrEq;
 
 TEST(BinaryHttpTest, JsonToProtoSuccess) {
   const auto maybe_proto = JsonToProto<Struct>(R"({"key": "value"})");
-  ASSERT_TRUE(maybe_proto.ok());
+  ASSERT_TRUE(maybe_proto.ok()) << maybe_proto.status();
   EXPECT_THAT(maybe_proto->fields().at("key").string_value(), StrEq("value"));
 }
 
 TEST(BinaryHttpTest, JsonToProto_MalformedJson) {
   const auto maybe_proto = JsonToProto<Struct>(R"({"key": "value"}}}})");
-  ASSERT_TRUE(!maybe_proto.ok());
+  ASSERT_FALSE(maybe_proto.ok()) << maybe_proto.status();
   ASSERT_TRUE(absl::IsInvalidArgument(maybe_proto.status()));
 }
 
@@ -45,7 +45,7 @@ TEST(BinaryHttpTest, ProtoToJsonSuccess) {
   (*struct_proto.mutable_fields())["key"].set_string_value("value");
 
   auto maybe_json = ProtoToJson<Struct>(struct_proto);
-  ASSERT_TRUE(maybe_json.ok());
+  ASSERT_TRUE(maybe_json.ok()) << maybe_json.status();
 }
 
 }  // namespace

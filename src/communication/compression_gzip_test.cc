@@ -74,7 +74,7 @@ TEST(GzipCompressionTests, CompressDecompress_EndToEnd) {
   GzipCompressionBlobReader blob_reader(*compressed);
   absl::StatusOr<std::string> compression_group =
       blob_reader.ExtractOneCompressionGroup();
-  ASSERT_TRUE(compression_group.ok());
+  ASSERT_TRUE(compression_group.ok()) << compression_group.status();
   EXPECT_THAT(compression_group.value(), StrEq(payload));
 }
 
@@ -94,7 +94,7 @@ TEST(GzipCompressionTests, CompressWithBoost) {
   GzipCompressionBlobReader blob_reader(partition);
   absl::StatusOr<std::string> compression_group =
       blob_reader.ExtractOneCompressionGroup();
-  ASSERT_TRUE(compression_group.ok());
+  ASSERT_TRUE(compression_group.ok()) << compression_group.status();
   EXPECT_THAT(compression_group.value(), StrEq(payload));
 }
 

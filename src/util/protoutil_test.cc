@@ -52,24 +52,22 @@ google::protobuf::Timestamp MakeGoogleApiTimestamp(int64_t s, int32_t ns) {
 // represents a google::protobuf::Duration or google::protobuf::Timestamp.
 template <typename T, typename P>
 void RoundTripGoogleApi(T v, int64_t expected_sec, int32_t expected_nsec) {
-  const auto sor_proto = EncodeGoogleApiProto(v);
-  ASSERT_TRUE(sor_proto.ok());
-  const auto& proto = *sor_proto;
-  EXPECT_EQ(proto.seconds(), expected_sec);
-  EXPECT_EQ(proto.nanos(), expected_nsec);
+  const auto encoded_proto = EncodeGoogleApiProto(v);
+  ASSERT_TRUE(encoded_proto.ok()) << encoded_proto.status();
+  EXPECT_EQ(encoded_proto->seconds(), expected_sec);
+  EXPECT_EQ(encoded_proto->nanos(), expected_nsec);
 
   P out_proto;
   const auto status = EncodeGoogleApiProto(v, &out_proto);
-  ASSERT_TRUE(status.ok());
+  ASSERT_TRUE(status.ok()) << status;
   EXPECT_EQ(out_proto.seconds(), expected_sec);
   EXPECT_EQ(out_proto.nanos(), expected_nsec);
-  EXPECT_THAT(proto, EqualsProto(out_proto));
+  EXPECT_THAT(*encoded_proto, EqualsProto(out_proto));
 
   // Complete the round-trip by decoding the proto back to a absl::Duration.
-  const auto sor_duration = DecodeGoogleApiProto(proto);
-  ASSERT_TRUE(sor_duration.ok());
-  const auto& duration = *sor_duration;
-  EXPECT_EQ(duration, v);
+  const auto duration = DecodeGoogleApiProto(*encoded_proto);
+  ASSERT_TRUE(duration.ok()) << duration.status();
+  EXPECT_EQ(*duration, v);
 }
 
 TEST(ProtoUtilGoogleApi, RoundTripDuration) {
@@ -131,11 +129,10 @@ TEST(ProtoUtilGoogleApi, DurationTruncTowardZero) {
   };
 
   for (const auto& tc : kTestCases) {
-    const auto sor = EncodeGoogleApiProto(tc.d);
-    ASSERT_TRUE(sor.ok());
-    const auto& proto = *sor;
-    EXPECT_EQ(proto.seconds(), tc.expected.sec) << "d=" << tc.d;
-    EXPECT_EQ(proto.nanos(), tc.expected.nsec) << "d=" << tc.d;
+    const auto encoded_proto = EncodeGoogleApiProto(tc.d);
+    ASSERT_TRUE(encoded_proto.ok()) << encoded_proto.status();
+    EXPECT_EQ(encoded_proto->seconds(), tc.expected.sec) << "d=" << tc.d;
+    EXPECT_EQ(encoded_proto->nanos(), tc.expected.nsec) << "d=" << tc.d;
   }
 }
 
@@ -270,9 +267,9 @@ TEST(ProtoUtilGoogleApi, TimeTruncTowardInfPast) {
   };
 
   for (const auto& tc : kTestCases) {
-    const auto sor = EncodeGoogleApiProto(tc.t);
-    ASSERT_TRUE(sor.ok());
-    const auto& proto = *sor;
+    const auto encoded_proto = EncodeGoogleApiProto(tc.t);
+    ASSERT_TRUE(encoded_proto.ok()) << encoded_proto.status();
+    const auto& proto = *encoded_proto;
     EXPECT_EQ(proto.seconds(), tc.expected.sec) << "t=" << tc.t;
     EXPECT_EQ(proto.nanos(), tc.expected.nsec) << "t=" << tc.t;
   }
@@ -317,8 +314,8 @@ TEST(ProtoUtilGoogleApi, DecodeTimeError) {
   };
 
   for (const auto& d : kTestCases) {
-    const auto sor = DecodeGoogleApiProto(d);
-    EXPECT_FALSE(sor.ok()) << "d=" << d.DebugString();
+    const auto decoded = DecodeGoogleApiProto(d);
+    EXPECT_FALSE(decoded.ok()) << "d=" << d.DebugString();
   }
 }
 
