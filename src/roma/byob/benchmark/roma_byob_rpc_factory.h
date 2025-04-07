@@ -66,9 +66,6 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
       roma_service->LoadBinary(binary_path, num_workers);
   CHECK_OK(code_token);
 
-  // Wait to make sure the workers are ready for work.
-  absl::SleepFor(absl::Seconds(5));
-
   ::privacy_sandbox::roma_byob::example::SampleRequest request;
   if (function_name == "PrimeSieve") {
     request.set_function(FUNCTION_PRIME_SIEVE);
