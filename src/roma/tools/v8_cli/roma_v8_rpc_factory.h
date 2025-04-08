@@ -126,7 +126,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
           google::scp::core::common::Uuid::GenerateUuid()),
       .version_string = "v1",
       .handler_name = std::string(handler_name),
-      .input = std::move(input_args),
+      .input = std::move(escaped_input_args),
   };
 
   const auto rpc_func =
