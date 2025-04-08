@@ -20,12 +20,16 @@
 #include <string_view>
 #include <thread>
 
+#include "absl/base/log_severity.h"
 #include "absl/cleanup/cleanup.h"
+#include "absl/log/globals.h"
+#include "absl/log/initialize.h"
 #include "absl/log/log.h"
 #include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "google/protobuf/any.pb.h"
 #include "src/roma/byob/dispatcher/dispatcher.h"
+#include "src/roma/byob/interface/metrics.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
 #include "src/util/execution_token.h"
 
@@ -38,6 +42,8 @@ using ::privacy_sandbox::roma_byob::example::SampleRequest;
 using ::privacy_sandbox::roma_byob::example::SampleResponse;
 using ::testing::Contains;
 using ::testing::StrEq;
+
+absl::Duration kTimeout = absl::Seconds(1);
 
 TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
   const int pid = ::vfork();
@@ -75,7 +81,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -83,7 +89,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfUnspecified) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     EXPECT_FALSE(bin_response.ok());
   }
 }
@@ -125,7 +131,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -133,7 +139,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfHelloWorld) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world!"));
   }
@@ -176,7 +182,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -184,7 +190,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteCppSampleUdfPrimeSieve) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     EXPECT_TRUE(bin_response.ok()) << bin_response.status();
   }
 }
@@ -225,7 +231,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -233,7 +239,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNewUdf) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
@@ -275,7 +281,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -283,7 +289,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteAbortUdf) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a crashing UDF!"));
   }
@@ -325,7 +331,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -333,7 +339,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteNonzeroReturnUdf) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I return a non-zero status!"));
   }
@@ -373,13 +379,13 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     absl::Notification done;
     ASSERT_TRUE(dispatcher
                     .ProcessRequest<SampleResponse>(
-                        *code_token, bin_request, absl::InfiniteDuration(),
+                        *code_token, bin_request, kTimeout,
                         [&done](auto /*response*/, auto /*logs*/,
                                 auto /*metrics*/) { done.Notify(); })
                     .ok());
     EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(1)));
     dispatcher.Delete(*code_token);
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
   }
   {
     const absl::StatusOr<std::string> code_token =
@@ -391,7 +397,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -399,7 +405,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndDeletePauseUdfThenLoadAndExecuteNewUdf) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("I am a new UDF!"));
   }
@@ -438,7 +444,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
   absl::Notification done;
   absl::StatusOr<ExecutionToken> execution_token =
       dispatcher.ProcessRequest<SampleResponse>(
-          *code_token, bin_request, absl::InfiniteDuration(),
+          *code_token, bin_request, kTimeout,
           [&done](auto /*response*/, absl::StatusOr<std::string_view> /*logs*/,
                   ProcessRequestMetrics metrics) {
             EXPECT_GT(metrics.response_time, absl::Seconds(1));
@@ -447,7 +453,7 @@ TEST(DispatcherUdfTest, LoadExecuteAndCancelPauseUdf) {
   ASSERT_TRUE(execution_token.ok()) << execution_token.status();
   EXPECT_FALSE(done.WaitForNotificationWithTimeout(absl::Seconds(2)));
   dispatcher.Cancel(*std::move(execution_token));
-  done.WaitForNotification();
+  ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
 }
 
 TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
@@ -486,7 +492,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -494,7 +500,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfUnspecified) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     EXPECT_FALSE(bin_response.ok());
   }
 }
@@ -536,7 +542,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -544,7 +550,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfHelloWorld) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     ASSERT_TRUE(bin_response.ok()) << bin_response.status();
     EXPECT_THAT(bin_response->greeting(), StrEq("Hello, world from Go!"));
   }
@@ -587,7 +593,7 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
     ASSERT_TRUE(
         dispatcher
             .ProcessRequest<SampleResponse>(
-                *code_token, bin_request, absl::InfiniteDuration(),
+                *code_token, bin_request, kTimeout,
                 [&bin_response, &done](
                     auto response, absl::StatusOr<std::string_view> /*logs*/,
                     ProcessRequestMetrics /*metrics*/) {
@@ -595,9 +601,16 @@ TEST(DispatcherUdfTest, LoadAndExecuteGoSampleUdfPrimeSieve) {
                   done.Notify();
                 })
             .ok());
-    done.WaitForNotification();
+    ASSERT_TRUE(done.WaitForNotificationWithTimeout(kTimeout));
     EXPECT_TRUE(bin_response.ok()) << bin_response.status();
   }
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob
+
+int main(int argc, char* argv[]) {
+  absl::InitializeLog();
+  absl::SetStderrThreshold(absl::LogSeverity::kWarning);
+  testing::InitGoogleTest(&argc, argv);
+  return RUN_ALL_TESTS();
+}
