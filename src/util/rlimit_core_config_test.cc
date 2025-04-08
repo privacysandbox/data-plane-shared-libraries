@@ -23,6 +23,8 @@
 #include <string>
 
 #include "absl/log/check.h"
+#include "absl/status/status.h"
+#include "absl/strings/str_cat.h"
 
 #include "rlimit_core_config.h"
 
@@ -34,12 +36,18 @@ constexpr auto CoreFileExists = []() -> bool {
   return stat("core", &buffer) == 0;
 };
 
-TEST(RlimitCoreConfigTest, CheckCorePatternIsCore) {
+absl::Status CheckCoreFilePattern() {
   std::ifstream core_pattern_file("/proc/sys/kernel/core_pattern");
-  CHECK(core_pattern_file.is_open()) << "Could not open core_pattern";
+  if (!core_pattern_file.is_open()) {
+    return absl::NotFoundError("Failed to open /proc/sys/kernel/core_pattern");
+  }
   std::string actual_core_path;
   std::getline(core_pattern_file, actual_core_path);
-  ASSERT_THAT(actual_core_path, ::testing::StrEq("core"));
+  if (actual_core_path != "core") {
+    return absl::FailedPreconditionError(absl::StrCat(
+        "core_pattern is not set to 'core'. Actual value: ", actual_core_path));
+  }
+  return absl::OkStatus();
 }
 
 // Tests here have been intentionally ordered the way they are.
@@ -54,6 +62,9 @@ TEST(RlimitCoreConfigTest, CheckCorePatternIsCore) {
 // Source - https://docs.oracle.com/cd/E86824_01/html/E54765/setrlimit-2.html
 
 TEST(RlimitCoreConfigTest, CoreDumpEnabledCoreFileGenerated) {
+  if (auto status = CheckCoreFilePattern(); !status.ok()) {
+    GTEST_SKIP() << "Failed core_pattern check: " << status;
+  }
   privacysandbox::server_common::SetRLimits({
       .enable_core_dumps = true,
   });
@@ -65,6 +76,9 @@ TEST(RlimitCoreConfigTest, CoreDumpEnabledCoreFileGenerated) {
 }
 
 TEST(RlimitCoreConfigTest, CoreDumpsAreDisabledByDefault) {
+  if (auto status = CheckCoreFilePattern(); !status.ok()) {
+    GTEST_SKIP() << "Failed core_pattern check: " << status;
+  }
   privacysandbox::server_common::SetRLimits();
   std::remove("core");
   EXPECT_THAT(CoreFileExists(), ::testing::IsFalse());
@@ -74,6 +88,9 @@ TEST(RlimitCoreConfigTest, CoreDumpsAreDisabledByDefault) {
 }
 
 TEST(RlimitCoreConfigTest, CoreDumpDisabledNoCoreFileGenerated) {
+  if (auto status = CheckCoreFilePattern(); !status.ok()) {
+    GTEST_SKIP() << "Failed core_pattern check: " << status;
+  }
   privacysandbox::server_common::SetRLimits({
       .enable_core_dumps = false,
   });
