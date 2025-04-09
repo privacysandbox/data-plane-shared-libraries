@@ -1,0 +1,49 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "common",
+    hdrs = ["common.h"],
+    deps = [
+        "@com_google_absl//absl/container:btree",
+    ],
+)
+
+cc_library(
+    name = "buyer_key_value_async_http_client",
+    srcs = [
+    ],
+    hdrs = [
+        "buyer_key_value_async_http_client.h",
+    ],
+    deps = [
+        ":common",
+    ],
+)
+
+cc_library(
+    name = "byos_client",
+    srcs = [
+    ],
+    hdrs = [
+        "byos_client.h",
+    ],
+    deps = [
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_library(
+    name = "seller_key_value_async_http_client",
+    srcs = [
+    ],
+    hdrs = [
+        "seller_key_value_async_http_client.h",
+    ],
+    deps = [
+        ":common",
+    ],
+)
