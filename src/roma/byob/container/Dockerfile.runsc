@@ -2,6 +2,8 @@ FROM golang:1.23.4-bookworm AS clang
 ARG CLANG_VER=18
 ARG TARGETARCH
 
+# Minimal list of dependencies for building gVisor runsc from source.
+# Derived from - https://github.com/google/gvisor/blob/4c89bb77d8bb65325288dc046ebd86122ebc6c05/images/default/Dockerfile
 # install clang and crossbuild
 ADD https://apt.llvm.org/llvm.sh /tmp/llvm.sh
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
@@ -58,8 +60,8 @@ RUN cd /tmp \
 # fetch gvisor sources
 #
 FROM build-env AS gvisor-srcs
-# 9fcf0b5 2024-12-13
-ARG GVISOR_COMMIT=9fcf0b5b5360d9314aa355c83a8f16fbe4e69e97
+# d06b27e 2025-03-31
+ARG GVISOR_COMMIT=d06b27e25f95ebd2a4978c4b0547e447866d0e0a
 
 ENV WORKSPACE=/workspace
 COPY gvisor.patch /tmp
