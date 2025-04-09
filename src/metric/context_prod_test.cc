@@ -448,4 +448,65 @@ TEST_F(SafeMetricOnlyTest, LogMultiTimesDeferred) {
   //     []() mutable { return 2; });
 }
 
+TEST_F(BaseTest, GenIdDefaultNotConsent) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)), Eq(1), _,
+              UnorderedElementsAre(
+                  Pair("Noise", "Raw"),
+                  Pair(kGenerationIdAttribute, kDefaultNotConsent))))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+}
+TEST_F(BaseTest, GenIdDefaultConsent) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(
+          Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)), Eq(1), _,
+          UnorderedElementsAre(Pair("Noise", "Raw"),
+                               Pair(kGenerationIdAttribute, kDefaultConsent))))
+      .WillOnce(Return(absl::OkStatus()));
+  context_->SetConsented("gen_id_123");
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+}
+
+TEST_F(GenIDTestValueID, GenIdWithIdNotConsent) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)), Eq(1), _,
+              UnorderedElementsAre(
+                  Pair("Noise", "Raw"),
+                  Pair(kGenerationIdAttribute, kDefaultNotConsent))))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+}
+
+TEST_F(GenIDTestValueID, GenIdWithIdConsent) {
+  EXPECT_CALL(
+      mock_metric_router_,
+      LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)), Eq(1), _,
+              UnorderedElementsAre(Pair("Noise", "Raw"),
+                                   Pair(kGenerationIdAttribute, "gen_id_123"))))
+      .WillOnce(Return(absl::OkStatus()));
+  context_->SetConsented("gen_id_123");
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+}
+
+TEST_F(GenIDTestValueOFF, GenIdOffNotConsent) {
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),
+                      Eq(1), _, UnorderedElementsAre(Pair("Noise", "Raw"))))
+      .WillOnce(Return(absl::OkStatus()));
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+}
+
+TEST_F(GenIDTestValueOFF, GenIdOffConsent) {
+  EXPECT_CALL(mock_metric_router_,
+              LogSafe(Matcher<const DefinitionSafe&>(Ref(kIntExactCounter)),
+                      Eq(1), _, UnorderedElementsAre(Pair("Noise", "Raw"))))
+      .WillOnce(Return(absl::OkStatus()));
+  context_->SetConsented("gen_id_123");
+  CHECK_OK(context_->LogUpDownCounter<kIntExactCounter>(1));
+}
+
 }  // namespace privacy_sandbox::server_common::metrics

@@ -85,6 +85,10 @@ BuildDependentConfig::BuildDependentConfig(TelemetryConfig config)
       }
     }
   }
+
+  for (const auto& dimension : server_config_.dimension_config()) {
+    dimension_config_.emplace(dimension.name(), dimension.value());
+  }
 }
 
 TelemetryConfig::TelemetryMode BuildDependentConfig::MetricMode() const {

@@ -50,6 +50,12 @@ TEST(TelemetryFlag, Parse) {
   EXPECT_EQ(f_parsed.server_config.metric_export_interval_ms(), 100);
   EXPECT_EQ(f_parsed.server_config.dp_export_interval_ms(), 200);
   EXPECT_EQ(f_parsed.server_config.dimension_config_size(), 2);
+
+  BuildDependentConfig config(f_parsed.server_config);
+  EXPECT_EQ(config.GetDimensionConfig("generation_id"),
+            TelemetryConfig::DimensionConfig::VALUE_GENERATION_ID);
+  EXPECT_EQ(config.GetDimensionConfig("na"),
+            TelemetryConfig::DimensionConfig::VALUE_DEFAULT);
 }
 
 TEST(TelemetryFlag, ParseError) {

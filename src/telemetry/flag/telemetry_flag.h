@@ -304,6 +304,15 @@ class BuildDependentConfig {
     };
   }
 
+  TelemetryConfig::DimensionConfig::Value GetDimensionConfig(
+      absl::string_view name) const {
+    auto it = dimension_config_.find(name);
+    if (it == dimension_config_.end()) {
+      return TelemetryConfig::DimensionConfig::VALUE_DEFAULT;
+    }
+    return it->second;
+  }
+
  private:
   TelemetryConfig server_config_;
   absl::flat_hash_map<std::string, MetricConfig> metric_config_;
@@ -312,6 +321,9 @@ class BuildDependentConfig {
       ABSL_GUARDED_BY(partition_mutex_);
   absl::flat_hash_map<std::string, std::vector<std::string_view>>
       partition_config_view_ ABSL_GUARDED_BY(partition_mutex_);
+
+  absl::flat_hash_map<std::string, TelemetryConfig::DimensionConfig::Value>
+      dimension_config_;
 
   absl::flat_hash_map<
       std::string,

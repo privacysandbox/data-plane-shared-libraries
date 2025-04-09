@@ -41,6 +41,7 @@ using ::testing::ReturnRef;
 using ::testing::SizeIs;
 using ::testing::StartsWith;
 using ::testing::StrictMock;
+using ::testing::UnorderedElementsAre;
 
 using DefinitionSafe =
     Definition<int, Privacy::kNonImpacting, Instrument::kUpDownCounter>;
@@ -139,9 +140,26 @@ class MockMetricRouter {
 
 class BaseTest : public ::testing::Test {
  protected:
-  void InitConfig(telemetry::TelemetryConfig::TelemetryMode mode) {
+  void InitConfig(
+      telemetry::TelemetryConfig::TelemetryMode mode,
+      std::optional<telemetry::TelemetryConfig::DimensionConfig::Value>
+          gen_id_value = std::nullopt) {
     telemetry::TelemetryConfig config_proto;
     config_proto.set_mode(mode);
+    set_custom_metric(config_proto);
+    if (gen_id_value) {
+      auto* dimension_config = config_proto.add_dimension_config();
+      dimension_config->set_name(kGenerationIdAttribute);
+      dimension_config->set_value(*gen_id_value);
+    }
+
+    metric_config_ =
+        std::make_unique<telemetry::BuildDependentConfig>(config_proto);
+    EXPECT_CALL(mock_metric_router_, metric_config())
+        .WillRepeatedly(ReturnRef(*metric_config_));
+  }
+
+  void set_custom_metric(telemetry::TelemetryConfig& config_proto) {
     auto* proto1 = config_proto.add_custom_udf_metric();
     auto* proto2 = config_proto.add_custom_udf_metric();
     auto* proto3 = config_proto.add_custom_udf_metric();
@@ -183,11 +201,6 @@ class BaseTest : public ::testing::Test {
     proto_h3->set_name("udf_h3");
     proto_h3->set_description("log_h3");
     proto_h3->add_histogram_boundaries(1);
-
-    metric_config_ =
-        std::make_unique<telemetry::BuildDependentConfig>(config_proto);
-    EXPECT_CALL(mock_metric_router_, metric_config())
-        .WillRepeatedly(ReturnRef(*metric_config_));
   }
 
   void SetUp() override {
@@ -206,6 +219,27 @@ class BaseTest : public ::testing::Test {
   std::unique_ptr<telemetry::BuildDependentConfig> metric_config_;
   StrictMock<MockMetricRouter> mock_metric_router_;
   std::unique_ptr<Context<metric_list_span, MockMetricRouter>> context_;
+};
+
+class GenIDTestValueID : public BaseTest {
+ protected:
+  void SetUp() override {
+    InitConfig(
+        telemetry::TelemetryConfig::PROD,
+        telemetry::TelemetryConfig::DimensionConfig::VALUE_GENERATION_ID);
+    context_ = Context<metric_list_span, MockMetricRouter>::GetContext(
+        &mock_metric_router_);
+  }
+};
+
+class GenIDTestValueOFF : public BaseTest {
+ protected:
+  void SetUp() override {
+    InitConfig(telemetry::TelemetryConfig::PROD,
+               telemetry::TelemetryConfig::DimensionConfig::VALUE_OFF);
+    context_ = Context<metric_list_span, MockMetricRouter>::GetContext(
+        &mock_metric_router_);
+  }
 };
 
 class SafeMetricOnlyTest : public BaseTest {

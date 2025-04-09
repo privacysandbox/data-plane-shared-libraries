@@ -41,7 +41,8 @@ namespace privacy_sandbox::server_common::metrics {
 
 inline constexpr int kLogStandardFreqSec = 60;
 inline constexpr int kLogLowFreqSec = kLogStandardFreqSec * 10;
-inline constexpr std::string_view kDefaultGenerationId = "not_consented";
+inline constexpr std::string_view kDefaultNotConsent = "not_consented";
+inline constexpr std::string_view kDefaultConsent = "consented";
 inline constexpr const DefinitionName* custom_metric_list[] = {
     &kCustom1,          &kCustom2,          &kCustom3,
     &kCustomHistogram1, &kCustomHistogram2, &kCustomHistogram3};
@@ -438,12 +439,22 @@ class Context {
   template <typename T, Privacy privacy, Instrument instrument>
   absl::Status LogSafe(const Definition<T, privacy, instrument>& definition,
                        T value, std::string_view partition) {
-    return metric_router_->LogSafe(
-        definition, value, partition,
-        {
-            {kNoiseAttribute.data(), "Raw"},
-            {kGenerationIdAttribute.data(), GetGenId().data()},
-        });
+    absl::flat_hash_map<std::string, std::string> attribute = {
+        {kNoiseAttribute.data(), "Raw"}};
+    telemetry::TelemetryConfig::DimensionConfig::Value gen_id_value =
+        metric_router_->metric_config().GetDimensionConfig(
+            kGenerationIdAttribute);
+    if (gen_id_value ==
+        telemetry::TelemetryConfig::DimensionConfig::VALUE_GENERATION_ID) {
+      attribute.emplace(kGenerationIdAttribute, GetGenId().data());
+    } else if (gen_id_value ==
+               telemetry::TelemetryConfig::DimensionConfig::VALUE_DEFAULT) {
+      attribute.emplace(kGenerationIdAttribute, GetGenId() != kDefaultNotConsent
+                                                    ? kDefaultConsent.data()
+                                                    : kDefaultNotConsent);
+    }
+    return metric_router_->LogSafe(definition, value, partition,
+                                   std::move(attribute));
   }
 
   template <typename T, Privacy privacy, Instrument instrument>
@@ -608,7 +619,7 @@ class Context {
   struct RequestState {
     bool is_decrypted = false;
     bool is_consented = false;
-    std::string generation_id = std::string(kDefaultGenerationId);
+    std::string generation_id = std::string(kDefaultNotConsent);
     absl::Status result = absl::OkStatus();
     absl::flat_hash_map<std::string, std::string> custom;
   };
