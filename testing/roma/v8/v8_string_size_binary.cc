@@ -27,8 +27,10 @@ int main(int argc, char* argv[]) {
   v8::V8::InitializePlatform(platform.get());
   v8::V8::Initialize();
 
-  v8::SnapshotCreator creator;
-  v8::Isolate* isolate = creator.GetIsolate();
+  v8::Isolate::CreateParams create_params;
+  create_params.array_buffer_allocator =
+      v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+  v8::Isolate* isolate = v8::Isolate::New(create_params);
   {
     v8::Isolate::Scope isolate_scope(isolate);
     v8::HandleScope handle_scope(isolate);
