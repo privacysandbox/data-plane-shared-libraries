@@ -1,24 +1,24 @@
-FROM ubuntu:20.04 AS build-env
+FROM ubuntu:22.04 AS build-env
 
 RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   --mount=target=/var/cache/apt,type=cache,sharing=locked \
   rm -f /etc/apt/apt.conf.d/docker-clean \
   && apt-get update \
   && apt-get --quiet install -y --no-install-recommends \
-  autoconf="2.69-*" \
-  bison="2:3.5.1+*" \
+  autoconf="2.71-*" \
+  bison="2:3.8.2+*" \
   ca-certificates="20240203~*" \
   flex="2.6.4-*" \
-  gcc="4:9.3.0-*" \
-  g++="4:9.3.0-*" \
-  git="1:2.25.1-*" \
-  libprotobuf-dev="3.6.1.3-*" \
-  libnl-route-3-dev="3.4.0-*" \
+  gcc="4:11.2.0-*" \
+  g++="4:11.2.0-*" \
+  git="1:2.34.1-*" \
+  libprotobuf-dev="3.12.4-*" \
+  libnl-route-3-dev="3.5.0-*" \
   libtool="2.4.6-*" \
-  make="4.2.1-*" \
+  make="4.3-*" \
   patch="2.7.6-*" \
-  pkg-config="0.29.1-*" \
-  protobuf-compiler="3.6.1.3-*"
+  pkg-config="0.29.2-*" \
+  protobuf-compiler="3.12.4-*"
 
 #
 # fetch nsjail sources
@@ -42,7 +42,7 @@ RUN mkdir /workspace/nsjail/lib
 RUN if [ "${TARGETARCH}" = "arm64" ]; then \
   printf "Architecture is aarch64 (arm64)\n" \
   && cp -r --dereference \
-  "/lib/aarch64-linux-gnu/libprotobuf.so.17" \
+  "/lib/aarch64-linux-gnu/libprotobuf.so.23" \
   "/lib/aarch64-linux-gnu/libnl-route-3.so.200" \
   "/lib/aarch64-linux-gnu/libnl-3.so.200" \
   "/lib/aarch64-linux-gnu/libz.so.1" \
@@ -50,7 +50,7 @@ RUN if [ "${TARGETARCH}" = "arm64" ]; then \
   elif [ "${TARGETARCH}" = "amd64" ]; then \
   printf "Architecture is AMD64\n" \
   && cp -r --dereference \
-  "/lib/x86_64-linux-gnu/libprotobuf.so.17" \
+  "/lib/x86_64-linux-gnu/libprotobuf.so.23" \
   "/lib/x86_64-linux-gnu/libnl-route-3.so.200" \
   "/lib/x86_64-linux-gnu/libnl-3.so.200" \
   "/lib/x86_64-linux-gnu/libz.so.1" \

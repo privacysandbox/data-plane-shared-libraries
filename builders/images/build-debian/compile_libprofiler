@@ -15,7 +15,7 @@ function install_build_tools() {
     lsb-release="11.1.*" \
     make="4.*" \
     software-properties-common="0.99.*" \
-    wget="1.20.*"
+    wget="1.21.*"
 }
 
 function install_clang() {

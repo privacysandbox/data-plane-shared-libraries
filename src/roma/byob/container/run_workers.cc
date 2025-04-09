@@ -125,6 +125,7 @@ constexpr std::array<int, 11> kTrustedCodeSyscallAllowlistAddOn = {
  * List of syscalls permitted for use by untrusted code.
  */
 constexpr std::array<int, 115> kUntrustedCodeSyscallAllowlist = {
+    SCMP_SYS(access),
     SCMP_SYS(arch_prctl),
     SCMP_SYS(brk),
     // Only needed by cap_udf test to verify no capabilities are available to
@@ -143,6 +144,7 @@ constexpr std::array<int, 115> kUntrustedCodeSyscallAllowlist = {
     SCMP_SYS(execveat),
     SCMP_SYS(exit),
     SCMP_SYS(exit_group),
+    SCMP_SYS(fcntl),
     SCMP_SYS(fstat),
     SCMP_SYS(fstat64),
     SCMP_SYS(fstatat64),
@@ -200,6 +202,7 @@ constexpr std::array<int, 115> kUntrustedCodeSyscallAllowlist = {
     SCMP_SYS(openat),
     // Needed by the pause_udf for testing.
     SCMP_SYS(pause),
+    SCMP_SYS(pipe2),
     SCMP_SYS(poll),
     SCMP_SYS(ppoll),
     SCMP_SYS(ppoll_time64),
@@ -230,6 +233,8 @@ constexpr std::array<int, 115> kUntrustedCodeSyscallAllowlist = {
     SCMP_SYS(socket),
     SCMP_SYS(stat),
     SCMP_SYS(stat64),
+    SCMP_SYS(tgkill),
+    SCMP_SYS(umask),
     SCMP_SYS(uname),
     SCMP_SYS(unlink),
     SCMP_SYS(unlinkat),

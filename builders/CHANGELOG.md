@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 0.82.1 (2025-04-16)
+
+### Features
+
+* Update build-debian image to Ubuntu 22.04 LTS
+
 ## 0.82.0 (2025-03-27)
 
 

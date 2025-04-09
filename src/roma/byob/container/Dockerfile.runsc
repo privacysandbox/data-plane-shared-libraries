@@ -1,4 +1,4 @@
-FROM golang:1.23.4-bookworm AS clang
+FROM golang:1.24.0-bookworm AS clang
 ARG CLANG_VER=18
 ARG TARGETARCH
 
@@ -13,7 +13,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
   && apt-get --quiet install -y --no-install-recommends \
   crossbuild-essential-amd64="12.9*" \
   crossbuild-essential-arm64="12.9*" \
-  gnupg="2.2.*" \
+  gnupg="2.2.40-*" \
   libbpf-dev="1:1.1.0-*" \
   "$(test "${TARGETARCH}" = amd64 && echo libc6-dev-i386="2.36-*" || true)" \
   lsb-release="12.0-*" \

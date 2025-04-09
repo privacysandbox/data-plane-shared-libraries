@@ -62,8 +62,8 @@ fileExistenceTests:
     uid: {UID}
     gid: {GID}
 
-  - name: /usr/byob/nsjail/lib/libprotobuf.so.17
-    path: /usr/byob/nsjail/lib/libprotobuf.so.17
+  - name: /usr/byob/nsjail/lib/libprotobuf.so.23
+    path: /usr/byob/nsjail/lib/libprotobuf.so.23
     permissions: -r-x------
     isExecutableBy: owner
     uid: {UID}
