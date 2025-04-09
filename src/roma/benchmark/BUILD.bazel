@@ -158,6 +158,23 @@ cc_binary(
 )
 
 cc_binary(
+    name = "roma_v8_benchmark",
+    srcs = ["roma_v8_benchmark.cc"],
+    data = ["//src/roma/tools/v8_cli:test_udfs"],
+    deps = [
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/roma_service",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:initialize",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@google_benchmark//:benchmark",
+        "@nlohmann_json//:lib",
+    ],
+)
+
+cc_binary(
     name = "duration_benchmark",
     srcs = ["duration_benchmark.cc"],
     deps = [
