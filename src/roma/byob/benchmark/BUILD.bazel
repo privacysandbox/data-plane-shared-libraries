@@ -118,8 +118,9 @@ Usage:
         debug = True,
         entrypoint = ["/server/bin/traffic_generator"],
         labels = {
+            "tee.launch_policy.allow_capabilities": "true",
+            "tee.launch_policy.allow_cgroups": "true",
             "tee.launch_policy.log_redirect": "always",
-            "tee.launch_policy.privileged": "true",
         },
         repo_tags = ["privacysandbox/roma-byob/traffic-generator:v1-{}".format(user.flavor)],
         tags = [
@@ -319,8 +320,9 @@ pkg_files(
             "BENCHMARK_OUT_FORMAT": "json",
         },
         labels = {
+            "tee.launch_policy.allow_capabilities": "true",
+            "tee.launch_policy.allow_cgroups": "true",
             "tee.launch_policy.log_redirect": "always",
-            "tee.launch_policy.privileged": "true",
         },
         repo_tags = [
             "privacysandbox/roma-byob/microbenchmarks:v1-{flavor}{dbg}".format(

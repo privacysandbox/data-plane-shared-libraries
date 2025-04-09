@@ -92,8 +92,9 @@ Usage:
         debug = True,
         entrypoint = ["/server/bin/{}_binary".format(prefix)],
         labels = {
+            "tee.launch_policy.allow_capabilities": "true",
+            "tee.launch_policy.allow_cgroups": "true",
             "tee.launch_policy.log_redirect": "always",
-            "tee.launch_policy.privileged": "true",
         },
         repo_tags = ["privacysandbox/roma-byob/{}_image:v1-{}".format(
             prefix,

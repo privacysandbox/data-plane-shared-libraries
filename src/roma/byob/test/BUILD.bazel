@@ -104,8 +104,9 @@ pkg_files(
         debug = True,
         entrypoint = ["/tools/example_{test}".format(test = test)],
         labels = {
+            "tee.launch_policy.allow_capabilities": "true",
+            "tee.launch_policy.allow_cgroups": "true",
             "tee.launch_policy.log_redirect": "always",
-            "tee.launch_policy.privileged": "true",
         },
         repo_tags = ["privacysandbox/roma-byob/example_{test}_image:v1-{flavor}".format(
             flavor = user.flavor,
@@ -313,8 +314,9 @@ TEST_NAME_TO_ENTRYPOINT_MAP = (
         debug = False,
         entrypoint = entrypoint,
         labels = {
+            "tee.launch_policy.allow_capabilities": "true",
+            "tee.launch_policy.allow_cgroups": "true",
             "tee.launch_policy.log_redirect": "always",
-            "tee.launch_policy.privileged": "true",
         },
         repo_tags = [
             "privacysandbox/roma-byob/roma_byob_{test_name}_image:v1-{flavor}".format(
