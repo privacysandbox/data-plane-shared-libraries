@@ -121,16 +121,15 @@ class Dispatcher {
                     &response, &input, nullptr);
             metrics.response_time = stopwatch.GetElapsedTime();
           }
+          auto log_reader = FileReader::Create(log_file_name);
           if (!parse_success) {
             std::move(callback)(
                 absl::UnavailableError("No UDF response received."),
-                FileReader::GetContent(FileReader::Create(log_file_name)),
-                std::move(metrics));
+                FileReader::GetContent(log_reader), std::move(metrics));
           } else {
-            std::move(callback)(
-                std::move(response),
-                FileReader::GetContent(FileReader::Create(log_file_name)),
-                std::move(metrics));
+            std::move(callback)(std::move(response),
+                                FileReader::GetContent(log_reader),
+                                std::move(metrics));
           }
           ::close(fd);
         };

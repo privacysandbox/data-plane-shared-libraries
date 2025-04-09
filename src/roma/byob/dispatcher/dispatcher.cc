@@ -382,16 +382,32 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
     }
 
     // Read the code token (36 bytes), followed by the execution token (36
-    // bytes) and then the UDF init token (one byte).
-    absl::StatusOr<std::string> data = Read(fd, kNumTokenBytes * 2 + 1);
+    // bytes).
+    absl::StatusOr<std::string> data = Read(fd, kNumTokenBytes * 2);
     if (!data.ok()) {
       LOG(ERROR) << "Read failure: " << data.status();
       ::close(fd);
       continue;
     }
+    std::string token = data->substr(kNumTokenBytes, kNumTokenBytes);
+    std::filesystem::path log_file_name =
+        log_dir_ / absl::StrCat(token, ".log");
+    // Reads the byte written by the UDF to indicate readiness
+    if (absl::StatusOr<std::string> udf_written_byte = Read(fd, 1);
+        !udf_written_byte.ok()) {
+      LOG(ERROR) << "Failed to read udf byte: " << udf_written_byte.status();
+      auto file_reader = FileReader::Create(std::move(log_file_name));
+      absl::StatusOr<std::string_view> logs =
+          FileReader::GetContent(file_reader);
+      if (logs.ok()) {
+        LOG(ERROR) << "Logs: " << *logs;
+      }
+      ::close(fd);
+      continue;
+    }
     RequestMetadata request_metadata{
         .fd = fd,
-        .token = data->substr(kNumTokenBytes, kNumTokenBytes),
+        .token = std::move(token),
         .handler =
             +[](int fd, std::filesystem::path /*log_file_name*/) {
               // The default handler is called when this thread is unblocked by
@@ -399,8 +415,6 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
               ::close(fd);
             },
     };
-    std::filesystem::path log_file_name =
-        log_dir_ / absl::StrCat(request_metadata.token, ".log");
     data->resize(kNumTokenBytes);
     {
       absl::MutexLock lock(&mu_);
