@@ -66,15 +66,14 @@ std::unique_ptr<FunctionBindingObjectV2<>> CreateLogFunctionBindingObject() {
                                                      "log_metadata");
 }
 
-TEST(SandboxedServiceTest, MetadataStorageDoesNotBloatWithOrphanedRequests) {
+TEST(MetadataTest, MetadataStorageDoesNotBloatWithOrphanedRequests) {
   Config config;
   config.number_of_workers = 1;
   config.worker_queue_max_items = 1;
   RomaService<> roma_service(std::move(config));
   ASSERT_TRUE(roma_service.Init().ok());
 
-  size_t n_requests = 100;
-  size_t n_successful_requests = 2;
+  size_t n_requests = 10;
 
   absl::Notification load_finished;
 
@@ -85,8 +84,8 @@ TEST(SandboxedServiceTest, MetadataStorageDoesNotBloatWithOrphanedRequests) {
         .js = R"JS_CODE(
     function Handler(input) {
       const startTime = Date.now();
-      // Sleep for 4 seconds to simulate long running request
-      while (Date.now() - startTime < 4000) {}
+      // Sleep for 6 seconds to simulate long running request that will timeout
+      while (Date.now() - startTime < 6000) {}
     }
   )JS_CODE",
     });
@@ -104,57 +103,70 @@ TEST(SandboxedServiceTest, MetadataStorageDoesNotBloatWithOrphanedRequests) {
     ASSERT_TRUE(response_status.ok());
   }
 
-  std::vector<absl::Status> statuses(n_successful_requests);
-  std::vector<absl::Notification> notifications(n_successful_requests);
-  for (int i = 0; i < n_successful_requests; i++) {
-    auto execution_obj =
-        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
-            .id = "foo",
-            .version_string = "v1",
-            .handler_name = "Handler",
-            .input = {R"("Foobar")"},
-            .metadata = {{absl::StrCat("key", i), absl::StrCat("val", i)}},
-        });
+  // Request will timeout, as we sleep for 5 seconds in the handler
+  auto make_request = [](int i) {
+    return std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
+        .id = "foo",
+        .version_string = "v1",
+        .handler_name = "Handler",
+        .tags = {{std::string(kTimeoutDurationTag), "5000ms"}},
+        .input = {R"("Foobar")"},
+        .metadata = {{absl::StrCat("key", i), absl::StrCat("val", i)}},
+    });
+  };
 
-    ASSERT_TRUE(roma_service
-                    .Execute(std::move(execution_obj),
-                             [&, i](absl::StatusOr<ResponseObject> resp) {
-                               LOG(ERROR) << "Request " << i << " finished";
-                               statuses[i] = resp.status();
-                               notifications[i].Notify();
-                             })
-                    .ok());
-    // Sleep for 500ms to ensure first request is picked up by worker by the
-    // time the second request is queued
-    absl::SleepFor(absl::Milliseconds(500));
-  }
+  absl::Status timeout_status;
+  absl::Notification timeout_notification;
+  absl::Status cancel_status;
+  absl::Notification cancel_notification;
 
-  for (int i = n_successful_requests; i < n_requests; i++) {
-    auto execution_obj =
-        std::make_unique<InvocationStrRequest<>>(InvocationStrRequest<>{
-            .id = "foo",
-            .version_string = "v1",
-            .handler_name = "Handler",
-            .input = {R"("Foobar")"},
-            .metadata = {{absl::StrCat("key", i), absl::StrCat("val", i)}},
-        });
+  // First request will be picked up by the lone worker and occupy the worker
+  // until timeout
+  ASSERT_TRUE(roma_service
+                  .Execute(make_request(0),
+                           [&](absl::StatusOr<ResponseObject> resp) {
+                             LOG(ERROR) << "Request 0 finished";
+                             timeout_status = resp.status();
+                             timeout_notification.Notify();
+                           })
+                  .ok());
+  ASSERT_EQ(roma_service.MetadataStorageSize(), 1);
+  // Sleep for 500ms to ensure that the first request is picked up by worker
+  absl::SleepFor(absl::Milliseconds(500));
+
+  // Second request will sit in queue until the first request times out
+  auto token = roma_service.Execute(make_request(1),
+                                    [&](absl::StatusOr<ResponseObject> resp) {
+                                      cancel_status = resp.status();
+                                      cancel_notification.Notify();
+                                    });
+  ASSERT_TRUE(token.ok());
+  ASSERT_EQ(roma_service.MetadataStorageSize(), 2);
+
+  // All other requests will be rejected
+  for (int i = 2; i < n_requests; i++) {
+    auto execution_obj = make_request(i);
 
     auto old_size = roma_service.MetadataStorageSize();
-    auto token = roma_service.Execute(
-        std::move(execution_obj), [&](absl::StatusOr<ResponseObject> resp) {});
 
-    ASSERT_FALSE(token.ok())
+    ASSERT_FALSE(roma_service
+                     .Execute(std::move(execution_obj),
+                              [&](absl::StatusOr<ResponseObject> resp) {})
+                     .ok())
         << "Request " << i << " should have failed to be queued";
 
     // Metadata storage should not have changed
     ASSERT_EQ(roma_service.MetadataStorageSize(), old_size);
   }
 
-  for (int i = 0; i < n_successful_requests; i++) {
-    ASSERT_TRUE(
-        notifications[i].WaitForNotificationWithTimeout(absl::Seconds(10)));
-    ASSERT_TRUE(statuses[i].ok());
-  }
+  // Cancel the second request, should still be pending
+  roma_service.Cancel(*token);
+  timeout_notification.WaitForNotificationWithTimeout(absl::Seconds(10));
+  cancel_notification.WaitForNotificationWithTimeout(absl::Seconds(10));
+  EXPECT_FALSE(timeout_status.ok());
+  EXPECT_EQ(timeout_status.code(), absl::StatusCode::kInternal);
+  EXPECT_FALSE(cancel_status.ok());
+  EXPECT_EQ(cancel_status.code(), absl::StatusCode::kCancelled);
 
   // Metadata storage should be empty after all requests have been executed
   EXPECT_EQ(roma_service.MetadataStorageSize(), 0);
