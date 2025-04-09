@@ -24,8 +24,8 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 # fetch nsjail sources
 #
 FROM build-env AS nsjail-srcs
-# bc30a1a 2024-11-04
-ARG NSJAIL_COMMIT=bc30a1a335bb4d5d2a24d1a7abeb420af9bb3388
+# efaf478 2025-04-25
+ARG NSJAIL_COMMIT=efaf4782e4a7abaeaaeedd6a2a912bce1a7ef612
 
 WORKDIR /workspace/nsjail
 RUN git clone https://github.com/google/nsjail.git /workspace/nsjail \
