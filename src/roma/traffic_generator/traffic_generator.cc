@@ -152,6 +152,8 @@ std::string StatsToJson(const BurstGenerator::Stats& stats,
       absl::StrJoin(absl::GetFlag(FLAGS_input_args), ","));
   report.mutable_params()->set_ipc_namespace_enabled(
       !absl::GetFlag(FLAGS_disable_ipc_namespace));
+  report.mutable_params()->set_connection_timeout_ms(
+      absl::ToInt64Milliseconds(absl::GetFlag(FLAGS_byob_connection_timeout)));
   const google::protobuf::util::JsonPrintOptions json_opts = {
       .add_whitespace = false,
       .always_print_primitive_fields = true,
