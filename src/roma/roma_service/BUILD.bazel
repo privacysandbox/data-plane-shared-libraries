@@ -215,6 +215,27 @@ cc_test(
 )
 
 cc_test(
+    name = "metrics_test",
+    size = "small",
+    srcs = ["metrics_test.cc"],
+    tags = [
+        "noasan",
+        "notsan",
+        "noubsan",
+    ],
+    deps = [
+        ":roma_service",
+        "//src/roma/config",
+        "//src/roma/interface",
+        "//src/roma/interface:metrics",
+        "//src/util:duration",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)
+
+cc_test(
     name = "wasm_sapi_test",
     size = "small",
     srcs = ["wasm_sapi_test.cc"],
