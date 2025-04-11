@@ -168,8 +168,7 @@ void Dispatcher::ConsumerImpl(int i) {
           }
         }
         ROMA_VLOG(1)
-            << "Successfully reload all cached code objects to the worker"
-            << index;
+            << "Successfully reload all cached code objects to the worker" << i;
       }
       std::move(request).callback(std::move(error));
     } else {
