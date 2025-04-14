@@ -25,6 +25,7 @@ docker run \
 | `--num_workers`           | Number of workers.                                                              |
 | `--request`               | File for the UDF request, in json or text proto format.                         |
 | `--rpc`                   | Name of the RPC method to invoke.                                               |
-| `--sandbox_mode`          | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. |
+| `--sandbox`               | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. |
 | `--syscall_filtering`     | Syscall filter level for BYOB. Supported values: no, worker-engine, untrusted.  |
 | `--udf`                   | UDF executable to be benchmarked.                                               |
+| `--connection_timeout`    | Max time to wait for a worker.                                                  |
