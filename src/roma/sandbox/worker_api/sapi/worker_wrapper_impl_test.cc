@@ -22,6 +22,7 @@
 #include <memory>
 #include <utility>
 
+#include "absl/log/check.h"
 #include "sandboxed_api/lenval_core.h"
 #include "sandboxed_api/sandbox2/buffer.h"
 #include "src/roma/sandbox/constants/constants.h"
@@ -44,8 +45,8 @@ std::unique_ptr<sandbox2::Buffer> buffer_ptr_;
 static ::worker_api::WorkerInitParamsProto GetDefaultInitParams() {
   // create a sandbox2 buffer
   auto buffer = sandbox2::Buffer::CreateWithSize(kBufferSize);
-  EXPECT_TRUE(buffer.ok());
-  buffer_ptr_ = std::move(buffer).value();
+  CHECK_OK(buffer) << buffer.status();
+  buffer_ptr_ = *std::move(buffer);
 
   ::worker_api::WorkerInitParamsProto init_params;
   init_params.set_require_code_preload_for_execution(false);

@@ -67,7 +67,8 @@ TEST(SleepForTest, DoesSleepStop) {
   // Make sure stop is fast enough
   ASSERT_LT(total, absl::Seconds(20));
   // Can't stop twice
-  ASSERT_FALSE(sleep_for.Stop().ok());
+  status = sleep_for.Stop();
+  ASSERT_FALSE(status.ok()) << status;
 }
 
 }  // namespace

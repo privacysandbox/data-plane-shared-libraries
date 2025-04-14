@@ -22,27 +22,28 @@ TEST(DispatcherTest, ShutdownPreInit) { Dispatcher dispatcher; }
 
 TEST(DispatcherTest, LoadErrorsForEmptyBinaryPath) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(dispatcher.LoadBinary("", /*num_workers=*/1).ok());
+  auto status = dispatcher.LoadBinary("", /*num_workers=*/1);
+  EXPECT_FALSE(status.ok()) << status;
 }
 
 // TODO: b/371538589 - Ensure non-file paths are handled appropriately.
 TEST(DispatcherTest, DISABLED_LoadErrorsForRootPath) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(dispatcher.LoadBinary("/", /*num_workers=*/1).ok());
+  auto status = dispatcher.LoadBinary("/", /*num_workers=*/1);
+  EXPECT_FALSE(status.ok()) << status;
 }
 
 TEST(DispatcherTest, LoadErrorsForUnknownBinaryPath) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(
-      dispatcher.LoadBinary("/asdflkj/ytrewq", /*num_workers=*/1).ok());
+  auto status = dispatcher.LoadBinary("/asdflkj/ytrewq", /*num_workers=*/1);
+  EXPECT_FALSE(status.ok()) << status;
 }
 
 TEST(DispatcherTest, LoadErrorsWhenNWorkersNonPositive) {
   Dispatcher dispatcher;
-  EXPECT_FALSE(dispatcher
-                   .LoadBinary("src/roma/byob/sample_udf/new_udf",
-                               /*num_workers=*/0)
-                   .ok());
+  auto status = dispatcher.LoadBinary("src/roma/byob/sample_udf/new_udf",
+                                      /*num_workers=*/0);
+  EXPECT_FALSE(status.ok()) << status;
 }
 }  // namespace
 }  // namespace privacy_sandbox::server_common::byob

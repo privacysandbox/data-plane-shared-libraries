@@ -34,7 +34,8 @@ TEST(PeriodicClosureTest, IsNotRunning) {
 
 TEST(PeriodicClosureTest, IsRunning) {
   std::unique_ptr<PeriodicClosure> periodic_closure = PeriodicClosure::Create();
-  ASSERT_TRUE(periodic_closure->StartNow(absl::ZeroDuration(), []() {}).ok());
+  auto status = periodic_closure->StartNow(absl::ZeroDuration(), []() {});
+  ASSERT_TRUE(status.ok()) << status;
   ASSERT_TRUE(periodic_closure->IsRunning());
 }
 
@@ -51,7 +52,8 @@ TEST(PeriodicClosureTest, StartDelayed) {
     }
   };
 
-  ASSERT_TRUE(periodic_closure->StartDelayed(delay, std::move(callback)).ok());
+  auto status = periodic_closure->StartDelayed(delay, std::move(callback));
+  ASSERT_TRUE(status.ok()) << status;
   notification.WaitForNotification();
   ASSERT_GE(delayed_start - start, delay);
 }
@@ -69,7 +71,8 @@ TEST(PeriodicClosureTest, StartNow) {
     }
   };
 
-  ASSERT_TRUE(periodic_closure->StartNow(delay, std::move(callback)).ok());
+  auto status = periodic_closure->StartNow(delay, std::move(callback));
+  ASSERT_TRUE(status.ok()) << status;
   notification.WaitForNotification();
   ASSERT_LT(delayed_start - start, delay);
 }
@@ -83,9 +86,9 @@ TEST(PeriodicClosureTest, Stop) {
     }
   };
 
-  ASSERT_TRUE(
-      periodic_closure->StartNow(absl::Milliseconds(1), std::move(callback))
-          .ok());
+  auto status =
+      periodic_closure->StartNow(absl::Milliseconds(1), std::move(callback));
+  ASSERT_TRUE(status.ok()) << status;
   notification.WaitForNotification();
   periodic_closure->Stop();
   ASSERT_FALSE(periodic_closure->IsRunning());
@@ -100,18 +103,21 @@ TEST(PeriodicClosureTest, StartAfterStarted) {
     }
   };
 
-  ASSERT_TRUE(
-      periodic_closure->StartNow(absl::Milliseconds(1), std::move(callback))
-          .ok());
+  auto status =
+      periodic_closure->StartNow(absl::Milliseconds(1), std::move(callback));
+  ASSERT_TRUE(status.ok()) << status;
   notification.WaitForNotification();
-  ASSERT_FALSE(periodic_closure->StartNow(absl::Milliseconds(1), []() {}).ok());
+  status = periodic_closure->StartNow(absl::Milliseconds(1), []() {});
+  ASSERT_FALSE(status.ok()) << status;
 }
 
 TEST(PeriodicClosureTest, StartAfterStopped) {
   std::unique_ptr<PeriodicClosure> periodic_closure = PeriodicClosure::Create();
-  ASSERT_TRUE(periodic_closure->StartNow(absl::Milliseconds(1), []() {}).ok());
+  auto status = periodic_closure->StartNow(absl::Milliseconds(1), []() {});
+  ASSERT_TRUE(status.ok()) << status;
   periodic_closure->Stop();
-  ASSERT_FALSE(periodic_closure->StartNow(absl::Milliseconds(1), []() {}).ok());
+  status = periodic_closure->StartNow(absl::Milliseconds(1), []() {});
+  ASSERT_FALSE(status.ok()) << status;
 }
 
 }  // namespace

@@ -61,7 +61,8 @@ TEST_P(StringSizeTest, LoadCodeObj) {
   Config config;
   config.number_of_workers = 1;
   RomaService<> roma_service(std::move(config));
-  ASSERT_TRUE(roma_service.Init().ok());
+  auto status = roma_service.Init();
+  ASSERT_TRUE(status.ok()) << status;
 
   std::string result;
   absl::Status response_status;
@@ -78,13 +79,12 @@ TEST_P(StringSizeTest, LoadCodeObj) {
   });
 
   absl::Notification load_finished;
-  ASSERT_TRUE(roma_service
-                  .LoadCodeObj(std::move(code_obj),
-                               [&](absl::StatusOr<ResponseObject> resp) {
-                                 response_status = resp.status();
-                                 load_finished.Notify();
-                               })
-                  .ok());
+  status = roma_service.LoadCodeObj(std::move(code_obj),
+                                    [&](absl::StatusOr<ResponseObject> resp) {
+                                      response_status = resp.status();
+                                      load_finished.Notify();
+                                    });
+  ASSERT_TRUE(status.ok()) << status;
   ASSERT_TRUE(load_finished.WaitForNotificationWithTimeout(absl::Seconds(40)));
   ASSERT_TRUE(response_status.ok()) << response_status;
 
@@ -96,21 +96,21 @@ TEST_P(StringSizeTest, LoadCodeObj) {
       });
 
   absl::Notification execute_finished;
-  EXPECT_TRUE(roma_service
-                  .Execute(std::move(execution_obj),
-                           [&execute_finished, &response_status,
-                            &result](absl::StatusOr<ResponseObject> resp) {
-                             response_status = resp.status();
-                             result = std::move(resp->resp);
-                             execute_finished.Notify();
-                           })
-                  .ok());
+  auto execution_status = roma_service.Execute(
+      std::move(execution_obj), [&execute_finished, &response_status,
+                                 &result](absl::StatusOr<ResponseObject> resp) {
+        response_status = resp.status();
+        result = std::move(resp->resp);
+        execute_finished.Notify();
+      });
+  EXPECT_TRUE(execution_status.ok()) << execution_status.status();
   ASSERT_TRUE(
       execute_finished.WaitForNotificationWithTimeout(absl::Seconds(40)));
   ASSERT_TRUE(response_status.ok()) << response_status;
   EXPECT_THAT(result,
               StrEq(absl::StrCat("\"some string of length: ", strsize, "\"")));
-  ASSERT_TRUE(roma_service.Stop().ok());
+  status = roma_service.Stop();
+  ASSERT_TRUE(status.ok()) << status;
 }
 
 }  // namespace
