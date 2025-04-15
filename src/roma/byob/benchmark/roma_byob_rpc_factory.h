@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef SRC_ROMA_BYOB_BENCHMARK_ROMA_BYOB_RPC_FACTORY_H_
+#define SRC_ROMA_BYOB_BENCHMARK_ROMA_BYOB_RPC_FACTORY_H_
+
 #include <filesystem>
 #include <fstream>
 #include <memory>
@@ -128,3 +131,5 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   return std::make_pair(std::move(rpc_func), std::move(callback));
 }
 }  // namespace privacy_sandbox::server_common::byob
+
+#endif  // SRC_ROMA_BYOB_BENCHMARK_ROMA_BYOB_RPC_FACTORY_H_

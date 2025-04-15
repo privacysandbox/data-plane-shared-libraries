@@ -12,6 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+#ifndef SRC_ROMA_TOOLS_V8_CLI_ROMA_V8_RPC_FACTORY_H_
+#define SRC_ROMA_TOOLS_V8_CLI_ROMA_V8_RPC_FACTORY_H_
+
 #include <fstream>
 #include <memory>
 #include <string>
@@ -180,3 +183,5 @@ std::pair<ExecutionFunc, CleanupFunc> CreateV8RpcFunc(
 }
 
 }  // namespace google::scp::roma::tools::v8_cli
+
+#endif  // SRC_ROMA_TOOLS_V8_CLI_ROMA_V8_RPC_FACTORY_H_
