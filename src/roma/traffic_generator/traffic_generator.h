@@ -17,12 +17,19 @@
 
 #include <optional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "absl/flags/declare.h"
+#include "absl/flags/flag.h"
+#include "absl/functional/any_invocable.h"
+#include "absl/log/log.h"
 #include "absl/status/status.h"
+#include "absl/synchronization/blocking_counter.h"
+#include "absl/synchronization/notification.h"
 #include "absl/time/time.h"
 #include "src/roma/byob/config/config.h"
+#include "src/util/duration.h"
 
 ABSL_DECLARE_FLAG(std::string, run_id);
 ABSL_DECLARE_FLAG(int, num_workers);
@@ -38,7 +45,7 @@ ABSL_DECLARE_FLAG(std::string, lib_mounts);
 ABSL_DECLARE_FLAG(std::string, binary_path);
 ABSL_DECLARE_FLAG(std::string, mode);
 ABSL_DECLARE_FLAG(std::string, udf_path);
-ABSL_DECLARE_FLAG(std::string, handler_name);
+ABSL_DECLARE_FLAG(std::string, function_name);
 ABSL_DECLARE_FLAG(std::vector<std::string>, input_args);
 ABSL_DECLARE_FLAG(std::string, output_file);
 ABSL_DECLARE_FLAG(bool, verbose);
@@ -53,7 +60,21 @@ namespace google::scp::roma::traffic_generator {
 
 class TrafficGenerator {
  public:
-  static absl::Status Run();
+  using ExecutionFunc = absl::AnyInvocable<void(
+      privacy_sandbox::server_common::Stopwatch,
+      absl::StatusOr<absl::Duration>*, absl::StatusOr<std::string>*,
+      absl::BlockingCounter*, privacy_sandbox::server_common::Stopwatch*,
+      absl::Duration*, absl::StatusOr<absl::Duration>*) const>;
+  using CleanupFunc = absl::AnyInvocable<void()>;
+  using RpcFuncCreator =
+      absl::AnyInvocable<std::pair<ExecutionFunc, CleanupFunc>(
+          std::atomic<std::int64_t>&)>;
+
+  static absl::Status Run(
+      RpcFuncCreator rpc_func_creator = GetDefaultRpcFuncCreator());
+
+ private:
+  static RpcFuncCreator GetDefaultRpcFuncCreator();
 };
 
 }  // namespace google::scp::roma::traffic_generator

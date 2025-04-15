@@ -112,15 +112,11 @@ namespace {
 
 using ::google::scp::roma::tools::v8_cli::CreateV8RpcFunc;
 using ::google::scp::roma::traffic_generator::BurstGenerator;
+using ::google::scp::roma::traffic_generator::TrafficGenerator;
 using ::privacy_sandbox::server_common::PeriodicClosure;
 using ::privacysandbox::apis::roma::traffic_generator::v1::Report;
 
 constexpr int kMaxQpsSearchStep = 50;
-
-using ExecutionFunc = absl::AnyInvocable<void(
-    privacy_sandbox::server_common::Stopwatch, absl::StatusOr<absl::Duration>*,
-    absl::StatusOr<std::string>*, absl::Notification*) const>;
-using CleanupFunc = absl::AnyInvocable<void()>;
 
 std::string GetKernelVersion() {
   struct utsname uname_data;
@@ -166,40 +162,14 @@ std::string StatsToJson(const BurstGenerator::Stats& stats,
 }
 
 BurstGenerator::Stats RunBurstGenerator(
-    int queries_per_second, std::atomic<std::int64_t>& completions) {
+    int queries_per_second, std::atomic<std::int64_t>& completions,
+    TrafficGenerator::RpcFuncCreator& rpc_func_creator) {
   const int num_queries = absl::GetFlag(FLAGS_num_queries);
-  const int num_workers = absl::GetFlag(FLAGS_num_workers);
   const int burst_size = absl::GetFlag(FLAGS_burst_size);
-  const std::string mode = absl::GetFlag(FLAGS_mode);
   const absl::Duration duration = absl::GetFlag(FLAGS_duration);
 
-  const std::string lib_mounts = absl::GetFlag(FLAGS_lib_mounts);
-  const std::string binary_path = absl::GetFlag(FLAGS_binary_path);
-  const privacy_sandbox::server_common::byob::Mode sandbox =
-      absl::GetFlag(FLAGS_sandbox);
-  const auto syscall_filtering = absl::GetFlag(FLAGS_syscall_filtering);
-  const bool disable_ipc_namespace = absl::GetFlag(FLAGS_disable_ipc_namespace);
-
-  const std::string udf_path = absl::GetFlag(FLAGS_udf_path);
-  const std::string function_name = absl::GetFlag(FLAGS_function_name);
-  const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
-
-  int prime_count = 0;
-  if (function_name == "PrimeSieve" && !input_args.empty() &&
-      absl::SimpleAtoi(input_args[0], &prime_count)) {
-    LOG(INFO) << "Running PrimeSieve with prime count: " << prime_count;
-  }
-
   const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
-  auto [rpc_func, stop_func] =
-      (mode == "byob")
-          ? CreateByobRpcFunc(num_workers, lib_mounts, binary_path, sandbox,
-                              completions, syscall_filtering,
-                              disable_ipc_namespace,
-                              absl::GetFlag(FLAGS_byob_connection_timeout),
-                              function_name, prime_count)
-          : CreateV8RpcFunc(num_workers, udf_path, function_name, input_args,
-                            completions);
+  auto [rpc_func, stop_func] = rpc_func_creator(completions);
 
   BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
                            std::move(rpc_func), duration);
@@ -226,7 +196,8 @@ BurstGenerator::Stats RunBurstGenerator(
 }
 
 std::pair<int, BurstGenerator::Stats> FindMaxQps(
-    double threshold_percent, std::atomic<std::int64_t>& completions) {
+    double threshold_percent, std::atomic<std::int64_t>& completions,
+    TrafficGenerator::RpcFuncCreator& rpc_func_creator) {
   const std::string qps_search_bounds = absl::GetFlag(FLAGS_qps_search_bounds);
   std::vector<std::string> qps_bounds = absl::StrSplit(qps_search_bounds, ':');
   CHECK_EQ(qps_bounds.size(), 2) << "QPS search bounds must be in the format "
@@ -242,7 +213,8 @@ std::pair<int, BurstGenerator::Stats> FindMaxQps(
   while (high_qps - low_qps > kMaxQpsSearchStep) {
     int mid_qps = (high_qps + low_qps) / 2;
 
-    BurstGenerator::Stats stats = RunBurstGenerator(mid_qps, completions);
+    BurstGenerator::Stats stats =
+        RunBurstGenerator(mid_qps, completions, rpc_func_creator);
     const float late_burst_pct =
         static_cast<float>(std::lround(static_cast<double>(stats.late_count) /
                                        stats.total_bursts * 1000)) /
@@ -274,7 +246,36 @@ std::pair<int, BurstGenerator::Stats> FindMaxQps(
 
 namespace google::scp::roma::traffic_generator {
 
-absl::Status TrafficGenerator::Run() {
+TrafficGenerator::RpcFuncCreator TrafficGenerator::GetDefaultRpcFuncCreator() {
+  const std::string function_name = absl::GetFlag(FLAGS_function_name);
+  const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
+
+  int prime_count = 0;
+  if (function_name == "PrimeSieve" && !input_args.empty() &&
+      absl::SimpleAtoi(input_args[0], &prime_count)) {
+    LOG(INFO) << "Running PrimeSieve with prime count: " << prime_count;
+  }
+
+  return [function_name, input_args,
+          prime_count](std::atomic<std::int64_t>& completions)
+             -> std::pair<ExecutionFunc, CleanupFunc> {
+    return (absl::GetFlag(FLAGS_mode) == "byob")
+               ? CreateByobRpcFunc(absl::GetFlag(FLAGS_num_workers),
+                                   absl::GetFlag(FLAGS_lib_mounts),
+                                   absl::GetFlag(FLAGS_binary_path),
+                                   absl::GetFlag(FLAGS_sandbox), completions,
+                                   absl::GetFlag(FLAGS_syscall_filtering),
+                                   absl::GetFlag(FLAGS_disable_ipc_namespace),
+                                   absl::GetFlag(FLAGS_byob_connection_timeout),
+                                   function_name, prime_count)
+               : CreateV8RpcFunc(absl::GetFlag(FLAGS_num_workers),
+                                 absl::GetFlag(FLAGS_udf_path), function_name,
+                                 input_args, completions);
+  };
+}
+
+absl::Status TrafficGenerator::Run(
+    TrafficGenerator::RpcFuncCreator rpc_func_creator) {
   LOG(INFO) << "Starting traffic generator...";
   absl::InitializeLog();
   absl::SetStderrThreshold(absl::LogSeverity::kInfo);
@@ -344,9 +345,11 @@ absl::Status TrafficGenerator::Run() {
               << threshold << "%";
 
     report.mutable_params()->set_late_burst_threshold(threshold);
-    std::tie(queries_per_second, stats) = FindMaxQps(threshold, completions);
+    std::tie(queries_per_second, stats) =
+        FindMaxQps(threshold, completions, rpc_func_creator);
   } else {
-    stats = RunBurstGenerator(queries_per_second, completions);
+    stats =
+        RunBurstGenerator(queries_per_second, completions, rpc_func_creator);
   }
 
   std::string report_json = StatsToJson(stats, queries_per_second, report);
