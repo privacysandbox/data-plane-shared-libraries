@@ -395,12 +395,13 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
     // Reads the byte written by the UDF to indicate readiness
     if (absl::StatusOr<std::string> udf_written_byte = Read(fd, 1);
         !udf_written_byte.ok()) {
-      LOG(ERROR) << "Failed to read udf byte: " << udf_written_byte.status();
+      LOG_EVERY_N_SEC(ERROR, 1)
+          << "Failed to read udf byte: " << udf_written_byte.status();
       auto file_reader = FileReader::Create(std::move(log_file_name));
       absl::StatusOr<std::string_view> logs =
           FileReader::GetContent(file_reader);
       if (logs.ok()) {
-        LOG(ERROR) << "Logs: " << *logs;
+        LOG_EVERY_N_SEC(ERROR, 1) << "Logs: " << *logs;
       }
       ::close(fd);
       continue;
