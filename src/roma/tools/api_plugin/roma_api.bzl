@@ -631,7 +631,7 @@ def roma_byob_app_api_cc_library(*, name, roma_app_api, udf_cc_proto_lib, udf_na
             udf_cc_proto_lib,
             ":{}".format(name),
             Label("//src/communication:json_utils"),
-            Label("//src/roma/traffic_generator:burst_generator"),
+            Label("//src/roma/traffic_generator"),
             Label("//src/util:periodic_closure"),
             "@com_google_absl//absl/flags:flag",
             "@com_google_absl//absl/flags:parse",
@@ -1021,6 +1021,7 @@ def roma_byob_sdk(
         <name>_roma_cc_lib -- roma_byob_app_api_cc_library
         <name>_roma_cc_lib_shell_image[.tar] -- shell-cli tool
         <name>_roma_cc_lib_benchmark_image[.tar] -- benchmark-cli tool
+        <name>_roma_cc_lib_traffic_generator_image[.tar] -- traffic-generator-cli tool
     """
     byob_udf_protospec(
         name = name + ".proto",

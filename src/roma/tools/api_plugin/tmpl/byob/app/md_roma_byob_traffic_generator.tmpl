@@ -16,16 +16,25 @@ docker run \
 
 ## Flags
 
-| Flag                      | Description                                                                     |
-| --------------------------| --------------------------------------------------------------------------------|
-| `--burst_size`            | Number of times execute must be called for a single query.                      |
-| `--disable_ipc_namespace` | Whether IPC namespace should be disabled.                                       |
-| `--queries_per_second`    | Number of queries to be sent per second.                                        |
-| `--num_queries`           | Number of queries to be sent.                                                   |
-| `--num_workers`           | Number of workers.                                                              |
-| `--request`               | File for the UDF request, in json or text proto format.                         |
-| `--rpc`                   | Name of the RPC method to invoke.                                               |
-| `--sandbox`               | Sandbox mode for BYOB. Supported values: gvisor, gvisor-debug, minimal, nsjail. |
-| `--syscall_filtering`     | Syscall filter level for BYOB. Supported values: no, worker-engine, untrusted.  |
-| `--udf`                   | UDF executable to be benchmarked.                                               |
-| `--connection_timeout`    | Max time to wait for a worker.                                                  |
+| Flag                    | Type               | Default Value        | Description                                                                         |
+| ----------------------- | ------------------ | -------------------- | ----------------------------------------------------------------------------------- |
+| `run_id`                | `string`           | Arbitrary identifier | Identifier included in reports                                                      |
+| `num_workers`           | `int`              | 84                   | Number of pre-created workers                                                       |
+| `queries_per_second`    | `int`              | 42                   | Queries sent per second                                                             |
+| `burst_size`            | `int`              | 14                   | Requests per burst                                                                  |
+| `num_queries`           | `int`              | 10,000               | Total queries to send                                                               |
+| `total_invocations`     | `int`              | 0                    | Overrides `num_queries` if non-zero                                                 |
+| `sandbox`               | `Mode`             | `nsjail`             | Sandbox mode. Supported values: gvisor, gvisor-debug, minimal, nsjail.              |
+| `syscall_filtering`     | `SyscallFiltering` | `untrusted`          | Syscall filtering level.  Supported values: no, worker-engine, untrusted.           |
+| `disable_ipc_namespace` | `bool`             | true                 | Whether IPC namespace should be disabled.                                           |
+| `output_file`           | `string`           |                      | Output file path (JSON format)                                                      |
+| `verbose`               | `bool`             | false                | Enable verbose logging                                                              |
+| `sigpending`            | `optional<int>`    |                      | Pending signals rlimit                                                              |
+| `duration`              | `absl::Duration`   | Infinite             | Duration to run generator                                                           |
+| `find_max_qps`          | `bool`             | false                | Find max QPS maintaining performance                                                |
+| `qps_search_bounds`     | `string`           | `1:10000`            | Lower and upper bounds for QPS search                                               |
+| `late_threshold`        | `double`           | 15.0                 | Max acceptable percentage of late bursts                                            |
+| `--udf`                 | `string`           |                      | UDF executable to be benchmarked.                                                   |
+| `--request`             | `string`           |                      | File for the UDF request, in json or text proto format.                             |
+| `--rpc`                 | `string`           |                      | Name of the RPC method to invoke.                                                   |
+| `--connection_timeout`  | `absl::Duration`   | 0                    | Max time to wait for a worker.                                                      |

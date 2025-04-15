@@ -41,31 +41,14 @@
 #include "absl/synchronization/notification.h"
 #include "google/protobuf/text_format.h"
 #include "src/communication/json_utils.h"
-#include "src/roma/traffic_generator/burst_generator.h"
+#include "src/roma/traffic_generator/traffic_generator.h"
 #include "src/roma/byob/config/config.h"
 #include "src/util/periodic_closure.h"
 
 ABSL_FLAG(std::string, udf, "", "UDF executable to be benchmarked.");
 // TODO(b/391407327): Use enum to specify the list of valid rpc names.
 ABSL_FLAG(std::string, rpc, "", "Name of the RPC method to invoke.");
-ABSL_FLAG(std::string, request, "",
-          "File for the UDF request, in json or text proto format.");
-ABSL_FLAG(::privacy_sandbox::server_common::byob::Mode, sandbox,
-          ::privacy_sandbox::server_common::byob::Mode::kModeNsJailSandbox,
-          ::privacy_sandbox::server_common::byob::kByobSandboxModeHelpText);
-ABSL_FLAG(int, num_workers, 1, "Number of workers.");
-ABSL_FLAG(int, num_queries, 10'000, "Number of queries to be sent.");
-ABSL_FLAG(int, burst_size, 14,
-          "Number of times execute must be called for a single query.");
-ABSL_FLAG(int, queries_per_second, 42,
-          "Number of queries to be sent per second.");
-ABSL_FLAG(
-    ::privacy_sandbox::server_common::byob::SyscallFiltering, syscall_filtering,
-    ::privacy_sandbox::server_common::byob::SyscallFiltering::
-        kUntrustedCodeSyscallFiltering,
-    ::privacy_sandbox::server_common::byob::kByobSyscallFilteringHelpText);
-ABSL_FLAG(bool, disable_ipc_namespace, true,
-          "Whether IPC namespace should be disabled.");
+ABSL_FLAG(std::string, request, "", "File for the UDF request, in json or text proto format.");
 ABSL_FLAG(absl::Duration, connection_timeout, absl::ZeroDuration(),
           "Max time to wait for a worker.");
 
@@ -90,7 +73,7 @@ void {{$rpc.Name}}ExecuteImpl(
     {{$svcName}}<>& roma_service,
     std::string_view code_token,
     absl::Duration connection_timeout,
-    std::atomic_int& completions,
+    std::atomic<std::int64_t>& completions,
     privacy_sandbox::server_common::Stopwatch stopwatch,
     absl::StatusOr<absl::Duration>& duration,
     const {{$reqType}}& request,
@@ -136,31 +119,7 @@ void RunTrafficGenerator() {
     return std::string(std::istreambuf_iterator<char>(ifs),
                        std::istreambuf_iterator<char>());
   }();
-  const int num_queries = absl::GetFlag(FLAGS_num_queries);
-  CHECK_GT(num_queries, 0);
-  const int burst_size = absl::GetFlag(FLAGS_burst_size);
-  CHECK_GT(burst_size, 0);
-  const int expected_completions = num_queries * burst_size;
-  std::atomic_int completions = 0;
-  auto periodic = ::privacy_sandbox::server_common::PeriodicClosure::Create();
-  if (absl::Status status = periodic->StartDelayed(
-          absl::Seconds(1),
-          [&completions, expected_completions]() {
-            static int previous = 0;
-            const int curr_val = completions;
-            if (previous != expected_completions) {
-              LOG(INFO) << "completions: " << curr_val
-                        << ", increment: " << curr_val - previous;
-            }
-            previous = curr_val;
-          });
-      !status.ok()) {
-    LOG(FATAL) << status;
-  }
-  const int queries_per_second = absl::GetFlag(FLAGS_queries_per_second);
-  CHECK_GT(queries_per_second, 0);
-  using ::google::scp::roma::traffic_generator::BurstGenerator;
-  const absl::Duration burst_cadence = absl::Seconds(1) / queries_per_second;
+  using ::google::scp::roma::traffic_generator::TrafficGenerator;
   absl::StatusOr<{{$svcName}}<>> roma_service =
       {{$svcName}}<>::Create(
         /*config=*/
@@ -186,27 +145,20 @@ void RunTrafficGenerator() {
                                                           &request.emplace()));
     }
     const absl::Duration connection_timeout = absl::GetFlag(FLAGS_connection_timeout);
-    auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, auto counter, auto* burst_stopwatch, auto* burst_duration, auto wait_duration) {
-      {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, connection_timeout, completions, std::move(stopwatch),
-                               *duration, *request, *counter, *burst_stopwatch, *burst_duration, *wait_duration);
+    auto rpc_func_creator = [&] (std::atomic<std::int64_t>& completions) {
+      auto rpc_func = [&] (auto stopwatch, auto* duration, auto* output, auto counter, auto* burst_stopwatch, auto* burst_duration, auto wait_duration) {
+        {{$rpc.Name}}ExecuteImpl(*roma_service, code_token, connection_timeout, completions, std::move(stopwatch),
+                                *duration, *request, *counter, *burst_stopwatch, *burst_duration, *wait_duration);
+      };
+      auto stop_func = [&] () {
+        LOG(INFO) << "Shutting down Roma";
+        privacy_sandbox::server_common::Stopwatch stopwatch;
+        roma_service = absl::UnknownError("");
+        LOG(INFO) << "Roma shutdown duration: " << stopwatch.GetElapsedTime();
+      };
+      return std::make_pair(std::move(rpc_func), std::move(stop_func));
     };
-    BurstGenerator burst_gen("tg1", num_queries, burst_size, burst_cadence,
-                            std::move(rpc_func));
-    LOG(INFO) << "starting burst generator run."
-              << "\n  burst size: " << burst_size
-              << "\n  burst cadence: " << burst_cadence
-              << "\n  num bursts: " << num_queries;
-    const BurstGenerator::Stats stats = burst_gen.Run();
-    {
-      LOG(INFO) << "Shutting down Roma";
-      privacy_sandbox::server_common::Stopwatch stopwatch;
-      roma_service = absl::UnknownError("");
-      LOG(INFO) << "Roma shutdown duration: " << stopwatch.GetElapsedTime();
-    }
-    LOG(INFO) << "\n  burst size: " << burst_size
-              << "\n  burst cadence: " << burst_cadence
-              << "\n  num bursts: " << num_queries;
-    LOG(INFO) << stats.ToString();
+    CHECK_OK(TrafficGenerator::Run(rpc_func_creator));
     return;
   }
 {{end}}
@@ -216,8 +168,7 @@ void RunTrafficGenerator() {
 
 int main(int argc, char** argv) {
   absl::ParseCommandLine(argc, argv);
-  absl::InitializeLog();
-  absl::SetStderrThreshold(absl::LogSeverity::kInfo);
+  absl::SetFlag(&FLAGS_byob_connection_timeout, absl::GetFlag(FLAGS_connection_timeout));
   RunTrafficGenerator();
   return 0;
 }
