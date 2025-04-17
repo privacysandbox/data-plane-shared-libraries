@@ -275,9 +275,13 @@ void BM_LoadBinary(benchmark::State& state) {
     code_token = LoadCode(roma_service, kUdfPath / kCPlusPlusNewBinaryFilename,
                           /*enable_log_egress=*/false,
                           /*num_workers=*/1);
+    state.PauseTiming();
+    bin_response =
+        SendRequestAndGetResponse(roma_service, func_type, code_token);
+    VerifyResponse(bin_response, kNewUdfOutput);
+    roma_service.Delete(code_token);
+    state.ResumeTiming();
   }
-  bin_response = SendRequestAndGetResponse(roma_service, func_type, code_token);
-  VerifyResponse(bin_response, kNewUdfOutput);
   state.SetLabel(
       absl::StrJoin({GetModeStr(mode), GetFunctionTypeStr(func_type)}, ", "));
 }
