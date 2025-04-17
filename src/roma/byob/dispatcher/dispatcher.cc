@@ -429,7 +429,6 @@ void Dispatcher::AcceptorImpl(std::string parent_code_token) {
           it != code_token_to_request_metadatas_.end()) {
         it->second.push(&request_metadata);
       } else {
-        LOG(INFO) << "Unrecognized code token.";
         ::close(fd);
         continue;
       }
