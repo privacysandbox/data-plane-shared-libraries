@@ -89,6 +89,7 @@ commandTests:
       - /tools/echo_request.json
       - --sandbox
       - gvisor
+      - --benchmark_min_time=1x
     exitCode: 0
     expectedOutput:
       - .*BM_Load.*
