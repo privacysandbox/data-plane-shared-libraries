@@ -121,12 +121,14 @@ TEST(MetricsTest, ShouldGetMetricsInResponse) {
         execute_finished.WaitForNotificationWithTimeout(absl::Seconds(10)));
     ASSERT_TRUE(response_status.ok());
 
-    // Use 10ms as a generous upper bound for all metrics.
+    // Bound execution duration by 100ms.
+    EXPECT_GT(metrics[kExecutionMetricDurationMs], 0);
+    EXPECT_LT(metrics[kExecutionMetricDurationMs], 100.0);
+
+    // Use 10ms as a generous upper bound for remaining metrics.
     int duration_upper_bound = 10;
     EXPECT_GT(metrics[kExecutionMetricWaitTimeMs], 0);
     EXPECT_LT(metrics[kExecutionMetricWaitTimeMs], duration_upper_bound);
-    EXPECT_GT(metrics[kExecutionMetricDurationMs], 0);
-    EXPECT_LT(metrics[kExecutionMetricDurationMs], duration_upper_bound);
     EXPECT_EQ(metrics[kExecutionMetricQueueFullnessRatio], 0);
     EXPECT_THAT(metrics[kExecutionMetricActiveWorkerRatio],
                 DoubleNear(0.5, 0.0001));
