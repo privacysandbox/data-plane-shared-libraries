@@ -1,11 +1,11 @@
 build --verbose_failures
 build --client_env=CC=clang
-build --cxxopt=-std=c++17
+build --cxxopt=-std=c++20
 build --copt=-Werror=return-type
 build -c fastbuild
 build --output_filter='^//((?!(third_party):).)*$'`
 build --color=yes
-build --client_env=BAZEL_CXXOPTS=-std=c++17
+build --client_env=BAZEL_CXXOPTS=-std=c++20
 
 test --test_output=errors
 

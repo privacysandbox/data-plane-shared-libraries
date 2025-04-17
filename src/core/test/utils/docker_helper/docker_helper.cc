@@ -114,7 +114,7 @@ int CreateImage(std::string_view image_target, std::string_view args) {
 std::string BuildCreateImageCmd(std::string_view image_target,
                                 std::string_view args) {
   std::string cmd = absl::StrCat(
-      "bazel build --action_env=BAZEL_CXXOPTS='-std=c++17' ", image_target);
+      "bazel build --action_env=BAZEL_CXXOPTS='-std=c++20' ", image_target);
   if (!args.empty()) {
     absl::StrAppend(&cmd, " ", args);
   }
