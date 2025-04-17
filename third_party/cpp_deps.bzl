@@ -185,6 +185,18 @@ def cpp_dependencies():
         strip_prefix = "flatbuffers-24.3.25",
         urls = ["https://github.com/google/flatbuffers/archive/refs/tags/v24.3.25.zip"],
     )
+    maybe(
+        http_archive,
+        name = "libevent",
+        build_file = "//third_party:libevent.BUILD",
+        patch_args = ["-p1"],
+        patches = [
+            "//third_party:libevent.patch",
+        ],
+        sha256 = "8836ad722ab211de41cb82fe098911986604f6286f67d10dfb2b6787bf418f49",
+        strip_prefix = "libevent-release-2.1.12-stable",
+        urls = ["https://github.com/libevent/libevent/archive/refs/tags/release-2.1.12-stable.zip"],
+    )
     _bazel_deps()
     _container_deps()
     _ts_js_deps()
