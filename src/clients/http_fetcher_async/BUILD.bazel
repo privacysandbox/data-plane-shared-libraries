@@ -46,3 +46,27 @@ cc_library(
         "@libevent//:event",
     ],
 )
+
+cc_library(
+    name = "multi_curl_request_manager",
+    srcs = [
+        "multi_curl_request_manager.cc",
+    ],
+    hdrs = [
+        "multi_curl_request_manager.h",
+    ],
+    deps = [
+        ":curl_request_data",
+        ":http_fetcher_async",
+        "//src/concurrent:executor",
+        "//src/core/event",
+        "//src/core/event:event_base",
+        "@com_google_absl//absl/container:flat_hash_map",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
+        "@com_google_absl//absl/synchronization",
+        "@com_google_absl//absl/time",
+        "@curl",
+        "@libevent//:event",
+    ],
+)
