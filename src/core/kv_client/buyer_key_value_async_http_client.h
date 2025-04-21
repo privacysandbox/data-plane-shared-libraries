@@ -20,7 +20,7 @@
 #include <memory>
 #include <string>
 
-#include "src/core/kv_client/byos_client.h"
+#include "src/clients/async_client/async_http_client.h"
 #include "src/core/kv_client/common.h"
 
 namespace privacy_sandbox::server_common::kv_client {
@@ -72,7 +72,7 @@ struct GetBuyerValuesOutput {
 // TODO(b/411430242): Move actual implementation from B&A repo. This is
 // currently no-op
 class BuyerKeyValuesAsyncHttpClient
-    : public ByosClient<GetBuyerValuesInput, GetBuyerValuesOutput> {
+    : public AsyncHttpClient<GetBuyerValuesInput, GetBuyerValuesOutput> {
  public:
   explicit BuyerKeyValueAsyncHttpClient(std::string_view kv_server_base_address)
       : kv_server_base_address_(kv_server_base_address) {}

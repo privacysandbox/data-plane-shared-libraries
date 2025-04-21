@@ -1,0 +1,26 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+cc_library(
+    name = "async_http_client",
+    hdrs = ["async_http_client.h"],
+    # header only library for interface
+    linkstatic = True,
+    visibility = ["//visibility:public"],
+    deps = [
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/time",
+    ],
+)
+
+cc_library(
+    name = "mocks",
+    testonly = 1,
+    hdrs = ["mocks.h"],
+    deps = [
+        "@com_google_absl//absl/functional:any_invocable",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/time",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

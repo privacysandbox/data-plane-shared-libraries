@@ -12,38 +12,24 @@ cc_library(
 
 cc_library(
     name = "buyer_key_value_async_http_client",
-    srcs = [
-    ],
     hdrs = [
         "buyer_key_value_async_http_client.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":common",
-    ],
-)
-
-cc_library(
-    name = "byos_client",
-    srcs = [
-    ],
-    hdrs = [
-        "byos_client.h",
-    ],
-    deps = [
-        "@com_google_absl//absl/functional:any_invocable",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/time",
+        "//src/clients/async_client:async_http_client",
     ],
 )
 
 cc_library(
     name = "seller_key_value_async_http_client",
-    srcs = [
-    ],
     hdrs = [
         "seller_key_value_async_http_client.h",
     ],
+    visibility = ["//visibility:public"],
     deps = [
         ":common",
+        "//src/clients/async_client:async_http_client",
     ],
 )

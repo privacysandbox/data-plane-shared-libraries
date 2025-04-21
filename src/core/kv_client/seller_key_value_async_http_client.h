@@ -20,6 +20,7 @@
 #include <memory>
 #include <string>
 
+#include "src/clients/async_client/async_http_client.h"
 #include "src/core/kv_client/common.h"
 
 namespace privacy_sandbox::server_common::kv_client {
@@ -56,7 +57,7 @@ struct GetSellerValuesOutput {
 // TODO(b/411430242): Move actual implementation from B&A repo. This is
 // currently no-op
 class SellerKeyValuesAsyncHttpClient
-    : public ByosClient<GetSellerValuesInput, GetSellerValuesOutput> {
+    : public AsyncHttpClient<GetSellerValuesInput, GetSellerValuesOutput> {
  public:
   explicit SellerKeyValueAsyncHttpClient(
       std::string_view kv_server_base_address)
