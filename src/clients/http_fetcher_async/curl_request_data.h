@@ -112,6 +112,7 @@ struct MultiCurlHttpFetcherAsyncOptions {
   // TODO(b/412330778): Rename to `curl_max_wait_time_ms`
   absl::Duration curl_max_wait_time = kDefaultMaxRequestWaitTime;
   int curl_queue_length = kDefaultMaxCurlPendingRequests;
+  bool skip_tls_verification = false;
 };
 
 // This struct maintains the data related to a Curl request, some of which
