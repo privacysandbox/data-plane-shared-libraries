@@ -176,7 +176,7 @@ repos:
     - c++
     - c
     args:
-    - --filter=-build/c++11,+build/c++20,-build/header_guard,-build/include_order,+build/include_what_you_use,-build/include_subdir,-readability/casting,-readability/todo,-runtime/references
+    - --filter=-build/c++11,+build/c++17,-build/header_guard,-build/include_order,+build/include_what_you_use,-build/include_subdir,-readability/casting,-readability/todo,-runtime/references
     - --exclude=src/aws/proxy/preload.h
     - --exclude=src/aws/proxy/socks5_state.cc
     - --quiet

@@ -19,7 +19,7 @@ package(default_visibility = ["//visibility:public"])
 cc_library(
     name = "lib",
     srcs = ["single_include/nlohmann/json.hpp"],
-    copts = ["-std=c++20"],
+    copts = ["-std=c++17"],
     includes = ["single_include"],
 )
 

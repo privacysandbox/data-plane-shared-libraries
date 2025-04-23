@@ -26,6 +26,6 @@ cc_library(
         ],
     ),
     copts = [
-        "-std=c++20",
+        "-std=c++17",
     ],
 )
