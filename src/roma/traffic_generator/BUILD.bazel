@@ -73,7 +73,7 @@ cc_library(
     name = "traffic_generator",
     srcs = ["traffic_generator.cc"],
     hdrs = ["traffic_generator.h"],
-    visibility = ["//src/roma:__subpackages__"],
+    visibility = ["//visibility:public"],
     deps = [
         ":burst_generator",
         "//src/communication:json_utils",
