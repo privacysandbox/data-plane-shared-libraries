@@ -949,8 +949,8 @@ distroless images currently supported are:
 
 | ARCHITECTURE | IMAGE             | TAG           | HASH (SHA256)                                                      |
 | ------------ | ------------------------------ | ------------- | ------------------------------------------------------------------ |
-| AMD64        | gcr.io/distroless/cc-debian12 | nonroot-amd64 | `acf6c2fe4179cd5da18bcf433f0b62467c40f2a42dc821c08cc4ce2f7037813b` |
-| ARM64        | gcr.io/distroless/cc-debian12 | nonroot-arm64 | `4e6bf5546fc17c9d434b3975daa5dbdb0e4411db4db5e96b122ba8f697f14810` |
+| AMD64        | gcr.io/distroless/cc-debian11 | nonroot-amd64 | `5a9e854bab8498a61a66b2cfa4e76e009111d09cb23a353aaa8d926e29a653d9` |
+| ARM64        | gcr.io/distroless/cc-debian11 | nonroot-arm64 | `3122cd55375a0a9f32e56a18ccd07572aeed5682421432701a03c335ab79c650` |
 
 These images contain a minimal Linux, glibc runtime for "mostly-statically compiled" languages like
 C/C++, GO, Rust, D, among others.
@@ -966,7 +966,7 @@ UDFs must be provided as a single, self-contained executable file. The executabl
 shared libraries contained within the base distroless image, for example, `glibc`, `libgcc1` and its
 dependencies.
 
-Build toolchain base image: `ubuntu:22.04`
+Build toolchain base image: `ubuntu:20.04`
 
 ## Command-line flags
 

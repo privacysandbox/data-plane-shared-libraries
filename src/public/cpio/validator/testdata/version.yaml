@@ -17,12 +17,12 @@
 schemaVersion: 2.0.0
 
 commandTests:
-  - name: 'Ubuntu version is not 20'
+  - name: 'Ubuntu version is 20'
     command: '/usr/bin/cat'
     args: ['/etc/debian_version']
-    excludedOutput: ['bullseye/sid']
+    expectedOutput: ['bullseye/sid']
 
-  - name: 'Ubuntu version is 22'
+  - name: 'Ubuntu version is not 22'
     command: '/usr/bin/cat'
     args: ['/etc/debian_version']
-    expectedOutput: ['bookworm/sid']
+    excludedOutput: ['bookworm/sid']

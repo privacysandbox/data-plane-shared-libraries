@@ -76,7 +76,7 @@ genrule(
     ],
     outs = [
         "nsjail",
-        "libprotobuf.so.23",
+        "libprotobuf.so.17",
         "libnl-route-3.so.200",
         "libnl-3.so.200",
         "libz.so.1",
@@ -123,7 +123,7 @@ pkg_files(
     srcs = [
         ":libnl-3.so.200",
         ":libnl-route-3.so.200",
-        ":libprotobuf.so.23",
+        ":libprotobuf.so.17",
         ":libz.so.1",
     ],
     attributes = pkg_attributes(mode = "0500"),
@@ -252,7 +252,7 @@ alias(
             ":byob_runtime_tar_{}.tar".format(user.flavor),
             ":container_config_{}.tar".format(user.user),
             ":nsjail",
-            ":libprotobuf.so.23",
+            ":libprotobuf.so.17",
             ":libnl-route-3.so.200",
             ":libnl-3.so.200",
             ":libz.so.1",
@@ -278,7 +278,7 @@ fi
 cp --dereference \
   "$${{ROOT_DIR}}/usr/lib/$${{MACHINE}}-linux-gnu"/libstdc++.so.6 \
   "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/{{libc.so.6,libdl.so.2,libgcc_s.so.1,libm.so.6,libpthread.so.0,librt.so.1}} \
-  $(execpath :libprotobuf.so.23) \
+  $(execpath :libprotobuf.so.17) \
   $(execpath :libnl-route-3.so.200) \
   $(execpath :libnl-3.so.200) \
   $(execpath :libz.so.1) \
@@ -286,7 +286,7 @@ cp --dereference \
 rm -rf "$${{ROOT_DIR}}/usr/lib"
 if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
    # move ld.so to /lib64
-  mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/ld-linux-$${{MACHINE/_/-}}.so.2 "$${{ROOT_DIR}}/lib64/ld-linux-$${{MACHINE/_/-}}.so.2"
+  mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/ld-2.31.so "$${{ROOT_DIR}}/lib64/ld-linux-$${{MACHINE/_/-}}.so.2"
   rm -rf "$${{ROOT_DIR}}/lib"
 fi
 cp --dereference $(execpath :nsjail) "$${{ROOT_DIR}}/usr/bin/"
