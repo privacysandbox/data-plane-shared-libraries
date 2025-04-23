@@ -125,6 +125,19 @@ TEST(MetricsTest, ShouldGetMetricsInResponse) {
     EXPECT_GT(metrics[kExecutionMetricDurationMs], 0);
     EXPECT_LT(metrics[kExecutionMetricDurationMs], 100.0);
 
+    // `kExecutionMetricJsEngineCallDurationMs` measures the latency of
+    // `Worker::RunCode`. `kExecutionMetricDurationMs` measures the latency of
+    // `WorkerWrapper::RunCode` which internally calls `Worker::RunCode`.
+    EXPECT_GT(metrics[kExecutionMetricJsEngineCallDurationMs], 0);
+    EXPECT_LT(metrics[kExecutionMetricJsEngineCallDurationMs],
+              metrics[kExecutionMetricDurationMs]);
+
+    // `kHandlerCallMetricJsEngineDurationMs` measures the latency of the v8
+    // engine call that happens within calls to `Worker::RunCode`.
+    EXPECT_GT(metrics[kHandlerCallMetricJsEngineDurationMs], 0);
+    EXPECT_LT(metrics[kHandlerCallMetricJsEngineDurationMs],
+              metrics[kExecutionMetricJsEngineCallDurationMs]);
+
     // Use 10ms as a generous upper bound for remaining metrics.
     int duration_upper_bound = 10;
     EXPECT_GT(metrics[kExecutionMetricWaitTimeMs], 0);
@@ -132,14 +145,8 @@ TEST(MetricsTest, ShouldGetMetricsInResponse) {
     EXPECT_EQ(metrics[kExecutionMetricQueueFullnessRatio], 0);
     EXPECT_THAT(metrics[kExecutionMetricActiveWorkerRatio],
                 DoubleNear(0.5, 0.0001));
-    EXPECT_GT(metrics[kExecutionMetricJsEngineCallDurationMs], 0);
-    EXPECT_LT(metrics[kExecutionMetricJsEngineCallDurationMs],
-              duration_upper_bound);
     EXPECT_GT(metrics[kInputParsingMetricJsEngineDurationMs], 0);
     EXPECT_LT(metrics[kInputParsingMetricJsEngineDurationMs],
-              duration_upper_bound);
-    EXPECT_GT(metrics[kHandlerCallMetricJsEngineDurationMs], 0);
-    EXPECT_LT(metrics[kHandlerCallMetricJsEngineDurationMs],
               duration_upper_bound);
   }
 
