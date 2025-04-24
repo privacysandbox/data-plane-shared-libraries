@@ -23,12 +23,15 @@ def sut(
         sut_dir = "**",
         sut_labels = [],
         custom_file_mappings = {},
+        sut_files_exclude = [],
         **kwargs):
     """Macro to define SUT targets"""
 
     sut_files = native.glob(
         include = ["{}/**/*".format(sut_dir)],
-        exclude = ["{}/**/BUILD.bazel".format(sut_dir)],
+        exclude = [
+            "{}/**/BUILD.bazel".format(sut_dir),
+        ] + sut_files_exclude,
     )
 
     # rename BUILD.sut files to BUILD.bazel
