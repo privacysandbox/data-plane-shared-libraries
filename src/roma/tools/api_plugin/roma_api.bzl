@@ -28,6 +28,7 @@ load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_pkg//pkg:zip.bzl", "pkg_zip")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//:defs.bzl", "bazel_build_rule_common_attrs", "filter_files")
+load("//builders/bazel:container_deps.bzl", "get_user")
 load(
     "//src/roma/tools/api_plugin:internal/roma_api.bzl",
     "app_api_cc_protoc",
@@ -38,7 +39,6 @@ load(
     "host_api_js_protoc",
     "roma_js_proto_library",
 )
-load("//third_party:container_deps.bzl", "get_user")
 
 _closure_js_attrs = {
     "convention": "None",

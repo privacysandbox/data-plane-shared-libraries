@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 1.0.0 (2025-04-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Downgrades build system to ubuntu:20.04
+
+Bug: b/373923491
+Change-Id: I4460af9f3809e1ade93dbab6a35573da41ed5851
+
+* Revert^2 "fix: Revert to ubuntu:20"
+
+## 0.83.0 (2025-04-21)
+
+
+### Features
+
+* Add container-structure-test wrapper script
+
+
+### Bug Fixes
+
+* Remove unused gVisor deps
+
+## 0.82.1 (2025-04-16)
+
+### Features
+
+* Update build-debian image to Ubuntu 22.04 LTS
+
 ## 0.82.0 (2025-03-27)
 
 

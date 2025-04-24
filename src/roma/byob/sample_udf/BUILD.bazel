@@ -23,6 +23,7 @@ load("@rules_java//java:defs.bzl", "java_library", "java_proto_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("//builders/bazel:container_deps.bzl", "DISTROLESS_USERS")
 load(
     "//src/roma/tools/api_plugin:roma_api.bzl",
     "declare_roma_api",
@@ -30,7 +31,6 @@ load(
     "roma_host_api_cc_library",
     "roma_integrator_docs",
 )
-load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 proto_library(
     name = "sample_proto",

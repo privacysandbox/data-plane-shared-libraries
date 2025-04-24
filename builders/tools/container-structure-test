@@ -1,4 +1,5 @@
-# Copyright 2024 Google LLC
+#!/bin/bash
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,19 +13,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
-load("//builders/bazel:container_deps.bzl", "DISTROLESS_USERS")
+TMPDIR="$(mktemp --directory)"
+trap 'rm -rf "${TMPDIR}"' EXIT
+{
+  cat <<EOF
+FROM golang:1.23.4-bookworm as build
+RUN git clone --depth=1 --branch=v1.19.3 https://github.com/GoogleContainerTools/container-structure-test.git /tmp/cst \
+  && cd /tmp/cst \
+  && go build ./cmd/container-structure-test
 
-[
-    expand_template(
-        name = "image_{}_test_yaml".format(user.flavor),
-        out = "image_{}_test.yaml".format(user.flavor),
-        substitutions = {
-            "{GID}": str(user.gid),
-            "{UID}": str(user.uid),
-        },
-        template = ":image_test.yaml",
-        visibility = ["//visibility:public"],
-    )
-    for user in DISTROLESS_USERS
-]
+FROM scratch
+COPY --from=build /tmp/cst/container-structure-test /
+EOF
+} | docker buildx build --quiet --file=- --output="${TMPDIR}" .
+"${TMPDIR}"/container-structure-test "$@"

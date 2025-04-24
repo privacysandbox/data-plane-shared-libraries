@@ -16,8 +16,8 @@ load("@aspect_bazel_lib//lib:expand_template.bzl", "expand_template")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files", "pkg_mkdirs")
 load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("//builders/bazel:container_deps.bzl", "DISTROLESS_USERS")
 load("//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
-load("//third_party:container_deps.bzl", "DISTROLESS_USERS")
 
 package(default_visibility = ["//visibility:public"])
 

@@ -1,4 +1,4 @@
-# Copyright 2022 Google LLC
+# Copyright 2025 Google LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,11 +14,13 @@
 
 load("@rules_oci//oci:pull.bzl", "oci_pull")
 
+# All container images must be compatible with the `build-debian` image.
 _images = {
     "runtime-debian-debug-nonroot": {
         "arch_hashes": {
-            # cc-debian11:debug-nonroot
+            # Feb 28, 2024
             "amd64": "72b9108b17a4ef0398998d45cbc14af2f3270af374fc2aa2c74823c6c7054fac",
+            # Feb 28, 2024
             "arm64": "623676598d55f93ff93ea3b9d95f3cb5a379eca66dfcf9b2734f2cc3e5f34666",
         },
         "registry": "gcr.io",
@@ -27,20 +29,24 @@ _images = {
     "runtime-debian-debug-root": {
         # debug build so we can use 'sh'. Root, for gcp coordinators
         # auth to work
-        # cc-debian11:debug
         "arch_hashes": {
+            # Feb 28, 2024
             "amd64": "d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548",
+            # Feb 28, 2024
             "arm64": "6449313a9a80b2758f505c81462c492da87f76954d319f2adb55401177798cce",
         },
         "registry": "gcr.io",
         "repository": "distroless/cc-debian11",
     },
     "runtime-debian-nondebug-nonroot": {
+        # cc-debian11:nonroot
+        # This image contains a minimal Linux, glibc runtime for
+        # "mostly-statically compiled" languages like Rust and D.
+        # https://github.com/GoogleContainerTools/distroless/blob/main/cc/README.md
         "arch_hashes": {
-            # cc-debian11:nonroot
-            # This image contains a minimal Linux, glibc runtime for "mostly-statically compiled" languages like Rust and D.
-            # https://github.com/GoogleContainerTools/distroless/blob/main/cc/README.md
+            # Jul 4, 2024
             "amd64": "5a9e854bab8498a61a66b2cfa4e76e009111d09cb23a353aaa8d926e29a653d9",
+            # Jul 4, 2024
             "arm64": "3122cd55375a0a9f32e56a18ccd07572aeed5682421432701a03c335ab79c650",
         },
         "registry": "gcr.io",
@@ -48,8 +54,9 @@ _images = {
     },
     "runtime-debian-nondebug-root": {
         "arch_hashes": {
-            # cc-debian11:latest
+            # Jul 29, 2024
             "amd64": "72f2f861fdc130b1b083f3f055bbe84b73eec8c8c48f16a435194b41feedc674",
+            # Jul 4, 2024
             "arm64": "74bbfb32c5341d7abc6de0379ffe330a9aec2819c5145c4c71917975c93b83e5",
         },
         "registry": "gcr.io",

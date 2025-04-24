@@ -1,5 +1,7 @@
 workspace(name = "google_privacysandbox_servers_common")
 
+# For fixing issues related to finding `//builders/bazel:deps.bzl`, try running:
+# git submodule update --init --remote --force
 load("//builders/bazel:deps.bzl", "python_deps", "python_register_toolchains")
 
 python_deps()
@@ -34,7 +36,7 @@ load("@rules_jvm_external//:setup.bzl", "rules_jvm_external_setup")
 
 rules_jvm_external_setup()
 
-load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "container_deps")
+load("//builders/bazel:container_deps.bzl", "container_deps")
 
 container_deps()
 

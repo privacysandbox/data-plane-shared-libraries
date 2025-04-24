@@ -41,12 +41,12 @@ execution of arbitrary binaries written in any language.
 1. Install container deps:
 
     ```bazel
-    load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", common_container_deps = "container_deps")
+    load("//builders/bazel:container_deps.bzl", common_container_deps = "container_deps")
 
     common_container_deps()
     ```
 
-1. Use the `get_user` macro, specifying either `root` or `nonroot`. For example:
+1. Use the `get_user` macro, specifying either `root` or `nonroot`.
 
 1. [For OCI image users] Add create a target using the `roma_byob_image` macro, which supports all
    the attributes for `oci_image`. Attributes include:
@@ -65,7 +65,7 @@ execution of arbitrary binaries written in any language.
 
     ```bazel
     load("@google_privacysandbox_servers_common//src/roma/tools/api_plugin:roma_api.bzl", "roma_byob_image")
-    load("@google_privacysandbox_servers_common//third_party:container_deps.bzl", "get_user")
+    load("//builders/bazel:container_deps.bzl", "get_user")
 
     roma_byob_image(
       name = "your_image_name",
