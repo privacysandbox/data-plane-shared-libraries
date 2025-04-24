@@ -58,14 +58,13 @@ namespace privacy_sandbox::server_common {
 namespace {
 
 constexpr std::string_view kKeyFetchFailMessage =
-    "GetEncryptedPrivateKey call failed (key IDs: $0, status_code: $1)";
+    "GetEncryptedPrivateKey call failed (request: $0, status_code: $1)";
 
 absl::Status HandleFailure(
-    const google::protobuf::RepeatedPtrField<std::string>& key_ids,
+    const ListPrivateKeysRequest& request,
     google::scp::core::StatusCode status_code,
     privacy_sandbox::server_common::log::PSLogContext& log_context) noexcept {
-  std::string key_ids_str = absl::StrJoin(key_ids, ", ");
-  const std::string error = absl::Substitute(kKeyFetchFailMessage, key_ids_str,
+  const std::string error = absl::Substitute(kKeyFetchFailMessage, request,
                                              GetErrorMessage(status_code));
   PS_LOG(ERROR, log_context) << error;
   return absl::UnavailableError(error);
@@ -160,17 +159,15 @@ absl::Status PrivateKeyFetcher::Refresh() noexcept ABSL_LOCKS_EXCLUDED(mutex_) {
     } else {
       KeyFetchResultCounter::IncrementPrivateKeyFetchAsyncFailureCount();
       KeyFetchResultCounter::SetNumPrivateKeysParsed(0);
-      HandleFailure(request.key_ids(), result.status_code, log_context_)
-          .IgnoreError();
+      HandleFailure(request, result.status_code, log_context_).IgnoreError();
     }
     fetch_notify.Notify();
   };
   if (const absl::Status error = private_key_client_->ListPrivateKeys(
           request, std::move(list_priv_key_cb));
       !error.ok()) {
-    auto error_message = absl::Substitute(
-        kKeyFetchFailMessage, absl::StrJoin(request.key_ids(), ", "),
-        error.message());
+    auto error_message =
+        absl::Substitute(kKeyFetchFailMessage, request, error.message());
     PS_LOG(ERROR, log_context_) << "ListPrivateKeys failed: " << error_message;
     return absl::Status(error.code(), error_message);
   }
