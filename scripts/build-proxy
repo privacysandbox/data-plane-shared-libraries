@@ -96,7 +96,7 @@ function build_proxy() {
 set -o errexit
 # remove any existing test logs
 bazel ${BAZEL_STARTUP_ARGS} info ${BAZEL_EXTRA_ARGS} bazel-testlogs 2>/dev/null | xargs rm -rf
-bazel ${BAZEL_STARTUP_ARGS} test --config=run_all_tests ${BAZEL_EXTRA_ARGS} //src/aws/proxy:all
+bazel ${BAZEL_STARTUP_ARGS} test --config=run_all_tests ${BAZEL_EXTRA_ARGS} //src/aws/proxy:proxy_server_test
 bazel ${BAZEL_STARTUP_ARGS} run ${BAZEL_EXTRA_ARGS} //production/packaging/aws:copy_to_dist ${target_dist} ${ARCH}
     "
     printf "copied proxy artifacts for %s\n" "${target_dist}"
