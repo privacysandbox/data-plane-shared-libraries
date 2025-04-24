@@ -149,7 +149,7 @@ RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
 FROM alpine:latest AS promql-cli-sources
 ADD https://github.com/nalbury/promql-cli/archive/refs/tags/v0.3.0.tar.gz /tmp/src.tar.gz
 RUN tar --extract --directory=/tmp --file=/tmp/src.tar.gz \
-    && mv /tmp/promql-cli-0.3.0 /tmp/promql-cli
+  && mv /tmp/promql-cli-0.3.0 /tmp/promql-cli
 
 #
 # stage: promql-cli-build
@@ -162,16 +162,32 @@ RUN go mod download
 RUN OS=linux ARCH=${TARGETARCH} INSTALL_PATH=/promql-cli/build/bin/ make install
 
 #
+# stage: Azure CLI
+#
+FROM runtime-base AS azure-cli
+ADD https://aka.ms/InstallAzureCLIDeb /tmp/InstallAzureCLIDeb
+# install python3-venv
+RUN --mount=target=/var/lib/apt/lists,type=cache,sharing=locked \
+  --mount=target=/var/cache/apt,type=cache,sharing=locked \
+  rm -f /etc/apt/apt.conf.d/docker-clean \
+  && apt-get update \
+  && apt-get --quiet install -y --no-install-recommends python3.11-venv
+ARG AZ_VENV_DIR=/opt/az-venv
+RUN python3 -m venv "${AZ_VENV_DIR}" \
+  && "${AZ_VENV_DIR}"/bin/pip install az.cli
+ENV AZ="${AZ_VENV_DIR}/bin/az"
+
+#
 # stage: functionaltest CLI
 #
-FROM runtime-base AS functest-cli
+FROM azure-cli AS functest-cli
 LABEL org.opencontainers.image.title="functionaltest CLI"
 LABEL org.opencontainers.image.description="functionaltest CLI tool for Privacy Sandbox"
-COPY --from=dist-artifacts /functionaltest /usr/local/bin/functionaltest
-COPY --from=ghz /go/bin/ghz /usr/local/bin/
-COPY --from=grpcurl /go/bin/grpcurl /usr/local/bin/
-COPY --from=ghcr.io/jqlang/jq:1.7.1 /jq /usr/local/bin
-COPY --from=promql-cli-build /promql-cli/build/bin/promql /usr/bin/promql
+COPY --from=dist-artifacts --chmod=0755 /functionaltest /usr/local/bin/functionaltest
+COPY --from=ghz --chmod=0755 /go/bin/ghz /usr/local/bin/
+COPY --from=grpcurl --chmod=0755 /go/bin/grpcurl /usr/local/bin/
+COPY --from=ghcr.io/jqlang/jq:1.7.1 --chmod=0755 /jq /usr/local/bin
+COPY --from=promql-cli-build --chmod=0755 /promql-cli/build/bin/promql /usr/bin/promql
 ENV \
   GHZ=/usr/local/bin/ghz \
   GRPCURL=/usr/local/bin/grpcurl \

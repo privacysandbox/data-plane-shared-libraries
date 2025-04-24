@@ -2,6 +2,47 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 1.4.0 (2025-04-24)
+
+
+### Features
+
+* Allow shell stage to propagate env vars
+
+
+### Bug Fixes
+
+* Add test for shell stage env vars
+* Explicitly set permissions for all binaries
+* Remove incorrect AZ env var
+
+## 1.3.2 (2025-04-24)
+
+
+### Bug Fixes
+
+* Fix passing env vars to shell command
+* Move azure-cli build to separate image stage
+* Specify SUT_ID jq arg for perf tests
+
+## 1.3.1 (2025-04-17)
+
+
+### Bug Fixes
+
+* Fix passing env vars to shell command
+
+## 1.3.0 (2025-04-15)
+
+
+### Features
+
+* Add Azure CLI to functional test image
+* Add key substitution to grpc diff test invoker
+* Fix bazel test command with test_env
+* Remove extra JQ substitution logic, pass SUT_ID to script instead
+* Set SUT_ID for shell and bazel test commands
+
 ## 1.2.0 (2025-03-31)
 
 

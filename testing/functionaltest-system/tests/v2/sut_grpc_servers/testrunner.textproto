@@ -11,6 +11,8 @@ stages: {
   command: {
     shell: {
       command: "./myapp"
+      env { key: "SOME_TEST_VAR1" , value: "SOMETHING" }
+      env { key: "SOME_TEST_VAR2" , value: "SOMETHING ELSE" }
     }
   }
 }

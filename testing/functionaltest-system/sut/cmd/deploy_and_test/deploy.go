@@ -34,6 +34,7 @@ import (
 const testRunnerFilename = "testrunner.textproto"
 
 var (
+	sutId           string
 	sutWorkdir      string
 	sutZipFile      string
 	sutDockerImages []string
@@ -147,8 +148,12 @@ func shellCommandToCmd(shellCommand *sutV1Pb.ShellCommand) (cmd *exec.Cmd, err e
 		return
 	}
 	cmd = exec.Command(shellCommand.Command[0], shellCommand.Command[1:]...)
+	cmd.Env = append(cmd.Environ(), "SUT_ID="+sutId)
 	if len(shellCommand.Env) > 0 {
 		for k, v := range shellCommand.Env {
+			if len(v) == 0 {
+				v = os.Getenv(k)
+			}
 			cmd.Env = append(cmd.Env, k+"="+v)
 		}
 	}
@@ -257,7 +262,9 @@ func deploy() (err error) {
 		return
 	}
 	defer cleanup()
+	sutId = filepath.Base(sutWorkdir)
 	if verbose {
+		fmt.Println("sut id:", sutId)
 		fmt.Println("sut workdir:", sutWorkdir)
 	}
 	if err = extractEmbeddedFS(); err != nil {

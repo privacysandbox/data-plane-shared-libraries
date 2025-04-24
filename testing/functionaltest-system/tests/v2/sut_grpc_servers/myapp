@@ -1,5 +1,18 @@
 #!/bin/bash
 
+function check_env_exists() {
+  local env_var_name=$1
+  if [[ -z ${!env_var_name} ]]; then
+    printf "env var [%s] is not set or empty\n" "${env_var_name}" &>/dev/stderr
+    exit 1
+  fi
+}
+
+check_env_exists SUT_ID
+check_env_exists SOME_TEST_VAR1
+check_env_exists SOME_TEST_VAR2
+
 printf "myapp works!\n"
 pwd -P
+printenv
 printf "myapp exiting!\n"

@@ -27,6 +27,7 @@ usage:
     --client-accept-language <string> client Accept-Language header
 environment variables:
     JQ                              path to jq executable (required)
+    SUT_ID                          string ID of the SUT run (optional)
 USAGE
   # shellcheck disable=SC2086
   exit ${exitval}
@@ -209,7 +210,9 @@ if [[ -n "${CLIENT_ACCEPT_LANGUAGE}" ]]; then
   )
 fi
 
-declare -a JQ_POST_ARGS=()
+declare -a JQ_POST_ARGS=(
+  --arg SUT_ID "${SUT_ID}"
+)
 if [[ ${JQ_POST_SLURP} -eq 1 ]]; then
   JQ_POST_ARGS+=(--slurp)
 fi
@@ -217,6 +220,7 @@ fi
 # Run pre-filter on request
 "${JQ}" --exit-status \
   --from-file "${TMP_JQ_PRE_PROGRAM_FILENAME}" \
+  --arg SUT_ID "${SUT_ID}" \
   <"${REQUEST_FILENAME}" \
   >"${TMP_FILTERED_REQUEST}"
 

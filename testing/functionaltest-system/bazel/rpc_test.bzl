@@ -247,6 +247,12 @@ def rpc_diff_test_suite(
         tags = test_tags,
     )
 
+_jq_args = [
+    "--arg",
+    "SUT_ID",
+    "sut12345",
+]
+
 def rpc_perf_test(
         name,
         request,
@@ -306,6 +312,7 @@ def rpc_perf_test(
         jq(
             name = "{}-filtered_request".format(name),
             srcs = [request],
+            args = _jq_args,
             filter_file = jq_pre_filter,
             out = filtered_request,
         )
@@ -433,6 +440,7 @@ def ghz_test(
         jq(
             name = "{}-filtered_request".format(name),
             srcs = [request],
+            args = _jq_args,
             filter_file = jq_pre_filter,
             out = filtered_request,
         )
@@ -599,6 +607,7 @@ def wrk2_perf_test(
             jq(
                 name = "{}-filtered_request".format(name),
                 srcs = [request],
+                args = _jq_args,
                 filter_file = jq_pre_filter,
                 out = filtered_request,
             )

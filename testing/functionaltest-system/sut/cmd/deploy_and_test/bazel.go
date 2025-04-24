@@ -126,9 +126,9 @@ func runBazelTest(bazelTestCmd *sutV1Pb.BazelTest, label string) (exitCode int, 
 	}
 	outputBase := path.Join(sutWorkdir, "bazel-") + label
 	bazelArgs := []string{
-		"--output_base",
-		outputBase,
+		"--output_base=" + outputBase,
 		"test",
+		"--test_env=SUT_ID=" + sutId,
 	}
 	testTargets := stringValFilter(bazelTestCmd.TestTargets, stringValPredicate)
 	if len(testTargets) == 0 {
