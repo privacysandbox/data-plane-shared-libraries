@@ -107,6 +107,17 @@ ABSL_FLAG(double, late_threshold, 15.0,
 ABSL_FLAG(
     absl::Duration, byob_connection_timeout, absl::ZeroDuration(),
     "Max time to wait for a worker in 'byob' mode. Ignored in 'v8' mode.");
+ABSL_FLAG(bool, find_latency_budget, false,
+          "Find maximum latency that maintains performance under threshold");
+ABSL_FLAG(double, initial_duration_ms, 5,
+          "Initial duration to test for latency budget (default 5ms)");
+ABSL_FLAG(bool, use_late_bursts_for_budget, false,
+          "Use late bursts for latency budget test");
+ABSL_FLAG(double, latency_slope_threshold, 1.0,
+          "Threshold for the slope of the latency curve, below which the curve "
+          "has leveled off (default 1.0)");
+ABSL_FLAG(double, duration_step_ms, 5,
+          "Step size for the latency budget test (default 5ms)");
 
 namespace {
 
@@ -242,6 +253,58 @@ std::pair<int, BurstGenerator::Stats> FindMaxQps(
   return std::make_pair(best_qps, best_stats);
 }
 
+BurstGenerator::Stats FindLatencyBudget(
+    std::atomic<std::int64_t>& completions) {
+  const int qps = absl::GetFlag(FLAGS_queries_per_second);
+
+  BurstGenerator::Stats stats;
+  float prev_pct = 0;
+  int prime_sieve_duration_ms = absl::GetFlag(FLAGS_initial_duration_ms);
+
+  bool use_bursts_for_budget = absl::GetFlag(FLAGS_use_late_bursts_for_budget);
+  while (true) {
+    TrafficGenerator::RpcFuncCreator latency_budget_rpc_func =
+        [prime_sieve_duration_ms](std::atomic<std::int64_t>& completions)
+        -> std::pair<TrafficGenerator::ExecutionFunc,
+                     TrafficGenerator::CleanupFunc> {
+      return CreateByobRpcFunc(
+          absl::GetFlag(FLAGS_num_workers), absl::GetFlag(FLAGS_lib_mounts),
+          absl::GetFlag(FLAGS_binary_path), absl::GetFlag(FLAGS_sandbox),
+          completions, absl::GetFlag(FLAGS_syscall_filtering),
+          absl::GetFlag(FLAGS_disable_ipc_namespace),
+          absl::GetFlag(FLAGS_byob_connection_timeout), "PrimeSieve",
+          {absl::StrCat(prime_sieve_duration_ms, "ms")});
+    };
+
+    stats = RunBurstGenerator(qps, completions, latency_budget_rpc_func);
+    Report report;
+    stats.ToReport(report);
+
+    float curr_pct = use_bursts_for_budget
+                         ? report.statistics().late_burst_pct()
+                         : report.statistics().failure_pct();
+    absl::SetFlag(&FLAGS_input_args,
+                  {absl::StrCat(prime_sieve_duration_ms, "ms")});
+    std::string report_json = StatsToJson(stats, qps, report);
+    if (absl::GetFlag(FLAGS_verbose)) {
+      LOG(INFO) << "JSON_L" << report_json << "JSON_L";
+      LOG(INFO) << stats.ToString();
+    }
+
+    LOG(INFO) << "Tested duration: " << prime_sieve_duration_ms << "ms, "
+              << (use_bursts_for_budget ? "Late" : "Failure")
+              << " percentage: " << curr_pct;
+    prime_sieve_duration_ms += absl::GetFlag(FLAGS_duration_step_ms);
+    if (curr_pct > 50 &&
+        curr_pct - prev_pct < absl::GetFlag(FLAGS_latency_slope_threshold) &&
+        curr_pct > prev_pct) {
+      break;
+    }
+    prev_pct = curr_pct;
+  }
+  return stats;
+}
+
 }  // namespace
 
 namespace google::scp::roma::traffic_generator {
@@ -340,6 +403,8 @@ absl::Status TrafficGenerator::Run(
     report.mutable_params()->set_late_burst_threshold(threshold);
     std::tie(queries_per_second, stats) =
         FindMaxQps(threshold, completions, rpc_func_creator);
+  } else if (absl::GetFlag(FLAGS_find_latency_budget)) {
+    stats = FindLatencyBudget(completions);
   } else {
     stats =
         RunBurstGenerator(queries_per_second, completions, rpc_func_creator);
