@@ -1,0 +1,43 @@
+common --enable_bzlmod
+
+build --announce_rc
+build --verbose_failures
+build --compilation_mode=opt
+build --output_filter='^//((?!(deps):).)*$'`
+build --color=yes
+build --config=clang
+
+test --test_verbose_timeout_warnings
+test --test_output=errors
+
+build:run_all_tests --cache_test_results=no
+test:run_all_tests --test_verbose_timeout_warnings
+
+build:clang --client_env=CC=clang
+build:clang --cxxopt=-std=c++20
+build:clang --host_cxxopt=-std=c++20
+# Makes thread safety analysis warnings into errors.
+build:clang --copt=-Werror=thread-safety
+# https://github.com/google/tcmalloc/blob/master/docs/tuning.md#build-time-optimizations
+build:clang --cxxopt=-fsized-deallocation
+build:clang --host_cxxopt=-fsized-deallocation
+build:clang --cxxopt=-fnew-alignment=8
+build:clang --host_cxxopt=-fnew-alignment=8
+build:clang --cxxopt=-fbracket-depth=512
+build:clang --action_env=CC
+build:clang --action_env=CXX
+build:clang --action_env=BAZEL_CXXOPTS
+build:clang --action_env=BAZEL_LINKOPTS
+
+# azure libs require curl with openssl
+build:clang --@curl//:ssl_lib=openssl
+
+# Flag compiler warnings as errors.
+build:clang --copt=-Werror
+build:clang --copt=-Wno-deprecated-declarations
+build:clang --copt=-Wno-deprecated-pragma
+build:clang --per_file_copt=.*external/.*@-Wno-error
+
+build:clang-tidy --aspects @bazel_clang_tidy//clang_tidy:clang_tidy.bzl%clang_tidy_aspect
+build:clang-tidy --output_groups=report
+build:clang-tidy --@bazel_clang_tidy//:clang_tidy_config=//:clang_tidy_config

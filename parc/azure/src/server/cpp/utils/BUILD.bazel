@@ -1,0 +1,57 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
+
+cc_library(
+    name = "status_util",
+    srcs = ["status_util.cc"],
+    hdrs = ["status_util.h"],
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        "@abseil-cpp//absl/status",
+        # "@com_google_googleapis//google/rpc:status_cc_proto",
+        "@protobuf",
+        "@grpc//:grpc++",
+        "@grpc//src/proto/grpc/status:status_cc_proto",
+    ],
+)
+
+cc_test(
+    name = "status_util_test",
+    size = "small",
+    srcs = ["status_util_test.cc"],
+    deps = [
+        ":status_util",
+        "@abseil-cpp//absl/status",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_library(
+    name = "blocking_bounded_queue",
+    hdrs = ["blocking_bounded_queue.h"],
+    visibility = ["//src:__subpackages__"],
+)
+
+cc_test(
+    name = "blocking_bounded_queue_test",
+    size = "small",
+    srcs = ["blocking_bounded_queue_test.cc"],
+    deps = [
+        ":blocking_bounded_queue",
+        "@abseil-cpp//absl/status",
+        "@googletest//:gtest_main",
+    ],
+)

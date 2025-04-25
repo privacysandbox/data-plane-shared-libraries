@@ -1,0 +1,108 @@
+# Copyright 2025 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+load("@protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
+load("@rules_pkg//pkg:mappings.bzl", "pkg_attributes", "pkg_files")
+load("@rules_pkg//pkg:tar.bzl", "pkg_tar")
+load("@rules_proto_grpc_cpp//:defs.bzl", "cpp_grpc_library")
+
+cpp_grpc_library(
+    name = "parc_service_grpc_proto",
+    include_prefix = "privacysandbox/apis/parc/v0",
+    protos = [
+        "@google_privacysandbox_apis//apis/privacysandbox/apis/parc/v0:blob_proto",
+        "@google_privacysandbox_apis//apis/privacysandbox/apis/parc/v0:parameter_proto",
+        "@google_privacysandbox_apis//apis/privacysandbox/apis/parc/v0:parc_service_proto",
+    ],
+)
+
+cc_proto_library(
+    name = "parameter_cc_proto",
+    deps = ["//src/proto:parameter_proto"],
+)
+
+cc_library(
+    name = "callback_server_impl",
+    srcs = ["callback_server_impl.cc"],
+    hdrs = ["callback_server_impl.h"],
+    deps = [
+        ":parameter_cc_proto",
+        ":parc_service_grpc_proto",
+        "//src/server/cpp/utils:blocking_bounded_queue",
+        "//src/server/cpp/utils:status_util",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:globals",
+        "@abseil-cpp//absl/log:initialize",
+        "@abseil-cpp//absl/status:statusor",
+        "@abseil-cpp//absl/strings",
+        "@azure-identity-cpp//:azure_identity_cpp",
+        "@azure-storage-blobs-cpp//:azure_storage_blobs_cpp",
+        "@grpc//:grpc++",
+        "@protobuf",
+    ],
+)
+
+cc_binary(
+    name = "server",
+    srcs = ["callback_server.cc"],
+    visibility = ["//src:__subpackages__"],
+    deps = [
+        ":callback_server_impl",
+        "@abseil-cpp//absl/debugging:failure_signal_handler",
+        "@abseil-cpp//absl/debugging:symbolize",
+        "@abseil-cpp//absl/flags:flag",
+        "@abseil-cpp//absl/flags:parse",
+        "@abseil-cpp//absl/log",
+        "@abseil-cpp//absl/log:globals",
+        "@abseil-cpp//absl/log:initialize",
+        "@abseil-cpp//absl/status",
+        "@abseil-cpp//absl/strings",
+        "@grpc//:grpc++",
+        "@grpc//:grpcpp_otel_plugin",
+        "@opentelemetry-cpp//exporters/otlp:otlp_file_metric_exporter",
+        "@opentelemetry-cpp//exporters/otlp:otlp_grpc_metric_exporter",
+        "@opentelemetry-cpp//sdk:headers",
+        "@opentelemetry-cpp//sdk/src/metrics",
+    ],
+)
+
+pkg_files(
+    name = "server_execs",
+    srcs = [":server"],
+    attributes = pkg_attributes(mode = "0555"),
+    prefix = "/parc",
+    renames = {
+        ":server": "parc-azure-cpp",
+    },
+)
+
+pkg_tar(
+    name = "server_execs_tar",
+    srcs = [":server_execs"],
+    owner = "0.0",
+)
+
+genrule(
+    name = "copy_to_dist",
+    srcs = [":server_execs_tar"],
+    outs = ["copy_to_dist.bin"],
+    cmd_bash = """cat <<EOF >'$@'
+mkdir -p dist
+tar --extract --owner=root:0 --group=root:0 --file="$(execpath :server_execs_tar)" --directory=dist
+EOF""",
+    executable = True,
+    local = True,
+    visibility = ["//visibility:public"],
+)

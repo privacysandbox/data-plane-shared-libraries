@@ -1,0 +1,44 @@
+diff --git a/BUILD b/BUILD
+index 90f666efdf..2260287c9a 100644
+--- a/BUILD
++++ b/BUILD
+@@ -2242,6 +2242,7 @@ grpc_cc_library(
+         "//src/core:tsi/transport_security_grpc.cc",
+     ],
+     hdrs = [
++        "include/grpc/slice_buffer.h",
+         "//src/core:tsi/transport_security.h",
+         "//src/core:tsi/transport_security_grpc.h",
+         "//src/core:tsi/transport_security_interface.h",
+diff --git a/third_party/BUILD b/third_party/BUILD
+index 77cb52d0fc..c4b647f5c9 100644
+--- a/third_party/BUILD
++++ b/third_party/BUILD
+@@ -18,13 +18,13 @@ package(default_visibility = ["//:__subpackages__"])
+ 
+ alias(
+     name = "libssl",
+-    actual = "@boringssl//:ssl",
++    actual = "@openssl//:ssl",
+     tags = ["manual"],
+ )
+ 
+ alias(
+     name = "libcrypto",
+-    actual = "@boringssl//:crypto",
++    actual = "@openssl//:crypto",
+     tags = ["manual"],
+ )
+ 
+diff --git a/MODULE.bazel b/MODULE.bazel
+index 2321bfde..13e2ffc2 100644
+--- a/MODULE.bazel
++++ b/MODULE.bazel
+@@ -23,6 +23,7 @@ bazel_dep(name = "abseil-cpp", version = "20240722.0", repo_name = "com_google_a
+ bazel_dep(name = "apple_support", version = "1.17.1", repo_name = "build_bazel_apple_support")
+ bazel_dep(name = "bazel_skylib", version = "1.7.1")
+ bazel_dep(name = "boringssl", version = "0.20241024.0")  # mistmatched 20241211
++bazel_dep(name = "openssl", version = "3.3.1.bcr.1")
+ bazel_dep(name = "c-ares", version = "1.15.0", repo_name = "com_github_cares_cares")  # mistmatched 1.19.1
+ bazel_dep(name = "envoy_api", version = "0.0.0-20241214-918efc9")  # mistmatched 20250106
+ bazel_dep(name = "googleapis", version = "0.0.0-20240819-fe8ba054a", repo_name = "com_google_googleapis")
