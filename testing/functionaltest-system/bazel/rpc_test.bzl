@@ -308,19 +308,11 @@ def rpc_perf_test(
         ])
 
     if jq_pre_filter:
-        filtered_request = "{}-filtered_request.json".format(name)
-        jq(
-            name = "{}-filtered_request".format(name),
-            srcs = [request],
-            args = _jq_args,
-            filter_file = jq_pre_filter,
-            out = filtered_request,
-        )
-        args.extend(["--request", "$(rootpath :{})".format(filtered_request)])
-        data.append(":{}".format(filtered_request))
-    else:
-        args.extend(["--request", "$(execpath {})".format(request)])
-        data.append(request)
+        args.extend(["--jq-pre-filter", "$(execpath {})".format(jq_pre_filter)])
+        data.append(jq_pre_filter)
+
+    args.extend(["--request", "$(execpath {})".format(request)])
+    data.append(request)
 
     native.sh_test(
         name = name,
@@ -436,19 +428,11 @@ def ghz_test(
         ])
 
     if jq_pre_filter:
-        filtered_request = "{}-filtered_request.json".format(name)
-        jq(
-            name = "{}-filtered_request".format(name),
-            srcs = [request],
-            args = _jq_args,
-            filter_file = jq_pre_filter,
-            out = filtered_request,
-        )
-        args.extend(["--request", "$(rootpath :{})".format(filtered_request)])
-        data.append(":{}".format(filtered_request))
-    else:
-        args.extend(["--request", "$(execpath {})".format(request)])
-        data.append(request)
+        args.extend(["--jq-pre-filter", "$(execpath {})".format(jq_pre_filter)])
+        data.append(jq_pre_filter)
+
+    args.extend(["--request", "$(execpath {})".format(request)])
+    data.append(request)
 
     native.sh_test(
         name = name,

@@ -58,10 +58,10 @@ def repositories():
 
     http_archive(
         name = "com_google_protobuf",
-        sha256 = "44d5861127df4f94ae57e249bf494ebafba8dec514779fdd5304a9644119a7c8",
-        strip_prefix = "protobuf-26.1",
+        sha256 = "85803e01f347141e16a2f770213a496f808fff9f0138c7c0e0c9dfa708b0da92",
+        strip_prefix = "protobuf-29.3",
         urls = [
-            "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v26.1.zip",
+            "https://github.com/protocolbuffers/protobuf/archive/refs/tags/v29.3.zip",
         ],
     )
 

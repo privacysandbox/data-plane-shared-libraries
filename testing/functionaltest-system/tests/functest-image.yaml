@@ -1,0 +1,98 @@
+# Copyright 2022 Google LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# refer to docs at https://github.com/GoogleContainerTools/container-structure-test
+
+schemaVersion: 2.0.0
+
+metadataTest:
+  entrypoint: ["/usr/local/bin/functionaltest"]
+  envVars:
+    - key: AZ
+      value: /az$
+      isRegex: true
+    - key: GHZ
+      value: /ghz$
+      isRegex: true
+    - key: GRPCURL
+      value: /grpcurl$
+      isRegex: true
+    - key: JQ
+      value: /jq$
+      isRegex: true
+    - key: PROMQL
+      value: /promql$
+      isRegex: true
+  labels:
+    - key: org.opencontainers.image.title
+      value: functionaltest CLI
+    - key: org.opencontainers.image.description
+      value: functionaltest CLI tool for Privacy Sandbox
+
+commandTests:
+  - name: functest-cli help
+    command: functionaltest
+    args: ["--help"]
+    expectedOutput:
+      - |-
+        ^Collection of utilities related to functional testing for the
+        Privacy Sandbox servers\.
+
+        Usage:
+          functionaltest \[command\]
+
+        Available Commands:
+          completion  Generate the autocompletion script for the specified shell
+          dockersut   Docker System-Under-Test commands
+          help        Help about any command
+          version     Version info
+
+        .*
+    exitCode: 0
+  - name: az help
+    command: "$AZ"
+    args: ["version"]
+    expectedOutput:
+      - |-
+        ^{
+          "azure-cli": "2\.71\.0",
+          "azure-cli-core": "2\.71\.0",
+          "azure-cli-telemetry": "1\.1\.0",
+          "extensions": {}
+        }
+    exitCode: 0
+  - name: ghz help
+    command: "$GHZ"
+    args: ["--version"]
+    expectedError:
+      - dev
+    exitCode: 0
+  - name: grpcurl help
+    command: "$GRPCURL"
+    args: ["--version"]
+    expectedError:
+      - grpcurl dev build <no version set>
+    exitCode: 0
+  - name: jq help
+    command: "$JQ"
+    args: ["--version"]
+    expectedOutput:
+      - jq-1.7.1
+    exitCode: 0
+  - name: PROMQL help
+    command: "$PROMQL"
+    args: ["--version"]
+    expectedOutput:
+      - promql version v0.2.1
+    exitCode: 0

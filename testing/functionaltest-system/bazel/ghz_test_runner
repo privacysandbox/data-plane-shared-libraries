@@ -47,6 +47,7 @@ function check_app() {
 }
 
 check_app GHZ
+check_app JQ
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -70,6 +71,10 @@ while [[ $# -gt 0 ]]; do
       REQUEST_FILENAME="$2"
       shift 2 || usage 1
       ;;
+    --jq-pre-filter)
+      JQ_PRE_FILTER="$2"
+      shift 2 || usage 1
+      ;;
     --plaintext)
       PLAINTEXT=1
       shift
@@ -91,10 +96,23 @@ done
 declare -r REPORT_FILE=ghz_report.json
 declare -r REPORT_FORMAT=pretty
 
+FILTERED_REQUEST="$(mktemp)"
+
+if [[ -f ${JQ_PRE_FILTER} ]]; then
+  # Run pre-filter on request
+  "${JQ}" --exit-status \
+    --from-file "${JQ_PRE_FILTER}" \
+    --arg SUT_ID "${SUT_ID}" \
+    <"${REQUEST_FILENAME}" \
+    >"${FILTERED_REQUEST}"
+else
+  FILTERED_REQUEST="${REQUEST_FILENAME}"
+fi
+
 declare -a GHZ_ARGS=(
   "--call=${RPC}"
   "--format=${REPORT_FORMAT}"
-  "--data-file=${REQUEST_FILENAME}"
+  "--data-file=${FILTERED_REQUEST}"
   "--protoset=${PROTOSET_FILENAME}"
 )
 if [[ ${PLAINTEXT} -eq 1 ]]; then

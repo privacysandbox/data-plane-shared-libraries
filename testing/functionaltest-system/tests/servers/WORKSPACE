@@ -18,25 +18,13 @@ aspect_bazel_lib_register_toolchains()
 register_jq_toolchains()
 
 http_archive(
-    name = "upb",
-    patch_args = ["-p1"],
-    patches = ["//third_party:upb.patch"],
-    sha256 = "017a7e8e4e842d01dba5dc8aa316323eee080cd1b75986a7d1f94d87220e6502",
-    strip_prefix = "upb-e4635f223e7d36dfbea3b722a4ca4807a7e882e2",
-    urls = [
-        "https://storage.googleapis.com/grpc-bazel-mirror/github.com/protocolbuffers/upb/archive/e4635f223e7d36dfbea3b722a4ca4807a7e882e2.tar.gz",
-        "https://github.com/protocolbuffers/upb/archive/e4635f223e7d36dfbea3b722a4ca4807a7e882e2.tar.gz",
-    ],
-)
-
-http_archive(
     name = "com_github_grpc_grpc",
     patch_args = ["-p1"],
     patches = ["//third_party:grpc.patch"],
-    sha256 = "89fb53a61ed4e8f5d748295dcb9b709cd89c34858010417207ae7bc4a39858c2",
-    strip_prefix = "grpc-1.52.2",
+    sha256 = "ed5298b95ca6d1c2fb2410071e64c944cda23a98179902d701cad42edeb39c5d",
+    strip_prefix = "grpc-1.72.0",
     urls = [
-        "https://github.com/grpc/grpc/archive/v1.52.2.zip",
+        "https://github.com/grpc/grpc/archive/v1.72.0.zip",
     ],
 )
 

@@ -45,3 +45,9 @@ current directory:
 ```sh
 docker buildx build --tag="privacysandbox/functionaltest/functionaltest-cli:$(cat version.txt)" .
 ```
+
+Use the following command to test the generated image:
+
+```sh
+builders/tools/container-structure-test test --image privacysandbox/functionaltest/functionaltest-cli:$(cat version.txt) --config tests/functest-image.yaml
+```

@@ -1,8 +1,8 @@
 diff --git a/BUILD b/BUILD
-index 1892c563c4..0e0e1ba613 100644
+index 848e65dabb..87810d7d45 100644
 --- a/BUILD
 +++ b/BUILD
-@@ -1663,6 +1663,7 @@ grpc_cc_library(
+@@ -2186,6 +2186,7 @@ grpc_cc_library(
          "//src/core:tsi/transport_security_grpc.cc",
      ],
      hdrs = [
@@ -10,55 +10,42 @@ index 1892c563c4..0e0e1ba613 100644
          "//src/core:tsi/transport_security.h",
          "//src/core:tsi/transport_security_grpc.h",
          "//src/core:tsi/transport_security_interface.h",
-diff --git a/bazel/grpc_extra_deps.bzl b/bazel/grpc_extra_deps.bzl
-index 4d8afa3131..4006defe09 100644
---- a/bazel/grpc_extra_deps.bzl
-+++ b/bazel/grpc_extra_deps.bzl
-@@ -53,7 +53,7 @@ def grpc_extra_deps(ignore_version_differences = False):
-     api_dependencies()
-
-     go_rules_dependencies()
--    go_register_toolchains(version = "1.18")
-+    go_register_toolchains(version = "1.22.3")
-     gazelle_dependencies()
-
-     # Pull-in the go 3rd party dependencies for protoc_gen_validate, which is
 diff --git a/examples/cpp/helloworld/BUILD b/examples/cpp/helloworld/BUILD
-index eb0d57e5d0..273070aa52 100644
+index 5958028736..bbbda8d1de 100644
 --- a/examples/cpp/helloworld/BUILD
 +++ b/examples/cpp/helloworld/BUILD
 @@ -12,6 +12,8 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
-
+ 
 +package(default_visibility = ["//visibility:public"])
 +
  licenses(["notice"])
-
- cc_binary(
-diff --git a/examples/cpp/keyvaluestore/BUILD b/examples/cpp/keyvaluestore/BUILD
-index b6c78395c5..bbc50fda12 100644
---- a/examples/cpp/keyvaluestore/BUILD
-+++ b/examples/cpp/keyvaluestore/BUILD
-@@ -12,6 +12,8 @@
- # See the License for the specific language governing permissions and
- # limitations under the License.
-
-+package(default_visibility = ["//visibility:public"])
-+
- licenses(["notice"])
-
+ 
  cc_binary(
 diff --git a/examples/cpp/route_guide/BUILD b/examples/cpp/route_guide/BUILD
-index 3f04558d37..41237d17a4 100644
+index 4315ad137b..7e6537aaec 100644
 --- a/examples/cpp/route_guide/BUILD
 +++ b/examples/cpp/route_guide/BUILD
 @@ -12,6 +12,8 @@
  # See the License for the specific language governing permissions and
  # limitations under the License.
-
+ 
 +package(default_visibility = ["//visibility:public"])
 +
  licenses(["notice"])
-
+ 
  cc_library(
+diff --git a/test/cpp/util/BUILD b/test/cpp/util/BUILD
+index 2a388e391e..68e6081810 100644
+--- a/test/cpp/util/BUILD
++++ b/test/cpp/util/BUILD
+@@ -325,7 +325,7 @@ grpc_cc_binary(
+         "absl/flags:flag",
+     ],
+     visibility = [
+-        "//bazel:cli",
++        "//visibility:public",
+     ],
+     deps = [
+         ":grpc++_proto_reflection_desc_db",
