@@ -14,60 +14,56 @@
 
 load("@rules_oci//oci:pull.bzl", "oci_pull")
 
-# All container images must be compatible with the `build-debian` image.
 _images = {
     "runtime-debian-debug-nonroot": {
         "arch_hashes": {
-            # Feb 28, 2024
-            "amd64": "72b9108b17a4ef0398998d45cbc14af2f3270af374fc2aa2c74823c6c7054fac",
-            # Feb 28, 2024
-            "arm64": "623676598d55f93ff93ea3b9d95f3cb5a379eca66dfcf9b2734f2cc3e5f34666",
+            # Mar 28, 2025
+            "amd64": "0a8aecaca4eec99be3b8034bcbd4a7541c6dc27c5a1eb9c80b0ba2f597c1e3f1",
+            # Mar 28, 2025
+            "arm64": "e5e85d96a09bef71cf1b6a1b21eadfb7d64f5e1c9bd4222d6762f7464f0e72f4",
         },
         "registry": "gcr.io",
-        "repository": "distroless/cc-debian11",
+        "repository": "distroless/cc-debian12",
     },
     "runtime-debian-debug-root": {
-        # debug build so we can use 'sh'. Root, for gcp coordinators
+        # Debug build so we can use 'sh'. Root, for GCP coordinators
         # auth to work
         "arch_hashes": {
-            # Feb 28, 2024
-            "amd64": "d5a2169bc2282598f0cf886a3d301269d0ee5bf7f7392184198dd41d36b70548",
-            # Feb 28, 2024
-            "arm64": "6449313a9a80b2758f505c81462c492da87f76954d319f2adb55401177798cce",
+            # Mar 28, 2025
+            "amd64": "5d6d0b2f650f41ec0ed490f7b12f3e326af5964517a8a8dc8c65e9dfa4bd8008",
+            # Mar 28, 2025
+            "arm64": "11e03b8351fa3dc15cea2a97a3484617adeadab37045f77d5328046f0fbd9544",
         },
         "registry": "gcr.io",
-        "repository": "distroless/cc-debian11",
+        "repository": "distroless/cc-debian12",
     },
     "runtime-debian-nondebug-nonroot": {
-        # cc-debian11:nonroot
         # This image contains a minimal Linux, glibc runtime for
         # "mostly-statically compiled" languages like Rust and D.
         # https://github.com/GoogleContainerTools/distroless/blob/main/cc/README.md
         "arch_hashes": {
-            # Jul 4, 2024
-            "amd64": "5a9e854bab8498a61a66b2cfa4e76e009111d09cb23a353aaa8d926e29a653d9",
-            # Jul 4, 2024
-            "arm64": "3122cd55375a0a9f32e56a18ccd07572aeed5682421432701a03c335ab79c650",
+            "amd64": "acf6c2fe4179cd5da18bcf433f0b62467c40f2a42dc821c08cc4ce2f7037813b",
+            "arm64": "4e6bf5546fc17c9d434b3975daa5dbdb0e4411db4db5e96b122ba8f697f14810",
         },
         "registry": "gcr.io",
-        "repository": "distroless/cc-debian11",
+        "repository": "distroless/cc-debian12",
     },
     "runtime-debian-nondebug-root": {
         "arch_hashes": {
-            # Jul 29, 2024
-            "amd64": "72f2f861fdc130b1b083f3f055bbe84b73eec8c8c48f16a435194b41feedc674",
-            # Jul 4, 2024
-            "arm64": "74bbfb32c5341d7abc6de0379ffe330a9aec2819c5145c4c71917975c93b83e5",
+            # Mar 28, 2025
+            "amd64": "dc7acdb6300eaa99ae93621b0f033237ae1284fdd5ab323b4d90ba8359c55854",
+            # Mar 28, 2025
+            "arm64": "b97c1911753fbbdf557e5994a5930de9233f9eec7fd0b773f6624c77b01b76db",
         },
         "registry": "gcr.io",
-        "repository": "distroless/cc-debian11",
+        "repository": "distroless/cc-debian12",
     },
     # Non-distroless; only for debugging purposes
     "runtime-ubuntu-fulldist-debug-root": {
-        # Ubuntu 20.04 ubuntu:focal-20240530
+        # Ubuntu 22.04 ubuntu:jammy-20250404
         "arch_hashes": {
-            "amd64": "d86db849e59626d94f768c679aba441163c996caf7a3426f44924d0239ffe03f",
-            "arm64": "6edb9576e2a2080a42e4e0e9a6bc0bd91a2bf06375f9832d400bf33841d35ece",
+            "amd64": "a76d0e9d99f0e91640e35824a6259c93156f0f07b7778ba05808c750e7fa6e68",
+            "arm64": "04c0fd7fceedf5c0fe69ec1685c37cf270f03ae424322a58548b095528f4a3c3",
         },
         "registry": "docker.io",
         "repository": "library/ubuntu",

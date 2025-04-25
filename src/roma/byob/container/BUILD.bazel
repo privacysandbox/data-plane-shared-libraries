@@ -286,7 +286,7 @@ cp --dereference \
 rm -rf "$${{ROOT_DIR}}/usr/lib"
 if [[ -d $${{ROOT_DIR}}/lib64 ]]; then
    # move ld.so to /lib64
-  mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/ld-2.31.so "$${{ROOT_DIR}}/lib64/ld-linux-$${{MACHINE/_/-}}.so.2"
+  mv "$${{ROOT_DIR}}/lib/$${{MACHINE}}-linux-gnu"/* "$${{ROOT_DIR}}"/lib64
   rm -rf "$${{ROOT_DIR}}/lib"
 fi
 cp --dereference $(execpath :nsjail) "$${{ROOT_DIR}}/usr/bin/"
