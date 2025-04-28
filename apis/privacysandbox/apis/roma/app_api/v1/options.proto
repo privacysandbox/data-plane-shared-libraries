@@ -63,6 +63,8 @@ message RomaServiceAnnotation {
   // cpp_host_process_callback_includes would contain
   // `foo/bar/foobar_native_functions.h`.
   repeated string cpp_host_process_callback_includes = 6;
+  // import strings for the generate protobuf spec
+  repeated string proto_imports = 9;
 }
 
 message RomaFunctionAnnotation {

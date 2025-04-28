@@ -995,6 +995,7 @@ def roma_byob_sdk(
         exclude_tools = False,
         guide_intro_text = _default_guide_intro,
         generated_proto_path = "",
+        proto_deps = [],
         **kwargs):
     """
     Top-level macro for the Roma BYOB SDK.
@@ -1030,6 +1031,7 @@ def roma_byob_sdk(
     proto_library(
         name = name + "_proto",
         srcs = [":{}.proto".format(name)],
+        deps = proto_deps,
     )
     cc_proto_library(
         name = name + "_cc_proto",

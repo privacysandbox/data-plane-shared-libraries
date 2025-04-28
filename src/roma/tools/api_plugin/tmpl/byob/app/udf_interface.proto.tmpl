@@ -35,6 +35,9 @@ package {{$svcopts.CppNamespace | replace "::" "." }};
 {{ if len $svcopts.CsharpNamespace }}option csharp_namespace = "{{ $svcopts.CsharpNamespace }}";{{ end }}
 {{ if len $svcopts.GoPackage }}option go_package = "{{ $svcopts.GoPackage }}";{{ end }}
 
+{{- range $import := $svcopts.ProtoImports}}
+import "{{$import}}";
+{{- end}}
 
 {{- range $rpc := $svc.MethodsWithOption "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation"}}
 {{- $rpcopts := index $rpc.Options "privacysandbox.apis.roma.app_api.v1.roma_rpc_annotation" }}
