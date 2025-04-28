@@ -17,13 +17,15 @@ syntax = "proto3";
 package privacy_sandbox.server_common.byob;
 
 import "apis/privacysandbox/apis/roma/app_api/v1/options.proto";
+import "google/protobuf/duration.proto";
 
 service SampleService {
   option (privacysandbox.apis.roma.app_api.v1.roma_svc_annotation) = {
     name: 'Sample Server',
     roma_app_name: 'SampleServer',
     description: 'A sample server showcasing declarative APIs for BYOB',
-    cpp_namespace: 'privacy_sandbox::roma_byob::example'
+    cpp_namespace: 'privacy_sandbox::roma_byob::example',
+    proto_imports: ['google/protobuf/duration.proto'],
   };
 
   rpc Sample(SampleRequest) returns (SampleResponse) {
@@ -114,6 +116,10 @@ message SampleRequest {
   int32 prime_count = 2 [
     (privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {description: 'The count of prime numbers to generate.'}
   ];
+  google.protobuf.Duration duration = 3
+      [(privacysandbox.apis.roma.app_api.v1.roma_field_annotation) = {
+        description: 'The duration of RunPrimeSieve.'
+      }];
 }
 
 message SampleResponse {

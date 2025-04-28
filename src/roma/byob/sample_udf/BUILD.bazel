@@ -36,7 +36,10 @@ proto_library(
     name = "sample_proto",
     srcs = ["sample.proto"],
     visibility = ["//src/roma/byob:__subpackages__"],
-    deps = ["//apis/privacysandbox/apis/roma/app_api/v1:options_proto"],
+    deps = [
+        "//apis/privacysandbox/apis/roma/app_api/v1:options_proto",
+        "@com_google_protobuf//:duration_proto",
+    ],
 )
 
 cc_proto_library(
@@ -106,6 +109,7 @@ sample_api = declare_roma_api(
 roma_byob_sdk(
     name = "sample_byob_sdk",
     generated_proto_path = "generated/sample.proto",
+    proto_deps = ["@com_google_protobuf//:duration_proto"],
     roma_app_api = sample_api,
     visibility = ["//visibility:public"],
 )
@@ -266,7 +270,9 @@ cc_binary(
     visibility = ["//visibility:public"],
     deps = [
         ":sample_byob_sdk_cc_proto",
+        "//src/util:duration",
         "@com_google_absl//absl/log",
+        "@com_google_absl//absl/time",
         "@com_google_protobuf//:protobuf",
     ],
 )

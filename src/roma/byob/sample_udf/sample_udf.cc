@@ -22,8 +22,11 @@
 #include <vector>
 
 #include "absl/log/log.h"
+#include "absl/time/time.h"
 #include "google/protobuf/util/delimited_message_util.h"
+#include "google/protobuf/util/time_util.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
+#include "src/util/duration.h"
 
 using ::google::protobuf::io::FileInputStream;
 using ::privacy_sandbox::roma_byob::example::FUNCTION_CLONE;
@@ -43,6 +46,11 @@ void RunHelloWorld(SampleResponse& bin_response) {
 void RunPrimeSieve(SampleRequest& bin_request, SampleResponse& bin_response) {
   int prime_count =
       bin_request.prime_count() > 0 ? bin_request.prime_count() : kPrimeCount;
+  int duration_ns = google::protobuf::util::TimeUtil::DurationToNanoseconds(
+      bin_request.duration());
+  absl::Duration duration = absl::Nanoseconds(duration_ns);
+  bool use_duration = duration_ns > 0;
+  double sqrt_prime_count = sqrt(prime_count);
 
   // Create a boolean array of size n+1
   std::vector<bool> primes(prime_count + 1, true);
@@ -50,13 +58,23 @@ void RunPrimeSieve(SampleRequest& bin_request, SampleResponse& bin_response) {
   primes[0] = false;
   primes[1] = false;
   // Loop through the elements
-  for (int i = 2; i <= sqrt(prime_count); i++) {
+  privacy_sandbox::server_common::Stopwatch stopwatch;
+  for (int i = 2; i <= sqrt_prime_count; i++) {
     if (primes[i]) {
       for (int j = i * i; j <= prime_count; j += i) {
         primes[j] = false;
       }
     }
+
+    if (use_duration) {
+      if (stopwatch.GetElapsedTime() >= duration) {
+        break;
+      } else if (i + 1 > sqrt_prime_count) {
+        i = 1;  // Reset to restart the sieve if time remains
+      }
+    }
   }
+
   // Loop through the array from 2 to n
   for (int i = 2; i <= prime_count; i++) {
     if (primes[i]) {

@@ -28,6 +28,7 @@ package privacy_sandbox.roma_byob.example;
 
 
 
+import "google/protobuf/duration.proto";
 
 //
 // UDF rpc: Sample
@@ -42,6 +43,8 @@ message SampleRequest {
   FunctionType function = 1;
   // The count of prime numbers to generate.
   int32 prime_count = 2;
+  // The duration of RunPrimeSieve.
+  google.protobuf.Duration duration = 3;
 }
 
 // SampleResponse returns the function's output.

@@ -26,6 +26,7 @@
 #include "absl/status/statusor.h"
 #include "absl/synchronization/blocking_counter.h"
 #include "absl/time/time.h"
+#include "google/protobuf/util/time_util.h"
 #include "src/roma/byob/config/config.h"
 #include "src/roma/byob/interface/roma_service.h"
 #include "src/roma/byob/sample_udf/sample_udf_interface.pb.h"
@@ -57,7 +58,7 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
     Mode mode, std::atomic<std::int64_t>& completions,
     SyscallFiltering syscall_filtering, bool disable_ipc_namespace,
     absl::Duration connection_timeout, std::string_view function_name,
-    int prime_count) {
+    const std::vector<std::string>& input_args) {
   std::unique_ptr<AppService> roma_service = std::make_unique<AppService>();
   CHECK_OK(roma_service->Init(
       /*config=*/{.lib_mounts = std::string(lib_mounts),
@@ -72,8 +73,19 @@ std::pair<ExecutionFunc, CleanupFunc> CreateByobRpcFunc(
   ::privacy_sandbox::roma_byob::example::SampleRequest request;
   if (function_name == "PrimeSieve") {
     request.set_function(FUNCTION_PRIME_SIEVE);
-    if (prime_count > 0) {
-      request.set_prime_count(prime_count);
+
+    if (!input_args.empty()) {
+      int prime_count = 0;
+      absl::Duration prime_duration;
+      if (absl::SimpleAtoi(input_args[0], &prime_count)) {
+        LOG(INFO) << "Running PrimeSieve with prime count: " << prime_count;
+        request.set_prime_count(prime_count);
+      } else if (absl::ParseDuration(input_args[0], &prime_duration)) {
+        LOG(INFO) << "Running PrimeSieve for duration: " << prime_duration;
+        *request.mutable_duration() =
+            google::protobuf::util::TimeUtil::NanosecondsToDuration(
+                absl::ToInt64Nanoseconds(prime_duration));
+      }
     }
   } else if (function_name == "Clone") {
     request.set_function(FUNCTION_CLONE);

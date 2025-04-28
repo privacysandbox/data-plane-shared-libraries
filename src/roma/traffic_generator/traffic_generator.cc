@@ -250,14 +250,7 @@ TrafficGenerator::RpcFuncCreator TrafficGenerator::GetDefaultRpcFuncCreator() {
   const std::string function_name = absl::GetFlag(FLAGS_function_name);
   const std::vector<std::string> input_args = absl::GetFlag(FLAGS_input_args);
 
-  int prime_count = 0;
-  if (function_name == "PrimeSieve" && !input_args.empty() &&
-      absl::SimpleAtoi(input_args[0], &prime_count)) {
-    LOG(INFO) << "Running PrimeSieve with prime count: " << prime_count;
-  }
-
-  return [function_name, input_args,
-          prime_count](std::atomic<std::int64_t>& completions)
+  return [function_name, input_args](std::atomic<std::int64_t>& completions)
              -> std::pair<ExecutionFunc, CleanupFunc> {
     return (absl::GetFlag(FLAGS_mode) == "byob")
                ? CreateByobRpcFunc(absl::GetFlag(FLAGS_num_workers),
@@ -267,7 +260,7 @@ TrafficGenerator::RpcFuncCreator TrafficGenerator::GetDefaultRpcFuncCreator() {
                                    absl::GetFlag(FLAGS_syscall_filtering),
                                    absl::GetFlag(FLAGS_disable_ipc_namespace),
                                    absl::GetFlag(FLAGS_byob_connection_timeout),
-                                   function_name, prime_count)
+                                   function_name, input_args)
                : CreateV8RpcFunc(absl::GetFlag(FLAGS_num_workers),
                                  absl::GetFlag(FLAGS_udf_path), function_name,
                                  input_args, completions);
