@@ -131,7 +131,7 @@ repos:
       \..*|
       .*-lock|
       testing/.*\.reply|
-      testing/parc/azure/local-k8s-hermetic/helmchart/templates/configmaps
+      testing/parc/azure/.*/helmchart/templates/configmaps
       )\.(json|yaml)|
       .*\.clang-tidy$
 
