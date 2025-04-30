@@ -162,6 +162,13 @@ RUN go mod download
 RUN OS=linux ARCH=${TARGETARCH} INSTALL_PATH=/promql-cli/build/bin/ make install
 
 #
+# stage: gojq
+#
+FROM golang-base AS jq
+RUN --mount=type=cache,target=/root/.cache/go-build \
+  go install github.com/itchyny/gojq/cmd/gojq@v0.12.17
+
+#
 # stage: Azure CLI
 #
 FROM runtime-base AS azure-cli
@@ -187,11 +194,13 @@ COPY --from=dist-artifacts --chmod=0755 /functionaltest /usr/local/bin/functiona
 COPY --from=ghz --chmod=0755 /go/bin/ghz /usr/local/bin/
 COPY --from=grpcurl --chmod=0755 /go/bin/grpcurl /usr/local/bin/
 COPY --from=ghcr.io/jqlang/jq:1.7.1 --chmod=0755 /jq /usr/local/bin
+COPY --from=jq --chmod=0755 /go/bin/gojq /usr/local/bin/
 COPY --from=promql-cli-build --chmod=0755 /promql-cli/build/bin/promql /usr/bin/promql
 ENV \
   GHZ=/usr/local/bin/ghz \
   GRPCURL=/usr/local/bin/grpcurl \
   JQ=/usr/local/bin/jq \
+  GOJQ=/usr/local/bin/gojq \
   PROMQL=/usr/bin/promql
 RUN /usr/local/bin/functionaltest dockersut deploy-and-test --init-bazel
 ENTRYPOINT ["/usr/local/bin/functionaltest"]

@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## 1.7.0 (2025-04-30)
+
+
+### Features
+
+* Add gojq as an alternative to jq
+
+
+### Dependencies
+
+* **deps:** Upgrade build-system to 1.0.1
+
 ## 1.6.0 (2025-04-25)
 
 
