@@ -20,8 +20,7 @@ exclude: (?x)^(
   builders/.*|
   .*\.patch|
   version.txt|
-  docs/cpio/protobuf/.*\.md|
-  testing/parc/azure/hermetic/query.md
+  docs/cpio/protobuf/.*\.md
   )$
 
 fail_fast: false
