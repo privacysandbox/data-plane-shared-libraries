@@ -73,6 +73,8 @@ def _proto_deps():
     maybe(
         http_archive,
         name = "rules_proto_grpc",
+        patch_args = ["-p1"],
+        patches = [Label("//third_party:rules_proto_grpc.patch")],
         sha256 = "a53cea895b9e870cdcfe5e50a1c61d8aa837c1d30b5886b210f0eb3e4709e4bc",
         strip_prefix = "rules_proto_grpc-4.6.0",
         urls = [
