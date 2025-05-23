@@ -150,11 +150,11 @@ build:ubsan --copt=-fno-sanitize=function
 build:ubsan --copt=-fno-sanitize=vptr
 build:ubsan --test_tag_filters=-noubsan
 
-# Required to build OpenTelemetry with Abseil
-build:otel --@io_opentelemetry_cpp//api:with_abseil
 # Required to build OpenTelemtry with logs API.
 # TODO(b/287675870): Delete the following when the feature is no longer experimental.
 build:otel --copt=-DENABLE_LOGS_PREVIEW
+# Ensure binary compatibility with OpenTelemetry ABI version 2.
+build:otel --@io_opentelemetry_cpp//api:abi_version_no=2
 
 build:instance_local --//:instance=local
 

@@ -15,6 +15,7 @@
 #include "opentelemetry/exporters/otlp/otlp_grpc_exporter.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_exporter_factory.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_log_record_exporter_factory.h"
+#include "opentelemetry/exporters/otlp/otlp_grpc_log_record_exporter_options.h"
 #include "opentelemetry/exporters/otlp/otlp_grpc_metric_exporter_factory.h"
 #include "opentelemetry/sdk/trace/random_id_generator_factory.h"
 
@@ -42,7 +43,7 @@ CreatePeriodicExportingMetricReader(
     absl::optional<std::string> collector_endpoint) {
   opentelemetry::exporter::otlp::OtlpGrpcMetricExporterOptions exporter_options;
   exporter_options.aggregation_temporality =
-      opentelemetry::sdk::metrics::AggregationTemporality::kDelta;
+      opentelemetry::exporter::otlp::PreferredAggregationTemporality::kDelta;
   if (collector_endpoint.has_value() && !collector_endpoint->empty()) {
     exporter_options.endpoint = *collector_endpoint;
   }
@@ -56,7 +57,7 @@ CreatePeriodicExportingMetricReader(
 
 std::unique_ptr<opentelemetry::sdk::logs::LogRecordExporter>
 CreateLogRecordExporter(absl::optional<std::string> collector_endpoint) {
-  opentelemetry::exporter::otlp::OtlpGrpcExporterOptions opts;
+  opentelemetry::exporter::otlp::OtlpGrpcLogRecordExporterOptions opts;
   if (collector_endpoint.has_value() && !collector_endpoint->empty()) {
     opts.endpoint = *collector_endpoint;
   }

@@ -50,16 +50,17 @@ void MetricRouter::AddHistogramView(
       histogram_boundaries.begin(), histogram_boundaries.end());
   auto* sdk_meter = static_cast<sdk::Meter*>(meter_);
   static_cast<sdk::MeterProvider*>(provider_.get())
-      ->AddView(
-          std::make_unique<sdk::InstrumentSelector>(
-              sdk::InstrumentType::kHistogram, instrument_name.data()),
-          std::make_unique<sdk::MeterSelector>(
-              sdk_meter->GetInstrumentationScope()->GetName(),
-              sdk_meter->GetInstrumentationScope()->GetVersion(),
-              sdk_meter->GetInstrumentationScope()->GetSchemaURL()),
-          // First 2 arguments use empty string, so not to overwrite
-          // instrument's name and description
-          std::make_unique<sdk::View>("", "", sdk::AggregationType::kHistogram,
-                                      aggregation_config));
+      ->AddView(std::make_unique<sdk::InstrumentSelector>(
+                    sdk::InstrumentType::kHistogram,
+                    std::string(instrument_name), /*unit=*/""),
+                std::make_unique<sdk::MeterSelector>(
+                    sdk_meter->GetInstrumentationScope()->GetName(),
+                    sdk_meter->GetInstrumentationScope()->GetVersion(),
+                    sdk_meter->GetInstrumentationScope()->GetSchemaURL()),
+                // First three arguments use empty string, so not to overwrite
+                // the instrument's name, description and units
+                std::make_unique<sdk::View>(
+                    /*name=*/"", /*description=*/"", /*unit=*/"",
+                    sdk::AggregationType::kHistogram, aggregation_config));
 }
 }  // namespace privacy_sandbox::server_common::metrics

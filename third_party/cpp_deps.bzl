@@ -124,10 +124,13 @@ def cpp_dependencies():
     maybe(
         http_archive,
         name = "io_opentelemetry_cpp",
-        sha256 = "c61f4c6f820b04b920f35f84a3867cd44138bac4da21d21fbc00645c97e2051e",
-        strip_prefix = "opentelemetry-cpp-1.9.1",
+        patch_args = ["-p1"],
+        # TODO(b/411264995): Remove this patch once https://github.com/open-telemetry/opentelemetry-cpp/issues/3354 is fixed.
+        patches = [Label("//third_party:io_opentelemetry_cpp.patch")],
+        sha256 = "2562959b23c8216406d13c6726aa14dc9cbbf15d9efdc8b7ce0aa5c1abb0be1c",
+        strip_prefix = "opentelemetry-cpp-1.20.0",
         urls = [
-            "https://github.com/open-telemetry/opentelemetry-cpp/archive/refs/tags/v1.9.1.zip",
+            "https://github.com/open-telemetry/opentelemetry-cpp/archive/refs/tags/v1.20.0.zip",
         ],
     )
     maybe(
